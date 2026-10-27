@@ -20,8 +20,8 @@ func (c *checker) checkSeparationOfDuties(d *design) {
 		for i, p := range source.Items(source.Child(set.Value, "permissions")) {
 			ptr := source.Pointer("separationOfDuties", name, "permissions", fmt.Sprint(i))
 			switch {
-			case p.Value == "public":
-				c.add(p, ptr, RuleSeparationOfDuties, "set %s names public, which everyone holds, so no role can be kept from it; name only permissions a role grants", name)
+			case p.Value == "public" || p.Value == permissionSignedIn:
+				c.add(p, ptr, RuleSeparationOfDuties, "set %s names %s, which everyone holds, so no role can be kept from it; name only permissions a role grants", name, p.Value)
 			case d.permissions[p.Value] == nil:
 				c.add(p, ptr, RuleSeparationOfDuties, "set %s names permission %s, which is not declared; add it under permissions%s", name, p.Value, strings.Replace(suggest(p.Value, d.permissions), "; there are none in the specification", "", 1))
 			}

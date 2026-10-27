@@ -23,6 +23,9 @@ const (
 	callerPeople     = "people"
 	permissionNobody = "nobody"
 	permissionPublic = "public"
+	// permissionSignedIn is held by every caller once signed in, and
+	// granted by no role (ADR-197).
+	permissionSignedIn = "signedIn"
 )
 
 // The signature algorithms RFC 9421 registers.
@@ -270,7 +273,7 @@ func (c *checker) checkCallerList(d *design, n *yaml.Node, at, who string) {
 			case cl == nil:
 			case source.Str(source.Child(cl, "kind")) == "service" && source.Child(cl, "roles") == nil:
 				c.add(item, iat, RuleCallers, "%s is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles", name)
-			case perm != "" && perm != permissionPublic && perm != permissionNobody && !o.grants(itemValues(source.Child(cl, "roles")), SpecName(d.root), perm):
+			case perm != "" && perm != permissionPublic && perm != permissionNobody && perm != permissionSignedIn && !o.grants(itemValues(source.Child(cl, "roles")), SpecName(d.root), perm):
 				c.add(item, iat, RuleCallers, "%s holds no role that grants %s of %s, so it could never call %s; add the permission to one of its roles in %s, or take the client out of callers", name, perm, SpecName(d.root), who, o.name)
 			}
 			continue
@@ -284,7 +287,7 @@ func (c *checker) checkCallerList(d *design, n *yaml.Node, at, who string) {
 			c.add(item, iat, RuleCallers, "%s is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles", name)
 			continue
 		}
-		if perm != "" && perm != permissionPublic && perm != permissionNobody && !d.clientHolds(cl)[perm] {
+		if perm != "" && perm != permissionPublic && perm != permissionNobody && perm != permissionSignedIn && !d.clientHolds(cl)[perm] {
 			c.add(item, iat, RuleCallers, "%s holds no role that grants %s, so it could never call %s; add the permission to one of its roles, or take the client out of callers", name, perm, who)
 		}
 	}

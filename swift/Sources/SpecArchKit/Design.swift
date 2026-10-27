@@ -266,6 +266,8 @@ extension Checker {
         checkEnabledBy(d)
         checkPageEvents(d)
         checkFlows(d)
+        checkRoleHomes(d)
+        checkNavigation(d)
         checkPageStates(d)
         checkMakerChecker(d)
         checkCompactColumns(d)
@@ -883,6 +885,11 @@ extension Checker {
         for (name, cmd) in d.commands { use(cmd.child("permission"), pointer("commands", name, "permission"), "command " + name) }
         for (name, pg) in d.pages {
             use(pg.child("permission"), pointer("pages", name, "permission"), "page " + name)
+            for f in pairs(pg.child("fieldConditions")) {
+                for k in ["readOnlyUnless", "hiddenUnless"] {
+                    use(f.value.child(k), pointer("pages", name, "fieldConditions", f.key.value, k), "field \(f.key.value) of page \(name)")
+                }
+            }
             for (i, a) in items(pg.child("actions")).enumerated() {
                 use(a.child("permission"), pointer("pages", name, "actions", "\(i)", "permission"), "an action of page " + name)
             }
@@ -898,6 +905,10 @@ extension Checker {
                     add(p, pointer("roles", name, "permissions", "\(i)"), .reservedName, "nobody is the reserved permission of a route closed on purpose, which no role grants; remove it from role \(name)")
                     continue
                 }
+                if p.value == permissionSignedIn {
+                    add(p, pointer("roles", name, "permissions", "\(i)"), .reservedName, "signedIn is the reserved permission every caller holds once signed in, which no role grants; remove it from role \(name)")
+                    continue
+                }
                 use(p, pointer("roles", name, "permissions", "\(i)"), "role " + name)
             }
         }
@@ -905,7 +916,7 @@ extension Checker {
         // identity module; while that module is not given, it is counted as
         // an unresolved reference (ADR-107).
         let granted = d.grantedHere
-        for p in pairs(d.root.child("permissions")) where p.key.value != permissionPublic && p.key.value != permissionNobody && !granted.contains(p.key.value) {
+        for p in pairs(d.root.child("permissions")) where p.key.value != permissionPublic && p.key.value != permissionNobody && p.key.value != permissionSignedIn && !granted.contains(p.key.value) {
             let g = identityGrant(d, p.key.value)
             if g.granted || !g.waits.isEmpty { continue }
             if !g.identity.isEmpty {

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "roles whose homes are a page they open, a page with a route parameter, a page the role may not open and a page that does not exist; menus with an entry to a page closed to everyone; a public welcome page and an archive list nothing leads to; a list whose row action removes a member, which can answer member-not-found, on a page without states; and a form with no onSubmitted"
+when: "validate is run"
+then: "it reports role_home three times, warns as navigation of the archive list, the role that can open no menu entry, the closed entry, the row action and the form, leaves the public page and the homes out, and exits 1"
+verifies: [SA-102]

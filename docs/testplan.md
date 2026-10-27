@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 809 design tests, 393 golden and 416 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 813 design tests, 394 golden and 419 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 809 design tests, 393 golden and 416 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 805 |
+| system | 809 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4695,6 +4695,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports field and exits 1
 
+#### validate-field-modes
+
+Scenario: red; level: system; covers exit 1; verifies SA-102.
+
+- Given: a form and a view whose fields are read-only or hidden unless the caller holds a permission: one a role holds that some callers of the page lack, one not declared, the page's own, public, signedIn on a page that needs a permission, nobody, readOnlyUnless on a view and beside readOnly
+- When: validate is run
+- Then: it reports permission_undeclared once and form_field for the view, the field read-only already, the page's own permission, public, signedIn and nobody twice, keeps the permission some callers lack, and exits 1
+
 #### validate-file-kind-name
 
 Scenario: red; level: system; covers exit 1.
@@ -5286,6 +5294,22 @@ Scenario: golden; level: system; verifies SA-12.
 - Given: an operation stage with a monitor that verifies the one requirement, and an installation that watches it
 - When: validate is run
 - Then: it prints nothing, since the monitor counts as verifying the requirement, and exits 0
+
+#### validate-navigation
+
+Scenario: red; level: system; covers exit 1; verifies SA-102.
+
+- Given: roles whose homes are a page they open, a page with a route parameter, a page the role may not open and a page that does not exist; menus with an entry to a page closed to everyone; a public welcome page and an archive list nothing leads to; a list whose row action removes a member, which can answer member-not-found, on a page without states; and a form with no onSubmitted
+- When: validate is run
+- Then: it reports role_home three times, warns as navigation of the archive list, the role that can open no menu entry, the closed entry, the row action and the form, leaves the public page and the homes out, and exits 1
+
+#### validate-navigation-valid
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: two roles, each with a home it may open; a profile page and its operation of signedIn, which no role grants, reached from a menu; fields read-only or hidden unless the caller holds a permission some callers of the page lack; menus every role reaches, a public welcome page nothing leads to, a list whose states give a message for the problem its row action can answer, and forms that lead on when sent
+- When: validate is run
+- Then: it reports no role_home, navigation, form_field, reserved_name or permission_ungranted, only the warnings of the earlier meta-model and the tests it asks for, and exits 0
 
 #### validate-need
 
@@ -5967,6 +5991,14 @@ Scenario: red; level: system; verifies SA-93.
 - When: validate is run over the three
 - Then: it reports each at its entry under the rule sign_in, every reference of signIn at its key, the const at the claim, the message and the onSelect at the event, the navigate of the second at its page and its deployment's signIn there, with the same words in both builds, and exits 1
 
+#### validate-signed-in
+
+Scenario: red; level: system; covers exit 1; verifies SA-102.
+
+- Given: signedIn declared under permissions, implying a permission and implied by one; a role that grants it; a set of separationOfDuties that names it; a role whose home and a flow's step are a page of signedIn, and an operation of signedIn
+- When: validate is run
+- Then: it reports reserved_name for the role that grants it, implies twice and separation_of_duties once, does not report it ungranted, lets every role open its page as home and in the flow, and its tests, written as validate asks, refuse a caller who is not signed in at the operations and the pages, and exits 1
+
 #### validate-source
 
 Scenario: red; level: system; covers exit 1; verifies SA-13.
@@ -6571,7 +6603,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-452 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+458 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6834,6 +6866,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-99 | acceptance 4 | golden | SA-99 names no harm |
 | requirement SA-99 | acceptance 5 | golden | SA-99 names no harm |
 | requirement SA-99 | acceptance 6 | golden | SA-99 names no harm |
+| requirement SA-102 | acceptance 1 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 2 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 3 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 4 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 5 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 6 | golden | SA-102 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

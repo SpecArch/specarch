@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:17:67: error: /permissions/signedIn/implies: implies: signedIn implies members.read, which would give it to everyone signed in, whatever their roles; grant it to a role instead [implies@specarch.yaml#/permissions/signedIn/implies]
+  specarch.yaml:18:56: error: /permissions/members.read/implies/0: implies: permission members.read implies signedIn, which everyone holds already; take it out of the list [implies@specarch.yaml#/permissions/members.read/implies/0]
+  specarch.yaml:24:81: error: /roles/clerk/permissions/1: reserved_name: signedIn is the reserved permission every caller holds once signed in, which no role grants; remove it from role clerk [reserved_name@specarch.yaml#/roles/clerk/permissions/1]
+  specarch.yaml:28:19: error: /separationOfDuties/register-and-remove/permissions/0: separation_of_duties: set register-and-remove names signedIn, which everyone holds, so no role can be kept from it; name only permissions a role grants [separation_of_duties@specarch.yaml#/separationOfDuties/register-and-remove/permissions/0]

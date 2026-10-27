@@ -504,7 +504,7 @@ extension ReferenceResolver {
     func ungrantedWaiting() -> [Pair] {
         let granted = d.grantedHere
         return pairs(d.root.child("permissions")).filter { p in
-            p.key.value != permissionPublic && p.key.value != permissionNobody && !granted.contains(p.key.value) && !identityGrant(p.key.value).waits.isEmpty
+            p.key.value != permissionPublic && p.key.value != permissionNobody && p.key.value != permissionSignedIn && !granted.contains(p.key.value) && !identityGrant(p.key.value).waits.isEmpty
         }
     }
 }

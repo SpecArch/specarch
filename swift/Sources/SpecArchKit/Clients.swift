@@ -11,6 +11,8 @@ import Foundation
 
 /// The reserved words of callers and permissions.
 let callerPeople = "people", permissionNobody = "nobody", permissionPublic = "public"
+/// Held by every caller once signed in, and granted by no role (ADR-197).
+let permissionSignedIn = "signedIn"
 
 /// The signature algorithms RFC 9421 registers.
 let signatureAlgorithms = ["ecdsa-p256-sha256", "ecdsa-p384-sha384", "ed25519", "hmac-sha256", "rsa-pss-sha512", "rsa-v1_5-sha256"]
@@ -272,7 +274,7 @@ extension Checker {
                 guard let rc = referencedClient(d, name) else { continue }
                 if str(rc.node.child("kind")) == "service" && rc.node.child("roles") == nil {
                     add(item, iat, .callers, "\(name) is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles")
-                } else if !perm.isEmpty && perm != permissionPublic && perm != permissionNobody && !rc.grants(items(rc.node.child("roles")).map { $0.value }, perm) {
+                } else if !perm.isEmpty && perm != permissionPublic && perm != permissionNobody && perm != permissionSignedIn && !rc.grants(items(rc.node.child("roles")).map { $0.value }, perm) {
                     add(item, iat, .callers, "\(name) holds no role that grants \(perm) of \(specName(d.root)), so it could never call \(who); add the permission to one of its roles in \(rc.module), or take the client out of callers")
                 }
                 continue
@@ -285,7 +287,7 @@ extension Checker {
                 add(item, iat, .callers, "\(name) is a service with no roles, which only carries a person's call and never calls on its own account; list people, whose calls it carries, or give it roles")
                 continue
             }
-            if !perm.isEmpty && perm != permissionPublic && perm != permissionNobody && !d.clientHolds(cl).contains(perm) {
+            if !perm.isEmpty && perm != permissionPublic && perm != permissionNobody && perm != permissionSignedIn && !d.clientHolds(cl).contains(perm) {
                 add(item, iat, .callers, "\(name) holds no role that grants \(perm), so it could never call \(who); add the permission to one of its roles, or take the client out of callers")
             }
         }

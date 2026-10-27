@@ -234,7 +234,8 @@ extension Checker {
         let perm = str(pg.child("permission"))
         if need.isEmpty || need == "public" || need == perm { return }
         for r in pairs(d.root.child("roles")) {
-            let granted = d.roleHolds(r.value)
+            var granted = d.roleHolds(r.value)
+            granted.insert(permissionSignedIn)
             if (perm == "public" || granted.contains(perm)) && !granted.contains(need) {
                 add(srcNode, pointer(at + ["source"]), .picker, "\(r.key.value) may open \(name) but not read \(src), which needs \(need); grant it to the role, or pick from a list the role may read")
             }
@@ -290,17 +291,37 @@ extension Checker {
                 add(p.key, pointer(at), .formField, "\(p.key.value) is not a field \(name) shows\(suggest(p.key.value, shown))")
                 continue
             }
-            for k in ["readOnly", "readOnlyWhen"] where kind == "view" && p.value.child(k) != nil {
+            for k in ["readOnly", "readOnlyWhen", "readOnlyUnless"] where kind == "view" && p.value.child(k) != nil {
                 add(p.value.key(k), pointer(at + [k]), .formField, "\(name) is a view, where every field is read-only; leave \(k) out")
             }
-            if kind == "form" && p.value.child("readOnly") != nil && p.value.child("readOnlyWhen") != nil {
-                add(p.value.key("readOnlyWhen"), pointer(at + ["readOnlyWhen"]), .formField, "\(p.key.value) is read-only on \(name) already; leave readOnlyWhen out, or readOnly")
+            for k in ["readOnlyWhen", "readOnlyUnless"] where kind == "form" && p.value.child("readOnly") != nil && p.value.child(k) != nil {
+                add(p.value.key(k), pointer(at + [k]), .formField, "\(p.key.value) is read-only on \(name) already; leave \(k) out, or readOnly")
+            }
+            for k in ["readOnlyUnless", "hiddenUnless"] where !(kind == "view" && k == "readOnlyUnless") {
+                checkFieldPermission(name, pg, p.key.value, p.value.child(k), pointer(at + [k]), k)
             }
             if ent == nil { continue }
             let env = d.recordEnv(pg, ent, shown)
             for k in ["readOnlyWhen", "hiddenWhen"] {
                 checkCondition(p.value.child(k), pointer(at + [k]), k, env)
             }
+        }
+    }
+
+    /// Checks the permission a field's readOnlyUnless or hiddenUnless names:
+    /// one that some caller who opens the page lacks, since a permission
+    /// every such caller holds never changes the field, and nobody, which no
+    /// caller holds, always does (ADR-197). Whether it is declared is checked
+    /// with every other permission used.
+    func checkFieldPermission(_ name: String, _ pg: YNode, _ field: String, _ n: YNode?, _ ptr: String, _ key: String) {
+        guard let n else { return }
+        let perm = str(n), page = str(pg.child("permission"))
+        if perm == permissionNobody && key == "hiddenUnless" {
+            add(n, ptr, .formField, "no caller holds nobody, so \(field) would never be shown; leave the field out of \(name)")
+        } else if perm == permissionNobody {
+            add(n, ptr, .formField, "no caller holds nobody, so \(field) would never be changed; write readOnly: true")
+        } else if perm == permissionPublic || (perm == permissionSignedIn && page != permissionPublic) || perm == page {
+            add(n, ptr, .formField, "every caller who opens \(name) holds \(perm), so \(key) never changes the field; name a permission only some of them hold, or leave \(key) out")
         }
     }
 

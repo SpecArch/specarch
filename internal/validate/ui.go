@@ -409,6 +409,7 @@ func (c *checker) checkFlows(d *design) {
 		}
 		granted := d.roleHolds(role)
 		granted["public"] = true
+		granted[permissionSignedIn] = true
 		steps := source.Items(source.Child(f.Value, "steps"))
 		for i, step := range steps {
 			at := []string{"flows", name, "steps", fmt.Sprint(i)}

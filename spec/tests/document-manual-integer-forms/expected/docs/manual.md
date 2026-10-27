@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 0 tasks, 1 page and 0 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Who uses it
 
 Each role a person holds, and the pages it opens. A person holding several roles opens the pages of each.
@@ -29,6 +31,8 @@ The specification has no flows; a task a person does across pages, with who does
 The desk adds a row per copy lent.
 
 Opened by clerk (the permission loans.write).
+
+**Problem:** warning: navigation: member-loans is a form with no onSubmitted, so nothing says where the person goes or what they are told once it is sent; add onSubmitted [navigation@specarch.yaml#/pages/member-loans]
 
 | Field | What to enter | Required |
 |---|---|---|

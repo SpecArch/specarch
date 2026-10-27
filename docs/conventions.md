@@ -750,6 +750,9 @@ redefined.
 | `proof`, `signedRequest`, `algorithm`, `covers`, `mutualTls` | SpecArch, after RFC 9421 (HTTP Message Signatures) and RFC 8705 | how a client proves its identity on each request; the algorithm names and covered components are the RFC's (ADR-096) |
 | `callers`, `people` | SpecArch | the explicit subset of who may call an operation or command; `people` reserved for anyone signed in (ADR-110) |
 | `nobody` | SpecArch | the reserved permission of a route closed on purpose, beside `public` (ADR-096) |
+| `signedIn` | SpecArch | the reserved permission every caller holds once signed in, beside `public` and `nobody`, for what every person has whatever their role (ADR-197) |
+| `home` (of a role) | SpecArch | the page a holder of the role is shown after signing in and when opening the application (ADR-197) |
+| `readOnlyUnless`, `hiddenUnless` | SpecArch | a field's mode on a form or a view by a permission the caller holds, beside `readOnlyWhen` and `hiddenWhen` over the record (ADR-197) |
 | `through` (of a role) | SpecArch, after RFC 8693's `client_id` claim | the clients a grant holds through, checked against the application the token carries (ADR-106, ADR-108) |
 | `tokens`, `format`, `lifetime`, `signature` (of a token), `claims`, `checks`, `default`, `token` (on an operation) | SpecArch, after RFC 7519, RFC 9068, RFC 7518 and RFC 8725 | a token format: its kind, lifetime, algorithm, claims as properties, checks over them and whether it is the default (ADR-097) |
 | `trustDomain` | SpecArch, after the OAuth Transaction Tokens draft | in the identity module's root file, the URI naming the trust domain: the `aud` of every transaction token and the base of every security event's identifier (ADR-107) |
@@ -892,6 +895,16 @@ check of what a role grants counts what its permissions imply, and the
 techspec's matrix marks an implied one with the permission it comes through.
 An undeclared name, `public` on either side and a cycle are refused
 (`implies`).
+
+The permission `signedIn` is reserved too, declared under `permissions`
+like `public`: every caller holds it once signed in, a person or a client,
+and no role grants it, so a page every person has whatever their role, such
+as their own profile, needs no grant to every role by name (ADR-197). A
+role that lists it is refused (`reserved_name`); it neither implies nor is
+implied, and a set of `separationOfDuties` does not name it, as for
+`public`. Its derived cases are `denied when not signed in` and, with a
+session, `denied with expired session`. It is the one permission name with
+a capital, which no specification could declare before it was reserved.
 
 ### The caller and the row policies of a role
 
@@ -1668,6 +1681,27 @@ retries do not keep an item apart, is an error (`job`).
 or with `items` of its own. Every page an entry opens must exist (`menu`).
 An entry is shown to who may open its page.
 
+A role names its `home`, the page a holder is shown after signing in and
+when opening the application (ADR-197):
+
+    roles:
+      librarian: { description: Staff at the desk., permissions: [members.read, loans.read], home: members-list }
+
+The home is a page without route parameters the role may open, by a
+permission it holds or `public` or `signedIn` (`role_home`). A person
+holding several roles is shown the home of the first of them, in the order
+the roles are declared, that has one.
+
+The validator warns, as `navigation`, of the gaps a person going through
+the screens meets, each a question to ask rather than an error: a page no
+menu entry, action, event or link leads to that is neither `public` nor a
+role's home; a role that can open no menu entry; a menu entry whose page no
+role can open; an operation action on a page without `states` whose
+operation answers a problem type; and a form with no `onSubmitted`. The
+first three are checked once the specification has `menus`; the roles a
+job acts as or a service client holds are left out of the second, since no
+person signs in as them.
+
 ### Gateways
 
 A service that registers routes only for its health and its metrics and
@@ -2123,7 +2157,15 @@ ask for a reason:
   the property of the operation's request body that carries the reason
   typed in the confirmation, a string the body requires (`action`).
 - `fieldConditions` are a form's or a view's, keyed by a field it shows:
-  `readOnly`, `readOnlyWhen` and `hiddenWhen`. Every field of a view is
+  `readOnly`, `readOnlyWhen` and `hiddenWhen` over the record, and
+  `readOnlyUnless` and `hiddenUnless`, a permission the caller must hold
+  for the field to be changed or shown, so a field's mode differs by role
+  without naming a role (ADR-197). The permission is declared, and some
+  caller who opens the page lacks it: the page's own permission, `public`,
+  `signedIn` on a page that needs another, and `nobody` are refused
+  (`form_field`). `hiddenUnless` hides a field on the page only: the
+  operation still answers it, so what a role must never receive is left
+  out of the response on the server. Every field of a view is
   read-only already. A page is one mode: a form without `source`
   creates, a form with one edits, and a view shows; a field hidden in a
   mode is one that page does not list.
@@ -2526,6 +2568,7 @@ mistake:
 | an enum | `<field> not one of its values` | red | frequent |
 | a format that values can break (email, uuid, date, decimal...) | `<field> not a valid <format>` | red | frequent |
 | a permission other than `public` on an operation, command or page | `denied without <permission>` | red | frequent |
+| `signedIn` on an operation, command or page, in place of the case above | `denied when not signed in` | red | frequent |
 | a path parameter, or a route parameter of a page | `not found <parameter>` | red | frequent |
 | a body field that is the `via` of a relation of the entity the operation returns | `not found <field>` | red | frequent |
 | a unique constraint of the entity a POST with a 201 response creates | `duplicate <constraint>` | red | occasional |

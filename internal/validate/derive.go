@@ -376,6 +376,9 @@ func caller(perm string) string {
 	if perm == permissionNobody {
 		return "no caller"
 	}
+	if perm == permissionSignedIn {
+		return "a signed-in caller"
+	}
 	return "a caller with " + perm
 }
 
@@ -384,13 +387,18 @@ func golden(given, when, then string) derivedCase {
 }
 
 // denied adds the cases of a permission other than public: a caller
-// without it, and, once the specification declares a session, a caller
+// without it, or one not signed in for signedIn, which every signed-in
+// caller holds, and, once the specification declares a session, a caller
 // whose session has expired.
 func (d *design) denied(s *subject, perm, what string) {
 	if perm == "" || perm == permissionPublic || perm == permissionNobody {
 		return
 	}
-	s.red("denied without "+perm, frequent, "a caller without "+perm, what, "it is refused as not allowed")
+	if perm == permissionSignedIn {
+		s.red("denied when not signed in", frequent, "a caller who is not signed in", what, "it is refused as not signed in")
+	} else {
+		s.red("denied without "+perm, frequent, "a caller without "+perm, what, "it is refused as not allowed")
+	}
 	if source.Child(d.root, "session") != nil {
 		s.red("denied with expired session", frequent, "a caller whose session has expired", what, "it is refused as not signed in")
 	}

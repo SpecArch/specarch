@@ -31,11 +31,16 @@ func (c *checker) checkImplies(d *design) {
 				"public implies %s, which would give it to everyone, signed in or not; grant it to a role instead", joinAnd(itemValues(list)))
 			continue
 		}
+		if name == permissionSignedIn && len(source.Items(list)) > 0 {
+			c.add(list, source.Pointer("permissions", name, "implies"), RuleImplies,
+				"signedIn implies %s, which would give it to everyone signed in, whatever their roles; grant it to a role instead", joinAnd(itemValues(list)))
+			continue
+		}
 		for i, p := range source.Items(list) {
 			ptr := source.Pointer("permissions", name, "implies", fmt.Sprint(i))
 			switch {
-			case p.Value == "public":
-				c.add(p, ptr, RuleImplies, "permission %s implies public, which everyone holds already; take it out of the list", name)
+			case p.Value == "public" || p.Value == permissionSignedIn:
+				c.add(p, ptr, RuleImplies, "permission %s implies %s, which everyone holds already; take it out of the list", name, p.Value)
 			case d.permissions[p.Value] == nil:
 				c.add(p, ptr, RuleImplies, "permission %s implies %s, which is not declared; add it under permissions%s", name, p.Value, strings.Replace(suggest(p.Value, d.permissions), "; there are none in the specification", "", 1))
 			}
@@ -79,7 +84,7 @@ func (d *design) impliesCycle(name string) []string {
 func (d *design) impliedBy(name string) []string {
 	var out []string
 	for _, p := range source.Items(source.Child(d.permissions[name], "implies")) {
-		if p.Value != "public" && d.permissions[p.Value] != nil {
+		if p.Value != "public" && p.Value != permissionSignedIn && d.permissions[p.Value] != nil {
 			out = append(out, p.Value)
 		}
 	}

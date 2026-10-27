@@ -111,6 +111,8 @@ public enum Rule: String, CaseIterable, Sendable {
     case menu = "menu"
     case view = "view"
     case flow = "flow"
+    case roleHome = "role_home"
+    case navigation = "navigation"
     case state = "state"
     case accessibility = "accessibility"
     case theme = "theme"

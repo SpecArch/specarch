@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a form and a view whose fields are read-only or hidden unless the caller holds a permission: one a role holds that some callers of the page lack, one not declared, the page's own, public, signedIn on a page that needs a permission, nobody, readOnlyUnless on a view and beside readOnly"
+when: "validate is run"
+then: "it reports permission_undeclared once and form_field for the view, the field read-only already, the page's own permission, public, signedIn and nobody twice, keeps the permission some callers lack, and exits 1"
+verifies: [SA-102]

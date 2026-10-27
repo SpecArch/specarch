@@ -231,6 +231,7 @@ func (c *checker) checkPickerAccess(d *design, name string, pg, srcNode *yaml.No
 	}
 	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
 		granted := d.roleHolds(r.Value)
+		granted[permissionSignedIn] = true
 		if (perm == "public" || granted[perm]) && !granted[need] {
 			c.add(srcNode, source.Pointer(append(at, "source")...), RulePicker, "%s may open %s but not read %s, which needs %s; grant it to the role, or pick from a list the role may read", r.Key.Value, name, src, need)
 		}
@@ -296,13 +297,21 @@ func (c *checker) checkFieldConditions(d *design, name string, pg *yaml.Node, ki
 			c.add(p.Key, source.Pointer(at...), RuleFormField, "%s is not a field %s shows%s", p.Key.Value, name, suggest(p.Key.Value, shown))
 			continue
 		}
-		for _, k := range []string{"readOnly", "readOnlyWhen"} {
+		for _, k := range []string{"readOnly", "readOnlyWhen", "readOnlyUnless"} {
 			if kind == "view" && source.Child(p.Value, k) != nil {
 				c.add(source.Key(p.Value, k), source.Pointer(append(at, k)...), RuleFormField, "%s is a view, where every field is read-only; leave %s out", name, k)
 			}
 		}
-		if kind == "form" && source.Child(p.Value, "readOnly") != nil && source.Child(p.Value, "readOnlyWhen") != nil {
-			c.add(source.Key(p.Value, "readOnlyWhen"), source.Pointer(append(at, "readOnlyWhen")...), RuleFormField, "%s is read-only on %s already; leave readOnlyWhen out, or readOnly", p.Key.Value, name)
+		for _, k := range []string{"readOnlyWhen", "readOnlyUnless"} {
+			if kind == "form" && source.Child(p.Value, "readOnly") != nil && source.Child(p.Value, k) != nil {
+				c.add(source.Key(p.Value, k), source.Pointer(append(at, k)...), RuleFormField, "%s is read-only on %s already; leave %s out, or readOnly", p.Key.Value, name, k)
+			}
+		}
+		for _, k := range []string{"readOnlyUnless", "hiddenUnless"} {
+			if kind == "view" && k == "readOnlyUnless" {
+				continue
+			}
+			c.checkFieldPermission(name, pg, p.Key.Value, source.Child(p.Value, k), source.Pointer(append(at, k)...), k)
 		}
 		if ent == nil {
 			continue
@@ -311,6 +320,26 @@ func (c *checker) checkFieldConditions(d *design, name string, pg *yaml.Node, ki
 		for _, k := range []string{"readOnlyWhen", "hiddenWhen"} {
 			c.checkCondition(source.Child(p.Value, k), source.Pointer(append(at, k)...), k, env)
 		}
+	}
+}
+
+// checkFieldPermission checks the permission a field's readOnlyUnless or
+// hiddenUnless names: one that some caller who opens the page lacks, since
+// a permission every such caller holds never changes the field, and
+// nobody, which no caller holds, always does (ADR-197). Whether it is
+// declared is checked with every other permission used.
+func (c *checker) checkFieldPermission(name string, pg *yaml.Node, field string, n *yaml.Node, ptr, key string) {
+	if n == nil {
+		return
+	}
+	perm, page := source.Str(n), source.Str(source.Child(pg, "permission"))
+	switch {
+	case perm == permissionNobody && key == "hiddenUnless":
+		c.add(n, ptr, RuleFormField, "no caller holds nobody, so %s would never be shown; leave the field out of %s", field, name)
+	case perm == permissionNobody:
+		c.add(n, ptr, RuleFormField, "no caller holds nobody, so %s would never be changed; write readOnly: true", field)
+	case perm == permissionPublic || perm == permissionSignedIn && page != permissionPublic || perm == page:
+		c.add(n, ptr, RuleFormField, "every caller who opens %s holds %s, so %s never changes the field; name a permission only some of them hold, or leave %s out", name, perm, key, key)
 	}
 }
 

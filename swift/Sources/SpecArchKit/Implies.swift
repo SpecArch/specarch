@@ -14,10 +14,15 @@ extension Checker {
                     "public implies \(joinAnd(items(list).map { $0.value })), which would give it to everyone, signed in or not; grant it to a role instead")
                 continue
             }
+            if name == permissionSignedIn && !items(list).isEmpty {
+                add(list, pointer("permissions", name, "implies"), .implies,
+                    "signedIn implies \(joinAnd(items(list).map { $0.value })), which would give it to everyone signed in, whatever their roles; grant it to a role instead")
+                continue
+            }
             for (i, p) in items(list).enumerated() {
                 let ptr = pointer("permissions", name, "implies", "\(i)")
-                if p.value == "public" {
-                    add(p, ptr, .implies, "permission \(name) implies public, which everyone holds already; take it out of the list")
+                if p.value == "public" || p.value == permissionSignedIn {
+                    add(p, ptr, .implies, "permission \(name) implies \(p.value), which everyone holds already; take it out of the list")
                 } else if d.permissions[p.value] == nil {
                     let hint = suggest(p.value, d.permissions).replacingOccurrences(of: "; there are none in the specification", with: "")
                     add(p, ptr, .implies, "permission \(name) implies \(p.value), which is not declared; add it under permissions\(hint)")
@@ -63,7 +68,7 @@ extension Design {
     /// The declared, non-public permissions a permission lists under
     /// implies, in the order written.
     func impliedBy(_ name: String) -> [String] {
-        items(permissions[name]?.child("implies")).map { $0.value }.filter { $0 != "public" && permissions[$0] != nil }
+        items(permissions[name]?.child("implies")).map { $0.value }.filter { $0 != "public" && $0 != permissionSignedIn && permissions[$0] != nil }
     }
 
     /// Every permission a holder of the given ones holds: those and every

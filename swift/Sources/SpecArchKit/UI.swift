@@ -304,6 +304,7 @@ extension Checker {
             }
             var granted = d.roleHolds(role)
             granted.insert("public")
+            granted.insert(permissionSignedIn)
             let steps = items(f.value.child("steps"))
             for (i, step) in steps.enumerated() {
                 let at = ["flows", name, "steps", "\(i)"]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.3.0 of the specification: 5 stakeholders, 10 needs and 101 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.3.0 of the specification: 5 stakeholders, 10 needs and 102 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,7 +33,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
@@ -42,7 +42,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
-| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-58, SA-60, SA-101, SA-57, SA-100 |
+| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-58, SA-60, SA-101, SA-57, SA-100 |
 
 ## 4. Requirements
 
@@ -98,6 +98,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-94 | functional | must | accepted | specarch generate ui shall write, for a custom page, the route, the guard and the menu entry, and import the screen from a file the project writes, named in the generated output, so that a missing screen fails the build or the load and never shows a blank page; generate --check shall compare nothing of the project's file, and the technical specification and the manual shall list the page as the project's own screen. |
 | SA-98 | functional | must | accepted | A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is. |
 | SA-99 | functional | must | proposed | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. |
+| SA-102 | functional | should | proposed | A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -972,6 +973,23 @@ Acceptance criteria:
 - Both builds print the same lines for every case.
 
 **Insight:** A date-time without its zone is read in whatever zone the reader runs in, so the same value means two instants on two hosts and a date is turned into an instant by a guess; the owner's rule of 2026-10-26 is that a date-time carries its zone everywhere, that a zoneless one says why, and that a date meets the clock only in the zone the specification declares (ADR-193, ADR-194).
+
+### SA-102
+
+A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-1, NEED-10.
+
+Acceptance criteria:
+
+- A role's home that is a page the role may open, with no route parameters, validates; one that is not a page, takes route parameters or needs a permission the role does not hold is reported as role_home at the key.
+- signedIn, declared under permissions, opens a page, an operation or a command to every signed-in caller with no role granting it; a role that lists it is reported as reserved_name, a set of separationOfDuties or an implies naming it as for public, and its derived cases refuse a caller who is not signed in and one whose session has expired.
+- fieldConditions.<field>.readOnlyUnless on a form and hiddenUnless on a form or a view name a declared permission; one that is not declared is reported as permission_undeclared, and one every caller who opens the page holds, or nobody, as form_field.
+- With menus declared, a page nothing leads to that is neither public nor a role's home, a role a person holds that can open no menu entry, and a menu entry whose page no role can open are each reported as a navigation warning; so are an operation action on a page without states whose operation answers a problem type, and a form with no onSubmitted.
+- Both builds print the same lines for every case.
+- specarch-gen-ui, specarch-gen-ui-typescript and specarch-gen-ui-swiftui read the roles the session answers when the ui target's settings.session names them and open the home of the first role, in the order declared, that has one; a page or a menu entry of signedIn is open to every signed-in person, and a field is read-only or hidden by the permissions the session answers; without a session they warn that what they cannot honour is left to the service.
+
+**Insight:** A person meets an application through its pages, in the order they reach them, and the analyst writing the specification asks what each role sees first, what every person has whatever their role, and which fields a role may change or see; until each is written, the screens fall back on a menu nobody chose and a form that shows every field to everyone. A gap in the navigation is found by a check rather than by a reader, and is a question the walkthrough asks (ADR-197).
 
 ### SA-7
 

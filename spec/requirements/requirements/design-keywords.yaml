@@ -640,3 +640,18 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A date-time without its zone is read in whatever zone the reader runs in, so the same value means two instants on two hosts and a date is turned into an instant by a guess; the owner's rule of 2026-10-26 is that a date-time carries its zone everywhere, that a zoneless one says why, and that a date meets the clock only in the zone the specification declares (ADR-193, ADR-194).
+  SA-102:
+    statement: A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A role's home that is a page the role may open, with no route parameters, validates; one that is not a page, takes route parameters or needs a permission the role does not hold is reported as role_home at the key.
+      - signedIn, declared under permissions, opens a page, an operation or a command to every signed-in caller with no role granting it; a role that lists it is reported as reserved_name, a set of separationOfDuties or an implies naming it as for public, and its derived cases refuse a caller who is not signed in and one whose session has expired.
+      - fieldConditions.<field>.readOnlyUnless on a form and hiddenUnless on a form or a view name a declared permission; one that is not declared is reported as permission_undeclared, and one every caller who opens the page holds, or nobody, as form_field.
+      - With menus declared, a page nothing leads to that is neither public nor a role's home, a role a person holds that can open no menu entry, and a menu entry whose page no role can open are each reported as a navigation warning; so are an operation action on a page without states whose operation answers a problem type, and a form with no onSubmitted.
+      - Both builds print the same lines for every case.
+      - specarch-gen-ui, specarch-gen-ui-typescript and specarch-gen-ui-swiftui read the roles the session answers when the ui target's settings.session names them and open the home of the first role, in the order declared, that has one; a page or a menu entry of signedIn is open to every signed-in person, and a field is read-only or hidden by the permissions the session answers; without a session they warn that what they cannot honour is left to the service.
+    verification: test
+    needs: [NEED-1, NEED-10]
+    why: A person meets an application through its pages, in the order they reach them, and the analyst writing the specification asks what each role sees first, what every person has whatever their role, and which fields a role may change or see; until each is written, the screens fall back on a menu nobody chose and a form that shows every field to everyone. A gap in the navigation is found by a check rather than by a reader, and is a question the walkthrough asks (ADR-197).

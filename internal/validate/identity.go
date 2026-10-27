@@ -209,7 +209,7 @@ func ungrantedWaiting(d *design, rv *resolver) []source.Pair {
 	var out []source.Pair
 	granted := d.grantedHere()
 	for _, p := range source.Pairs(source.Child(d.root, "permissions")) {
-		if p.Key.Value == permissionPublic || p.Key.Value == permissionNobody || granted[p.Key.Value] {
+		if p.Key.Value == permissionPublic || p.Key.Value == permissionNobody || p.Key.Value == permissionSignedIn || granted[p.Key.Value] {
 			continue
 		}
 		if _, waits, _ := rv.identityGrant(p.Key.Value); waits != "" {

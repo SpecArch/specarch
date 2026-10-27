@@ -106,14 +106,14 @@ ol.problems p{margin:2px 0}
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
 <li><a href="#/tests">Tests</a> <span class="count">16</span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">0</span></li>
+<li><a href="#problems">Problems</a> <span class="count">1</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
 <h1>Lending</h1>
 <p>Version 1.0.0; meta-model 1.0.0.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/1.0.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 0 warnings and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 1 warning and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/entities">Entities</a></td><td>2</td></tr>
 <tr><td><a href="#/permissions">Permissions</a></td><td>3</td></tr>
@@ -517,6 +517,7 @@ ol.problems p{margin:2px 0}
 <h3>Pages <a class="ptr" href="#/pages">/pages</a></h3>
 <article class="element" data-search id="/pages/member-loans">
 <h4>member-loans: Lend copies <a class="ptr" href="#/pages/member-loans">/pages/member-loans</a></h4>
+<p class="mark warning"><a href="#problem-navigation@specarch.yaml%23/pages/member-loans">warning</a> navigation: member-loans is a form with no onSubmitted, so nothing says where the person goes or what they are told once it is sent; add onSubmitted [navigation@specarch.yaml#/pages/member-loans]</p>
 <dl>
 <dt>kind</dt>
 <dd>form</dd>
@@ -885,7 +886,13 @@ ol.problems p{margin:2px 0}
 </section>
 <section class="group" id="problems">
 <h2>Problems</h2>
-<p>The specification has no errors, no warnings and no open questions.</p>
+<p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
+<ol class="problems">
+<li class="warning" data-search id="problem-navigation@specarch.yaml%23/pages/member-loans">
+<p><code>../project/specarch.yaml:94:3: warning: /pages/member-loans: navigation: member-loans is a form with no onSubmitted, so nothing says where the person goes or what they are told once it is sent; add onSubmitted [navigation@specarch.yaml#/pages/member-loans]</code></p>
+<p>Marked at <a href="#/pages/member-loans">/pages/member-loans</a>.</p>
+</li>
+</ol>
 </section>
 </main>
 <script>

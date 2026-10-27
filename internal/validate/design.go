@@ -203,6 +203,8 @@ func (c *checker) checkDesign(d *design) {
 	c.checkEnabledBy(d)
 	c.checkPageEvents(d)
 	c.checkFlows(d)
+	c.checkRoleHomes(d)
+	c.checkNavigation(d)
 	c.checkPageStates(d)
 	c.checkMakerChecker(d)
 	c.checkCompactColumns(d)
@@ -822,6 +824,11 @@ func (c *checker) checkAccess(d *design) {
 	}
 	for name, pg := range d.pages {
 		use(source.Child(pg, "permission"), source.Pointer("pages", name, "permission"), "page "+name)
+		for _, f := range source.Pairs(source.Child(pg, "fieldConditions")) {
+			for _, k := range []string{"readOnlyUnless", "hiddenUnless"} {
+				use(source.Child(f.Value, k), source.Pointer("pages", name, "fieldConditions", f.Key.Value, k), "field "+f.Key.Value+" of page "+name)
+			}
+		}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
 			use(source.Child(a, "permission"), source.Pointer("pages", name, "actions", fmt.Sprint(i), "permission"), "an action of page "+name)
 		}
@@ -837,6 +844,10 @@ func (c *checker) checkAccess(d *design) {
 				c.add(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), RuleReservedName, "nobody is the reserved permission of a route closed on purpose, which no role grants; remove it from role %s", name)
 				continue
 			}
+			if p.Value == permissionSignedIn {
+				c.add(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), RuleReservedName, "signedIn is the reserved permission every caller holds once signed in, which no role grants; remove it from role %s", name)
+				continue
+			}
 			use(p, source.Pointer("roles", name, "permissions", fmt.Sprint(i)), "role "+name)
 		}
 	}
@@ -846,7 +857,7 @@ func (c *checker) checkAccess(d *design) {
 	granted := d.grantedHere()
 	rv := newResolver(d, c.given)
 	for _, p := range source.Pairs(source.Child(d.root, "permissions")) {
-		if p.Key.Value == permissionPublic || p.Key.Value == permissionNobody || granted[p.Key.Value] {
+		if p.Key.Value == permissionPublic || p.Key.Value == permissionNobody || p.Key.Value == permissionSignedIn || granted[p.Key.Value] {
 			continue
 		}
 		switch ok, waits, identity := rv.identityGrant(p.Key.Value); {

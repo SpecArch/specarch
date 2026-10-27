@@ -13,8 +13,8 @@ extension Checker {
             var seen = Set<String>()
             for (i, p) in items(set.value.child("permissions")).enumerated() {
                 let ptr = pointer("separationOfDuties", name, "permissions", "\(i)")
-                if p.value == "public" {
-                    add(p, ptr, .separationOfDuties, "set \(name) names public, which everyone holds, so no role can be kept from it; name only permissions a role grants")
+                if p.value == "public" || p.value == permissionSignedIn {
+                    add(p, ptr, .separationOfDuties, "set \(name) names \(p.value), which everyone holds, so no role can be kept from it; name only permissions a role grants")
                 } else if d.permissions[p.value] == nil {
                     let hint = suggest(p.value, d.permissions).replacingOccurrences(of: "; there are none in the specification", with: "")
                     add(p, ptr, .separationOfDuties, "set \(name) names permission \(p.value), which is not declared; add it under permissions\(hint)")

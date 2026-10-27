@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "two roles, each with a home it may open; a profile page and its operation of signedIn, which no role grants, reached from a menu; fields read-only or hidden unless the caller holds a permission some callers of the page lack; menus every role reaches, a public welcome page nothing leads to, a list whose states give a message for the problem its row action can answer, and forms that lead on when sent"
+when: "validate is run"
+then: "it reports no role_home, navigation, form_field, reserved_name or permission_ungranted, only the warnings of the earlier meta-model and the tests it asks for, and exits 0"
+verifies: [SA-102]

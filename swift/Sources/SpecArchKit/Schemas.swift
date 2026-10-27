@@ -154,7 +154,7 @@ let designSchemaJSON = #"""
       }
     },
     "permissions": {
-      "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. Two names are reserved and declared here like any other, so that each says why: 'public', which an operation or page grants to everyone, including unauthenticated callers, and 'nobody', which closes a route on purpose, so that it stays in the contract and refuses every caller; no role grants either (ADR-096).",
+      "description": "SpecArch keyword. Named rights, keyed by dotted lower-case name such as 'loans.create'. Three names are reserved and declared here like any other, so that each says why: 'public', which an operation or page grants to everyone, including unauthenticated callers, 'signedIn', which every caller holds once signed in, for what every person has, such as their own profile, and 'nobody', which closes a route on purpose, so that it stays in the contract and refuses every caller; no role grants any of them (ADR-096, ADR-197).",
       "type": "object",
       "propertyNames": {
         "$ref": "#/$defs/permissionName"
@@ -559,7 +559,7 @@ let designSchemaJSON = #"""
     },
     "permissionName": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+      "pattern": "^([a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*|signedIn)$"
     },
     "roleName": {
       "type": "string",
@@ -2303,6 +2303,11 @@ let designSchemaJSON = #"""
           },
           "minProperties": 1
         },
+        "home": {
+          "description": "SpecArch keyword. The page a holder of this role is shown after signing in and when opening the application: a page without route parameters the role can open. A person holding several roles is shown the home of the first of them, in the order the roles are declared, that has one (ADR-197).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -2687,7 +2692,7 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/markdown"
         },
         "permission": {
-          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone, and 'nobody' for a route that exists and is closed to everyone on purpose, which stays in the contract and refuses every caller (ADR-096).",
+          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone, 'signedIn' for one open to every caller who is signed in, whatever their roles, and 'nobody' for a route that exists and is closed to everyone on purpose, which stays in the contract and refuses every caller (ADR-096, ADR-197).",
           "$ref": "#/$defs/permissionName"
         },
         "callers": {
@@ -4045,7 +4050,7 @@ let designSchemaJSON = #"""
       "additionalProperties": false
     },
     "fieldCondition": {
-      "description": "SpecArch keyword. When a field a page shows is read-only or hidden. Each expression is over the fields of the record, in the expression subset.",
+      "description": "SpecArch keyword. When a field a page shows is read-only or hidden: by an expression over the fields of the record, in the expression subset, or by a permission the caller holds.",
       "type": "object",
       "properties": {
         "readOnly": {
@@ -4061,6 +4066,14 @@ let designSchemaJSON = #"""
           "description": "The field is not shown while this is true.",
           "type": "string",
           "minLength": 1
+        },
+        "readOnlyUnless": {
+          "description": "For a form: the field is shown and not changed unless the caller holds this permission, so its mode differs by role without naming a role (ADR-197).",
+          "$ref": "#/$defs/permissionName"
+        },
+        "hiddenUnless": {
+          "description": "The field is not shown unless the caller holds this permission. It hides the field on the page only: the operation the page reads still answers it, so what a role must never receive is left out of the operation's response instead (ADR-197).",
+          "$ref": "#/$defs/permissionName"
         }
       },
       "minProperties": 1,
@@ -4710,7 +4723,7 @@ let designSchemaJSON = #"""
           "$ref": "#/$defs/markdown"
         },
         "permission": {
-          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone, and 'nobody' for a route that exists and is closed to everyone on purpose, which stays in the contract and refuses every caller (ADR-096).",
+          "description": "SpecArch keyword. The one permission a caller must hold. Use 'public' for an endpoint open to everyone, 'signedIn' for one open to every caller who is signed in, whatever their roles, and 'nobody' for a route that exists and is closed to everyone on purpose, which stays in the contract and refuses every caller (ADR-096, ADR-197).",
           "$ref": "#/$defs/permissionName"
         },
         "callers": {

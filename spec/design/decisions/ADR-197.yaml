@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-197:
+    title: A role names its home page, signedIn is a reserved permission every signed-in caller holds, a field's mode may follow a permission, and the gaps in the navigation are warnings
+    status: proposed
+    date: "2026-10-27"
+    context: |
+      A specification of screens is best written by going through the
+      application in the order a person meets it: how they sign in, what
+      they see first, which menu entries and actions each role has, what
+      each form asks and where each button leads. Four things a person
+      going through it asks had no place. What a role is shown first was
+      left to the menu. Pages every person has whatever their role, such
+      as their own profile, needed a permission granted to every role by
+      name, so a new role that was not given it lost them. A field one
+      role may change and another may only read needed two pages, since
+      readOnlyWhen and hiddenWhen read the record, not the caller. And a
+      page nothing leads to, a role with no menu entry, or a form that
+      says nothing of where it leads once sent was found only by a reader.
+    decision: |
+      roles.<role>.home names the page a holder of the role is shown after
+      signing in and when opening the application: a page without route
+      parameters the role may open (role_home otherwise). A person holding
+      several roles is shown the home of the first of them, in the order
+      the roles are declared, that has one.
+
+      signedIn is a reserved permission beside public and nobody, declared
+      under permissions like them: every caller holds it once signed in,
+      people and clients alike, and no role grants it (reserved_name when
+      one lists it). It cannot be implied or imply, and a set of
+      separationOfDuties cannot name it, as public cannot. Its derived
+      cases refuse a caller who is not signed in and, with a session, one
+      whose session has expired. The permission name pattern admits it as
+      the one name with a capital, so no specification written before it
+      can have declared a permission of that name.
+
+      fieldConditions.<field>.readOnlyUnless, on a form, and hiddenUnless,
+      on a form or a view, name a permission: the field is read-only, or
+      hidden, for a caller who does not hold it. It must be declared, and
+      some caller who opens the page must lack it (form_field otherwise);
+      it sits beside readOnlyWhen and hiddenWhen, and either makes the
+      field read-only or hidden.
+
+      The validator warns, as navigation, of five gaps: a page no menu
+      entry, action, event or link leads to that is neither public nor a
+      role's home; a role a person holds that can open no menu entry; a
+      menu entry whose page no role can open; an operation action on a
+      page without states whose operation answers a problem type; and a
+      form with no onSubmitted. The first three are checked once the
+      specification has menus, the second leaves out the roles a job acts
+      as or a service client holds, and the third is left to
+      permission_ungranted when the roles are another module's.
+
+      The ui generators read, when the ui target's settings.session names
+      roles, the roles the session answers, and open the home of the first
+      role with one at the application's start; they treat signedIn as held
+      by every signed-in person, and lock or hide a field by the
+      permissions the session answers.
+    why: |
+      A home per role, not per permission: the menu is already drawn from
+      permissions, and what a person sees first is a choice about who they
+      are, which is a role. A session answers permissions and, once named,
+      roles; picking a home from permissions alone would guess between
+      roles that share them, and a guess is an ambiguity.
+
+      signedIn rather than a permission every role lists, because a list
+      kept by hand is one a new role is left out of, and the meaning
+      "everyone signed in" is then written nowhere. A lower-case name such
+      as authenticated would fit the pattern, but a specification may
+      already declare and grant a permission of that name, and reserving it
+      in a 1.x minor would turn that specification's valid file into an
+      error; signedIn cannot have been declared before, since the pattern
+      refused it.
+
+      A mode by permission, not by role, so that a page stays fail-closed
+      the way an operation is: a permission names what is allowed, and a
+      role that gains it gains the mode. hiddenUnless hides a field on the
+      page only, as hiddenWhen does; it protects a person from a field
+      they have no use for, not the data: the operation still answers it,
+      so what a role must never receive is left out of the response, or
+      the response is narrowed by a row policy, on the server.
+
+      Warnings, not errors, because each gap is a question to ask, not a
+      wrong definition: a page may be reached by an address in a message,
+      and a form may stay where it is on purpose. A public page is left out
+      of the first, since a person may arrive at it by its address, as at a
+      sign-in or a password reset; a page with states already reports a
+      problem type without a message as state, so the fourth looks only at
+      pages without them.
+    consequences: |
+      An editor draws the navigation and the permission matrix from the
+      specification and turns each warning into a question on its node.
+      A sign-in through a page of the specification's own still names the
+      page it leads to; the identity provider's sign-in ends at the
+      application's start, where the home is opened.
+    satisfies: [SA-102]

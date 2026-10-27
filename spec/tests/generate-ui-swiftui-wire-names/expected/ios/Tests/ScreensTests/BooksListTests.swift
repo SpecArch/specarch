@@ -3,6 +3,7 @@
 // specarch-problem: warning: test_case_missing: page books-list has no red scenario for "denied without books.read"; add under tests books-list-denied-without-books-read: { page: books-list, scenario: red, covers: [denied without books.read], given: "a caller without books.read", when: "the page books-list is opened", then: "it is refused as not allowed" } [test_case_missing.45c970ec@specarch.yaml#/pages/books-list]
 // specarch-problem: warning: test_case_missing: page books-list has no red scenario for "Retire without a reason"; add under tests books-list-retire-without-a-reason: { page: books-list, scenario: red, covers: [Retire without a reason], given: "...", when: "the action Retire is confirmed with no retireReason", then: "it is not sent, and the retireReason is asked for" } [test_case_missing.5ef586e0@specarch.yaml#/pages/books-list]
 // specarch-problem: warning: test_golden_missing: page books-list has no golden scenario; add one under tests, for example books-list-succeeds: { page: books-list, scenario: golden, given: "a caller with books.read", when: "the page books-list is opened", then: "it shows the page" } [test_golden_missing@specarch.yaml#/pages/books-list]
+// specarch-problem: warning: navigation: the action Retire runs retireBook, which can answer book-on-loan, and books-list has no states to say what the person is shown then; add states.failed with a message for each, or a default [navigation@specarch.yaml#/pages/books-list/actions/0]
 import Testing
 @testable import Screens
 

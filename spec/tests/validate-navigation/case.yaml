@@ -1,0 +1,11 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:24:90: error: /roles/reader/home: role_home: member-view takes the route parameters memberId, and a home page is opened with none; name a page whose route takes none [role_home@specarch.yaml#/roles/reader/home]
+  specarch.yaml:25:12: warning: /roles/remover: navigation: remover can open no menu entry, so a person holding it finds no page; grant it the permission of an entry's page, or add an entry it can open [navigation@specarch.yaml#/roles/remover]
+  specarch.yaml:25:96: error: /roles/remover/home: role_home: remover cannot open its home member-form, which needs members.write; grant it to the role, or name a page the role can open [role_home@specarch.yaml#/roles/remover/home]
+  specarch.yaml:26:78: error: /roles/visitor/home: role_home: member-veiw is not a page of the specification; did you mean member-view? [role_home@specarch.yaml#/roles/visitor/home]
+  specarch.yaml:92:9: warning: /pages/members-list/actions/0: navigation: the action Remove runs removeMember, which can answer member-not-found, and members-list has no states to say what the person is shown then; add states.failed with a message for each, or a default [navigation@specarch.yaml#/pages/members-list/actions/0]
+  specarch.yaml:93:3: warning: /pages/member-form: navigation: member-form is a form with no onSubmitted, so nothing says where the person goes or what they are told once it is sent; add onSubmitted [navigation@specarch.yaml#/pages/member-form]
+  specarch.yaml:109:3: warning: /pages/member-archive: navigation: nothing leads to member-archive: no menu entry, action, event or link opens it, and it is no role's home; add a way to it, make it a role's home, or remove it [navigation@specarch.yaml#/pages/member-archive]
+  specarch.yaml:131:15: warning: /menus/members/items/closed: navigation: closed-list is closed to every caller with nobody, so the entry is shown to nobody; take the entry out [navigation@specarch.yaml#/menus/members/items/closed]

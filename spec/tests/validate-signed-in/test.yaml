@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "signedIn declared under permissions, implying a permission and implied by one; a role that grants it; a set of separationOfDuties that names it; a role whose home and a flow's step are a page of signedIn, and an operation of signedIn"
+when: "validate is run"
+then: "it reports reserved_name for the role that grants it, implies twice and separation_of_duties once, does not report it ungranted, lets every role open its page as home and in the flow, and its tests, written as validate asks, refuse a caller who is not signed in at the operations and the pages, and exits 1"
+verifies: [SA-102]

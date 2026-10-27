@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 2 entities, 4 HTTP operations, 1 page and 16 tests. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Introduction and goals
 
 ## 3. Context
@@ -192,6 +194,8 @@ flowchart LR
 | Page | Kind | Route | Entity | Permission | Shows |
 |---|---|---|---|---|---|
 | member-loans | form | /members/{memberId}/loans | Member | loans.write | fullName, outstandingFees; Loans, rows of loans: dueOn, renewals, at most 6 |
+
+**Problem on member-loans:** warning: navigation: member-loans is a form with no onSubmitted, so nothing says where the person goes or what they are told once it is sent; add onSubmitted [navigation@specarch.yaml#/pages/member-loans]
 
 ## 10. Quality requirements
 

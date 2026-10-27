@@ -140,6 +140,7 @@ private let validatingFormats: Set<String> = ["date", "date-time", "time", "dura
 private func caller(_ perm: String) -> String {
     if perm.isEmpty || perm == permissionPublic { return "any caller" }
     if perm == permissionNobody { return "no caller" }
+    if perm == permissionSignedIn { return "a signed-in caller" }
     return "a caller with " + perm
 }
 
@@ -209,12 +210,17 @@ private func failureResponse(_ op: YNode, _ statuses: String...) -> String {
 }
 
 extension Design {
-    /// The cases of a permission other than public: a caller without it,
-    /// and, once the specification declares a session, a caller whose session
-    /// has expired.
+    /// The cases of a permission other than public: a caller without it, or
+    /// one not signed in for signedIn, which every signed-in caller holds,
+    /// and, once the specification declares a session, a caller whose
+    /// session has expired.
     func denied(_ s: Subject, _ perm: String, _ what: String) {
         if perm.isEmpty || perm == permissionPublic || perm == permissionNobody { return }
-        s.red("denied without " + perm, frequent, "a caller without " + perm, what, "it is refused as not allowed")
+        if perm == permissionSignedIn {
+            s.red("denied when not signed in", frequent, "a caller who is not signed in", what, "it is refused as not signed in")
+        } else {
+            s.red("denied without " + perm, frequent, "a caller without " + perm, what, "it is refused as not allowed")
+        }
         if root.child("session") != nil {
             s.red("denied with expired session", frequent, "a caller whose session has expired", what, "it is refused as not signed in")
         }

@@ -11,6 +11,7 @@ pages:
     origin: stated
     cites:
       - {source: code, clause: 'app/Others.swift:3', says: 'struct HistoryView: View, which NavigationLink at app/ItemDetailView.swift:12 opens.'}
+  # specarch-problem: warning: navigation: nothing leads to home: no menu entry, action, event or link opens it, and it is no role's home; add a way to it, make it a role's home, or remove it [navigation@design/pages.yaml#/pages/home]
   # specarch-problem: warning: test_golden_missing: page home has no golden scenario; add one under tests, for example home-succeeds: { page: home, scenario: golden, given: "any caller", when: "the page home is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/home]
   # specarch-problem: warning: test_red_missing: page home has no red scenario; add one under tests, for example home-refused: { page: home, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/home]
   home:
@@ -57,6 +58,7 @@ pages:
     origin: stated
     cites:
       - {source: code, clause: 'app/Others.swift:23', says: 'struct SearchScreen: View, which TabView at app/HomeView.swift:7 opens.'}
+  # specarch-problem: warning: navigation: nothing leads to share: no menu entry, action, event or link opens it, and it is no role's home; add a way to it, make it a role's home, or remove it [navigation@design/pages.yaml#/pages/share]
   # specarch-problem: warning: test_golden_missing: page share has no golden scenario; add one under tests, for example share-succeeds: { page: share, scenario: golden, given: "any caller", when: "the page share is opened", then: "it shows the page" } [test_golden_missing@design/pages.yaml#/pages/share]
   # specarch-problem: warning: test_red_missing: page share has no red scenario; add one under tests, for example share-refused: { page: share, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@design/pages.yaml#/pages/share]
   share:

@@ -1,0 +1,95 @@
+specarch: "1.0.0"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [id, fullName, email]
+    primaryKey: [id]
+errors:
+  member-not-found: { status: 404, title: Member not found, condition: no member has that identifier }
+permissions:
+  signedIn: { description: Every person once signed in., implies: [members.read] }
+  members.read: { description: See members., implies: [signedIn] }
+  members.write: { description: Register members. }
+  members.remove: { description: Remove members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write, members.remove], home: profile }
+  reader: { description: Reads members., permissions: [members.read], home: profile }
+  clerk: { description: Grants what nobody grants., permissions: [members.read, signedIn] }
+separationOfDuties:
+  register-and-remove:
+    description: Who registers does not remove.
+    permissions: [signedIn, members.remove]
+paths:
+  /profile:
+    get:
+      operationId: getProfile
+      summary: The caller's own record
+      permission: signedIn
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+    put:
+      operationId: changeProfile
+      summary: Change the caller's own record
+      permission: signedIn
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  profile:
+    kind: view
+    title: My profile
+    route: /profile
+    entity: Member
+    permission: signedIn
+    source: getProfile
+    fields: [fullName, email]
+    actions:
+      - { label: Change, kind: navigate, target: profile-form }
+  profile-form:
+    kind: form
+    title: Change my profile
+    route: /profile/edit
+    entity: Member
+    permission: signedIn
+    submit: changeProfile
+    fields: [fullName]
+    onSubmitted: { navigate: profile, message: Your profile is changed. }
+flows:
+  change-my-profile:
+    description: A reader changes their own profile.
+    actor: reader
+    steps:
+      - { page: profile, event: action, action: Change }
+      - { page: profile-form, event: submitted }
+tests:
+  get-profile-denied-when-not-signed-in: { level: system, operation: getProfile, scenario: red, covers: [denied when not signed in], given: "a caller who is not signed in", when: "getProfile is called", then: "it is refused as not signed in" }
+  get-profile-succeeds: { level: system, operation: getProfile, scenario: golden, given: "a signed-in caller", when: "getProfile is called", then: "it answers 200: The member." }
+  change-profile-denied-when-not-signed-in: { level: system, operation: changeProfile, scenario: red, covers: [denied when not signed in], given: "a caller who is not signed in", when: "changeProfile is called", then: "it is refused as not signed in" }
+  change-profile-email-not-a-valid-email: { level: system, operation: changeProfile, scenario: red, covers: [email not a valid email], given: "a request that breaks the limit", when: "changeProfile is called with email that is not a valid email", then: "it is refused" }
+  change-profile-missing-email: { level: system, operation: changeProfile, scenario: red, covers: [missing email], given: "a request that breaks the limit", when: "changeProfile is called without email", then: "it is refused" }
+  change-profile-missing-full-name: { level: system, operation: changeProfile, scenario: red, covers: [missing fullName], given: "a request that breaks the limit", when: "changeProfile is called without fullName", then: "it is refused" }
+  change-profile-succeeds: { level: system, operation: changeProfile, scenario: golden, given: "a signed-in caller", when: "changeProfile is called with values inside every limit", then: "it answers 200: The member." }
+  profile-denied-when-not-signed-in: { level: system, page: profile, scenario: red, covers: [denied when not signed in], given: "a caller who is not signed in", when: "the page profile is opened", then: "it is refused as not signed in" }
+  profile-succeeds: { level: system, page: profile, scenario: golden, given: "a signed-in caller", when: "the page profile is opened", then: "it shows the page" }
+  profile-form-denied-when-not-signed-in: { level: system, page: profile-form, scenario: red, covers: [denied when not signed in], given: "a caller who is not signed in", when: "the page profile-form is opened", then: "it is refused as not signed in" }
+  profile-form-succeeds: { level: system, page: profile-form, scenario: golden, given: "a signed-in caller", when: "the page profile-form is opened", then: "it shows the page" }
+  change-my-profile-succeeds: { level: system, flow: change-my-profile, scenario: golden, given: "a reader", when: "they go through profile, profile-form", then: "each step leads to the next, and the last completes" }
+  change-my-profile-refused: { level: system, flow: change-my-profile, scenario: red, given: "a request that breaks the limit", when: "...", then: "it is refused" }

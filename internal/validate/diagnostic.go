@@ -122,6 +122,8 @@ const (
 	RuleMenu                   Rule = "menu"
 	RuleView                   Rule = "view"
 	RuleFlow                   Rule = "flow"
+	RuleRoleHome               Rule = "role_home"
+	RuleNavigation             Rule = "navigation"
 	RuleState                  Rule = "state"
 	RuleAccessibility          Rule = "accessibility"
 	RuleTheme                  Rule = "theme"
@@ -277,6 +279,8 @@ var Rules = []Rule{
 	RuleMenu,
 	RuleView,
 	RuleFlow,
+	RuleRoleHome,
+	RuleNavigation,
 	RuleState,
 	RuleAccessibility,
 	RuleTheme,

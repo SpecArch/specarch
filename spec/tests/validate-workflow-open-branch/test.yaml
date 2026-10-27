@@ -4,5 +4,5 @@ level: system
 scenario: red
 given: "the tree extract writes in the case extract-workflows-asks-unread-end: decision check's first branch has a condition and neither to nor end, a question blocking it, and the wait returned has a deadline with onDeadline held by a question"
 when: "validate is run"
-then: "it names the open branch's case as check takes branch 1, the request going where branch 1 of check goes, rather than a step with no name, reports no error, and exits 0"
+then: "it names the open branch's case as check takes branch 1, the request going where branch 1 of check goes, rather than a step with no name, names the case of the wait's deadline as the request going where onDeadline of returned goes rather than ending refused, reports no error, and exits 0"
 verifies: [SA-103]

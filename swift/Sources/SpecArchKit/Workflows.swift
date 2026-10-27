@@ -191,6 +191,17 @@ extension Checker {
     }
 }
 
+/// What follows when a step's deadline passes: refused when onDeadline says
+/// refuse, the escalation when it says escalate, and, while a question holds
+/// onDeadline open, where it goes.
+private func deadlinePassed(_ st: YNode, _ refused: String) -> String {
+    switch str(st.child("onDeadline")) {
+    case "escalate": return "the request moves on to " + str(st.child("escalateTo"))
+    case "": return "the request goes where onDeadline of " + str(st.child("name")) + " goes"
+    default: return refused
+    }
+}
+
 /// Whether one of the steps has that name and, unless kind is "", that
 /// kind.
 private func laterStep(_ steps: [YNode], _ kind: String, _ name: String) -> Bool {
@@ -238,7 +249,7 @@ extension Design {
             case "approval":
                 let perm = stepPermission(st)
                 s.red("refused at " + step, frequent, waiting, "a caller with " + perm + " refuses it", stopped + undone(done))
-                let passed = str(st.child("onDeadline")) == "escalate" ? "the request moves on to " + str(st.child("escalateTo")) : stopped + undone(done)
+                let passed = deadlinePassed(st, stopped + undone(done))
                 let deadline = str(st.child("deadline"))
                 s.byNature("deadline passes at " + step, waiting, (deadline.isEmpty ? "the deadline" : deadline) + " passes with no answer", passed)
                 s.red("approval without " + perm, frequent, "a caller without " + perm, "they approve a request waiting at " + step, "it is refused as not allowed, and the request still waits")
@@ -246,15 +257,14 @@ extension Design {
                 let perm = stepPermission(st)
                 let deadline = str(st.child("deadline"))
                 if !deadline.isEmpty {
-                    let passed = str(st.child("onDeadline")) == "escalate" ? "the request moves on to " + str(st.child("escalateTo")) : ended("refused")
-                    s.byNature("deadline passes at " + step, waiting, deadline + " passes with the task not done", passed)
+                    s.byNature("deadline passes at " + step, waiting, deadline + " passes with the task not done", deadlinePassed(st, ended("refused")))
                 }
                 s.red("task without " + perm, frequent, "a caller without " + perm, "they do the task of a request waiting at " + step, "it is refused as not allowed, and the request still waits")
             case "wait":
                 let deadline = str(st.child("deadline"))
                 if !deadline.isEmpty {
                     let message = str(st.child("message"))
-                    s.byNature("deadline passes at " + step, waiting + " for " + (message.isEmpty ? "the message of " + step : message), deadline + " passes with no message", ended("refused"))
+                    s.byNature("deadline passes at " + step, waiting + " for " + (message.isEmpty ? "the message of " + step : message), deadline + " passes with no message", deadlinePassed(st, ended("refused")))
                 }
             case "decision":
                 for (j, br) in items(st.child("branches")).enumerated() {

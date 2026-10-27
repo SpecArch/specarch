@@ -286,10 +286,7 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 		case "approval":
 			perm := stepPermission(st)
 			s.red("refused at "+step, frequent, waiting, "a caller with "+perm+" refuses it", stopped+undone(steps[:i]))
-			passed := stopped + undone(steps[:i])
-			if source.Str(source.Child(st, "onDeadline")) == "escalate" {
-				passed = "the request moves on to " + source.Str(source.Child(st, "escalateTo"))
-			}
+			passed := deadlinePassed(st, stopped+undone(steps[:i]))
 			deadline := source.Str(source.Child(st, "deadline"))
 			if deadline == "" {
 				deadline = "the deadline"
@@ -299,16 +296,12 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 		case "task":
 			perm := stepPermission(st)
 			if deadline := source.Str(source.Child(st, "deadline")); deadline != "" {
-				passed := ended("refused")
-				if source.Str(source.Child(st, "onDeadline")) == "escalate" {
-					passed = "the request moves on to " + source.Str(source.Child(st, "escalateTo"))
-				}
-				s.byNature("deadline passes at "+step, waiting, deadline+" passes with the task not done", passed)
+				s.byNature("deadline passes at "+step, waiting, deadline+" passes with the task not done", deadlinePassed(st, ended("refused")))
 			}
 			s.red("task without "+perm, frequent, "a caller without "+perm, "they do the task of a request waiting at "+step, "it is refused as not allowed, and the request still waits")
 		case "wait":
 			if deadline := source.Str(source.Child(st, "deadline")); deadline != "" {
-				s.byNature("deadline passes at "+step, waiting+" for "+messageOf(st), deadline+" passes with no message", ended("refused"))
+				s.byNature("deadline passes at "+step, waiting+" for "+messageOf(st), deadline+" passes with no message", deadlinePassed(st, ended("refused")))
 			}
 		case "decision":
 			branches := source.Items(source.Child(st, "branches"))
@@ -365,6 +358,19 @@ func messageOf(st *yaml.Node) string {
 		return m
 	}
 	return "the message of " + source.Str(source.Child(st, "name"))
+}
+
+// deadlinePassed is what follows when a step's deadline passes: refused
+// when onDeadline says refuse, the escalation when it says escalate, and,
+// while a question holds onDeadline open, where it goes.
+func deadlinePassed(st *yaml.Node, refused string) string {
+	switch source.Str(source.Child(st, "onDeadline")) {
+	case "escalate":
+		return "the request moves on to " + source.Str(source.Child(st, "escalateTo"))
+	case "":
+		return "the request goes where onDeadline of " + source.Str(source.Child(st, "name")) + " goes"
+	}
+	return refused
 }
 
 // undone is what a request that ends after the steps done says of their

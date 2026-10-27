@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 824 design tests, 401 golden and 423 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 825 design tests, 401 golden and 424 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 824 design tests, 401 golden and 423 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 820 |
+| system | 821 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -6559,13 +6559,21 @@ Scenario: red; level: system; covers exit 1; verifies SA-47.
 - When: validate is run
 - Then: it reports workflow eleven times and permission_undeclared once, and exits 1
 
+#### validate-workflow-deadline-undoes
+
+Scenario: red; level: system; verifies SA-103.
+
+- Given: a workflow that holds the funds with hold, undone by releaseFunds, then waits for a clerk's task check and for the message of confirmed, each with a deadline that refuses
+- When: validate is run
+- Then: it names the case of each deadline passing as the request ending refused, with releaseFunds undoing hold, as for an approval's refusal; and exits 1
+
 #### validate-workflow-open-branch
 
 Scenario: red; level: system; verifies SA-103.
 
 - Given: the tree extract writes in the case extract-workflows-asks-unread-end: decision check's first branch has a condition and neither to nor end, a question blocking it, and the wait returned has a deadline with onDeadline held by a question
 - When: validate is run
-- Then: it names the open branch's case as check takes branch 1, the request going where branch 1 of check goes, rather than a step with no name, reports no error, and exits 0
+- Then: it names the open branch's case as check takes branch 1, the request going where branch 1 of check goes, rather than a step with no name, names the case of the wait's deadline as the request going where onDeadline of returned goes rather than ending refused, reports no error, and exits 0
 
 #### validate-workflow-step-kinds
 

@@ -1,0 +1,62 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Refund:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      amountCents: { type: integer, format: int32 }
+    required: [id, amountCents]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+channels:
+  refunds:
+    description: What the payment service says of a refund.
+    messages:
+      RefundPaid: { summary: A refund reached the member's account., payload: { $ref: "#/entities/Refund" } }
+    satisfies: [CASE-1]
+workflows:
+  refund:
+    description: The funds are held first, then a clerk checks the refund and the payment service confirms it, each within a deadline.
+    trigger: askRefund
+    subject: Refund
+    steps:
+      - name: hold
+        kind: operation
+        operation: holdFunds
+        compensatedBy: releaseFunds
+      - name: check
+        kind: task
+        performers: [clerk]
+        permission: refunds.check
+        deadline: P1D
+        onDeadline: refuse
+      - name: confirmed
+        kind: wait
+        message: refunds/RefundPaid
+        deadline: P5D
+        onDeadline: refuse
+    satisfies: [CASE-1]
+paths:
+  /refunds:
+    post:
+      operationId: askRefund
+      summary: Ask for a refund
+      permission: refunds.ask
+      responses:
+        "202": { description: The request waits. }
+      satisfies: [CASE-1]
+  /refunds/hold:
+    post: { operationId: holdFunds, summary: Hold the funds, permission: refunds.pay, responses: { "200": { description: Held. } }, satisfies: [CASE-1] }
+  /refunds/release:
+    post: { operationId: releaseFunds, summary: Release the funds, permission: refunds.pay, responses: { "200": { description: Released. } }, satisfies: [CASE-1] }
+permissions:
+  refunds.ask: { description: Ask for a refund. }
+  refunds.check: { description: Check a refund. }
+  refunds.pay: { description: Pay a refund. }
+roles:
+  desk: { description: The desk., permissions: [refunds.ask] }
+  clerk: { description: A clerk., permissions: [refunds.check] }
+  payments: { description: The payment service., permissions: [refunds.pay] }

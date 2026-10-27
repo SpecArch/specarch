@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 825 design tests, 401 golden and 424 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 829 design tests, 403 golden and 426 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 825 design tests, 401 golden and 424 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 821 |
+| system | 825 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3795,6 +3795,22 @@ Scenario: golden; level: system; verifies SA-74.
 
 ### Command try
 
+#### try-decision-table
+
+Scenario: golden; level: system; verifies SA-104.
+
+- Given: an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when and one worked example
+- When: try is run for the algorithm
+- Then: it prints the summary line counting rules and examples, then each rule's example, inputs the rule reaches first, and the worked example, each with the rules tested in order, whether each matches, and the output beside the expected value, the same in both builds, and exits 0
+
+#### try-decision-table-unreached
+
+Scenario: red; level: system; covers exit 1; verifies SA-104.
+
+- Given: an algorithm whose table under hit policy first has a rule the rule before it always matches first, a rule whose weight condition no weight above 0 meets, and a worked example the earlier rule takes
+- When: try is run for the algorithm
+- Then: it prints that no inputs reach the first rule and none match the second, and the example failing with the earlier rule's output, the same in both builds, and exits 1
+
 #### try-example-fails
 
 Scenario: red; level: system; covers exit 1; verifies SA-100.
@@ -4374,6 +4390,22 @@ Scenario: golden; level: system; verifies SA-97.
 - Given: a superseded decision, its successor resting on it, an accepted decision resting on it, and a superseded decision resting on it
 - When: validate is run
 - Then: it warns decision_superseded at the accepted decision's entry only, naming the successor, and exits 0
+
+#### validate-decision-table
+
+Scenario: golden; level: system; verifies SA-104.
+
+- Given: an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when, and one under unique whose rules split a string's values, an age's range, a nullable date's null and values, and a double's values with no overlap and no gap, and with no examples
+- When: validate is run
+- Then: it reports no problem, the same in both builds, and exits 0
+
+#### validate-decision-table-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-104.
+
+- Given: a table under unique whose rules overlap and leave inputs unmatched, with examples the table gives another output for, matched by no rule and matched by two; a table under first with a rule never reached, a rule whose weight condition no weight above 0 meets, and inputs unmatched; a table whose conditions name a value not of the enum, an operator that is not one, a comparison of an enum, an input that is not the algorithm's, a comparison with no value, an instant, null for an input that does not allow it and an or, and whose output is not a bool; and an algorithm with both a formula and a table
+- When: validate is run
+- Then: it reports each as table_overlap, table_gap, example_mismatch, example_error, decision_table or schema at the key, the never-reached rule and the rule that matches nothing as warnings, the same in both builds, and exits 1
 
 #### validate-defect-duplicate
 
@@ -6699,7 +6731,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-463 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+470 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6973,6 +7005,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-103 | acceptance 3 | golden | SA-103 names no harm |
 | requirement SA-103 | acceptance 4 | golden | SA-103 names no harm |
 | requirement SA-103 | acceptance 5 | golden | SA-103 names no harm |
+| requirement SA-104 | acceptance 1 | golden | SA-104 names no harm |
+| requirement SA-104 | acceptance 2 | golden | SA-104 names no harm |
+| requirement SA-104 | acceptance 3 | golden | SA-104 names no harm |
+| requirement SA-104 | acceptance 4 | golden | SA-104 names no harm |
+| requirement SA-104 | acceptance 5 | golden | SA-104 names no harm |
+| requirement SA-104 | acceptance 6 | golden | SA-104 names no harm |
+| requirement SA-104 | acceptance 7 | golden | SA-104 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

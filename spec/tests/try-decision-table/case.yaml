@@ -1,0 +1,33 @@
+arguments: ["try", "mayLend", "."]
+exitStatus: 0
+standardOutput: |
+  mayLend: 4 rules and 1 example, 5 pass
+  rule 1: pass
+    inputs: tier "extended", loansOpen 0, outstandingFees "0.01"
+    rule 1: outstandingFees > "0.00" = true
+    result false, expected false
+  rule 2: pass
+    inputs: tier "standard", loansOpen 0, outstandingFees "0.00"
+    rule 1: outstandingFees > "0.00" = false
+    rule 2: tier "standard", loansOpen < 3 = true
+    result true, expected true
+  rule 3: pass
+    inputs: tier "extended", loansOpen 0, outstandingFees "0.00"
+    rule 1: outstandingFees > "0.00" = false
+    rule 2: tier "standard", loansOpen < 3 = false
+    rule 3: tier "extended", loansOpen < 6 = true
+    result true, expected true
+  rule 4: pass
+    inputs: tier "extended", loansOpen 6, outstandingFees "0.00"
+    rule 1: outstandingFees > "0.00" = false
+    rule 2: tier "standard", loansOpen < 3 = false
+    rule 3: tier "extended", loansOpen < 6 = false
+    rule 4: any inputs = true
+    result false, expected false
+  example 1 "standard at its limit": pass
+    inputs: tier "standard", loansOpen 3, outstandingFees "0.00"
+    rule 1: outstandingFees > "0.00" = false
+    rule 2: tier "standard", loansOpen < 3 = false
+    rule 3: tier "extended", loansOpen < 6 = false
+    rule 4: any inputs = true
+    result false, expected false

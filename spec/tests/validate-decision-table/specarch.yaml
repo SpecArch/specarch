@@ -1,0 +1,50 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+enums:
+  MembershipTier: { type: string, enum: [standard, extended] }
+algorithms:
+  mayLend:
+    description: Whether a member may borrow one more copy.
+    inputs:
+      tier: { $ref: "#/enums/MembershipTier" }
+      loansOpen: { type: integer, format: int32, minimum: 0 }
+      outstandingFees: { type: string, format: decimal, precision: 10, scale: 2, minimum: 0 }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { outstandingFees: '> "0.00"' }
+          then: false
+          note: No loan while a fee is unpaid.
+        - when: { tier: standard, loansOpen: "< 3" }
+          then: true
+        - when: { tier: extended, loansOpen: "< 6" }
+          then: true
+        - then: false
+    examples:
+      - { name: standard at its limit, inputs: { tier: standard, loansOpen: 3, outstandingFees: "0.00" }, expected: false }
+    pseudocode: return outstandingFees == 0 and loansOpen < the tier's limit
+  loanDays:
+    description: How many days a loan runs, by the copy's shelf and the reader's age.
+    inputs:
+      shelf: { type: string }
+      age: { type: integer, format: int32, minimum: 0, maximum: 130 }
+      renewedOn: { type: [string, "null"], format: date }
+      weight: { type: number, format: double, exclusiveMinimum: 0 }
+    output: { type: integer, format: int32 }
+    table:
+      hitPolicy: unique
+      rules:
+        - when: { shelf: [reference, rare] }
+          then: 0
+        - when: { shelf: '!= "reference" and != "rare"', age: ">= 0 and < 12" }
+          then: 7
+        - when: { shelf: '!= "reference" and != "rare"', age: ">= 12", renewedOn: null }
+          then: 21
+        - when: { shelf: '!= "reference" and != "rare"', age: ">= 12", renewedOn: ['< "2026-01-01"', '>= "2026-01-01"'], weight: "<= 2.5" }
+          then: 14
+        - when: { shelf: '!= "reference" and != "rare"', age: ">= 12", renewedOn: '!= "1999-12-31" and != "2000-01-01"', weight: "> 2.5" }
+          then: 10
+        - when: { shelf: '!= "reference" and != "rare"', age: ">= 12", renewedOn: ["1999-12-31", "2000-01-01"], weight: "> 2.5" }
+          then: 3
+    pseudocode: look the row up

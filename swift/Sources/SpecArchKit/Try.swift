@@ -12,7 +12,8 @@ enum TryOutcome: String {
 /// One evaluation of specarch try: a worked example, or the inputs given
 /// on the command line.
 struct Evaluation {
-    var number = 0          // the example's place, from 1; 0 for given inputs
+    var number = 0          // the example's place, from 1; 0 for given inputs and a rule's example
+    var rule = 0            // a decision table's rule whose example this is, from 1
     var name = ""           // the example's name, "" for one with none
     var outcome = TryOutcome.computed
     var inputs: [(name: String, value: String)] = []
@@ -47,8 +48,11 @@ func tryAlgorithm(_ s: Spec, _ algorithm: String, _ example: String, _ given: YN
     let d = Design(root)
     d.spec = s
     c.checkTimeZone(d)
+    if alg.child("table") != nil {
+        return c.tryTable(d, algorithm, alg, example, given)
+    }
     guard let formula = alg.child("formula"), formula.kind == .scalar else {
-        return (nil, "algorithm \(algorithm) has no formula to evaluate; write one under formula")
+        return (nil, "algorithm \(algorithm) has no formula or table to evaluate; write one under formula or table")
     }
     let inputs = pairs(alg.child("inputs"))
     var fields: [String: YNode] = [:]
@@ -158,6 +162,128 @@ func tryAlgorithm(_ s: Spec, _ algorithm: String, _ example: String, _ given: YN
         return (nil, "algorithm \(algorithm) has no example \(quote(example)); its examples are \(names.joined(separator: ", "))")
     }
     return (t, "")
+}
+
+extension Checker {
+    /// Evaluates an algorithm's decision table on each rule's example and
+    /// each worked example, or on the one named example, or once on given
+    /// inputs; each step is a rule tested and whether it matches (ADR-199).
+    func tryTable(_ d: Design, _ algorithm: String, _ alg: YNode, _ example: String, _ given: YNode?) -> (Tried?, String) {
+        let tab = readTable(d, algorithm, alg, report: false)
+        if !tab.readOK {
+            return (nil, "the table of algorithm \(algorithm) cannot be read; the validator's lines above say why")
+        }
+        guard let output = alg.child("output") else {
+            return (nil, "algorithm \(algorithm) has no output, so its result has no type to be read at; declare one under output")
+        }
+        let want = d.fieldType(output)
+        var t = Tried(algorithm: algorithm)
+        var fields: [String: YNode] = [:]
+        for col in tab.columns { fields[col.name] = col.field }
+        func run(_ start: Evaluation, _ vals: [String: ExprValue], _ expected: ExprValue?) {
+            var e = start
+            for col in tab.columns {
+                if let v = vals[col.name] { e.inputs.append((name: col.name, value: showValue(v, col.t))) }
+            }
+            if let expected { e.expected = showValue(expected, want) }
+            if !e.unread.isEmpty {
+                e.outcome = .unread
+                t.evaluations.append(e)
+                return
+            }
+            let (got, tested, err) = tab.evaluate(vals)
+            for (i, hit) in tested.enumerated() {
+                let r = tab.rules[i]
+                let parts = r.cells.map { nc -> String in
+                    let col = tab.columns.first { $0.name == nc.name }!
+                    return nc.name + " " + col.text(nc.cell)
+                }
+                let text = parts.isEmpty ? "rule \(i + 1): any inputs" : "rule \(i + 1): " + parts.joined(separator: ", ")
+                e.steps.append((expression: text, value: hit ? "true" : "false"))
+            }
+            if let got {
+                e.result = showValue(got, want)
+                if expected == nil {
+                    e.outcome = .computed
+                } else if let expected, exprEqual(got, expected) {
+                    e.outcome = .pass
+                } else {
+                    e.outcome = .fail
+                }
+            } else {
+                e.outcome = .error
+                e.error = err
+            }
+            t.evaluations.append(e)
+        }
+        func read(_ e: inout Evaluation, _ values: YNode?) -> [String: ExprValue] {
+            var vals: [String: ExprValue] = [:]
+            for p in pairs(values) {
+                guard let field = fields[p.key.value] else {
+                    e.unread.append("\(p.key.value) is not an input of algorithm \(algorithm)\(suggest(p.key.value, fields))")
+                    continue
+                }
+                let (v, msg) = d.value(p.value, field)
+                if !msg.isEmpty {
+                    e.unread.append("input \(p.key.value) \(msg)")
+                    continue
+                }
+                vals[p.key.value] = v
+            }
+            for col in tab.columns where vals[col.name] == nil && values?.child(col.name) == nil {
+                e.unread.append("no value is given for input \(col.name)")
+            }
+            return vals
+        }
+        if let given {
+            var e = Evaluation(name: "given inputs")
+            let vals = read(&e, given)
+            run(e, vals, nil)
+            return (t, "")
+        }
+        if example.isEmpty {
+            for i in tab.rules.indices {
+                var e = Evaluation()
+                e.rule = i + 1
+                guard let inputs = tab.example(i) else {
+                    e.outcome = .error
+                    if let k = tab.emptyColumn(i) {
+                        e.error = "no inputs match this rule: its condition on \(tab.columns[k].name) holds for no value the input may take"
+                    } else {
+                        e.error = tab.policy == "unique"
+                            ? "no inputs reach this rule alone: other rules match every input it matches"
+                            : "no inputs reach this rule: the rules before it match every input it matches"
+                    }
+                    t.evaluations.append(e)
+                    continue
+                }
+                var vals: [String: ExprValue] = [:]
+                for (k, col) in tab.columns.enumerated() { vals[col.name] = inputs[k] }
+                run(e, vals, tab.rules[i].then)
+            }
+        }
+        var names: [String] = []
+        for (i, ex) in items(alg.child("examples")).enumerated() {
+            let name = str(ex.child("name"))
+            if !name.isEmpty { names.append(quote(name)) }
+            if !example.isEmpty && name != example { continue }
+            var e = Evaluation(number: i + 1, name: name)
+            let vals = read(&e, ex.child("inputs"))
+            var expected: ExprValue?
+            if let n = ex.child("expected") {
+                let (v, msg) = d.value(n, output)
+                if !msg.isEmpty { e.unread.append("the expected value " + msg) } else { expected = v }
+            }
+            run(e, vals, expected)
+        }
+        if !example.isEmpty && t.evaluations.isEmpty {
+            if names.isEmpty {
+                return (nil, "algorithm \(algorithm) has no example \(quote(example)); none of its examples has a name")
+            }
+            return (nil, "algorithm \(algorithm) has no example \(quote(example)); its examples are \(names.joined(separator: ", "))")
+        }
+        return (t, "")
+    }
 }
 
 /// Whether a diagnostic is one specarch try says in its own lines: a
@@ -274,8 +400,12 @@ private func printTried(_ w: TextSink, _ t: Tried, _ givenInputs: Bool) -> Bool 
     if givenInputs {
         w.write("\(t.algorithm): given inputs, \(t.evaluations[0].outcome.rawValue)\n")
     } else {
-        let n = t.evaluations.count
-        var summary = "\(t.algorithm): \(n == 1 ? "1 example" : "\(n) examples"), \(counts[.pass] ?? 0) pass"
+        let rules = t.evaluations.filter { $0.rule > 0 }.count
+        let n = t.evaluations.count - rules
+        var what = n == 1 ? "1 example" : "\(n) examples"
+        let ruleText = rules == 1 ? "1 rule" : "\(rules) rules"
+        if rules > 0 { what = n > 0 ? ruleText + " and " + what : ruleText }
+        var summary = "\(t.algorithm): \(what), \(counts[.pass] ?? 0) pass"
         for o in [TryOutcome.fail, .error, .unread] where (counts[o] ?? 0) > 0 {
             summary += ", \(counts[o]!) \(o.rawValue)"
         }
@@ -283,7 +413,9 @@ private func printTried(_ w: TextSink, _ t: Tried, _ givenInputs: Bool) -> Bool 
     }
     var failed = false
     for e in t.evaluations {
-        if e.number == 0 {
+        if e.rule > 0 {
+            w.write("rule \(e.rule): \(e.outcome.rawValue)\n")
+        } else if e.number == 0 {
             w.write("given inputs: \(e.outcome.rawValue)\n")
         } else if e.name.isEmpty {
             w.write("example \(e.number): \(e.outcome.rawValue)\n")

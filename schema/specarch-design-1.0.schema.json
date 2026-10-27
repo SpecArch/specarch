@@ -4976,7 +4976,7 @@
       "additionalProperties": false
     },
     "algorithm": {
-      "description": "SpecArch keyword. All three of formula, examples and pseudocode are required; the examples become test cases.",
+      "description": "SpecArch keyword. The computation is a formula or a decision table. A formula needs worked examples; a table's rules are its examples, and further worked examples are checked against it. The pseudocode is required either way; the examples become test cases.",
       "type": "object",
       "properties": {
         "description": {
@@ -4996,9 +4996,12 @@
           "$ref": "#/$defs/field"
         },
         "formula": {
-          "description": "The computation as one expression in SpecArch's subset of CEL (docs/conventions.md). It is type-checked against the inputs' declared types, with no implicit conversion, and its result must have the output's type. The validator evaluates it on every worked example.",
+          "description": "The computation as one expression in SpecArch's subset of CEL (docs/conventions.md). It is type-checked against the inputs' declared types, with no implicit conversion, and its result must have the output's type. The validator evaluates it on every worked example. Not with table.",
           "type": "string",
           "minLength": 1
+        },
+        "table": {
+          "$ref": "#/$defs/decisionTable"
         },
         "examples": {
           "type": "array",
@@ -5033,9 +5036,27 @@
       "required": [
         "inputs",
         "output",
-        "formula",
-        "examples",
         "pseudocode"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "table"
+            ]
+          },
+          "then": {
+            "properties": {
+              "formula": false
+            }
+          },
+          "else": {
+            "required": [
+              "formula",
+              "examples"
+            ]
+          }
+        }
       ],
       "propertyNames": {
         "not": {
@@ -5081,6 +5102,98 @@
         "^x-": {}
       },
       "additionalProperties": false
+    },
+    "decisionTable": {
+      "description": "SpecArch keyword, after DMN 1.5's decision table: the inputs are its columns, each rule a row of conditions on them and the output it gives, and the hit policy says which rule gives the output when more than one matches. The validator checks the rules for overlap and gaps by the hit policy, and each rule is a worked example.",
+      "type": "object",
+      "properties": {
+        "hitPolicy": {
+          "description": "unique: at most one rule matches any inputs, and rules that overlap are an error; first: the first rule that matches, in order, gives the output, and a rule an earlier one always matches first is never reached.",
+          "type": "string",
+          "enum": [
+            "unique",
+            "first"
+          ]
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/decisionRule"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "hitPolicy",
+        "rules"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "decisionRule": {
+      "type": "object",
+      "properties": {
+        "when": {
+          "description": "The condition on each input this rule tests, by the input's name; an input not named matches any value. A condition is a value, written as a worked example writes it, which the input equals; a comparison, an operator <, <=, >, >= or != and a value, such as \"< 6\" or '>= \"12.50\"'; comparisons joined by and, such as \">= 3 and < 6\"; null, for an input that is null; or a list of these, any of which may hold.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/decisionCondition"
+          }
+        },
+        "then": {
+          "description": "The output this rule gives, written as a worked example's expected value."
+        },
+        "note": {
+          "description": "Why this rule is there.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "then"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "decisionCondition": {
+      "anyOf": [
+        {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          "minItems": 2
+        }
+      ]
     },
     "decision": {
       "description": "SpecArch keyword. A short architecture decision record: the context (what was true and at stake), the decision, its consequences, under 'why' the reasoning that led from the one to the other, and under 'restsOn' the earlier decisions it rests on.",

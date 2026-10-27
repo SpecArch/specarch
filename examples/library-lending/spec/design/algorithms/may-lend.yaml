@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
+algorithms:
+  mayLend:
+    description: |
+      Whether a member may borrow one more copy: never while a fee is
+      unpaid, and only below the number of open loans their tier allows.
+    inputs:
+      tier: { $ref: "#/enums/MembershipTier", description: The member's tier. }
+      loansOpen: { type: integer, format: int32, minimum: 0, description: The member's loans not yet returned. }
+      outstandingFees: { type: string, format: decimal, precision: 10, scale: 2, minimum: 0, description: The member's outstandingFees. }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { outstandingFees: '> "0.00"' }
+          then: false
+          note: No loan is made while a fee is unpaid.
+        - when: { tier: standard, loansOpen: "< 3" }
+          then: true
+        - when: { tier: extended, loansOpen: "< 6" }
+          then: true
+        - then: false
+          note: The tier's limit is reached.
+    examples:
+      - name: standard member with three open loans
+        inputs: { tier: standard, loansOpen: 3, outstandingFees: "0.00" }
+        expected: false
+        note: LIB-3's acceptance; a fourth loan is refused.
+      - name: extended member with three open loans
+        inputs: { tier: extended, loansOpen: 3, outstandingFees: "0.00" }
+        expected: true
+      - name: fee outstanding
+        inputs: { tier: extended, loansOpen: 0, outstandingFees: "0.50" }
+        expected: false
+    pseudocode: |
+      function mayLend(tier, loansOpen, outstandingFees):
+          if outstandingFees > 0.00:
+              return false
+          limit = 3 if tier == standard else 6
+          return loansOpen < limit
+    satisfies: [LIB-3]

@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 1 algorithm, 194 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 194 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1855,6 +1855,38 @@ function lateFee(daysLate, dailyRate, replacementCost):
     return fee
 ```
 
+### Algorithm mayLend
+
+Whether a member may borrow one more copy: never while a fee is
+unpaid, and only below the number of open loans their tier allows.
+
+Inputs: `tier` (MembershipTier), `loansOpen` (int32), `outstandingFees` (decimal(10, 2)). Output: bool.
+
+Decision table, hit policy first:
+
+| Rule | tier | loansOpen | outstandingFees | Output | Note |
+|---|---|---|---|---|---|
+| 1 | any | any | > "0.00" | false | No loan is made while a fee is unpaid. |
+| 2 | standard | < 3 | any | true |   |
+| 3 | extended | < 6 | any | true |   |
+| 4 | any | any | any | false | The tier's limit is reached. |
+
+| Worked example | Inputs | Expected | Note |
+|---|---|---|---|
+| standard member with three open loans | tier standard, loansOpen 3, outstandingFees 0.00 | false | LIB-3's acceptance; a fourth loan is refused. |
+| extended member with three open loans | tier extended, loansOpen 3, outstandingFees 0.00 | true |   |
+| fee outstanding | tier extended, loansOpen 0, outstandingFees 0.50 | false |   |
+
+Pseudocode:
+
+```text
+function mayLend(tier, loansOpen, outstandingFees):
+    if outstandingFees > 0.00:
+        return false
+    limit = 3 if tier == standard else 6
+    return loansOpen < limit
+```
+
 ## 9. Architecture decisions
 
 ### ADR-001: Late fees are a flat daily rate capped at the replacement cost
@@ -2234,7 +2266,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 |---|---|---|---|
 | LIB-1 |   | entities Member constraints member_card_number_unique; entities Member; paths /members post | tests register-member; tests register-member-email-taken; checks lend-and-return; checks migrated-members |
 | LIB-2 |   | entities Book; permissions public; paths /books get | tests browse-catalogue; checks service-answers |
-| LIB-3 | money | entities Loan; views MemberWithLoans; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
+| LIB-3 | money | entities Loan; views MemberWithLoans; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; algorithms mayLend; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; decisions ADR-003; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | permissions signedIn; roles member; caller; session; paths /profile get; pages profile | tests get-profile-denied-when-not-signed-in; tests get-profile-denied-with-expired-session; tests get-profile-succeeds; tests profile-denied-when-not-signed-in; tests profile-denied-with-expired-session; tests profile-succeeds; checks member-sees-own-loans |

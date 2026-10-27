@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when, and one under unique whose rules split a string's values, an age's range, a nullable date's null and values, and a double's values with no overlap and no gap, and with no examples"
+when: "validate is run"
+then: "it reports no problem, the same in both builds, and exits 0"
+verifies: [SA-104]

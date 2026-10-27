@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -41,7 +42,8 @@ type TryInput struct {
 // Evaluation is one evaluation of specarch try: a worked example, or the
 // inputs given on the command line.
 type Evaluation struct {
-	Number   int        `json:"number,omitempty"` // the example's place, from 1; 0 for given inputs
+	Number   int        `json:"number,omitempty"` // the example's place, from 1; 0 for given inputs and a rule's example
+	Rule     int        `json:"rule,omitempty"`   // a decision table's rule whose example this is, from 1
 	Name     string     `json:"name"`             // the example's name, "" for one with none
 	Outcome  string     `json:"outcome"`
 	Inputs   []TryInput `json:"inputs"`
@@ -55,7 +57,9 @@ type Evaluation struct {
 // Tried is what specarch try found for one algorithm.
 type Tried struct {
 	Algorithm   string       `json:"algorithm"`
-	Formula     string       `json:"formula"`
+	Formula     string       `json:"formula"`             // "" for a decision table
+	HitPolicy   string       `json:"hitPolicy,omitempty"` // a decision table's
+	Rules       int          `json:"rules,omitempty"`     // how many rules a decision table has
 	File        string       `json:"file"`
 	Evaluations []Evaluation `json:"evaluations"`
 }
@@ -86,9 +90,12 @@ func Try(s *spec.Spec, algorithm, example string, given *yaml.Node) (*Tried, str
 	d := newDesign(s.Root)
 	d.spec = s
 	c.checkTimeZone(d)
+	if source.Child(alg, "table") != nil {
+		return c.tryTable(d, algorithm, alg, example, given)
+	}
 	formula := source.Child(alg, "formula")
 	if formula == nil || !source.IsScalar(formula) {
-		return nil, fmt.Sprintf("algorithm %s has no formula to evaluate; write one under formula", algorithm)
+		return nil, fmt.Sprintf("algorithm %s has no formula or table to evaluate; write one under formula or table", algorithm)
 	}
 	inputs := source.Pairs(source.Child(alg, "inputs"))
 	fields := map[string]*yaml.Node{}
@@ -205,6 +212,153 @@ func Try(s *spec.Spec, algorithm, example string, given *yaml.Node) (*Tried, str
 		run(Evaluation{Number: i + 1, Name: name}, source.Child(ex, "inputs"), source.Child(ex, "expected"))
 	}
 	if len(t.Evaluations) == 0 {
+		if len(names) == 0 {
+			return nil, fmt.Sprintf("algorithm %s has no example %s; none of its examples has a name", algorithm, expr.Quote(example))
+		}
+		return nil, fmt.Sprintf("algorithm %s has no example %s; its examples are %s", algorithm, expr.Quote(example), strings.Join(names, ", "))
+	}
+	return t, ""
+}
+
+// tryTable evaluates an algorithm's decision table on each rule's example
+// and each worked example, or on the one named example, or once on given
+// inputs; each step is a rule tested and whether it matches (ADR-199).
+func (c *checker) tryTable(d *design, algorithm string, alg *yaml.Node, example string, given *yaml.Node) (*Tried, string) {
+	tab := c.readTable(d, algorithm, alg, false)
+	if !tab.readOK {
+		return nil, fmt.Sprintf("the table of algorithm %s cannot be read; the validator's lines above say why", algorithm)
+	}
+	output := source.Child(alg, "output")
+	if output == nil {
+		return nil, fmt.Sprintf("algorithm %s has no output, so its result has no type to be read at; declare one under output", algorithm)
+	}
+	want := d.fieldType(output)
+	tn := source.Child(alg, "table")
+	t := &Tried{Algorithm: algorithm, File: c.fileOf(tn), HitPolicy: tab.policy, Rules: len(tab.rules), Evaluations: []Evaluation{}}
+	fields := map[string]*yaml.Node{}
+	for _, col := range tab.columns {
+		fields[col.name] = col.field
+	}
+	run := func(e Evaluation, vals map[string]expr.Value, expected *expr.Value) {
+		e.Inputs, e.Steps = []TryInput{}, []TryStep{}
+		for _, col := range tab.columns {
+			if v, ok := vals[col.name]; ok {
+				e.Inputs = append(e.Inputs, TryInput{Name: col.name, Value: expr.Show(v, col.t)})
+			}
+		}
+		if expected != nil {
+			text := expr.Show(*expected, want)
+			e.Expected = &text
+		}
+		if len(e.Unread) > 0 {
+			e.Outcome = OutcomeUnread
+			t.Evaluations = append(t.Evaluations, e)
+			return
+		}
+		got, tested, _, err := tab.evaluate(vals)
+		for i, hit := range tested {
+			r := tab.rules[i]
+			var parts []string
+			for _, nc := range r.cells {
+				col := tab.columns[slices.IndexFunc(tab.columns, func(col tableColumn) bool { return col.name == nc.name })]
+				parts = append(parts, nc.name+" "+col.text(nc.cell))
+			}
+			text := fmt.Sprintf("rule %d: any inputs", i+1)
+			if len(parts) > 0 {
+				text = fmt.Sprintf("rule %d: %s", i+1, strings.Join(parts, ", "))
+			}
+			e.Steps = append(e.Steps, TryStep{Expression: text, Line: r.node.Line, Column: r.node.Column, Value: fmt.Sprint(hit)})
+		}
+		switch {
+		case err != nil:
+			e.Outcome, e.Error = OutcomeError, err.Error()
+		default:
+			text := expr.Show(got, want)
+			e.Result = &text
+			switch {
+			case expected == nil:
+				e.Outcome = OutcomeComputed
+			case expr.Equal(got, *expected):
+				e.Outcome = OutcomePass
+			default:
+				e.Outcome = OutcomeFail
+			}
+		}
+		t.Evaluations = append(t.Evaluations, e)
+	}
+	read := func(e *Evaluation, values *yaml.Node) map[string]expr.Value {
+		vals := map[string]expr.Value{}
+		for _, p := range source.Pairs(values) {
+			field := fields[p.Key.Value]
+			if field == nil {
+				e.Unread = append(e.Unread, fmt.Sprintf("%s is not an input of algorithm %s%s", p.Key.Value, algorithm, suggest(p.Key.Value, fields)))
+				continue
+			}
+			v, msg := d.value(p.Value, field)
+			if msg != "" {
+				e.Unread = append(e.Unread, fmt.Sprintf("input %s %s", p.Key.Value, msg))
+				continue
+			}
+			vals[p.Key.Value] = v
+		}
+		for _, col := range tab.columns {
+			if _, ok := vals[col.name]; !ok && source.Child(values, col.name) == nil {
+				e.Unread = append(e.Unread, fmt.Sprintf("no value is given for input %s", col.name))
+			}
+		}
+		return vals
+	}
+	if given != nil {
+		e := Evaluation{Name: "given inputs"}
+		run(e, read(&e, given), nil)
+		return t, ""
+	}
+	if example == "" {
+		for i := range tab.rules {
+			e := Evaluation{Rule: i + 1}
+			inputs, ok := tab.example(i)
+			if !ok {
+				e.Inputs, e.Steps = []TryInput{}, []TryStep{}
+				e.Outcome, e.Error = OutcomeError, "no inputs reach this rule: the rules before it match every input it matches"
+				switch k := tab.emptyColumn(i); {
+				case k >= 0:
+					e.Error = fmt.Sprintf("no inputs match this rule: its condition on %s holds for no value the input may take", tab.columns[k].name)
+				case tab.policy == "unique":
+					e.Error = "no inputs reach this rule alone: other rules match every input it matches"
+				}
+				t.Evaluations = append(t.Evaluations, e)
+				continue
+			}
+			vals := map[string]expr.Value{}
+			for k, col := range tab.columns {
+				vals[col.name] = inputs[k]
+			}
+			then := tab.rules[i].then
+			run(e, vals, &then)
+		}
+	}
+	var names []string
+	for i, ex := range source.Items(source.Child(alg, "examples")) {
+		name := source.Str(source.Child(ex, "name"))
+		if name != "" {
+			names = append(names, expr.Quote(name))
+		}
+		if example != "" && name != example {
+			continue
+		}
+		e := Evaluation{Number: i + 1, Name: name}
+		vals := read(&e, source.Child(ex, "inputs"))
+		var expected *expr.Value
+		if n := source.Child(ex, "expected"); n != nil {
+			if v, msg := d.value(n, output); msg != "" {
+				e.Unread = append(e.Unread, "the expected value "+msg)
+			} else {
+				expected = &v
+			}
+		}
+		run(e, vals, expected)
+	}
+	if example != "" && len(t.Evaluations) == 0 {
 		if len(names) == 0 {
 			return nil, fmt.Sprintf("algorithm %s has no example %s; none of its examples has a name", algorithm, expr.Quote(example))
 		}

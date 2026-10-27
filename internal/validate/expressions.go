@@ -349,6 +349,10 @@ func writable(n *expr.Node, src, field string, t expr.Type, required bool) strin
 }
 
 func (c *checker) checkAlgorithm(d *design, name string, alg *yaml.Node) {
+	if source.Child(alg, "table") != nil {
+		c.checkTable(d, name, alg)
+		return
+	}
 	n := source.Child(alg, "formula")
 	if n == nil || !source.IsScalar(n) {
 		return
@@ -381,11 +385,15 @@ func (c *checker) checkAlgorithm(d *design, name string, alg *yaml.Node) {
 		return
 	}
 	for i, ex := range source.Items(source.Child(alg, "examples")) {
-		c.checkExample(d, name, i, ex, tree, inputs, output, want)
+		c.checkExampleWith(d, name, i, ex, inputs, output, want, "the formula", func(vals map[string]expr.Value) (expr.Value, error) {
+			return expr.Eval(tree, vals, c.zoneOf())
+		})
 	}
 }
 
-func (c *checker) checkExample(d *design, alg string, i int, ex *yaml.Node, tree *expr.Node, inputs map[string]*yaml.Node, output *yaml.Node, want expr.Type) {
+// checkExampleWith checks a worked example against what computes the
+// algorithm, its formula or its table, named by what.
+func (c *checker) checkExampleWith(d *design, alg string, i int, ex *yaml.Node, inputs map[string]*yaml.Node, output *yaml.Node, want expr.Type, what string, compute func(map[string]expr.Value) (expr.Value, error)) {
 	base := []string{"algorithms", alg, "examples", fmt.Sprint(i)}
 	label := source.Str(source.Child(ex, "name"))
 	if label == "" {
@@ -428,19 +436,19 @@ func (c *checker) checkExample(d *design, alg string, i int, ex *yaml.Node, tree
 	if !ok {
 		return
 	}
-	got, err := expr.Eval(tree, vals, c.zoneOf())
+	got, err := compute(vals)
 	if err != nil {
-		c.add(ex, source.Pointer(base...), RuleExampleError, "the formula cannot be computed for %q: %v; correct the inputs or the formula", label, err)
+		c.add(ex, source.Pointer(base...), RuleExampleError, "%s cannot be computed for %q: %v; correct the inputs or %s", what, label, err, what)
 		return
 	}
 	if want.Kind == expr.Int && want.Bits == 32 && !expr.FitsInt(got.Num, 32) {
 		c.add(expNode, source.Pointer(append(base, "expected")...), RuleExampleMismatch,
-			"the formula gives %s for %q, which does not fit the output's int32; correct the formula or widen the output", got, label)
+			"%s gives %s for %q, which does not fit the output's int32; correct %s or widen the output", what, got, label, what)
 		return
 	}
 	if !expr.Equal(got, expected) {
 		c.add(expNode, source.Pointer(append(base, "expected")...), RuleExampleMismatch,
-			"the formula gives %s for %q, but the example expects %s; correct the example or the formula", show(got, want), label, show(expected, want))
+			"%s gives %s for %q, but the example expects %s; correct the example or %s", what, show(got, want), label, show(expected, want), what)
 	}
 }
 

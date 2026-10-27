@@ -333,6 +333,10 @@ extension Checker {
     }
 
     func checkAlgorithm(_ d: Design, _ name: String, _ alg: YNode) {
+        if alg.child("table") != nil {
+            checkTable(d, name, alg)
+            return
+        }
         guard let n = alg.child("formula"), n.kind == .scalar else { return }
         let ptr = pointer("algorithms", name, "formula")
         var inputs: [String: YNode] = [:]
@@ -360,11 +364,15 @@ extension Checker {
             return
         }
         for (i, ex) in items(alg.child("examples")).enumerated() {
-            checkExample(d, name, i, ex, tree, inputs, output, want)
+            checkExampleWith(d, name, i, ex, inputs, output, want, "the formula") { vals in
+                try evalExpr(tree, vals, self.zoneOf())
+            }
         }
     }
 
-    func checkExample(_ d: Design, _ alg: String, _ i: Int, _ ex: YNode, _ tree: ExprNode, _ inputs: [String: YNode], _ output: YNode, _ want: ExprType) {
+    /// Checks a worked example against what computes the algorithm, its
+    /// formula or its table, named by what.
+    func checkExampleWith(_ d: Design, _ alg: String, _ i: Int, _ ex: YNode, _ inputs: [String: YNode], _ output: YNode, _ want: ExprType, _ what: String, _ compute: ([String: ExprValue]) throws -> ExprValue) {
         let base = ["algorithms", alg, "examples", "\(i)"]
         var label = str(ex.child("name"))
         if label.isEmpty { label = "example \(i + 1)" }
@@ -401,19 +409,19 @@ extension Checker {
         if !ok { return }
         let got: ExprValue
         do {
-            got = try evalExpr(tree, vals, zoneOf())
+            got = try compute(vals)
         } catch {
-            add(ex, pointer(base), .exampleError, "the formula cannot be computed for \(quote(label)): \(error); correct the inputs or the formula")
+            add(ex, pointer(base), .exampleError, "\(what) cannot be computed for \(quote(label)): \(error); correct the inputs or \(what)")
             return
         }
         if want.kind == .int && want.bits == 32 && !fitsInt(got.num, 32) {
             add(expNode, pointer(base + ["expected"]), .exampleMismatch,
-                "the formula gives \(got) for \(quote(label)), which does not fit the output's int32; correct the formula or widen the output")
+                "\(what) gives \(got) for \(quote(label)), which does not fit the output's int32; correct \(what) or widen the output")
             return
         }
         if !exprEqual(got, expected) {
             add(expNode, pointer(base + ["expected"]), .exampleMismatch,
-                "the formula gives \(show(got, want)) for \(quote(label)), but the example expects \(show(expected, want)); correct the example or the formula")
+                "\(what) gives \(show(got, want)) for \(quote(label)), but the example expects \(show(expected, want)); correct the example or \(what)")
         }
     }
 }

@@ -1110,12 +1110,18 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			inputs = append(inputs, fmt.Sprintf("`%s` (%s)", in.Key.Value, typeText(in.Value)))
 		}
 		d.para("Inputs: " + strings.Join(inputs, ", ") + ". Output: " + typeText(get(a.Value, "output")) + ".")
-		d.line("Formula:")
-		d.blank()
-		d.line("    %s", strings.TrimSpace(str(a.Value, "formula")))
-		d.blank()
-		d.line("| Worked example | Inputs | Expected | Note |")
-		d.line("|---|---|---|---|")
+		if tab := get(a.Value, "table"); tab != nil {
+			decisionTable(d, a.Value, tab)
+		} else {
+			d.line("Formula:")
+			d.blank()
+			d.line("    %s", strings.TrimSpace(str(a.Value, "formula")))
+			d.blank()
+		}
+		if exs := items(a.Value, "examples"); len(exs) > 0 || get(a.Value, "table") == nil {
+			d.line("| Worked example | Inputs | Expected | Note |")
+			d.line("|---|---|---|---|")
+		}
 		for _, ex := range items(a.Value, "examples") {
 			var in []string
 			for _, p := range pairs(ex, "inputs") {
@@ -1131,6 +1137,44 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		d.line("```")
 		d.blank()
 	}
+}
+
+// decisionTable writes an algorithm's decision table: a column per input
+// and the output, a row per rule in order, "any" where a rule does not
+// test an input (ADR-199).
+func decisionTable(d *doc, a, tab *yaml.Node) {
+	d.line("Decision table, hit policy %s:", str(tab, "hitPolicy"))
+	d.blank()
+	ins := pairs(a, "inputs")
+	head, rule := "| Rule |", "|---|"
+	for _, in := range ins {
+		head += " " + cell(in.Key.Value) + " |"
+		rule += "---|"
+	}
+	d.line("%s Output | Note |", head)
+	d.line("%s---|---|", rule)
+	for i, r := range items(tab, "rules") {
+		row := fmt.Sprintf("| %d |", i+1)
+		when := get(r, "when")
+		for _, in := range ins {
+			c := get(when, in.Key.Value)
+			text := "any"
+			switch {
+			case c == nil:
+			case c.Kind == yaml.SequenceNode:
+				var alts []string
+				for _, item := range c.Content {
+					alts = append(alts, item.Value)
+				}
+				text = strings.Join(alts, " or ")
+			default:
+				text = c.Value
+			}
+			row += " " + cell(text) + " |"
+		}
+		d.line("%s %s | %s |", row, cell(str(r, "then")), cell(str(r, "note")))
+	}
+	d.blank()
 }
 
 // decisions writes the decision records; with no title they are a part of

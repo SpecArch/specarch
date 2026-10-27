@@ -1,0 +1,77 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+enums:
+  MembershipTier: { type: string, enum: [standard, extended, staff] }
+algorithms:
+  mayLend:
+    description: Whether a member may borrow one more copy.
+    inputs:
+      tier: { $ref: "#/enums/MembershipTier" }
+      loansOpen: { type: integer, format: int32, minimum: 0 }
+      outstandingFees: { type: string, format: decimal, precision: 10, scale: 2, minimum: 0 }
+    output: { type: boolean }
+    table:
+      hitPolicy: unique
+      rules:
+        - when: { tier: extended, loansOpen: "< 6" }
+          then: true
+        - when: { tier: [standard, extended], loansOpen: ">= 2 and < 3", outstandingFees: '< "5.00"' }
+          then: true
+        - when: { tier: standard, loansOpen: ">= 3" }
+          then: false
+    examples:
+      - { name: standard at its limit, inputs: { tier: standard, loansOpen: 3, outstandingFees: "0.00" }, expected: true }
+      - { name: staff, inputs: { tier: staff, loansOpen: 0, outstandingFees: "0.00" }, expected: true }
+      - { name: extended with two, inputs: { tier: extended, loansOpen: 2, outstandingFees: "0.00" }, expected: true }
+    pseudocode: return loansOpen < the tier's limit
+  shelfDays:
+    description: How many days a loan runs, by shelf.
+    inputs:
+      shelf: { type: string }
+      weight: { type: number, format: double, exclusiveMinimum: 0 }
+      returned: { type: [boolean, "null"] }
+    output: { type: integer, format: int32 }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { weight: "< 1.5", shelf: [reference, rare] }
+          then: 1
+        - when: { weight: "<= 1", shelf: reference }
+          then: 2
+        - when: { shelf: '!= "closed"', returned: [true, null] }
+          then: 3
+        - when: { weight: "<= 0" }
+          then: 4
+    pseudocode: look the row up
+  unread:
+    description: Conditions and outputs that cannot be read.
+    inputs:
+      tier: { $ref: "#/enums/MembershipTier" }
+      loansOpen: { type: integer, format: int32 }
+      dueAt: { type: string, format: date-time }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { tier: gold, loansOpen: "=< 3" }
+          then: maybe
+        - when: { tier: "< standard", loans: 3 }
+          then: true
+        - when: { loansOpen: ">= 3 and", dueAt: '< "2026-01-01T00:00:00Z"' }
+          then: false
+        - when: { loansOpen: ">= 3 or < 1" }
+          then: false
+        - when: { loansOpen: [null, 3] }
+          then: false
+    pseudocode: x
+  both:
+    description: A formula and a table.
+    inputs:
+      n: { type: integer, format: int32 }
+    output: { type: integer, format: int32 }
+    formula: n
+    table:
+      hitPolicy: first
+      rules:
+        - then: 1
+    pseudocode: x

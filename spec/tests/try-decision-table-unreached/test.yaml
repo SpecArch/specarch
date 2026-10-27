@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [exit 1]
+given: "an algorithm whose table under hit policy first has a rule the rule before it always matches first, a rule whose weight condition no weight above 0 meets, and a worked example the earlier rule takes"
+when: "try is run for the algorithm"
+then: "it prints that no inputs reach the first rule and none match the second, and the example failing with the earlier rule's output, the same in both builds, and exits 1"
+verifies: [SA-104]

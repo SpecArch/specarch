@@ -1,0 +1,4 @@
+arguments: ["validate", "."]
+exitStatus: 0
+standardOutput: |
+  

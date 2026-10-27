@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.3.0 of the specification: 103 requirements, 5 entities, 23 commands, 7 algorithms, 825 tests, 189 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.3.0 of the specification: 104 requirements, 5 entities, 23 commands, 7 algorithms, 829 tests, 190 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -78,7 +78,7 @@ The interfaces the system offers, as its clients see them.
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
-| try | Evaluate an algorithm on its worked examples or on given inputs and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm or the example is not the specification's, or the formula does not check; or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
+| try | Evaluate an algorithm on its worked examples or on given inputs and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm or the example is not the specification's, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
 | upgrade | Move a specification and its files to the newest version of each format, or list what moving them changes | public | 0: every change the move names was made, or with --dry-run can be made, and no step is left to the author; 1: a step is left to the author; 2: usage error, a path that could not be read or written, or a version --to names that this program does not write |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
@@ -305,7 +305,10 @@ Primary key: path.
 | Rule | example_input | a worked example's inputs are missing one, name an unknown one, or have the wrong type |
 | Rule | example_expected | a worked example's expected value does not have the output's type |
 | Rule | example_mismatch | the formula evaluated on a worked example's inputs does not give the expected value |
-| Rule | example_error | the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic) |
+| Rule | example_error | the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic), or no rule of a decision table, or two under hit policy unique, match them |
+| Rule | decision_table | a decision table's condition names no input, its value or operator cannot be read, it tests an input of a type a table does not test, or a rule's output cannot be read; as a warning, a rule whose condition holds for no value its input may take (ADR-199) |
+| Rule | table_overlap | two rules of a decision table under hit policy unique both match some inputs; as a warning, a rule under hit policy first that the earlier rules always match first (ADR-199) |
+| Rule | table_gap | some inputs of a decision table match no rule (ADR-199) |
 | Rule | implements | an implementation file's `implements` does not name the root file of its specification at the same version |
 | Rule | design_ref | a pointer into the specification does not resolve |
 | Rule | unsafe_integer | an int64 or uint64 is carried as a JSON number without bounds inside 2^53 |
@@ -4018,9 +4021,9 @@ steps; an example not evaluated, with --example or --inputs, keeps
 its line.
 Finds the algorithm by its name in the merged `algorithms` section;
 refuses when there is none of that name, naming the ones there are,
-when it has no formula, when the formula does not parse or check
-(the validator's lines above say why), and when it has no worked
-example and `--inputs` is not given.
+when it has no formula or table, when the formula does not parse or
+check or the table cannot be read (the validator's lines above say
+why), and when it has no worked example and `--inputs` is not given.
 
 With `--file`, the algorithm of that name is read from the file, a
 design fragment holding `algorithms`, in place of the
@@ -4058,6 +4061,16 @@ fails, its result is written at the formula's own type, so the value
 compared shows, and the line after it says why. An evaluation that cannot be
 computed ends with the reason after the steps computed before it;
 one whose inputs cannot be read says which and why.
+
+An algorithm given as a decision table (ADR-199) is evaluated on
+each rule's example first, `rule N`, then on each worked example;
+`--example` and `--inputs` leave the rules out. The summary counts
+the rules and the examples. Each step is a rule tested, in order,
+with its conditions as written and whether it matches: under hit
+policy first up to the rule that matches, under unique every rule.
+An evaluation no rule or, under unique, more than one rule matches
+cannot be computed and says which; a rule no inputs reach, since
+the rules before it match all it matches, cannot be computed.
 
 **Insight:** A person judges a rule by its result on a case they recognise, and validate says only when an example does not hold; printing the result of every example, and the steps that gave it, puts the rule's behaviour in front of the reader, and trying a proposed formula on the examples the specification already holds tells, before the change is written, which decisions taken on those examples it breaks.
 
@@ -15153,6 +15166,68 @@ addition.
 
 **Insight:** BPMN 2.0's meanings are taken again, so a modeller reads the file generate writes and extract reads one a modeller wrote. Forward-only targets keep what ADR-054 kept: a workflow read top to bottom is the order things happen, and a loop or a parallel path stays a question until a real workflow needs one. The decision's when and otherwise are the words a state machine's transition uses (ADR-190), and a wait's after and at the words of its time transitions, so one thing is said one way. compensatedBy names an operation rather than a step, because BPMN's compensation handler is outside the sequence flow: a step in the list would also run in order. Compensation runs on a refusal as well as a failure, because a request refused after a reservation was made leaves the reservation held as surely as one that failed. A retry has no element in BPMN 2.0, and an engine's extension would tie the file to that engine, so the limit is left to the specification. The four-eyes rule stays on approvals: a task is work on the request, often by the person who asked.
 
+### ADR-199: An algorithm may be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example
+
+Status: proposed, 2026-10-27.
+
+Context: An algorithm is a formula in SpecArch's subset of CEL with worked
+examples (ADR-004). Many rules a business states are not
+arithmetic but a choice by cases: which members may borrow, what
+a fee is by membership and lateness. Written as a formula, such a
+rule is a chain of ?: that a business reader cannot check, and the
+cases nobody thought of stay hidden: the formula gives some value
+for them, and no example asks which. Business people already keep
+these rules as tables, a row per case.
+
+Decision: An algorithm gives table in place of formula, after DMN 1.5's
+decision table: the inputs are its columns, and rules, in order,
+each has when, a condition on each input it tests by the input's
+name, and then, the output, written as a worked example's expected
+value. An input a rule does not name matches any value, so a rule
+with no when matches every input.
+
+A condition is one of: a value, written as a worked example writes
+it, which the input equals; an operator <, <=, >, >= or != and a
+value, such as "< 6"; comparisons joined by and, such as ">= 3 and
+< 6"; null, for an input that is null; or a list of these, any of
+which may hold. A value never matches null, so a nullable input's
+null is matched only by null or by not naming the input. A table
+tests inputs of type int, uint, decimal, double, date, enum, bool
+and string; a string only for equality and !=.
+
+hitPolicy is unique or first, one of them always written. Under
+unique at most one rule may match any inputs: two rules that both
+match some inputs are an error, table_overlap, at the later one,
+naming the inputs both match. Under first the first rule that
+matches gives the output: a rule the earlier rules match whenever
+it matches is never reached, a table_overlap warning. Under both,
+inputs no rule matches are an error, table_gap, naming them as a
+when that can be pasted in as a new rule. An input's minimum,
+maximum and exclusive bounds, an int32's range and a uint's zero
+bound limit the inputs the gap check asks about.
+
+A condition or an output that cannot be read is decision_table at
+it, and the table is then not checked for overlap and gaps, since
+the rule it is in could not be placed. A condition that holds for no
+value its input may take, such as "< 0" for an input of minimum 0,
+is a decision_table warning at it: the rule matches nothing. Each rule is a worked
+example: its inputs are the first values it reaches that no
+earlier rule matches under first, or that no other rule matches
+under unique, and specarch try evaluates the table on each rule's
+example and on the algorithm's examples, which are checked against
+the table as a formula's are. examples is then optional; pseudocode
+is required as for a formula.
+
+Consequences: An algorithm with a formula is unchanged. The technical
+specification draws a table as a table, a column per input and the
+output, in rule order. specarch try prints a step per rule tested,
+whether it matches, and the rule that gives the output. The test
+generators still write a test per worked example under examples;
+a test per rule is a later addition, since a plug-in reads the
+specification as data and the rule's example is the validator's.
+
+**Insight:** DMN 1.5 is the standard business modellers read for decision tables, so its words are taken: rule, hit policy, unique and first, a condition per input column, a blank cell matching anything. Its other hit policies are left out until a table needs one: any (overlap allowed when the outputs agree) hides the same case written twice; priority and output order rank rules by an order of the output's values the format does not hold; rule order and collect give a list or an aggregate, which an algorithm's single output does not take. unique is DMN's default, and is written rather than assumed, since a reader cannot tell a table that means first from one that means unique by its rows. A condition is DMN's unary test, the input left out, rather than a CEL expression per rule: a per-input test of a value, a comparison or a range is what a table's cell holds in DMN and in a spreadsheet, and it keeps overlap and gaps decidable, each rule a box of value sets, where a rule over any CEL expression would need a solver to say which inputs it matches. Values are written as a worked example writes them, so one value is written one way in the whole format, and FEEL's own syntax ([3..6), "a","b") is not taken, as a second expression language beside CEL. A range is two comparisons joined by and, a word, since a bracket's open or closed end is easy to misread. Timestamps, times of day and durations are left out until a table needs one: a cell that says "< PT2H" or an instant is better worked out by a formula from a date or a number. A gap is an error, not a warning: an algorithm gives its output for every input it accepts, and inputs no rule matches are a case the table's authors did not decide, which the error names so it can be decided; a last rule with no when is the decision "everything else". A rule never reached under first is a warning, since the table still gives an output for every input, but the rule says something the table never does.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15622,6 +15697,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
+| try-decision-table | command try | system | golden | an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when and one worked example | try is run for the algorithm | it prints the summary line counting rules and examples, then each rule's example, inputs the rule reaches first, and the worked example, each with the rules tested in order, whether each matches, and the output beside the expected value, the same in both builds, and exits 0 |
+| try-decision-table-unreached | command try | system | red | an algorithm whose table under hit policy first has a rule the rule before it always matches first, a rule whose weight condition no weight above 0 meets, and a worked example the earlier rule takes | try is run for the algorithm | it prints that no inputs reach the first rule and none match the second, and the example failing with the earlier rule's output, the same in both builds, and exits 1 |
 | try-example-fails | command try | system | red | an algorithm dividing a sum among people, with examples that hold, one whose expected value is wrong, and one the formula cannot compute since it divides by zero | try is run for the algorithm | it prints the failing example's result beside its expected value, the steps computed before the division by zero and the reason, a quotient of no fixed scale with 20 places, no example_mismatch or example_error line, and exits 1 |
 | try-example-others-fail | command try | system | red | an algorithm with an example that holds, one whose expected value is wrong and one the formula cannot compute | try is run with --example naming the example that holds | it prints the validator's example_mismatch and example_error lines of the two examples it does not evaluate, then the one it evaluates as passing, and exits 1 |
 | try-exit-2 | command try | system | red | a specification with an algorithm | try is run with --file naming a file that does not exist | it says the file cannot be read and exits 2 |
@@ -15694,6 +15771,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-decision-cycle | command validate | system | red | three decisions whose restsOn links come back to each of them, one resting on itself | validate is run | it reports decision_cycle at every restsOn entry on a cycle, each naming the chain from its decision, and exits 1 |
 | validate-decision-rests-on-missing | command validate | system | red | a decision whose restsOn names a decision that does not exist | validate is run | it reports decision at the entry, naming the nearest decision, and exits 1 |
 | validate-decision-rests-on-superseded | command validate | system | golden | a superseded decision, its successor resting on it, an accepted decision resting on it, and a superseded decision resting on it | validate is run | it warns decision_superseded at the accepted decision's entry only, naming the successor, and exits 0 |
+| validate-decision-table | command validate | system | golden | an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when, and one under unique whose rules split a string's values, an age's range, a nullable date's null and values, and a double's values with no overlap and no gap, and with no examples | validate is run | it reports no problem, the same in both builds, and exits 0 |
+| validate-decision-table-refused | command validate | system | red | a table under unique whose rules overlap and leave inputs unmatched, with examples the table gives another output for, matched by no rule and matched by two; a table under first with a rule never reached, a rule whose weight condition no weight above 0 meets, and inputs unmatched; a table whose conditions name a value not of the enum, an operator that is not one, a comparison of an enum, an input that is not the algorithm's, a comparison with no value, an instant, null for an input that does not allow it and an or, and whose output is not a bool; and an algorithm with both a formula and a table | validate is run | it reports each as table_overlap, table_gap, example_mismatch, example_error, decision_table or schema at the key, the never-reached rule and the rule that matches nothing as warnings, the same in both builds, and exits 1 |
 | validate-defect-duplicate | command validate | system | red | a duplicate that names no defect, one that repeats a duplicate, and one that repeats a defect that does not exist | validate is run | it reports defect_duplicate for each and exits 1 |
 | validate-defect-test | command validate | system | red | a fixed defect that names no test, and a fixed defect that violates a permission and names a test about a command | validate is run | it reports defect_test for each and exits 1 |
 | validate-dependency | command validate | system | red | a dependency whose timeout is zero, and an operation that calls a dependency that is not declared | validate is run | it reports dependency for the timeout and for the call, naming the declared dependency it resembles, and exits 1 |
@@ -16073,6 +16152,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-99 | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. | functional | must | proposed | test | An expression literal of an instant written without its offset is reported, as today, and a default or examples value of a date-time field written without its offset is reported at the value as a warning. A field of format local-date-time with why validates and the technical specification shows the reason beside the field; one without why is reported at the field as an error. A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value as an error. An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is, and date() of an instant gives the date in timeZone, and in UTC when none is declared, in both builds. A job's schedule stays the five fields of cron in UTC, and the library lending example validates with no new line once it declares its timeZone. Both builds print the same lines for every case. | NEED-2 |
 | SA-102 | A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports. | functional | should | proposed | test | A role's home that is a page the role may open, with no route parameters, validates; one that is not a page, takes route parameters or needs a permission the role does not hold is reported as role_home at the key. signedIn, declared under permissions, opens a page, an operation or a command to every signed-in caller with no role granting it; a role that lists it is reported as reserved_name, a set of separationOfDuties or an implies naming it as for public, and its derived cases refuse a caller who is not signed in and one whose session has expired. fieldConditions.<field>.readOnlyUnless on a form and hiddenUnless on a form or a view name a declared permission; one that is not declared is reported as permission_undeclared, and one every caller who opens the page holds, or nobody, as form_field. With menus declared, a page nothing leads to that is neither public nor a role's home, a role a person holds that can open no menu entry, and a menu entry whose page no role can open are each reported as a navigation warning; so are an operation action on a page without states whose operation answers a problem type, and a form with no onSubmitted. Both builds print the same lines for every case. specarch-gen-ui, specarch-gen-ui-typescript and specarch-gen-ui-swiftui read the roles the session answers when the ui target's settings.session names them and open the home of the first role the session answers that has one; a page or a menu entry of signedIn is open to every signed-in person, and a field is read-only or hidden by the permissions the session answers; without a session they warn that what they cannot honour is left to the service. | NEED-1, NEED-10 |
 | SA-103 | A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them. | functional | should | proposed | test | A decision's branch whose condition names no field of the subject or gives no true or false, an otherwise that is not the last branch, a last branch with a condition, and a branch or a failure that goes on at a step that is not later are each reported at the key, as expression_name, expression_type or workflow. A task's performer that is not a role or does not grant the task's permission, and a task's escalation to a step that is not a later task, are reported as workflow; a wait's message that is not a channel message, and an at that gives no instant or date, may be null, or gives a date with no timeZone, are reported as workflow, expression_type or time_zone. A workflow gets a case per branch of each decision, the deadline at each task and each wait for a message, a task done without its permission, and the failure of each operation step with onFailure, critical whatever the harm; a case where the request ends after a step with compensatedBy names the operation that undoes it, the latest step first. specarch generate bpmn writes a decision as an exclusive gateway with a condition on each flow and its otherwise as the default flow, a task as a user task, a wait as an intermediate catch event, a failure as an error boundary event, and compensatedBy as a compensation boundary event with its handler; specarch extract workflows reads each back, so the file generate writes gives the workflow it was written from. Both builds print the same lines for every case. | NEED-1, NEED-5 |
+| SA-104 | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. | functional | should | proposed | test | A table whose rules cover every input once, or in order under first, validates, and an algorithm with a table needs no examples; one that gives both formula and table is refused by the schema. Under unique, two rules that both match some inputs are reported as table_overlap at the later rule, naming the inputs; under first, a rule the earlier ones always match first is a table_overlap warning. Inputs no rule matches are reported as table_gap at the table, written as a when that can be added as a rule; an input's minimum and maximum bound the inputs asked about. A condition naming no input, a value or an operator that cannot be read, an input of a type a table does not test, and an output that cannot be read are reported as decision_table at the condition or the output. A worked example under examples is evaluated through the table, and one whose result differs, or that two rules match under unique or no rule matches, is reported as for a formula. specarch try evaluates each rule's example and each worked example, printing the rules tested and the rule that gives the output. Both builds print the same lines for every case. | NEED-1 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -16242,6 +16322,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-102:** A person meets an application through its pages, in the order they reach them, and the analyst writing the specification asks what each role sees first, what every person has whatever their role, and which fields a role may change or see; until each is written, the screens fall back on a menu nobody chose and a form that shows every field to everyone. A gap in the navigation is found by a check rather than by a reader, and is a question the walkthrough asks (ADR-197).
 
 **Insight on SA-103:** The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.
+
+**Insight on SA-104:** A business states many rules as cases, and keeps them as a table; written as a formula the cases nobody decided are hidden, since the formula gives a value for them anyway. A table checked for overlap and gaps names those cases, so each is decided by a person, and each rule stays a test (ADR-199).
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -16458,6 +16540,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-101 | commands decision why; commands decision rests; commands validate; decisions ADR-196 | tests decision-rests-ideas-json; tests decision-why-ideas; tests validate-idea-decision; tests validate-idea-question; tests validate-idea-ref; tests validate-ideas-valid |
 | SA-102 | commands generate; commands validate; decisions ADR-197 | tests generate-ui-navigation; tests generate-ui-navigation-no-session; tests generate-ui-swiftui-navigation; tests generate-ui-typescript-navigation; tests validate-field-modes; tests validate-navigation; tests validate-navigation-valid; tests validate-signed-in |
 | SA-103 | decisions ADR-198 | tests extract-workflows-asks-unread-end; tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-deadline-undoes; tests validate-workflow-open-branch; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused; tests validate-workflow-undo-skipped-step |
+| SA-104 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
 
 ## Sources
 

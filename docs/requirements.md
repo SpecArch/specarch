@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.3.0 of the specification: 5 stakeholders, 10 needs and 103 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.3.0 of the specification: 5 stakeholders, 10 needs and 104 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,7 +33,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
@@ -100,6 +100,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-99 | functional | must | proposed | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. |
 | SA-102 | functional | should | proposed | A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports. |
 | SA-103 | functional | should | proposed | A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them. |
+| SA-104 | functional | should | proposed | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -1007,6 +1008,24 @@ Acceptance criteria:
 - Both builds print the same lines for every case.
 
 **Insight:** The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.
+
+### SA-104
+
+An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-1.
+
+Acceptance criteria:
+
+- A table whose rules cover every input once, or in order under first, validates, and an algorithm with a table needs no examples; one that gives both formula and table is refused by the schema.
+- Under unique, two rules that both match some inputs are reported as table_overlap at the later rule, naming the inputs; under first, a rule the earlier ones always match first is a table_overlap warning.
+- Inputs no rule matches are reported as table_gap at the table, written as a when that can be added as a rule; an input's minimum and maximum bound the inputs asked about.
+- A condition naming no input, a value or an operator that cannot be read, an input of a type a table does not test, and an output that cannot be read are reported as decision_table at the condition or the output.
+- A worked example under examples is evaluated through the table, and one whose result differs, or that two rules match under unique or no rule matches, is reported as for a formula.
+- specarch try evaluates each rule's example and each worked example, printing the rules tested and the rule that gives the output.
+- Both builds print the same lines for every case.
+
+**Insight:** A business states many rules as cases, and keeps them as a table; written as a formula the cases nobody decided are hidden, since the formula gives a value for them anyway. A table checked for overlap and gaps names those cases, so each is decided by a person, and each rule stays a test (ADR-199).
 
 ### SA-7
 

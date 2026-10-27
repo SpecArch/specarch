@@ -133,7 +133,22 @@ func printTried(w io.Writer, t *validate.Tried, givenInputs bool) bool {
 	if givenInputs {
 		fmt.Fprintf(w, "%s: given inputs, %s\n", t.Algorithm, t.Evaluations[0].Outcome)
 	} else {
-		summary := fmt.Sprintf("%s: %s, %d pass", t.Algorithm, plural(len(t.Evaluations), "example"), counts[validate.OutcomePass])
+		rules, examples := 0, 0
+		for _, e := range t.Evaluations {
+			if e.Rule > 0 {
+				rules++
+			} else {
+				examples++
+			}
+		}
+		what := plural(examples, "example")
+		switch {
+		case rules > 0 && examples > 0:
+			what = plural(rules, "rule") + " and " + plural(examples, "example")
+		case rules > 0:
+			what = plural(rules, "rule")
+		}
+		summary := fmt.Sprintf("%s: %s, %d pass", t.Algorithm, what, counts[validate.OutcomePass])
 		for _, o := range []string{validate.OutcomeFail, validate.OutcomeError, validate.OutcomeUnread} {
 			if counts[o] > 0 {
 				summary += fmt.Sprintf(", %d %s", counts[o], o)
@@ -144,6 +159,8 @@ func printTried(w io.Writer, t *validate.Tried, givenInputs bool) bool {
 	failed := false
 	for _, e := range t.Evaluations {
 		switch {
+		case e.Rule > 0:
+			fmt.Fprintf(w, "rule %d: %s\n", e.Rule, e.Outcome)
 		case e.Number == 0:
 			fmt.Fprintf(w, "given inputs: %s\n", e.Outcome)
 		case e.Name == "":

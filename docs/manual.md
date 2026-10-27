@@ -3617,9 +3617,9 @@ steps; an example not evaluated, with --example or --inputs, keeps
 its line.
 Finds the algorithm by its name in the merged `algorithms` section;
 refuses when there is none of that name, naming the ones there are,
-when it has no formula, when the formula does not parse or check
-(the validator's lines above say why), and when it has no worked
-example and `--inputs` is not given.
+when it has no formula or table, when the formula does not parse or
+check or the table cannot be read (the validator's lines above say
+why), and when it has no worked example and `--inputs` is not given.
 
 With `--file`, the algorithm of that name is read from the file, a
 design fragment holding `algorithms`, in place of the
@@ -3658,6 +3658,16 @@ compared shows, and the line after it says why. An evaluation that cannot be
 computed ends with the reason after the steps computed before it;
 one whose inputs cannot be read says which and why.
 
+An algorithm given as a decision table (ADR-199) is evaluated on
+each rule's example first, `rule N`, then on each worked example;
+`--example` and `--inputs` leave the rules out. The summary counts
+the rules and the examples. Each step is a rule tested, in order,
+with its conditions as written and whether it matches: under hit
+policy first up to the rule that matches, under unique every rule.
+An evaluation no rule or, under unique, more than one rule matches
+cannot be computed and says which; a rule no inputs reach, since
+the rules before it match all it matches, cannot be computed.
+
 **Insight:** A person judges a rule by its result on a case they recognise, and validate says only when an example does not hold; printing the result of every example, and the steps that gave it, puts the rule's behaviour in front of the reader, and trying a proposed formula on the examples the specification already holds tells, before the change is written, which decisions taken on those examples it breaks.
 
 ```
@@ -3691,7 +3701,7 @@ On standard error: A usage message on a usage error, and the reason a refusal.
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | every evaluation is computed and every example evaluated holds |   |
-| 1 | refused, the algorithm or the example is not the specification's, or the formula does not check; or an example fails, cannot be computed or cannot be read; or the specification has errors | Read the refusal on standard error or the failing evaluation's lines, and correct the formula, the example or the command line, or run specarch validate and settle the errors. |
+| 1 | refused, the algorithm or the example is not the specification's, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors | Read the refusal on standard error or the failing evaluation's lines, and correct the formula, the example or the command line, or run specarch validate and settle the errors. |
 | 2 | usage error, or a folder or file that could not be read | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch upgrade

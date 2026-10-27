@@ -57,6 +57,9 @@ const (
 	RuleExampleExpected        Rule = "example_expected"
 	RuleExampleMismatch        Rule = "example_mismatch"
 	RuleExampleError           Rule = "example_error"
+	RuleDecisionTable          Rule = "decision_table"
+	RuleTableOverlap           Rule = "table_overlap"
+	RuleTableGap               Rule = "table_gap"
 	RuleImplements             Rule = "implements"
 	RuleDesignRef              Rule = "design_ref"
 	RuleTestSubject            Rule = "test_subject"
@@ -214,6 +217,9 @@ var Rules = []Rule{
 	RuleExampleExpected,
 	RuleExampleMismatch,
 	RuleExampleError,
+	RuleDecisionTable,
+	RuleTableOverlap,
+	RuleTableGap,
 	RuleImplements,
 	RuleDesignRef,
 	RuleTestSubject,

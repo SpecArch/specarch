@@ -1,0 +1,23 @@
+arguments: ["try", "shelfDays", "."]
+exitStatus: 1
+standardOutput: |
+  shelfDays: 4 rules and 1 example, 2 pass, 1 fail, 2 cannot be computed
+  rule 1: pass
+    inputs: shelf "rare", weight 0.75
+    rule 1: weight < 1.5, shelf ["reference", "rare"] = true
+    result 1, expected 1
+  rule 2: cannot be computed
+    cannot be computed: no inputs reach this rule: the rules before it match every input it matches
+  rule 3: cannot be computed
+    cannot be computed: no inputs match this rule: its condition on weight holds for no value the input may take
+  rule 4: pass
+    inputs: shelf "x", weight 1
+    rule 1: weight < 1.5, shelf ["reference", "rare"] = false
+    rule 2: weight <= 1, shelf "reference" = false
+    rule 3: weight <= 0 = false
+    rule 4: any inputs = true
+    result 3, expected 3
+  example 1 "light reference book": fail
+    inputs: shelf "reference", weight 0.5
+    rule 1: weight < 1.5, shelf ["reference", "rare"] = true
+    result 1, expected 2

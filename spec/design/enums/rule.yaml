@@ -49,6 +49,9 @@ enums:
       - example_expected
       - example_mismatch
       - example_error
+      - decision_table
+      - table_overlap
+      - table_gap
       - implements
       - design_ref
       - unsafe_integer
@@ -202,7 +205,10 @@ enums:
       example_input: a worked example's inputs are missing one, name an unknown one, or have the wrong type
       example_expected: a worked example's expected value does not have the output's type
       example_mismatch: the formula evaluated on a worked example's inputs does not give the expected value
-      example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic)
+      example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic), or no rule of a decision table, or two under hit policy unique, match them
+      decision_table: a decision table's condition names no input, its value or operator cannot be read, it tests an input of a type a table does not test, or a rule's output cannot be read; as a warning, a rule whose condition holds for no value its input may take (ADR-199)
+      table_overlap: two rules of a decision table under hit policy unique both match some inputs; as a warning, a rule under hit policy first that the earlier rules always match first (ADR-199)
+      table_gap: some inputs of a decision table match no rule (ADR-199)
       implements: an implementation file's `implements` does not name the root file of its specification at the same version
       design_ref: a pointer into the specification does not resolve
       unsafe_integer: an int64 or uint64 is carried as a JSON number without bounds inside 2^53

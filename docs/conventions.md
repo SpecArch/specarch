@@ -189,7 +189,7 @@ The **SpecArch Definition** (SDF) is the design side: the root file and
 every stage folder but `implementation/`. It is neutral about language,
 compiler and framework: stakeholders, needs and requirements; entities,
 enums, operations, commands, events, pages, permissions and roles,
-algorithms with formula, worked examples and pseudocode; tests; environments
+algorithms with a formula or a decision table, worked examples and pseudocode; tests; environments
 and who runs each, settings, release, rollback and migration steps, and the
 handover to a customer who runs an environment; commissioning checks and
 sign-off; monitors of the live system, backup and restore; and the
@@ -814,6 +814,7 @@ redefined.
 | `theme`, `tokens`, `$type`, `$value`, `$description`, `colorSpace`, `components`, `alpha`, `hex`, `unit` | W3C Design Tokens Community Group, Format Module 2025.10 | the visual design as design tokens |
 | `modes`, `pairs`, `text`, `background`, `use` | SpecArch | the values a mode gives tokens, and the colours shown together, whose contrast is checked |
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
+| `table`, `hitPolicy`, `unique`, `first`, `rules`, `when`, `then` (of an algorithm) | DMN 1.5 decision table | an algorithm given as cases: a condition per input, the output per rule, and which rule wins (ADR-199) |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
 | `restsOn` (of a decision) | SpecArch, after the links between records in Nygard's form | the earlier decisions a decision rests on, by ID; `supersededBy` is the one link Nygard's record has, from the old decision to the one that replaced it, and `restsOn` runs the other way, from a decision to what it builds on (ADR-188) |
@@ -2554,6 +2555,68 @@ A worked example's values have the declared types: an int32 or int64 is a
 YAML integer, an int64 carried as text a quoted string of digits, a decimal
 a quoted string (`"0.50"`) with no more places than its scale, a date a
 quoted date, a timestamp a quoted RFC 3339 instant.
+
+### Decision tables
+
+An algorithm gives `table` in place of `formula` when its rule is a choice
+by cases, after DMN 1.5's decision table (ADR-199). The inputs are its
+columns; each of its `rules`, in order, has `when`, a condition on each input
+it tests by the input's name, and `then`, the output, written as a worked
+example's expected value. An input a rule does not name matches any value,
+so a rule with no `when` matches every input.
+
+```yaml
+algorithms:
+  mayLend:
+    inputs:
+      tier: { $ref: "#/enums/MembershipTier" }
+      loansOpen: { type: integer, format: int32, minimum: 0 }
+      outstandingFees: { type: string, format: decimal, precision: 10, scale: 2, minimum: 0 }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { outstandingFees: '> "0.00"' }
+          then: false
+        - when: { tier: standard, loansOpen: "< 3" }
+          then: true
+        - when: { tier: extended, loansOpen: "< 6" }
+          then: true
+        - then: false
+    pseudocode: ...
+```
+
+| Condition | Example | Matches |
+|---|---|---|
+| a value | `tier: standard`, `loansOpen: 3` | the input equals it; written as a worked example writes it |
+| a comparison | `loansOpen: "< 6"`, `fee: '>= "12.50"'` | `<`, `<=`, `>`, `>=` or `!=` and a value |
+| comparisons joined by `and` | `loansOpen: ">= 3 and < 6"` | a range: all of them hold |
+| `null` | `returnedOn: null` | the input is null; only for an input that allows null |
+| a list | `tier: [standard, extended]` | any of its items |
+
+A value or a comparison never matches null. A table tests inputs of type
+int, uint, decimal, double, date, enum, bool and string, a string and an
+enum only by a value or `!=`; anything else is worked out by a formula.
+
+`hitPolicy` is `unique` or `first`, always written. Under `unique` at most
+one rule may match any inputs: two rules that both match some inputs are
+`table_overlap` at the later one, naming the inputs. Under `first` the first
+rule that matches gives the output, and a rule the earlier ones always
+match first is a `table_overlap` warning, since it is never reached. Under
+both, inputs no rule matches are `table_gap` at `rules`, written as whens
+that can be pasted in as rules; the input's `minimum`, `maximum` and
+exclusive bounds, an int32's range and a uint's zero limit what is asked
+about. A condition or an output that cannot be read is `decision_table` at
+it, and the table is then not checked for overlap and gaps; a condition
+that holds for no value its input may take is a `decision_table` warning,
+since the rule matches nothing.
+
+Each rule is a worked example: its inputs are the first values it reaches,
+under `first` those no earlier rule matches, and its expected value is its
+`then`. `examples` is then optional; those given are evaluated through the
+table as a formula's are, and an example two rules match under `unique`, or
+no rule matches, is `example_error`. `specarch try` evaluates the table on
+each rule's example and each worked example, a step per rule tested.
 
 ### Tests
 

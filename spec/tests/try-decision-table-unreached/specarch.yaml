@@ -1,0 +1,22 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  shelfDays:
+    description: How many days a loan runs, by shelf and weight.
+    inputs:
+      shelf: { type: string }
+      weight: { type: number, format: double, exclusiveMinimum: 0 }
+    output: { type: integer, format: int32 }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { weight: "< 1.5", shelf: [reference, rare] }
+          then: 1
+        - when: { weight: "<= 1", shelf: reference }
+          then: 2
+        - when: { weight: "<= 0" }
+          then: 4
+        - then: 3
+    examples:
+      - { name: light reference book, inputs: { shelf: reference, weight: 0.5 }, expected: 2 }
+    pseudocode: look the row up

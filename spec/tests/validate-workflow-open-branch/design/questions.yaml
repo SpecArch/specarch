@@ -1,0 +1,49 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What does workflow loan do, in a sentence a reviewer can check? Process loan has no documentation. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: What does workflow loan do, in a sentence a reviewer can check? Process loan has no documentation.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/loan/description']
+    decidedBy: system-owner
+    why: The file gives the steps and not what the request is for.
+  # specarch-problem: question: open_question: (must, decision) Which entity holds the request of workflow loan while it waits? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which entity holds the request of workflow loan while it waits?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/loan/subject']
+    decidedBy: system-owner
+    why: BPMN has no element for the record the request is kept in; the subject is where a page reads where the request is.
+  # specarch-problem: question: open_question: (must, decision) Which operation starts workflow loan? Its start event names no operation the file declares. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which operation starts workflow loan? Its start event names no operation the file declares.
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/loan/trigger']
+    decidedBy: system-owner
+    why: A workflow starts from an operation that accepts the request and answers 202; the start event does not say which.
+  # specarch-problem: question: open_question: (must, decision) Step returned of workflow loan waits for message loans/BookReturned, which the BPMN file names and does not declare; is it the message loans/BookReturned declared under channels? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Step returned of workflow loan waits for message loans/BookReturned, which the BPMN file names and does not declare; is it the message loans/BookReturned declared under channels?
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/loan/steps/0/message']
+    decidedBy: system-owner
+    why: 'The file names the message and not its channel or payload; write message: loans/BookReturned once its channel is declared.'
+  # specarch-problem: question: open_question: (must, decision) What happens when step returned of workflow loan passes its deadline: is the request refused? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'What happens when step returned of workflow loan passes its deadline: is the request refused?'
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/loan/steps/0/onDeadline']
+    decidedBy: system-owner
+    why: The timer's flow does not end the request refused.
+  # specarch-problem: question: open_question: (must, decision) How does a request end at end event end-rejected ("Rejected"), where decision check of workflow loan goes by sequence flow flow-3: approved, refused or failed? Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: 'How does a request end at end event end-rejected ("Rejected"), where decision check of workflow loan goes by sequence flow flow-3: approved, refused or failed?'
+    kind: decision
+    priority: must
+    blocks: ['#/workflows/loan/steps/1/branches/0']
+    decidedBy: system-owner
+    why: An end event's name or id says done or approved, refused or failed; this one says none of them.

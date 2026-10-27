@@ -4,14 +4,14 @@ info:
   title: Workflows of workflows/loan.bpmn
   version: 0.1.0
   description: |
-    The workflows the BPMN 2.0 file workflows/loan.bpmn defines at commit c69bffc17aae4041af65008571eb6d8a7bf61860, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+    The workflows the BPMN 2.0 file workflows/loan.bpmn defines at commit 255374e63c2e56394e447b913f2a6fb85b5524f2, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: c69bffc17aae4041af65008571eb6d8a7bf61860
+    edition: 255374e63c2e56394e447b913f2a6fb85b5524f2
     url: ../repo
     clauses:
       - {clause: workflows/loan.bpmn, title: The BPMN 2.0 process definitions}

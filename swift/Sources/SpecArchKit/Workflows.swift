@@ -257,10 +257,12 @@ extension Design {
                     s.byNature("deadline passes at " + step, waiting + " for " + (message.isEmpty ? "the message of " + step : message), deadline + " passes with no message", ended("refused"))
                 }
             case "decision":
-                for br in items(st.child("branches")) {
+                for (j, br) in items(st.child("branches")).enumerated() {
                     let target = str(br.child("to"))
-                    if target.isEmpty && str(br.child("end")).isEmpty { continue } // a question holds where the branch goes open
                     var name = step + " goes on at " + target, then = "the request goes on at " + target
+                    if target.isEmpty { // a question holds where the branch goes open
+                        name = step + " takes branch \(j + 1)"; then = "the request goes where branch \(j + 1) of " + step + " goes"
+                    }
                     let end = str(br.child("end"))
                     if !end.isEmpty { name = step + " ends " + end; then = ended(end) }
                     let given = br.child("otherwise") != nil ? "a request reaching " + step + " for which no other branch holds"

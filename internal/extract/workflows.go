@@ -686,6 +686,9 @@ func (wr *workflowReader) process(p *xmlElement) {
 				}
 				if onDeadline != "" {
 					set(st, "onDeadline", onDeadline)
+				} else {
+					wr.question(fmt.Sprintf("What happens when step %s of workflow %s passes its deadline: is the request refused?", s.name, name),
+						[]string{ptr + "/onDeadline"}, "", "The timer's flow does not end the request refused.")
 				}
 			}
 			steps = append(steps, st)
@@ -716,6 +719,9 @@ func (wr *workflowReader) process(p *xmlElement) {
 					if escalateTo != "" {
 						set(st, "escalateTo", escalateTo)
 					}
+				} else {
+					wr.question(fmt.Sprintf("What happens when step %s of workflow %s passes its deadline: is the request refused, or moved to a later step?", s.name, name),
+						[]string{ptr + "/onDeadline"}, "", "The timer's flow does not end the request refused or reach a later user task.")
 				}
 			}
 			steps = append(steps, st)
@@ -930,8 +936,12 @@ func (wr *workflowReader) deadline(ptr string, timer *xmlElement, later []bpmnSt
 	}
 	target := byID[flows[0].attr("targetRef")]
 	switch {
-	case target != nil && target.name == "endEvent":
+	case target != nil && target.name == "endEvent" && endOf(target) != "approved" && endOf(target) != "failed":
+		// a deadline that ends the request refuses it: the only end it has
 		return duration, "refuse", ""
+	case target != nil && target.name == "endEvent":
+		wr.gap(timer, ptr+"/onDeadline", "timer %s goes to end event %s (%q), which says the request ends %s, and a deadline that ends the request refuses it; asked for instead", timer.attr("id"), target.attr("id"), target.attr("name"), endOf(target))
+		return duration, "", ""
 	case target != nil && target.name == "userTask":
 		for _, s := range later {
 			if s.el == target {

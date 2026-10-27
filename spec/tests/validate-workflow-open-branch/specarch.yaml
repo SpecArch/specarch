@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.3.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Workflows of workflows/loan.bpmn
+  version: 0.1.0
+  description: |
+    The workflows the BPMN 2.0 file workflows/loan.bpmn defines at commit 255374e63c2e56394e447b913f2a6fb85b5524f2, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 255374e63c2e56394e447b913f2a6fb85b5524f2
+    url: ../repo
+    clauses:
+      - {clause: workflows/loan.bpmn, title: The BPMN 2.0 process definitions}

@@ -2,7 +2,7 @@
 command: extract
 level: system
 scenario: red
-given: "a repository holding a hand-written loan.bpmn whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at one named Approved"
+given: "a repository holding a hand-written loan.bpmn whose wait returned has a timer that goes to an end event named Approved, and whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at the one named Approved"
 when: "extract workflows is run on the file"
-then: "it reads the otherwise branch as ending approved, writes the Rejected branch with no end, asks how a request ends at end-rejected in a question that blocks that branch, says so in a not-held line naming the end event, and exits 0"
+then: "it reads the otherwise branch as ending approved, writes the Rejected branch with no end and the wait with no onDeadline, asks how a request ends at end-rejected in a question that blocks that branch and what happens at the wait's deadline in one that blocks its onDeadline, says each in a not-held line naming the end event, and exits 0"
 verifies: [SA-103]

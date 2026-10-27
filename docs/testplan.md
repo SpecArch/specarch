@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 823 design tests, 401 golden and 422 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 824 design tests, 401 golden and 423 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 823 design tests, 401 golden and 422 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 819 |
+| system | 820 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2107,9 +2107,9 @@ Scenario: red; level: system; covers usage error, exit 2.
 
 Scenario: red; level: system; verifies SA-103.
 
-- Given: a repository holding a hand-written loan.bpmn whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at one named Approved
+- Given: a repository holding a hand-written loan.bpmn whose wait returned has a timer that goes to an end event named Approved, and whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at the one named Approved
 - When: extract workflows is run on the file
-- Then: it reads the otherwise branch as ending approved, writes the Rejected branch with no end, asks how a request ends at end-rejected in a question that blocks that branch, says so in a not-held line naming the end event, and exits 0
+- Then: it reads the otherwise branch as ending approved, writes the Rejected branch with no end and the wait with no onDeadline, asks how a request ends at end-rejected in a question that blocks that branch and what happens at the wait's deadline in one that blocks its onDeadline, says each in a not-held line naming the end event, and exits 0
 
 #### extract-workflows-not-bpmn
 
@@ -6558,6 +6558,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-47.
 - Given: a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist
 - When: validate is run
 - Then: it reports workflow eleven times and permission_undeclared once, and exits 1
+
+#### validate-workflow-open-branch
+
+Scenario: red; level: system; verifies SA-103.
+
+- Given: the tree extract writes in the case extract-workflows-asks-unread-end: decision check's first branch has a condition and neither to nor end, a question blocking it, and the wait returned has a deadline with onDeadline held by a question
+- When: validate is run
+- Then: it names the open branch's case as check takes branch 1, the request going where branch 1 of check goes, rather than a step with no name, reports no error, and exits 0
 
 #### validate-workflow-step-kinds
 

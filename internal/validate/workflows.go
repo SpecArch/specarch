@@ -312,12 +312,13 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 			}
 		case "decision":
 			branches := source.Items(source.Child(st, "branches"))
-			for _, br := range branches {
+			for j, br := range branches {
 				target := source.Str(source.Child(br, "to"))
-				if target == "" && source.Str(source.Child(br, "end")) == "" {
-					continue // a question holds where the branch goes open
-				}
 				name, then := step+" goes on at "+target, "the request goes on at "+target
+				if target == "" {
+					// a question holds where the branch goes open
+					name, then = fmt.Sprintf("%s takes branch %d", step, j+1), fmt.Sprintf("the request goes where branch %d of %s goes", j+1, step)
+				}
 				if end := source.Str(source.Child(br, "end")); end != "" {
 					name, then = step+" ends "+end, ended(end)
 				}

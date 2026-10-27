@@ -60,7 +60,9 @@ decisions:
       event; compensatedBy as a compensation boundary event associated
       with a service task marked isForCompensation. extract workflows
       reads each back, an end event by its name or id: refused, failed,
-      or done or approved; any other end is asked for. The retry limit and the permission a task checks
+      or done or approved; any other end is asked for, and so is a
+      deadline's timer that reaches an end saying approved or failed. The
+      retry limit and the permission a task checks
       have no element in BPMN and stay in the specification only.
     consequences: |
       A workflow with only approvals and operation steps is unchanged in

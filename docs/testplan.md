@@ -4395,7 +4395,7 @@ Scenario: golden; level: system; verifies SA-97.
 
 Scenario: golden; level: system; verifies SA-104.
 
-- Given: an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when, and one under unique whose rules split a string's values, an age's range, a nullable date's null and values, and a double's values with no overlap and no gap, and with no examples
+- Given: an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when, an instant input no rule names and a worked example that gives it, and one under unique whose rules split a string's values, an age's range, a nullable date's null and values, and a double's values with no overlap and no gap, and with no examples
 - When: validate is run
 - Then: it reports no problem, the same in both builds, and exits 0
 
@@ -4403,7 +4403,7 @@ Scenario: golden; level: system; verifies SA-104.
 
 Scenario: red; level: system; covers exit 1; verifies SA-104.
 
-- Given: a table under unique whose rules overlap and leave inputs unmatched, with examples the table gives another output for, matched by no rule and matched by two; a table under first with a rule never reached, a rule whose weight condition no weight above 0 meets, and inputs unmatched; a table whose conditions name a value not of the enum, an operator that is not one, a comparison of an enum, an input that is not the algorithm's, a comparison with no value, an instant, null for an input that does not allow it and an or, and whose output is not a bool; a table over an input whose minimum is above its maximum; and an algorithm with both a formula and a table
+- Given: a table under unique whose rules overlap and leave inputs unmatched, with examples the table gives another output for, matched by no rule and matched by two; a table under first with a rule never reached, a rule whose weight condition no weight above 0 meets, and inputs unmatched; a table whose conditions name a value not of the enum, an operator that is not one, a comparison of an enum, an input that is not the algorithm's, a comparison with no value, an instant, null for an input that does not allow it and an or, and whose output is not a bool; a table over an input whose minimum is above its maximum; a table under unique with an instant input no rule names, whose rules overlap and leave inputs unmatched, with an example the table gives another output for; and an algorithm with both a formula and a table
 - When: validate is run
 - Then: it reports each as table_overlap, table_gap, example_mismatch, example_error, decision_table or schema at the key, the never-reached rule and the rule that matches nothing as warnings, the same in both builds, and exits 1
 

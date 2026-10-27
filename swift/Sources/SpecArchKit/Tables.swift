@@ -393,7 +393,8 @@ typealias TableBox = [ValueSet]
 
 final class DecisionTable {
     var policy = ""
-    var columns: [TableColumn] = []
+    var inputs: [TableColumn] = [] // every input, in order
+    var columns: [TableColumn] = [] // the inputs the table tests
     var rules: [TableRule] = []
     var readOK = true
 
@@ -665,7 +666,7 @@ extension Design {
                 return (nil, ValueSet(), "is \(yamlText(text)), which compares with null; write null alone for an input that is null")
             }
             if op != "!=" && !isOrdered(col.t.kind) {
-                return (nil, ValueSet(), "is \(yamlText(text)), but \(col.t) has no order, so only a value or != is tested; write the values it may be as a list")
+                return (nil, ValueSet(), "is \(yamlText(text)), read as a comparison since it begins with \(op), but \(col.t) has no order, so only a value or != is tested; write the values it may be as a list, and test a value that itself begins with <, > or != with a formula")
             }
             let cond = TableCondition(op: op, v: v)
             conds.append(cond)
@@ -742,7 +743,10 @@ extension Checker {
             }
             tab.rules.append(r)
         }
-        if tab.columns.contains(where: { !$0.ok }) { tab.readOK = false }
+        // An input of a type a table does not test, named by no rule, is
+        // left out of the columns: every rule matches any value of it.
+        tab.inputs = tab.columns
+        tab.columns = tab.inputs.filter { $0.ok }
         if !tab.readOK { return tab }
         for i in tab.rules.indices {
             tab.rules[i].box = tab.columns.map { col in
@@ -786,13 +790,14 @@ extension Checker {
         for r in tab.rules { left = tab.subtractAll(left, r.box) }
         if !left.isEmpty {
             let gaps = tab.merge(left).map { tab.showBox($0) }
-            add(rules, pointer(base), .tableGap,
-                "no rule matches \(orList(gaps)); add a rule for each, or a last rule with no when for every input the others leave")
+            var advice = "add a rule for each"
+            if tab.policy == "first" { advice += ", or a last rule with no when for every input the others leave" }
+            add(rules, pointer(base), .tableGap, "no rule matches \(orList(gaps)); \(advice)")
         }
         guard let output = a.child("output") else { return }
         let want = d.fieldType(output)
         var inputs: [String: YNode] = [:]
-        for col in tab.columns { inputs[col.name] = col.field }
+        for col in tab.inputs { inputs[col.name] = col.field }
         for (i, ex) in items(a.child("examples")).enumerated() {
             checkExampleWith(d, alg, i, ex, inputs, output, want, "the table") { vals in
                 let (v, _, err) = tab.evaluate(vals)

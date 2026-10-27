@@ -28,7 +28,12 @@ decisions:
       which may hold. A value never matches null, so a nullable input's
       null is matched only by null or by not naming the input. A table
       tests inputs of type int, uint, decimal, double, date, enum, bool
-      and string; a string only for equality and !=.
+      and string; a string only for equality and !=. An input of another
+      type may be given when no rule names it: every rule matches any
+      value of it, and the table is checked over the other inputs. A
+      string or enum condition that begins with <, > or != is read as a
+      comparison, so a value that itself begins so cannot be matched by a
+      table.
 
       hitPolicy is unique or first, one of them always written. Under
       unique at most one rule may match any inputs: two rules that both
@@ -88,12 +93,20 @@ decisions:
       end is easy to misread. Timestamps, times of day and durations are
       left out until a table needs one: a cell that says "< PT2H" or an
       instant is better worked out by a formula from a date or a number.
+      Such an input that no rule names is no cell at all, so the table
+      is still checked rather than left unread: overlap, gaps and worked
+      examples would otherwise go unchecked with no problem reported.
+      A value beginning with an operator is not given a second, quoted
+      way to be written: a quoted scalar is already how YAML writes a
+      comparison, and one way to say one thing outweighs the rare value
+      such as <none>, which a formula still tests.
 
       A gap is an error, not a warning: an algorithm gives its output for
       every input it accepts, and inputs no rule matches are a case the
       table's authors did not decide, which the error names so it can be
-      decided; a last rule with no when is the decision "everything
-      else". A rule never reached under first is a warning, since the
+      decided; under first a last rule with no when is the decision
+      "everything else", while under unique each gap needs a rule of its
+      own, since a rule with no when overlaps every other. A rule never reached under first is a warning, since the
       table still gives an output for every input, but the rule says
       something the table never does.
     satisfies: [SA-104]

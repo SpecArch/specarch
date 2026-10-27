@@ -2596,7 +2596,12 @@ algorithms:
 
 A value or a comparison never matches null. A table tests inputs of type
 int, uint, decimal, double, date, enum, bool and string, a string and an
-enum only by a value or `!=`; anything else is worked out by a formula.
+enum only by a value or `!=`; anything else is worked out by a formula. An
+input of another type, such as a timestamp, may still be an input that no
+rule names: every rule matches any value of it, and the table is checked
+over the others. A string or enum condition that begins with `<`, `>` or
+`!=` is read as a comparison, so a value that itself begins so, such as
+`<none>`, cannot be matched by a table; test it with a formula.
 
 `hitPolicy` is `unique` or `first`, always written. Under `unique` at most
 one rule may match any inputs: two rules that both match some inputs are
@@ -2604,7 +2609,8 @@ one rule may match any inputs: two rules that both match some inputs are
 rule that matches gives the output, and a rule the earlier ones always
 match first is a `table_overlap` warning, since it is never reached. Under
 both, inputs no rule matches are `table_gap` at `rules`, written as whens
-that can be pasted in as rules; the input's `minimum`, `maximum` and
+that can be pasted in as rules (under `first` a last rule with no `when`
+also takes them; under `unique` it would overlap every other rule); the input's `minimum`, `maximum` and
 exclusive bounds, an int32's range and a uint's zero limit what is asked
 about. A condition or an output that cannot be read is `decision_table` at
 it, and the table is then not checked for overlap and gaps; a condition

@@ -74,6 +74,22 @@ algorithms:
       rules:
         - then: true
     pseudocode: x
+  dueSoon:
+    description: Whether a loan is due soon, by loans open; the table does not test when it is due.
+    inputs:
+      loansOpen: { type: integer, format: int32, minimum: 0 }
+      dueAt: { type: string, format: date-time }
+    output: { type: boolean }
+    table:
+      hitPolicy: unique
+      rules:
+        - when: { loansOpen: "< 3" }
+          then: false
+        - when: { loansOpen: "< 5" }
+          then: true
+    examples:
+      - { name: four open, inputs: { loansOpen: 4, dueAt: "2026-11-02T09:00:00Z" }, expected: false }
+    pseudocode: x
   both:
     description: A formula and a table.
     inputs:

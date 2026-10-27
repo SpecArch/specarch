@@ -236,12 +236,12 @@ func (c *checker) tryTable(d *design, algorithm string, alg *yaml.Node, example 
 	tn := source.Child(alg, "table")
 	t := &Tried{Algorithm: algorithm, File: c.fileOf(tn), HitPolicy: tab.policy, Rules: len(tab.rules), Evaluations: []Evaluation{}}
 	fields := map[string]*yaml.Node{}
-	for _, col := range tab.columns {
+	for _, col := range tab.inputs {
 		fields[col.name] = col.field
 	}
 	run := func(e Evaluation, vals map[string]expr.Value, expected *expr.Value) {
 		e.Inputs, e.Steps = []TryInput{}, []TryStep{}
-		for _, col := range tab.columns {
+		for _, col := range tab.inputs {
 			if v, ok := vals[col.name]; ok {
 				e.Inputs = append(e.Inputs, TryInput{Name: col.name, Value: expr.Show(v, col.t)})
 			}
@@ -301,7 +301,7 @@ func (c *checker) tryTable(d *design, algorithm string, alg *yaml.Node, example 
 			}
 			vals[p.Key.Value] = v
 		}
-		for _, col := range tab.columns {
+		for _, col := range tab.inputs {
 			if _, ok := vals[col.name]; !ok && source.Child(values, col.name) == nil {
 				e.Unread = append(e.Unread, fmt.Sprintf("no value is given for input %s", col.name))
 			}

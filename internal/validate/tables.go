@@ -69,7 +69,8 @@ type namedCell struct {
 
 type decisionTable struct {
 	policy  string
-	columns []tableColumn
+	inputs  []tableColumn // every input, in order
+	columns []tableColumn // the inputs the table tests
 	rules   []tableRule
 	readOK  bool // every condition and output read
 }
@@ -607,9 +608,13 @@ func (c *checker) readTable(d *design, alg string, a *yaml.Node, report bool) *d
 		}
 		tab.rules = append(tab.rules, r)
 	}
-	for _, col := range tab.columns {
-		if !col.ok {
-			tab.readOK = false
+	// An input of a type a table does not test, named by no rule, is
+	// left out of the columns: every rule matches any value of it.
+	tab.inputs = tab.columns
+	tab.columns = nil
+	for _, col := range tab.inputs {
+		if col.ok {
+			tab.columns = append(tab.columns, col)
 		}
 	}
 	if !tab.readOK {
@@ -702,7 +707,7 @@ func (d *design) readAlternative(col *tableColumn, n *yaml.Node) ([]condition, v
 			return nil, valueSet{}, fmt.Sprintf("is %s, which compares with null; write null alone for an input that is null", quoteYAML(text))
 		}
 		if op != "!=" && !ordered(col.t.Kind) {
-			return nil, valueSet{}, fmt.Sprintf("is %s, but %s has no order, so only a value or != is tested; write the values it may be as a list", quoteYAML(text), col.t)
+			return nil, valueSet{}, fmt.Sprintf("is %s, read as a comparison since it begins with %s, but %s has no order, so only a value or != is tested; write the values it may be as a list, and test a value that itself begins with <, > or != with a formula", quoteYAML(text), op, col.t)
 		}
 		cond := condition{op, v}
 		conds = append(conds, cond)
@@ -1033,8 +1038,11 @@ func (c *checker) checkTable(d *design, alg string, a *yaml.Node) {
 		for _, b := range left {
 			gaps = append(gaps, tab.showBox(b))
 		}
-		c.add(rules, source.Pointer(base...), RuleTableGap,
-			"no rule matches %s; add a rule for each, or a last rule with no when for every input the others leave", orList(gaps))
+		advice := "add a rule for each"
+		if tab.policy == "first" {
+			advice += ", or a last rule with no when for every input the others leave"
+		}
+		c.add(rules, source.Pointer(base...), RuleTableGap, "no rule matches %s; %s", orList(gaps), advice)
 	}
 	output := source.Child(a, "output")
 	if output == nil {
@@ -1042,7 +1050,7 @@ func (c *checker) checkTable(d *design, alg string, a *yaml.Node) {
 	}
 	want := d.fieldType(output)
 	inputs := map[string]*yaml.Node{}
-	for _, col := range tab.columns {
+	for _, col := range tab.inputs {
 		inputs[col.name] = col.field
 	}
 	for i, ex := range source.Items(source.Child(a, "examples")) {

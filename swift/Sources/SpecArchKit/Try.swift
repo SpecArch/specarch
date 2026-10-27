@@ -179,10 +179,10 @@ extension Checker {
         let want = d.fieldType(output)
         var t = Tried(algorithm: algorithm)
         var fields: [String: YNode] = [:]
-        for col in tab.columns { fields[col.name] = col.field }
+        for col in tab.inputs { fields[col.name] = col.field }
         func run(_ start: Evaluation, _ vals: [String: ExprValue], _ expected: ExprValue?) {
             var e = start
-            for col in tab.columns {
+            for col in tab.inputs {
                 if let v = vals[col.name] { e.inputs.append((name: col.name, value: showValue(v, col.t))) }
             }
             if let expected { e.expected = showValue(expected, want) }
@@ -230,7 +230,7 @@ extension Checker {
                 }
                 vals[p.key.value] = v
             }
-            for col in tab.columns where vals[col.name] == nil && values?.child(col.name) == nil {
+            for col in tab.inputs where vals[col.name] == nil && values?.child(col.name) == nil {
                 e.unread.append("no value is given for input \(col.name)")
             }
             return vals

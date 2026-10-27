@@ -8,7 +8,7 @@ import { visibleMenu } from "../screens/access.ts";
 test("the menu shows no entry to someone signed in without its page's permission", () => {
   for (const group of application.menu) {
     for (const item of group.items) {
-      if (item.permission === "public") {
+      if (item.permission === "public" || item.permission === "signedIn") {
         continue;
       }
       const held = application.menu.flatMap((g) => g.items.map((i) => i.permission)).filter((p) => p !== item.permission);

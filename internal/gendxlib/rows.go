@@ -121,7 +121,7 @@ func (g *gen) operationRules(o operation) (string, []rowsRule) {
 	perm := text(o.node["permission"])
 	var out []rowsRule
 	for _, r := range g.rowsRules(entity) {
-		if g.roleHolds(r.role)[perm] {
+		if perm == "signedIn" || g.roleHolds(r.role)[perm] {
 			out = append(out, r)
 		}
 	}

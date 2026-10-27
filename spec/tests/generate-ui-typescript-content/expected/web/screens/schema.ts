@@ -31,6 +31,10 @@ interface FieldBase {
   readonly readOnlyWhen?: Rule;
   /** Not shown, checked or sent while this rule holds for the values. */
   readonly hiddenWhen?: Rule;
+  /** Read-only unless the person holds this permission. */
+  readonly readOnlyUnless?: string;
+  /** Not shown, checked or sent unless the person holds this permission. */
+  readonly hiddenUnless?: string;
   /** The value it starts with comes from the page's hook of its name. */
   readonly hook?: boolean;
   /** Typed a second time, the second entry compared and never sent. */
@@ -144,6 +148,8 @@ export interface ValueFieldSchema {
   readonly readOnly?: boolean;
   readonly readOnlyWhen?: Rule;
   readonly hiddenWhen?: Rule;
+  readonly readOnlyUnless?: string;
+  readonly hiddenUnless?: string;
 }
 
 /**
@@ -162,6 +168,8 @@ export interface ValueListFieldSchema {
   readonly readOnly?: boolean;
   readonly readOnlyWhen?: Rule;
   readonly hiddenWhen?: Rule;
+  readonly readOnlyUnless?: string;
+  readonly hiddenUnless?: string;
 }
 
 /** A field of a form's sections: one value, or a value of a schema or a list of them. */
@@ -455,6 +463,8 @@ export interface ViewFieldSchema {
   readonly name: string;
   readonly label: StringKey;
   readonly hiddenWhen?: Rule;
+  /** Not shown unless the person holds this permission. */
+  readonly hiddenUnless?: string;
   readonly parts?: readonly ViewFieldSchema[];
   readonly list?: boolean;
 }

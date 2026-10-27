@@ -4,10 +4,11 @@
 /// the menu; where they call the service is Service.baseURL, which the app
 /// sets at launch.
 public enum Application {
-    public static let session: SessionSchema? = .init(path: "/sessions/current", signedIn: "signedIn", permissions: "permissions")
+    public static let session: SessionSchema? = .init(path: "/sessions/current", signedIn: "signedIn", permissions: "permissions", roles: "roles")
     public static let signIn: Route? = .signIn
     public static let signInTitle = "sign-in.title"
     public static let menu: [MenuGroup] = [
+        .init(title: "menu.account.title", items: [.init(title: "menu.account.items.profile", route: .profile, permission: "signedIn")]),
         .init(
             title: "menu.loans.title",
             items: [
@@ -23,5 +24,11 @@ public enum Application {
                 .init(title: "menu.members.items.register", route: .memberForm, permission: "members.write")
             ]
         )
+    ]
+    public static let homes: [String: Route] = [
+        "desk-supervisor": .feeWaiversInbox,
+        "head-librarian": .loansList,
+        "librarian": .membersList,
+        "member": .profile,
     ]
 }

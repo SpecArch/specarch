@@ -2,7 +2,7 @@
 
 # Library Lending: user manual
 
-Version 0.1.0 of the specification: 1 task, 11 pages and 0 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 0.1.0 of the specification: 1 task, 12 pages and 0 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 A small public library lends books to its members. Members borrow a copy,
 keep it for a fixed loan period, and pay a late fee when they return it
@@ -19,11 +19,15 @@ Each role a person holds, and the pages it opens. A person holding several roles
 | librarian | Staff at the desk. | Ask to waive a late fee, Lend a copy, Loans, Register member, Lend copies, Member, Members |
 | head-librarian | Staff who decide what a lost copy costs the library; they do not lend. | Loans |
 | member | A card holder, who sees only their own loans. | Loans |
-| desk-supervisor | The supervisor of the desk, who approves what one librarian may not do alone. | Fee waivers to approve, Loans |
+| desk-supervisor | The supervisor of the desk, who approves what one librarian may not do alone. | Fee waivers to approve, Loans, Member, Members |
 
 **Insight on member:** A member reads only the loans whose memberId is their own; the rule is written here once and holds for every operation, page and job that reads a loan, and a caller with no member identifier reaches no loan through it.
 
 Anyone opens these pages, signed in or not: Set a new password, Confirm it is you, Sign in.
+
+Every person opens these pages once signed in, whatever their roles: My profile.
+
+After signing in, a person is shown the home of the first of their roles that has one, in the order the session gives them: librarian, Members; head-librarian, Loans; member, My profile; desk-supervisor, Fee waivers to approve.
 
 ## 2. Finding your way
 
@@ -36,6 +40,8 @@ The menus, and the page each entry opens. An entry is shown only to who may open
   - All loans: opens the Loans page
   - Lend a copy: opens the Lend a copy page
   - Fee waivers to approve: opens the Fee waivers to approve page
+- Account
+  - My profile: opens the My profile page
 
 ## 3. Tasks
 
@@ -185,7 +191,7 @@ When the system refuses:
 
 Reached from a row selected on the Members page.
 
-Opened by librarian (the permission members.read).
+Opened by librarian and desk-supervisor (the permission members.read).
 
 | Field | What it shows |
 |---|---|
@@ -215,7 +221,7 @@ When the system refuses:
 
 Reached from the menu Members › All members.
 
-Opened by librarian (the permission members.read).
+Opened by librarian and desk-supervisor (the permission members.read).
 
 | Column | What it shows |
 |---|---|
@@ -238,6 +244,30 @@ When the system refuses:
 | You see | Why | What to do |
 |---|---|---|
 | This member is no longer on record, so nothing changed. | No member has the id in the path. |   |
+
+### My profile
+
+Reached from the menu Account › My profile.
+
+Every person opens it once signed in, whatever their roles.
+
+**Insight:** Every person who holds a card sees their own record and what they owe; the page needs no permission granted by role, so a role added later has it too, and staff, who hold no card, are told so.
+
+| Field | What it shows |
+|---|---|
+| Card number | Printed on the card; assigned when the member joins. |
+| Full name |   |
+| Email address | Encrypted at rest, and found by a salted hash of it, since it must stay unique. |
+| Tier |   |
+| Joined on |   |
+| Membership ends on | The last day the card is valid; set a year after joining and moved on by each renewal. |
+| Outstanding fees | Sum of unpaid late fees and replacement charges, in the library's currency. |
+
+When the system refuses:
+
+| You see | Why | What to do |
+|---|---|---|
+| Your account holds no library card, so there is no member record to show. | No member has the id in the path. |   |
 
 ### Set a new password
 

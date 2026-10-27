@@ -39,7 +39,8 @@ let memberViewSchema = ViewPageSchema(
                         .init(name: "city", label: "member-view.fields.address.city"),
                         .init(name: "postcode", label: "member-view.fields.address.postcode"),
                         .init(name: "street", label: "member-view.fields.address.street")
-                    ]
+                    ],
+                    hiddenUnless: "members.write"
                 ),
                 .init(
                     name: "phones",
@@ -48,7 +49,8 @@ let memberViewSchema = ViewPageSchema(
                         .init(name: "label", label: "member-view.fields.phones.label"),
                         .init(name: "number", label: "member-view.fields.phones.number")
                     ],
-                    list: true
+                    list: true,
+                    hiddenUnless: "members.write"
                 )
             ]
         )

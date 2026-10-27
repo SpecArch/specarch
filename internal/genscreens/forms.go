@@ -331,6 +331,11 @@ func (g *Gen) fieldRules(in formFieldInput, part string, data []Member, label st
 		}
 		data = append(data, Member{g.Name(part, k), rule})
 	}
+	for _, k := range []string{"readOnlyUnless", "hiddenUnless"} {
+		if p := text(in.conditions[k]); p != "" {
+			data = append(data, Member{g.Name(part, k), Str(p)})
+		}
+	}
 	if in.hooked {
 		data = append(data, Member{g.Name(part, "hook"), Raw("true")})
 	}
@@ -761,6 +766,9 @@ func (g *Gen) ViewPage(pageName string, pg map[string]any, sess *Session) (*Page
 					continue
 				}
 				entry = append(entry, Member{"hiddenWhen", rule})
+			}
+			if p := text(obj0(conditions[f])["hiddenUnless"]); p != "" {
+				entry = append(entry, Member{"hiddenUnless", Str(p)})
 			}
 			fields = append(fields, Object(entry))
 		}

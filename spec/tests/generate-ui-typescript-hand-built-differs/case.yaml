@@ -37,6 +37,7 @@ standardOutput: |
   library-web/screens/Field.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/FormPage.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/Guard.tsx: built by hand, and matches what generate writes but for its header
+  library-web/screens/Home.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/LanguageChoice.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/ListPage.tsx: built by hand, and matches what generate writes but for its header
   library-web/screens/Lookup.tsx: built by hand, and matches what generate writes but for its header
@@ -110,6 +111,7 @@ standardOutput: |
   web/screens/Field.tsx: built by hand, and matches what generate writes but for its header
   web/screens/FormPage.tsx: built by hand, and matches what generate writes but for its header
   web/screens/Guard.tsx: built by hand, and matches what generate writes but for its header
+  web/screens/Home.tsx: built by hand, and matches what generate writes but for its header
   web/screens/LanguageChoice.tsx: built by hand, and matches what generate writes but for its header
   web/screens/ListPage.tsx: built by hand, and matches what generate writes but for its header
   web/screens/Lookup.tsx: built by hand, and matches what generate writes but for its header

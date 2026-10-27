@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+page: profile
+level: system
+scenario: golden
+given: "a member signed in with their card, whose record holds one unpaid late fee"
+when: "the page profile is opened"
+then: "it shows their card number, name, email address, tier, membership dates and the fee they owe, and nothing of another member"
+verifies: [LIB-6]

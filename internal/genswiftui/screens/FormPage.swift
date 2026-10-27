@@ -8,7 +8,7 @@ public typealias FieldHook = @Sendable (Fields) -> String
 /// its keywords and the page's checks before the request is sent, and each
 /// success leading where its event says.
 public struct FormPage: View {
-    let schema: FormPageSchema
+    let given: FormPageSchema
     /// The page's route parameters.
     let parameters: [String: String]
     /// The hooks of the fields the schema marks, by field.
@@ -27,10 +27,17 @@ public struct FormPage: View {
     @State private var key = UUID().uuidString
 
     public init(schema: FormPageSchema, parameters: [String: String], hooks: [String: FieldHook] = [:], routes: [String: Routes.Make]) {
-        self.schema = schema
+        self.given = schema
         self.parameters = parameters
         self.hooks = hooks
         self.routes = routes
+    }
+
+    /// The page as the person sees it, each field's mode by the permissions they hold.
+    var schema: FormPageSchema {
+        var out = given
+        out.sections = Rules.forCaller(given.sections, held: Access.held(SessionStore.shared.current))
+        return out
     }
 
     var fields: [FieldSchema] { schema.sections.flatMap(\.fields) }

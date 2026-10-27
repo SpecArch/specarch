@@ -2,7 +2,7 @@
 
 # Library Lending: operations guide
 
-Version 0.1.0 of the specification: 2 monitors, 1 job, 2 dependencies and 19 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
+Version 0.1.0 of the specification: 2 monitors, 1 job, 2 dependencies and 20 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
 
 ## 1. Where it runs
 
@@ -140,6 +140,7 @@ Every endpoint the system serves, with the permission a caller needs; public is 
 | GET | /books | listBooks | public | Browse the catalogue |
 | POST | /sessions | signIn | public | Sign in with an email address and a password |
 | GET | /sessions/current | getSession | public | Who is signed in, and what they may do |
+| GET | /profile | getProfile | signedIn | The member record of the person signed in |
 | POST | /sessions/second-factor | confirmSecondFactor | public | Confirm a sign-in with the code of a second factor |
 | POST | /password-resets | resetPassword | public | Set a new password with a reset code |
 | GET | /members | listMembers | members.read | List members |

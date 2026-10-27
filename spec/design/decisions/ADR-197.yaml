@@ -22,7 +22,7 @@ decisions:
       signing in and when opening the application: a page without route
       parameters the role may open (role_home otherwise). A person holding
       several roles is shown the home of the first of them, in the order
-      the roles are declared, that has one.
+      the session answers them, that has one.
 
       signedIn is a reserved permission beside public and nobody, declared
       under permissions like them: every caller holds it once signed in,
@@ -53,7 +53,7 @@ decisions:
 
       The ui generators read, when the ui target's settings.session names
       roles, the roles the session answers, and open the home of the first
-      role with one at the application's start; they treat signedIn as held
+      of them with one at the application's start; they treat signedIn as held
       by every signed-in person, and lock or hide a field by the
       permissions the session answers.
     why: |
@@ -61,7 +61,11 @@ decisions:
       permissions, and what a person sees first is a choice about who they
       are, which is a role. A session answers permissions and, once named,
       roles; picking a home from permissions alone would guess between
-      roles that share them, and a guess is an ambiguity.
+      roles that share them, and a guess is an ambiguity. The session's
+      order, not the order the roles are written in, decides between two
+      homes: the service knows which role a person signed in for, and the
+      order of keys in a mapping is not part of what YAML or JSON carries
+      to a generator.
 
       signedIn rather than a permission every role lists, because a list
       kept by hand is one a new role is left out of, and the meaning

@@ -367,7 +367,10 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 	for _, p := range perms {
 		fmt.Fprintf(&b, "| %s |", permissionLabel(root, p.Key.Value))
 		for _, r := range roles {
-			if list := strs(get(r.Value, "through"), p.Key.Value); len(list) > 0 && grants[r.Key.Value][p.Key.Value] {
+			if p.Key.Value == "signedIn" {
+				// Held by every signed-in caller, granted by no role (ADR-197).
+				b.WriteString(" signed in |")
+			} else if list := strs(get(r.Value, "through"), p.Key.Value); len(list) > 0 && grants[r.Key.Value][p.Key.Value] {
 				// A grant narrowed to the clients it holds through (ADR-106).
 				b.WriteString(" " + strings.Join(list, ", ") + " only |")
 			} else if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(root)); through != "" {
@@ -383,7 +386,9 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 			for _, role := range strs(c.Value, "roles") {
 				held = held || grants[role][p.Key.Value]
 			}
-			if held {
+			if p.Key.Value == "signedIn" {
+				b.WriteString(" signed in |")
+			} else if held {
 				b.WriteString(" yes |")
 			} else {
 				b.WriteString(" |")

@@ -1690,7 +1690,7 @@ when opening the application (ADR-197):
 The home is a page without route parameters the role may open, by a
 permission it holds or `public` or `signedIn` (`role_home`). A person
 holding several roles is shown the home of the first of them, in the order
-the roles are declared, that has one.
+the session answers them, that has one.
 
 The validator warns, as `navigation`, of the gaps a person going through
 the screens meets, each a question to ask rather than an error: a page no

@@ -25,7 +25,7 @@ async function ask(): Promise<Session | null> {
   if (application.session === null) {
     return { signedIn: false, permissions: [] };
   }
-  const { path, signedIn, permissions } = application.session;
+  const { path, signedIn, permissions, roles } = application.session;
   try {
     const response = await fetch(service + path, { credentials: "include", headers: { Accept: "application/json" } });
     const answer = response.ok ? await body(response) : undefined;
@@ -33,9 +33,11 @@ async function ask(): Promise<Session | null> {
       return null;
     }
     const held = property(answer, permissions);
+    const named = roles === undefined ? undefined : property(answer, roles);
     return {
       signedIn: property(answer, signedIn) === true,
       permissions: Array.isArray(held) ? held.filter((p): p is string => typeof p === "string") : [],
+      ...(Array.isArray(named) ? { roles: named.filter((r): r is string => typeof r === "string") } : {}),
     };
   } catch {
     return null;

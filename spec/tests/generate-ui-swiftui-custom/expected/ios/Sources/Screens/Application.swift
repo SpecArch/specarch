@@ -16,4 +16,5 @@ public enum Application {
             ]
         )
     ]
+    public static let homes: [String: Route] = [:]
 }

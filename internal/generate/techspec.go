@@ -791,6 +791,18 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 			d.blank()
 		}
+		if get(get(root, "permissions"), "signedIn") != nil {
+			d.para("The permission signedIn is held by every caller once signed in, a person or a client, whatever their roles, and granted by no role: it opens what every person has, such as their own profile.")
+		}
+		var homes []string
+		for _, r := range pairs(root, "roles") {
+			if h := str(r.Value, "home"); h != "" {
+				homes = append(homes, r.Key.Value+", "+h)
+			}
+		}
+		if len(homes) > 0 {
+			d.para("The page each role is shown after signing in, its home; a person holding several roles is shown the home of the first of them, in the order the session answers them, that has one: " + strings.Join(homes, "; ") + ".")
+		}
 		if get(get(root, "permissions"), "nobody") != nil {
 			d.para("The permission nobody closes a route on purpose: it stays in the contract and refuses every caller with the problem the design declares, so that a client still calling it is told, not given a 404 that looks like a wrong path. No role grants it.")
 		}

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 813 design tests, 394 golden and 419 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 816 design tests, 397 golden and 419 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 813 design tests, 394 golden and 419 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 809 |
+| system | 812 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2981,6 +2981,14 @@ Scenario: red; level: system; verifies SA-77, SA-43.
 - When: generate ui is run with --unapproved
 - Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, and at the upload page's submit that the standard dialect names no header for the caption, writes the shared files with service.js in the standard dialect, and exits 1
 
+#### generate-ui-navigation
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: a specification whose roles name their home pages, with a profile page of signedIn reached from a menu, a form field read-only unless the caller holds members.remove and a view field hidden unless they hold members.write; an implementation file whose ui target is plain JavaScript; specarch-gen-ui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes the pages as for any permission, since these screens read no session, warns at each role's home that it opens none and at each field's readOnlyUnless and hiddenUnless that the field is changeable or shown to everyone who opens the page, and exits 0
+
 #### generate-ui-sign-in-oidc
 
 Scenario: golden; level: system; verifies SA-93.
@@ -3028,6 +3036,14 @@ Scenario: red; level: system; verifies SA-77.
 - Given: the notes specification with an implementation file in Go whose openapi target serves the dxlib dialect, and one in Swift whose ui target is the iPhone; and specarch-gen-ui-swiftui built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports as an error at the root that the service serves the dxlib dialect and specarch-gen-ui-swiftui calls the standard dialect only, writes no file, and exits 1
+
+#### generate-ui-swiftui-navigation
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: the specification of generate-ui-navigation, and an implementation file whose ui target is an iPhone in SwiftUI, its session read from getSession with the roles under held; specarch-gen-ui-swiftui built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes Application.swift with the session's roles property and each role's home as a route, which MainMenu opens once at the start for the first role the session answers that has one; the profile page behind the guard with its derived test that it opens to everyone signed in and sends someone signed out to sign in; the form's field with readOnlyUnless and the view's with hiddenUnless, which FormPage and ViewPage fold into readOnly and hiddenWhen by the permissions the session answers; the menu's test leaving the signedIn entry out of the refusals; and exits 0
 
 #### generate-ui-swiftui-refused
 
@@ -3132,6 +3148,14 @@ Scenario: red; level: system; verifies SA-77.
 - Given: the notes specification, whose task page, list page and view call operations that travel in the envelope of the pre-key handshake and whose other task page uploads a file with a caption sent beside it, with one implementation file in TypeScript whose ui target is nextjs-carbon and none that serves the API in the dxlib dialect; and specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports an error at each page's call that the screens seal an envelope in the dxlib dialect only and no implementation file serves the API in it, and at the upload page's submit that the standard dialect names no header for the caption, writes the shared files, and exits 1
+
+#### generate-ui-typescript-navigation
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: the specification of generate-ui-navigation, and an implementation file whose ui target is Next.js and Carbon, its session read from getSession with the roles under held; specarch-gen-ui-typescript built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it writes application.ts with the session's roles property and each role's home by route, app/page.tsx, the start, which opens the home of the first role the session answers that has one; the profile page behind the guard with its derived test that it opens to everyone signed in and sends someone signed out to sign in; the form's field with readOnlyUnless and the view's with hiddenUnless, which FormPage and ViewPage fold into readOnly and hiddenWhen by the permissions the session answers; the menu's test leaving the signedIn entry out of the refusals; and exits 0
 
 #### generate-ui-typescript-paged-whole
 

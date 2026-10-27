@@ -804,7 +804,11 @@ that page's status line. Every page carries the menu from `menus`, its own
 entry marked current; a menu entry or a link to a page that is not
 written, and a menu entry for a page whose route takes a parameter, are
 reported and left out. The screens check no permission: the service
-refuses, and the page shows the refusal as its failed state.
+refuses, and the page shows the refusal as its failed state. Since they
+read no session, they cannot tell a person's roles or permissions: a
+role's `home` is warned of at the role, as opening no home, and a field's
+`readOnlyUnless` or `hiddenUnless` at the key, as changeable or shown to
+everyone who opens the page (ADR-197).
 
 A view is `<page>.html` with its sections, each field's label and the
 place of its value, a value's parts inside its place and a list's item as
@@ -1023,9 +1027,15 @@ pages through the same package.
 
 `application.ts` holds the menu and how the session is read:
 `settings.session` names the operation that answers who is signed in, the
-boolean and the list of permissions in its answer, and the page that
-signs in. The guard and the menu ask one function whether a page opens to
-the person, so a menu entry shows exactly when its page opens; the guard
+boolean and the list of permissions in its answer, the list of roles in
+it when `roles` names one, and the page that signs in. The guard and the
+menu ask one function whether a page opens to the person, so a menu entry
+shows exactly when its page opens; a page of `signedIn` opens to everyone
+signed in. When the roles name their home pages and the session names the
+roles, `application.ts` holds each role's home by route and `app/page.tsx`,
+the start, opens the home of the first role the session answers that has
+one; without `roles` the homes are warned of at `/roles`, and when a page
+takes the route `/` it is that page, with a warning at it (ADR-197); the guard
 sends someone signed out to sign in with `returnTo`, shows anyone else the
 refusal, and never makes a refused page, which so calls no operation.
 Each list, form and view that needs a permission gets `tests/<page>.test.ts`, and the
@@ -1054,7 +1064,9 @@ warning at the picker. A field is required when the request body requires
 it, is checked by its keywords before the request is sent, and is typed a
 second time when the page lists it under `enteredTwice`. `readOnly`,
 `readOnlyWhen`, `hiddenWhen` and the checks are rules over the record, as
-on a task page, the form's values typed as the service has them and an
+on a task page, and `readOnlyUnless` and `hiddenUnless` make a field
+read-only or hidden for a person the session does not give that
+permission, folded into the same two rules before the page is drawn, the form's values typed as the service has them and an
 empty field null; a hidden field is neither checked nor sent, and a rule
 that orders a decimal is refused, since the browser cannot compare one
 exactly. The request sends the fields its body takes, and an idempotency
@@ -1181,7 +1193,9 @@ component with the routes its events lead to. `Routes.swift` is one
 with the parameters of its route as associated values, and the view
 each case opens, which the app's `NavigationStack` follows;
 `Application.swift` holds how the session is read, the page that signs
-in and the menu; `Strings.swift` every text in every language, the
+in, the menu and each role's home as a route, which `MainMenu` opens once
+at the start for the first role the session answers that has one
+(ADR-197); `Strings.swift` every text in every language, the
 chosen one kept under a key in the app's defaults; `Theme.swift` a
 `Color` per part through the `design-tokens` idiom. The components are
 written once under `Screens/`, on SwiftUI and Foundation alone. The

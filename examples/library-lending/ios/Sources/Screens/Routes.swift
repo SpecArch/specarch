@@ -13,6 +13,7 @@ public enum Route: Hashable, Sendable {
     case memberLoans(memberId: String)
     case memberView(memberId: String)
     case membersList
+    case profile
     case resetPassword
     case secondFactor
     case signIn
@@ -30,6 +31,7 @@ extension Route {
         case .memberLoans(let memberId): MemberLoansView(memberId: memberId)
         case .memberView(let memberId): MemberViewView(memberId: memberId)
         case .membersList: MembersListView()
+        case .profile: ProfileView()
         case .resetPassword: ResetPasswordView()
         case .secondFactor: SecondFactorView()
         case .signIn: SignInView()

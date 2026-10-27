@@ -163,8 +163,16 @@ func Generate(r *Request) genui.Response {
 		g.checkPaged(g.server, listed)
 		files = append(files, g.serverFiles(g.server, header)...)
 	}
-	app, menuEntries := g.application(sess, drawn)
+	homes := g.Homes(drawn, sess)
+	app, menuEntries := g.application(sess, drawn, homes)
 	add("application.ts", app)
+	if len(homes) > 0 {
+		if taken := g.rootPage(drawn); taken != "" {
+			g.Problem("warning", "/pages/"+taken, "%s takes the route /, where the application starts, so %s writes no start that opens each role's home there; a person reaches their home from the sign-in page's answer or the menu", taken, name)
+		} else {
+			add("app/page.tsx", homePage(g.Name("application", "components")))
+		}
+	}
 	if len(menuEntries) > 0 {
 		add("tests/menu.test.ts", menuTest())
 	}
@@ -374,6 +382,11 @@ func (g *gen) refusalTest(p *genscreens.Page) string {
 	var b strings.Builder
 	b.WriteString("import assert from \"node:assert/strict\";\nimport { test } from \"node:test\";\nimport { decide } from \"../screens/access.ts\";\n")
 	fmt.Fprintf(&b, "import { schema } from \"../app%s/%s\";\n\n", routeFolder(p.Route), g.schemaFile)
+	if p.Permission == "signedIn" {
+		fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: true, permissions: [] }), \"allowed\");\n});\n\n", p.Name+" opens to everyone signed in, whatever they hold", permissionKey)
+		fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: false, permissions: [] }), \"sign-in\");\n});\n", p.Name+" sends someone signed out to sign in", permissionKey)
+		return b.String()
+	}
 	fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: true, permissions: [] }), \"refused\");\n});\n\n", p.Name+" is refused to someone signed in without "+p.Permission, permissionKey)
 	fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: false, permissions: [] }), \"sign-in\");\n});\n\n", p.Name+" sends someone signed out to sign in", permissionKey)
 	fmt.Fprintf(&b, "test(%q, () => {\n  assert.equal(decide(schema.%s, { signedIn: true, permissions: [%s] }), \"allowed\");\n});\n", p.Name+" opens to someone who holds "+p.Permission, permissionKey, quote(p.Permission))
@@ -384,14 +397,18 @@ func (g *gen) refusalTest(p *genscreens.Page) string {
 // page that signs in, and the menu, each entry with the permission of the
 // page it opens; an entry whose page this run does not write is left out,
 // unless another stakeholder writes it.
-func (g *gen) application(sess *genscreens.Session, drawn map[string]bool) (string, []string) {
+func (g *gen) application(sess *genscreens.Session, drawn map[string]bool, homes []genscreens.Home) (string, []string) {
 	var b strings.Builder
 	fmt.Fprintf(&b, "import type { Application } from %q;\n\n", g.Name("application", "components"))
 	b.WriteString("/**\n * Where the screens call the service, how they read the person's session,\n * where they sign in, and the menu.\n */\n")
 	sessionValue := raw("null")
 	signIn := raw("null")
 	if sess != nil {
-		sessionValue = object([]member{{Key: "path", Val: str(sess.Path)}, {Key: "signedIn", Val: str(sess.SignedIn)}, {Key: "permissions", Val: str(sess.Permissions)}})
+		fields := []member{{Key: "path", Val: str(sess.Path)}, {Key: "signedIn", Val: str(sess.SignedIn)}, {Key: "permissions", Val: str(sess.Permissions)}}
+		if sess.Roles != "" {
+			fields = append(fields, member{Key: "roles", Val: str(sess.Roles)})
+		}
+		sessionValue = object(fields)
 		if sess.SignIn != "" {
 			signIn = str(sess.SignIn)
 		}
@@ -413,8 +430,38 @@ func (g *gen) application(sess *genscreens.Session, drawn map[string]bool) (stri
 		members = append(members, member{Key: "provider", Val: object(p)})
 	}
 	members = append(members, member{Key: "menu", Val: array(groups)})
+	if len(homes) > 0 {
+		var hs []member
+		for _, h := range homes {
+			hs = append(hs, member{Key: h.Role, Val: str(h.Route)})
+		}
+		members = append(members, member{Key: "homes", Val: object(hs)})
+	}
 	b.WriteString(statement("export const application: Application = ", object(members), ";"))
 	return b.String(), permissions
+}
+
+// rootPage is the page drawn at the route /, or "" when none is.
+func (g *gen) rootPage(drawn map[string]bool) string {
+	for _, p := range sortedKeys(obj0(g.Spec["pages"])) {
+		if drawn[p] && text(obj0(obj0(g.Spec["pages"])[p])["route"]) == "/" {
+			return p
+		}
+	}
+	return ""
+}
+
+// homePage is app/page.tsx, the application's start, which opens the home
+// of the first of the person's roles that has one (ADR-197).
+func homePage(components string) string {
+	return fmt.Sprintf(`import { Home } from %q;
+import { chosenLanguage } from "@/language";
+import { texts } from "@/strings";
+
+export default async function Page() {
+  return <Home texts={texts({}, await chosenLanguage())} />;
+}
+`, components)
 }
 
 // provider is the identity provider of the specification's signIn: the
@@ -441,7 +488,7 @@ import { visibleMenu } from "../screens/access.ts";
 test("the menu shows no entry to someone signed in without its page's permission", () => {
   for (const group of application.menu) {
     for (const item of group.items) {
-      if (item.permission === "public") {
+      if (item.permission === "public" || item.permission === "signedIn") {
         continue;
       }
       const held = application.menu.flatMap((g) => g.items.map((i) => i.permission)).filter((p) => p !== item.permission);

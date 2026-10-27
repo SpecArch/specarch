@@ -11,6 +11,9 @@ pages:
       - { title: Member, fields: [cardNumber, fullName, email, tier] }
       - { title: Membership, fields: [joinedOn, membershipEndsOn, outstandingFees] }
       - { title: Contact, fields: [address, phones] }
+    fieldConditions:
+      address: { hiddenUnless: members.write }
+      phones: { hiddenUnless: members.write }
     states:
       failed:
         member-not-found: { message: There is no member with this card. }

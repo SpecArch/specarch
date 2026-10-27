@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 185 design tests, 54 golden and 130 red, about 47 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 191 design tests, 56 golden and 134 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -11,7 +11,7 @@ Version 0.1.0 of the specification: 185 design tests, 54 golden and 130 red, abo
 | Level | Design tests |
 |---|---|
 | acceptance | 9 |
-| system | 176 |
+| system | 182 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -568,6 +568,32 @@ Scenario: red; level: system; covers not found memberId, response 404.
 - Given: a librarian and no member with a given id
 - When: getMember is called with that id
 - Then: it answers 404
+
+### Operation getProfile
+
+#### get-profile-denied-when-not-signed-in
+
+Scenario: red; level: system; covers denied when not signed in; verifies LIB-6.
+
+- Given: a caller with no session
+- When: getProfile is called
+- Then: it is refused as not signed in, and no member record is answered
+
+#### get-profile-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session; verifies LIB-6.
+
+- Given: a member whose session has expired
+- When: getProfile is called
+- Then: it is refused as not signed in
+
+#### get-profile-succeeds
+
+Scenario: golden; level: system; verifies LIB-6.
+
+- Given: two members, one of them signed in, and a librarian signed in as staff
+- When: getProfile is called by the member, then by the librarian
+- Then: the member is answered 200 with their own record; the librarian, who holds no card, is answered 404 member-not-found
 
 ### Operation getSession
 
@@ -1241,6 +1267,32 @@ Scenario: red; level: system; covers from wrong state.
 - When: returnLoan is called again
 - Then: it is refused and the fee is not charged twice
 
+### Page profile
+
+#### profile-denied-when-not-signed-in
+
+Scenario: red; level: system; covers denied when not signed in; verifies LIB-6.
+
+- Given: a visitor who is not signed in
+- When: the page profile is opened
+- Then: it is refused as not signed in, and the visitor is sent to sign in
+
+#### profile-denied-with-expired-session
+
+Scenario: red; level: system; covers denied with expired session; verifies LIB-6.
+
+- Given: a member whose session ended after half an hour without a request
+- When: the page profile is opened
+- Then: it is refused as not signed in, and no part of their record is shown
+
+#### profile-succeeds
+
+Scenario: golden; level: system; verifies LIB-6.
+
+- Given: a member signed in with their card, whose record holds one unpaid late fee
+- When: the page profile is opened
+- Then: it shows their card number, name, email address, tier, membership dates and the fee they owe, and nothing of another member
+
 ### Operation refuseFeeWaiver
 
 #### refuse-fee-waiver
@@ -1648,7 +1700,7 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-96 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+99 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -1662,6 +1714,8 @@ stateDiagram-v2
 | operation signIn | refused for a service's own token | red | rare case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | response 401 | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation getSession | refused for a service's own token | red | rare case, and operation getSession satisfies no requirement with a harm |
+| operation getProfile | refused for a service's own token | red | rare case, and operation getProfile satisfies no requirement with a harm |
+| operation getProfile | response 404 | red | occasional case, and operation getProfile satisfies no requirement with a harm |
 | operation confirmSecondFactor | code longer than 6 characters | red | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
 | operation confirmSecondFactor | code of 6 characters | golden | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
 | operation confirmSecondFactor | refused for a service's own token | red | rare case, and operation confirmSecondFactor satisfies no requirement with a harm |
@@ -1735,6 +1789,7 @@ stateDiagram-v2
 | page members-list | empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | filtered empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | fails with member-not-found | red | occasional case, and page members-list satisfies no requirement with a harm |
+| page profile | fails with member-not-found | red | occasional case, and page profile satisfies no requirement with a harm |
 | Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |

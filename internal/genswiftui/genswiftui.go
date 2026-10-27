@@ -148,7 +148,7 @@ func Generate(r *Request) genui.Response {
 	}
 	// The menu adds the routes of the pages only it reaches, so the
 	// application is written before the routes.
-	application := g.applicationFile(sess, groups)
+	application := g.applicationFile(sess, groups, g.Homes(drawn, sess))
 	add(sources+"Routes.swift", g.routesFile())
 	add(sources+"Application.swift", application)
 	if len(permissions) > 0 {
@@ -368,13 +368,17 @@ func (g *gen) routesFile() string {
 // applicationFile is Application.swift: how the screens read the session,
 // the page that signs in, and the menu, each entry with the permission of
 // the page it opens.
-func (g *gen) applicationFile(sess *genscreens.Session, groups []value) string {
+func (g *gen) applicationFile(sess *genscreens.Session, groups []value, homes []genscreens.Home) string {
 	var b strings.Builder
 	b.WriteString("/// How the screens read the person's session, where they sign in, and\n/// the menu; where they call the service is Service.baseURL, which the app\n/// sets at launch.\npublic enum Application {\n")
 	if sess == nil {
 		b.WriteString("    public static let session: SessionSchema? = nil\n")
 	} else {
-		fmt.Fprintf(&b, "    public static let session: SessionSchema? = .init(path: %s, signedIn: %s, permissions: %s)\n", quote(sess.Path), quote(sess.SignedIn), quote(sess.Permissions))
+		roles := ""
+		if sess.Roles != "" {
+			roles = ", roles: " + quote(sess.Roles)
+		}
+		fmt.Fprintf(&b, "    public static let session: SessionSchema? = .init(path: %s, signedIn: %s, permissions: %s%s)\n", quote(sess.Path), quote(sess.SignedIn), quote(sess.Permissions), roles)
 	}
 	if sess == nil || sess.SignInPage == "" {
 		b.WriteString("    public static let signIn: Route? = nil\n    public static let signInTitle = \"\"\n")
@@ -408,6 +412,16 @@ func (g *gen) applicationFile(sess *genscreens.Session, groups []value) string {
 		menu = append(menu, genscreens.Object(members))
 	}
 	b.WriteString(indent(statement("public static let menu: [MenuGroup] = ", genscreens.Array(menu), "", ""), "    ") + "\n")
+	// The page each role is shown first, by role (ADR-197).
+	if len(homes) == 0 {
+		b.WriteString("    public static let homes: [String: Route] = [:]\n")
+	} else {
+		b.WriteString("    public static let homes: [String: Route] = [\n")
+		for _, h := range homes {
+			fmt.Fprintf(&b, "        %s: %s,\n", quote(h.Role), g.routeCase(h.Page, nil))
+		}
+		b.WriteString("    ]\n")
+	}
 	b.WriteString("}\n")
 	return b.String()
 }
@@ -435,6 +449,11 @@ func (g *gen) refusalTest(p *genscreens.Page) string {
 	schema := camelCase(p.Name) + "Schema." + g.Name(p.Part, "permission")
 	var b strings.Builder
 	fmt.Fprintf(&b, "import Testing\n@testable import %s\n\nstruct %sTests {\n", g.module, pascalCase(p.Name))
+	if p.Permission == "signedIn" {
+		fmt.Fprintf(&b, "    @Test(%s)\n    func allowed() {\n        #expect(Access.decide(permission: %s, session: Session(signedIn: true, permissions: [])) == .allowed)\n    }\n\n", quote(p.Name+" opens to everyone signed in, whatever they hold"), schema)
+		fmt.Fprintf(&b, "    @Test(%s)\n    func signIn() {\n        #expect(Access.decide(permission: %s, session: Session(signedIn: false, permissions: [])) == .signIn)\n    }\n}\n", quote(p.Name+" sends someone signed out to sign in"), schema)
+		return b.String()
+	}
 	fmt.Fprintf(&b, "    @Test(%s)\n    func refused() {\n        #expect(Access.decide(permission: %s, session: Session(signedIn: true, permissions: [])) == .refused)\n    }\n\n", quote(p.Name+" is refused to someone signed in without "+p.Permission), schema)
 	fmt.Fprintf(&b, "    @Test(%s)\n    func signIn() {\n        #expect(Access.decide(permission: %s, session: Session(signedIn: false, permissions: [])) == .signIn)\n    }\n\n", quote(p.Name+" sends someone signed out to sign in"), schema)
 	fmt.Fprintf(&b, "    @Test(%s)\n    func allowed() {\n        #expect(Access.decide(permission: %s, session: Session(signedIn: true, permissions: [%s])) == .allowed)\n    }\n}\n", quote(p.Name+" opens to someone who holds "+p.Permission), schema, quote(p.Permission))
@@ -451,7 +470,7 @@ struct MenuTests {
     @Test("the menu shows no entry to someone signed in without its page's permission")
     func hidden() {
         for group in Application.menu {
-            for item in group.items where item.permission != "public" {
+            for item in group.items where item.permission != "public" && item.permission != "signedIn" {
                 let held = Application.menu.flatMap { $0.items.map(\.permission) }.filter { $0 != item.permission }
                 let shown = Access.visibleMenu(Application.menu, session: Session(signedIn: true, permissions: held)).flatMap(\.items)
                 #expect(!shown.contains { $0.route == item.route && $0.permission == item.permission }, "\(item.route)")

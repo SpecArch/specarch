@@ -78,7 +78,19 @@ func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 				return out
 			}},
 		{def: "page", key: "kind", values: []any{"list", "form", "view", "task", "content", "custom", "other"}, keys: []string{"columns", "source", "entity", "submit", "blocks", "onSubmitted"},
-			objects: func(r map[string]any) []map[string]any { return mapsOf(r["pages"]) }},
+			// fieldConditions are left out: 1.0 gave a field's condition
+			// readOnlyUnless and hiddenUnless, and none decides the kind. A
+			// page of signedIn, a name 1.0's permission pattern admits and
+			// 0.3's refuses, is left out too.
+			objects: func(r map[string]any) []map[string]any {
+				var out []map[string]any
+				for _, pg := range mapsOf(r["pages"]) {
+					if pg["permission"] != "signedIn" {
+						out = append(out, pg)
+					}
+				}
+				return out
+			}, added: []string{"fieldConditions"}},
 		{def: "workflowStep", key: "kind", values: []any{"approval", "operation", "other"}, keys: []string{"approvers", "permission", "deadline", "onDeadline", "escalateTo", "operation"},
 			objects: func(r map[string]any) []map[string]any {
 				var out []map[string]any

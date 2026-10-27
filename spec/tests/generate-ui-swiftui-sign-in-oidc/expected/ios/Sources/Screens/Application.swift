@@ -8,4 +8,5 @@ public enum Application {
     public static let signIn: Route? = .signIn
     public static let signInTitle = "sign-in.title"
     public static let menu: [MenuGroup] = []
+    public static let homes: [String: Route] = [:]
 }

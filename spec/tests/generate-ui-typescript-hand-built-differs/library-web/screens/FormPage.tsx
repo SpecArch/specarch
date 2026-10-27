@@ -17,13 +17,15 @@ import {
   Tabs,
 } from "@carbon/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { permissionsOf } from "./access";
 import { ChildRows, rowProblems, rowsSent, startRows, type RowsState } from "./ChildRows";
 import { Field } from "./Field";
 import { leave } from "./Notice";
-import { againOf, formProblems, hidden, locked, recordOf, typed, type Fields, type Values } from "./rules";
+import { againOf, forCaller, formProblems, hidden, locked, recordOf, typed, type Fields, type Values } from "./rules";
 import type { EventSchema, FailureSchema, FieldSchema, FormFieldSchema, FormPageSchema, SectionSchema } from "./schema";
 import { body, call, segment } from "./service";
+import { useSession } from "./session";
 import { say, type Texts } from "./texts";
 import { ValueField } from "./ValueField";
 import { firstProblem, holdsValue, scalars, sentValue, startValue, valueProblems } from "./values";
@@ -85,8 +87,10 @@ function start(fields: readonly FormFieldSchema[], record: Fields, hooks: Readon
  * its keywords and the page's checks before the request is sent, and each
  * success leading where its event says.
  */
-export function FormPage({ schema, texts, routes, parameters, hooks }: FormPageProps) {
+export function FormPage({ schema: given, texts, routes, parameters, hooks }: FormPageProps) {
   const router = useRouter();
+  const session = useSession();
+  const schema = useMemo(() => ({ ...given, sections: forCaller(given.sections, permissionsOf(session)) }), [given, session]);
   const fields = fieldsOf(schema.sections);
   const [loaded, setLoaded] = useState<Fields | undefined>(() => (schema.source === undefined ? {} : undefined));
   const [loadFailed, setLoadFailed] = useState<string | undefined>(undefined);

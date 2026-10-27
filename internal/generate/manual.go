@@ -79,6 +79,24 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	if len(open) > 0 {
 		d.para("Anyone opens these pages, signed in or not: " + strings.Join(open, ", ") + ".")
 	}
+	var every []string
+	for _, p := range pages {
+		if str(p.Value, "permission") == "signedIn" {
+			every = append(every, pageTitle(p.Key.Value, p.Value))
+		}
+	}
+	if len(every) > 0 {
+		d.para("Every person opens these pages once signed in, whatever their roles: " + strings.Join(every, ", ") + ".")
+	}
+	var homes []string
+	for _, r := range peopleRoles(root) {
+		if h := str(r.Value, "home"); h != "" {
+			homes = append(homes, r.Key.Value+", "+pageTitle(h, get(get(root, "pages"), h)))
+		}
+	}
+	if len(homes) > 0 {
+		d.para("After signing in, a person is shown the home of the first of their roles that has one, in the order the session gives them: " + strings.Join(homes, "; ") + ".")
+	}
 	var anyone []string
 	for _, c := range commands {
 		if str(c.Value, "permission") == "public" {
@@ -461,6 +479,8 @@ func whoOpens(root *yaml.Node, perm string) string {
 		return ""
 	case "public":
 		return "Anyone opens it, signed in or not."
+	case "signedIn":
+		return "Every person opens it once signed in, whatever their roles."
 	}
 	var roles []string
 	for _, r := range peopleRoles(root) {

@@ -14,6 +14,7 @@ export const PAGES = {
   "member-loans": { file: "member-loans.html", parameters: ["memberId"] },
   "member-view": { file: "member-view.html", parameters: ["memberId"] },
   "members-list": { file: "members-list.html", parameters: [] },
+  "profile": { file: "profile.html", parameters: [] },
   "reset-password": { file: "reset-password.html", parameters: [] },
   "second-factor": { file: "second-factor.html", parameters: [] },
   "sign-in": { file: "sign-in.html", parameters: [] },

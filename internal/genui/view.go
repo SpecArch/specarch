@@ -162,6 +162,7 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 				continue
 			}
 			field := g.viewField(f.name, prop, nil)
+			g.unless(at+"/fieldConditions/"+f.name+"/hiddenUnless", f.name, "hiddenUnless", text(obj0(conditions[f.name])["hiddenUnless"]))
 			if e := text(obj0(conditions[f.name])["hiddenWhen"]); e != "" {
 				rule, ok := g.rule(e, at+"/fieldConditions/"+f.name+"/hiddenWhen", "the field's hiddenWhen", props)
 				if !ok {

@@ -4,9 +4,12 @@ import SwiftUI
 
 /// The application's menu: one level of groups, each entry a link to a
 /// page, shown only to someone who holds the permission of the page it
-/// opens, read from the same permission as the page's guard.
+/// opens, read from the same permission as the page's guard. At the
+/// application's start it opens the person's home, once.
 public struct MainMenu: View {
     @AppStorage(Strings.languageKey) private var language = Strings.languages[0]
+    @Environment(Router.self) private var router
+    @State private var homeOpened = false
     private var store: SessionStore { SessionStore.shared }
 
     public init() {}
@@ -31,5 +34,13 @@ public struct MainMenu: View {
         }
         .navigationTitle(say(texts, "screens.menu"))
         .overlay(alignment: .top) { NoticeView() }
+        .onChange(of: store.current, initial: true) { _, session in
+            // The application's start opens the person's home once (ADR-197).
+            guard !homeOpened, let session, router.path.isEmpty, let home = Access.home(Application.homes, session: session) else {
+                return
+            }
+            homeOpened = true
+            router.go(to: home)
+        }
     }
 }

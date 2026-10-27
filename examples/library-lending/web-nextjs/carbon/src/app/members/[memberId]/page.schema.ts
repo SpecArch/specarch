@@ -39,6 +39,7 @@ export const schema = {
             { name: "postcode", label: "member-view.fields.address.postcode" },
             { name: "street", label: "member-view.fields.address.street" },
           ],
+          hiddenUnless: "members.write",
         },
         {
           name: "phones",
@@ -48,6 +49,7 @@ export const schema = {
             { name: "number", label: "member-view.fields.phones.number" },
           ],
           list: true,
+          hiddenUnless: "members.write",
         },
       ],
     },

@@ -3,14 +3,16 @@
 import Foundation
 import Observation
 
-/// What the screens know of the person: whether they are signed in, and the permissions they hold.
+/// What the screens know of the person: whether they are signed in, the permissions they hold, and their roles when the session names them.
 public struct Session: Sendable, Equatable {
     public var signedIn: Bool
     public var permissions: [String]
+    public var roles: [String]
 
-    public init(signedIn: Bool, permissions: [String]) {
+    public init(signedIn: Bool, permissions: [String], roles: [String] = []) {
         self.signedIn = signedIn
         self.permissions = permissions
+        self.roles = roles
     }
 }
 
@@ -28,7 +30,23 @@ public enum Access {
         if !session.signedIn {
             return .signIn
         }
+        if permission == "signedIn" {
+            return .allowed
+        }
         return session.permissions.contains(permission) ? .allowed : .refused
+    }
+
+    /// The permissions the person holds, signedIn among them once signed in.
+    public static func held(_ session: Session?) -> [String] {
+        guard let session else {
+            return []
+        }
+        return session.signedIn ? session.permissions + ["signedIn"] : session.permissions
+    }
+
+    /// The person's home: that of the first of their roles, in the session's order, that has one.
+    public static func home(_ homes: [String: Route], session: Session) -> Route? {
+        session.roles.lazy.compactMap { homes[$0] }.first
     }
 
     /// The menu as a person sees it: only the entries whose page opens to them, and no empty group.
@@ -83,7 +101,11 @@ public final class SessionStore {
                 if case .string(let s) = item { return s }
                 return nil
             } ?? []
-            return Session(signedIn: body[settings.signedIn] == .bool(true), permissions: held)
+            let roles = settings.roles.flatMap { body[$0]?.items.compactMap { item -> String? in
+                if case .string(let s) = item { return s }
+                return nil
+            } } ?? []
+            return Session(signedIn: body[settings.signedIn] == .bool(true), permissions: held, roles: roles)
         } catch {
             return nil
         }

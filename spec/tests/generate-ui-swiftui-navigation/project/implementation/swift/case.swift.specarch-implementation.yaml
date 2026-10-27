@@ -1,0 +1,12 @@
+specarchImplementation: "1.0.0"
+info: { title: Member desk in Swift, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Swift, version: "6.0" } }
+targets:
+  ui:
+    output: ../../../ios
+    platform: iphone
+    settings:
+      language: en
+      session: { operation: getSession, signedIn: open, permissions: granted, roles: held }
+      module: Screens

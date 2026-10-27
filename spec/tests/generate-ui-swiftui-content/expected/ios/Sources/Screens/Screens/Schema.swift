@@ -88,6 +88,10 @@ public struct FieldSchema: Sendable {
     public var readOnly: Bool? = nil
     public var readOnlyWhen: Rule? = nil
     public var hiddenWhen: Rule? = nil
+    /// Read-only unless the person holds this permission.
+    public var readOnlyUnless: String? = nil
+    /// Not shown, checked or sent unless the person holds this permission.
+    public var hiddenUnless: String? = nil
     public var hook: Bool? = nil
     public var twice: String? = nil
 }
@@ -321,6 +325,8 @@ public struct ViewFieldSchema: Sendable {
     public var parts: [ViewFieldSchema]? = nil
     public var list: Bool? = nil
     public var hiddenWhen: Rule? = nil
+    /// Not shown unless the person holds this permission.
+    public var hiddenUnless: String? = nil
 }
 
 /// A group of a view's fields, with its title when it has one.
@@ -367,4 +373,6 @@ public struct SessionSchema: Sendable {
     public var path: String
     public var signedIn: String
     public var permissions: String
+    /// The property that holds the person's roles, when the session names them.
+    public var roles: String? = nil
 }

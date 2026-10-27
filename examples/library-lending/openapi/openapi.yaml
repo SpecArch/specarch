@@ -780,6 +780,34 @@ paths:
           x-specarch-problem: reset-code-refused
       security: []
       x-specarch-permission: public
+  /profile:
+    get:
+      operationId: getProfile
+      summary: The member record of the person signed in
+      description: |
+        Answers the member whose id is the caller's memberId, so every
+        person who holds a card sees their own record without being granted
+        members.read. Staff have no member identifier and are answered not
+        found.
+      responses:
+        "200":
+          description: The caller's own member record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        "404":
+          description: The caller holds no library card.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: member-not-found
+      security:
+        - bearerAuth: []
+      x-specarch-permission: signedIn
+      x-specarch-satisfies:
+        - LIB-6
   /sessions:
     post:
       operationId: signIn
@@ -849,12 +877,22 @@ paths:
                     items:
                       type: string
                       maxLength: 100
+                  roles:
+                    type: array
+                    title: Roles
+                    description: The caller's roles, in the order the service chose them at sign-in; the screens open the home of the first that has one.
+                    maxItems: 20
+                    uniqueItems: true
+                    items:
+                      type: string
+                      maxLength: 100
                   signedIn:
                     type: boolean
                     title: Signed in
                 required:
                   - signedIn
                   - permissions
+                  - roles
       security: []
       x-specarch-permission: public
   /sessions/second-factor:

@@ -638,7 +638,9 @@ func (g *gen) dxOperation(path, method string, op, item map[string]any) *yaml.No
 	}
 	add(n, "responses", g.dxResponses(at, op, l, isList, stream == "download"))
 	add(n, "x-dxlib-endpoint-type", str(endpointType))
-	if perm := text(op["permission"]); perm != "" && perm != "public" {
+	// signedIn is no privilege: dxlib lets through every caller its
+	// middleware admits when an endpoint names none (ADR-197).
+	if perm := text(op["permission"]); perm != "" && perm != "public" && perm != "signedIn" {
 		add(n, "x-dxlib-privileges", plain([]any{perm}))
 	}
 	if lim := obj(op["limits"]); lim != nil {

@@ -926,8 +926,8 @@ func (g *gen) seeds() {
 	g.line("// Privileges are the specification's permissions.")
 	g.line("var Privileges = []Privilege{")
 	for _, p := range sortedKeys(perms) {
-		if p == "public" {
-			continue // open to everyone, so no privilege grants it
+		if p == "public" || p == "signedIn" {
+			continue // open to everyone, or to everyone signed in, so no privilege grants it
 		}
 		g.line("\t{%q, %q},", p, oneLine(text(obj(perms[p])["description"])))
 	}
@@ -944,7 +944,7 @@ func (g *gen) seeds() {
 	impliedBy := func(name string) []string {
 		var out []string
 		for _, p := range texts(list(obj(perms[name])["implies"])) {
-			if p != "public" && perms[p] != nil {
+			if p != "public" && p != "signedIn" && perms[p] != nil {
 				out = append(out, p)
 			}
 		}
@@ -969,7 +969,7 @@ func (g *gen) menu(items map[string]any, indent string) {
 		m := obj(items[k])
 		page := text(m["page"])
 		perm := text(obj(pages[page])["permission"])
-		if perm == "public" {
+		if perm == "public" || perm == "signedIn" {
 			perm = ""
 		}
 		if children := obj(m["items"]); children != nil {

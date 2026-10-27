@@ -8,9 +8,10 @@ import type { Application } from "@/screens";
  */
 export const application: Application = {
   service: "/api",
-  session: { path: "/sessions/current", signedIn: "signedIn", permissions: "permissions" },
+  session: { path: "/sessions/current", signedIn: "signedIn", permissions: "permissions", roles: "roles" },
   signIn: "/sign-in",
   menu: [
+    { title: "menu.account.title", items: [{ title: "menu.account.items.profile", route: "/profile", permission: "signedIn" }] },
     {
       title: "menu.loans.title",
       items: [
@@ -27,4 +28,5 @@ export const application: Application = {
       ],
     },
   ],
+  homes: { "desk-supervisor": "/fee-waivers", "head-librarian": "/loans", librarian: "/members", member: "/profile" },
 };

@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 19 HTTP operations, 3 channels, 2 dependencies, 11 pages, 1 flow, 1 workflow, 1 algorithm, 185 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 1 algorithm, 191 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -80,6 +80,7 @@ flowchart LR
 | GET /books | listBooks | Browse the catalogue | public |
 | POST /sessions | signIn | Sign in with an email address and a password | public |
 | GET /sessions/current | getSession | Who is signed in, and what they may do | public |
+| GET /profile | getProfile | The member record of the person signed in | signedIn |
 | POST /sessions/second-factor | confirmSecondFactor | Confirm a sign-in with the code of a second factor | public |
 | POST /password-resets | resetPassword | Set a new password with a reset code | public |
 | GET /members | listMembers | List members | members.read |
@@ -452,6 +453,7 @@ Body of the 200 response:
 |---|---|---|---|---|
 | signedIn | bool | yes |   | Signed in |
 | permissions | list of string | yes | at most 100 items, no item twice | Permissions |
+| roles | list of string | yes | at most 20 items, no item twice | The caller's roles, in the order the service chose them at sign-in; the screens open the home of the first that has one. |
 
 ```mermaid
 sequenceDiagram
@@ -459,6 +461,30 @@ sequenceDiagram
   participant S as Library Lending
   C->>S: GET /sessions/current
   S-->>C: 200 object
+```
+
+### getProfile (GET /profile)
+
+Answers the member whose id is the caller's memberId, so every
+person who holds a card sees their own record without being granted
+members.read. Staff have no member identifier and are answered not
+found.
+
+Takes no parameters and no request body.
+
+Responses:
+
+| Status | Meaning | Body |
+|---|---|---|
+| 200 | The caller's own member record. | [Member](#member) |
+| 404 | The caller holds no library card. | the problem document member-not-found (RFC 9457) |
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant S as Library Lending
+  C->>S: GET /profile
+  S-->>C: 200 Member
 ```
 
 ### confirmSecondFactor (POST /sessions/second-factor)
@@ -1359,7 +1385,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.4.1 | shipped |   |
-| ui-components | 1.10.0 | shipped |   |
+| ui-components | 1.11.0 | shipped |   |
 
 ### Implementation: Library Lending's web screens through @acme/screens
 
@@ -1428,7 +1454,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.4.1 | shipped |   |
-| ui-components | 1.10.0 | overridden, copied from 1.10.0 | list-page |
+| ui-components | 1.11.0 | overridden, copied from 1.11.0 | list-page |
 
 **Insight on ui-components:** A project whose screens are drawn by a library of its own renders its generated lists through that library, so they look and work like the screens built by hand; this file shows how, with the library's component, import and schema keys.
 
@@ -1498,7 +1524,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 | request-validation | 1.1.0 | shipped |   |
 | soft-delete | 1.1.0 | shipped |   |
 | type-rendering | 1.4.1 | shipped |   |
-| ui-components | 1.10.0 | shipped |   |
+| ui-components | 1.11.0 | shipped |   |
 
 #### Implementation decisions
 
@@ -1545,7 +1571,7 @@ Access is fail-closed: every operation, command and page names the one permissio
 
 | Permission | librarian | head-librarian | member | scheduler | desk-supervisor | auditor | fee-ledger-batch (service) | public |
 |---|---|---|---|---|---|---|---|---|
-| members.read | yes | | | | | | | |
+| members.read | yes | | | | yes | | | |
 | members.write | yes | | | | | | | |
 | catalogue.read | yes | | yes | | | | | |
 | loans.read | yes | yes | yes | yes | yes | yes | yes | |
@@ -1555,6 +1581,7 @@ Access is fail-closed: every operation, command and page names the one permissio
 | fees.request | yes | | | | | | | |
 | fees.approve | | | | | yes | | | |
 | public | | | | | | | | everyone |
+| signedIn | signed in | signed in | signed in | signed in | signed in | signed in | signed in | |
 
 The caller is who is making the call, as the service knows it once the session or token has been checked: one record with the properties below, which a role's rows rule names as caller.<property>. A property the caller may lack allows null, and a comparison with it is false then.
 
@@ -1567,6 +1594,10 @@ A role with a rows rule reaches only the records of the entity the rule holds fo
 | Role | Entity | Rows |
 |---|---|---|
 | member | Loan | `memberId == caller.memberId` |
+
+The permission signedIn is held by every caller once signed in, a person or a client, whatever their roles, and granted by no role: it opens what every person has, such as their own profile.
+
+The page each role is shown after signing in, its home; a person holding several roles is shown the home of the first of them, in the order the session answers them, that has one: librarian, members-list; head-librarian, loans-list; member, profile; desk-supervisor, fee-waivers-inbox.
 
 The clients: the programs that call the system, each by its software_id. An application is where a person signs in; a service calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client with roles is a column of the matrix above. A client is admitted only where an operation's callers lists it; a public client, one with no proof, has a name that is the issuer's word and no proof of origin.
 
@@ -1614,6 +1645,7 @@ flowchart LR
   member_loans["Lend copies (form)"]
   member_view["Member (view)"]
   members_list["Members (list)"]
+  profile["My profile (view)"]
   reset_password["Set a new password (task)"]
   second_factor["Confirm it is you (task)"]
   sign_in["Sign in (task)"]
@@ -1666,6 +1698,8 @@ The menu, each entry shown to who may open its page:
   - All loans: page loans-list, loans.read
   - Lend a copy: page loan-form, loans.create
   - Fee waivers to approve: page fee-waivers-inbox, fees.approve
+- Account
+  - My profile: page profile, signedIn
 
 | Page | Kind | Route | Entity | Permission | Shows |
 |---|---|---|---|---|---|
@@ -1677,9 +1711,12 @@ The menu, each entry shown to who may open its page:
 | member-loans | form | /members/{memberId}/loans | Member | loans.create | membershipEndsOn, outstandingFees; Loans, rows of loans: bookId, dueOn, at most 6, the loaded rows locked |
 | member-view | view | /members/{memberId} | Member | members.read | Member: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees; Contact: address, phones |
 | members-list | list | /members | Member | members.read | cardNumber, fullName, email, tier, status, outstandingFees |
+| profile | view | /profile | Member | signedIn | Card: cardNumber, fullName, email, tier; Membership: joinedOn, membershipEndsOn, outstandingFees |
 | reset-password | task | /reset-password | none; submits to resetPassword | public | code, newPassword, confirmPassword |
 | second-factor | task | /sign-in/second-factor | none; submits to confirmSecondFactor | public | code |
 | sign-in | task | /sign-in | none; submits to signIn | public | email, password |
+
+**Insight on profile:** Every person who holds a card sees their own record and what they owe; the page needs no permission granted by role, so a role added later has it too, and staff, who hold no card, are told so.
 
 The elements of each page that pick, offer, hide or check something:
 
@@ -1693,6 +1730,8 @@ The elements of each page that pick, offer, hide or check something:
 | loans-list | action Lost | offered while `status == "open" \|\| status == "overdue"` |
 | loans-list | action Ask to waive the fee | offered while `status == "returned"` |
 | member-view | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
+| member-view | field address |   |
+| member-view | field phones |   |
 | members-list | action Deactivate | offered while `status == "active"`; its confirmation asks for a reason, sent as reason |
 | reset-password | check confirmation-matches | `confirmPassword == newPassword`, or it is not sent: The two passwords are not the same. (beside confirmPassword) |
 
@@ -1713,6 +1752,7 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | members-list | empty | No members yet. Register the first one. |
 | members-list | filtered empty | No member is in this tier. |
 | members-list | failed: member-not-found | This member is no longer on record, so nothing changed. |
+| profile | failed: member-not-found | Your account holds no library card, so there is no member record to show. |
 | reset-password | failed: reset-code-refused, beside code | The reset code is wrong, used or expired. Ask for a new one. |
 | second-factor | failed: second-factor-refused, beside code | The code is wrong, or it came too late. Type the code the app shows now, or sign in again. |
 | sign-in | failed: sign-in-refused, beside password | The email address or the password is wrong. |
@@ -1932,6 +1972,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | fee-waivers-inbox-succeeds | page fee-waivers-inbox | system | golden | a desk supervisor, and two requests to waive a late fee waiting at approve | the page fee-waivers-inbox is opened | it lists both requests with their loan, amount and reason |
 | fees-block-lending | requirement LIB-3 | acceptance | golden | a member who owes a late fee | the librarian lends them a copy | A member with outstanding fees is refused a loan with 409. |
 | get-member-denied-with-expired-session | operation getMember | system | red | a librarian whose session expired after half an hour without a request | getMember is called for a member that exists | it is refused as not signed in, and nothing changes |
+| get-profile-denied-when-not-signed-in | operation getProfile | system | red | a caller with no session | getProfile is called | it is refused as not signed in, and no member record is answered |
+| get-profile-denied-with-expired-session | operation getProfile | system | red | a member whose session has expired | getProfile is called | it is refused as not signed in |
+| get-profile-succeeds | operation getProfile | system | golden | two members, one of them signed in, and a librarian signed in as staff | getProfile is called by the member, then by the librarian | the member is answered 200 with their own record; the librarian, who holds no card, is answered 404 member-not-found |
 | get-session-expired | operation getSession | system | red | a librarian whose session ended half an hour after their last request | getSession is called | it answers 200, signed out, with no permission, and the session stays ended |
 | get-session-signed-in | operation getSession | system | golden | a librarian signed in a minute ago, whose role grants members.read and loans.read | getSession is called | it answers 200, signed in, with members.read and loans.read |
 | lend-a-copy | operation createLoan | system | golden | a standard-tier member with no loans and no fees, and a book with one copy available | createLoan is called for them | an open loan due in 21 days is created, the book has no copy available, and LoanCreated is published |
@@ -2017,6 +2060,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | overdue-loan-lost-twice | Loan overdue to lost | system | red | a loan already lost | reportLost is called again | it is refused and nothing is charged twice |
 | overdue-loan-returned | Loan overdue to returned | system | golden | an overdue loan | returnLoan is called | the loan is returned with its late fee |
 | overdue-loan-returned-twice | Loan overdue to returned | system | red | a loan already returned | returnLoan is called again | it is refused and the fee is not charged twice |
+| profile-denied-when-not-signed-in | page profile | system | red | a visitor who is not signed in | the page profile is opened | it is refused as not signed in, and the visitor is sent to sign in |
+| profile-denied-with-expired-session | page profile | system | red | a member whose session ended after half an hour without a request | the page profile is opened | it is refused as not signed in, and no part of their record is shown |
+| profile-succeeds | page profile | system | golden | a member signed in with their card, whose record holds one unpaid late fee | the page profile is opened | it shows their card number, name, email address, tier, membership dates and the fee they owe, and nothing of another member |
 | refuse-fee-waiver | operation refuseFeeWaiver | system | golden | a desk supervisor, and a request by another librarian to waive a fee of 3.50, waiting at approve | refuseFeeWaiver is called for it with the reason "The book came back damaged." | it answers 200, the request ends refused with that reason, and the fee still stands |
 | refuse-fee-waiver-bad-input | operation refuseFeeWaiver | system | red | a desk supervisor, a waiting request, and no request with a given id | refuseFeeWaiver is called with waiverId abc, with that id, and for the waiting request without a reason | the first and the last are refused as invalid input and the second as not found, and the request still waits |
 | refuse-fee-waiver-denied | operation refuseFeeWaiver | system | red | a librarian, who does not hold fees.approve, a desk supervisor whose session expired, and a waiting request | each calls refuseFeeWaiver for it with a reason | the first is refused as not allowed and the second as not signed in, and the request still waits |
@@ -2169,7 +2215,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-3 | money | entities Loan; views MemberWithLoans; paths /members/{memberId}/loans post; paths /loans post; pages member-loans; migrations add-membership-tier | tests create-loan-rate-exceeded; tests create-loan-repeated-with-the-same-idempotency-key; tests create-loan-request-larger-than-1024-bytes; tests fees-block-lending; tests lend-a-copy; tests lend-copies; tests lend-copies-limit-reached; tests lend-copies-repeated-with-the-same-idempotency-key; tests lend-limit-reached; tests lending-limit-accepted; tests member-loans-refused; tests member-loans-shown; tests member-loans-six-rows; checks lend-and-return |
 | LIB-4 |   | entities Loan transitions 1; entities Loan; paths /loans/{loanId}/return post; channels loan.overdue; channels loan.overdue messages LoanOverdue; jobs markOverdue; configuration notificationChannelUrl | tests loan-becomes-overdue; tests mark-overdue-runs-twice; tests mark-overdue-succeeds; monitors overdue-notices-sent |
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; decisions ADR-003; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
-| LIB-6 |   | roles member; caller; session | checks member-sees-own-loans |
+| LIB-6 |   | permissions signedIn; roles member; caller; session; paths /profile get; pages profile | tests get-profile-denied-when-not-signed-in; tests get-profile-denied-with-expired-session; tests get-profile-succeeds; tests profile-denied-when-not-signed-in; tests profile-denied-with-expired-session; tests profile-succeeds; checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
 | LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox; decisions ADR-004 | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
 

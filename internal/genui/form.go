@@ -508,9 +508,14 @@ func (g *gen) form(name string, pg map[string]any) *formPage {
 	return fp
 }
 
-// fieldCondition reads a field's hiddenWhen and readOnlyWhen.
+// fieldCondition reads a field's hiddenWhen and readOnlyWhen, and warns
+// of its hiddenUnless and readOnlyUnless, which need the caller's
+// permissions that these screens never read.
 func (g *gen) fieldCondition(ptr, at, field string, cond, props map[string]any) ([2]string, bool) {
 	var out [2]string
+	for _, k := range []string{"hiddenUnless", "readOnlyUnless"} {
+		g.unless(at+"/fieldConditions/"+field+"/"+k, field, k, text(cond[k]))
+	}
 	for i, k := range []string{"hiddenWhen", "readOnlyWhen"} {
 		e := text(cond[k])
 		if e == "" {

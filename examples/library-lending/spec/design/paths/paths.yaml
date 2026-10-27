@@ -71,7 +71,33 @@ paths:
                     items: { type: string, maxLength: 100 }
                     maxItems: 100
                     uniqueItems: true
-                required: [signedIn, permissions]
+                  roles:
+                    type: array
+                    title: Roles
+                    description: The caller's roles, in the order the service chose them at sign-in; the screens open the home of the first that has one.
+                    items: { type: string, maxLength: 100 }
+                    maxItems: 20
+                    uniqueItems: true
+                required: [signedIn, permissions, roles]
+
+  /profile:
+    get:
+      operationId: getProfile
+      summary: The member record of the person signed in
+      description: |
+        Answers the member whose id is the caller's memberId, so every
+        person who holds a card sees their own record without being granted
+        members.read. Staff have no member identifier and are answered not
+        found.
+      permission: signedIn
+      responses:
+        "200":
+          description: The caller's own member record.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: The caller holds no library card., problem: member-not-found }
+      satisfies: [LIB-6]
 
   /sessions/second-factor:
     post:

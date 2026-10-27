@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+operation: getProfile
+level: system
+scenario: red
+covers: [denied with expired session]
+given: "a member whose session has expired"
+when: "getProfile is called"
+then: "it is refused as not signed in"
+verifies: [LIB-6]

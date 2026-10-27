@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+operation: getProfile
+level: system
+scenario: red
+covers: [denied when not signed in]
+given: "a caller with no session"
+when: "getProfile is called"
+then: "it is refused as not signed in, and no member record is answered"
+verifies: [LIB-6]

@@ -25,6 +25,9 @@ type Session struct {
 	// SignedIn and Permissions are the properties of its answer, on the
 	// wire.
 	SignedIn, Permissions string
+	// Roles is the property of its answer that holds the roles, on the
+	// wire, or "" when the settings name none (ADR-197).
+	Roles string
 	// SignIn is the route of the page that signs in, or "".
 	SignIn string
 	// SignInPage is the name of that page, or "".
@@ -67,6 +70,13 @@ func (g *Gen) ReadSession() *Session {
 		} else {
 			out.Permissions = wire
 		}
+	}
+	if prop := text(s["roles"]); prop != "" {
+		if text(obj0(props[prop])["type"]) != "array" {
+			g.Problem("error", at, "the ui target's settings.session says %s holds roles, and the 200 answer of %s has no property %s of type array", prop, opID, prop)
+			return nil
+		}
+		out.Roles = wirename.Of(g.WireNames, prop)
 	}
 	if signIn := text(s["signIn"]); signIn != "" {
 		pg, ok := obj(obj0(g.Spec["pages"])[signIn])
@@ -537,6 +547,31 @@ func (g *Gen) EnumValues(prop map[string]any) []string {
 // the entries need, in order; an entry whose page this run does not write
 // is left out, unless another stakeholder writes it. drawn names the pages
 // written.
+// Home is a role's home page, by its name and its route.
+type Home struct{ Role, Page, Route string }
+
+// Homes are the routes of the roles' homes, by role, the ones this run
+// writes (ADR-197): the screens open the home of the first role the
+// session answers that has one. A home is opened only once the session
+// names the roles, so without settings.session.roles they are none, and
+// a warning says so.
+func (g *Gen) Homes(drawn map[string]bool, sess *Session) []Home {
+	pages := obj0(g.Spec["pages"])
+	var out []Home
+	for _, r := range SortedKeys(obj0(g.Spec["roles"])) {
+		home := text(obj0(obj0(g.Spec["roles"])[r])["home"])
+		if home == "" || !drawn[home] {
+			continue
+		}
+		out = append(out, Home{Role: r, Page: home, Route: text(obj0(pages[home])["route"])})
+	}
+	if len(out) > 0 && (sess == nil || sess.Roles == "") {
+		g.Problem("warning", "/roles", "the roles name their home pages, and the ui target's settings.session names no roles, the property of the session's answer that holds them, so %s opens no home; name it under settings.session.roles", g.Profile.Name)
+		return nil
+	}
+	return out
+}
+
 func (g *Gen) Menu(drawn map[string]bool) ([]Value, []string) {
 	owned := ownership.Of(g.Impl.Content)
 	pages := obj0(g.Spec["pages"])

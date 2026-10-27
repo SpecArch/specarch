@@ -7,7 +7,7 @@ struct MenuTests {
     @Test("the menu shows no entry to someone signed in without its page's permission")
     func hidden() {
         for group in Application.menu {
-            for item in group.items where item.permission != "public" {
+            for item in group.items where item.permission != "public" && item.permission != "signedIn" {
                 let held = Application.menu.flatMap { $0.items.map(\.permission) }.filter { $0 != item.permission }
                 let shown = Access.visibleMenu(Application.menu, session: Session(signedIn: true, permissions: held)).flatMap(\.items)
                 #expect(!shown.contains { $0.route == item.route && $0.permission == item.permission }, "\(item.route)")

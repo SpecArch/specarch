@@ -197,7 +197,7 @@ flowchart LR
 <!-- specarch:generate permissions -->
 | Permission | librarian | head-librarian | member | scheduler | desk-supervisor | auditor | fee-ledger-batch (service) | public |
 |---|---|---|---|---|---|---|---|---|
-| members.read | yes | | | | | | | |
+| members.read | yes | | | | yes | | | |
 | members.write | yes | | | | | | | |
 | catalogue.read | yes | | yes | | | | | |
 | loans.read | yes | yes | yes | yes | yes | yes | yes | |
@@ -207,6 +207,7 @@ flowchart LR
 | fees.request | yes | | | | | | | |
 | fees.approve | | | | | yes | | | |
 | public | | | | | | | | everyone |
+| signedIn | signed in | signed in | signed in | signed in | signed in | signed in | signed in | |
 <!-- specarch:end -->
 
 A member holding `loans.read` sees only loans where `memberId` is their own.

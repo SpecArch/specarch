@@ -173,6 +173,19 @@ type gen struct {
 // wire is a field's name as the service sends and reads it.
 func (g *gen) wire(name string) string { return wirename.Of(g.wireNames, name) }
 
+// unless warns of a field's mode by a permission: specarch-gen-ui reads
+// no session, so it cannot tell whether the caller holds it (ADR-197).
+func (g *gen) unless(at, field, key, perm string) {
+	if perm == "" {
+		return
+	}
+	what := "shown"
+	if key == "readOnlyUnless" {
+		what = "changeable"
+	}
+	g.problem("warning", at, "%s is %s unless the caller holds %s, and specarch-gen-ui reads no session, so it is %s to everyone who opens the page; the service still answers it and takes it as its operation's permission allows", field, map[string]string{"hiddenUnless": "hidden", "readOnlyUnless": "read-only"}[key], perm, what)
+}
+
 func (g *gen) problem(severity, path, format string, args ...any) {
 	g.diags = append(g.diags, Diagnostic{File: g.root, Line: 1, Severity: severity, Path: path, Rule: "generator", Message: fmt.Sprintf(format, args...)})
 }
@@ -347,6 +360,11 @@ func Generate(r *Request) Response {
 		}
 	}
 	g.checkMenus()
+	for _, r := range sortedKeys(obj0(g.spec["roles"])) {
+		if home := text(obj0(obj0(g.spec["roles"])[r])["home"]); home != "" {
+			g.problem("warning", "/roles/"+mark.Escape(r)+"/home", "role %s's home is %s, and specarch-gen-ui reads no session, so it cannot tell a person's roles and opens no home; each page opens at its own address", r, home)
+		}
+	}
 	var events []event
 	for _, w := range ws {
 		events = append(events, w.p.events()...)

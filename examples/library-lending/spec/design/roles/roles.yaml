@@ -3,12 +3,15 @@ roles:
   librarian:
     description: Staff at the desk.
     permissions: [members.read, members.write, catalogue.read, loans.read, loans.create, loans.return, fees.request]
+    home: members-list
   head-librarian:
     description: Staff who decide what a lost copy costs the library; they do not lend.
     permissions: [loans.read, loans.writeoff]
+    home: loans-list
   member:
     description: A card holder, who sees only their own loans.
     permissions: [catalogue.read, loans.read]
+    home: profile
     rowPolicies:
       Loan: memberId == caller.memberId
     satisfies: [LIB-6]
@@ -18,7 +21,8 @@ roles:
     permissions: [loans.read]
   desk-supervisor:
     description: The supervisor of the desk, who approves what one librarian may not do alone.
-    permissions: [loans.read, fees.approve]
+    permissions: [members.read, loans.read, fees.approve]
+    home: fee-waivers-inbox
     satisfies: [LIB-8]
   auditor:
     description: The finance system's reconciliation, which reads the day's loans to settle the fee ledger; no person holds it.

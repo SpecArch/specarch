@@ -1511,7 +1511,7 @@
           "minProperties": 1
         },
         "home": {
-          "description": "SpecArch keyword. The page a holder of this role is shown after signing in and when opening the application: a page without route parameters the role can open. A person holding several roles is shown the home of the first of them, in the order the roles are declared, that has one (ADR-197).",
+          "description": "SpecArch keyword. The page a holder of this role is shown after signing in and when opening the application: a page without route parameters the role can open. A person holding several roles is shown the home of the first of them, in the order the session answers them, that has one (ADR-197).",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },

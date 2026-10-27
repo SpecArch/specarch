@@ -34,7 +34,7 @@ targets:
       language: en
       translations: [id]
       tokens: { text: color.text, background: color.background, accent: color.accent, link: color.link, danger: color.danger, border: color.border }
-      session: { operation: getSession, signedIn: signedIn, permissions: permissions, signIn: sign-in }
+      session: { operation: getSession, signedIn: signedIn, permissions: permissions, roles: roles, signIn: sign-in }
       hooks: { loan-form: [lentOn] }
 
 tasks:

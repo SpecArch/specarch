@@ -199,6 +199,37 @@ public enum Rules {
         return record
     }
 
+    /// The sections as the person sees them: a field is read-only unless
+    /// they hold its readOnlyUnless, and hidden unless they hold its
+    /// hiddenUnless, folded into readOnly and hiddenWhen so the rest of the
+    /// page reads one rule.
+    public static func forCaller(_ sections: [SectionSchema], held: [String]) -> [SectionSchema] {
+        sections.map { section in
+            var out = section
+            out.fields = section.fields.map { field in
+                var f = field
+                if let p = field.readOnlyUnless, !held.contains(p) { f.readOnly = true }
+                if let p = field.hiddenUnless, !held.contains(p) { f.hiddenWhen = ["value", true] }
+                return f
+            }
+            return out
+        }
+    }
+
+    /// A view's sections as the person sees them: a field is hidden unless
+    /// they hold its hiddenUnless.
+    public static func forCaller(_ sections: [ViewSectionSchema], held: [String]) -> [ViewSectionSchema] {
+        sections.map { section in
+            var out = section
+            out.fields = section.fields.map { field in
+                var f = field
+                if let p = field.hiddenUnless, !held.contains(p) { f.hiddenWhen = ["value", true] }
+                return f
+            }
+            return out
+        }
+    }
+
     /// Whether a field is left out of the page while its rule holds.
     public static func hidden(_ rule: Rule?, _ record: Fields) -> Bool {
         rule.map { evaluate($0, record) == .bool(true) } ?? false

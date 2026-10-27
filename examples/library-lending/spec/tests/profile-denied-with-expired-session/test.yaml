@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+page: profile
+level: system
+scenario: red
+covers: [denied with expired session]
+given: "a member whose session ended after half an hour without a request"
+when: "the page profile is opened"
+then: "it is refused as not signed in, and no part of their record is shown"
+verifies: [LIB-6]

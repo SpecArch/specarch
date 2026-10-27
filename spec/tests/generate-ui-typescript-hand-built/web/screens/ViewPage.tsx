@@ -18,11 +18,11 @@ import {
   TableRow,
 } from "@carbon/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { decide } from "./access";
+import { useEffect, useMemo, useState } from "react";
+import { decide, permissionsOf } from "./access";
 import { Confirm, runAction } from "./Confirm";
 import { leave } from "./Notice";
-import { evaluate, hidden, type Fields } from "./rules";
+import { evaluate, forCaller, hidden, type Fields } from "./rules";
 import type { FailureSchema, RowActionSchema, ViewFieldSchema, ViewPageSchema } from "./schema";
 import { body, call, segment, signIn } from "./service";
 import { useSession } from "./session";
@@ -138,10 +138,11 @@ function Shown({ field, value, texts }: { readonly field: ViewFieldSchema; reado
  * permission, and those that run an operation on the record offered while
  * their rule holds for it too; a success reads the record again.
  */
-export function ViewPage({ schema, texts, routes, parameters }: ViewPageProps) {
+export function ViewPage({ schema: given, texts, routes, parameters }: ViewPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const session = useSession();
+  const schema = useMemo(() => ({ ...given, sections: forCaller(given.sections, permissionsOf(session)) }), [given, session]);
   const [record, setRecord] = useState<Fields | undefined>(undefined);
   const [failed, setFailed] = useState<string | undefined>(undefined);
   const [reload, setReload] = useState(0);

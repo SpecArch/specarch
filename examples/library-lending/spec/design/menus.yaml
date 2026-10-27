@@ -11,3 +11,7 @@ menus:
       list: { title: All loans, page: loans-list }
       lend: { title: Lend a copy, page: loan-form }
       approvals: { title: Fee waivers to approve, page: fee-waivers-inbox }
+  account:
+    title: Account
+    items:
+      profile: { title: My profile, page: profile }

@@ -10,3 +10,4 @@ permissions:
   fees.request: { description: Ask for a late fee to be waived. }
   fees.approve: { description: Approve or refuse a request to waive a late fee. }
   public: { description: "Open to everyone, including visitors without a card.", satisfies: [LIB-2] }
+  signedIn: { description: "Held by every person once signed in, whatever their role, for what each has of their own.", satisfies: [LIB-6] }

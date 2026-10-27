@@ -1,4 +1,4 @@
-import type { CheckSchema, FieldSchema, Rule, TaskPageSchema } from "./schema";
+import type { CheckSchema, FieldSchema, Rule, SectionSchema, TaskPageSchema } from "./schema";
 import { say, type Texts } from "./texts";
 
 /** The values a page holds, by field. */
@@ -157,6 +157,27 @@ export function recordOf(fields: readonly FieldSchema[], values: Values, loaded:
     record[field.name] = typed(field, values[field.name] ?? "");
   }
   return record;
+}
+
+/**
+ * The sections as the person sees them: a field is read-only unless they
+ * hold its readOnlyUnless, and hidden unless they hold its hiddenUnless,
+ * folded into readOnly and hiddenWhen so the rest of the page reads one
+ * rule.
+ */
+export function forCaller<F extends { readonly readOnlyUnless?: string; readonly hiddenUnless?: string }>(
+  sections: readonly SectionSchema<F>[],
+  held: readonly string[],
+): SectionSchema<F>[] {
+  const always: Rule = ["value", true];
+  return sections.map((section) => ({
+    ...section,
+    fields: section.fields.map((field) => ({
+      ...field,
+      ...(field.readOnlyUnless !== undefined && !held.includes(field.readOnlyUnless) ? { readOnly: true } : {}),
+      ...(field.hiddenUnless !== undefined && !held.includes(field.hiddenUnless) ? { hiddenWhen: always } : {}),
+    })),
+  }));
 }
 
 /** Whether a field is left out of the page while its rule holds. */

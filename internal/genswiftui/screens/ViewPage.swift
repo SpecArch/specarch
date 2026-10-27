@@ -7,7 +7,7 @@ import SwiftUI
 /// operation on the record, each after its confirmation with the reason
 /// it requires; a success says its message and reads the record again.
 public struct ViewPage: View {
-    let schema: ViewPageSchema
+    let given: ViewPageSchema
     /// The page's route parameters.
     let parameters: [String: String]
     /// The routes the page's actions lead to, by the page each names.
@@ -24,9 +24,16 @@ public struct ViewPage: View {
     @State private var running = false
 
     public init(schema: ViewPageSchema, parameters: [String: String], routes: [String: Routes.Make]) {
-        self.schema = schema
+        self.given = schema
         self.parameters = parameters
         self.routes = routes
+    }
+
+    /// The page as the person sees it, each field shown by the permissions they hold.
+    var schema: ViewPageSchema {
+        var out = given
+        out.sections = Rules.forCaller(given.sections, held: Access.held(SessionStore.shared.current))
+        return out
     }
 
     public var body: some View {

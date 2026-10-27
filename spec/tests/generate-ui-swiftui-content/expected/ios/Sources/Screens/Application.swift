@@ -10,4 +10,5 @@ public enum Application {
     public static let signIn: Route? = nil
     public static let signInTitle = ""
     public static let menu: [MenuGroup] = []
+    public static let homes: [String: Route] = [:]
 }

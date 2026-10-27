@@ -2304,7 +2304,7 @@ let designSchemaJSON = #"""
           "minProperties": 1
         },
         "home": {
-          "description": "SpecArch keyword. The page a holder of this role is shown after signing in and when opening the application: a page without route parameters the role can open. A person holding several roles is shown the home of the first of them, in the order the roles are declared, that has one (ADR-197).",
+          "description": "SpecArch keyword. The page a holder of this role is shown after signing in and when opening the application: a page without route parameters the role can open. A person holding several roles is shown the home of the first of them, in the order the session answers them, that has one (ADR-197).",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
@@ -22167,7 +22167,7 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
 specarchIdiom: "1.0.0"
 name: ui-components
-version: 1.10.0
+version: 1.11.0
 concern: ui-components
 stacks: [nextjs-carbon, swiftui]
 reads: [pages]
@@ -22420,63 +22420,63 @@ parts:
     description: A field of type string with no format the other field parts take.
     stack:
       nextjs-carbon:
-        names: { type: text, schemaType: TextFieldSchema, carbon: TextInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: text, schemaType: TextFieldSchema, carbon: TextInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: text, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: text, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   text-area-field:
     description: A field of type string wider than one line holds, a maxLength above 255 or none.
     stack:
       nextjs-carbon:
-        names: { type: textArea, schemaType: TextAreaFieldSchema, carbon: TextArea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: textArea, schemaType: TextAreaFieldSchema, carbon: TextArea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: textArea, schemaType: FieldSchema, swiftui: TextEditor, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: textArea, schemaType: FieldSchema, swiftui: TextEditor, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   email-field:
     description: A field of format email.
     stack:
       nextjs-carbon:
-        names: { type: email, schemaType: EmailFieldSchema, carbon: TextInput, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: email, schemaType: EmailFieldSchema, carbon: TextInput, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: email, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: email, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   password-field:
     description: A field of format password, its rules shown under it.
     stack:
       nextjs-carbon:
-        names: { type: password, schemaType: PasswordFieldSchema, carbon: PasswordInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: password, schemaType: PasswordFieldSchema, carbon: PasswordInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: password, schemaType: FieldSchema, swiftui: SecureField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: password, schemaType: FieldSchema, swiftui: SecureField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   number-field:
     description: A field of type integer or number.
     stack:
       nextjs-carbon:
-        names: { type: number, schemaType: NumberFieldSchema, carbon: NumberInput, name: name, label: label, required: required, minimum: min, maximum: max, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: number, schemaType: NumberFieldSchema, carbon: NumberInput, name: name, label: label, required: required, minimum: min, maximum: max, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: number, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minimum: minimum, maximum: maximum, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: number, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minimum: minimum, maximum: maximum, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   date-field:
     description: A field of format date.
     stack:
       nextjs-carbon:
-        names: { type: date, schemaType: DateFieldSchema, carbon: DatePicker, carbonInput: DatePickerInput, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: date, schemaType: DateFieldSchema, carbon: DatePicker, carbonInput: DatePickerInput, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: date, schemaType: FieldSchema, swiftui: DatePicker, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: date, schemaType: FieldSchema, swiftui: DatePicker, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   select-field:
     description: A field whose values are an enum.
     stack:
       nextjs-carbon:
-        names: { type: select, schemaType: SelectFieldSchema, carbon: Select, carbonItem: SelectItem, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: select, schemaType: SelectFieldSchema, carbon: Select, carbonItem: SelectItem, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: select, schemaType: FieldSchema, swiftui: Picker, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: select, schemaType: FieldSchema, swiftui: Picker, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   checkbox-field:
     description: A field of type boolean.
     stack:
       nextjs-carbon:
-        names: { type: checkbox, schemaType: CheckboxFieldSchema, carbon: Checkbox, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: checkbox, schemaType: CheckboxFieldSchema, carbon: Checkbox, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
-        names: { type: checkbox, schemaType: FieldSchema, swiftui: Toggle, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: checkbox, schemaType: FieldSchema, swiftui: Toggle, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   lookup-field:
     description: A field that holds the key of another entity's record, picked from a list an operation reads.
     stack:
       nextjs-carbon:
-        names: { type: lookup, schemaType: LookupFieldSchema, carbon: ComboBox, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: lookup, schemaType: LookupFieldSchema, carbon: ComboBox, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
         code: |
           A ComboBox of the records source lists, a page at a time through
           the paginated-list idiom's names: searched by the service as the
@@ -22485,7 +22485,7 @@ parts:
           the fields shown to choose by, and fills the fields of the form
           the chosen record fills, each from one of its own.
       swiftui:
-        names: { type: lookup, schemaType: FieldSchema, swiftui: NavigationLink, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, hook: hook, twice: twice }
+        names: { type: lookup, schemaType: FieldSchema, swiftui: NavigationLink, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
         code: |
           A NavigationLink to a List of the records source lists, a page at
           a time through the paginated-list idiom's names: searched by the

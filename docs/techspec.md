@@ -15264,7 +15264,7 @@ method and path for a request or channel and message for a message
 sent, request, the fields sent, and responses by status, the ones
 that succeed with the fields they carry. A calls entry names one as
 <dependency>#/operations/<name>; a dependency with a specification
-is called through its paths, as before.
+is called through its paths.
 
 A calls entry of an operation may be an object with call, the name
 it would be as a plain entry, and the call's contract: mapping.send
@@ -15293,17 +15293,20 @@ exceeded; a timeout that errors maps is answered as it maps it, and
 a dependency called only fire and forget fails with the operation
 succeeding all the same.
 
-Consequences: Every plain calls entry reads as before, and every reader of calls
-reads the name of an object entry from its call. Jobs and gateways
-keep plain entries: a job has no answer to map errors to, and a
-gateway's calls are lookups. The context diagram writes a
-dependency's auth and rate on its node, and the technical
-specification lists each call's contract under its operation; the
-workflow diagram's integration nodes, and examples of a mapping run
-through specarch try, are later items. A mapping on a call through
-another specification's paths is read, and its fields are checked
-only once that specification is given beside it, as other
-references between specifications are.
+Consequences: A plain calls entry is a sync call with nothing more said, and
+every reader of calls reads the name of an object entry from its
+call. Jobs and gateways keep plain entries: a job has no answer to
+map errors to, and a gateway's calls are lookups; a job or a
+gateway that calls a dependency with a rate derives the rate
+exceeded case too. The context diagram writes a dependency's auth
+and rate on its node, the technical specification lists each
+call's contract under its operation, and the workflow diagram
+draws each dependency an operation step calls, the edge naming the
+operation. Examples of a mapping run through specarch try are a
+later item. A mapping on a call through another specification's
+paths is read and not checked against that specification's fields;
+the path itself is checked as other references between
+specifications are.
 
 **Insight:** A call's contract is written on the call, not on the dependency, since the values mapped and the answer an error becomes are the calling operation's: two operations calling one ledger send it different fields and answer its refusal differently. The time limit stays on the dependency (one system has one limit wherever it is called), and so do auth and rate, which belong to the system, not to a call. An entry stays a plain name when it says nothing more, so the thousands of calls lists already written keep their meaning, and the object is the only way to say a contract; a second keyword beside calls, keyed by the entry, would put one call's facts in two places. retries takes the word and the limit that a job's and a workflow failure's retries already use, rather than a new retry, so one thing is said one way; its on list is written out, since which answers are safe to try again is the decision a reader must see. idempotencyKey on a call is an object with header and value, since on an operation the same word names only the header the caller sends: the call says what it sends and what it is made from. auth names the scheme's standard and nothing of its endpoint or token URL, which are deployment, and credential names a setting rather than holding a value, so the secret_value rule keeps values out as it does for every setting. A dependency's operations are one level deep: enough to check a mapping's names and types, and no second OpenAPI document inside a dependency; a system that needs more is specified on its own and named by specification.
 
@@ -15941,7 +15944,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-index-field | command validate | system | red | an implementation file whose mapping of the Note entity lists an index of shelf and writenAt, a misspelling of writtenAt, and whose mapping of an enum lists an index | validate is run | it reports field at writenAt with writtenAt suggested, and at the enum's indexes, which are a table's, and exits 1, the same in both builds |
 | validate-integer-forms | command validate | system | red | a specification whose page size maximum, query length, request size, rate, cardinality and int64 bounds are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores, and whose tests cover the derived cases by the decimal values | validate is run | both builds read every integer as the schema check does: no list_of, limits, unsafe_integer or test_case error, the cardinality of 0b11 over two permissions reported as 3, the same bytes from each, and exit 1 |
 | validate-integration-contract | command validate | system | golden | a dependency that proves itself with a bearer token kept in a secret setting, with a rate and two operations of its own, another with auth none and an operation that is a message sent, and an operation whose calls map our values to theirs and their answer back, send an idempotency key, retry, map their errors to its answers, and call async with a callback and fire and forget, with a test for each derived case | validate is run | it reports nothing, the same in both builds, and exits 0 |
-| validate-integration-contract-refused | command validate | system | red | dependencies whose auth names no credential, whose auth none names one, whose credential is no setting, is a setting not marked secret or stands without auth, whose operations sit beside a specification, say neither or both of method and channel, answer a message sent or require a field the request lacks; calls that name an operation not declared or one of a dependency with a specification, map a dependency named alone, send a field theirs lacks, leave a required one out, send a value of the wrong type or a name both a parameter and a field, keep a value in a field the record lacks, from an answer with no fields or with no record to keep it in, make a key of an unknown name, retry a success or an answer not declared, map an answer not declared or to one the operation does not give, map or keep an answer of a call that does not wait, call async with no callback or a callback that is no message, give a sync call a callback, and retry a post with no key; and a job whose call is an object | validate is run | it reports each as integration, setting, expression_type, expression_name, emits or schema at the key, the retried post with no key as a warning, the same in both builds, and exits 1 |
+| validate-integration-contract-refused | command validate | system | red | dependencies whose auth names no credential, whose auth none names one, whose credential is no setting, is a setting not marked secret or stands without auth, whose operations sit beside a specification, say neither or both of method and channel, answer a message sent or require a field the request lacks; calls that name an operation not declared or one of a dependency with a specification, map a dependency named alone, send a field theirs lacks, leave a required one out, send a value of the wrong type or a name both a parameter and a field, keep a value in a field the record lacks, from an answer with no fields or with no record to keep it in, make a key of an unknown name, retry a success or an answer not declared, map an answer not declared or to one the operation does not give, map or keep an answer of a call that does not wait, call async with no callback or a callback that is no message, give a sync call a callback, and retry a post with no key; and a job whose call is an object | validate is run | it reports each as integration, setting, expression_type, expression_name, emits or schema at the key, the retried post with no key as a warning, and the job's rate exceeded as a case without a test, the same in both builds, and exits 1 |
 | validate-interface-problems | command validate | system | red | a list naming a field its entity lacks, an encrypted field to sort by and one to filter by without a hash, and a default page above the maximum; a rate over no time with a burst below it; a catalogue of problem types, a response naming an unknown type, one naming a type of another status, and a 4xx response naming none | validate is run | it reports list_of four times, limits twice and problem three times, and exits 1 |
 | validate-interface-response-key-empty | command validate | system | red | an operation that answers 409 and a response keyed by the empty string | validate is run | it reports the empty key through the schema as not a status code, warns success_response_missing naming 409 alone, and does not stop |
 | validate-interface-response-key-empty-only | command validate | system | red | an operation whose only response is keyed by the empty string | validate is run | it reports the empty key through the schema as not a status code, raises no success_response_missing, since no response is a status, and does not stop |

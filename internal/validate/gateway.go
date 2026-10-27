@@ -205,6 +205,9 @@ func (d *design) gatewaySubject(p source.Pair) *subject {
 		}
 		s.byNature("dependency fails "+dep, dep+" answers with an error", when, "...")
 		s.byNature("dependency times out "+dep, dep+" does not answer within "+source.Str(source.Child(n, "timeout")), when, "...")
+		if rate := source.Child(n, "rate"); rate != nil {
+			s.byNature("dependency rate exceeded "+dep, p.Key.Value+"'s calls would pass "+dep+"'s rate of "+rateText(rate), when, "...")
+		}
 	}
 	return s
 }

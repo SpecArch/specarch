@@ -69,6 +69,9 @@ extension Design {
             guard let n = dependencies[dep] else { continue }
             s.byNature("dependency fails " + dep, dep + " answers with an error", when, "...")
             s.byNature("dependency times out " + dep, dep + " does not answer within " + str(n.child("timeout")), when, "...")
+            if let rate = n.child("rate") {
+                s.byNature("dependency rate exceeded " + dep, p.key.value + "'s calls would pass " + dep + "'s rate of " + rateText(rate), when, "...")
+            }
         }
         return s
     }

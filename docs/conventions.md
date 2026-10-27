@@ -1466,20 +1466,21 @@ succeeds or that their operation does not declare, one `errors` maps to
 that the operation does not answer; `errors` or `receive` on a call that
 does not wait; an async call with no `callback`. A post or patch retried
 with no `idempotencyKey` is a warning: a try whose answer was lost may act
-twice. A mapping on a call through another specification's paths is
-checked once that specification is given beside it.
+twice. A mapping on a call through another specification's paths is read
+and not checked against that specification's fields.
 
 An operation's call adds derived cases, always written as a failing
 dependency's are: `dependency retries exhausted <name>`, ending in the
 answer the first status of `on` maps to; `dependency answers unmapped
 <name>`, an answer `errors` does not name; and `dependency rate exceeded
-<name>` for a dependency with a `rate`. `dependency times out <name>` is
-answered as `errors` maps `timeout`, and a dependency the operation only
-calls fire and forget fails and times out with the operation succeeding
-all the same. The context diagram writes a dependency's `auth` and `rate`
-on its node; the technical specification says each call's contract under
-its operation, and the workflow diagram draws each dependency an operation
-step calls, the edge naming the operation.
+<name>` for a dependency with a `rate`, which a job or a gateway calling
+it derives too. `dependency times out <name>` is answered as `errors` maps
+`timeout`, and a dependency the operation only calls fire and forget fails
+and times out with the operation succeeding all the same. The context
+diagram writes a dependency's `auth` and `rate` on its node; the technical
+specification says each call's contract under its operation, and the
+workflow diagram draws each dependency an operation step calls, the edge
+naming the operation.
 
 ### References between specifications
 

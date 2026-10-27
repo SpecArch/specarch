@@ -29,7 +29,7 @@ decisions:
       sent, request, the fields sent, and responses by status, the ones
       that succeed with the fields they carry. A calls entry names one as
       <dependency>#/operations/<name>; a dependency with a specification
-      is called through its paths, as before.
+      is called through its paths.
 
       A calls entry of an operation may be an object with call, the name
       it would be as a plain entry, and the call's contract: mapping.send
@@ -58,17 +58,20 @@ decisions:
       a dependency called only fire and forget fails with the operation
       succeeding all the same.
     consequences: |
-      Every plain calls entry reads as before, and every reader of calls
-      reads the name of an object entry from its call. Jobs and gateways
-      keep plain entries: a job has no answer to map errors to, and a
-      gateway's calls are lookups. The context diagram writes a
-      dependency's auth and rate on its node, and the technical
-      specification lists each call's contract under its operation; the
-      workflow diagram's integration nodes, and examples of a mapping run
-      through specarch try, are later items. A mapping on a call through
-      another specification's paths is read, and its fields are checked
-      only once that specification is given beside it, as other
-      references between specifications are.
+      A plain calls entry is a sync call with nothing more said, and
+      every reader of calls reads the name of an object entry from its
+      call. Jobs and gateways keep plain entries: a job has no answer to
+      map errors to, and a gateway's calls are lookups; a job or a
+      gateway that calls a dependency with a rate derives the rate
+      exceeded case too. The context diagram writes a dependency's auth
+      and rate on its node, the technical specification lists each
+      call's contract under its operation, and the workflow diagram
+      draws each dependency an operation step calls, the edge naming the
+      operation. Examples of a mapping run through specarch try are a
+      later item. A mapping on a call through another specification's
+      paths is read and not checked against that specification's fields;
+      the path itself is checked as other references between
+      specifications are.
     why: |
       A call's contract is written on the call, not on the dependency,
       since the values mapped and the answer an error becomes are the

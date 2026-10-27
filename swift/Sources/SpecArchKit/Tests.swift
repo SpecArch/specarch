@@ -225,7 +225,7 @@ private func onlyForgotten(_ op: YNode, _ dep: String) -> Bool {
 }
 
 /// A rate in words: 20 calls per PT1S, and 5 at once above it.
-private func rateText(_ rate: YNode) -> String {
+func rateText(_ rate: YNode) -> String {
     var text = intText(rate.child("requests")) + " calls per " + str(rate.child("per"))
     let burst = intText(rate.child("burst"))
     if !burst.isEmpty { text += ", " + burst + " at once above it" }
@@ -757,6 +757,9 @@ extension Design {
             guard let dep = dependencies[name] else { continue }
             s.byNature("dependency fails " + name, name + " answers with an error", run, "...")
             s.byNature("dependency times out " + name, name + " does not answer within " + str(dep.child("timeout")), run, "...")
+            if let rate = dep.child("rate") {
+                s.byNature("dependency rate exceeded " + name, p.key.value + "'s calls would pass " + name + "'s rate of " + rateText(rate), run, "...")
+            }
         }
         if let r = p.value.child("retries") {
             let limit = str(r.child("limit"))

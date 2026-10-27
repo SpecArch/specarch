@@ -90,6 +90,9 @@ func (d *design) jobSubject(p source.Pair) *subject {
 		}
 		s.byNature("dependency fails "+name, name+" answers with an error", run, "...")
 		s.byNature("dependency times out "+name, name+" does not answer within "+source.Str(source.Child(dep, "timeout")), run, "...")
+		if rate := source.Child(dep, "rate"); rate != nil {
+			s.byNature("dependency rate exceeded "+name, p.Key.Value+"'s calls would pass "+name+"'s rate of "+rateText(rate), run, "...")
+		}
 	}
 	if r := source.Child(p.Value, "retries"); r != nil {
 		limit := source.Str(source.Child(r, "limit"))

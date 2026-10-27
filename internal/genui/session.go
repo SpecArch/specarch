@@ -20,9 +20,9 @@ var sessionRuntime string
 
 // session is what the target's settings say of the person's session.
 type session struct {
-	// operation, method and path are the operation that answers who is
-	// signed in.
-	operation, method, path string
+	// source is the operation that answers who is signed in, as
+	// transport.js calls it, its handshake and dialect included.
+	source string
 	// signedIn, permissions and roles are the properties of its answer, on
 	// the wire; roles is "" when the settings name none.
 	signedIn, permissions, roles string
@@ -48,8 +48,11 @@ func (g *gen) readSession() *session {
 		g.problem("error", at, "the ui target's settings.session names %s, whose path takes a parameter; the screens read the session at one path", opID)
 		return nil
 	}
+	if !g.plainOnly(at, "the session", "is read through", opID, op, "") {
+		return nil
+	}
 	props := obj0(obj0(obj0(obj0(obj0(obj0(obj0(op["responses"])["200"])["content"])["application/json"])["schema"]))["properties"])
-	out := &session{operation: opID, method: strings.ToUpper(method), path: path}
+	out := &session{source: g.target(op, opID, method, path)}
 	for _, k := range []struct{ key, typ string }{{"signedIn", "boolean"}, {"permissions", "array"}} {
 		prop := text(s[k.key])
 		if prop == "" {
@@ -141,8 +144,8 @@ func (g *gen) sessionJS(homes []home) string {
 	if g.session.roles != "" {
 		roles = jsString(g.session.roles)
 	}
-	fmt.Fprintf(&b, "const SESSION = {\n  source: { operation: %s, method: %s, path: %s },\n  signedIn: %s,\n  permissions: %s,\n  roles: %s,\n};\n",
-		jsString(g.session.operation), jsString(g.session.method), jsString(g.session.path), jsString(g.session.signedIn), jsString(g.session.permissions), roles)
+	fmt.Fprintf(&b, "const SESSION = {\n  source: %s,\n  signedIn: %s,\n  permissions: %s,\n  roles: %s,\n};\n",
+		g.session.source, jsString(g.session.signedIn), jsString(g.session.permissions), roles)
 	b.WriteString("\n// The page each role's home is, by role.\nconst HOMES = {")
 	if len(homes) == 0 {
 		b.WriteString("};\n")

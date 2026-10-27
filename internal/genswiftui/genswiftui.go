@@ -418,6 +418,7 @@ func (g *gen) applicationFile(sess *genscreens.Session, groups []value, homes []
 	} else {
 		b.WriteString("    public static let homes: [String: Route] = [\n")
 		for _, h := range homes {
+			g.routeOf(h.Page, h.Route, false) // another stakeholder's page is a route too
 			fmt.Fprintf(&b, "        %s: %s,\n", quote(h.Role), g.routeCase(h.Page, nil))
 		}
 		b.WriteString("    ]\n")

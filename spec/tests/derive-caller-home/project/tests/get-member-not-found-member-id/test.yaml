@@ -1,0 +1,7 @@
+operation: getMember
+level: system
+scenario: red
+covers: [not found memberId]
+given: "no record has that memberId"
+when: "getMember is called with that memberId"
+then: "it is refused as not found"

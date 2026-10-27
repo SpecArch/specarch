@@ -549,6 +549,15 @@ func (g *Gen) TaskPage(pageName string, pg map[string]any) (*Page, bool) {
 			} else {
 				entry = append(entry, Member{"signIn", Str(callback)})
 			}
+		} else if text(ev["navigate"]) == "callerHome" {
+			// The answer leads to the caller's home, read from the session
+			// the answer may have changed, or the application's start when
+			// none of their roles has one (ADR-206); the validator refuses
+			// with on it.
+			entry = append(entry, Member{"home", Raw("true")})
+			if m := text(ev["message"]); m != "" {
+				entry = append(entry, Member{"message", Str(g.Say(pageName+".onSubmitted."+status, m))})
+			}
 		} else if target := text(ev["navigate"]); target != "" {
 			tp := obj0(pages[target])
 			routes[target] = text(tp["route"])

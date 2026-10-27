@@ -1,0 +1,6 @@
+flow: desk-signs-in
+level: system
+scenario: red
+given: "a desk whose password is wrong"
+when: "they go through sign-in"
+then: "it is refused on sign-in"

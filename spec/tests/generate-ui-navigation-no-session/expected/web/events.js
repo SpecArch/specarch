@@ -32,6 +32,10 @@ export const REMOVE_MEMBER_FAILED = "REMOVE_MEMBER_FAILED";
 export const PROFILE_LOADED = "PROFILE_LOADED";
 /** The my profile could not be read: { status } */
 export const PROFILE_FAILED = "PROFILE_FAILED";
+/** Sign in was sent and succeeded: { status, answer } */
+export const SIGN_IN_SUBMITTED = "SIGN_IN_SUBMITTED";
+/** Sign in was refused or failed: { status } */
+export const SIGN_IN_REFUSED = "SIGN_IN_REFUSED";
 
 const handlers = new Map();
 

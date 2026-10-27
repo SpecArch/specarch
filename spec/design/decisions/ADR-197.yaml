@@ -94,7 +94,8 @@ decisions:
     consequences: |
       An editor draws the navigation and the permission matrix from the
       specification and turns each warning into a question on its node.
-      A sign-in through a page of the specification's own still names the
-      page it leads to; the identity provider's sign-in ends at the
-      application's start, where the home is opened.
+      A sign-in through a page of the specification's own leads to the
+      caller's home with navigate callerHome (ADR-206); the identity
+      provider's sign-in ends at the application's start, where the home
+      is opened.
     satisfies: [SA-102]

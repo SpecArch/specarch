@@ -1,0 +1,6 @@
+page: welcome
+level: system
+scenario: golden
+given: "any caller"
+when: "the page welcome is opened"
+then: "it shows the page"

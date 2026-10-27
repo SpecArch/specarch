@@ -185,6 +185,23 @@ toolbar:
       actions:
         - { label: Ask to waive the fee, kind: navigate, target: fee-waiver-form, when: 'status == "returned"', with: { loanId: id } }
 
+A task page's answer may lead to the caller's home instead of a page
+named in the specification, as a sign-in does, since which role the
+person signs in as is known only from the answer:
+
+    sign-in:
+      kind: task
+      submit: signIn
+      onSubmitted:
+        "200": { navigate: callerHome, message: You are signed in. }
+
+`callerHome` is the home of the first of the session's roles that has
+one (`roles.<role>.home`), and the application's start for a person none
+of whose roles has one. It takes a message and no `with`, and is `flow`
+anywhere but a task page's answer or when no role names a home
+(ADR-206). `signIn`, the identity provider's sign-in, is the other
+reserved word of `navigate` (ADR-182).
+
 The page the action opens decides where it is drawn, so `with` is
 required exactly when that page's route takes a parameter, and is an
 error on an action of any other kind of page (ADR-082). A message after an event is a status message in a full

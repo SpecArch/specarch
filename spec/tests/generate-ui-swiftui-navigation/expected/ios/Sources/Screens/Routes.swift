@@ -9,6 +9,7 @@ public enum Route: Hashable, Sendable {
     case memberView(memberId: String)
     case membersList
     case profile
+    case signIn
 }
 
 extension Route {
@@ -19,6 +20,7 @@ extension Route {
         case .memberView(let memberId): MemberViewView(memberId: memberId)
         case .membersList: MembersListView()
         case .profile: ProfileView()
+        case .signIn: SignInView()
         }
     }
 }

@@ -24,7 +24,7 @@ let signInSchema = TaskPageSchema(
     checks: [],
     failed: [.init(status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused", field: "password")],
     events: [
-        .init(status: 200, navigate: "members-list", message: "sign-in.onSubmitted.200"),
+        .init(status: 200, home: true, message: "sign-in.onSubmitted.200"),
         .init(status: 201, navigate: "second-factor", keepsReturnTo: true)
     ]
 )

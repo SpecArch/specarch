@@ -1,0 +1,4 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/page-sign-in-succeeds/test.yaml

@@ -1,0 +1,6 @@
+flow: desk-signs-in
+level: system
+scenario: golden
+given: "a desk"
+when: "they go through sign-in, members-list"
+then: "each step leads to the next, and the last completes"

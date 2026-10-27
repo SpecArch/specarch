@@ -1,0 +1,7 @@
+operation: removeMember
+level: system
+scenario: red
+covers: [not found memberId]
+given: "no record has that memberId"
+when: "removeMember is called with that memberId"
+then: "it is refused as not found"

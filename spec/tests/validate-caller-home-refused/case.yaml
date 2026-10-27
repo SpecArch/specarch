@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:115:44: error: /pages/sign-in/onSubmitted/200/with: flow: the event navigates to callerHome, and a home takes no route parameters; remove with [flow@specarch.yaml#/pages/sign-in/onSubmitted/200/with]
+  specarch.yaml:141:143: error: /pages/members-list/actions/1/then/navigate: flow: callerHome leads to the home of the first of the caller's roles that has one, which a task page's answer may do, as a sign-in does; lead this event to a page [flow@specarch.yaml#/pages/members-list/actions/1/then/navigate]
+  specarch.yaml:152:30: error: /pages/member-form/onSubmitted/navigate: flow: callerHome leads to the home of the first of the caller's roles that has one, which a task page's answer may do, as a sign-in does; lead this event to a page [flow@specarch.yaml#/pages/member-form/onSubmitted/navigate]
+  specarch.yaml:168:33: error: /flows/desk-signs-in/steps/0/event: flow: submitted on page sign-in leads to profile, and the next step is on members-list; make the event lead there, or correct the steps [flow@specarch.yaml#/flows/desk-signs-in/steps/0/event]

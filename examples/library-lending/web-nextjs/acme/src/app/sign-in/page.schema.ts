@@ -23,7 +23,7 @@ export const schema = {
   checks: [],
   failed: [{ status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused", field: "password" }],
   events: [
-    { status: 200, navigate: "members-list", message: "sign-in.onSubmitted.200" },
+    { status: 200, home: true, message: "sign-in.onSubmitted.200" },
     { status: 201, navigate: "second-factor", keepsReturnTo: true },
   ],
 } satisfies TaskPageSchema;

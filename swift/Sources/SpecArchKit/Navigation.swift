@@ -67,7 +67,27 @@ extension Design {
     }
 }
 
+/// The reserved word a task page's answer navigates to for the caller's
+/// home: the home of the first of the session's roles that has one. A
+/// page's name is kebab-case, so no page is named so.
+let navigateCallerHome = "callerHome"
+
 extension Checker {
+    /// Checks a page event that navigates to callerHome (see the Go build's
+    /// checkCallerHomeEvent).
+    func checkCallerHomeEvent(_ d: Design, _ ev: YNode, _ nav: YNode, _ base: [String], _ answer: Bool) {
+        let at = pointer(base + ["navigate"])
+        guard answer else {
+            add(nav, at, .flow, "callerHome leads to the home of the first of the caller's roles that has one, which a task page's answer may do, as a sign-in does; lead this event to a page")
+            return
+        }
+        if ev.child("with") != nil {
+            add(ev.key("with"), pointer(base + ["with"]), .flow, "the event navigates to callerHome, and a home takes no route parameters; remove with")
+        }
+        if pairs(d.root.child("roles")).contains(where: { $0.value.child("home") != nil }) { return }
+        add(nav, at, .flow, "callerHome leads to the home of the first of the caller's roles that has one, and no role names a home; give a role its home under roles, or navigate to a page")
+    }
+
     /// Checks each role's home: a page of the specification, opened with no
     /// route parameters, which the role may open.
     func checkRoleHomes(_ d: Design) {

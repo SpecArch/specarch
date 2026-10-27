@@ -1,0 +1,6 @@
+page: sign-in
+level: system
+scenario: red
+given: "a wrong password"
+when: "the page sign-in is submitted"
+then: "it is refused and stays on the page"

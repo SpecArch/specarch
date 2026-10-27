@@ -36,6 +36,19 @@ export function go(page, parameters, message) {
   location.assign(href(page, parameters));
 }
 
+/** Opens the screens' start, index.html, which opens the person's home
+    from the session read anew and shows the message there. */
+export function start(message) {
+  if (message) {
+    try {
+      sessionStorage.setItem(CARRIED, message);
+    } catch {
+      // Storage is off in this browser: the home opens without the message.
+    }
+  }
+  location.assign("index.html");
+}
+
 /** The parameters of this page's address. */
 export function parameters() {
   return Object.fromEntries(new URLSearchParams(location.search));

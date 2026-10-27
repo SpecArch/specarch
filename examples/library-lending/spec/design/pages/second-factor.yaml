@@ -11,4 +11,4 @@ pages:
       failed:
         second-factor-refused: { message: "The code is wrong, or it came too late. Type the code the app shows now, or sign in again.", field: code }
     onSubmitted:
-      "200": { navigate: members-list, message: You are signed in. }
+      "200": { navigate: callerHome, message: You are signed in. }

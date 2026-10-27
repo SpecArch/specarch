@@ -1,0 +1,7 @@
+operation: createMember
+level: system
+scenario: red
+covers: [missing fullName]
+given: "a request that breaks the limit"
+when: "createMember is called without fullName"
+then: "it is refused"

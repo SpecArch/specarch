@@ -1,0 +1,7 @@
+page: profile
+level: system
+scenario: red
+covers: [denied when not signed in]
+given: "a caller who is not signed in"
+when: "the page profile is opened"
+then: "it is refused as not signed in"

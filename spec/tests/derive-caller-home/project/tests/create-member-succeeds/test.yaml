@@ -1,0 +1,6 @@
+operation: createMember
+level: system
+scenario: golden
+given: "a caller with members.write"
+when: "createMember is called with values inside every limit"
+then: "it answers 201: The member."

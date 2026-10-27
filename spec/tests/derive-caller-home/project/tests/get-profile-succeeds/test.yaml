@@ -1,0 +1,6 @@
+operation: getProfile
+level: system
+scenario: golden
+given: "a signed-in caller"
+when: "getProfile is called"
+then: "it answers 200: The member."

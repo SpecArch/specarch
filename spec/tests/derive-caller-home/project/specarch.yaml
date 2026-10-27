@@ -1,0 +1,179 @@
+specarch: "1.0.0"
+info: { title: Member desk, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [id, fullName, email]
+    primaryKey: [id]
+errors:
+  member-not-found: { status: 404, title: Member not found, condition: no member has that identifier }
+permissions:
+  public: { description: "Everyone, signed in or not." }
+  signedIn: { description: Every person once signed in. }
+  members.read: { description: See members. }
+  members.write: { description: Register members. }
+  members.remove: { description: Remove members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write, members.remove], home: members-list }
+  reader: { description: Reads members., permissions: [members.read], home: profile }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-not-found }
+    delete:
+      operationId: removeMember
+      summary: Remove a member
+      permission: members.remove
+      responses:
+        "204": { description: Removed. }
+        "404": { description: No such member., problem: member-not-found }
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in with an email address and a password
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                password: { type: string, format: password, minLength: 8, maxLength: 200, writeOnly: true }
+              required: [email, password]
+      responses:
+        "200": { description: Signed in. }
+  /profile:
+    get:
+      operationId: getProfile
+      summary: The caller's own record
+      permission: signedIn
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  welcome:
+    kind: content
+    title: Welcome
+    route: /
+    permission: public
+    blocks:
+      - text: The member desk.
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: signIn
+    fields: [email, password]
+    onSubmitted:
+      "200": { navigate: callerHome, message: You are signed in. }
+  profile:
+    kind: view
+    title: My profile
+    route: /profile
+    entity: Member
+    permission: signedIn
+    source: getProfile
+    fields: [fullName, email]
+    fieldConditions:
+      email: { hiddenUnless: members.write }
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName]
+    onSelect: { navigate: member-view, with: { memberId: id } }
+    states:
+      empty: { message: There are no members yet. }
+      failed:
+        member-not-found: { message: The member is gone already. }
+    actions:
+      - { label: New member, kind: navigate, target: member-form, permission: members.write }
+      - { label: Remove, kind: operation, target: removeMember, permission: members.remove, confirm: "Remove this member?", then: { message: The member is removed. } }
+  member-form:
+    kind: form
+    title: Register member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName, email]
+    fieldConditions:
+      fullName: { readOnlyUnless: members.remove }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [fullName, email]
+    fieldConditions:
+      email: { hiddenUnless: members.write }
+flows:
+  desk-signs-in:
+    description: A person at the desk signs in and is shown the members.
+    actor: desk
+    steps:
+      - { page: sign-in, event: submitted }
+      - { page: members-list, event: select }
+menus:
+  members:
+    title: Members
+    items:
+      list: { title: All members, page: members-list }
+  account:
+    title: Account
+    items:
+      profile: { title: My profile, page: profile }

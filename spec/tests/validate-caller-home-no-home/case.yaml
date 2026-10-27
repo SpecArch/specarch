@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:115:26: error: /pages/sign-in/onSubmitted/200/navigate: flow: callerHome leads to the home of the first of the caller's roles that has one, and no role names a home; give a role its home under roles, or navigate to a page [flow@specarch.yaml#/pages/sign-in/onSubmitted/200/navigate]

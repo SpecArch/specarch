@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "roles none of which names a home, and a sign-in task page whose answer navigates to callerHome"
+when: "validate is run"
+then: "it reports flow at the answer's navigate, since the event would lead nowhere, and exits 1"
+verifies: [SA-102]

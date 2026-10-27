@@ -1,0 +1,7 @@
+page: member-view
+level: system
+scenario: red
+covers: [not found memberId]
+given: "no record has that memberId"
+when: "the page member-view is opened for that memberId"
+then: "it says the record was not found"

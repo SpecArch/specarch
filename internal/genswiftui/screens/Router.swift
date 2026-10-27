@@ -59,6 +59,25 @@ public final class Router {
         return make(parameters)
     }
 
+    /// Where a task page's answer that leads to the person's home goes: back
+    /// to the page sign-in was asked for from, else the home of the first of
+    /// their roles that has one, read from the session again, else the
+    /// application's start (nil). The page left is taken off the stack.
+    public func goHome(_ store: SessionStore) async -> Route? {
+        if let back = returnTo {
+            returnTo = nil
+            path = [back]
+            return back
+        }
+        await store.read()
+        guard let session = store.current, let home = Access.home(Application.homes, session: session) else {
+            path = []
+            return nil
+        }
+        path = [home]
+        return home
+    }
+
     /// Leaves a message for the page a route opens, or for the page shown.
     public func leave(_ text: String, at route: Route?) {
         notice = Notice(text: text, at: route ?? path.last)

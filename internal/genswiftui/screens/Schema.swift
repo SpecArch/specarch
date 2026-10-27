@@ -122,6 +122,10 @@ public struct EventSchema: Sendable {
     /// On a task page, the path of the callback the identity provider sends
     /// the person back to, when the answer leaves for its sign-in.
     public var signIn: String? = nil
+    /// True when the answer leads to the person's home, read from the
+    /// session again, or the application's start when none of their roles
+    /// has one.
+    public var home: Bool? = nil
     public var navigate: String? = nil
     public var with: [String: String]? = nil
     public var message: String? = nil

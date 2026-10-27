@@ -18,6 +18,32 @@ func opens(held map[string]bool, perm string) bool {
 	return perm == permissionPublic || perm == permissionSignedIn || held[perm]
 }
 
+// navigateCallerHome is the reserved word a task page's answer navigates to
+// for the caller's home: the home of the first of the session's roles that
+// has one. A page's name is kebab-case, so no page is named so.
+const navigateCallerHome = "callerHome"
+
+// checkCallerHomeEvent checks a page event that navigates to callerHome:
+// the event is a task page's answer, after which the session may hold
+// other roles, it gives no with, since a home takes no route parameters,
+// and some role names a home.
+func (c *checker) checkCallerHomeEvent(d *design, ev, nav *yaml.Node, base []string, answer bool) {
+	at := source.Pointer(append(base, "navigate")...)
+	if !answer {
+		c.add(nav, at, RuleFlow, "callerHome leads to the home of the first of the caller's roles that has one, which a task page's answer may do, as a sign-in does; lead this event to a page")
+		return
+	}
+	if source.Child(ev, "with") != nil {
+		c.add(source.Key(ev, "with"), source.Pointer(append(base, "with")...), RuleFlow, "the event navigates to callerHome, and a home takes no route parameters; remove with")
+	}
+	for _, r := range source.Pairs(source.Child(d.root, "roles")) {
+		if source.Child(r.Value, "home") != nil {
+			return
+		}
+	}
+	c.add(nav, at, RuleFlow, "callerHome leads to the home of the first of the caller's roles that has one, and no role names a home; give a role its home under roles, or navigate to a page")
+}
+
 // checkRoleHomes checks each role's home: a page of the specification,
 // opened with no route parameters, which the role may open.
 func (c *checker) checkRoleHomes(d *design) {

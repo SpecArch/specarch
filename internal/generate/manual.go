@@ -540,6 +540,8 @@ func afterSubmit(root, on *yaml.Node) string {
 		}
 		if p := str(e, "navigate"); p == "signIn" {
 			parts = append(parts, "The identity provider's sign-in opens.")
+		} else if p == "callerHome" {
+			parts = append(parts, "Your home page opens.")
 		} else if p != "" {
 			parts = append(parts, "The "+pageTitleOf(root, p)+" page opens.")
 		}

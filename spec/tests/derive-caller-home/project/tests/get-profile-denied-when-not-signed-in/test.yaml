@@ -1,0 +1,7 @@
+operation: getProfile
+level: system
+scenario: red
+covers: [denied when not signed in]
+given: "a caller who is not signed in"
+when: "getProfile is called"
+then: "it is refused as not signed in"

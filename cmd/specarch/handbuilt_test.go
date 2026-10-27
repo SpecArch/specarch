@@ -11,8 +11,8 @@ import (
 
 // TestStep2ReferenceComparesEqual checks step 7 of docs/ui-nextjs-carbon.md
 // on the library lending example: its sign-in and second-factor schemas,
-// written by hand before the generator (testdata/step-2-reference, as
-// committed then), and the rest of its Carbon application without the
+// written by hand before the generator (testdata/step-2-reference, kept to
+// the example's answers since, as their lead to the caller's home), and the rest of its Carbon application without the
 // generated header, compare equal with what generate writes; a list
 // schema with one column changed is reported as that column (ADR-093).
 func TestStep2ReferenceComparesEqual(t *testing.T) {

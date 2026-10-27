@@ -1,0 +1,6 @@
+page: profile
+level: system
+scenario: golden
+given: "a signed-in caller"
+when: "the page profile is opened"
+then: "it shows the page"

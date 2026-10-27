@@ -1,0 +1,6 @@
+page: members-list
+level: system
+scenario: golden
+given: "a caller with members.read"
+when: "the page members-list is opened"
+then: "it shows the page"

@@ -867,6 +867,8 @@ extension Design {
                 let nav = str(ev.child("navigate"))
                 if nav == navigateSignIn {
                     then += " and leaves for the identity provider's sign-in"
+                } else if nav == navigateCallerHome {
+                    then += " and leads to the caller's home"
                 } else if !nav.isEmpty {
                     then += " and leads to the page " + nav
                 }

@@ -11,7 +11,7 @@
 // page uses it.
 
 import { on, emit } from "./events.js";
-import { arrived, go, parameters } from "./pages.js";
+import { arrived, go, parameters, start } from "./pages.js";
 import { call, property, upload } from "./service.js";
 
 // What holds fields: the form, a value with parts, a list of rows and a row.
@@ -315,6 +315,11 @@ export function form(page) {
     if (next?.signIn) {
       // identity-provider.js is written when the specification declares signIn.
       import("./identity-provider.js").then(({ signIn }) => signIn()).catch((error) => show(error.message, true));
+      return;
+    }
+    if (next?.home) {
+      // index.html is written when a role has a home the screens open.
+      start(next.message);
       return;
     }
     if (next?.page) {

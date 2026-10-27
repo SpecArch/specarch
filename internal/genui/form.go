@@ -62,6 +62,9 @@ type formNext struct {
 	// signIn is true for an answer that leaves for the identity provider's
 	// sign-in (ADR-182).
 	signIn bool
+	// home is true for an answer that leads to the caller's home, through
+	// index.html, which opens it from the session read anew (ADR-206).
+	home bool
 }
 
 // formField is one field drawn on a form: its name and the property that
@@ -549,6 +552,10 @@ func (g *gen) formNext(fp *formPage, at string, pg, op, props map[string]any) {
 			n.signIn = true
 			return n, true
 		}
+		if target == navigateCallerHome {
+			n.home = true
+			return n, true
+		}
 		tp, ok := obj(obj0(g.spec["pages"])[target])
 		if !ok {
 			g.problem("error", ptr+"/navigate", "%s leads to %s, which is not a page of the specification", fp.name, target)
@@ -897,6 +904,9 @@ func (fp *formPage) js() string {
 		}
 		if n.signIn {
 			parts = append(parts, "signIn: true")
+		}
+		if n.home {
+			parts = append(parts, "home: true")
 		}
 		if n.message != "" {
 			parts = append(parts, "message: "+jsString(n.message))

@@ -1,0 +1,6 @@
+page: member-form
+level: system
+scenario: golden
+given: "a caller with members.write"
+when: "the page member-form is opened"
+then: "it shows the page"

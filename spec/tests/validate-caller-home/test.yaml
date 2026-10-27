@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "two roles, each with a home; a sign-in task page whose answer navigates to callerHome with a message; and a flow whose actor signs in and goes on at the members list, the actor's home"
+when: "validate is run"
+then: "it reports nothing, since callerHome on a task page's answer leads to a home some role names and the flow's next step is on the actor's home, and exits 0"
+verifies: [SA-102]

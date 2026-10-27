@@ -45,7 +45,7 @@ func (c *checker) checkPageEvents(d *design) {
 				c.add(source.Key(pg, e.key), source.Pointer("pages", name, e.key), RuleFlow, "%s is a %s page, and %s is raised when %s; leave it out", name, kind, e.key, e.what)
 				continue
 			}
-			c.checkEvent(d, n, []string{"pages", name, e.key}, fields, "a field of the page's entity", false)
+			c.checkEvent(d, n, []string{"pages", name, e.key}, fields, "a field of the page's entity", false, false)
 		}
 		for i, a := range source.Items(source.Child(pg, "actions")) {
 			if source.Str(source.Child(a, "kind")) == "navigate" {
@@ -59,7 +59,7 @@ func (c *checker) checkPageEvents(d *design) {
 				c.add(source.Key(a, "then"), source.Pointer("pages", name, "actions", fmt.Sprint(i), "then"), RuleFlow, "the action %s navigates already, and then follows an operation; leave it out", source.Str(source.Child(a, "label")))
 				continue
 			}
-			c.checkEvent(d, n, []string{"pages", name, "actions", fmt.Sprint(i), "then"}, fields, "a field of the page's entity", true)
+			c.checkEvent(d, n, []string{"pages", name, "actions", fmt.Sprint(i), "then"}, fields, "a field of the page's entity", true, false)
 		}
 	}
 }
@@ -89,7 +89,7 @@ func (c *checker) checkStatusEvents(d *design, name string, pg, events *yaml.Nod
 			c.add(kv.Key, source.Pointer(base...), RulePage, "%s does not answer %s, so %s cannot act on it; %s", source.Str(source.Child(pg, "submit")), kv.Key.Value, name, answers)
 			continue
 		}
-		c.checkEvent(d, kv.Value, base, d.responseBodyFields(r), "a property of the body of the "+kv.Key.Value+" response", true)
+		c.checkEvent(d, kv.Value, base, d.responseBodyFields(r), "a property of the body of the "+kv.Key.Value+" response", true, true)
 	}
 }
 
@@ -265,17 +265,21 @@ func (c *checker) checkCustomPage(d *design, name string, pg *yaml.Node) {
 // checkEvent checks where one event leads, and that its message is a full
 // sentence; the route parameters it gives come from fields, which from
 // names. leaves says whether the event may leave the application for the
-// identity provider's sign-in.
-func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node, from string, leaves bool) {
+// identity provider's sign-in, answer whether it is a task page's answer,
+// which may lead to the caller's home.
+func (c *checker) checkEvent(d *design, ev *yaml.Node, base []string, fields map[string]*yaml.Node, from string, leaves, answer bool) {
 	if nav := source.Child(ev, "navigate"); nav != nil && nav.Value == navigateSignIn {
 		c.checkSignInEvent(d, ev, nav, base, leaves)
 		return
+	}
+	if nav := source.Child(ev, "navigate"); nav != nil && nav.Value == navigateCallerHome {
+		c.checkCallerHomeEvent(d, ev, nav, base, answer)
 	}
 	if m := source.Child(ev, "message"); m != nil && !sentence(m.Value) {
 		c.add(m, source.Pointer(append(base, "message")...), RuleFlow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
 	}
 	nav := source.Child(ev, "navigate")
-	if nav == nil {
+	if nav == nil || nav.Value == navigateCallerHome {
 		return // the schema asks for navigate beside with
 	}
 	if d.pages[nav.Value] == nil {
@@ -448,6 +452,14 @@ func (c *checker) checkFlows(d *design) {
 				}
 			}
 			targets, raised := eventTargets(pg, event, source.Str(source.Child(step, "action")))
+			if home := source.Str(source.Child(role, "home")); home != "" {
+				// callerHome leads the actor to their role's home.
+				for j, t := range targets {
+					if t == navigateCallerHome {
+						targets[j] = home
+					}
+				}
+			}
 			if !raised {
 				what := map[string]string{"select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + source.Str(source.Child(step, "action"))}[event]
 				if event == "action" && source.Str(source.Child(pg, "kind")) == "content" {

@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-206:
+    title: A task page's answer may lead to the caller's home, navigate callerHome, the home of the first of the session's roles that has one, or the application's start when none of them has one
+    status: proposed
+    date: "2026-10-28"
+    context: |
+      A role names its home (ADR-197), and the screens open it at the
+      application's start. A sign-in through a page of the
+      specification's own still had to name one page its answer leads
+      to, the same for every person: in an example where a librarian's
+      home is the members list and a member's is their profile, a member
+      signing in was led to the members list and refused there. Which
+      role a person signs in as is known only once the answer has come
+      back, so no page written in the specification is right for all of
+      them.
+    decision: |
+      navigate callerHome is a reserved word of the page event: the home
+      of the first of the caller's roles, in the order the session
+      answers them, that has one. A page's name is kebab-case, so no page
+      takes it, and the event's shape is unchanged.
+
+      It is taken on a task page's answer only, where the session may
+      have changed; elsewhere it is flow at the event, as is with on it,
+      since a home takes no route parameters, and a specification in
+      which no role names a home. It takes a message, shown on the home
+      it leads to. A flow whose step's answer leads to callerHome goes on
+      at the actor's home. The derived case of that answer reads "leads
+      to the caller's home".
+
+      The UI generators read the session again after the answer, as they
+      do after any task page's success, and open the home of its first
+      role that has one; a person none of whose roles has one is led to
+      the application's start, where the menu is. Where the generator
+      keeps the page that sent the person to sign in (TypeScript and
+      SwiftUI), that page is opened again first, as for any other answer.
+      specarch-gen-ui leads to index.html, its start, which reads the
+      session anew on loading; when it writes no index.html, since no
+      role has a home it opens, it warns at the event and the answer
+      stays on the page with its message. specarch-gen-ui-typescript
+      reads the session in the task page and opens the home's route, or
+      /; specarch-gen-ui-swiftui reads it through the session store and
+      puts the home alone on the navigation stack, or empties it.
+    why: |
+      A reserved word rather than a key beside navigate, because the
+      event already says where it leads in one key, and signIn is said
+      the same way (ADR-182): one way to say where an event leads. It
+      has a capital, as signIn and signedIn do, so no specification
+      written before it can have a page of that name, and reserving it
+      in a 1.x minor turns no valid file into an error; home alone would
+      fit the page name pattern and could already be a page.
+
+      The first role with a home, in the session's order, is the rule
+      the application's start already follows (ADR-197), so a person is
+      shown the same page after signing in as when opening the
+      application signed in. A task page's answer only, because that is
+      where a session begins or changes; after an action or a selected
+      row the caller is the one who opened the page, and the page they
+      go to can be named. No role with a home is an error, not a warning,
+      since the event would then lead nowhere and say it leads somewhere.
+      The start for a person whose roles name no home, rather than
+      staying on the sign-in page, because they are signed in and the
+      page they stay on asks them to sign in again.
+    consequences: |
+      library-lending's sign-in and second-factor pages lead to
+      callerHome. The techspec's page flowchart draws the caller's home
+      as one node, and the manual says the person's home opens.
+    satisfies: [SA-102]

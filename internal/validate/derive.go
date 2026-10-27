@@ -941,6 +941,8 @@ func (d *design) answerCases(s *subject, pg *yaml.Node) {
 			then = "it is answered " + status
 			if nav := source.Str(source.Child(ev, "navigate")); nav == navigateSignIn {
 				then += " and leaves for the identity provider's sign-in"
+			} else if nav == navigateCallerHome {
+				then += " and leads to the caller's home"
 			} else if nav != "" {
 				then += " and leads to the page " + nav
 			}

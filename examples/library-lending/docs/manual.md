@@ -299,7 +299,7 @@ Anyone opens it, signed in or not.
 |---|---|---|
 | Code from the authenticator app |   | yes |
 
-Once it is sent: You are signed in. The Members page opens.
+Once it is sent: You are signed in. Your home page opens.
 
 When the system refuses:
 
@@ -316,7 +316,7 @@ Anyone opens it, signed in or not.
 | Email address |   | yes |
 | Password |   | yes |
 
-Once it is sent: You are signed in. The Members page opens. Or: The Confirm it is you page opens.
+Once it is sent: You are signed in. Your home page opens. Or: The Confirm it is you page opens.
 
 When the system refuses:
 

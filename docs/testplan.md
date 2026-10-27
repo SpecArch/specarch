@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 835 design tests, 408 golden and 427 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 839 design tests, 410 golden and 429 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 835 design tests, 408 golden and 427 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 831 |
+| system | 835 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -356,6 +356,14 @@ Scenario: golden; level: system; verifies SA-83, SA-88.
 - Given: an estate of two modules: an identity module with the trust domain, the security events, the clients, among them a reporting service that signs each request and has an admitted version range, a role that grants the core's delete by reference and narrows it to the administration application, and a role that grants the core's list to the reporting service; and the core, which declares no roles, no clients and no security events, whose list names the reporting service in callers by reference and whose list and delete each satisfy a requirement with a harm
 - When: derive is run on the estate file
 - Then: it writes the core's drafts with the case of a caller through a client the identity module's role does not list, the reporting service's bad signature and version outside its range at the list, the confused deputy's cases of a service's own token and a person's token with no actor, the token cases' given saying an access token, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0
+
+#### derive-caller-home
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: the specification of validate-caller-home, whose every test is written but the sign-in page's golden one
+- When: derive is run
+- Then: it writes the sign-in page's golden draft, answered 200 and leading to the caller's home with its message, lists it and exits 0
 
 #### derive-integration-contract
 
@@ -3035,7 +3043,7 @@ Scenario: golden; level: system; verifies SA-102.
 
 - Given: a specification whose roles name their home pages, with a profile page of signedIn reached from a menu, a form field read-only unless the caller holds members.remove and a view field hidden unless they hold members.write; an implementation file whose ui target is plain JavaScript, its session read from getSession with the roles under held; specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes session.js with the session's operation, its properties and each role's home page, marks each menu entry with the permission of its page for session.js to show or hide, hands form.js the readOnlyUnless and view.js the hiddenUnless as permissions, writes index.html and index.js, which open the home of the first role the session answers that has one, prints no warning, and exits 0
+- Then: it writes session.js with the session's operation, its properties and each role's home page, marks each menu entry with the permission of its page for session.js to show or hide, hands form.js the readOnlyUnless and view.js the hiddenUnless as permissions, writes index.html and index.js, which open the home of the first role the session answers that has one, prints no warning; the sign-in task page's answer to callerHome, which form.js follows to index.html, the start that opens the home from the session read anew and shows the message there, and exits 0
 
 #### generate-ui-navigation-no-session
 
@@ -3043,7 +3051,7 @@ Scenario: golden; level: system; verifies SA-102.
 
 - Given: the specification of generate-ui-navigation, and an implementation file whose ui target is plain JavaScript with no settings.session; specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes the pages as for any permission, with no session.js and no index.html, warns at each role's home that it opens none and at each field's readOnlyUnless and hiddenUnless that the field is changeable or shown to everyone who opens the page, each naming settings.session, and exits 0
+- Then: it writes the pages as for any permission, with no session.js and no index.html, warns at each role's home that it opens none and at each field's readOnlyUnless and hiddenUnless that the field is changeable or shown to everyone who opens the page, each naming settings.session, warns at the sign-in page's answer to callerHome that, with no index.html, it stays on the page, and exits 0
 
 #### generate-ui-sign-in-oidc
 
@@ -3099,7 +3107,7 @@ Scenario: golden; level: system; verifies SA-102.
 
 - Given: the specification of generate-ui-navigation, and an implementation file whose ui target is an iPhone in SwiftUI, its session read from getSession with the roles under held; specarch-gen-ui-swiftui built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes Application.swift with the session's roles property and each role's home as a route, which MainMenu opens once at the start for the first role the session answers that has one; the profile page behind the guard with its derived test that it opens to everyone signed in and sends someone signed out to sign in; the form's field with readOnlyUnless and the view's with hiddenUnless, which FormPage and ViewPage fold into readOnly and hiddenWhen by the permissions the session answers; the menu's test leaving the signedIn entry out of the refusals; and exits 0
+- Then: it writes Application.swift with the session's roles property and each role's home as a route, which MainMenu opens once at the start for the first role the session answers that has one; the profile page behind the guard with its derived test that it opens to everyone signed in and sends someone signed out to sign in; the form's field with readOnlyUnless and the view's with hiddenUnless, which FormPage and ViewPage fold into readOnly and hiddenWhen by the permissions the session answers; the menu's test leaving the signedIn entry out of the refusals; the sign-in task page's answer to callerHome, which TaskPage follows through Router.goHome, reading the session again and putting the home alone on the stack, or emptying it; and exits 0
 
 #### generate-ui-swiftui-refused
 
@@ -3211,7 +3219,7 @@ Scenario: golden; level: system; verifies SA-102.
 
 - Given: the specification of generate-ui-navigation, and an implementation file whose ui target is Next.js and Carbon, its session read from getSession with the roles under held; specarch-gen-ui-typescript built from this repository on PATH
 - When: generate ui is run with --unapproved
-- Then: it writes application.ts with the session's roles property and each role's home by route, app/page.tsx, the start, which opens the home of the first role the session answers that has one; the profile page behind the guard with its derived test that it opens to everyone signed in and sends someone signed out to sign in; the form's field with readOnlyUnless and the view's with hiddenUnless, which FormPage and ViewPage fold into readOnly and hiddenWhen by the permissions the session answers; the menu's test leaving the signedIn entry out of the refusals; and exits 0
+- Then: it writes application.ts with the session's roles property and each role's home by route, app/page.tsx, the start, which opens the home of the first role the session answers that has one; the profile page behind the guard with its derived test that it opens to everyone signed in and sends someone signed out to sign in; the form's field with readOnlyUnless and the view's with hiddenUnless, which FormPage and ViewPage fold into readOnly and hiddenWhen by the permissions the session answers; the menu's test leaving the signedIn entry out of the refusals; the sign-in task page's answer to callerHome, which TaskPage follows by reading the session again and opening the home of its first role that has one, or /; and exits 0
 
 #### generate-ui-typescript-paged-whole
 
@@ -4278,6 +4286,30 @@ Scenario: red; level: system; verifies SA-88.
 - Given: the estate of validate-caller-estate with a trust domain that is no URI, a role granting a permission the core does not declare, a core permission no role of the identity module grants, callers naming a service with no roles, an application with no granting role and a client the identity module lacks, via naming an application, a service proving itself with a token and a role, a test whose caller is a role the identity module lacks, and one whose caller names a client where a role is meant
 - When: validate is run on the estate file
 - Then: it reports each at the entry, as token_audience, reference (each a name the identity module lacks or an element of the wrong kind), permission_ungranted, callers, via and schema, the same in both builds, and exits 1
+
+#### validate-caller-home
+
+Scenario: golden; level: system; verifies SA-102.
+
+- Given: two roles, each with a home; a sign-in task page whose answer navigates to callerHome with a message; and a flow whose actor signs in and goes on at the members list, the actor's home
+- When: validate is run
+- Then: it reports nothing, since callerHome on a task page's answer leads to a home some role names and the flow's next step is on the actor's home, and exits 0
+
+#### validate-caller-home-no-home
+
+Scenario: red; level: system; covers exit 1; verifies SA-102.
+
+- Given: roles none of which names a home, and a sign-in task page whose answer navigates to callerHome
+- When: validate is run
+- Then: it reports flow at the answer's navigate, since the event would lead nowhere, and exits 1
+
+#### validate-caller-home-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-102.
+
+- Given: a sign-in task page whose answer navigates to callerHome with with; a list's action whose then and a form's onSubmitted navigate to callerHome; and a flow whose actor, a reader whose home is the profile, signs in and goes on at the members list
+- When: validate is run
+- Then: it reports flow at the with, at the action's then and at the form's onSubmitted, which are not a task page's answer, and at the flow's step, whose answer leads to profile, and exits 1
 
 #### validate-caller-identity-case-waits
 
@@ -6779,7 +6811,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-476 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+478 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7048,6 +7080,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-102 | acceptance 4 | golden | SA-102 names no harm |
 | requirement SA-102 | acceptance 5 | golden | SA-102 names no harm |
 | requirement SA-102 | acceptance 6 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 7 | golden | SA-102 names no harm |
+| requirement SA-102 | acceptance 8 | golden | SA-102 names no harm |
 | requirement SA-103 | acceptance 1 | golden | SA-103 names no harm |
 | requirement SA-103 | acceptance 2 | golden | SA-103 names no harm |
 | requirement SA-103 | acceptance 3 | golden | SA-103 names no harm |

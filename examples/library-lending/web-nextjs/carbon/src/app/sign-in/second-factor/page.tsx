@@ -11,7 +11,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const routes = {
-  "members-list": "/members",
 };
 
 export default async function Page({ searchParams }: { readonly searchParams: Promise<Record<string, string | string[] | undefined>> }) {

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a sign-in task page whose answer navigates to callerHome with with; a list's action whose then and a form's onSubmitted navigate to callerHome; and a flow whose actor, a reader whose home is the profile, signs in and goes on at the members list"
+when: "validate is run"
+then: "it reports flow at the with, at the action's then and at the form's onSubmitted, which are not a task page's answer, and at the flow's step, whose answer leads to profile, and exits 1"
+verifies: [SA-102]

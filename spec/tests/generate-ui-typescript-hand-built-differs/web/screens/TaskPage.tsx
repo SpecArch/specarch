@@ -3,12 +3,14 @@
 import { Button, FileUploader, Form, InlineNotification, Stack } from "@carbon/react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { application } from "@/application";
+import { homeOf } from "./access";
 import { Field } from "./Field";
 import { leave } from "./Notice";
 import { problemsOf, type Values } from "./rules";
 import type { EventSchema, TaskPageSchema } from "./schema";
 import { call, segment, signIn, upload } from "./service";
-import { forgetSession } from "./session";
+import { forgetSession, readSession } from "./session";
 import { say, type Texts } from "./texts";
 
 export interface TaskPageProps {
@@ -97,6 +99,19 @@ export function TaskPage({ schema, texts, routes, returnTo }: TaskPageProps) {
           setBusy(false);
           setProblems({ "": error instanceof Error ? error.message : String(error) });
         }
+        return;
+      }
+      if (success.home === true) {
+        // The person's home, from the session the answer may have changed;
+        // a returnTo leads back first, and the start serves a person whose
+        // roles have none.
+        const back = local(returnTo);
+        const person = back === undefined ? await readSession() : null;
+        const route = back ?? (person ? homeOf(application.homes ?? {}, person) : undefined) ?? "/";
+        if (success.message !== undefined) {
+          leave(say(texts, success.message), route.split(/[?#]/)[0]);
+        }
+        router.push(route);
         return;
       }
       const answer: unknown = success.with === undefined ? null : await response.json().catch(() => undefined);

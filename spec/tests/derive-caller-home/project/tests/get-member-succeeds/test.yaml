@@ -1,0 +1,6 @@
+operation: getMember
+level: system
+scenario: golden
+given: "a caller with members.read"
+when: "getMember is called with values inside every limit"
+then: "it answers 200: The member."

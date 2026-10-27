@@ -208,6 +208,8 @@ export interface EventSchema {
   readonly navigate?: string;
   /** The path of the callback the identity provider sends the person back to. */
   readonly signIn?: string;
+  /** True when the answer leads to the person's home, read from the session again, or the application's start when none of their roles has one. */
+  readonly home?: boolean;
   readonly with?: Readonly<Record<string, string>>;
   readonly message?: StringKey;
   readonly keepsReturnTo?: boolean;

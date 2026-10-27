@@ -2,9 +2,9 @@
 // Draft: the specification is not approved: there is no records/approvals/0.1.0.yaml beside the specification; this file is not the approved output.
 // The screens' start: once the session is read, it opens the home of the
 // first of the person's roles that has one, and leaves anyone else at the
-// menu.
+// menu with the message a page left for it.
 
-import { href } from "./pages.js";
+import { arrived, href } from "./pages.js";
 import { homeOf, session } from "./session.js";
 
 session().then((person) => {
@@ -13,5 +13,7 @@ session().then((person) => {
     location.replace(href(home, {}));
   } else if (person === null) {
     document.getElementById("status").textContent = "This cannot be done right now. Try again in a moment.";
+  } else {
+    document.getElementById("status").textContent = arrived();
   }
 });

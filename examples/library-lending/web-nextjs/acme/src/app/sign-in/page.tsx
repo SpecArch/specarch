@@ -11,7 +11,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const routes = {
-  "members-list": "/members",
   "second-factor": "/sign-in/second-factor",
 };
 

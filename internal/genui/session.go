@@ -177,9 +177,9 @@ func (g *gen) indexPage(homes []home) []File {
 	out = append(out, `<p id="status" role="status" aria-live="polite"></p>`, "</main>", "</body>", "</html>")
 	js := `// The screens' start: once the session is read, it opens the home of the
 // first of the person's roles that has one, and leaves anyone else at the
-// menu.
+// menu with the message a page left for it.
 
-import { href } from "./pages.js";
+import { arrived, href } from "./pages.js";
 import { homeOf, session } from "./session.js";
 
 session().then((person) => {
@@ -188,6 +188,8 @@ session().then((person) => {
     location.replace(href(home, {}));
   } else if (person === null) {
     document.getElementById("status").textContent = ` + jsString(defaultFailed) + `;
+  } else {
+    document.getElementById("status").textContent = arrived();
   }
 });
 `

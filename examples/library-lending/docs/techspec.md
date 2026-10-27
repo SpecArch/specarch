@@ -1657,6 +1657,7 @@ flowchart LR
   reset_password["Set a new password (task)"]
   second_factor["Confirm it is you (task)"]
   sign_in["Sign in (task)"]
+  callerHome{{"the caller's home"}}
   op_requestFeeWaiver(["requestFeeWaiver"])
   fee_waiver_form -.->|"submit"| op_requestFeeWaiver
   op_requestFeeWaiver -->|"submitted"| loans_list
@@ -1690,10 +1691,10 @@ flowchart LR
   op_resetPassword -->|"204"| sign_in
   op_confirmSecondFactor(["confirmSecondFactor"])
   second_factor -.->|"submit"| op_confirmSecondFactor
-  op_confirmSecondFactor -->|"200"| members_list
+  op_confirmSecondFactor -->|"200"| callerHome
   op_signIn(["signIn"])
   sign_in -.->|"submit"| op_signIn
-  op_signIn -->|"200"| members_list
+  op_signIn -->|"200"| callerHome
   op_signIn -->|"201"| second_factor
 ```
 
@@ -2152,7 +2153,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | return-loan-dependency-retries-exhausted-fee-ledger-post-charge | operation returnLoan | system | red | an open loan, and a fee ledger that answers 503 or does not answer within 5 seconds on every try | returnLoan is called for it | the charge is tried 2 more times, 1 second and then 2 seconds apart, all with the same Idempotency-Key, then it answers 503, the loan stays open, and no event is published |
 | return-loan-dependency-times-out-fee-ledger | operation returnLoan | system | red | an open loan, and a fee ledger that does not answer within 5 seconds | returnLoan is called for it | it gives up the call, answers 503, the loan stays open, and no event is published |
 | return-unknown-loan | operation returnLoan | system | red | a librarian | returnLoan is called with an id no loan has and again with abc | the first is refused as not found and the second as invalid input |
-| second-factor-page | page second-factor | system | golden | a librarian who signed in with their password a minute ago | the page second-factor is submitted with the code the authenticator app shows now | it leads to the page members-list, saying that they are signed in |
+| second-factor-page | page second-factor | system | golden | a librarian who signed in with their password a minute ago | the page second-factor is submitted with the code the authenticator app shows now | it leads to the librarian's home, members-list, saying that they are signed in |
 | second-factor-page-refused | page second-factor | system | red | a librarian who types a code the authenticator app showed ten minutes ago | the page second-factor is submitted | it shows beside the code: The code is wrong, or it came too late. Type the code the app shows now, or sign in again. |
 | show-member | operation getMember | system | golden | a member and a librarian | getMember is called with the member's id | the member is answered |
 | show-member-bad-id | operation getMember | system | red | a librarian | getMember is called with memberId abc | it is refused as invalid input |
@@ -2161,7 +2162,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | sign-in-asks-second-factor | operation signIn | system | golden | a librarian whose account confirms each sign-in with a second factor | signIn is called with their email address and password | it answers 201, a sign-in challenge is opened, and no session starts yet |
 | sign-in-bad-email | operation signIn | system | red | any caller | signIn is called with an email that is not an email address | it is refused as invalid input |
 | sign-in-missing-field | operation signIn | system | red | any caller | signIn is called without email and again without password | both are refused as invalid input |
-| sign-in-page | page sign-in | system | golden | a librarian who is not signed in | the page sign-in is submitted with their email address and password | it leads to the page members-list, saying that they are signed in |
+| sign-in-page | page sign-in | system | golden | a librarian who is not signed in | the page sign-in is submitted with their email address and password | it leads to the librarian's home, members-list, saying that they are signed in |
 | sign-in-page-refused | page sign-in | system | red | a librarian who types a wrong password | the page sign-in is submitted | it shows beside the password: The email address or the password is wrong. |
 | sign-in-page-second-factor | page sign-in | system | golden | a librarian whose account confirms each sign-in with a second factor | the page sign-in is submitted with their email address and password | it is answered 201 and leads to the page second-factor |
 | sign-in-succeeds | operation signIn | system | golden | a member whose password is the one they chose | signIn is called with their email address and that password | it answers 200 and their session starts |

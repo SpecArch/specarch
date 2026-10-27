@@ -1,0 +1,6 @@
+operation: removeMember
+level: system
+scenario: golden
+given: "a caller with members.remove"
+when: "removeMember is called with values inside every limit"
+then: "it answers 204: Removed."

@@ -1,0 +1,6 @@
+page: member-view
+level: system
+scenario: golden
+given: "a caller with members.read"
+when: "the page member-view is opened for a record that exists"
+then: "it shows the page"

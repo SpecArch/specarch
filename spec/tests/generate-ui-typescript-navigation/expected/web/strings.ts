@@ -74,6 +74,10 @@ export const strings = {
   "screens.search": "Search",
   "screens.step": "Use a multiple of {count}.",
   "screens.yes": "Yes",
+  "sign-in.fields.email": "Email address",
+  "sign-in.fields.password": "Password",
+  "sign-in.onSubmitted.200": "You are signed in.",
+  "sign-in.title": "Sign in",
 } as const;
 
 export type StringKey = keyof typeof strings;

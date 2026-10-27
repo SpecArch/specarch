@@ -4,4 +4,4 @@ level: system
 scenario: golden
 given: a librarian who is not signed in
 when: the page sign-in is submitted with their email address and password
-then: it leads to the page members-list, saying that they are signed in
+then: it leads to the librarian's home, members-list, saying that they are signed in

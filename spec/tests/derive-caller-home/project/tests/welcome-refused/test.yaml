@@ -1,0 +1,6 @@
+page: welcome
+level: system
+scenario: red
+given: "a request that breaks the limit"
+when: "..."
+then: "it is refused"

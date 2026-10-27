@@ -67,6 +67,17 @@ export function forgetSession(): void {
   changed();
 }
 
+/** Reads the session now and answers it, as a page does that leads to the person's home after signing in. */
+export async function readSession(): Promise<Session | null> {
+  const begun = generation;
+  const answer = await ask();
+  if (begun === generation && current === undefined) {
+    current = answer;
+    changed();
+  }
+  return answer;
+}
+
 /** The person's session, read once and shared by every part of the screens. */
 export function useSession(): Session | null | undefined {
   const session = useSyncExternalStore(subscribe, () => current, () => undefined);

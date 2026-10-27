@@ -8,7 +8,6 @@ public struct SignInView: View {
 
     public var body: some View {
         TaskPage(schema: signInSchema, routes: [
-            "members-list": { _ in .membersList },
             "second-factor": { _ in .secondFactor }
         ])
     }

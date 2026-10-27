@@ -1,0 +1,7 @@
+operation: removeMember
+level: system
+scenario: red
+covers: [memberId not a valid uuid]
+given: "a request that breaks the limit"
+when: "removeMember is called with memberId that is not a valid uuid"
+then: "it is refused"

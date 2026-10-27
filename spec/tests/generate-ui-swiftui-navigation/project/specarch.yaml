@@ -87,6 +87,22 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/Member" }
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in with an email address and a password
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { title: Email address, type: string, format: email, maxLength: 254 }
+                password: { title: Password, type: string, format: password, minLength: 8, maxLength: 200, writeOnly: true }
+              required: [email, password]
+      responses:
+        "200": { description: Signed in. }
   /sessions/current:
     get:
       operationId: getSession
@@ -105,6 +121,15 @@ paths:
                   held: { type: array, items: { type: string, maxLength: 100 }, maxItems: 20 }
                 required: [open, granted, held]
 pages:
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: signIn
+    fields: [email, password]
+    onSubmitted:
+      "200": { navigate: callerHome, message: You are signed in. }
   profile:
     kind: view
     title: My profile
@@ -162,6 +187,12 @@ menus:
     items:
       profile: { title: My profile, page: profile }
 tests:
+  operation-sign-in-succeeds: { level: system, operation: signIn, scenario: golden, given: "any caller", when: "signIn is called with values inside every limit", then: "it answers 200: Signed in." }
+  operation-sign-in-email-not-a-valid-email: { level: system, operation: signIn, scenario: red, covers: [email not a valid email], given: "a request that breaks the limit", when: "signIn is called with email that is not a valid email", then: "it is refused" }
+  operation-sign-in-missing-email: { level: system, operation: signIn, scenario: red, covers: [missing email], given: "a request that breaks the limit", when: "signIn is called without email", then: "it is refused" }
+  operation-sign-in-missing-password: { level: system, operation: signIn, scenario: red, covers: [missing password], given: "a request that breaks the limit", when: "signIn is called without password", then: "it is refused" }
+  page-sign-in-succeeds: { level: system, page: sign-in, scenario: golden, given: "a reader who is not signed in", when: "the page sign-in is submitted with every field valid", then: "it is answered 200 and leads to the caller's home, saying: You are signed in." }
+  page-sign-in-refused: { level: system, page: sign-in, scenario: red, given: "a wrong password", when: "the page sign-in is submitted", then: "it is refused and stays on the page" }
   list-members-denied-without-members-read: { level: system, operation: listMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "listMembers is called", then: "it is refused as not allowed" }
   list-members-succeeds: { level: system, operation: listMembers, scenario: golden, given: "a caller with members.read", when: "listMembers is called", then: "it answers 200: The members." }
   create-member-denied-without-members-write: { level: system, operation: createMember, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "createMember is called", then: "it is refused as not allowed" }

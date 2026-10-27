@@ -261,6 +261,21 @@ func pagesFlowchart(root *yaml.Node) string {
 		// navigate: signIn leaves the application for the provider (ADR-182).
 		fmt.Fprintf(&b, "  signIn{{\"sign-in at %s\"}}\n", mermaidText(str(si, "provider")))
 	}
+	for _, p := range pages {
+		if str(p.Value, "kind") != "task" {
+			continue
+		}
+		home := false
+		for _, kv := range pairs(p.Value, "onSubmitted") {
+			home = home || str(kv.Value, "navigate") == "callerHome"
+		}
+		if home {
+			// navigate: callerHome opens the home of the first of the
+			// caller's roles that has one (ADR-206).
+			b.WriteString("  callerHome{{\"the caller's home\"}}\n")
+			break
+		}
+	}
 	ops := map[string]bool{}
 	op := func(target string) string {
 		if !ops[target] {

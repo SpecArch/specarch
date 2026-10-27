@@ -71,6 +71,13 @@ public struct TaskPage: View {
                 }
                 return
             }
+            if success.home == true {
+                let route = await router.goHome(SessionStore.shared)
+                if let message = success.message {
+                    router.leave(say(texts, message), at: route)
+                }
+                return
+            }
             let route = router.follow(success, routes: routes, answer: answer.body)
             if let message = success.message {
                 router.leave(say(texts, message), at: route)

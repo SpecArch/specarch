@@ -1,0 +1,7 @@
+operation: signIn
+level: system
+scenario: red
+covers: [missing password]
+given: "a request that breaks the limit"
+when: "signIn is called without password"
+then: "it is refused"

@@ -1,0 +1,6 @@
+operation: listMembers
+level: system
+scenario: golden
+given: "a caller with members.read"
+when: "listMembers is called"
+then: "it answers 200: The members."

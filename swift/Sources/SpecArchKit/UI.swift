@@ -24,7 +24,7 @@ extension Checker {
                     add(pg.key(e.0), pointer("pages", name, e.0), .flow, "\(name) is a \(kind) page, and \(e.0) is raised when \(e.2); leave it out")
                     continue
                 }
-                checkEvent(d, n, ["pages", name, e.0], fields, "a field of the page's entity", leaves: false)
+                checkEvent(d, n, ["pages", name, e.0], fields, "a field of the page's entity", leaves: false, answer: false)
             }
             for (i, a) in items(pg.child("actions")).enumerated() {
                 if str(a.child("kind")) == "navigate" {
@@ -35,7 +35,7 @@ extension Checker {
                     add(a.key("then"), pointer("pages", name, "actions", "\(i)", "then"), .flow, "the action \(str(a.child("label"))) navigates already, and then follows an operation; leave it out")
                     continue
                 }
-                checkEvent(d, n, ["pages", name, "actions", "\(i)", "then"], fields, "a field of the page's entity", leaves: true)
+                checkEvent(d, n, ["pages", name, "actions", "\(i)", "then"], fields, "a field of the page's entity", leaves: true, answer: false)
             }
         }
     }
@@ -54,7 +54,7 @@ extension Checker {
                 add(kv.key, pointer(base), .page, "\(submit) does not answer \(kv.key.value), so \(name) cannot act on it; \(answers)")
                 continue
             }
-            checkEvent(d, kv.value, base, d.responseBodyFields(r), "a property of the body of the " + kv.key.value + " response", leaves: true)
+            checkEvent(d, kv.value, base, d.responseBodyFields(r), "a property of the body of the " + kv.key.value + " response", leaves: true, answer: true)
         }
     }
 
@@ -185,16 +185,20 @@ extension Checker {
     /// Checks where one event leads, and that its message is a full
     /// sentence; the route parameters it gives come from fields, which from
     /// names. leaves says whether the event may leave the application for
-    /// the identity provider's sign-in.
-    func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode], _ from: String, leaves: Bool) {
+    /// the identity provider's sign-in, answer whether it is a task page's
+    /// answer, which may lead to the caller's home.
+    func checkEvent(_ d: Design, _ ev: YNode, _ base: [String], _ fields: [String: YNode], _ from: String, leaves: Bool, answer: Bool) {
         if let nav = ev.child("navigate"), nav.value == navigateSignIn {
             checkSignInEvent(d, ev, nav, base, leaves)
             return
         }
+        if let nav = ev.child("navigate"), nav.value == navigateCallerHome {
+            checkCallerHomeEvent(d, ev, nav, base, answer)
+        }
         if let m = ev.child("message"), !sentence(m.value) {
             add(m, pointer(base + ["message"]), .flow, "the message is not a full sentence; start it with a capital and end it with a full stop, so a screen reader reads it as one")
         }
-        guard let nav = ev.child("navigate") else { return } // the schema asks for navigate beside with
+        guard let nav = ev.child("navigate"), nav.value != navigateCallerHome else { return } // the schema asks for navigate beside with
         guard d.pages[nav.value] != nil else {
             add(nav, pointer(base + ["navigate"]), .flow, "\(nav.value) is not a page of the specification\(suggest(nav.value, d.pages))")
             return
@@ -331,7 +335,10 @@ extension Checker {
                         add(step.child("action"), pointer(at + ["action"]), .flow, "\(actor) cannot take the action \(str(step.child("action"))), which needs \(aperm); grant it to the role, or give the flow another actor")
                     }
                 }
-                let (targets, raised) = eventTargets(pg, event, str(step.child("action")))
+                let (found, raised) = eventTargets(pg, event, str(step.child("action")))
+                // callerHome leads the actor to their role's home.
+                let home = str(role?.child("home"))
+                let targets = home.isEmpty ? found : found.map { $0 == navigateCallerHome ? home : $0 }
                 if !raised {
                     var what = ["select": "has no onSelect", "submitted": "is not a form or a task", "action": "has no action labelled " + str(step.child("action"))][event] ?? ""
                     if event == "action" && str(pg.child("kind")) == "content" {

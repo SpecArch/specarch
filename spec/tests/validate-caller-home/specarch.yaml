@@ -1,0 +1,215 @@
+specarch: "1.0.0"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [id, fullName, email]
+    primaryKey: [id]
+errors:
+  member-not-found: { status: 404, title: Member not found, condition: no member has that identifier }
+permissions:
+  public: { description: "Everyone, signed in or not." }
+  signedIn: { description: Every person once signed in. }
+  members.read: { description: See members. }
+  members.write: { description: Register members. }
+  members.remove: { description: Remove members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write, members.remove], home: members-list }
+  reader: { description: Reads members., permissions: [members.read], home: profile }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+    post:
+      operationId: createMember
+      summary: Register a member
+      permission: members.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Member" }
+      responses:
+        "201":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+  /members/{memberId}:
+    parameters:
+      - { name: memberId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getMember
+      summary: One member
+      permission: members.read
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+        "404": { description: No such member., problem: member-not-found }
+    delete:
+      operationId: removeMember
+      summary: Remove a member
+      permission: members.remove
+      responses:
+        "204": { description: Removed. }
+        "404": { description: No such member., problem: member-not-found }
+  /sessions:
+    post:
+      operationId: signIn
+      summary: Sign in with an email address and a password
+      permission: public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                password: { type: string, format: password, minLength: 8, maxLength: 200, writeOnly: true }
+              required: [email, password]
+      responses:
+        "200": { description: Signed in. }
+  /profile:
+    get:
+      operationId: getProfile
+      summary: The caller's own record
+      permission: signedIn
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Member" }
+pages:
+  welcome:
+    kind: content
+    title: Welcome
+    route: /
+    permission: public
+    blocks:
+      - text: The member desk.
+  sign-in:
+    kind: task
+    title: Sign in
+    route: /sign-in
+    permission: public
+    submit: signIn
+    fields: [email, password]
+    onSubmitted:
+      "200": { navigate: callerHome, message: You are signed in. }
+  profile:
+    kind: view
+    title: My profile
+    route: /profile
+    entity: Member
+    permission: signedIn
+    source: getProfile
+    fields: [fullName, email]
+    fieldConditions:
+      email: { hiddenUnless: members.write }
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName]
+    onSelect: { navigate: member-view, with: { memberId: id } }
+    states:
+      empty: { message: There are no members yet. }
+      failed:
+        member-not-found: { message: The member is gone already. }
+    actions:
+      - { label: New member, kind: navigate, target: member-form, permission: members.write }
+      - { label: Remove, kind: operation, target: removeMember, permission: members.remove, confirm: "Remove this member?", then: { message: The member is removed. } }
+  member-form:
+    kind: form
+    title: Register member
+    route: /members/new
+    entity: Member
+    permission: members.write
+    submit: createMember
+    fields: [fullName, email]
+    fieldConditions:
+      fullName: { readOnlyUnless: members.remove }
+    onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
+  member-view:
+    kind: view
+    title: Member
+    route: /members/{memberId}
+    entity: Member
+    permission: members.read
+    source: getMember
+    fields: [fullName, email]
+    fieldConditions:
+      email: { hiddenUnless: members.write }
+flows:
+  desk-signs-in:
+    description: A person at the desk signs in and is shown the members.
+    actor: desk
+    steps:
+      - { page: sign-in, event: submitted }
+      - { page: members-list, event: select }
+menus:
+  members:
+    title: Members
+    items:
+      list: { title: All members, page: members-list }
+  account:
+    title: Account
+    items:
+      profile: { title: My profile, page: profile }
+tests:
+  list-members-denied-without-members-read: { level: system, operation: listMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "listMembers is called", then: "it is refused as not allowed" }
+  list-members-succeeds: { level: system, operation: listMembers, scenario: golden, given: "a caller with members.read", when: "listMembers is called", then: "it answers 200: The members." }
+  create-member-denied-without-members-write: { level: system, operation: createMember, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "createMember is called", then: "it is refused as not allowed" }
+  create-member-email-not-a-valid-email: { level: system, operation: createMember, scenario: red, covers: [email not a valid email], given: "a request that breaks the limit", when: "createMember is called with email that is not a valid email", then: "it is refused" }
+  create-member-missing-email: { level: system, operation: createMember, scenario: red, covers: [missing email], given: "a request that breaks the limit", when: "createMember is called without email", then: "it is refused" }
+  create-member-missing-full-name: { level: system, operation: createMember, scenario: red, covers: [missing fullName], given: "a request that breaks the limit", when: "createMember is called without fullName", then: "it is refused" }
+  create-member-succeeds: { level: system, operation: createMember, scenario: golden, given: "a caller with members.write", when: "createMember is called with values inside every limit", then: "it answers 201: The member." }
+  get-member-denied-without-members-read: { level: system, operation: getMember, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "getMember is called", then: "it is refused as not allowed" }
+  get-member-member-id-not-a-valid-uuid: { level: system, operation: getMember, scenario: red, covers: [memberId not a valid uuid], given: "a request that breaks the limit", when: "getMember is called with memberId that is not a valid uuid", then: "it is refused" }
+  get-member-not-found-member-id: { level: system, operation: getMember, scenario: red, covers: [not found memberId], given: "no record has that memberId", when: "getMember is called with that memberId", then: "it is refused as not found" }
+  get-member-succeeds: { level: system, operation: getMember, scenario: golden, given: "a caller with members.read", when: "getMember is called with values inside every limit", then: "it answers 200: The member." }
+  remove-member-denied-without-members-remove: { level: system, operation: removeMember, scenario: red, covers: [denied without members.remove], given: "a caller without members.remove", when: "removeMember is called", then: "it is refused as not allowed" }
+  remove-member-member-id-not-a-valid-uuid: { level: system, operation: removeMember, scenario: red, covers: [memberId not a valid uuid], given: "a request that breaks the limit", when: "removeMember is called with memberId that is not a valid uuid", then: "it is refused" }
+  remove-member-not-found-member-id: { level: system, operation: removeMember, scenario: red, covers: [not found memberId], given: "no record has that memberId", when: "removeMember is called with that memberId", then: "it is refused as not found" }
+  remove-member-succeeds: { level: system, operation: removeMember, scenario: golden, given: "a caller with members.remove", when: "removeMember is called with values inside every limit", then: "it answers 204: Removed." }
+  get-profile-denied-when-not-signed-in: { level: system, operation: getProfile, scenario: red, covers: [denied when not signed in], given: "a caller who is not signed in", when: "getProfile is called", then: "it is refused as not signed in" }
+  get-profile-succeeds: { level: system, operation: getProfile, scenario: golden, given: "a signed-in caller", when: "getProfile is called", then: "it answers 200: The member." }
+  welcome-succeeds: { level: system, page: welcome, scenario: golden, given: "any caller", when: "the page welcome is opened", then: "it shows the page" }
+  welcome-refused: { level: system, page: welcome, scenario: red, given: "a request that breaks the limit", when: "...", then: "it is refused" }
+  profile-denied-when-not-signed-in: { level: system, page: profile, scenario: red, covers: [denied when not signed in], given: "a caller who is not signed in", when: "the page profile is opened", then: "it is refused as not signed in" }
+  profile-succeeds: { level: system, page: profile, scenario: golden, given: "a signed-in caller", when: "the page profile is opened", then: "it shows the page" }
+  members-list-denied-without-members-read: { level: system, page: members-list, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "the page members-list is opened", then: "it is refused as not allowed" }
+  members-list-succeeds: { level: system, page: members-list, scenario: golden, given: "a caller with members.read", when: "the page members-list is opened", then: "it shows the page" }
+  member-form-denied-without-members-write: { level: system, page: member-form, scenario: red, covers: [denied without members.write], given: "a caller without members.write", when: "the page member-form is opened", then: "it is refused as not allowed" }
+  member-form-succeeds: { level: system, page: member-form, scenario: golden, given: "a caller with members.write", when: "the page member-form is opened", then: "it shows the page" }
+  member-view-denied-without-members-read: { level: system, page: member-view, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "the page member-view is opened", then: "it is refused as not allowed" }
+  member-view-not-found-member-id: { level: system, page: member-view, scenario: red, covers: [not found memberId], given: "no record has that memberId", when: "the page member-view is opened for that memberId", then: "it says the record was not found" }
+  member-view-succeeds: { level: system, page: member-view, scenario: golden, given: "a caller with members.read", when: "the page member-view is opened for a record that exists", then: "it shows the page" }
+  operation-sign-in-succeeds: { level: system, operation: signIn, scenario: golden, given: "any caller", when: "signIn is called with values inside every limit", then: "it answers 200: Signed in." }
+  operation-sign-in-email-not-a-valid-email: { level: system, operation: signIn, scenario: red, covers: [email not a valid email], given: "a request that breaks the limit", when: "signIn is called with email that is not a valid email", then: "it is refused" }
+  operation-sign-in-missing-email: { level: system, operation: signIn, scenario: red, covers: [missing email], given: "a request that breaks the limit", when: "signIn is called without email", then: "it is refused" }
+  operation-sign-in-missing-password: { level: system, operation: signIn, scenario: red, covers: [missing password], given: "a request that breaks the limit", when: "signIn is called without password", then: "it is refused" }
+  page-sign-in-succeeds: { level: system, page: sign-in, scenario: golden, given: "a reader who is not signed in", when: "the page sign-in is submitted with every field valid", then: "it is answered 200 and leads to the caller's home, saying: You are signed in." }
+  page-sign-in-refused: { level: system, page: sign-in, scenario: red, given: "a wrong password", when: "the page sign-in is submitted", then: "it is refused and stays on the page" }
+  desk-signs-in-succeeds: { level: system, flow: desk-signs-in, scenario: golden, given: "a desk", when: "they go through sign-in, members-list", then: "each step leads to the next, and the last completes" }
+  desk-signs-in-refused: { level: system, flow: desk-signs-in, scenario: red, given: "a desk whose password is wrong", when: "they go through sign-in", then: "it is refused on sign-in" }

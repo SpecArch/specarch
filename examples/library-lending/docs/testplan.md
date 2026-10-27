@@ -1637,7 +1637,7 @@ Scenario: golden; level: system.
 
 - Given: a librarian who signed in with their password a minute ago
 - When: the page second-factor is submitted with the code the authenticator app shows now
-- Then: it leads to the page members-list, saying that they are signed in
+- Then: it leads to the librarian's home, members-list, saying that they are signed in
 
 #### second-factor-page-refused
 
@@ -1689,7 +1689,7 @@ Scenario: golden; level: system.
 
 - Given: a librarian who is not signed in
 - When: the page sign-in is submitted with their email address and password
-- Then: it leads to the page members-list, saying that they are signed in
+- Then: it leads to the librarian's home, members-list, saying that they are signed in
 
 #### sign-in-page-refused
 

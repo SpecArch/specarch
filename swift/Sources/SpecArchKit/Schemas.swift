@@ -3854,7 +3854,7 @@ let designSchemaJSON = #"""
       "type": "object",
       "properties": {
         "navigate": {
-          "description": "The page the event leads to, or signIn, the reserved word for the identity provider's sign-in (ADR-182): the one event that leaves the application, on a task page's answer or an action's then, with no with and no message.",
+          "description": "The page the event leads to; or signIn, the reserved word for the identity provider's sign-in (ADR-182): the one event that leaves the application, on a task page's answer or an action's then, with no with and no message; or callerHome, the reserved word for the caller's home (ADR-206): the home of the first of the session's roles that has one, on a task page's answer, with no with, and the application's start when none of them has one.",
           "type": "string",
           "minLength": 1
         },

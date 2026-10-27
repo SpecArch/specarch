@@ -1,0 +1,7 @@
+operation: removeMember
+level: system
+scenario: red
+covers: [denied without members.remove]
+given: "a caller without members.remove"
+when: "removeMember is called"
+then: "it is refused as not allowed"

@@ -1,0 +1,7 @@
+operation: signIn
+level: system
+scenario: red
+covers: [missing email]
+given: "a request that breaks the limit"
+when: "signIn is called without email"
+then: "it is refused"

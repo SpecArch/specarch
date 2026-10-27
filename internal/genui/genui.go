@@ -35,6 +35,10 @@ var signInRuntime string
 // identity provider's sign-in.
 const navigateSignIn = "signIn"
 
+// navigateCallerHome is the reserved word a task page's answer navigates to
+// for the caller's home (ADR-206).
+const navigateCallerHome = "callerHome"
+
 // signInJS is identity-provider.js, the redirect to the provider with the
 // callback's path filled in, or "" when the specification declares no
 // signIn, its callback is not an operation, or a page's own files would
@@ -352,6 +356,20 @@ func Generate(r *Request) Response {
 	}
 	g.checkMenus()
 	homes := g.homes()
+	_, indexTaken := obj0(g.spec["pages"])["index"]
+	for _, f := range forms {
+		for status, n := range f.next {
+			if n.home && (len(homes) == 0 || indexTaken) {
+				at := "/pages/" + mark.Escape(f.name) + "/onSubmitted/"
+				if status != "success" {
+					at += status + "/"
+				}
+				g.problem("warning", at+"navigate", "%s leads to callerHome on %s, and specarch-gen-ui writes no index.html that opens a role's home, so the answer stays on the page; give a role a home specarch-gen-ui writes, with the session's roles under settings.session", f.name, status)
+				n.home = false
+				f.next[status] = n
+			}
+		}
+	}
 	var events []event
 	for _, w := range ws {
 		events = append(events, w.p.events()...)

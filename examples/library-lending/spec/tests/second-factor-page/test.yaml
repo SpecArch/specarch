@@ -4,4 +4,4 @@ level: system
 scenario: golden
 given: a librarian who signed in with their password a minute ago
 when: the page second-factor is submitted with the code the authenticator app shows now
-then: it leads to the page members-list, saying that they are signed in
+then: it leads to the librarian's home, members-list, saying that they are signed in

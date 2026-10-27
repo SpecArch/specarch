@@ -11,5 +11,5 @@ pages:
       failed:
         sign-in-refused: { message: The email address or the password is wrong., field: password }
     onSubmitted:
-      "200": { navigate: members-list, message: You are signed in. }
+      "200": { navigate: callerHome, message: You are signed in. }
       "201": { navigate: second-factor }

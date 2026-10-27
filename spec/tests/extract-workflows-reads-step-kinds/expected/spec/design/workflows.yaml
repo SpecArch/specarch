@@ -1,0 +1,77 @@
+roles:
+  clerk:
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/refund.bpmn, says: 'Line 82: Role clerk is a potential owner of user task step-check.'}
+  manager:
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/refund.bpmn, says: 'Line 71: Role manager is a potential owner of user task step-approve.'}
+      - {source: code, clause: workflows/refund.bpmn, says: 'Line 92: Role manager is a potential owner of user task step-recheck.'}
+workflows:
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "deadline passes at check"; add under tests refund-deadline-passes-at-check: { workflow: refund, scenario: red, covers: [deadline passes at check], given: "a request waiting at check", when: "P1D passes with the task not done", then: "the request moves on to recheck" } [test_case_missing.35380430@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "operation fails at close"; add under tests refund-operation-fails-at-close: { workflow: refund, scenario: red, covers: [operation fails at close], given: "a request reaching close", when: "the operation of close fails", then: "the request goes on at due2" } [test_case_missing.35a84e94@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "requester approves own request"; add under tests refund-requester-approves-own-request: { workflow: refund, scenario: red, covers: [requester approves own request], given: "a request made by a caller who also holds the permission of approve", when: "the requester approves it", then: "it is refused, because the person who made a request never approves it, and the request still waits" } [test_case_missing.4cf1faa6@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "route goes on at approve"; add under tests refund-route-goes-on-at-approve: { workflow: refund, scenario: red, covers: [route goes on at approve], given: "a request reaching route for which amountCents > 10000 holds", when: "the decision is taken", then: "the request goes on at approve" } [test_case_missing.692d808c@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "operation fails at pay"; add under tests refund-operation-fails-at-pay: { workflow: refund, scenario: red, covers: [operation fails at pay], given: "a request reaching pay", when: "the operation of pay fails", then: "the request ends failed" } [test_case_missing.6aa3d143@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "refused at approve"; add under tests refund-refused-at-approve: { workflow: refund, scenario: red, covers: [refused at approve], given: "a request waiting at approve", when: "a caller with the permission of approve refuses it", then: "the request ends refused and the operation of hold, the operation of pay and the operation of close is not called" } [test_case_missing.7458e72a@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "approval without the permission of approve"; add under tests refund-approval-without-the-permission-of-approve: { workflow: refund, scenario: red, covers: [approval without the permission of approve], given: "a caller without the permission of approve", when: "they approve a request waiting at approve", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.7fc199b8@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "route goes on at check"; add under tests refund-route-goes-on-at-check: { workflow: refund, scenario: red, covers: [route goes on at check], given: "a request reaching route for which no other branch holds", when: "the decision is taken", then: "the request goes on at check" } [test_case_missing.92401b2d@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "route ends refused"; add under tests refund-route-ends-refused: { workflow: refund, scenario: red, covers: [route ends refused], given: "a request reaching route for which amountCents == 0 holds", when: "the decision is taken", then: "the request ends refused" } [test_case_missing.a94ebc87@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "deadline passes at confirmed"; add under tests refund-deadline-passes-at-confirmed: { workflow: refund, scenario: red, covers: [deadline passes at confirmed], given: "a request waiting at confirmed for the message of confirmed", when: "P5D passes with no message", then: "the request ends refused" } [test_case_missing.db3f832b@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "deadline passes at approve"; add under tests refund-deadline-passes-at-approve: { workflow: refund, scenario: red, covers: [deadline passes at approve], given: "a request waiting at approve", when: "P2D passes with no answer", then: "the request ends refused and the operation of hold, the operation of pay and the operation of close is not called" } [test_case_missing.e1f72c24@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "task without the permission of check"; add under tests refund-task-without-the-permission-of-check: { workflow: refund, scenario: red, covers: [task without the permission of check], given: "a caller without the permission of check", when: "they do the task of a request waiting at check", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.e22c39b8@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_case_missing: workflow refund has no red scenario for "task without the permission of recheck"; add under tests refund-task-without-the-permission-of-recheck: { workflow: refund, scenario: red, covers: [task without the permission of recheck], given: "a caller without the permission of recheck", when: "they do the task of a request waiting at recheck", then: "it is refused as not allowed, and the request still waits" } [test_case_missing.e78b0ced@design/workflows.yaml#/workflows/refund]
+  # specarch-problem: warning: test_golden_missing: workflow refund has no golden scenario; add one under tests, for example refund-succeeds: { workflow: refund, scenario: golden, given: "any caller", when: "a request is made through its trigger and is approved at approve", then: "it answers 202, then the operation of hold, the operation of pay and the operation of close is called, and the request ends approved" } [test_golden_missing@design/workflows.yaml#/workflows/refund]
+  refund:
+    description: A refund is routed by its amount, checked by a clerk, paid, and closed once the payment is confirmed.
+    steps:
+      - name: route
+        kind: decision
+        branches:
+          - when: amountCents > 10000
+            to: approve
+          - when: amountCents == 0
+            end: refused
+          - otherwise: true
+            to: check
+      - name: approve
+        kind: approval
+        approvers: [manager]
+        deadline: P2D
+        onDeadline: refuse
+      - name: check
+        kind: task
+        performers: [clerk]
+        deadline: P1D
+        onDeadline: escalate
+        escalateTo: recheck
+      - name: recheck
+        kind: task
+        performers: [manager]
+      - name: hold
+        kind: operation
+      - name: pay
+        kind: operation
+        onFailure:
+          end: failed
+      - name: confirmed
+        kind: wait
+        deadline: P5D
+        onDeadline: refuse
+      - name: cool
+        kind: wait
+        after: P1D
+      - name: due
+        kind: wait
+        at: payBy
+      - name: close
+        kind: operation
+        onFailure:
+          to: due2
+      - name: due2
+        kind: wait
+        after: PT1H
+    origin: stated
+    cites:
+      - {source: code, clause: workflows/refund.bpmn, says: 'Line 31: Process refund defines the workflow, with the tasks step-route, step-approve, step-check, step-recheck, step-hold, step-pay, step-confirmed, step-cool, step-due, step-close and step-due2 in that order.'}

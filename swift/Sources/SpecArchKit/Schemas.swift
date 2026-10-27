@@ -4324,23 +4324,6 @@ let designSchemaJSON = #"""
             ]
           },
           "then": {
-            "oneOf": [
-              {
-                "required": [
-                  "after"
-                ]
-              },
-              {
-                "required": [
-                  "at"
-                ]
-              },
-              {
-                "required": [
-                  "message"
-                ]
-              }
-            ],
             "dependentRequired": {
               "deadline": [
                 "message",
@@ -4356,6 +4339,29 @@ let designSchemaJSON = #"""
               }
             },
             "allOf": [
+              {
+                "if": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "after"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "at"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "then": {
+                  "required": [
+                    "message"
+                  ]
+                }
+              },
               {
                 "not": {
                   "required": [
@@ -4450,32 +4456,40 @@ let designSchemaJSON = #"""
       },
       "allOf": [
         {
-          "oneOf": [
-            {
-              "required": [
-                "when"
-              ]
-            },
-            {
-              "required": [
-                "otherwise"
+          "if": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "otherwise"
+                  ]
+                }
               ]
             }
-          ]
+          },
+          "then": {
+            "required": [
+              "when"
+            ]
+          }
         },
         {
-          "oneOf": [
-            {
-              "required": [
-                "to"
-              ]
-            },
-            {
-              "required": [
-                "end"
+          "if": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "end"
+                  ]
+                }
               ]
             }
-          ]
+          },
+          "then": {
+            "required": [
+              "to"
+            ]
+          }
         }
       ],
       "patternProperties": {
@@ -4514,16 +4528,24 @@ let designSchemaJSON = #"""
           ]
         }
       },
-      "oneOf": [
+      "allOf": [
         {
-          "required": [
-            "to"
-          ]
-        },
-        {
-          "required": [
-            "end"
-          ]
+          "if": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "end"
+                  ]
+                }
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "to"
+            ]
+          }
         }
       ],
       "patternProperties": {

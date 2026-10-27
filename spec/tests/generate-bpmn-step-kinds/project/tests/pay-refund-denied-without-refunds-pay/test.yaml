@@ -1,0 +1,11 @@
+operation: payRefund
+level: system
+scenario: red
+covers: [denied without refunds.pay]
+given: "a caller without refunds.pay"
+when: "payRefund is called"
+then: "it is refused as not allowed"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."
+fixture: { caller: clerk }

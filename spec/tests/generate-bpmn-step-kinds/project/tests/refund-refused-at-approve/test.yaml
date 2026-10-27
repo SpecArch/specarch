@@ -1,0 +1,10 @@
+workflow: refund
+level: system
+scenario: red
+covers: [refused at approve]
+given: "a request waiting at approve"
+when: "a caller with refunds.approve refuses it"
+then: "the request ends refused and holdFunds, payRefund and closeRefund is not called"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

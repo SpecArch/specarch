@@ -1713,7 +1713,7 @@ func (m *merger) join(ti int, t *mergeTree, id string, q *yaml.Node) bool {
 func namedKind(tokens []string) string {
 	key := tokens[len(tokens)-1]
 	switch {
-	case tokens[0] == "workflows" && (key == "trigger" || key == "operation"):
+	case tokens[0] == "workflows" && (key == "trigger" || key == "operation" || key == "compensatedBy"):
 		return "operation"
 	case tokens[0] == "pages" && (key == "source" || key == "submit"):
 		return "operation"

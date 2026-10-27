@@ -1,0 +1,10 @@
+operation: closeRefund
+level: system
+scenario: golden
+given: "a caller with refunds.pay"
+when: "closeRefund is called"
+then: "it answers 200: Closed."
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+expect: { status: 200 }

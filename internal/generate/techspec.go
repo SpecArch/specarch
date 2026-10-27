@@ -1734,6 +1734,49 @@ func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
 		}
 		text += " It is approved at " + joinAnd(approvals) + order + " and a refusal ends it. The person who made the request never approves it."
 	}
+	var tasks, decisions, waits, failures, undone []string
+	for i, st := range items(w, "steps") {
+		at := []string{"workflows", name, "steps", fmt.Sprint(i)}
+		switch str(st, "kind") {
+		case "task":
+			tasks = append(tasks, fmt.Sprintf("%s (%s)", str(st, "name"), d.known(st, "permission", "the permission", at...)))
+		case "decision":
+			decisions = append(decisions, str(st, "name"))
+		case "wait":
+			what := str(st, "message")
+			switch {
+			case str(st, "after") != "":
+				what = str(st, "after")
+			case str(st, "at") != "":
+				what = "the moment " + str(st, "at")
+			}
+			waits = append(waits, fmt.Sprintf("%s (%s)", str(st, "name"), what))
+		case "operation":
+			if f := get(st, "onFailure"); f != nil {
+				then := "the request ends failed"
+				if to := str(f, "to"); to != "" {
+					then = "the request goes on at " + to
+				}
+				failures = append(failures, " If "+str(st, "name")+" fails, "+then+".")
+			}
+			if comp := str(st, "compensatedBy"); comp != "" {
+				undone = append([]string{fmt.Sprintf("%s by %s", str(st, "name"), comp)}, undone...)
+			}
+		}
+	}
+	if len(decisions) > 0 {
+		text += " It is routed by its subject at " + joinAnd(decisions) + "."
+	}
+	if len(tasks) > 0 {
+		text += " Work is done on it at " + joinAnd(tasks) + "."
+	}
+	if len(waits) > 0 {
+		text += " It waits at " + joinAnd(waits) + "."
+	}
+	text += strings.Join(failures, "")
+	if len(undone) > 0 {
+		text += " A request that ends refused or failed undoes " + joinAnd(undone) + ", the latest first."
+	}
 	var asks, inboxes []string
 	for _, p := range pairs(root, "pages") {
 		kind := str(p.Value, "kind")

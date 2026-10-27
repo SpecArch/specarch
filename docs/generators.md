@@ -1327,8 +1327,9 @@ streams the body (ADR-145, ADR-146).
 `specarch generate bpmn` writes each workflow as `<workflow>.bpmn`, a BPMN
 2.0 XML file a modeller or an engine opens, and `<workflow>.svg`, the same
 diagram as a picture for documents (ADR-085). The process is the workflow
-in the sequential subset the meta-model takes from BPMN (ADR-054), in the
-form `specarch extract workflows` reads:
+in the subset the meta-model takes from BPMN, with no loops and no
+parallel paths (ADR-054, ADR-198), in the form `specarch extract
+workflows` reads:
 
 | Workflow | BPMN |
 |---|---|
@@ -1337,7 +1338,13 @@ form `specarch extract workflows` reads:
 | an approval step | a user task with a potential owner per role, an interrupting timer with the deadline on it, and an exclusive gateway after it whose default flow ends the request refused |
 | `onDeadline: refuse`, `escalate` | the timer's flow to the refused end, or to the approval it escalates to |
 | an operation step | a service task naming the operation on the interface |
-| the end | one end event for the approved request and one for every refusal |
+| a decision step | an exclusive gateway named after the step, a flow per branch whose `conditionExpression` carries `when` in the language `urn:specarch:expression`, and its `otherwise` as the gateway's default flow |
+| a task step | a user task with a potential owner per performer, with an interrupting timer when it has a deadline, and no gateway after it |
+| a wait for a `message` | a receive task naming the message (`event-<channel>.<Message>`), with an interrupting timer when it has a deadline |
+| a wait `after` or `at` | an intermediate catch event with a timer: `timeDuration`, or `timeDate` in the language `urn:specarch:expression` |
+| `onFailure` | an interrupting error boundary event on the service task, its flow to the later step or the failed end; the retry limit stays in the specification |
+| `compensatedBy` | a compensation boundary event on the service task, associated with a service task `undo-<step>` marked `isForCompensation`, naming the undoing operation; the refused and failed ends carry a compensate event definition |
+| the end | one end event for the approved request, one for every refusal, and one for a failure when a step can fail |
 | the system and the approving roles | a lane set `lanes`: the lane `lane`, named after `info.title`, with the start, the operation steps, the gateways and the ends, and a lane `lane-<role>` per role that approves first on a step, in the order of its first approval, with those approvals and their timers |
 
 The references are written as the BPMN schema writes them, child elements
@@ -1354,21 +1361,27 @@ system's row, so the same workflow is always the same bytes. The SVG
 draws the same coordinates and follows the reader's light or dark
 scheme; every element is a group whose `id` is the BPMN element's id
 (`start`, `step-<step>`, `deadline-<step>`, `decision-<step>`,
-`end-done`, `end-refused`, `flow-<n>`, `lanes`, `lane`, `lane-<role>`),
+`failure-<step>`, `compensation-<step>`, `undo-<step>`,
+`association-<step>`, `end-done`, `end-refused`, `end-failed`,
+`flow-<n>`, `lanes`, `lane`, `lane-<role>`),
 a step's shapes carry `data-step` with the step's name and a role's lane
 `data-role`, so a viewer maps a click to the step and the step to the
 specification's entry.
 
 A header comment says what the file holds: the subject, the permission
-each approval checks, the events and the requirements have no BPMN element
-and stay in the specification. Read back with `extract workflows`, the
+each approval or task checks, a failure's retry limit, the events and the
+requirements have no BPMN element and stay in the specification. A branch
+that passes over steps runs along a line above the row, and an undoing
+task stands in a row above the step it undoes. Read back with `extract workflows`, the
 file gives the same description, steps, approvers, deadlines and
 escalations, the lanes read past since each approval sits in the lane of
 one of its potential owners (a lane set that does not is reported as left
 out), and the trigger's and steps' operations by name in the
 questions that `specarch merge` fills from the specification's tree; the
 cases `generate-bpmn` and `extract-workflows-reads-generated-bpmn` show
-the round trip. Each warning and open question is marked before the
+the round trip, and `generate-bpmn-step-kinds` and
+`extract-workflows-reads-step-kinds` the same for decisions, tasks,
+waits, failures and compensation. Each warning and open question is marked before the
 element it concerns (`docs/diagnostics.md`, section 5), and a draft says so in a comment and visibly in the
 SVG. A workflow another stakeholder owns is left out.
 

@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+workflow: fee-waiver
+level: acceptance
+scenario: red
+covers: [route goes on at approve]
+given: a request to waive a late fee of 2.50
+when: the request is made
+then: the request waits for a desk supervisor at approve, and waiveFee is not called yet
+verifies: [LIB-8]
+origin: inferred
+why: Drafted by specarch derive for the decision's otherwise, then completed by hand with an amount just over the limit.

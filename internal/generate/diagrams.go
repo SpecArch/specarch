@@ -493,7 +493,10 @@ func flowFlowchart(flow *yaml.Node) string {
 
 // workflowFlowchart draws a workflow as its steps in order: each approval
 // with its approvers and permission, the refusal that ends the request,
-// the deadline on the edge it takes, and each operation the system calls.
+// the deadline on the edge it takes, and each operation the system calls;
+// a decision as a rhombus with an edge per branch, a task with its
+// performers, a wait with what it waits for, a failure on the edge it
+// takes, and the operation that undoes a step on a dotted edge (ADR-198).
 func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 	steps := items(w, "steps")
 	if len(steps) == 0 {
@@ -503,37 +506,111 @@ func workflowFlowchart(d *doc, name string, w *yaml.Node) string {
 	b.WriteString("flowchart LR\n")
 	fmt.Fprintf(&b, "  start([\"%s answers 202\"])\n", mermaidText(d.known(w, "trigger", "the trigger", "workflows", name)))
 	index := map[string]int{}
-	refused := false
+	refused, failed := false, false
 	for i, st := range steps {
 		index[str(st, "name")] = i
 		at := []string{"workflows", name, "steps", fmt.Sprint(i)}
-		if str(st, "kind") == "approval" {
+		switch str(st, "kind") {
+		case "approval":
 			refused = true
 			approvers := strings.Join(strs(st, "approvers"), ", ")
 			if approvers == "" {
 				approvers = d.known(st, "approvers", "the approvers", at...)
 			}
 			fmt.Fprintf(&b, "  s%d[\"%s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(approvers), mermaidText(d.known(st, "permission", "the permission", at...)))
-		} else {
+		case "task":
+			if str(st, "deadline") != "" && str(st, "onDeadline") != "escalate" {
+				refused = true
+			}
+			performers := strings.Join(strs(st, "performers"), ", ")
+			if performers == "" {
+				performers = d.known(st, "performers", "the performers", at...)
+			}
+			fmt.Fprintf(&b, "  s%d[\"task %s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(performers), mermaidText(d.known(st, "permission", "the permission", at...)))
+		case "decision":
+			fmt.Fprintf(&b, "  s%d{\"%s\"}\n", i, mermaidText(str(st, "name")))
+			for _, br := range items(st, "branches") {
+				refused = refused || str(br, "end") == "refused"
+				failed = failed || str(br, "end") == "failed"
+			}
+		case "wait":
+			what := str(st, "message")
+			switch {
+			case str(st, "after") != "":
+				what = "after " + str(st, "after")
+			case str(st, "at") != "":
+				what = "at " + str(st, "at")
+			}
+			if str(st, "deadline") != "" {
+				refused = true
+			}
+			fmt.Fprintf(&b, "  s%d>\"wait %s: %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(what))
+		default:
 			fmt.Fprintf(&b, "  s%d[[\"%s\"]]\n", i, mermaidText(d.known(st, "operation", "the operation", at...)))
+			if f := get(st, "onFailure"); f != nil && str(f, "to") == "" {
+				failed = true
+			}
+			if comp := str(st, "compensatedBy"); comp != "" {
+				fmt.Fprintf(&b, "  u%d[[\"%s\"]]\n", i, mermaidText(comp))
+			}
 		}
 	}
 	b.WriteString("  done((\"approved\"))\n")
 	if refused {
 		b.WriteString("  refused((\"refused\"))\n")
 	}
+	if failed {
+		b.WriteString("  failed((\"failed\"))\n")
+	}
 	b.WriteString("  start --> s0\n")
+	target := func(to string) string {
+		if j, ok := index[to]; ok {
+			return fmt.Sprintf("s%d", j)
+		}
+		return "done"
+	}
 	for i, st := range steps {
 		next := "done"
 		if i+1 < len(steps) {
 			next = fmt.Sprintf("s%d", i+1)
 		}
-		if str(st, "kind") != "approval" {
+		kind := str(st, "kind")
+		switch kind {
+		case "decision":
+			for _, br := range items(st, "branches") {
+				label := str(br, "when")
+				if get(br, "otherwise") != nil {
+					label = "otherwise"
+				}
+				to := target(str(br, "to"))
+				switch str(br, "end") {
+				case "approved":
+					to = "done"
+				case "refused", "failed":
+					to = str(br, "end")
+				}
+				fmt.Fprintf(&b, "  s%d -->|\"%s\"| %s\n", i, mermaidText(label), to)
+			}
+			continue
+		case "approval":
+			fmt.Fprintf(&b, "  s%d -->|\"approved\"| %s\n", i, next)
+			fmt.Fprintf(&b, "  s%d -->|\"refused\"| refused\n", i)
+		default:
 			fmt.Fprintf(&b, "  s%d --> %s\n", i, next)
+		}
+		if f := get(st, "onFailure"); f != nil && kind == "operation" {
+			to := "failed"
+			if str(f, "to") != "" {
+				to = target(str(f, "to"))
+			}
+			fmt.Fprintf(&b, "  s%d -->|\"fails\"| %s\n", i, to)
+		}
+		if str(st, "compensatedBy") != "" && kind == "operation" {
+			fmt.Fprintf(&b, "  s%d -.->|\"undone by\"| u%d\n", i, i)
+		}
+		if kind == "operation" || kind == "decision" || str(st, "deadline") == "" && kind != "approval" {
 			continue
 		}
-		fmt.Fprintf(&b, "  s%d -->|\"approved\"| %s\n", i, next)
-		fmt.Fprintf(&b, "  s%d -->|\"refused\"| refused\n", i)
 		late := "refused"
 		if to, ok := index[str(st, "escalateTo")]; ok && str(st, "onDeadline") == "escalate" {
 			late = fmt.Sprintf("s%d", to)

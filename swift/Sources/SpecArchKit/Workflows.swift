@@ -70,6 +70,7 @@ extension Checker {
                     if let comp = st.child("compensatedBy"), d.operations[comp.value] == nil {
                         add(comp, pointer(at + ["compensatedBy"]), .workflow, "\(comp.value) is not an operationId of the specification\(suggest(comp.value, opNames))")
                     }
+                    checkOneOf(st.child("onFailure"), at + ["onFailure"], "a failure goes on at a later step or ends the request", ["to", "end"])
                     if let to = st.child("onFailure")?.child("to"), !laterStep(later, "", to.value) {
                         add(to, pointer(at + ["onFailure", "to"]), .workflow, "\(to.value) is not a step after \(str(stepName)); a failure goes on at a later step of the workflow, or ends it with end: failed")
                     }
@@ -77,6 +78,8 @@ extension Checker {
                     let branches = items(st.child("branches"))
                     for (j, br) in branches.enumerated() {
                         let bat = at + ["branches", "\(j)"]
+                        checkOneOf(br, bat, "a branch has a condition or is taken otherwise", ["when", "otherwise"])
+                        checkOneOf(br, bat, "a branch goes on at a later step or ends the request", ["to", "end"])
                         if let env {
                             checkCondition(br.child("when"), pointer(bat + ["when"]), "the branch's condition", env)
                         }
@@ -91,6 +94,7 @@ extension Checker {
                         }
                     }
                 case "wait":
+                    checkOneOf(st, at, "a wait waits for one thing", ["message", "after", "at"])
                     checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the wait")
                     if let m = st.child("message"), d.message(m.value) == nil {
                         add(m, pointer(at + ["message"]), .workflow, "\(m.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
@@ -104,6 +108,16 @@ extension Checker {
                 }
             }
         }
+    }
+
+    /// Reports, at the second, two keys of which an entry gives one: the
+    /// schema reports none of them given, as the one key missing.
+    func checkOneOf(_ n: YNode?, _ at: [String], _ rule: String, _ keys: [String]) {
+        guard let n else { return }
+        let given = keys.filter { n.child($0) != nil }
+        guard given.count >= 2, let node = n.child(given[1]) else { return }
+        let who = n.child("name") != nil ? str(n.child("name")) : "the entry"
+        add(node, pointer(at + [given[1]]), .workflow, "\(who) gives both \(given[0]) and \(given[1]), and \(rule); keep one of \(keys.joined(separator: ", "))")
     }
 
     /// Checks that each role an approval or a task names is a role and
@@ -239,7 +253,8 @@ extension Design {
             case "wait":
                 let deadline = str(st.child("deadline"))
                 if !deadline.isEmpty {
-                    s.byNature("deadline passes at " + step, waiting + " for " + str(st.child("message")), deadline + " passes with no message", ended("refused"))
+                    let message = str(st.child("message"))
+                    s.byNature("deadline passes at " + step, waiting + " for " + (message.isEmpty ? "the message of " + step : message), deadline + " passes with no message", ended("refused"))
                 }
             case "decision":
                 for br in items(st.child("branches")) {

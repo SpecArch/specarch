@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.3.0 of the specification: 5 stakeholders, 10 needs and 102 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.3.0 of the specification: 5 stakeholders, 10 needs and 103 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,11 +33,11 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-97 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
@@ -99,6 +99,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-98 | functional | must | accepted | A specification shall describe a state machine by its control state, one enum's value held in an entity's field or named by the machine, and its extended state, the entity's fields or the machine's variables with their types, defaults and constraints; a transition shall say its cause, its condition, what it sets and the else case; a state shall carry entry, exit, an invariant, child states, history and finality; an entity may have several machines, a machine may have no entity, and the validator and the diagram shall show the machine as it is. |
 | SA-99 | functional | must | proposed | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. |
 | SA-102 | functional | should | proposed | A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports. |
+| SA-103 | functional | should | proposed | A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -990,6 +991,22 @@ Acceptance criteria:
 - specarch-gen-ui, specarch-gen-ui-typescript and specarch-gen-ui-swiftui read the roles the session answers when the ui target's settings.session names them and open the home of the first role the session answers that has one; a page or a menu entry of signedIn is open to every signed-in person, and a field is read-only or hidden by the permissions the session answers; without a session they warn that what they cannot honour is left to the service.
 
 **Insight:** A person meets an application through its pages, in the order they reach them, and the analyst writing the specification asks what each role sees first, what every person has whatever their role, and which fields a role may change or see; until each is written, the screens fall back on a menu nobody chose and a form that shows every field to everyone. A gap in the navigation is found by a check rather than by a reader, and is a question the walkthrough asks (ADR-197).
+
+### SA-103
+
+A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-1, NEED-5.
+
+Acceptance criteria:
+
+- A decision's branch whose condition names no field of the subject or gives no true or false, an otherwise that is not the last branch, a last branch with a condition, and a branch or a failure that goes on at a step that is not later are each reported at the key, as expression_name, expression_type or workflow.
+- A task's performer that is not a role or does not grant the task's permission, and a task's escalation to a step that is not a later task, are reported as workflow; a wait's message that is not a channel message, and an at that gives no instant or date, may be null, or gives a date with no timeZone, are reported as workflow, expression_type or time_zone.
+- A workflow gets a case per branch of each decision, the deadline at each task and each wait for a message, a task done without its permission, and the failure of each operation step with onFailure, critical whatever the harm; a case where the request ends after a step with compensatedBy names the operation that undoes it, the latest step first.
+- specarch generate bpmn writes a decision as an exclusive gateway with a condition on each flow and its otherwise as the default flow, a task as a user task, a wait as an intermediate catch event, a failure as an error boundary event, and compensatedBy as a compensation boundary event with its handler; specarch extract workflows reads each back, so the file generate writes gives the workflow it was written from.
+- Both builds print the same lines for every case.
+
+**Insight:** The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.
 
 ### SA-7
 

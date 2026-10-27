@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with no approval record and a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment; specarch-gen-bpmn built from this repository on PATH"
+when: "generate bpmn is run with --unapproved"
+then: "it writes refund.bpmn with the decision as an exclusive gateway whose flows carry its conditions in the language urn:specarch:expression and whose default is its otherwise, the tasks as user tasks with their performers, the message wait as a receive task with a timer, the other waits as intermediate timer catch events, each onFailure as an error boundary event, compensatedBy as a compensation boundary event associated with a service task marked isForCompensation, and refused and failed ends that compensate; and refund.svg with the same; and exits 0"
+verifies: [SA-103]

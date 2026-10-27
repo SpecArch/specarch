@@ -81,30 +81,30 @@ questions:
     blocks: ['#/workflows/audit-review']
     decidedBy: system-owner
     why: Only the steps before the element are written, so the workflow may be missing a part of the process.
-  # specarch-problem: question: open_question: (must, decision) Which roles may approve step review of workflow audit-review? Its user task names no potential owner. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
+  # specarch-problem: question: open_question: (must, decision) Which roles may do step review of workflow audit-review? Its user task names no potential owner. Decided by system-owner. Answer with a decision record that names Q-11 under answers. [Q-11]
   Q-11:
-    question: Which roles may approve step review of workflow audit-review? Its user task names no potential owner.
+    question: Which roles may do step review of workflow audit-review? Its user task names no potential owner.
     kind: decision
     priority: must
-    blocks: ['#/workflows/audit-review/steps/0/approvers']
+    blocks: ['#/workflows/audit-review/steps/0/performers']
     decidedBy: system-owner
-    why: An approval names the roles that may approve it.
-  # specarch-problem: question: open_question: (must, decision) Which permission does step review of workflow audit-review check? It cannot be the permission of the operation that starts the workflow. Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
+    why: A task names the roles whose people may do it.
+  # specarch-problem: question: open_question: (must, decision) Which permission does step review of workflow audit-review check? Decided by system-owner. Answer with a decision record that names Q-12 under answers. [Q-12]
   Q-12:
-    question: Which permission does step review of workflow audit-review check? It cannot be the permission of the operation that starts the workflow.
+    question: Which permission does step review of workflow audit-review check?
     kind: decision
     priority: must
     blocks: ['#/workflows/audit-review/steps/0/permission']
     decidedBy: system-owner
-    why: BPMN names who may approve and not the permission the approval checks.
-  # specarch-problem: question: open_question: (must, decision) How long does step review of workflow audit-review wait for an answer? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
+    why: BPMN names who may do a task and not the permission it checks.
+  # specarch-problem: question: open_question: (must, decision) How long does step review of workflow audit-review wait for the work to be done? Decided by system-owner. Answer with a decision record that names Q-13 under answers. [Q-13]
   Q-13:
-    question: How long does step review of workflow audit-review wait for an answer?
+    question: How long does step review of workflow audit-review wait for the work to be done?
     kind: decision
     priority: must
     blocks: ['#/workflows/audit-review/steps/0/deadline']
     decidedBy: system-owner
-    why: An approval has a deadline, as an ISO 8601 duration in days, hours, minutes and seconds; the user task has no timer the subset holds.
+    why: The user task has a timer the subset does not hold; a task's deadline is an ISO 8601 duration in days, hours, minutes and seconds.
   # specarch-problem: question: open_question: (must, decision) Which permissions does role branch-manager grant? The BPMN file names it as a potential owner and says nothing of what it may do. Decided by system-owner. Answer with a decision record that names Q-14 under answers. [Q-14]
   Q-14:
     question: Which permissions does role branch-manager grant? The BPMN file names it as a potential owner and says nothing of what it may do.
@@ -177,8 +177,18 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'processes/requests.bpmn:53', says: 'Not held: the lanes of process audit-review are not read: a potential owner on each user task names who approves; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: processes/requests.bpmn:65: serviceTask record is not on the path from the start event the steps follow; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
+  # specarch-problem: question: open_question: (could, decision) Not held: processes/requests.bpmn:56: user task review has no gateway after it that refuses the request, so step review is read as a task; an approval is a user task followed by one. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-22 under answers. [Q-22]
   Q-22:
+    question: 'Not held: processes/requests.bpmn:56: user task review has no gateway after it that refuses the request, so step review is read as a task; an approval is a user task followed by one. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/workflows/audit-review']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'processes/requests.bpmn:56', says: 'Not held: user task review has no gateway after it that refuses the request, so step review is read as a task; an approval is a user task followed by one.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: processes/requests.bpmn:65: serviceTask record is not on the path from the start event the steps follow; left out. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
+  Q-23:
     question: 'Not held: processes/requests.bpmn:65: serviceTask record is not on the path from the start event the steps follow; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -187,8 +197,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: code, clause: 'processes/requests.bpmn:65', says: 'Not held: serviceTask record is not on the path from the start event the steps follow; left out.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: processes/requests.bpmn:70: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out. Does the specification need it, written another way or described by hand? It blocks workflows. Decided by system-owner. Answer with a decision record that names Q-23 under answers. [Q-23]
-  Q-23:
+  # specarch-problem: question: open_question: (could, decision) Not held: processes/requests.bpmn:70: BPMNDiagram is not in BPMN's semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool's extension; left out. Does the specification need it, written another way or described by hand? It blocks workflows. Decided by system-owner. Answer with a decision record that names Q-24 under answers. [Q-24]
+  Q-24:
     question: 'Not held: processes/requests.bpmn:70: BPMNDiagram is not in BPMN''s semantic model (its namespace is http://www.omg.org/spec/BPMN/20100524/DI), such as diagram layout or a tool''s extension; left out. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could

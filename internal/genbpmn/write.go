@@ -23,10 +23,14 @@ const (
 func marksOf(wf *workflow, problems []mark.Problem) map[string][]string {
 	byPointer := map[string]string{wf.ptr: processID}
 	for _, s := range wf.shapes {
-		switch s.kind {
-		case "startEvent", "userTask", "serviceTask":
+		switch {
+		case s.kind == "startEvent", s.kind == "userTask", s.kind == "serviceTask", s.kind == "receiveTask", s.kind == "intermediateCatchEvent":
 			byPointer[s.ptr] = s.id
-		case "boundaryEvent":
+		case s.kind == "exclusiveGateway" && text(s.step["kind"]) == "decision":
+			byPointer[s.ptr] = s.id
+		case s.kind == "boundaryEvent" && s.event == "error":
+			byPointer[s.ptr] = s.id
+		case s.kind == "boundaryEvent" && s.event == "timer":
 			step := strings.TrimSuffix(s.ptr, "/deadline")
 			for _, key := range []string{"deadline", "onDeadline", "escalateTo"} {
 				byPointer[step+"/"+key] = s.id
@@ -84,6 +88,9 @@ func esc(s string) string { return xmlEscaper.Replace(s) }
 // partial says what the file holds of the workflow and what it leaves to
 // the specification, since BPMN has no element for the rest.
 func (wf *workflow) partial() string {
+	if wf.extended {
+		return fmt.Sprintf("Workflow %s in a subset of BPMN 2.0 with no loops and no parallel paths: its steps, the roles that approve or do a task, the deadlines, the decisions with their conditions, the waits, the failures, the operations that undo a step, and the operations and messages by name. The subject, the permission each approval or task checks, the retry limits, the events and the requirements are in the specification only.", wf.name)
+	}
 	return fmt.Sprintf("Workflow %s in the sequential subset of BPMN 2.0: its steps, the roles that approve, the deadlines and the operations by name. The subject, the permission each approval checks, the events and the requirements are in the specification only.", wf.name)
 }
 
@@ -114,6 +121,9 @@ func (wf *workflow) bpmn(header, draft string) string {
 		for _, op := range wf.operations {
 			fmt.Fprintf(&b, "  <message id=\"message-%s\" name=\"%s request\"/>\n", esc(op), esc(op))
 		}
+	}
+	for _, m := range wf.messages {
+		fmt.Fprintf(&b, "  <message id=\"%s\" name=\"%s\"/>\n", esc(messageID(m)), esc(m))
 	}
 	for _, r := range wf.roles {
 		mark("role-"+r, "  ")
@@ -146,28 +156,66 @@ func (wf *workflow) bpmn(header, draft string) string {
 			b.WriteString("    </startEvent>\n")
 		case "userTask":
 			fmt.Fprintf(&b, "    <userTask id=\"%s\" name=\"%s\">\n", esc(s.id), esc(s.name))
-			for _, r := range list(s.step["approvers"]) {
+			for _, r := range list(s.step[ownersKey(s.step)]) {
 				fmt.Fprintf(&b, "      <potentialOwner>\n        <resourceRef>role-%s</resourceRef>\n      </potentialOwner>\n", esc(text(r)))
 			}
 			b.WriteString("    </userTask>\n")
 		case "serviceTask":
-			fmt.Fprintf(&b, "    <serviceTask id=\"%s\" name=\"%s\" operationRef=\"operation-%s\"/>\n", esc(s.id), esc(s.name), esc(s.sub))
+			undo := ""
+			if s.forCompensation {
+				undo = ` isForCompensation="true"`
+			}
+			fmt.Fprintf(&b, "    <serviceTask id=\"%s\" name=\"%s\"%s operationRef=\"operation-%s\"/>\n", esc(s.id), esc(s.name), undo, esc(s.sub))
+		case "receiveTask":
+			fmt.Fprintf(&b, "    <receiveTask id=\"%s\" name=\"%s\" messageRef=\"%s\"/>\n", esc(s.id), esc(s.name), esc(messageID(s.sub)))
+		case "intermediateCatchEvent":
+			language := ""
+			if s.event == "timeDate" {
+				language = fmt.Sprintf(" language=%q", expressionLanguage)
+			}
+			fmt.Fprintf(&b, "    <intermediateCatchEvent id=\"%s\" name=\"%s\">\n      <timerEventDefinition>\n        <%s xsi:type=\"tFormalExpression\"%s>%s</%s>\n      </timerEventDefinition>\n    </intermediateCatchEvent>\n",
+				esc(s.id), esc(s.name), s.event, language, esc(s.sub), s.event)
 		case "boundaryEvent":
+			if s.event == "error" {
+				fmt.Fprintf(&b, "    <boundaryEvent id=\"%s\" attachedToRef=\"%s\" cancelActivity=\"true\">\n      <errorEventDefinition/>\n    </boundaryEvent>\n", esc(s.id), esc(s.attached))
+				break
+			}
+			if s.event == "compensate" {
+				fmt.Fprintf(&b, "    <boundaryEvent id=\"%s\" attachedToRef=\"%s\">\n      <compensateEventDefinition/>\n    </boundaryEvent>\n", esc(s.id), esc(s.attached))
+				break
+			}
 			fmt.Fprintf(&b, "    <boundaryEvent id=\"%s\" attachedToRef=\"%s\" cancelActivity=\"true\">\n      <timerEventDefinition>\n        <timeDuration xsi:type=\"tFormalExpression\">%s</timeDuration>\n      </timerEventDefinition>\n    </boundaryEvent>\n",
 				esc(s.id), esc(s.attached), esc(s.name))
 		case "exclusiveGateway":
-			fmt.Fprintf(&b, "    <exclusiveGateway id=\"%s\" name=\"%s\" default=\"%s\"/>\n", esc(s.id), esc(s.name), wf.defaults[s.id])
+			def := ""
+			if d := wf.defaults[s.id]; d != "" || text(s.step["kind"]) == "approval" {
+				def = fmt.Sprintf(" default=\"%s\"", d)
+			}
+			fmt.Fprintf(&b, "    <exclusiveGateway id=\"%s\" name=\"%s\"%s/>\n", esc(s.id), esc(s.name), def)
 		case "endEvent":
+			if wf.compensated && s.id != "end-done" {
+				// A request that ends refused or failed undoes the steps
+				// done, each by its compensation handler.
+				fmt.Fprintf(&b, "    <endEvent id=\"%s\" name=\"%s\">\n      <compensateEventDefinition/>\n    </endEvent>\n", esc(s.id), esc(s.name))
+				break
+			}
 			fmt.Fprintf(&b, "    <endEvent id=\"%s\" name=\"%s\"/>\n", esc(s.id), esc(s.name))
 		}
 	}
 	for _, f := range wf.flows {
 		if f.condition != "" {
-			fmt.Fprintf(&b, "    <sequenceFlow id=\"%s\"%s sourceRef=\"%s\" targetRef=\"%s\">\n      <conditionExpression xsi:type=\"tFormalExpression\">%s</conditionExpression>\n    </sequenceFlow>\n",
-				f.id, nameAttr(f.label), esc(f.source), esc(f.target), esc(f.condition))
+			language := ""
+			if f.language != "" {
+				language = fmt.Sprintf(" language=%q", f.language)
+			}
+			fmt.Fprintf(&b, "    <sequenceFlow id=\"%s\"%s sourceRef=\"%s\" targetRef=\"%s\">\n      <conditionExpression xsi:type=\"tFormalExpression\"%s>%s</conditionExpression>\n    </sequenceFlow>\n",
+				f.id, nameAttr(f.label), esc(f.source), esc(f.target), language, esc(f.condition))
 			continue
 		}
 		fmt.Fprintf(&b, "    <sequenceFlow id=\"%s\"%s sourceRef=\"%s\" targetRef=\"%s\"/>\n", f.id, nameAttr(f.label), esc(f.source), esc(f.target))
+	}
+	for _, a := range wf.associations {
+		fmt.Fprintf(&b, "    <association id=\"%s\" sourceRef=\"%s\" targetRef=\"%s\" associationDirection=\"One\"/>\n", esc(a.id), esc(a.source), esc(a.target))
 	}
 	b.WriteString("  </process>\n")
 	fmt.Fprintf(&b, "  <bpmndi:BPMNDiagram id=\"diagram-%s\">\n    <bpmndi:BPMNPlane id=\"plane-%s\" bpmnElement=\"%s\">\n", esc(wf.name), esc(wf.name), processID)
@@ -183,7 +231,7 @@ func (wf *workflow) bpmn(header, draft string) string {
 		fmt.Fprintf(&b, "      <bpmndi:BPMNShape id=\"shape-%s\" bpmnElement=\"%s\"%s>\n        <dc:Bounds x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\"/>\n      </bpmndi:BPMNShape>\n",
 			esc(s.id), esc(s.id), marker, s.x, s.y, s.w, s.h)
 	}
-	for _, f := range wf.flows {
+	for _, f := range append(append([]*flow{}, wf.flows...), wf.associations...) {
 		fmt.Fprintf(&b, "      <bpmndi:BPMNEdge id=\"edge-%s\" bpmnElement=\"%s\">\n", f.id, f.id)
 		for _, p := range f.points {
 			fmt.Fprintf(&b, "        <di:waypoint x=\"%d\" y=\"%d\"/>\n", p[0], p[1])
@@ -270,9 +318,19 @@ func (wf *workflow) svg(header, draft string) string {
 			if a[0] == c[0] { // a flow that goes down first is labelled beside it
 				x, y = a[0]+6, a[1]+16
 			}
+			if f.corner { // a branch is labelled where it turns
+				x, y = c[0]+6, c[1]-6
+			}
 			fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", x, y, esc(f.label))
 		}
 		b.WriteString("    </g>\n")
+	}
+	for _, a := range wf.associations {
+		var pts []string
+		for _, p := range a.points {
+			pts = append(pts, fmt.Sprintf("%d,%d", p[0], p[1]))
+		}
+		fmt.Fprintf(&b, "    <g id=\"%s\">\n      <polyline class=\"line\" stroke-dasharray=\"4 3\" points=\"%s\"/>\n    </g>\n", esc(a.id), strings.Join(pts, " "))
 	}
 	for _, s := range wf.shapes {
 		for _, m := range wf.shapeMarks(s) {
@@ -291,10 +349,17 @@ func (wf *workflow) svg(header, draft string) string {
 			}
 			fmt.Fprintf(&b, "      <circle class=\"%s\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", class, s.cx(), s.cy(), s.w/2)
 			fmt.Fprintf(&b, "      <text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.bottom()+16, esc(s.name))
-		case "userTask", "serviceTask":
+		case "userTask", "serviceTask", "receiveTask":
 			kind := "approval"
-			if s.kind == "serviceTask" {
+			switch {
+			case s.forCompensation:
+				kind = "undo"
+			case s.kind == "serviceTask":
 				kind = "operation"
+			case s.kind == "receiveTask":
+				kind = "wait"
+			case text(s.step["kind"]) == "task":
+				kind = "task"
 			}
 			fmt.Fprintf(&b, "      <rect class=\"shape\" x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"10\"/>\n", s.x, s.y, s.w, s.h)
 			fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\">%s</text>\n", s.x+8, s.y+16, kind)
@@ -302,19 +367,49 @@ func (wf *workflow) svg(header, draft string) string {
 			if s.sub != "" {
 				fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.cy()+20, esc(s.sub))
 			}
-		case "boundaryEvent":
+		case "boundaryEvent", "intermediateCatchEvent":
 			fmt.Fprintf(&b, "      <circle class=\"shape\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", s.cx(), s.cy(), s.w/2)
 			fmt.Fprintf(&b, "      <circle class=\"line\" cx=\"%d\" cy=\"%d\" r=\"%d\"/>\n", s.cx(), s.cy(), s.w/2-4)
-			fmt.Fprintf(&b, "      <polyline class=\"line\" points=\"%d,%d %d,%d %d,%d\"/>\n", s.cx(), s.cy()-9, s.cx(), s.cy(), s.cx()+7, s.cy())
+			switch s.event {
+			case "error":
+				fmt.Fprintf(&b, "      <polyline class=\"line\" points=\"%d,%d %d,%d %d,%d %d,%d\"/>\n", s.cx()-7, s.cy()+7, s.cx()-2, s.cy()-6, s.cx()+2, s.cy()+2, s.cx()+7, s.cy()-7)
+			case "compensate":
+				fmt.Fprintf(&b, "      <path class=\"head\" d=\"M%d,%d L%d,%d L%d,%d z M%d,%d L%d,%d L%d,%d z\"/>\n",
+					s.cx()-8, s.cy(), s.cx(), s.cy()-5, s.cx(), s.cy()+5, s.cx(), s.cy(), s.cx()+8, s.cy()-5, s.cx()+8, s.cy()+5)
+			default:
+				fmt.Fprintf(&b, "      <polyline class=\"line\" points=\"%d,%d %d,%d %d,%d\"/>\n", s.cx(), s.cy()-9, s.cx(), s.cy(), s.cx()+7, s.cy())
+			}
+			if s.kind == "intermediateCatchEvent" {
+				fmt.Fprintf(&b, "      <text x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.bottom()+16, esc(s.name))
+				fmt.Fprintf(&b, "      <text class=\"small\" x=\"%d\" y=\"%d\" text-anchor=\"middle\">%s</text>\n", s.cx(), s.bottom()+30, esc(s.sub))
+			}
 		case "exclusiveGateway":
 			cx, cy, r := s.cx(), s.cy(), s.w/2
 			fmt.Fprintf(&b, "      <polygon class=\"shape\" points=\"%d,%d %d,%d %d,%d %d,%d\"/>\n", cx, cy-r, cx+r, cy, cx, cy+r, cx-r, cy)
 			fmt.Fprintf(&b, "      <path class=\"line\" d=\"M%d,%d L%d,%d M%d,%d L%d,%d\"/>\n", cx-8, cy-8, cx+8, cy+8, cx+8, cy-8, cx-8, cy+8)
+			if text(s.step["kind"]) == "decision" { // above on the left, clear of the branches
+				fmt.Fprintf(&b, "      <text x=\"%d\" y=\"%d\" text-anchor=\"end\">%s</text>\n", cx-r/2, s.y-4, esc(s.name))
+			}
 		}
 		b.WriteString("    </g>\n")
 	}
 	b.WriteString("  </g>\n</svg>\n")
 	return b.String()
+}
+
+// messageID is the id of the message element a wait names: the channel
+// message with its slash, which an XML id may not hold, written as a dot.
+func messageID(m string) string {
+	return "event-" + strings.ReplaceAll(m, "/", ".")
+}
+
+// ownersKey is the key of a user task's potential owners: a task's
+// performers, an approval's approvers.
+func ownersKey(step map[string]any) string {
+	if text(step["kind"]) == "task" {
+		return "performers"
+	}
+	return "approvers"
 }
 
 // nameAttr is a flow's name attribute, so a modeller shows its label too.
@@ -337,7 +432,7 @@ func (wf *workflow) shapeMarks(s *shape) []string {
 	case "serviceTask":
 		ids = append(ids, "operation-"+s.sub)
 	case "userTask":
-		for _, r := range list(s.step["approvers"]) {
+		for _, r := range list(s.step[ownersKey(s.step)]) {
 			ids = append(ids, "role-"+text(r))
 		}
 	}

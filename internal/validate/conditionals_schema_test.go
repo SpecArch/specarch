@@ -36,6 +36,11 @@ type conditional struct {
 // specification, with the key the if reads absent or given each value, and
 // each key a branch asks for or refuses absent or kept. Only the messages
 // change, never which file is valid (docs/meta-model-1.0.0.md).
+// workflowStepAdded are the keys 1.x gave a workflow step beside its
+// approvals and operations (ADR-198); none decides an approval or an
+// operation step, which the two rules compare.
+var workflowStepAdded = []string{"performers", "onFailure", "compensatedBy", "branches", "after", "at", "message"}
+
 func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 	c := jsonschema.NewCompiler()
 	for id, raw := range map[string][]byte{designSchemaID: schema.Definition, earlierDesignSchemaID: schema.DefinitionEarlier} {
@@ -98,7 +103,7 @@ func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 					out = append(out, listOf(w["steps"])...)
 				}
 				return out
-			}},
+			}, added: workflowStepAdded},
 		{def: "workflowStep", key: "onDeadline", values: []any{"refuse", "escalate", "other"}, keys: []string{"escalateTo"},
 			objects: func(r map[string]any) []map[string]any {
 				var out []map[string]any
@@ -106,7 +111,7 @@ func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 					out = append(out, listOf(w["steps"])...)
 				}
 				return out
-			}},
+			}, added: workflowStepAdded},
 		{def: "decision", key: "status", values: []any{"proposed", "accepted", "deprecated", "superseded", "other"}, keys: []string{"supersededBy"},
 			objects: func(r map[string]any) []map[string]any { return mapsOf(r["decisions"]) }, added: []string{"restsOn"}},
 	}

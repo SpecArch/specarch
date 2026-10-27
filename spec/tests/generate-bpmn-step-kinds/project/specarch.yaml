@@ -1,0 +1,104 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stages: [tests]
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Refund:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      amountCents: { type: integer, format: int32 }
+      payBy: { type: string, format: date-time }
+    required: [id, amountCents, payBy]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+channels:
+  refunds:
+    description: What the payment service says of a refund.
+    messages:
+      RefundPaid: { summary: A refund reached the member's account., payload: { $ref: "#/entities/Refund" } }
+    satisfies: [CASE-1]
+workflows:
+  refund:
+    description: A refund is routed by its amount, checked by a clerk, paid, and closed once the payment is confirmed.
+    trigger: askRefund
+    subject: Refund
+    steps:
+      - name: route
+        kind: decision
+        branches:
+          - { when: "amountCents > 10000", to: approve }
+          - { when: "amountCents == 0", end: refused }
+          - { otherwise: true, to: check }
+      - name: approve
+        kind: approval
+        approvers: [manager]
+        permission: refunds.approve
+        deadline: P2D
+        onDeadline: refuse
+      - name: check
+        kind: task
+        performers: [clerk]
+        permission: refunds.check
+        deadline: P1D
+        onDeadline: escalate
+        escalateTo: recheck
+      - name: recheck
+        kind: task
+        performers: [manager]
+        permission: refunds.check
+      - name: hold
+        kind: operation
+        operation: holdFunds
+        compensatedBy: releaseFunds
+      - name: pay
+        kind: operation
+        operation: payRefund
+        onFailure: { retries: { limit: 3 }, end: failed }
+      - name: confirmed
+        kind: wait
+        message: refunds/RefundPaid
+        deadline: P5D
+        onDeadline: refuse
+      - name: cool
+        kind: wait
+        after: P1D
+      - name: due
+        kind: wait
+        at: payBy
+      - name: close
+        kind: operation
+        operation: closeRefund
+        onFailure: { to: due2 }
+      - name: due2
+        kind: wait
+        after: PT1H
+    satisfies: [CASE-1]
+paths:
+  /refunds:
+    post:
+      operationId: askRefund
+      summary: Ask for a refund
+      permission: refunds.ask
+      responses:
+        "202": { description: The request waits. }
+      satisfies: [CASE-1]
+  /refunds/hold:
+    post: { operationId: holdFunds, summary: Hold the funds, permission: refunds.pay, responses: { "200": { description: Held. } }, satisfies: [CASE-1] }
+  /refunds/release:
+    post: { operationId: releaseFunds, summary: Release the funds, permission: refunds.pay, responses: { "200": { description: Released. } }, satisfies: [CASE-1] }
+  /refunds/pay:
+    post: { operationId: payRefund, summary: Pay the refund, permission: refunds.pay, responses: { "200": { description: Paid. } }, satisfies: [CASE-1] }
+  /refunds/close:
+    post: { operationId: closeRefund, summary: Close the refund, permission: refunds.pay, responses: { "200": { description: Closed. } }, satisfies: [CASE-1] }
+permissions:
+  refunds.ask: { description: Ask for a refund. }
+  refunds.approve: { description: Approve a large refund. }
+  refunds.check: { description: Check a refund. }
+  refunds.pay: { description: Pay a refund. }
+roles:
+  desk: { description: The desk., permissions: [refunds.ask] }
+  clerk: { description: The clerk., permissions: [refunds.check] }
+  manager: { description: The manager., permissions: [refunds.approve, refunds.check] }
+  payments: { description: The payment service., permissions: [refunds.pay] }

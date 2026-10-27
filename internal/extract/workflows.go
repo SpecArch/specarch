@@ -95,11 +95,19 @@ func parseXML(data []byte) (*xmlElement, error) {
 // reference, so they write nothing of their own.
 var bpmnReferenced = map[string]bool{"interface": true, "resource": true, "message": true, "itemDefinition": true}
 
-// The elements of a process the sequential subset holds (ADR-054).
+// The elements of a process the subset holds (ADR-054, ADR-198).
 var bpmnHeld = map[string]bool{
 	"startEvent": true, "endEvent": true, "userTask": true, "serviceTask": true,
 	"exclusiveGateway": true, "sequenceFlow": true, "boundaryEvent": true, "documentation": true,
+	"receiveTask": true, "intermediateCatchEvent": true, "association": true,
 }
+
+// expressionLanguage is the language generate bpmn names on the conditions
+// and moments it writes: SpecArch's subset of CEL over the subject.
+const expressionLanguage = "urn:specarch:expression"
+
+// channelMessage is a message's name as a wait names it, channel/Message.
+var channelMessage = regexp.MustCompile(`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$`)
 
 var stepWord = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
 
@@ -107,6 +115,9 @@ var stepWord = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
 type bpmnStep struct {
 	el   *xmlElement
 	name string
+	// approval marks a user task the refusal gateway follows; a user
+	// task without one is a task.
+	approval bool
 }
 
 // workflowReader reads one BPMN file.
@@ -116,12 +127,16 @@ type workflowReader struct {
 	res        *Result
 	operations map[string]string // operation id -> name
 	resources  map[string]string // resource id -> name
+	messages   map[string]string // message id -> name
 	workflows  *yaml.Node
 	roles      map[string][]*yaml.Node // role -> its citations
 	questions  *yaml.Node
 	nextID     int
 	notHeld    []heldLine
 	at         string // the workflow being read, or "" outside a process
+	// generated marks a file generate bpmn wrote, whose user task with no
+	// gateway after it is a task by construction, not by a guess.
+	generated bool
 }
 
 // heldLine is one thing the subset does not hold, at its line of the file,
@@ -161,11 +176,12 @@ func Workflows(path, out, key string) (*Result, error) {
 		return nil, refuse("%s is not a BPMN 2.0 XML file: its root element is not definitions in the namespace %s", file, bpmnModel)
 	}
 	wr := &workflowReader{file: file, key: key, res: &Result{Tree: newTree()},
-		operations: map[string]string{}, resources: map[string]string{}, workflows: mapping(),
+		operations: map[string]string{}, resources: map[string]string{}, messages: map[string]string{}, workflows: mapping(),
 		roles: map[string][]*yaml.Node{}, questions: mapping()}
 	commitLine(wr.res, r)
 	if line, text, ok := generatedMark(filepath.Join(r.Repository.Root, filepath.FromSlash(file))); ok {
 		wr.res.say("generated: %s:%d says it is generated from another source: %s", file, line, text)
+		wr.generated = strings.Contains(text, "specarch-gen-bpmn")
 	}
 	processes := wr.definitions(root)
 	if len(processes) == 0 {
@@ -287,6 +303,8 @@ func (wr *workflowReader) definitions(root *xmlElement) []*xmlElement {
 			}
 		case c.name == "resource":
 			wr.resources[c.attr("id")] = c.attr("name")
+		case c.name == "message":
+			wr.messages[c.attr("id")] = c.attr("name")
 		case bpmnReferenced[c.name]:
 		default:
 			wr.gap(c, "", "%s %s is outside the sequential subset of BPMN 2.0 the meta-model holds; left out", c.name, c.attr("id"))
@@ -392,62 +410,111 @@ func (wr *workflowReader) process(p *xmlElement) {
 			[]string{at + "/trigger"}, "", "A workflow in the sequential subset has one start.")
 	}
 
-	// The chain of steps from the start event.
+	// The chain of steps from the start event: each step's one flow leads
+	// to the next, and a decision's branches to later steps, which are
+	// walked in the order of the file once the path before them ends.
 	var chain []bpmnStep
 	seen := map[string]bool{}
+	order := map[string]int{}
+	for i, c := range p.children {
+		order[c.attr("id")] = i
+	}
+	var pending []*xmlElement // the steps a decision's branches lead to, not walked yet
+	var ended *xmlElement     // the end event the path before reached, or nil
+	// enter reads one element reached on the path and returns the element
+	// whose flow the path follows on, or nil where it stops.
+	enter := func(next *xmlElement) *xmlElement {
+		switch next.name {
+		case "userTask", "serviceTask", "receiveTask", "intermediateCatchEvent":
+			chain = append(chain, bpmnStep{el: next, name: wr.stepName(next, chain)})
+			return next
+		case "exclusiveGateway":
+			if !specarchConditions(next, outgoing) {
+				if onward := wr.refusal(next, outgoing, byID, chain); onward != nil {
+					chain[len(chain)-1].approval = true
+					seen[onward.attr("id")] = true
+					switch onward.name {
+					case "endEvent":
+						ended = onward
+						return nil
+					case "userTask", "serviceTask", "receiveTask", "intermediateCatchEvent":
+						chain = append(chain, bpmnStep{el: onward, name: wr.stepName(onward, chain)})
+						return onward
+					}
+					wr.chainGap(onward, at, label, name, fmt.Sprintf("%s %s follows the gateway, and the subset holds a task or an end event there", onward.name, onward.attr("id")))
+					return nil
+				}
+			}
+			chain = append(chain, bpmnStep{el: next, name: wr.stepName(next, chain)})
+			for _, f := range outgoing[next.attr("id")] {
+				if t := byID[f.attr("targetRef")]; t != nil && t.name != "endEvent" {
+					pending = append(pending, t)
+				}
+			}
+			return nil
+		case "endEvent":
+			ended = next
+			return nil
+		}
+		wr.chainGap(next, at, label, name, fmt.Sprintf("%s %s is not a step of the sequential subset", next.name, next.attr("id")))
+		return nil
+	}
 	cur := start
 	for cur != nil {
-		flows := outgoing[cur.attr("id")]
-		if len(flows) != 1 {
-			if cur.name != "endEvent" {
-				wr.chainGap(cur, at, label, name, fmt.Sprintf("%s %s has %d outgoing sequence flows, and a step of the sequential subset has one", cur.name, cur.attr("id"), len(flows)))
+		for cur != nil {
+			flows := outgoing[cur.attr("id")]
+			if len(flows) != 1 {
+				if cur.name != "endEvent" {
+					wr.chainGap(cur, at, label, name, fmt.Sprintf("%s %s has %d outgoing sequence flows, and a step of the sequential subset has one", cur.name, cur.attr("id"), len(flows)))
+				}
+				pending = nil
+				break
 			}
+			next := byID[flows[0].attr("targetRef")]
+			if next == nil {
+				wr.gap(flows[0], "", "sequence flow %s goes to %s, which process %s does not hold; the steps after it are left out", flows[0].attr("id"), flows[0].attr("targetRef"), label)
+				pending = nil
+				break
+			}
+			if seen[next.attr("id")] {
+				wr.chainGap(next, at, label, name, fmt.Sprintf("the sequence flows come back to %s %s, a loop", next.name, next.attr("id")))
+				pending = nil
+				break
+			}
+			seen[next.attr("id")] = true
+			cur = enter(next)
+		}
+		// The path stopped at a decision or an end: go on at the earliest
+		// branch's step in the file not walked yet.
+		sort.SliceStable(pending, func(i, j int) bool { return order[pending[i].attr("id")] < order[pending[j].attr("id")] })
+		for len(pending) > 0 && seen[pending[0].attr("id")] {
+			pending = pending[1:]
+		}
+		if len(pending) == 0 {
 			break
 		}
-		next := byID[flows[0].attr("targetRef")]
-		if next == nil {
-			wr.gap(flows[0], "", "sequence flow %s goes to %s, which process %s does not hold; the steps after it are left out", flows[0].attr("id"), flows[0].attr("targetRef"), label)
-			break
-		}
-		if seen[next.attr("id")] {
-			wr.chainGap(next, at, label, name, fmt.Sprintf("the sequence flows come back to %s %s, a loop", next.name, next.attr("id")))
+		next := pending[0]
+		pending = pending[1:]
+		if ended != nil {
+			wr.chainGap(ended, at, label, name, fmt.Sprintf("the path ends at %s %s before %s %s, which a decision leads to, and only a decision's branch ends the request before its last step", ended.name, ended.attr("id"), next.name, next.attr("id")))
 			break
 		}
 		seen[next.attr("id")] = true
-		switch next.name {
-		case "userTask", "serviceTask":
-			chain = append(chain, bpmnStep{el: next, name: wr.stepName(next, chain)})
-			cur = next
-		case "exclusiveGateway":
-			onward := wr.refusal(next, outgoing, byID, chain)
-			if onward == nil {
-				wr.chainGap(next, at, label, name, fmt.Sprintf("exclusive gateway %s is not the refusal of an approval: one of its two flows ends the request right after a user task", next.attr("id")))
-				cur = nil
-				break
+		cur = enter(next)
+		ended = nil
+	}
+	compensation := map[string]bool{} // the tasks that undo a step, outside the path
+	for _, c := range p.children {
+		if c.space == bpmnModel && c.name == "association" {
+			if t := byID[c.attr("targetRef")]; t != nil && t.attr("isForCompensation") == "true" {
+				compensation[t.attr("id")] = true
 			}
-			cur = onward
-			seen[onward.attr("id")] = true
-			if onward.name == "endEvent" {
-				cur = nil
-				break
-			}
-			if onward.name == "userTask" || onward.name == "serviceTask" {
-				chain = append(chain, bpmnStep{el: onward, name: wr.stepName(onward, chain)})
-				continue
-			}
-			wr.chainGap(onward, at, label, name, fmt.Sprintf("%s %s follows the gateway, and the subset holds a task or an end event there", onward.name, onward.attr("id")))
-			cur = nil
-		case "endEvent":
-			cur = nil
-		default:
-			wr.chainGap(next, at, label, name, fmt.Sprintf("%s %s is not a step of the sequential subset", next.name, next.attr("id")))
-			cur = nil
 		}
 	}
 	for _, c := range p.children {
 		switch {
-		case c.space != bpmnModel || seen[c.attr("id")] || c == start:
-		case c.name == "userTask" || c.name == "serviceTask" || c.name == "exclusiveGateway":
+		case c.space != bpmnModel || seen[c.attr("id")] || c == start || compensation[c.attr("id")]:
+		case c.name == "userTask" || c.name == "serviceTask" || c.name == "exclusiveGateway" || c.name == "receiveTask" || c.name == "intermediateCatchEvent":
 			wr.gap(c, "", "%s %s is not on the path from the start event the steps follow; left out", c.name, c.attr("id"))
 		case !bpmnHeld[c.name] && c.name != "laneSet":
 			wr.gap(c, at, "%s %s in process %s is outside the sequential subset of BPMN 2.0 the meta-model holds; left out", c.name, c.attr("id"), label)
@@ -456,12 +523,31 @@ func (wr *workflowReader) process(p *xmlElement) {
 		}
 	}
 
-	timers := map[string]*xmlElement{} // task id -> its timer
+	timers := map[string]*xmlElement{}   // task id -> its timer
+	failures := map[string]*xmlElement{} // service task id -> its error event
+	undoes := map[string]*xmlElement{}   // service task id -> the task that undoes it
 	for _, b := range boundaries {
 		task := byID[b.attr("attachedToRef")]
 		td := b.first("timerEventDefinition")
 		switch {
-		case task == nil || task.name != "userTask":
+		case task != nil && task.name == "serviceTask" && b.first("errorEventDefinition") != nil:
+			if failures[task.attr("id")] != nil {
+				wr.gap(b, "", "boundary event %s is a second error event on %s, and a step has one onFailure; left out", b.attr("id"), task.attr("id"))
+				continue
+			}
+			failures[task.attr("id")] = b
+		case task != nil && task.name == "serviceTask" && b.first("compensateEventDefinition") != nil:
+			for _, c := range p.children {
+				if c.space == bpmnModel && c.name == "association" && c.attr("sourceRef") == b.attr("id") {
+					if h := byID[c.attr("targetRef")]; h != nil && h.name == "serviceTask" && h.attr("isForCompensation") == "true" {
+						undoes[task.attr("id")] = h
+					}
+				}
+			}
+			if undoes[task.attr("id")] == nil {
+				wr.gap(b, "", "compensation event %s on %s is tied to no service task marked isForCompensation; left out", b.attr("id"), task.attr("id"))
+			}
+		case task == nil || task.name != "userTask" && task.name != "receiveTask":
 			wr.gap(b, "", "boundary event %s is not on a user task; the subset holds a timer on an approval only; left out", b.attr("id"))
 		case td == nil:
 			wr.gap(b, "", "boundary event %s on %s is not a timer; left out", b.attr("id"), task.attr("id"))
@@ -471,12 +557,43 @@ func (wr *workflowReader) process(p *xmlElement) {
 			timers[task.attr("id")] = b
 		}
 	}
+	index := map[*xmlElement]int{}
+	for i, s := range chain {
+		index[s.el] = i
+	}
+	// A user task an approval escalates to is an approval too, gateway or
+	// not, since an approval escalates only to a later approval.
+	for _, st := range chain {
+		if t := timers[st.el.attr("id")]; st.approval && t != nil {
+			for _, f := range outgoing[t.attr("id")] {
+				if j, ok := index[byID[f.attr("targetRef")]]; ok && chain[j].el.name == "userTask" {
+					chain[j].approval = true
+				}
+			}
+		}
+	}
+	// target is where a flow from step i goes on: a later step by name, or
+	// how an end event ends the request.
+	target := func(i int, f *xmlElement) (to, end string, ok bool) {
+		t := byID[f.attr("targetRef")]
+		switch {
+		case t == nil:
+			return "", "", false
+		case t.name == "endEvent":
+			return "", endOf(t), true
+		}
+		if j, found := index[t]; found && j > i {
+			return chain[j].name, "", true
+		}
+		return "", "", false
+	}
 
 	var steps []*yaml.Node
 	for i, s := range chain {
 		ptr := fmt.Sprintf("%s/steps/%d", at, i)
 		st := mapping("name", s.name)
-		if s.el.name == "serviceTask" {
+		switch {
+		case s.el.name == "serviceTask":
 			set(st, "kind", "operation")
 			opName := wr.operations[s.el.attr("operationRef")]
 			if opName != "" && stepWord.MatchString(opName) {
@@ -485,6 +602,116 @@ func (wr *workflowReader) process(p *xmlElement) {
 			} else {
 				wr.question(fmt.Sprintf("Which operation does step %s of workflow %s call? Its service task names no operation the file declares.", s.name, name),
 					[]string{ptr + "/operation"}, "", "An operation step calls an operation of the specification; the service task does not say which.")
+			}
+			if e := failures[s.el.attr("id")]; e != nil {
+				flows := outgoing[e.attr("id")]
+				to, end, ok := "", "", false
+				if len(flows) == 1 {
+					to, end, ok = target(i, flows[0])
+				}
+				switch {
+				case ok && to != "":
+					set(st, "onFailure", mapping("to", to))
+				case ok && end == "failed":
+					set(st, "onFailure", mapping("end", "failed"))
+				default:
+					wr.gap(e, ptr+"/onFailure", "error event %s on %s goes neither to a later step nor to the failed end; asked for instead", e.attr("id"), s.el.attr("id"))
+					wr.question(fmt.Sprintf("What does workflow %s do when step %s fails: go on at a later step, or end failed?", name, s.name),
+						[]string{ptr + "/onFailure"}, "", "The error event's flow does not reach a later step or an end named failed.")
+				}
+			}
+			if h := undoes[s.el.attr("id")]; h != nil {
+				opName := wr.operations[h.attr("operationRef")]
+				if opName != "" && stepWord.MatchString(opName) {
+					wr.question(fmt.Sprintf("Step %s of workflow %s is undone by operation %s, which the BPMN file names on its compensation task; the file does not declare it, so it waits for the tree that does. Is it that operation?", s.name, name, opName),
+						[]string{ptr + "/compensatedBy"}, opName, "The file names the operation and not its method or path, so the step waits for the tree that declares it; specarch merge writes it once one does.")
+				} else {
+					wr.question(fmt.Sprintf("Which operation undoes step %s of workflow %s? Its compensation task names no operation the file declares.", s.name, name),
+						[]string{ptr + "/compensatedBy"}, "", "A step is undone by an operation of the specification; the compensation task does not say which.")
+				}
+			}
+			steps = append(steps, st)
+			continue
+		case s.el.name == "exclusiveGateway":
+			set(st, "kind", "decision")
+			var branches, otherwise []*yaml.Node
+			for j, f := range outgoing[s.el.attr("id")] {
+				br := mapping()
+				bptr := fmt.Sprintf("%s/branches/%d", ptr, j)
+				isDefault := s.el.attr("default") == f.attr("id")
+				if isDefault {
+					set(br, "otherwise", true)
+				} else if ce := f.first("conditionExpression"); ce != nil && strings.TrimSpace(ce.text) != "" && ce.attr("language") == expressionLanguage {
+					set(br, "when", strings.TrimSpace(ce.text))
+				} else {
+					says := "no condition"
+					if ce != nil && strings.TrimSpace(ce.text) != "" {
+						says = fmt.Sprintf("the condition %q in the language %q", strings.TrimSpace(ce.text), ce.attr("language"))
+					}
+					wr.gap(f, bptr+"/when", "sequence flow %s of decision %s carries %s, and a branch's condition is an expression over the subject; asked for instead", f.attr("id"), s.el.attr("id"), says)
+					wr.question(fmt.Sprintf("When does decision %s of workflow %s take sequence flow %s? It carries %s.", s.name, name, f.attr("id"), says),
+						[]string{bptr + "/when"}, "", "A branch's condition is read over the subject's fields in SpecArch's subset of CEL; another language, or none, cannot be checked against the subject.")
+				}
+				switch to, end, ok := target(i, f); {
+				case ok && to != "":
+					set(br, "to", to)
+				case ok:
+					set(br, "end", end)
+				default:
+					wr.gap(f, bptr, "sequence flow %s of decision %s goes to %s, which is neither a later step nor an end; asked for instead", f.attr("id"), s.el.attr("id"), f.attr("targetRef"))
+					wr.question(fmt.Sprintf("Where does decision %s of workflow %s go on by sequence flow %s?", s.name, name, f.attr("id")),
+						[]string{bptr}, "", "A branch goes on at a later step or ends the request; the flow does neither.")
+				}
+				if isDefault {
+					otherwise = append(otherwise, br)
+				} else {
+					branches = append(branches, br)
+				}
+			}
+			set(st, "branches", append(branches, otherwise...))
+			steps = append(steps, st)
+			continue
+		case s.el.name == "receiveTask" || s.el.name == "intermediateCatchEvent":
+			set(st, "kind", "wait")
+			wr.wait(s, st, ptr, name)
+			if timer := timers[s.el.attr("id")]; timer != nil {
+				deadline, onDeadline, _ := wr.deadline(ptr, timer, nil, outgoing, byID)
+				if deadline != "" {
+					set(st, "deadline", deadline)
+				}
+				if onDeadline != "" {
+					set(st, "onDeadline", onDeadline)
+				}
+			}
+			steps = append(steps, st)
+			continue
+		case !s.approval:
+			set(st, "kind", "task")
+			if owners := wr.owners(s.el); len(owners) > 0 {
+				set(st, "performers", owners)
+			} else {
+				wr.question(fmt.Sprintf("Which roles may do step %s of workflow %s? Its user task names no potential owner.", s.name, name),
+					[]string{ptr + "/performers"}, "", "A task names the roles whose people may do it.")
+			}
+			wr.question(fmt.Sprintf("Which permission does step %s of workflow %s check?", s.name, name),
+				[]string{ptr + "/permission"}, "", "BPMN names who may do a task and not the permission it checks.")
+			if !wr.generated {
+				wr.gap(s.el, "", "user task %s has no gateway after it that refuses the request, so step %s is read as a task; an approval is a user task followed by one", s.el.attr("id"), s.name)
+			}
+			if timer := timers[s.el.attr("id")]; timer != nil {
+				deadline, onDeadline, escalateTo := wr.deadline(ptr, timer, chain[i+1:], outgoing, byID)
+				if deadline != "" {
+					set(st, "deadline", deadline)
+				} else {
+					wr.question(fmt.Sprintf("How long does step %s of workflow %s wait for the work to be done?", s.name, name),
+						[]string{ptr + "/deadline"}, "", "The user task has a timer the subset does not hold; a task's deadline is an ISO 8601 duration in days, hours, minutes and seconds.")
+				}
+				if onDeadline != "" {
+					set(st, "onDeadline", onDeadline)
+					if escalateTo != "" {
+						set(st, "escalateTo", escalateTo)
+					}
+				}
 			}
 			steps = append(steps, st)
 			continue
@@ -577,6 +804,18 @@ func (wr *workflowReader) stepName(e *xmlElement, chain []bpmnStep) string {
 		wr.gap(e, "", "%s %s: step %s is taken by an earlier task; it is named %s", e.name, e.attr("id"), base, name)
 	}
 	return name
+}
+
+// specarchConditions says whether a gateway's flows carry a condition in
+// the language generate bpmn names, which marks it a decision step rather
+// than an approval's refusal.
+func specarchConditions(g *xmlElement, outgoing map[string][]*xmlElement) bool {
+	for _, f := range outgoing[g.attr("id")] {
+		if ce := f.first("conditionExpression"); ce != nil && ce.attr("language") == expressionLanguage {
+			return true
+		}
+	}
+	return false
 }
 
 // refusal reads an exclusive gateway right after a user task with two
@@ -697,6 +936,49 @@ func (wr *workflowReader) deadline(ptr string, timer *xmlElement, later []bpmnSt
 	}
 	wr.gap(timer, ptr+"/onDeadline", "timer %s goes to %s, neither an end event nor a later user task; asked for instead", timer.attr("id"), flows[0].attr("targetRef"))
 	return duration, "", ""
+}
+
+// endOf is how an end event ends the request, by its name or id as
+// generate bpmn writes them: refused, failed, or approved.
+func endOf(e *xmlElement) string {
+	for _, w := range []string{strings.ToLower(e.attr("name")), strings.ToLower(e.attr("id"))} {
+		switch {
+		case strings.Contains(w, "refus"):
+			return "refused"
+		case strings.Contains(w, "fail"):
+			return "failed"
+		}
+	}
+	return "approved"
+}
+
+// wait reads what a wait step waits for: a receive task's or a message
+// catch event's message, or a timer catch event's duration or moment.
+func (wr *workflowReader) wait(s bpmnStep, st *yaml.Node, ptr, name string) {
+	ref := s.el.attr("messageRef")
+	if med := s.el.first("messageEventDefinition"); med != nil {
+		ref = med.attr("messageRef")
+	}
+	td := s.el.first("timerEventDefinition")
+	switch {
+	case s.el.name == "receiveTask" || s.el.first("messageEventDefinition") != nil:
+		if m := wr.messages[ref]; channelMessage.MatchString(m) {
+			wr.question(fmt.Sprintf("Step %s of workflow %s waits for message %s, which the BPMN file names and does not declare; is it the message %s declared under channels?", s.name, name, m, m),
+				[]string{ptr + "/message"}, "", "The file names the message and not its channel or payload; write message: "+m+" once its channel is declared.")
+		} else {
+			wr.gap(s.el, ptr+"/message", "%s %s waits for message %q, which is not a channel and one of its messages; asked for instead", s.el.name, s.el.attr("id"), m)
+			wr.question(fmt.Sprintf("Which channel message does step %s of workflow %s wait for?", s.name, name),
+				[]string{ptr + "/message"}, "", "A wait names a message declared under channels, as channel/Message; the file's message is not one.")
+		}
+	case td != nil && td.first("timeDuration") != nil && bpmnDuration.MatchString(strings.TrimSpace(td.first("timeDuration").text)) && !zeroDuration(strings.TrimSpace(td.first("timeDuration").text)):
+		set(st, "after", strings.TrimSpace(td.first("timeDuration").text))
+	case td != nil && td.first("timeDate") != nil && td.first("timeDate").attr("language") == expressionLanguage:
+		set(st, "at", strings.TrimSpace(td.first("timeDate").text))
+	default:
+		wr.gap(s.el, ptr, "%s %s waits for something other than a message, a duration in days, hours, minutes and seconds, or a moment over the subject; asked for instead", s.el.name, s.el.attr("id"))
+		wr.question(fmt.Sprintf("What does step %s of workflow %s wait for: a message, a duration, or a moment of the subject?", s.name, name),
+			[]string{ptr}, "", "A wait waits for one of a channel message, a duration, or an expression over the subject giving a moment.")
+	}
 }
 
 func zeroDuration(d string) bool {

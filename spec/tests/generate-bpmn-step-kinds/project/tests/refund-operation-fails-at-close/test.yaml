@@ -1,0 +1,10 @@
+workflow: refund
+level: system
+scenario: red
+covers: [operation fails at close]
+given: "a request reaching close"
+when: "closeRefund fails"
+then: "the request goes on at due2"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failure of an operation a workflow calls is a case nobody exercises by hand, so it is always written. A draft: complete the given, when and then, and remove what does not hold."

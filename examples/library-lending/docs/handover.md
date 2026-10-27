@@ -278,6 +278,18 @@ Scenario: red; verifies LIB-8.
 
 **Insight:** Drafted by specarch derive, since a deadline passing is a case nobody tries by hand, then completed by hand; a request must not wait for ever.
 
+### fee-waiver-large-fee
+
+Scenario: red; verifies LIB-8.
+
+- Given: a request to waive a late fee of 2.50
+- When: the request is made
+- Then: the request waits for a desk supervisor at approve, and waiveFee is not called yet
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive for the decision's otherwise, then completed by hand with an amount just over the limit.
+
 ### fee-waiver-refused
 
 Scenario: red; verifies LIB-8.
@@ -297,6 +309,30 @@ Scenario: red; verifies LIB-8.
 **Origin:** inferred.
 
 **Insight:** Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.
+
+### fee-waiver-small-fee
+
+Scenario: red; verifies LIB-8.
+
+- Given: a request to waive a late fee of 1.50
+- When: the request is made
+- Then: waiveFee is called at once, no desk supervisor is asked, and the request ends approved
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive for the decision's first branch, then completed by hand with an amount under the limit.
+
+### fee-waiver-waive-fails
+
+Scenario: red; verifies LIB-8.
+
+- Given: an approved request to waive a fee, while the loans database refuses every write
+- When: waiveFee fails, and on each of its three retries
+- Then: the request ends failed, and the fee still stands
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive, since a failure of a called operation is a case nobody tries by hand, then completed by hand.
 
 ### fees-block-lending
 

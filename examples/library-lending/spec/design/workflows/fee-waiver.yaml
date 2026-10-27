@@ -1,10 +1,15 @@
 # yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
 workflows:
   fee-waiver:
-    description: A late fee is waived only after a desk supervisor, who is not the librarian who asked, approves it.
+    description: A late fee above 2.00 is waived only after a desk supervisor, who is not the librarian who asked, approves it; a smaller one is waived at once.
     trigger: requestFeeWaiver
     subject: FeeWaiverRequest
     steps:
+      - name: route
+        kind: decision
+        branches:
+          - { when: 'amount <= decimal(2, 0)', to: waive }
+          - { otherwise: true, to: approve }
       - name: approve
         kind: approval
         approvers: [desk-supervisor]
@@ -14,6 +19,7 @@ workflows:
       - name: waive
         kind: operation
         operation: waiveFee
+        onFailure: { retries: { limit: 3 }, end: failed }
     emits: [fee.waivers/FeeWaiverDecided]
     satisfies: [LIB-8]
-    why: Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week.
+    why: Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week. A waiver of 2.00 or less goes straight to waive, since a supervisor's time costs the library more than the fee; waiveFee is tried three more times before the request ends failed, since a librarian asked for it and a passing database error should not refuse it.

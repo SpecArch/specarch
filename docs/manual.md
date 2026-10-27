@@ -1392,9 +1392,26 @@ The sources this build reads:
   schema writes (`operationRef` in a message event definition,
   `resourceRef` in a potential owner) or as the attribute of that
   name some tools write. An exclusive gateway right after a user
-  task, with one flow to an end event, is that approval's refusal;
+  task, with one flow to an end event and no condition in the
+  language `urn:specarch:expression`, is that approval's refusal;
   when both its flows end the request, the approval is the last
-  step and the gateway's default flow is the refusal. A service task is an
+  step and the gateway's default flow is the refusal. A user task
+  with no such gateway after it, and that no approval escalates
+  to, is a task step, its performers its potential owners, said in
+  a line unless generate bpmn wrote the file. Any other exclusive
+  gateway is a decision step (ADR-198): a branch per flow, its
+  `conditionExpression` the `when` when written in
+  `urn:specarch:expression` and a question otherwise, the default
+  flow `otherwise`, and its target a later step or an end, read as
+  refused or failed by the end event's name. The path goes on at
+  the branches' steps in the order of the file. A receive task or a
+  message catch event is a wait for the message it names, asked
+  for by name as an operation is; a timer catch event a wait
+  `after` its duration or `at` its date in that language. An error
+  boundary event on a service task is its `onFailure`, to a later
+  step or `end: failed`; a compensation boundary event associated
+  with a service task marked `isForCompensation` gives
+  `compensatedBy`, asked for by name. A service task is an
   operation step, its operation the one its `operationRef` names.
   Each step is named after its task in camelCase. An operation the
   file names is not declared by it, so the trigger and a step's

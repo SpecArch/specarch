@@ -82,6 +82,7 @@ func (c *checker) checkWorkflows(d *design) {
 				if comp := source.Child(st, "compensatedBy"); comp != nil && d.operations[comp.Value].node == nil {
 					c.add(comp, source.Pointer(append(at, "compensatedBy")...), RuleWorkflow, "%s is not an operationId of the specification%s", comp.Value, suggest(comp.Value, opNames))
 				}
+				c.checkOneOf(source.Child(st, "onFailure"), append(append([]string{}, at...), "onFailure"), "a failure goes on at a later step or ends the request", "to", "end")
 				if to := source.Child(source.Child(st, "onFailure"), "to"); to != nil && !laterStep(later, "", to.Value) {
 					c.add(to, source.Pointer(append(at, "onFailure", "to")...), RuleWorkflow, "%s is not a step after %s; a failure goes on at a later step of the workflow, or ends it with end: failed", to.Value, source.Str(stepName))
 				}
@@ -89,6 +90,8 @@ func (c *checker) checkWorkflows(d *design) {
 				branches := source.Items(source.Child(st, "branches"))
 				for j, br := range branches {
 					bat := append(append([]string{}, at...), "branches", fmt.Sprint(j))
+					c.checkOneOf(br, bat, "a branch has a condition or is taken otherwise", "when", "otherwise")
+					c.checkOneOf(br, bat, "a branch goes on at a later step or ends the request", "to", "end")
 					if env != nil {
 						c.checkCondition(source.Child(br, "when"), source.Pointer(append(bat, "when")...), "the branch's condition", env)
 					}
@@ -103,6 +106,7 @@ func (c *checker) checkWorkflows(d *design) {
 					}
 				}
 			case "wait":
+				c.checkOneOf(st, at, "a wait waits for one thing", "message", "after", "at")
 				c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the wait")
 				if m := source.Child(st, "message"); m != nil && d.message(m.Value) == nil {
 					c.add(m, source.Pointer(append(at, "message")...), RuleWorkflow, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", m.Value)
@@ -114,6 +118,30 @@ func (c *checker) checkWorkflows(d *design) {
 			}
 		}
 	}
+}
+
+// checkOneOf reports, at the second, two keys of which an entry gives one:
+// the schema reports none of them given, as the one key missing.
+func (c *checker) checkOneOf(n *yaml.Node, at []string, rule string, keys ...string) {
+	var given []string
+	for _, k := range keys {
+		if source.Child(n, k) != nil {
+			given = append(given, k)
+		}
+	}
+	if len(given) < 2 {
+		return
+	}
+	second := given[1]
+	c.add(source.Child(n, second), source.Pointer(append(append([]string{}, at...), second)...), RuleWorkflow, "%s gives both %s and %s, and %s; keep one of %s", source.Str(source.Child(n, "name"))+orEntry(n), given[0], second, rule, strings.Join(keys, ", "))
+}
+
+// orEntry names an entry with no name of its own.
+func orEntry(n *yaml.Node) string {
+	if source.Child(n, "name") != nil {
+		return ""
+	}
+	return "the entry"
 }
 
 // checkStepRoles checks that each role an approval or a task names is a
@@ -280,7 +308,7 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 			s.red("task without "+perm, frequent, "a caller without "+perm, "they do the task of a request waiting at "+step, "it is refused as not allowed, and the request still waits")
 		case "wait":
 			if deadline := source.Str(source.Child(st, "deadline")); deadline != "" {
-				s.byNature("deadline passes at "+step, waiting+" for "+source.Str(source.Child(st, "message")), deadline+" passes with no message", ended("refused"))
+				s.byNature("deadline passes at "+step, waiting+" for "+messageOf(st), deadline+" passes with no message", ended("refused"))
 			}
 		case "decision":
 			branches := source.Items(source.Child(st, "branches"))
@@ -324,6 +352,15 @@ func (d *design) workflowSubject(p source.Pair) *subject {
 			"it is refused, because the person who made a request never approves it, and the request still waits")
 	}
 	return s
+}
+
+// messageOf is the message a wait waits for, or what names it while a
+// question holds it open.
+func messageOf(st *yaml.Node) string {
+	if m := source.Str(source.Child(st, "message")); m != "" {
+		return m
+	}
+	return "the message of " + source.Str(source.Child(st, "name"))
 }
 
 // undone is what a request that ends after the steps done says of their

@@ -1,0 +1,10 @@
+workflow: refund
+level: system
+scenario: red
+covers: [task without refunds.check]
+given: "a caller without refunds.check"
+when: "they do the task of a request waiting at check"
+then: "it is refused as not allowed, and the request still waits"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding refund.bpmn exactly as generate bpmn writes it in the case generate-bpmn-step-kinds: a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment, with its lane set and its diagram"
+when: "extract workflows is run on the file"
+then: "it writes workflow refund with the steps, kinds, branches with their conditions and otherwise, performers, deadlines, escalation, waits and failures of the specification it was generated from, the retry limit left to the specification, a question naming each operation the steps call or undo and the message the wait waits for, and exits 0"
+verifies: [SA-103]

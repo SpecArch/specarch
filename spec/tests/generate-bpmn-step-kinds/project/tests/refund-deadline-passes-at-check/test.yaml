@@ -1,0 +1,10 @@
+workflow: refund
+level: system
+scenario: red
+covers: [deadline passes at check]
+given: "a request waiting at check"
+when: "P1D passes with the task not done"
+then: "the request moves on to recheck"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a deadline passing is a case nobody exercises by hand, so it is always written. A draft: complete the given, when and then, and remove what does not hold."

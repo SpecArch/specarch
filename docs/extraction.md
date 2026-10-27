@@ -376,6 +376,10 @@ Steps, in order:
     tasks are approvals with their potential owners as roles and a timer
     as the deadline, an exclusive gateway after an approval with one flow
     to an end event is its refusal, and service tasks are operation steps.
+    The steps ADR-198 adds are read back too: another exclusive gateway
+    is a decision, a user task with no refusal after it a task, a receive
+    task or a catch event a wait, an error boundary event `onFailure` and
+    a compensation handler `compensatedBy`.
     BPMN names the operations a workflow calls but does not declare them,
     so the trigger and each step's operation are left out with a must
     question that carries the name under `names`; `specarch merge` writes

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 817 design tests, 398 golden and 419 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 821 design tests, 401 golden and 420 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 817 design tests, 398 golden and 419 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 813 |
+| system | 817 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2127,6 +2127,14 @@ Scenario: golden; level: system; verifies SA-58.
 - When: extract workflows is run on the file
 - Then: it writes workflow reinstate with its one approval, its approver and its deadline, reads the default flow as the refusal and the other as the end of the approved request, and exits 0
 
+#### extract-workflows-reads-step-kinds
+
+Scenario: golden; level: system; verifies SA-103.
+
+- Given: a repository holding refund.bpmn exactly as generate bpmn writes it in the case generate-bpmn-step-kinds: a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment, with its lane set and its diagram
+- When: extract workflows is run on the file
+- Then: it writes workflow refund with the steps, kinds, branches with their conditions and otherwise, performers, deadlines, escalation, waits and failures of the specification it was generated from, the retry limit left to the specification, a question naming each operation the steps call or undo and the message the wait waits for, and exits 0
+
 #### extract-workflows-table
 
 Scenario: golden; level: system; verifies SA-44.
@@ -2165,7 +2173,7 @@ Scenario: golden; level: system; verifies SA-44.
 
 - Given: a repository with a BPMN 2.0 file of two processes: one whose start event names its operation, with two user tasks whose potential owners are a resource and an expression, a timer that escalates to the second, a gateway that refuses after the first, a timer of a week and a service task naming its operation; and one with no documentation, no operation on its start event, lanes, a user task with no owner and a repeating timer, and a parallel gateway; beside them a signal and a diagram
 - When: extract workflows is run on the file
-- Then: it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0
+- Then: it writes one workflow per process in the order of their names, the approvals with their roles, deadlines and escalation, the second user task an approval since the first escalates to it, the user task of the second process a task since no gateway refuses after it, a question naming the operation for the trigger and the service task, a question for each permission, subject and anything the file leaves out or the subset does not hold, a role per potential owner, a line per element left out in the order of the file, and a could question citing the file's line for each that no must question asks for already, and exits 0
 
 ### Command facts
 
@@ -2324,6 +2332,14 @@ Scenario: golden; level: system; verifies SA-58.
 - Given: an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH
 - When: generate bpmn is run
 - Then: it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0
+
+#### generate-bpmn-step-kinds
+
+Scenario: golden; level: system; verifies SA-103.
+
+- Given: a specification with no approval record and a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment; specarch-gen-bpmn built from this repository on PATH
+- When: generate bpmn is run with --unapproved
+- Then: it writes refund.bpmn with the decision as an exclusive gateway whose flows carry its conditions in the language urn:specarch:expression and whose default is its otherwise, the tasks as user tasks with their performers, the message wait as a receive task with a timer, the other waits as intermediate timer catch events, each onFailure as an error boundary event, compensatedBy as a compensation boundary event associated with a service task marked isForCompensation, and refused and failed ends that compensate; and refund.svg with the same; and exits 0
 
 #### generate-draft-open-questions
 
@@ -6535,6 +6551,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-47.
 - When: validate is run
 - Then: it reports workflow eleven times and permission_undeclared once, and exits 1
 
+#### validate-workflow-step-kinds
+
+Scenario: golden; level: system; verifies SA-103.
+
+- Given: a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, one with retries that end it failed and one whose failure goes on at a later step, and waits for a message with a deadline, for a duration and for a moment of its subject, with no tests
+- When: validate is run
+- Then: it reports no error but the missing tests, and names among them a case per branch of the decision, the deadline at each task and at the wait for a message, a task done without its permission, and each failure with its retries, the request undone by the compensating operation where it ends after the step; and exits 1
+
+#### validate-workflow-step-kinds-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-103.
+
+- Given: a workflow whose task names a role that does not grant its permission and one that is not a role and escalates to an approval, whose decision has otherwise first, a branch back to an earlier step, a condition naming no field, one that gives a number and a last branch with a condition, whose operation step is undone by no operation and another's failure goes back, and whose waits name no message, wait for a field that may be null, a date with no timeZone, a number, and for both a duration and a message
+- When: validate is run
+- Then: it reports each as workflow, expression_name, expression_type, time_zone or schema at the key, the same in both builds, and exits 1
+
 #### validate-workflow-valid
 
 Scenario: golden; level: system; verifies SA-47.
@@ -6635,7 +6667,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-458 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+463 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6904,6 +6936,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-102 | acceptance 4 | golden | SA-102 names no harm |
 | requirement SA-102 | acceptance 5 | golden | SA-102 names no harm |
 | requirement SA-102 | acceptance 6 | golden | SA-102 names no harm |
+| requirement SA-103 | acceptance 1 | golden | SA-103 names no harm |
+| requirement SA-103 | acceptance 2 | golden | SA-103 names no harm |
+| requirement SA-103 | acceptance 3 | golden | SA-103 names no harm |
+| requirement SA-103 | acceptance 4 | golden | SA-103 names no harm |
+| requirement SA-103 | acceptance 5 | golden | SA-103 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

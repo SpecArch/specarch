@@ -1,0 +1,10 @@
+workflow: refund
+level: system
+scenario: red
+covers: [route goes on at approve]
+given: "a request reaching route for which amountCents > 10000 holds"
+when: "the decision is taken"
+then: "the request goes on at approve"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+workflow: fee-waiver
+level: acceptance
+scenario: red
+covers: [operation fails at waive]
+given: an approved request to waive a fee, while the loans database refuses every write
+when: waiveFee fails, and on each of its three retries
+then: the request ends failed, and the fee still stands
+verifies: [LIB-8]
+origin: inferred
+why: Drafted by specarch derive, since a failure of a called operation is a case nobody tries by hand, then completed by hand.

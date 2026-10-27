@@ -2,7 +2,7 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 191 design tests, 56 golden and 134 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 194 design tests, 56 golden and 137 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
 
@@ -10,7 +10,7 @@ Version 0.1.0 of the specification: 191 design tests, 56 golden and 134 red, abo
 
 | Level | Design tests |
 |---|---|
-| acceptance | 9 |
+| acceptance | 12 |
 | system | 182 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
@@ -413,6 +413,18 @@ Scenario: red; level: acceptance; covers deadline passes at approve; verifies LI
 
 **Insight:** Drafted by specarch derive, since a deadline passing is a case nobody tries by hand, then completed by hand; a request must not wait for ever.
 
+#### fee-waiver-large-fee
+
+Scenario: red; level: acceptance; covers route goes on at approve; verifies LIB-8.
+
+- Given: a request to waive a late fee of 2.50
+- When: the request is made
+- Then: the request waits for a desk supervisor at approve, and waiveFee is not called yet
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive for the decision's otherwise, then completed by hand with an amount just over the limit.
+
 #### fee-waiver-refused
 
 Scenario: red; level: acceptance; covers refused at approve; verifies LIB-8.
@@ -432,6 +444,30 @@ Scenario: red; level: acceptance; covers requester approves own request; verifie
 **Origin:** inferred.
 
 **Insight:** Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.
+
+#### fee-waiver-small-fee
+
+Scenario: red; level: acceptance; covers route goes on at waive; verifies LIB-8.
+
+- Given: a request to waive a late fee of 1.50
+- When: the request is made
+- Then: waiveFee is called at once, no desk supervisor is asked, and the request ends approved
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive for the decision's first branch, then completed by hand with an amount under the limit.
+
+#### fee-waiver-waive-fails
+
+Scenario: red; level: acceptance; covers operation fails at waive; verifies LIB-8.
+
+- Given: an approved request to waive a fee, while the loans database refuses every write
+- When: waiveFee fails, and on each of its three retries
+- Then: the request ends failed, and the fee still stands
+
+**Origin:** inferred.
+
+**Insight:** Drafted by specarch derive, since a failure of a called operation is a case nobody tries by hand, then completed by hand.
 
 ### Page fee-waiver-form
 

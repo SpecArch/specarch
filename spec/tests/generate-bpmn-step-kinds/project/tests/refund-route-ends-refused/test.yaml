@@ -1,0 +1,10 @@
+workflow: refund
+level: system
+scenario: red
+covers: [route ends refused]
+given: "a request reaching route for which amountCents == 0 holds"
+when: "the decision is taken"
+then: "the request ends refused"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

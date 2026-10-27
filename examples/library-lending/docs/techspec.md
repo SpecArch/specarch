@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 1 algorithm, 191 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 1 algorithm, 194 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -981,24 +981,29 @@ Runs on the schedule `0 2 * * *` (UTC), as the role scheduler. Reads Loan. Write
 
 ### Workflow fee-waiver
 
-A late fee is waived only after a desk supervisor, who is not the librarian who asked, approves it.
+A late fee above 2.00 is waived only after a desk supervisor, who is not the librarian who asked, approves it; a smaller one is waived at once.
 
-**Insight:** Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week.
+**Insight:** Three days, because a supervisor is at the desk every working day and a member asking about a fee should have an answer within the week. A waiver of 2.00 or less goes straight to waive, since a supervisor's time costs the library more than the fee; waiveFee is tried three more times before the request ends failed, since a librarian asked for it and a passing database error should not refuse it.
 
-Starts when requestFeeWaiver accepts a request and answers 202; the request waits as a FeeWaiverRequest. It is approved at approve (fees.approve, within P3D) and a refusal ends it. The person who made the request never approves it. It is asked for on fee-waiver-form, which says the request waits. What waits is listed on fee-waivers-inbox (approve). When it ends it publishes fee.waivers/FeeWaiverDecided.
+Starts when requestFeeWaiver accepts a request and answers 202; the request waits as a FeeWaiverRequest. It is approved at approve (fees.approve, within P3D) and a refusal ends it. The person who made the request never approves it. It is routed by its subject at route. If waive fails, the request ends failed. It is asked for on fee-waiver-form, which says the request waits. What waits is listed on fee-waivers-inbox (approve). When it ends it publishes fee.waivers/FeeWaiverDecided.
 
 ```mermaid
 flowchart LR
   start(["requestFeeWaiver answers 202"])
-  s0["approve: desk-supervisor with fees.approve"]
-  s1[["waiveFee"]]
+  s0{"route"}
+  s1["approve: desk-supervisor with fees.approve"]
+  s2[["waiveFee"]]
   done(("approved"))
   refused(("refused"))
+  failed(("failed"))
   start --> s0
-  s0 -->|"approved"| s1
-  s0 -->|"refused"| refused
-  s0 -->|"P3D passes"| refused
-  s1 --> done
+  s0 -->|"amount <= decimal(2, 0)"| s2
+  s0 -->|"otherwise"| s1
+  s1 -->|"approved"| s2
+  s1 -->|"refused"| refused
+  s1 -->|"P3D passes"| refused
+  s2 --> done
+  s2 -->|"fails"| failed
 ```
 
 ## 7. Deployment and implementation
@@ -1966,8 +1971,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | fee-waiver-form-not-found-loan-id | page fee-waiver-form | system | red | a librarian, and no loan with the id in the route | the page fee-waiver-form is opened for that id | it says the loan was not found |
 | fee-waiver-form-sent-for-approval | page fee-waiver-form | system | golden | a librarian, and a loan with a late fee of 3.50 | the form is filled in with amount 3.50 and the reason "The book drop was closed for repairs." and sent | requestFeeWaiver answers 202, the page leads to loans-list and says "Sent for approval. A desk supervisor answers within three days.", and the fee still stands |
 | fee-waiver-form-succeeds | page fee-waiver-form | system | golden | a librarian, and a loan with a late fee of 3.50 | the page fee-waiver-form is opened for that loan | it shows the amount and the reason to fill in |
+| fee-waiver-large-fee | workflow fee-waiver | acceptance | red | a request to waive a late fee of 2.50 | the request is made | the request waits for a desk supervisor at approve, and waiveFee is not called yet |
 | fee-waiver-refused | workflow fee-waiver | acceptance | red | a request to waive a fee of 3.50, waiting for a desk supervisor | the desk supervisor refuses it | the request ends refused, waiveFee is not called, and the fee still stands |
 | fee-waiver-requester-approves-own-request | workflow fee-waiver | acceptance | red | a desk supervisor who also works the desk and holds fees.request, and a request to waive a fee they asked for themselves | they approve their own request | it is refused, the request still waits for another desk supervisor, and waiveFee is not called |
+| fee-waiver-small-fee | workflow fee-waiver | acceptance | red | a request to waive a late fee of 1.50 | the request is made | waiveFee is called at once, no desk supervisor is asked, and the request ends approved |
+| fee-waiver-waive-fails | workflow fee-waiver | acceptance | red | an approved request to waive a fee, while the loans database refuses every write | waiveFee fails, and on each of its three retries | the request ends failed, and the fee still stands |
 | fee-waivers-inbox-denied-with-expired-session | page fee-waivers-inbox | system | red | a desk supervisor whose session has expired | the page fee-waivers-inbox is opened | it is refused as not signed in |
 | fee-waivers-inbox-denied-without-fees-approve | page fee-waivers-inbox | system | red | a librarian, who asked for a waiting request and does not hold fees.approve | the page fee-waivers-inbox is opened | it is not shown, so the librarian sees no request to approve, their own included |
 | fee-waivers-inbox-refuse | page fee-waivers-inbox | system | red | a desk supervisor and a waiting request by another librarian | the page fee-waivers-inbox is opened, and Refuse is confirmed for the request with no reason | it sends nothing until a reason is given, and the request still waits |
@@ -2135,9 +2143,21 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on fee-waiver-deadline-passes:** Drafted by specarch derive, since a deadline passing is a case nobody tries by hand, then completed by hand; a request must not wait for ever.
 
+**Origin on fee-waiver-large-fee:** inferred.
+
+**Insight on fee-waiver-large-fee:** Drafted by specarch derive for the decision's otherwise, then completed by hand with an amount just over the limit.
+
 **Origin on fee-waiver-requester-approves-own-request:** inferred.
 
 **Insight on fee-waiver-requester-approves-own-request:** Drafted by specarch derive, since the four-eyes rule holds on every approval, then completed by hand; it is the one case the workflow exists for.
+
+**Origin on fee-waiver-small-fee:** inferred.
+
+**Insight on fee-waiver-small-fee:** Drafted by specarch derive for the decision's first branch, then completed by hand with an amount under the limit.
+
+**Origin on fee-waiver-waive-fails:** inferred.
+
+**Insight on fee-waiver-waive-fails:** Drafted by specarch derive, since a failure of a called operation is a case nobody tries by hand, then completed by hand.
 
 **Origin on lend-a-copy-at-the-desk:** inferred.
 
@@ -2219,7 +2239,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | LIB-5 |   | paths /loans/{loanId}/return post; algorithms lateFee; decisions ADR-001; decisions ADR-003; configuration dailyRate | tests loan-lent-and-returned; tests return-late; checks lend-and-return |
 | LIB-6 |   | permissions signedIn; roles member; caller; session; paths /profile get; pages profile | tests get-profile-denied-when-not-signed-in; tests get-profile-denied-with-expired-session; tests get-profile-succeeds; tests profile-denied-when-not-signed-in; tests profile-denied-with-expired-session; tests profile-succeeds; checks member-sees-own-loans |
 | LIB-7 |   | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
-| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox; decisions ADR-004 | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
+| LIB-8 |   | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox; decisions ADR-004 | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-large-fee; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waiver-small-fee; tests fee-waiver-waive-fails; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
 
 ## Sources
 

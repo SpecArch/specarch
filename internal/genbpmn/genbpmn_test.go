@@ -17,6 +17,7 @@ const cases = "../../spec/tests"
 var roundTrips = []struct{ generate, extract, project, file, workflow string }{
 	{"generate-bpmn", "extract-workflows-reads-generated-bpmn", "project/specarch.yaml", "waiver.bpmn", "waiver"},
 	{"generate-bpmn-approved", "extract-workflows-reads-generated-last-approval", "project/specarch.yaml", "reinstate.bpmn", "reinstate"},
+	{"generate-bpmn-step-kinds", "extract-workflows-reads-step-kinds", "project/specarch.yaml", "refund.bpmn", "refund"},
 }
 
 // TestRoundTrip checks that what generate bpmn writes is what extract
@@ -49,13 +50,15 @@ func TestRoundTrip(t *testing.T) {
 		}
 		want := []string{text(original["trigger"])}
 		for _, s := range list(original["steps"]) {
-			if op := text(obj(s)["operation"]); op != "" {
-				want = append(want, op)
+			for _, key := range []string{"operation", "compensatedBy"} {
+				if n := text(obj(s)[key]); n != "" {
+					want = append(want, n)
+				}
 			}
 		}
 		for _, op := range want {
 			if !named[op] {
-				t.Errorf("%s: no question of the extracted tree names operation %s", rt.workflow, op)
+				t.Errorf("%s: no question of the extracted tree names %s", rt.workflow, op)
 			}
 		}
 	}
@@ -66,7 +69,11 @@ func held(w map[string]any) []any {
 	out := []any{w["description"]}
 	for _, s := range list(w["steps"]) {
 		st := obj(s)
-		out = append(out, []any{st["name"], st["kind"], st["approvers"], st["deadline"], st["onDeadline"], st["escalateTo"]})
+		// A failure's retry limit has no BPMN element and stays in the
+		// specification.
+		failure := obj(st["onFailure"])
+		out = append(out, []any{st["name"], st["kind"], st["approvers"], st["performers"], st["deadline"], st["onDeadline"], st["escalateTo"],
+			st["branches"], st["after"], st["at"], failure["to"], failure["end"]})
 	}
 	return out
 }

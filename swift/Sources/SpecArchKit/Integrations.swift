@@ -97,6 +97,10 @@ func assignable(_ t: ExprType, _ want: ExprType) -> Bool {
     return t.kind == .enumValue && want.kind == .string
 }
 
+/// Whether a value of type t, assignable where want is taken, may carry a
+/// null that want does not allow.
+func mayBeNull(_ t: ExprType, _ want: ExprType) -> Bool { t.nullable && !want.nullable }
+
 /// The names an expression reads, each once, in order.
 func exprNames(_ n: ExprNode) -> [String] {
     var out: [String] = []
@@ -250,6 +254,9 @@ extension Checker {
                     let want = d.fieldType(field)
                     if !assignable(t, want) {
                         addFile(fileOf(p.value), exprLine(p.value, 1), ptr, .expressionType, "the value sent as \(p.key.value) gives \(t), and \(called)'s \(p.key.value) takes \(want)")
+                    } else if mayBeNull(t, want) {
+                        addFile(fileOf(p.value), exprLine(p.value, 1), ptr, .expressionType, "the value sent as \(p.key.value) gives \(t), and \(called)'s \(p.key.value) takes \(want), so a null would be sent where none is taken; send a value that is never null, as x != null ? x : a default")
+                        diags[diags.count - 1].severity = .warning
                     }
                 }
             }
@@ -284,6 +291,9 @@ extension Checker {
                         let want = d.fieldType(field)
                         if !assignable(t, want) {
                             addFile(fileOf(p.value), exprLine(p.value, 1), ptr, .expressionType, "the value kept as \(p.key.value) gives \(t), and \(ent)'s \(p.key.value) is \(want)")
+                        } else if mayBeNull(t, want) {
+                            addFile(fileOf(p.value), exprLine(p.value, 1), ptr, .expressionType, "the value kept as \(p.key.value) gives \(t), and \(ent)'s \(p.key.value) is \(want), so a null would be kept where none is allowed; keep a value that is never null, as x != null ? x : a default")
+                            diags[diags.count - 1].severity = .warning
                         }
                     }
                 }

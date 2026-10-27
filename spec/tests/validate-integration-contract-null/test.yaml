@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a call that sends a field of the record that may be null as a field of their request that takes no null"
+when: validate is run
+then: "it reports the send as an expression_type warning at the value sent, the same in both builds, and exits 0"
+verifies: [SA-105]

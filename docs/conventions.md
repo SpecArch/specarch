@@ -1466,17 +1466,25 @@ succeeds or that their operation does not declare, one `errors` maps to
 that the operation does not answer; `errors` or `receive` on a call that
 does not wait; an async call with no `callback`. A post or patch retried
 with no `idempotencyKey` is a warning: a try whose answer was lost may act
-twice. A mapping on a call through another specification's paths is read
+twice. So is a value sent or kept that may be null where their field or
+the record's takes none. A mapping on a call through another specification's paths is read
 and not checked against that specification's fields.
 
 An operation's call adds derived cases, always written as a failing
-dependency's are: `dependency retries exhausted <name>`, ending in the
-answer the first status of `on` maps to; `dependency answers unmapped
-<name>`, an answer `errors` does not name; and `dependency rate exceeded
-<name>` for a dependency with a `rate`, which a job or a gateway calling
-it derives too. `dependency times out <name>` is answered as `errors` maps
-`timeout`, and a dependency the operation only calls fire and forget fails
-and times out with the operation succeeding all the same. The context
+dependency's are: `dependency retries exhausted <call>`, ending in the
+answer the call's `errors` maps the first status of `on` to; and
+`dependency answers unmapped <call>`, an answer `errors` does not name,
+when `errors` maps a status other than `timeout`. `<call>` is the
+dependency and the operation called (`feeLedger postCharge`), so two calls
+to one dependency have cases of their own; two calls that still read the
+same add their place (`auditLog call 4`). `dependency rate exceeded
+<name>` comes for a dependency with a `rate`, which a job or a gateway
+calling it derives too. `dependency times out <name>` is answered as
+`errors` maps `timeout`. A call made fire and forget is not waited for:
+its retries used up and its unmapped answer end with the operation
+succeeding all the same, and a dependency the operation only calls fire
+and forget fails, times out and passes its rate with the operation
+succeeding all the same. The context
 diagram writes a dependency's `auth` and `rate` on its node; the technical
 specification says each call's contract under its operation, and the
 workflow diagram draws each dependency an operation step calls, the edge

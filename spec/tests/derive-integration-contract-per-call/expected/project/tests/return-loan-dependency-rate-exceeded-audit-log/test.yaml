@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency rate exceeded auditLog]
+given: "returnLoan's calls would pass auditLog's rate of 10 calls per PT1S"
+when: "returnLoan is called"
+then: "the call is not sent above the rate, and it succeeds all the same, since it does not wait for auditLog"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

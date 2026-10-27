@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency retries exhausted auditLog call 5]
+given: "auditLog does not answer in time on every try"
+when: "returnLoan is called"
+then: "the call is tried 2 more times, PT1S apart, then it succeeds all the same, since it does not wait for auditLog"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

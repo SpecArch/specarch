@@ -34,14 +34,15 @@ func strs(n *yaml.Node, key string) []string {
 }
 
 // calls are the names n's calls entries call: the entry, or the call of an
-// entry that gives the call's contract.
+// entry that gives the call's contract. An object with no call names
+// nothing and is left out, as the validator's callEntries leaves it.
 func calls(n *yaml.Node) []string {
 	var out []string
 	for _, i := range items(n, "calls") {
-		if c := get(i, "call"); c != nil {
-			out = append(out, c.Value)
-		} else {
+		if i.Kind == yaml.ScalarNode {
 			out = append(out, i.Value)
+		} else if c := get(i, "call"); c != nil && c.Kind == yaml.ScalarNode {
+			out = append(out, c.Value)
 		}
 	}
 	return out

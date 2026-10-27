@@ -51,11 +51,18 @@ decisions:
       their operation does not declare or one that succeeds, a status the
       operation does not answer, an answer mapped or kept from a call
       that does not wait, an async call with no callback. A post or patch
-      retried with no idempotency key is a warning. Each call derives
-      cases, always written as a failing dependency's are: its retries
-      used up, an answer its errors does not map, the dependency's rate
-      exceeded; a timeout that errors maps is answered as it maps it, and
-      a dependency called only fire and forget fails with the operation
+      retried with no idempotency key is a warning, and so is a value
+      sent or kept that may be null where the field takes none. Each call
+      derives cases, always written as a failing dependency's are: its
+      retries used up, ending in the answer its own errors maps the first
+      retried status to, and an answer its errors does not map, when
+      errors maps a status other than timeout; each named by the
+      dependency and the operation called, so two calls to one dependency
+      have cases of their own, and by the call's place when two calls
+      still read the same. The dependency's rate exceeded is a case too,
+      and a timeout that errors maps is answered as it maps it. A call
+      made fire and forget is not waited for, so its cases, and those of
+      a dependency called only fire and forget, end with the operation
       succeeding all the same.
     consequences: |
       A plain calls entry is a sync call with nothing more said, and

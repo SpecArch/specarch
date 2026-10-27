@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:95:60: warning: /paths/~1loans~1{loanId}~1return/post/calls/0/mapping/send/reason: expression_type: the value sent as reason gives a string or null, and feeLedger's postCharge's reason takes a string, so a null would be sent where none is taken; send a value that is never null, as x != null ? x : a default [expression_type@specarch.yaml#/paths/~1loans~1{loanId}~1return/post/calls/0/mapping/send/reason]

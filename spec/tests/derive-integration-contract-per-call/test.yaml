@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "an operation that calls two operations of one dependency, each with retries, one mapping only its timeout, and calls another dependency with a rate fire and forget three times with retries, twice naming the dependency alone"
+when: derive is run
+then: "it writes a draft per call for the retries used up, named by the operation called, or by the call's place when two calls name the same, writes no draft for an unmapped error when errors maps only the timeout, ends the fire-and-forget call's retries and rate exceeded in the operation succeeding all the same, and exits 0"
+verifies: [SA-105]

@@ -257,6 +257,9 @@ func (c *checker) checkCall(d *design, o operation, e callEntry) {
 			if t, ok := expression(p.Value, ptr, "the value sent as "+p.Key.Value, ours, from); ok {
 				if want := d.fieldType(field); !assignable(t, want) {
 					c.addFile(c.fileOf(p.Value), exprLine(p.Value, 1), ptr, RuleExpressionType, "the value sent as %s gives %s, and %s's %s takes %s", p.Key.Value, t, called, p.Key.Value, want)
+				} else if mayBeNull(t, want) {
+					c.addFile(c.fileOf(p.Value), exprLine(p.Value, 1), ptr, RuleExpressionType, "the value sent as %s gives %s, and %s's %s takes %s, so a null would be sent where none is taken; send a value that is never null, as x != null ? x : a default", p.Key.Value, t, called, p.Key.Value, want)
+					c.diags[len(c.diags)-1].Severity = Warning
 				}
 			}
 		}
@@ -296,6 +299,9 @@ func (c *checker) checkCall(d *design, o operation, e callEntry) {
 				if t, ok := expression(p.Value, ptr, "the value kept as "+p.Key.Value, theirs, nil); ok {
 					if want := d.fieldType(field); !assignable(t, want) {
 						c.addFile(c.fileOf(p.Value), exprLine(p.Value, 1), ptr, RuleExpressionType, "the value kept as %s gives %s, and %s's %s is %s", p.Key.Value, t, ent, p.Key.Value, want)
+					} else if mayBeNull(t, want) {
+						c.addFile(c.fileOf(p.Value), exprLine(p.Value, 1), ptr, RuleExpressionType, "the value kept as %s gives %s, and %s's %s is %s, so a null would be kept where none is allowed; keep a value that is never null, as x != null ? x : a default", p.Key.Value, t, ent, p.Key.Value, want)
+						c.diags[len(c.diags)-1].Severity = Warning
 					}
 				}
 			}
@@ -356,6 +362,12 @@ func assignable(t, want expr.Type) bool {
 		return true
 	}
 	return false
+}
+
+// mayBeNull says whether a value of type t, assignable where want is
+// taken, may carry a null that want does not allow.
+func mayBeNull(t, want expr.Type) bool {
+	return t.Nullable && !want.Nullable
 }
 
 // exprNames are the names an expression reads, each once, in order.

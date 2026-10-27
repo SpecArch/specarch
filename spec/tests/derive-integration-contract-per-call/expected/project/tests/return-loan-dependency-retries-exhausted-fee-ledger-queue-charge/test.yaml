@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency retries exhausted feeLedger queueCharge]
+given: "feeLedger answers 503 on every try"
+when: "returnLoan is called"
+then: "the call is tried 1 more times, PT1S apart, then it answers 502: The ledger refused the charge, and the loan stays open."
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

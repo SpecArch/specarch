@@ -199,11 +199,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | request-waiver-succeeds | operation requestWaiver | system | golden | a caller with fees.waive | requestWaiver is called with values inside every limit | it answers 202: The request waits for approval. |
 | return-loan-concurrent-write | operation returnLoan | system | red | another caller changed the Loan after this caller read it | returnLoan is called | it is refused and the other caller's change stands |
 | return-loan-denied-without-loans-return | operation returnLoan | system | red | a caller without loans.return | returnLoan is called | it is refused as not allowed |
-| return-loan-dependency-answers-unmapped-fee-ledger | operation returnLoan | system | red | feeLedger answers with an error other than 503 or 409 | returnLoan is called | it answers 502: The ledger refused the charge, and the loan stays open. |
+| return-loan-dependency-answers-unmapped-fee-ledger-post-charge | operation returnLoan | system | red | feeLedger answers with an error other than 503 or 409 | returnLoan is called | it answers 502: The ledger refused the charge, and the loan stays open. |
 | return-loan-dependency-fails-audit-log | operation returnLoan | system | red | auditLog answers with an error | returnLoan is called | it succeeds all the same, since it does not wait for auditLog |
 | return-loan-dependency-fails-fee-ledger | operation returnLoan | system | red | feeLedger answers with an error | returnLoan is called | it answers 502: The ledger refused the charge, and the loan stays open. |
 | return-loan-dependency-rate-exceeded-fee-ledger | operation returnLoan | system | red | returnLoan's calls would pass feeLedger's rate of 20 calls per PT1S, 5 at once above it | returnLoan is called | the call is not sent above the rate, and it answers 503: The ledger is unavailable, and the loan stays open. |
-| return-loan-dependency-retries-exhausted-fee-ledger | operation returnLoan | system | red | feeLedger answers 503 or does not answer in time on every try | returnLoan is called | the call is tried 2 more times, PT1S apart and twice that each time, then it answers 503: The ledger is unavailable, and the loan stays open. |
+| return-loan-dependency-retries-exhausted-fee-ledger-post-charge | operation returnLoan | system | red | feeLedger answers 503 or does not answer in time on every try | returnLoan is called | the call is tried 2 more times, PT1S apart and twice that each time, then it answers 503: The ledger is unavailable, and the loan stays open. |
 | return-loan-dependency-times-out-audit-log | operation returnLoan | system | red | auditLog does not answer within PT1S | returnLoan is called | it succeeds all the same, since it does not wait for auditLog |
 | return-loan-dependency-times-out-fee-ledger | operation returnLoan | system | red | feeLedger does not answer within PT5S | returnLoan is called | it answers 503: The ledger is unavailable, and the loan stays open. |
 | return-loan-loan-id-not-a-valid-uuid | operation returnLoan | system | red | ... | returnLoan is called with loanId that is not a valid uuid | it is refused |
@@ -239,9 +239,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on return-loan-denied-without-loans-return:** Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold.
 
-**Origin on return-loan-dependency-answers-unmapped-fee-ledger:** inferred.
+**Origin on return-loan-dependency-answers-unmapped-fee-ledger-post-charge:** inferred.
 
-**Insight on return-loan-dependency-answers-unmapped-fee-ledger:** Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold.
+**Insight on return-loan-dependency-answers-unmapped-fee-ledger-post-charge:** Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold.
 
 **Origin on return-loan-dependency-fails-audit-log:** inferred.
 
@@ -255,9 +255,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on return-loan-dependency-rate-exceeded-fee-ledger:** Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold.
 
-**Origin on return-loan-dependency-retries-exhausted-fee-ledger:** inferred.
+**Origin on return-loan-dependency-retries-exhausted-fee-ledger-post-charge:** inferred.
 
-**Insight on return-loan-dependency-retries-exhausted-fee-ledger:** Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold.
+**Insight on return-loan-dependency-retries-exhausted-fee-ledger-post-charge:** Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold.
 
 **Origin on return-loan-dependency-times-out-audit-log:** inferred.
 
@@ -313,5 +313,5 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 
 | Requirement | Satisfied by | Verified by |
 |---|---|---|
-| CASE-1 | entities Loan; paths /loans/{loanId}/return post; paths /loans/{loanId}/waivers post; channels ledger.answers; dependencies feeLedger; dependencies auditLog; workflows waiver | tests request-waiver-denied-without-fees-waive; tests request-waiver-loan-id-not-a-valid-uuid; tests request-waiver-not-found-loan-id; tests request-waiver-succeeds; tests return-loan-concurrent-write; tests return-loan-denied-without-loans-return; tests return-loan-dependency-answers-unmapped-fee-ledger; tests return-loan-dependency-fails-audit-log; tests return-loan-dependency-fails-fee-ledger; tests return-loan-dependency-rate-exceeded-fee-ledger; tests return-loan-dependency-retries-exhausted-fee-ledger; tests return-loan-dependency-times-out-audit-log; tests return-loan-dependency-times-out-fee-ledger; tests return-loan-loan-id-not-a-valid-uuid; tests return-loan-not-found-loan-id; tests return-loan-succeeds; tests waiver-approval-without-fees-approve; tests waiver-deadline-passes-at-approve; tests waiver-refused-at-approve; tests waiver-requester-approves-own-request; tests waiver-succeeds |
+| CASE-1 | entities Loan; paths /loans/{loanId}/return post; paths /loans/{loanId}/waivers post; channels ledger.answers; dependencies feeLedger; dependencies auditLog; workflows waiver | tests request-waiver-denied-without-fees-waive; tests request-waiver-loan-id-not-a-valid-uuid; tests request-waiver-not-found-loan-id; tests request-waiver-succeeds; tests return-loan-concurrent-write; tests return-loan-denied-without-loans-return; tests return-loan-dependency-answers-unmapped-fee-ledger-post-charge; tests return-loan-dependency-fails-audit-log; tests return-loan-dependency-fails-fee-ledger; tests return-loan-dependency-rate-exceeded-fee-ledger; tests return-loan-dependency-retries-exhausted-fee-ledger-post-charge; tests return-loan-dependency-times-out-audit-log; tests return-loan-dependency-times-out-fee-ledger; tests return-loan-loan-id-not-a-valid-uuid; tests return-loan-not-found-loan-id; tests return-loan-succeeds; tests waiver-approval-without-fees-approve; tests waiver-deadline-passes-at-approve; tests waiver-refused-at-approve; tests waiver-requester-approves-own-request; tests waiver-succeeds |
 

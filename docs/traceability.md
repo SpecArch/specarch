@@ -133,7 +133,7 @@ Version 1.3.0 of the specification: 10 needs, 105 requirements, and 2 gaps. Each
 | SA-102 | NEED-1, NEED-10 | commands generate; commands validate; decisions ADR-197 | tests generate-ui-navigation; tests generate-ui-navigation-no-session; tests generate-ui-swiftui-navigation; tests generate-ui-typescript-navigation; tests validate-field-modes; tests validate-navigation; tests validate-navigation-valid; tests validate-signed-in |
 | SA-103 | NEED-1, NEED-5 | decisions ADR-198 | tests extract-workflows-asks-unread-end; tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-deadline-undoes; tests validate-workflow-open-branch; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused; tests validate-workflow-undo-skipped-step |
 | SA-104 | NEED-1 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
-| SA-105 | NEED-1 | decisions ADR-200 | tests derive-integration-contract; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-refused |
+| SA-105 | NEED-1 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 
 ## 3. Gaps
 

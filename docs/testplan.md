@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.0 of the specification: 833 design tests, 406 golden and 427 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.0 of the specification: 835 design tests, 408 golden and 427 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.0 of the specification: 833 design tests, 406 golden and 427 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 829 |
+| system | 831 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -364,6 +364,14 @@ Scenario: golden; level: system; verifies SA-105.
 - Given: an operation whose call to a dependency with a rate retries, maps its errors and its timeout to the operation's answers, beside an async call and a fire-and-forget call to another dependency, with only its golden test written
 - When: derive is run
 - Then: it writes a draft for the retries used up, ending in the answer the first retried status maps to, for an error the mapping does not name, for the rate exceeded, for the timeout answered as errors maps it, and for the fire-and-forget dependency's failure and timeout as cases the operation still succeeds in, beside the drafts of the permission, the key and the guard, and exits 0
+
+#### derive-integration-contract-per-call
+
+Scenario: golden; level: system; verifies SA-105.
+
+- Given: an operation that calls two operations of one dependency, each with retries, one mapping only its timeout, and calls another dependency with a rate fire and forget three times with retries, twice naming the dependency alone
+- When: derive is run
+- Then: it writes a draft per call for the retries used up, named by the operation called, or by the call's place when two calls name the same, writes no draft for an unmapped error when errors maps only the timeout, ends the fire-and-forget call's retries and rate exceeded in the operation succeeding all the same, and exits 0
 
 #### derive-invalid-spec
 
@@ -5118,6 +5126,14 @@ Scenario: golden; level: system; verifies SA-105.
 - Given: a dependency that proves itself with a bearer token kept in a secret setting, with a rate and two operations of its own, another with auth none and an operation that is a message sent, and an operation whose calls map our values to theirs and their answer back, send an idempotency key, retry, map their errors to its answers, and call async with a callback and fire and forget, with a test for each derived case
 - When: validate is run
 - Then: it reports nothing, the same in both builds, and exits 0
+
+#### validate-integration-contract-null
+
+Scenario: golden; level: system; verifies SA-105.
+
+- Given: a call that sends a field of the record that may be null as a field of their request that takes no null
+- When: validate is run
+- Then: it reports the send as an expression_type warning at the value sent, the same in both builds, and exits 0
 
 #### validate-integration-contract-refused
 

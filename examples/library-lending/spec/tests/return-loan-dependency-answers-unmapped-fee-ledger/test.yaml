@@ -1,8 +1,0 @@
-# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
-operation: returnLoan
-level: system
-scenario: red
-covers: [dependency answers unmapped feeLedger]
-given: an open loan, and a fee ledger that answers 409 to its charge
-when: returnLoan is called for it
-then: the charge is not tried again, it answers 503, the loan stays open, and no event is published

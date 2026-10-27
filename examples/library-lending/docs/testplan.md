@@ -1581,9 +1581,9 @@ Scenario: red; level: system; covers denied with expired session.
 - When: returnLoan is called for an open loan
 - Then: it is refused as not signed in, and nothing changes
 
-#### return-loan-dependency-answers-unmapped-fee-ledger
+#### return-loan-dependency-answers-unmapped-fee-ledger-post-charge
 
-Scenario: red; level: system; covers dependency answers unmapped feeLedger.
+Scenario: red; level: system; covers dependency answers unmapped feeLedger postCharge.
 
 - Given: an open loan, and a fee ledger that answers 409 to its charge
 - When: returnLoan is called for it
@@ -1605,9 +1605,9 @@ Scenario: red; level: system; covers dependency rate exceeded feeLedger.
 - When: returnLoan is called for it
 - Then: no eleventh call is sent within that second; it answers 503, the loan stays open, and no event is published
 
-#### return-loan-dependency-retries-exhausted-fee-ledger
+#### return-loan-dependency-retries-exhausted-fee-ledger-post-charge
 
-Scenario: red; level: system; covers dependency retries exhausted feeLedger.
+Scenario: red; level: system; covers dependency retries exhausted feeLedger postCharge.
 
 - Given: an open loan, and a fee ledger that answers 503 or does not answer within 5 seconds on every try
 - When: returnLoan is called for it

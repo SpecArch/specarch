@@ -155,12 +155,16 @@ func tryAlgorithm(_ s: Spec, _ algorithm: String, _ example: String, _ given: YN
     return (t, "")
 }
 
-/// Whether a diagnostic is one specarch try says in its own lines for the
-/// algorithm it tries: a worked example of it that does not hold or cannot
-/// be computed.
-func triedHere(_ d: Diagnostic, _ algorithm: String) -> Bool {
-    guard d.rule == .exampleMismatch || d.rule == .exampleError else { return false }
-    return d.path.hasPrefix(pointer("algorithms", algorithm, "examples") + "/")
+/// Whether a diagnostic is one specarch try says in its own lines: a
+/// worked example it evaluated that does not hold or cannot be computed.
+/// An example it did not evaluate keeps its line.
+func triedHere(_ d: Diagnostic, _ t: Tried?) -> Bool {
+    guard let t, d.rule == .exampleMismatch || d.rule == .exampleError else { return false }
+    for e in t.evaluations where e.number > 0 {
+        let base = pointer("algorithms", t.algorithm, "examples", "\(e.number - 1)")
+        if d.path == base || d.path.hasPrefix(base + "/") { return true }
+    }
+    return false
 }
 
 /// The try command: evaluates an algorithm on its worked examples or on
@@ -241,13 +245,14 @@ func runTry(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int32 {
             return 1
         }
     }
+    let diags = checkSpec(s, makeGiven([s]))
+    let (tried, refusal) = tryAlgorithm(s, algorithm, example, given)
     var invalid = false
-    for d in checkSpec(s, makeGiven([s])) where d.severity == .error && !triedHere(d, algorithm) {
+    for d in diags where d.severity == .error && !triedHere(d, tried) {
         stdout.write(d.description + "\n")
         if let l = d.detailLine { stderr.write(l + "\n") }
         invalid = true
     }
-    let (tried, refusal) = tryAlgorithm(s, algorithm, example, given)
     guard let tried else {
         stderr.write("specarch try: \(refusal)\n")
         return 1

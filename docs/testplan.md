@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.2.1-dev of the specification: 801 design tests, 390 golden and 411 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.2.1-dev of the specification: 802 design tests, 390 golden and 412 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.2.1-dev of the specification: 801 design tests, 390 golden and 411 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 797 |
+| system | 798 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3730,6 +3730,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-100.
 - Given: an algorithm dividing a sum among people, with examples that hold, one whose expected value is wrong, and one the formula cannot compute since it divides by zero
 - When: try is run for the algorithm
 - Then: it prints the failing example's result beside its expected value, the steps computed before the division by zero and the reason, a quotient of no fixed scale with 20 places, no example_mismatch or example_error line, and exits 1
+
+#### try-example-others-fail
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: an algorithm with an example that holds, one whose expected value is wrong and one the formula cannot compute
+- When: try is run with --example naming the example that holds
+- Then: it prints the validator's example_mismatch and example_error lines of the two examples it does not evaluate, then the one it evaluates as passing, and exits 1
 
 #### try-exit-2
 

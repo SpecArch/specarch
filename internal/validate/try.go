@@ -206,11 +206,20 @@ func Try(s *spec.Spec, algorithm, example string, given *yaml.Node) (*Tried, str
 }
 
 // TriedHere reports whether a diagnostic is one that specarch try says in
-// its own lines for the algorithm it tries: a worked example of it that
-// does not hold or cannot be computed.
-func TriedHere(d Diagnostic, algorithm string) bool {
-	if d.Rule != RuleExampleMismatch && d.Rule != RuleExampleError {
+// its own lines: a worked example it evaluated that does not hold or
+// cannot be computed. An example it did not evaluate keeps its line.
+func TriedHere(d Diagnostic, t *Tried) bool {
+	if t == nil || (d.Rule != RuleExampleMismatch && d.Rule != RuleExampleError) {
 		return false
 	}
-	return strings.HasPrefix(d.Path, source.Pointer("algorithms", algorithm, "examples")+"/")
+	for _, e := range t.Evaluations {
+		if e.Number == 0 {
+			continue
+		}
+		base := source.Pointer("algorithms", t.Algorithm, "examples", fmt.Sprint(e.Number-1))
+		if d.Path == base || strings.HasPrefix(d.Path, base+"/") {
+			return true
+		}
+	}
+	return false
 }

@@ -5,8 +5,10 @@ commands:
     description: |
       Validates its input first and prints the errors of an invalid
       specification, then works on what could be read (ADR-065); the
-      example_mismatch and example_error lines of the algorithm tried are
-      not printed, since its evaluations say the same with their steps.
+      example_mismatch and example_error lines of the examples evaluated
+      are not printed, since their evaluations say the same with their
+      steps; an example not evaluated, with --example or --inputs, keeps
+      its line.
       Finds the algorithm by its name in the merged `algorithms` section;
       refuses when there is none of that name, naming the ones there are,
       when it has no formula, when the formula does not parse or check

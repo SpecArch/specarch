@@ -1,0 +1,13 @@
+arguments: ["try", "share", "--example", "four people", "."]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:14:93: error: /algorithms/share/examples/1/expected: example_mismatch: the formula gives "10.00" for "tip left out", but the example expects "9.50"; correct the example or the formula [example_mismatch@specarch.yaml#/algorithms/share/examples/1/expected]
+  specarch.yaml:15:9: error: /algorithms/share/examples/2: example_error: the formula cannot be computed for "nobody": division by zero; correct the inputs or the formula [example_error@specarch.yaml#/algorithms/share/examples/2]
+  share: 1 example, 1 pass
+  example 1 "four people": pass
+    inputs: total "38.00", people 4, tip "2.00"
+    total + tip = "40.00"
+    decimal(people, 0) = "4"
+    (total + tip) / decimal(people, 0) = "10"
+    round((total + tip) / decimal(people, 0), 2) = "10.00"
+    result "10.00", expected "10.00"

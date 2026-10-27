@@ -100,14 +100,15 @@ func tryInto(args []string, stdout, stderr io.Writer, found **validate.Tried) in
 			return 1
 		}
 	}
+	diags := validate.CheckSpec(s, validate.NewGiven([]*spec.Spec{s}))
+	t, refusal := validate.Try(s, algorithm, example, given)
 	invalid := false
-	for _, d := range validate.CheckSpec(s, validate.NewGiven([]*spec.Spec{s})) {
-		if d.Severity == validate.Error && !validate.TriedHere(d, algorithm) {
+	for _, d := range diags {
+		if d.Severity == validate.Error && !validate.TriedHere(d, t) {
 			printDiagnostic(stdout, stderr, d)
 			invalid = true
 		}
 	}
-	t, refusal := validate.Try(s, algorithm, example, given)
 	if refusal != "" {
 		fmt.Fprintf(stderr, "specarch try: %s\n", refusal)
 		return 1

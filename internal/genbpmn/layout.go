@@ -515,6 +515,11 @@ func layout(spec map[string]any, name string, w map[string]any) *workflow {
 		f.points = [][2]int{{t.cx(), t.bottom()}, {t.cx(), y}, {target.x + 24, y}, {target.x + 24, end}}
 	}
 	intoEnd := func(t, end *shape, label string, y int) {
+		if end == nil {
+			// A target a question still holds open, with no end of its
+			// kind drawn: the event is drawn with no flow.
+			return
+		}
 		f := wf.connect(t, end, label, "")
 		side := end.right() + 20 // up the right of the end, clear of its name
 		f.points = [][2]int{{t.cx(), t.bottom()}, {t.cx(), y}, {side, y}, {side, end.cy()}, {end.right(), end.cy()}}

@@ -2,7 +2,7 @@
 command: decision why
 level: system
 scenario: golden
-given: "the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004"
+given: "the four decisions of the decision why chain case, and three accepted ideas, IDEA-1 that became ADR-003, IDEA-2 and IDEA-10 that became ADR-004"
 when: "decision why is run for ADR-004"
-then: "it prints the chain with from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0"
+then: "it prints the chain with from idea IDEA-1 on ADR-003's line and from idea IDEA-2, IDEA-10 on ADR-004's, IDEA-2 before IDEA-10, and exits 0"
 verifies: [SA-101]

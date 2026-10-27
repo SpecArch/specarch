@@ -4,7 +4,8 @@ id: IDEA-1
 statement: Work the late fee out once, when the copy comes back, and keep it on the loan.
 raised: "2026-10-24"
 raisedBy: librarian
-inputMode: document
+inputMode: chat
+location: the conversation about returns of 2026-10-24, turn 2
 cites:
   - source: desk-interview
     says: The desk tells the member the fee at the counter and expects the same amount on the receipt and in the member's account later.

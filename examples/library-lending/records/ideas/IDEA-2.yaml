@@ -1,12 +1,12 @@
 specarchRecord: "1.0.0"
 kind: idea
 id: IDEA-2
-statement: Charge reference copies twice the daily rate, since other members cannot use them while they are out.
+statement: Charge nothing for the first day late, so a copy dropped in the box after closing time is not fined.
 raised: "2026-10-26"
 raisedBy: librarian
 inputMode: chat
 location: the conversation about late fees of 2026-10-26, turn 3
 about: "#/algorithms/lateFee"
 text: |
-  formula: "min(decimal(daysLate) * dailyRate * (isReference ? decimal(\"2\") : decimal(\"1\")), replacementCost)"
+  formula: "min(decimal(daysLate > 0 ? daysLate - 1 : 0, 0) * dailyRate, replacementCost)"
 status: discussed

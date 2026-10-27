@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-10
+statement: Two renewals for every member, the limits table says.
+raised: "2026-10-10"
+inputMode: table
+status: accepted
+decision: { by: owner, date: "2026-10-10", outcome: accepted, why: Members asked for a second renewal. }
+became: { decision: ADR-004 }

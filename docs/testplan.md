@@ -311,9 +311,9 @@ Scenario: golden; level: system; verifies SA-97.
 
 Scenario: golden; level: system; verifies SA-101.
 
-- Given: the four decisions of the decision why chain case, and two accepted ideas that became ADR-003 and ADR-004
+- Given: the four decisions of the decision why chain case, and three accepted ideas, IDEA-1 that became ADR-003, IDEA-2 and IDEA-10 that became ADR-004
 - When: decision why is run for ADR-004
-- Then: it prints the chain with from idea IDEA-1 on ADR-003's line and from idea IDEA-2 on ADR-004's, and exits 0
+- Then: it prints the chain with from idea IDEA-1 on ADR-003's line and from idea IDEA-2, IDEA-10 on ADR-004's, IDEA-2 before IDEA-10, and exits 0
 
 #### decision-why-no-links
 

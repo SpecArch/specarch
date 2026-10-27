@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -108,7 +109,7 @@ func runDecision(args []string, stdout, stderr io.Writer) int {
 }
 
 // ideasByDecision maps each decision to the ideas in records/ideas/ that
-// became it, in the order of their files. A decision never names the idea
+// became it, in ID order, IDEA-2 before IDEA-10. A decision never names the idea
 // it came from, since the specification never points at its records, so
 // the link is read from the idea's became.
 func ideasByDecision(records []spec.Record) map[string][]string {
@@ -123,7 +124,25 @@ func ideasByDecision(records []spec.Record) map[string][]string {
 			out[d] = append(out[d], id)
 		}
 	}
+	for _, ids := range out {
+		sort.SliceStable(ids, func(i, j int) bool { return ideaIDLess(ids[i], ids[j]) })
+	}
 	return out
+}
+
+// ideaIDLess orders IDs by prefix, then by number when both have one.
+func ideaIDLess(a, b string) bool {
+	pa, na, _ := strings.Cut(a, "-")
+	pb, nb, _ := strings.Cut(b, "-")
+	if pa != pb {
+		return pa < pb
+	}
+	x, errA := strconv.Atoi(na)
+	y, errB := strconv.Atoi(nb)
+	if errA == nil && errB == nil {
+		return x < y
+	}
+	return na < nb
 }
 
 // restsOnChain is the chain a decision rests on: every decision reached

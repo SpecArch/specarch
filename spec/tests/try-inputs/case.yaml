@@ -1,0 +1,10 @@
+arguments: ["try", "lateFee", "--inputs", "{ daysLate: 30, dailyRate: \"0.50\", replacementCost: \"25.00\" }", "."]
+exitStatus: 0
+standardOutput: |
+  lateFee: given inputs, computed
+  given inputs: computed
+    inputs: daysLate 30, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "30"
+    decimal(daysLate, 0) * dailyRate = "15.00"
+    min(decimal(daysLate, 0) * dailyRate, replacementCost) = "15.00"
+    result "15.00"

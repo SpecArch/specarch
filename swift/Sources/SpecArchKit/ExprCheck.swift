@@ -100,9 +100,20 @@ public func fits(_ got: ExprType, _ want: ExprType) -> (Bool, String) {
     return (true, "")
 }
 
+/// Checks as checkExpr does and also gives the type of every node it
+/// checked, by the node, for a trace that writes each step's value at its
+/// type.
+public func checkExprTypes(_ n: ExprNode, _ env: ExprEnv) -> (ExprType, [ObjectIdentifier: ExprType], [ExprError]) {
+    let c = TypeChecker(env)
+    c.types = [:]
+    let t = c.check(n)
+    return (t, c.types ?? [:], c.errs)
+}
+
 private final class TypeChecker {
     var env: ExprEnv
     var errs: [ExprError] = []
+    var types: [ObjectIdentifier: ExprType]? // the type of each node checked, when asked for
 
     init(_ env: ExprEnv) { self.env = env }
 
@@ -135,6 +146,12 @@ private final class TypeChecker {
     }
 
     func check(_ n: ExprNode) -> ExprType {
+        let t = checkNode(n)
+        if types != nil { types![ObjectIdentifier(n)] = t }
+        return t
+    }
+
+    func checkNode(_ n: ExprNode) -> ExprType {
         switch n.op {
         case .int: return ExprType(.int)
         case .uint: return ExprType(.uint)

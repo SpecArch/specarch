@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+algorithms:
+  lateFee:
+    formula: decimal(daysLate, 0) * dailyRate

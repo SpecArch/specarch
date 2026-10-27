@@ -8,6 +8,10 @@ usage:
   specarch validate <folder or file>...    check specifications and implementation files
   specarch upgrade [--dry-run] [--to <version>] <folder or file>...
                                             move specifications and their files to the newest version of each format
+  specarch try <algorithm> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
+                                            evaluate an algorithm on its worked examples or on the inputs
+                                            given, and print each step of its formula with its value;
+                                            --file reads a proposed algorithm in place of the specification's
   specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
 
@@ -47,6 +51,8 @@ public func run(_ args: [String], stdout: TextSink, stderr: TextSink) -> Int32 {
         return runValidate(Array(args.dropFirst()), stdout, stderr)
     case "model":
         return runModel(Array(args.dropFirst()), stdout, stderr)
+    case "try":
+        return runTry(Array(args.dropFirst()), stdout, stderr)
     case "upgrade":
         return runUpgrade(Array(args.dropFirst()), stdout, stderr)
     case "version":

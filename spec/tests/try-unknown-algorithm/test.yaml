@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [exit 1]
+given: a specification whose one algorithm is lateFee
+when: try is run for an algorithm named lateFees
+then: it refuses, naming lateFee, prints nothing on standard output, and exits 1
+verifies: [SA-100]

@@ -122,6 +122,7 @@ var commandFiles = map[string][]string{
 	"merge.go":    {"merge"},
 	"model.go":    {"model"},
 	"upgrade.go":  {"upgrade"},
+	"try.go":      {"try"},
 	"problems.go": {"document"},
 	"site.go":     {"document"},
 	"self.go":     {"help", "guide", "capabilities"},
@@ -380,7 +381,7 @@ func TestAgentsFile(t *testing.T) {
 func TestHelpTopics(t *testing.T) {
 	noPlugins(t)
 	topics := helpTopics()
-	for _, want := range []string{"format", "validate", "gaps", "generate", "extract", "upgrade", "plugins", "conventions", "examples"} {
+	for _, want := range []string{"format", "validate", "gaps", "generate", "extract", "upgrade", "plugins", "conventions", "examples", "try"} {
 		if topics[want] == "" {
 			t.Errorf("docs/help has no %s.txt", want)
 		}

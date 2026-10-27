@@ -1,0 +1,13 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  weight:
+    description: A score's weight, as a double.
+    inputs:
+      score: { type: integer, format: int32 }
+      factor: { type: number, format: double }
+    output: { type: number, format: double }
+    formula: double(score) * factor + 2.0
+    examples:
+      - { name: two on top, inputs: { score: 3, factor: 1.5 }, expected: 6.5 }
+    pseudocode: return score * factor + 2

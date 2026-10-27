@@ -190,7 +190,8 @@ specification and checks the release between them, and `derive` writes a
 draft test for every derived case no test covers, `idioms` lists the
 idioms each implementation file uses, `decision why` prints the chain of
 decisions a decision rests on and `decision rests` the decisions that
-rest on it, `model` prints the specifications
+rest on it, `try` evaluates an algorithm on its worked examples or on
+given inputs and prints each step of its formula with its value, `model` prints the specifications
 as one JSON document for a program such as an editor (the merged
 document, where every node came from, the references and the layout
 problems), and `facts` writes the code-facts
@@ -248,8 +249,8 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.2.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.2.0
 
-The Swift build, for macOS, has the validate, model, upgrade and version
-verbs and gives the same output. With Swift 6:
+The Swift build, for macOS, has the validate, model, upgrade, try and
+version verbs and gives the same output. With Swift 6:
 
     swift build -c release --package-path swift
     swift/.build/release/specarch validate spec examples

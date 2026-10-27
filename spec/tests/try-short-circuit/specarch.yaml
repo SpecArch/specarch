@@ -1,0 +1,14 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  average:
+    description: The average of a count of items, 0 when there are none.
+    inputs:
+      sum: { type: integer, format: int32 }
+      count: { type: integer, format: int32 }
+    output: { type: integer, format: int32 }
+    formula: "count == 0 ? 0 : sum / count"
+    examples:
+      - { name: no items, inputs: { sum: 0, count: 0 }, expected: 0 }
+      - { name: three items, inputs: { sum: 12, count: 3 }, expected: 4 }
+    pseudocode: return 0 when count is 0, else sum / count

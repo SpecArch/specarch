@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: golden
+given: an algorithm whose formula caps a daily fee at a replacement cost, with three worked examples that hold
+when: try is run for the algorithm
+then: it prints the summary line, then each example with its inputs, each operation and call of the formula in the order computed with its value, decimals at the scale the formula gives them, and the result beside the expected value, and exits 0
+verifies: [SA-100]

@@ -1,0 +1,14 @@
+arguments: ["try", "longSession", "."]
+exitStatus: 0
+standardOutput: |
+  longSession: 2 examples, 2 pass
+  example 1 "thirty hours": pass
+    inputs: length "P1DT6H"
+    duration("P1DT2H") = "P1DT2H"
+    length > duration("P1DT2H") = true
+    result true, expected true
+  example 2 "ninety minutes": pass
+    inputs: length "PT1H30M"
+    duration("P1DT2H") = "P1DT2H"
+    length > duration("P1DT2H") = false
+    result false, expected false

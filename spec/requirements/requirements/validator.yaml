@@ -130,3 +130,19 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-7]
     why: A file's version line is its promise of which rules it is written against (ADR-055); reading every version side by side keeps every specification that exists valid while the format moves on, and an author learns from one warning what moves the file and with which command (ADR-186).
+  SA-100:
+    statement: specarch try shall evaluate one algorithm's formula, in both builds, on each of its worked examples or on inputs given on the command line, with the specification's definition of the algorithm or a proposed one read from a file in its place, and print for each evaluation its inputs, every operation and call of the formula with the value it gave, in the order they were computed, the result and, for an example, the expected value and whether it holds.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - specarch try on the library lending example's lateFee prints a summary line, then each of its four examples with its inputs, each sub-expression of the formula that was computed with its value, decimals at the scale the formula gives them, the result and the expected value, all four passing, and exits 0; the Go build and the Swift build print the same lines.
+      - An example whose expected value the formula does not give is printed as failing with the result beside the expected value, and an example the formula cannot compute is printed with the steps computed before the failure and the reason; either exits 1.
+      - "The operand of && or || that is not read and the branch of ?: that is not taken are not printed."
+      - --example prints one example by its name; --inputs evaluates the inputs written as an example's inputs are and prints the result with no expected value; an input given there that does not fit its field is printed with the reason and exits 1.
+      - --file reads the algorithm from a fragment file in place of the specification's, each key it gives taking the place of the specification's key and the others kept, so a proposed formula is tried on the examples the specification holds; the specification's files are not changed.
+      - An algorithm the specification does not have is refused, naming the ones it has, and exits 1; a usage error, a folder or file that cannot be read, or --example with --inputs exits 2.
+      - With --json the Go build prints the evaluations as data beside the lines.
+    verification: test
+    needs: [NEED-1, NEED-10]
+    why: A reader decides on a rule faster and more accurately from its result on a case they recognise than from its formula; validate says only that an example does not hold, so the result of a passing example, the steps that gave a wrong one and the effect of a proposed formula on the examples were worked out by hand, which is the cost the goal names (ADR-195).

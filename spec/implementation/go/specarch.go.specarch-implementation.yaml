@@ -89,7 +89,7 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/decision why", "#/commands/decision rests", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/decision why", "#/commands/decision rests", "#/commands/try", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
     dependsOn: [internal/approval, internal/canonical, internal/diff, internal/extract, internal/facts, internal/genbpmn, internal/generate, internal/genscreens, internal/gensql, internal/genui, internal/literal, internal/mark, internal/problems, internal/refine, internal/semver, internal/source, internal/spec, internal/validate, internal/xref]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.
@@ -112,7 +112,7 @@ layout:
   internal/source:
     description: Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys.
   internal/spec:
-    description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems.
+    description: Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems; puts an entry read from a fragment file in place of the specification's, key by key, for specarch try --file.
     dependsOn: [internal/source]
   cmd/specarch-gen-sql:
     description: The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk.
@@ -214,7 +214,7 @@ layout:
     description: The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now.
     dependsOn: [internal/source]
   internal/expr:
-    description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals.
+    description: The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals; on request it records each operation and call as computed and each node's type, and writes a sub-expression and a value in the form specarch try prints (ADR-195).
   internal/generate:
     description: The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; comparison writes the old documents against the refined specification from origin, citations and decisions (ADR-157); html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs, and marks an internal element; ForEveryone cuts the specification to what a document for everyone shows, counting what it left out.
     implements: ["#/algorithms/markersWellFormed"]
@@ -254,6 +254,7 @@ mappings:
   "#/commands/idioms diff": { target: main.runIdiomsDiff }
   "#/commands/decision why": { target: main.runDecision, description: "Walks restsOn from the decision in the merged document; the chain is each decision after the ones it rests on." }
   "#/commands/decision rests": { target: main.runDecision, description: "Walks the inverse of restsOn from the decision, nearest first." }
+  "#/commands/try": { target: main.runTry, description: "Validates with the --file algorithm put in place by spec.Overlay, then validate.Try evaluates with expr.Trace; --json adds validate.Tried under try." }
   "#/commands/diff": { target: main.runDiff, description: "Lists diff.Compare's changes, then checks the release record beside the new folder." }
   "#/commands/check": { target: main.runCheck, description: "Tells each dump by its format with extract.DumpFormat and compares it with extract.CheckRoutes, extract.CheckGrants or extract.CheckCatalogue, the last against gensql.Schema's tables for PostgreSQL; reads the allowlist, and with --since the allowlist at that revision through git." }
   "#/enums/DocumentTarget": { target: main.documentTargets }
@@ -354,6 +355,7 @@ testing:
         - { command: idioms diff }
         - { command: decision why }
         - { command: decision rests }
+        - { command: try }
         - { command: version }
       ci: true
     shipped-idioms:

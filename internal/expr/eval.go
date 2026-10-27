@@ -113,6 +113,46 @@ func checkInt(n *Node, v Value) (Value, error) {
 // specification's timeZone, UTC when it declares none: date() of an
 // instant gives the instant's calendar date in it (ADR-193).
 func Eval(n *Node, vals map[string]Value, zone *time.Location) (Value, error) {
+	return evalWith(n, vals, zone, nil)
+}
+
+// Step is one operation or call of an expression and the value it gave.
+type Step struct {
+	Node  *Node
+	Value Value
+}
+
+// Trace computes as Eval does and also gives each operation and call in
+// the order it was computed, after its operands (ADR-195). A literal or a
+// name is no step, and the operand of && or || not read and the branch of
+// ?: not taken are not computed, so they are none. On an error the steps
+// are the ones computed before it.
+func Trace(n *Node, vals map[string]Value, zone *time.Location) (Value, []Step, error) {
+	var steps []Step
+	v, err := evalWith(n, vals, zone, &steps)
+	return v, steps, err
+}
+
+// evalWith computes n and records it in steps when steps is not nil.
+func evalWith(n *Node, vals map[string]Value, zone *time.Location, steps *[]Step) (Value, error) {
+	v, err := evalNode(n, vals, zone, steps)
+	if steps != nil && err == nil && IsStep(n) {
+		*steps = append(*steps, Step{Node: n, Value: v})
+	}
+	return v, err
+}
+
+// IsStep reports whether a node is an operation or a call, which a trace
+// records, and not a literal or a name.
+func IsStep(n *Node) bool {
+	switch n.Op {
+	case OpInt, OpUint, OpDouble, OpText, OpBool, OpNull, OpName:
+		return false
+	}
+	return true
+}
+
+func evalNode(n *Node, vals map[string]Value, zone *time.Location, steps *[]Step) (Value, error) {
 	switch n.Op {
 	case OpInt:
 		return Value{Kind: Int, Num: ratOf(n.Int)}, nil
@@ -133,7 +173,7 @@ func Eval(n *Node, vals map[string]Value, zone *time.Location) (Value, error) {
 		}
 		return v, nil
 	case OpNeg:
-		v, err := Eval(n.Args[0], vals, zone)
+		v, err := evalWith(n.Args[0], vals, zone, steps)
 		if err != nil {
 			return v, err
 		}
@@ -142,37 +182,37 @@ func Eval(n *Node, vals map[string]Value, zone *time.Location) (Value, error) {
 		}
 		return checkInt(n, Value{Kind: v.Kind, Num: new(big.Rat).Neg(v.Num)})
 	case OpNot:
-		v, err := Eval(n.Args[0], vals, zone)
+		v, err := evalWith(n.Args[0], vals, zone, steps)
 		if err != nil {
 			return v, err
 		}
 		return Value{Kind: Bool, Bool: !v.Bool}, nil
 	case "&&", "||":
-		l, err := Eval(n.Args[0], vals, zone)
+		l, err := evalWith(n.Args[0], vals, zone, steps)
 		if err != nil {
 			return l, err
 		}
 		if (n.Op == "&&" && !l.Bool) || (n.Op == "||" && l.Bool) {
 			return l, nil
 		}
-		return Eval(n.Args[1], vals, zone)
+		return evalWith(n.Args[1], vals, zone, steps)
 	case OpCond:
-		c, err := Eval(n.Args[0], vals, zone)
+		c, err := evalWith(n.Args[0], vals, zone, steps)
 		if err != nil {
 			return c, err
 		}
 		if c.Bool {
-			return Eval(n.Args[1], vals, zone)
+			return evalWith(n.Args[1], vals, zone, steps)
 		}
-		return Eval(n.Args[2], vals, zone)
+		return evalWith(n.Args[2], vals, zone, steps)
 	case OpCall:
-		return call(n, vals, zone)
+		return call(n, vals, zone, steps)
 	}
-	l, err := Eval(n.Args[0], vals, zone)
+	l, err := evalWith(n.Args[0], vals, zone, steps)
 	if err != nil {
 		return l, err
 	}
-	r, err := Eval(n.Args[1], vals, zone)
+	r, err := evalWith(n.Args[1], vals, zone, steps)
 	if err != nil {
 		return r, err
 	}
@@ -291,10 +331,10 @@ func compare(a, b Value) (int, bool) {
 	return 0, false
 }
 
-func call(n *Node, vals map[string]Value, zone *time.Location) (Value, error) {
+func call(n *Node, vals map[string]Value, zone *time.Location, steps *[]Step) (Value, error) {
 	args := make([]Value, len(n.Args))
 	for i, a := range n.Args {
-		v, err := Eval(a, vals, zone)
+		v, err := evalWith(a, vals, zone, steps)
 		if err != nil {
 			return v, err
 		}

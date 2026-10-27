@@ -112,6 +112,54 @@ private func truncate(_ d: Decimal) -> Decimal {
 /// specification's timeZone, UTC when it declares none: date() of an
 /// instant gives the instant's calendar date in it (ADR-193).
 public func evalExpr(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone) throws -> ExprValue {
+    try evalWith(n, vals, zone, nil)
+}
+
+/// One operation or call of an expression and the value it gave.
+public struct TraceStep {
+    public let node: ExprNode
+    public let value: ExprValue
+}
+
+/// Gathers the steps of a trace.
+final class TraceRecorder {
+    var steps: [TraceStep] = []
+}
+
+/// Computes as evalExpr does and also gives each operation and call in the
+/// order it was computed, after its operands (ADR-195). A literal or a name
+/// is no step, and the operand of && or || not read and the branch of ?:
+/// not taken are not computed, so they are none. On an error the steps are
+/// the ones computed before it.
+public func traceExpr(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone) -> (ExprValue?, [TraceStep], EvalError?) {
+    let rec = TraceRecorder()
+    do {
+        let v = try evalWith(n, vals, zone, rec)
+        return (v, rec.steps, nil)
+    } catch let e as EvalError {
+        return (nil, rec.steps, e)
+    } catch {
+        return (nil, rec.steps, EvalError(line: n.line, column: n.column, message: "\(error)"))
+    }
+}
+
+/// Whether a node is an operation or a call, which a trace records, and
+/// not a literal or a name.
+public func isTraceStep(_ n: ExprNode) -> Bool {
+    switch n.op {
+    case .int, .uint, .double, .text, .bool, .null, .name: return false
+    default: return true
+    }
+}
+
+/// evalWith computes n and records it in rec when rec is given.
+private func evalWith(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone, _ rec: TraceRecorder?) throws -> ExprValue {
+    let v = try evalNode(n, vals, zone, rec)
+    if let rec, isTraceStep(n) { rec.steps.append(TraceStep(node: n, value: v)) }
+    return v
+}
+
+private func evalNode(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone, _ rec: TraceRecorder?) throws -> ExprValue {
     switch n.op {
     case .int: var v = ExprValue(.int); v.num = n.intValue; return v
     case .uint: var v = ExprValue(.uint); v.num = n.intValue; return v
@@ -123,26 +171,26 @@ public func evalExpr(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZon
         guard let v = vals[n.text] else { throw evalErr(n, "\(n.text) has no value") }
         return v
     case .neg:
-        var v = try evalExpr(n.args[0], vals, zone)
+        var v = try evalWith(n.args[0], vals, zone, rec)
         if v.kind == .double { v.double = -v.double; return v }
         v.num = -v.num
         return try checkInt(n, v)
     case .not:
-        var v = try evalExpr(n.args[0], vals, zone)
+        var v = try evalWith(n.args[0], vals, zone, rec)
         v.bool = !v.bool
         return v
     case .cond:
-        let c = try evalExpr(n.args[0], vals, zone)
-        return try evalExpr(c.bool ? n.args[1] : n.args[2], vals, zone)
+        let c = try evalWith(n.args[0], vals, zone, rec)
+        return try evalWith(c.bool ? n.args[1] : n.args[2], vals, zone, rec)
     case .call:
-        return try call(n, vals, zone)
+        return try call(n, vals, zone, rec)
     case .binary(let op):
         if op == "&&" || op == "||" {
-            let l = try evalExpr(n.args[0], vals, zone)
+            let l = try evalWith(n.args[0], vals, zone, rec)
             if (op == "&&" && !l.bool) || (op == "||" && l.bool) { return l }
-            return try evalExpr(n.args[1], vals, zone)
+            return try evalWith(n.args[1], vals, zone, rec)
         }
-        let l = try evalExpr(n.args[0], vals, zone), r = try evalExpr(n.args[1], vals, zone)
+        let l = try evalWith(n.args[0], vals, zone, rec), r = try evalWith(n.args[1], vals, zone, rec)
         switch op {
         case "+", "-", "*", "/":
             return try arithmetic(n, op, l, r)
@@ -214,8 +262,8 @@ private func compare(_ a: ExprValue, _ b: ExprValue) -> Int? {
     }
 }
 
-private func call(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone) throws -> ExprValue {
-    let args = try n.args.map { try evalExpr($0, vals, zone) }
+private func call(_ n: ExprNode, _ vals: [String: ExprValue], _ zone: TimeZone, _ rec: TraceRecorder?) throws -> ExprValue {
+    let args = try n.args.map { try evalWith($0, vals, zone, rec) }
     let a = args.first ?? ExprValue(.null)
     switch n.text {
     case "int", "uint":

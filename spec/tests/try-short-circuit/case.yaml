@@ -1,0 +1,15 @@
+arguments: ["try", "average", "."]
+exitStatus: 0
+standardOutput: |
+  average: 2 examples, 2 pass
+  example 1 "no items": pass
+    inputs: sum 0, count 0
+    count == 0 = true
+    count == 0 ? 0 : sum / count = 0
+    result 0, expected 0
+  example 2 "three items": pass
+    inputs: sum 12, count 3
+    count == 0 = false
+    sum / count = 4
+    count == 0 ? 0 : sum / count = 4
+    result 4, expected 4

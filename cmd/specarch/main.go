@@ -11,6 +11,7 @@
 //	specarch derive [--dry-run] <folder>...
 //	specarch idioms [diff <idiom>] <folder>...
 //	specarch decision why|rests <decision> <folder>
+//	specarch try <algorithm> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
 //	specarch model <folder or file>...
 //	specarch version
 //	specarch help [<topic>]
@@ -74,6 +75,10 @@ const usage = `usage:
   specarch decision why <decision> <folder> print the chain of decisions a decision rests on, earliest first
   specarch decision rests <decision> <folder>
                                             print the decisions that rest on a decision, nearest first
+  specarch try <algorithm> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
+                                            evaluate an algorithm on its worked examples or on the inputs
+                                            given, and print each step of its formula with its value;
+                                            --file reads a proposed algorithm in place of the specification's
   specarch model <folder or file>...        print the specifications as one JSON document, for a program
   specarch version                          print the program version
   specarch help [<topic>]                   explain an area or a command: the format, extract, generate, plugins...
@@ -112,6 +117,7 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"upgrade":      runUpgrade,
 	"idioms":       runIdioms,
 	"decision":     runDecision,
+	"try":          runTry,
 	"facts":        runFacts,
 	"model":        runModel,
 	"version":      runVersionCommand,

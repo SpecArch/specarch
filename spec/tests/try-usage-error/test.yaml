@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [usage error]
+given: a specification with an algorithm
+when: try is run with both --example and --inputs
+then: it prints how to use it and exits 2
+verifies: [SA-100]

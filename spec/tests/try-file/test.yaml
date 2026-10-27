@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [exit 1]
+given: an algorithm whose formula caps the fee, and a file proposing the formula without the cap
+when: try is run with --file naming that file
+then: it evaluates the proposed formula on the specification's own examples, prints the one the cap decided as failing, with 45.00 beside the 25.00 expected, leaves specarch.yaml as it was, and exits 1
+verifies: [SA-100]

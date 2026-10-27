@@ -1,0 +1,14 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+timeZone: Asia/Jakarta
+algorithms:
+  dueOn:
+    description: The day a loan made at an instant is due, two weeks after the day it was made on in the specification's zone.
+    inputs:
+      loanedAt: { type: string, format: date-time }
+    output: { type: string, format: date }
+    formula: date(loanedAt) + duration("P14D")
+    examples:
+      - { name: loaned in the morning, inputs: { loanedAt: "2026-10-27T03:00:00Z" }, expected: "2026-11-10" }
+      - { name: loaned late in the evening, inputs: { loanedAt: "2026-10-27T18:00:00Z" }, expected: "2026-11-11" }
+    pseudocode: return the date of loanedAt in the specification's time zone plus 14 days

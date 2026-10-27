@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-195:
+    title: specarch try prints each operation and call of a formula as it is computed, written in the subset's own form with the value as a worked example writes it; --file takes the place of the specification's algorithm key by key, and --inputs is written as an example's inputs are
+    status: proposed
+    date: "2026-10-27"
+    context: |
+      validate evaluates each worked example of an algorithm and reports
+      only an example that does not hold, with the value the formula gave.
+      Nothing shows the result of an example that holds, the values that
+      led to a wrong one, or what a formula not yet written into the
+      specification would give on the examples it holds; a person working
+      a rule out, or an editor checking a proposed formula, computes it by
+      hand or edits the specification to see. CEL's reference
+      implementation, cel-go, can track the value of every sub-expression
+      it evaluates by the expression's ID (its state tracking), and can
+      evaluate every branch whatever the result (its exhaustive
+      evaluation), for debugging; a sub-expression has no text of its own
+      there, only an ID and a position. The parser of the Go build is
+      cel-go's, which gives a start position and no end, and the Swift
+      build's parser is its own.
+    decision: |
+      specarch try evaluates one algorithm with the validator's
+      evaluator, on each worked example, on one by --example, or once on
+      --inputs, and records each operation and call after its operands,
+      in the order computed: its sub-expression and the value it gave. A
+      literal and a name are no step, the operand of && or || not read
+      and the branch of ?: not taken are none, as cel-go's state tracking
+      without exhaustive evaluation records them. A step's sub-expression
+      is written from the parsed tree in the subset's own form: the
+      operators with one space either side, a call as name(arguments, ...),
+      parentheses only where the precedence of CEL's grammar needs them, a
+      double literal with its point; the same text in both builds. A
+      value is written as a worked example writes it, so it can be copied
+      into one: a decimal in quotes at the scale the type check gives that
+      sub-expression, and one of no fixed scale, the result of /, with the
+      places it needs up to 20, rounded half away from zero past them; a
+      date, an instant, a time of day and a duration in quotes, the
+      duration in ISO 8601's day-and-time form (P14D, P1DT6H, PT1H30M); a
+      double in the shortest form that reads back, a whole one below 1e21
+      with its digits, with an exponent below 1e-4 and from 1e16; a number
+      and a bool as they are. --inputs is a YAML mapping written as an example's inputs
+      are, read by the same rules. --file is a design fragment holding
+      algorithms; the algorithm of that name in it takes the place of the
+      specification's key by key, the keys it does not give kept, and the
+      specification is validated with it in place, its problems lines at
+      the file. The text lines are printed by both builds; --json, in
+      the Go build as for every command, adds the evaluations as data.
+    why: |
+      The steps in evaluation order because that is the order a person
+      checks a computation by hand, each line using only what the lines
+      above gave. Without the untaken branches because their value did
+      not make the result, and computing one may fail where the formula
+      does not (a division the condition guards), so exhaustive evaluation
+      would print an error the formula never meets. A literal or a name
+      is no step because its value is written in the expression or in the
+      inputs line. The text written from the tree, not cut from the
+      source, because neither parser gives a sub-expression's end, the
+      source's parentheses and spacing would differ between the two
+      builds' readings, and a written form is the same bytes in both; the
+      alternative of positions alone lost because a person reads text, and
+      the editor can still place a step by the column the problems lines
+      use. A decimal at its checked scale because the subset tracks it
+      (ADR-004) and the result is written at that scale, so 90 × 0.50
+      reads "45.00", as the example's own note writes it. A decimal of no
+      fixed scale to 20 places because the Swift build holds a decimal to
+      38 digits and the Go build exactly, so a third differs in its last
+      digits between them, and 20 places is more than any money or rate a
+      specification states while both builds agree to it. A duration with
+      its days because the subset reads P14D (ADR-004) and a worked
+      example of a loan period writes it so, where PT336H says the same in
+      a form nobody writes. --inputs as YAML
+      because an example's inputs are YAML and a tried input becomes an
+      example by copying it, one way to write a value; separate options
+      per input lost because a decimal must stay a string, which a shell
+      word cannot say. --file key by key because the question an idea
+      asks is what a new formula gives on the examples already agreed,
+      and a whole algorithm to copy would invite a second copy of the
+      examples to drift; a bare formula lost because a proposal may also
+      change an input's type or add an example. Validating with the
+      proposal in place keeps one checker, so a proposal is held to the
+      rules a written formula is.
+    consequences: |
+      The evaluator of both builds takes an optional recorder and the
+      type checker an optional table of each node's type; validate is
+      unchanged. A transition's when and set, once the state machines are
+      built, and a call's mapping (S5 of the authoring plan) are tried by
+      the same recorder in later items. An editor runs specarch try --json
+      on save and for each proposal.
+    satisfies: [SA-100]

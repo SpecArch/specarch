@@ -1,0 +1,17 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  share:
+    description: Each person's share of a bill, with the tip added.
+    inputs:
+      total: { type: string, format: decimal, precision: 10, scale: 2 }
+      people: { type: integer, format: int32, minimum: 0 }
+      tip: { type: string, format: decimal, precision: 10, scale: 2 }
+    output: { type: string, format: decimal, precision: 10, scale: 2 }
+    formula: round((total + tip) / decimal(people, 0), 2)
+    examples:
+      - { name: four people, inputs: { total: "38.00", people: 4, tip: "2.00" }, expected: "10.00" }
+      - { name: tip left out, inputs: { total: "38.00", people: 4, tip: "2.00" }, expected: "9.50" }
+      - { name: nobody, inputs: { total: "38.00", people: 0, tip: "2.00" }, expected: "0.00" }
+      - { name: a third each, inputs: { total: "10.00", people: 3, tip: "0.00" }, expected: "3.33" }
+    pseudocode: return (total + tip) / people, rounded to cents

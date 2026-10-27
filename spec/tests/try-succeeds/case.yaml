@@ -1,0 +1,22 @@
+arguments: ["try", "lateFee", "."]
+exitStatus: 0
+standardOutput: |
+  lateFee: 3 examples, 3 pass
+  example 1 "returned on time": pass
+    inputs: daysLate 0, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "0"
+    decimal(daysLate, 0) * dailyRate = "0.00"
+    min(decimal(daysLate, 0) * dailyRate, replacementCost) = "0.00"
+    result "0.00", expected "0.00"
+  example 2 "one week late": pass
+    inputs: daysLate 7, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "7"
+    decimal(daysLate, 0) * dailyRate = "3.50"
+    min(decimal(daysLate, 0) * dailyRate, replacementCost) = "3.50"
+    result "3.50", expected "3.50"
+  example 3 "capped at replacement cost": pass
+    inputs: daysLate 90, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "90"
+    decimal(daysLate, 0) * dailyRate = "45.00"
+    min(decimal(daysLate, 0) * dailyRate, replacementCost) = "25.00"
+    result "25.00", expected "25.00"

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: golden
+given: an algorithm with worked examples
+when: "try is run with --inputs '{ daysLate: 30, dailyRate: \"0.50\", replacementCost: \"25.00\" }'"
+then: it evaluates the formula once on those inputs, prints the inputs, the steps and the result with no expected value, and exits 0
+verifies: [SA-100]

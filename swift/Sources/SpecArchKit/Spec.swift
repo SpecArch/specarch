@@ -680,3 +680,70 @@ func clauseUnder(_ cited: String, _ listed: String) -> Bool {
     let next = cited[cited.index(cited.startIndex, offsetBy: listed.count)]
     return next == "." || next == ":" || next == "/" || next == " "
 }
+
+extension Spec {
+    /// Reads the entry name of section from a design fragment file and puts
+    /// it in the merged document in place of the specification's, key by
+    /// key: each key the file gives takes the place of the specification's
+    /// key of that name, and the others are kept (ADR-195). An entry only
+    /// the file holds is added as the file gives it. Every node from the
+    /// file remembers the file, so a problem of it is reported there; the
+    /// specification's own files are not changed. It returns a reason when
+    /// the file cannot be read (ioError) or does not hold the entry.
+    func overlay(_ path: String, _ section: String, _ name: String) -> (reason: String, ioError: Bool) {
+        let data: Data
+        do { data = try readFile(path) } catch {
+            return ("cannot read \(path) (\(plainIOError(error)))", true)
+        }
+        let doc = parseYAML(yamlText(data))
+        for p in doc.problems { problem(path, p.line, p.path, p.rule, p.message, detail: p.detail) }
+        let entries = doc.root?.child(section)
+        guard let given = entries?.child(name) else {
+            let names = pairs(entries).map { $0.key.value }.sorted(by: byteLess)
+            if names.isEmpty {
+                return ("\(path) holds no \(section); write the \(section) entry \(name) under \(section) in it", false)
+            }
+            return ("\(path) holds no \(section) entry \(name); it holds \(names.joined(separator: ", "))", false)
+        }
+        record(given, path)
+        guard let root, root.kind == .mapping else { return ("", false) }
+        var merged = root.child(section)
+        if merged == nil {
+            let key = YNode(kind: .scalar, value: section, tag: "!!str", line: given.line, column: given.column)
+            let m = YNode(kind: .mapping, line: given.line, column: given.column)
+            files[ObjectIdentifier(key)] = path
+            files[ObjectIdentifier(m)] = path
+            root.pairs.append((key: key, value: m))
+            merged = m
+        }
+        let entriesNode = merged!
+        if let i = entriesNode.pairs.firstIndex(where: { $0.key.value == name }) {
+            let own = entriesNode.pairs[i].value
+            if own.kind != .mapping || given.kind != .mapping {
+                entriesNode.pairs[i].value = given
+            } else {
+                // The specification's keys in their order, each the file
+                // gives taken from the file, then the keys only the file gives.
+                let out = YNode(kind: .mapping, line: given.line, column: given.column)
+                files[ObjectIdentifier(out)] = path
+                var fromFile = Set<String>()
+                for p in own.pairs {
+                    if let g = given.pairs.first(where: { $0.key.value == p.key.value }) {
+                        out.pairs.append(g)
+                        fromFile.insert(p.key.value)
+                    } else {
+                        out.pairs.append(p)
+                    }
+                }
+                for p in given.pairs where !fromFile.contains(p.key.value) { out.pairs.append(p) }
+                entriesNode.pairs[i].value = out
+            }
+        } else {
+            let key = YNode(kind: .scalar, value: name, tag: "!!str", line: given.line, column: given.column)
+            files[ObjectIdentifier(key)] = path
+            entriesNode.pairs.append((key: key, value: given))
+        }
+        value = valueOf(root)
+        return ("", false)
+    }
+}

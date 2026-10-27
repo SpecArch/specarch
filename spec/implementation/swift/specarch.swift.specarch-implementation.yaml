@@ -36,7 +36,7 @@ layout:
     description: The executable; it passes the arguments to the library and exits with its status.
   swift/Sources/SpecArchKit:
     description: Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, the model of specarch model in RFC 8785's canonical form, and the commands.
-    implements: ["#/commands/validate", "#/commands/model", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
+    implements: ["#/commands/validate", "#/commands/model", "#/commands/try", "#/commands/version", "#/entities/Diagnostic", "#/entities/SpecFile", "#/enums/Rule", "#/enums/Severity", "#/algorithms/exitStatus", "#/algorithms/referenceResolves", "#/algorithms/permissionGranted", "#/algorithms/workedExampleHolds"]
   swift/embed-schemas.sh:
     description: Writes the schemas of schema/ into the library as Swift source; a test fails when they differ.
   readers/swift:
@@ -49,6 +49,7 @@ mappings:
   "#/enums/Severity": { target: SpecArchKit.Severity }
   "#/commands/validate": { target: SpecArchKit.runValidate }
   "#/commands/model": { target: SpecArchKit.runModel }
+  "#/commands/try": { target: SpecArchKit.runTry, description: "The same lines as the Go build; --json, as for every command, is the Go build's." }
   "#/commands/version": { target: SpecArchKit.run }
   "#/commands/document": { target: SpecArchKit.run, description: "Exits 2: this build offers no document target." }
   "#/commands/gaps": { target: SpecArchKit.run, description: "Exits 2: the report is a document, built in Go only; the rules about questions are in this build." }
@@ -101,10 +102,11 @@ testing:
       level: system
       designTestsOf:
         - { command: validate }
+        - { command: try }
         - { command: version }
       ci: true
     expressions:
-      description: Unit tests of the expression subset, including the column CEL gives each kind of node.
+      description: Unit tests of the expression subset, including the column CEL gives each kind of node and the trace specarch try prints.
       run: swift test --package-path swift --filter ExprTests
       level: unit
       implementationOnly: true

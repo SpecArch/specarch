@@ -1,0 +1,3 @@
+algorithms:
+  lateFee:
+    formula: min(decimal(daysLate, 0) * dailyRat, replacementCost)

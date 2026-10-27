@@ -1,0 +1,10 @@
+arguments: ["try", "weight", "."]
+exitStatus: 0
+standardOutput: |
+  weight: 1 example, 1 pass
+  example 1 "two on top": pass
+    inputs: score 3, factor 1.5
+    double(score) = 3
+    double(score) * factor = 4.5
+    double(score) * factor + 2.0 = 6.5
+    result 6.5, expected 6.5

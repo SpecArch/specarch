@@ -1,0 +1,52 @@
+Trying an algorithm
+
+  specarch try lateFee spec/
+
+evaluates the algorithm's formula on each of its worked examples, with
+the evaluator validate uses, and prints what it computed:
+
+  lateFee: 4 examples, 4 pass
+  example 3 "capped at replacement cost": pass
+    inputs: daysLate 90, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "90"
+    decimal(daysLate, 0) * dailyRate = "45.00"
+    min(decimal(daysLate, 0) * dailyRate, replacementCost) = "25.00"
+    result "25.00", expected "25.00"
+
+A summary line first, then each example: its inputs, one line per
+operation and call of the formula in the order it was computed, and the
+result beside the expected value. A literal or a name is no step; the
+operand of && or || that is not read and the branch of ?: that is not
+taken are not printed. Each value is written as a worked example writes
+it, so it can be copied into one: a decimal in quotes at the scale the
+formula gives it, a date, an instant and a duration in quotes.
+
+An example is pass, fail, cannot be computed (the formula fails, such as
+a division by zero, after the steps computed before it) or cannot be read
+(an input or the expected value does not fit its field). Any but pass
+exits 1, as do the errors of the specification, printed first.
+
+  specarch try lateFee --example "one week late" spec/
+
+evaluates one example by its name.
+
+  specarch try lateFee --inputs '{ daysLate: 30, dailyRate: "0.50", replacementCost: "25.00" }' spec/
+
+evaluates the formula once on the inputs given, written as an example's
+inputs are, and prints the result with no expected value; to keep it,
+write it under the algorithm's examples with the expected value it should
+have.
+
+  specarch try lateFee --file proposal.yaml spec/
+
+reads the algorithm from proposal.yaml, a design fragment holding
+algorithms, in place of the specification's: each key the file gives
+takes the place of the specification's key and the others are kept, so a
+file that gives only a new formula is tried on the examples the
+specification already holds. The specification is validated with it in
+place, so a problem of the proposal is a line at the file; nothing is
+written.
+
+With --json the evaluations come as data under try: each with its
+inputs, its steps with their line and column in the file, its result,
+its expected value and its outcome.

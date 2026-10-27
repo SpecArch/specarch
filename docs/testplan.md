@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.2.1-dev of the specification: 787 design tests, 383 golden and 404 red, about 24 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.2.1-dev of the specification: 801 design tests, 390 golden and 411 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.2.1-dev of the specification: 787 design tests, 383 golden and 404 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 783 |
+| system | 797 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -25,7 +25,7 @@ Framework: go test. Run: `go test ./...`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command try, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -42,7 +42,7 @@ Framework: Swift Testing. Run: `swift test --package-path swift`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command version | `swift test --package-path swift --filter ConformanceTests` |
+| conformance | system | every design test of command validate, command try, command version | `swift test --package-path swift --filter ConformanceTests` |
 | expressions | unit | tests of this implementation only | `swift test --package-path swift --filter ExprTests` |
 
 ## 2. Test cases
@@ -3721,6 +3721,120 @@ Scenario: golden; level: system; verifies SA-74.
 - When: model is run on it
 - Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0
 
+### Command try
+
+#### try-example-fails
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: an algorithm dividing a sum among people, with examples that hold, one whose expected value is wrong, and one the formula cannot compute since it divides by zero
+- When: try is run for the algorithm
+- Then: it prints the failing example's result beside its expected value, the steps computed before the division by zero and the reason, a quotient of no fixed scale with 20 places, no example_mismatch or example_error line, and exits 1
+
+#### try-exit-2
+
+Scenario: red; level: system; covers exit 2; verifies SA-100.
+
+- Given: a specification with an algorithm
+- When: try is run with --file naming a file that does not exist
+- Then: it says the file cannot be read and exits 2
+
+#### try-file
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: an algorithm whose formula caps the fee, and a file proposing the formula without the cap
+- When: try is run with --file naming that file
+- Then: it evaluates the proposed formula on the specification's own examples, prints the one the cap decided as failing, with 45.00 beside the 25.00 expected, leaves specarch.yaml as it was, and exits 1
+
+#### try-file-problem
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: a file proposing a formula that names an input the algorithm does not have
+- When: try is run with --file naming that file
+- Then: it prints the validator's expression_name line at the file, refuses to evaluate the formula, and exits 1
+
+#### try-inputs
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm with worked examples
+- When: try is run with --inputs '{ daysLate: 30, dailyRate: "0.50", replacementCost: "25.00" }'
+- Then: it evaluates the formula once on those inputs, prints the inputs, the steps and the result with no expected value, and exits 0
+
+#### try-inputs-unread
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: an algorithm with worked examples
+- When: try is run with --inputs that writes a decimal without quotes, leaves out an input and names one the algorithm does not have
+- Then: it prints the input it could read and, for each other, why it cannot be read, computes nothing, and exits 1
+
+#### try-json
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm with worked examples
+- When: try is run with --json for one example
+- Then: it prints one object with the lines and, under try, the evaluation as data, its inputs, its steps with their place in the file, its result and expected value and its outcome, and exits 0
+
+#### try-short-circuit
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm whose formula divides only in the branch of the conditional taken when the count is not zero, and an example with a count of zero
+- When: try is run for the algorithm
+- Then: it prints the condition and the conditional with their values and not the division, which is not computed, and exits 0
+
+#### try-succeeds
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm whose formula caps a daily fee at a replacement cost, with three worked examples that hold
+- When: try is run for the algorithm
+- Then: it prints the summary line, then each example with its inputs, each operation and call of the formula in the order computed with its value, decimals at the scale the formula gives them, and the result beside the expected value, and exits 0
+
+#### try-unknown-algorithm
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: a specification whose one algorithm is lateFee
+- When: try is run for an algorithm named lateFees
+- Then: it refuses, naming lateFee, prints nothing on standard output, and exits 1
+
+#### try-usage-error
+
+Scenario: red; level: system; covers usage error; verifies SA-100.
+
+- Given: a specification with an algorithm
+- When: try is run with both --example and --inputs
+- Then: it prints how to use it and exits 2
+
+#### try-values
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm taking the date of an instant in the specification's time zone and moving it by a duration of days
+- When: try is run for the algorithm
+- Then: it prints the instant with its offset, the date in the zone, the duration in ISO 8601 with its days and the date it moves to, the same in both builds, and exits 0
+
+#### try-values-double
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm computing with an int converted to a double, a double input and a double literal
+- When: try is run for the algorithm
+- Then: it prints each double in its shortest form and the literal with its point, the same in both builds, and exits 0
+
+#### try-values-duration
+
+Scenario: golden; level: system; verifies SA-100.
+
+- Given: an algorithm comparing a duration input with a duration written in place
+- When: try is run for the algorithm
+- Then: it prints each duration in ISO 8601's day-and-time form, thirty hours as P1DT6H and ninety minutes as PT1H30M, the same in both builds, and exits 0
+
 ### Command upgrade
 
 #### upgrade-0-1-missing-tests
@@ -6393,7 +6507,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-440 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+447 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -6837,6 +6951,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-95 | acceptance 4 | golden | SA-95 names no harm |
 | requirement SA-95 | acceptance 5 | golden | SA-95 names no harm |
 | requirement SA-95 | acceptance 6 | golden | SA-95 names no harm |
+| requirement SA-100 | acceptance 1 | golden | SA-100 names no harm |
+| requirement SA-100 | acceptance 2 | golden | SA-100 names no harm |
+| requirement SA-100 | acceptance 3 | golden | SA-100 names no harm |
+| requirement SA-100 | acceptance 4 | golden | SA-100 names no harm |
+| requirement SA-100 | acceptance 5 | golden | SA-100 names no harm |
+| requirement SA-100 | acceptance 6 | golden | SA-100 names no harm |
+| requirement SA-100 | acceptance 7 | golden | SA-100 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

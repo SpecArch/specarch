@@ -1,0 +1,4 @@
+arguments: ["try", "lateFee", "--file", "proposal.yaml", "."]
+exitStatus: 1
+standardOutput: |
+  proposal.yaml:3:41: error: /algorithms/lateFee/formula: expression_name: the formula: dailyRat is not a name this expression can use; use one of dailyRate, daysLate, replacementCost [expression_name@proposal.yaml#/algorithms/lateFee/formula]

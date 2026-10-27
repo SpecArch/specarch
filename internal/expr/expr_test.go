@@ -152,3 +152,98 @@ func mustParse(t *testing.T, src string) *Node {
 	}
 	return n
 }
+
+// trace runs Trace on a checked expression and writes each step as
+// specarch try prints it.
+func trace(t *testing.T, src string, env Env, vals map[string]Value) ([]string, error) {
+	t.Helper()
+	n := mustParse(t, src)
+	_, types, errs := CheckTypes(n, env)
+	if len(errs) > 0 {
+		t.Fatalf("%s: %v", src, errs)
+	}
+	_, steps, err := Trace(n, vals, time.UTC)
+	var out []string
+	for _, s := range steps {
+		out = append(out, Text(s.Node)+" = "+Show(s.Value, types[s.Node]))
+	}
+	return out, err
+}
+
+func TestTraceStepsInOrderAtTheirScale(t *testing.T) {
+	env := Env{"daysLate": {Kind: Int, Bits: 32}, "dailyRate": {Kind: Decimal, Scale: 2}, "replacementCost": {Kind: Decimal, Scale: 2}}
+	vals := map[string]Value{"daysLate": {Kind: Int, Num: big.NewRat(90, 1)}, "dailyRate": dec("0.50"), "replacementCost": dec("25.00")}
+	got, err := trace(t, "min(decimal(daysLate, 0) * dailyRate, replacementCost)", env, vals)
+	want := []string{`decimal(daysLate, 0) = "90"`, `decimal(daysLate, 0) * dailyRate = "45.00"`, `min(decimal(daysLate, 0) * dailyRate, replacementCost) = "25.00"`}
+	if err != nil || strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Errorf("got %q, %v; want %q", got, err, want)
+	}
+}
+
+func TestTraceLeavesOutWhatIsNotComputed(t *testing.T) {
+	env := Env{"a": {Kind: Int, Bits: 64}, "b": {Kind: Int, Bits: 64}}
+	vals := map[string]Value{"a": {Kind: Int, Num: big.NewRat(0, 1)}, "b": {Kind: Int, Num: big.NewRat(4, 1)}}
+	for src, want := range map[string][]string{
+		// The right operand of && is not read once the left is false.
+		"a > 0 && b / a > 1": {"a > 0 = false", "a > 0 && b / a > 1 = false"},
+		// The branch of ?: not taken is not computed, so b / a never fails.
+		"a == 0 ? 0 : b / a": {"a == 0 = true", "a == 0 ? 0 : b / a = 0"},
+		"a == 0 || b > 1":    {"a == 0 = true", "a == 0 || b > 1 = true"},
+	} {
+		got, err := trace(t, src, env, vals)
+		if err != nil || strings.Join(got, "\n") != strings.Join(want, "\n") {
+			t.Errorf("%s: got %q, %v; want %q", src, got, err, want)
+		}
+	}
+	// A failure ends the trace after the steps computed before it.
+	got, err := trace(t, "b - 1 + b / a", env, vals)
+	if err == nil || strings.Join(got, "\n") != "b - 1 = 3" {
+		t.Errorf("division by zero: got %q, %v; want the one step before it and an error", got, err)
+	}
+}
+
+func TestTextKeepsOnlyTheParenthesesNeeded(t *testing.T) {
+	for src, want := range map[string]string{
+		"(a + b) * c":         "(a + b) * c",
+		"a + (b * c)":         "a + b * c",
+		"a - (b - c)":         "a - (b - c)",
+		"(a - b) - c":         "a - b - c",
+		"!(x && y) || z":      "!(x && y) || z",
+		"x ? (y ? 1 : 2) : 3": "x ? (y ? 1 : 2) : 3",
+		"x ? 1 : y ? 2 : 3":   "x ? 1 : y ? 2 : 3",
+		"-(a + b)":            "-(a + b)",
+		`size("a\"b") + 2u`:   `size("a\"b") + 2u`,
+		"2.0 * 0.50 + 1e-5":   "2.0 * 0.5 + 1e-05",
+		"caller.age >= 18":    "caller.age >= 18",
+		"duration('PT90M')":   `duration("PT90M")`,
+	} {
+		if got := Text(mustParse(t, src)); got != want {
+			t.Errorf("Text(%s) = %s, want %s", src, got, want)
+		}
+	}
+}
+
+func TestShowWritesAsAnExampleDoes(t *testing.T) {
+	for _, c := range []struct {
+		v    Value
+		t    Type
+		want string
+	}{
+		{Value{Kind: Duration, Dur: 90 * time.Minute}, Type{Kind: Duration}, `"PT1H30M"`},
+		{Value{Kind: Duration, Dur: -1500 * time.Millisecond}, Type{Kind: Duration}, `"-PT1.5S"`},
+		{Value{Kind: Duration}, Type{Kind: Duration}, `"PT0S"`},
+		{Value{Kind: Duration, Dur: 14 * 24 * time.Hour}, Type{Kind: Duration}, `"P14D"`},
+		{Value{Kind: Duration, Dur: 30 * time.Hour}, Type{Kind: Duration}, `"P1DT6H"`},
+		{Value{Kind: Decimal, Num: big.NewRat(10, 3)}, Type{Kind: Decimal, Scale: UnknownScale}, `"3.33333333333333333333"`},
+		{Value{Kind: Decimal, Num: big.NewRat(2, 3)}, Type{Kind: Decimal, Scale: UnknownScale}, `"0.66666666666666666667"`},
+		{Value{Kind: Double, Double: 1234567.5}, Type{Kind: Double}, "1234567.5"},
+		{Value{Kind: Double, Double: 1.5e20}, Type{Kind: Double}, "150000000000000000000"},
+		{Value{Kind: Double, Double: 1.25e21}, Type{Kind: Double}, "1.25e+21"},
+		{dec("2.5"), Type{Kind: Decimal, Scale: UnknownScale}, `"2.5"`},
+		{dec("2.5"), Type{Kind: Decimal, Scale: 2}, `"2.50"`},
+	} {
+		if got := Show(c.v, c.t); got != c.want {
+			t.Errorf("Show(%v) = %s, want %s", c.v, got, c.want)
+		}
+	}
+}

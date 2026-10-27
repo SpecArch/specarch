@@ -1,0 +1,30 @@
+arguments: ["try", "share", "."]
+exitStatus: 1
+standardOutput: |
+  share: 4 examples, 2 pass, 1 fail, 1 cannot be computed
+  example 1 "four people": pass
+    inputs: total "38.00", people 4, tip "2.00"
+    total + tip = "40.00"
+    decimal(people, 0) = "4"
+    (total + tip) / decimal(people, 0) = "10"
+    round((total + tip) / decimal(people, 0), 2) = "10.00"
+    result "10.00", expected "10.00"
+  example 2 "tip left out": fail
+    inputs: total "38.00", people 4, tip "2.00"
+    total + tip = "40.00"
+    decimal(people, 0) = "4"
+    (total + tip) / decimal(people, 0) = "10"
+    round((total + tip) / decimal(people, 0), 2) = "10.00"
+    result "10.00", expected "9.50"
+  example 3 "nobody": cannot be computed
+    inputs: total "38.00", people 0, tip "2.00"
+    total + tip = "40.00"
+    decimal(people, 0) = "0"
+    cannot be computed: division by zero
+  example 4 "a third each": pass
+    inputs: total "10.00", people 3, tip "0.00"
+    total + tip = "10.00"
+    decimal(people, 0) = "3"
+    (total + tip) / decimal(people, 0) = "3.33333333333333333333"
+    round((total + tip) / decimal(people, 0), 2) = "3.33"
+    result "3.33", expected "3.33"

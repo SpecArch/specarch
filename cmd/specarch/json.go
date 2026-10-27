@@ -8,6 +8,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/validate"
 )
 
 // jsonFormat is the version of the objects --json prints.
@@ -23,6 +25,8 @@ type jsonOutput struct {
 	Diagnostics []jsonDiagnostic `json:"diagnostics"`
 	Lines       []string         `json:"lines"`
 	Messages    []string         `json:"messages"`
+	// Try is what specarch try evaluated, its evaluations as data.
+	Try *validate.Tried `json:"try,omitempty"`
 }
 
 // jsonDiagnostic is a problem line, by its fields.
@@ -151,14 +155,20 @@ func commandName(args []string) string {
 // are already one JSON object each and are printed as they are.
 func runJSON(args []string, stdout, stderr io.Writer) int {
 	var out, errText bytes.Buffer
-	status := dispatch(args, &out, &errText)
+	var tried *validate.Tried
+	var status int
+	if len(args) > 0 && args[0] == "try" {
+		status = tryInto(args[1:], &out, &errText, &tried)
+	} else {
+		status = dispatch(args, &out, &errText)
+	}
 	name := commandName(args)
 	if (name == "model" || name == "capabilities") && status == 0 && json.Valid(out.Bytes()) {
 		stdout.Write(out.Bytes())
 		return status
 	}
 	meaning, remedy := exitMeaning(name, status)
-	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}}
+	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried}
 	for _, line := range lines(out.String()) {
 		if m := problemLine.FindStringSubmatch(line); m != nil {
 			l, _ := strconv.Atoi(m[2])

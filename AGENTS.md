@@ -343,6 +343,14 @@ Error codes of --json:
   exit 0: printed
   exit 2: usage error, a path could not be read, or a folder holds no
   specification, no implementation file and no estate
+- `specarch try <algorithm> <folder> [--example <example>] [--inputs <inputs>] [--file <file>]`
+  Evaluate an algorithm on its worked examples or on given inputs and print
+  each step.
+  exit 0: every evaluation is computed and every example evaluated holds
+  exit 1: refused, the algorithm or the example is not the specification's,
+  or the formula does not check; or an example fails, cannot be computed or
+  cannot be read; or the specification has errors
+  exit 2: usage error, or a folder or file that could not be read
 - `specarch upgrade [--dry-run] [--to <to>] <paths>...`
   Move a specification and its files to the newest version of each format,
   or list what moving them changes.

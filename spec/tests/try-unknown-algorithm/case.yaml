@@ -1,0 +1,3 @@
+arguments: ["try", "lateFees", "."]
+exitStatus: 1
+standardOutput: ""

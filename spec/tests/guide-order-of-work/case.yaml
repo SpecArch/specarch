@@ -85,6 +85,10 @@ standardOutput: |
         Merge the partial specifications the readers wrote into one.
     specarch model <paths>...
         Print the specifications as one JSON document, for a program.
+    specarch try <algorithm> <folder> [--example <example>]
+      [--inputs <inputs>] [--file <file>]
+        Evaluate an algorithm on its worked examples or on given inputs and
+        print each step.
     specarch upgrade [--dry-run] [--to <to>] <paths>...
         Move a specification and its files to the newest version of each
         format, or list what moving them changes.

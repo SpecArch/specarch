@@ -1,0 +1,9 @@
+arguments: ["try", "lateFee", "--inputs", "{ daysLate: 30, dailyRate: 0.50, fee: \"1.00\" }", "."]
+exitStatus: 1
+standardOutput: |
+  lateFee: given inputs, cannot be read
+  given inputs: cannot be read
+    inputs: daysLate 30
+    cannot be read: input dailyRate must be a decimal in quotes, such as "10.00", and is 0.50; quote it
+    cannot be read: fee is not an input of algorithm lateFee; use one of dailyRate, daysLate, replacementCost
+    cannot be read: no value is given for input replacementCost

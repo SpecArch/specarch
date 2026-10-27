@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.2.1-dev of the specification: 0 tasks, 0 pages and 22 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.2.1-dev of the specification: 0 tasks, 0 pages and 23 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, merge, model, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, merge, model, try, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -3585,6 +3585,89 @@ On standard error: A usage message on a usage error, and the reason on a path th
 |---|---|---|
 | 0 | printed |   |
 | 2 | usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch try
+
+Evaluate an algorithm on its worked examples or on given inputs and print each step.
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065); the
+example_mismatch and example_error lines of the algorithm tried are
+not printed, since its evaluations say the same with their steps.
+Finds the algorithm by its name in the merged `algorithms` section;
+refuses when there is none of that name, naming the ones there are,
+when it has no formula, when the formula does not parse or check
+(the validator's lines above say why), and when it has no worked
+example and `--inputs` is not given.
+
+With `--file`, the algorithm of that name is read from the file, a
+design fragment holding `algorithms`, in place of the
+specification's: each key the file gives takes the place of the
+specification's key of that name and the others are kept, so a
+proposed formula is tried on the examples the specification holds.
+An algorithm only the file holds is tried as the file gives it. The
+specification is validated with the file's algorithm in it, so a
+problem of the proposal is a line at the file; the specification's
+own files are not changed.
+
+Evaluates the formula on each worked example, or on the one named by
+`--example`, or once on `--inputs`, a YAML mapping written as an
+example's `inputs` is. Each value is read as the validator reads an
+example's (ADR-004), and the evaluator is the validator's, the
+specification's `timeZone` read for date() of an instant (ADR-193).
+
+Prints a summary line, the algorithm's name and how many
+evaluations pass, fail, cannot be computed and cannot be read; then
+for each evaluation a line with its number and name, or `given
+inputs`, and its outcome, followed by indented lines: the inputs in
+the order the algorithm declares them; one line per operation and
+call of the formula, in the order they were computed, the
+sub-expression written in the subset's own form and the value it
+gave (ADR-195); and the result with the expected value. A literal or
+a name is not a step; the operand of && or || not read and the
+branch of ?: not taken are not printed. A value is written as a
+worked example writes it, so it can be copied into one: a decimal in
+quotes at the scale the type check gives the sub-expression, or with
+up to 20 places when its scale is not fixed; a date, an instant and a
+duration in quotes, the duration in ISO 8601 (ADR-195). An evaluation that cannot be
+computed ends with the reason after the steps computed before it;
+one whose inputs cannot be read says which and why.
+
+**Insight:** A person judges a rule by its result on a case they recognise, and validate says only when an example does not hold; printing the result of every example, and the steps that gave it, puts the rule's behaviour in front of the reader, and trying a proposed formula on the examples the specification already holds tells, before the change is written, which decisions taken on those examples it breaks.
+
+```
+specarch try <algorithm> <folder> [--example <example>] [--inputs <inputs>] [--file <file>]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<algorithm>` | The name of the algorithm, as the algorithms section has it, such as lateFee. | yes |
+| `<folder>` | The folder holding the specification. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--example <example>` | Evaluate only the worked example of this name. |  |
+| `--inputs <inputs>` | Evaluate once on these inputs, a YAML mapping written as an example's inputs are, such as '{ daysLate: 7, dailyRate: "0.50", replacementCost: "25.00" }'; not with --example. |  |
+| `--file <file>` | A design fragment holding algorithms, whose algorithm of this name is read in place of the specification's, key by key. |  |
+
+It reads:
+
+- `{folder}`: The specification and its implementation files.
+- `{file}`: The proposed algorithm, with --file.
+
+It writes no file.
+
+On standard output: The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try.
+
+On standard error: A usage message on a usage error, and the reason a refusal.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | every evaluation is computed and every example evaluated holds |   |
+| 1 | refused, the algorithm or the example is not the specification's, or the formula does not check; or an example fails, cannot be computed or cannot be read; or the specification has errors | Read the refusal on standard error or the failing evaluation's lines, and correct the formula, the example or the command line, or run specarch validate and settle the errors. |
+| 2 | usage error, or a folder or file that could not be read | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch upgrade
 

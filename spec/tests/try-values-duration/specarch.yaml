@@ -1,0 +1,13 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  longSession:
+    description: Whether a session runs longer than a day and two hours.
+    inputs:
+      length: { type: string, format: duration }
+    output: { type: boolean }
+    formula: length > duration("P1DT2H")
+    examples:
+      - { name: thirty hours, inputs: { length: "PT30H" }, expected: true }
+      - { name: ninety minutes, inputs: { length: "PT90M" }, expected: false }
+    pseudocode: return length > 26 hours

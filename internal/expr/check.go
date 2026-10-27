@@ -92,9 +92,18 @@ func Check(n *Node, env Env) (Type, []Error) {
 	return t, c.errs
 }
 
+// CheckTypes checks as Check does and also gives the type of every node
+// it checked, for a trace that writes each step's value at its type.
+func CheckTypes(n *Node, env Env) (Type, map[*Node]Type, []Error) {
+	c := &checker{env: env, types: map[*Node]Type{}}
+	t := c.check(n)
+	return t, c.types, c.errs
+}
+
 type checker struct {
-	env  Env
-	errs []Error
+	env   Env
+	errs  []Error
+	types map[*Node]Type // the type of each node checked, when asked for
 }
 
 var badType = Type{Kind: bad}
@@ -105,6 +114,14 @@ func (c *checker) fail(n *Node, kind ErrorKind, format string, args ...any) Type
 }
 
 func (c *checker) check(n *Node) Type {
+	t := c.checkNode(n)
+	if c.types != nil {
+		c.types[n] = t
+	}
+	return t
+}
+
+func (c *checker) checkNode(n *Node) Type {
 	switch n.Op {
 	case OpInt:
 		return Type{Kind: Int, Bits: 64}

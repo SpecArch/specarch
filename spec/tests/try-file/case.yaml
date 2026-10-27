@@ -1,0 +1,19 @@
+arguments: ["try", "lateFee", "--file", "proposal.yaml", "."]
+exitStatus: 1
+standardOutput: |
+  lateFee: 3 examples, 2 pass, 1 fail
+  example 1 "returned on time": pass
+    inputs: daysLate 0, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "0"
+    decimal(daysLate, 0) * dailyRate = "0.00"
+    result "0.00", expected "0.00"
+  example 2 "one week late": pass
+    inputs: daysLate 7, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "7"
+    decimal(daysLate, 0) * dailyRate = "3.50"
+    result "3.50", expected "3.50"
+  example 3 "capped at replacement cost": fail
+    inputs: daysLate 90, dailyRate "0.50", replacementCost "25.00"
+    decimal(daysLate, 0) = "90"
+    decimal(daysLate, 0) * dailyRate = "45.00"
+    result "45.00", expected "25.00"

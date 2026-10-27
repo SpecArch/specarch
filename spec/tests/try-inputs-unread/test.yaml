@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [exit 1]
+given: an algorithm with worked examples
+when: try is run with --inputs that writes a decimal without quotes, leaves out an input and names one the algorithm does not have
+then: it prints the input it could read and, for each other, why it cannot be read, computes nothing, and exits 1
+verifies: [SA-100]

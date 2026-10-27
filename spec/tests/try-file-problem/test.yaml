@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [exit 1]
+given: a file proposing a formula that names an input the algorithm does not have
+when: try is run with --file naming that file
+then: it prints the validator's expression_name line at the file, refuses to evaluate the formula, and exits 1
+verifies: [SA-100]

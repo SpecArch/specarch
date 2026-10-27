@@ -1,0 +1,68 @@
+arguments: ["--json", "try", "lateFee", "--example", "one week late", "."]
+exitStatus: 0
+standardOutput: |
+  {
+    "specarchOutput": "1.0.0",
+    "command": "try",
+    "exitStatus": 0,
+    "meaning": "every evaluation is computed and every example evaluated holds",
+    "diagnostics": [],
+    "lines": [
+      "lateFee: 1 example, 1 pass",
+      "example 2 \"one week late\": pass",
+      "  inputs: daysLate 7, dailyRate \"0.50\", replacementCost \"25.00\"",
+      "  decimal(daysLate, 0) = \"7\"",
+      "  decimal(daysLate, 0) * dailyRate = \"3.50\"",
+      "  min(decimal(daysLate, 0) * dailyRate, replacementCost) = \"3.50\"",
+      "  result \"3.50\", expected \"3.50\""
+    ],
+    "messages": [],
+    "try": {
+      "algorithm": "lateFee",
+      "formula": "min(decimal(daysLate, 0) * dailyRate, replacementCost)",
+      "file": "specarch.yaml",
+      "evaluations": [
+        {
+          "number": 2,
+          "name": "one week late",
+          "outcome": "pass",
+          "inputs": [
+            {
+              "name": "daysLate",
+              "value": "7"
+            },
+            {
+              "name": "dailyRate",
+              "value": "\"0.50\""
+            },
+            {
+              "name": "replacementCost",
+              "value": "\"25.00\""
+            }
+          ],
+          "steps": [
+            {
+              "expression": "decimal(daysLate, 0)",
+              "line": 11,
+              "column": 25,
+              "value": "\"7\""
+            },
+            {
+              "expression": "decimal(daysLate, 0) * dailyRate",
+              "line": 11,
+              "column": 39,
+              "value": "\"3.50\""
+            },
+            {
+              "expression": "min(decimal(daysLate, 0) * dailyRate, replacementCost)",
+              "line": 11,
+              "column": 17,
+              "value": "\"3.50\""
+            }
+          ],
+          "result": "\"3.50\"",
+          "expected": "\"3.50\""
+        }
+      ]
+    }
+  }

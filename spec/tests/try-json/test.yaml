@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: golden
+given: an algorithm with worked examples
+when: try is run with --json for one example
+then: it prints one object with the lines and, under try, the evaluation as data, its inputs, its steps with their place in the file, its result and expected value and its outcome, and exits 0
+verifies: [SA-100]

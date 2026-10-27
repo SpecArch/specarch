@@ -1,0 +1,16 @@
+arguments: ["try", "dueOn", "."]
+exitStatus: 0
+standardOutput: |
+  dueOn: 2 examples, 2 pass
+  example 1 "loaned in the morning": pass
+    inputs: loanedAt "2026-10-27T03:00:00Z"
+    date(loanedAt) = "2026-10-27"
+    duration("P14D") = "P14D"
+    date(loanedAt) + duration("P14D") = "2026-11-10"
+    result "2026-11-10", expected "2026-11-10"
+  example 2 "loaned late in the evening": pass
+    inputs: loanedAt "2026-10-27T18:00:00Z"
+    date(loanedAt) = "2026-10-28"
+    duration("P14D") = "P14D"
+    date(loanedAt) + duration("P14D") = "2026-11-11"
+    result "2026-11-11", expected "2026-11-11"

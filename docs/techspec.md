@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.2.1-dev of the specification: 99 requirements, 5 entities, 22 commands, 7 algorithms, 787 tests, 185 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.2.1-dev of the specification: 100 requirements, 5 entities, 23 commands, 7 algorithms, 801 tests, 186 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -78,6 +78,7 @@ The interfaces the system offers, as its clients see them.
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
+| try | Evaluate an algorithm on its worked examples or on given inputs and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm or the example is not the specification's, or the formula does not check; or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
 | upgrade | Move a specification and its files to the newest version of each format, or list what moving them changes | public | 0: every change the move names was made, or with --dry-run can be made, and no step is left to the author; 1: a step is left to the author; 2: usage error, a path that could not be read or written, or a version --to names that this program does not write |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
@@ -422,7 +423,7 @@ The packages of ../spec/implementation/go/specarch.go.specarch-implementation.ya
 
 ```mermaid
 flowchart LR
-  package_cmd_specarch["cmd/specarch, implements 21"]
+  package_cmd_specarch["cmd/specarch, implements 22"]
   package_schema["schema"]
   package_idioms["idioms"]
   package_internal_extract["internal/extract"]
@@ -3984,6 +3985,78 @@ sequenceDiagram
   P-->>U: exit status 0, 2
 ```
 
+### Command try
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065); the
+example_mismatch and example_error lines of the algorithm tried are
+not printed, since its evaluations say the same with their steps.
+Finds the algorithm by its name in the merged `algorithms` section;
+refuses when there is none of that name, naming the ones there are,
+when it has no formula, when the formula does not parse or check
+(the validator's lines above say why), and when it has no worked
+example and `--inputs` is not given.
+
+With `--file`, the algorithm of that name is read from the file, a
+design fragment holding `algorithms`, in place of the
+specification's: each key the file gives takes the place of the
+specification's key of that name and the others are kept, so a
+proposed formula is tried on the examples the specification holds.
+An algorithm only the file holds is tried as the file gives it. The
+specification is validated with the file's algorithm in it, so a
+problem of the proposal is a line at the file; the specification's
+own files are not changed.
+
+Evaluates the formula on each worked example, or on the one named by
+`--example`, or once on `--inputs`, a YAML mapping written as an
+example's `inputs` is. Each value is read as the validator reads an
+example's (ADR-004), and the evaluator is the validator's, the
+specification's `timeZone` read for date() of an instant (ADR-193).
+
+Prints a summary line, the algorithm's name and how many
+evaluations pass, fail, cannot be computed and cannot be read; then
+for each evaluation a line with its number and name, or `given
+inputs`, and its outcome, followed by indented lines: the inputs in
+the order the algorithm declares them; one line per operation and
+call of the formula, in the order they were computed, the
+sub-expression written in the subset's own form and the value it
+gave (ADR-195); and the result with the expected value. A literal or
+a name is not a step; the operand of && or || not read and the
+branch of ?: not taken are not printed. A value is written as a
+worked example writes it, so it can be copied into one: a decimal in
+quotes at the scale the type check gives the sub-expression, or with
+up to 20 places when its scale is not fixed; a date, an instant and a
+duration in quotes, the duration in ISO 8601 (ADR-195). An evaluation that cannot be
+computed ends with the reason after the steps computed before it;
+one whose inputs cannot be read says which and why.
+
+**Insight:** A person judges a rule by its result on a case they recognise, and validate says only when an example does not hold; printing the result of every example, and the steps that gave it, puts the rule's behaviour in front of the reader, and trying a proposed formula on the examples the specification already holds tells, before the change is written, which decisions taken on those examples it breaks.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<algorithm>` | string | yes | The name of the algorithm, as the algorithms section has it, such as lateFee. |
+| `<folder>` | string | yes | The folder holding the specification. |
+| `--example` | string |   | Evaluate only the worked example of this name. |
+| `--inputs` | string |   | Evaluate once on these inputs, a YAML mapping written as an example's inputs are, such as '{ daysLate: 7, dailyRate: "0.50", replacementCost: "25.00" }'; not with --example. |
+| `--file` | string |   | A design fragment holding algorithms, whose algorithm of this name is read in place of the specification's, key by key. |
+
+Reads `{folder}`: The specification and its implementation files; `{file}`: The proposed algorithm, with --file.
+
+Standard output: The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try.
+
+Standard error: A usage message on a usage error, and the reason a refusal.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: try <algorithm> <folder>
+  P->>F: read {folder}
+  P->>F: read {file}
+  P-->>U: exit status 0, 1, 2
+```
+
 ### Command upgrade
 
 Reads each specification given as validate does, with every file it
@@ -4255,7 +4328,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/try, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table and a catalogue dump with a specification, each difference with its rule and subject (ADR-124). |   |
@@ -4265,7 +4338,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | readers/dart | The Dart reader of specarch extract, a Dart package with one program, bin/code_facts_dart.dart: it parses Dart source with the analyzer's parseString and writes the facts specarch extract dart reads as a code-facts dump (ADR-092). specarch facts dart builds it in the user's cache and runs it on the tracked Dart files of a committed folder. |   |
 | internal/canonical | Writes a JSON value in RFC 8785's canonical form, the bytes specarch model prints and the Swift build prints the same. |   |
 | internal/source | Reads a YAML file into a node tree and a plain value, with the line of every node; finds unquoted dates and duplicate keys. |   |
-| internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems. |   |
+| internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems; puts an entry read from a fragment file in place of the specification's, key by key, for specarch try --file. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
 | internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator, the scripts generator and specarch check, and Condition writes an expression over an entity's fields, such as a guard's precondition, as a check constraint is written. |   |
 | cmd/specarch-gen-sqlc | The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk. | #/commands/generate |
@@ -4297,7 +4370,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
 | internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
-| internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals. |   |
+| internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals; on request it records each operation and call as computed and each node's type, and writes a sub-expression and a value in the form specarch try prints (ADR-195). |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; comparison writes the old documents against the refined specification from origin, citations and decisions (ADR-157); html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs, and marks an internal element; ForEveryone cuts the specification to what a document for everyone shows, counting what it left out. | #/algorithms/markersWellFormed |
 | internal/refine | specarch decide: the next decision ID, the decision record written for a question, and the question's entry taken out of its file as text, with the problem marks above it and the questions key when it was the only one (ADR-155). |   |
 | internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
@@ -4329,6 +4402,7 @@ Stack: language Go 1.27; toolchain go 1.27.2; platforms darwin/arm64, darwin/amd
 | #/commands/idioms diff | main.runIdiomsDiff |   |
 | #/commands/decision why | main.runDecision | Walks restsOn from the decision in the merged document; the chain is each decision after the ones it rests on. |
 | #/commands/decision rests | main.runDecision | Walks the inverse of restsOn from the decision, nearest first. |
+| #/commands/try | main.runTry | Validates with the --file algorithm put in place by spec.Overlay, then validate.Try evaluates with expr.Trace; --json adds validate.Tried under try. |
 | #/commands/diff | main.runDiff | Lists diff.Compare's changes, then checks the release record beside the new folder. |
 | #/commands/check | main.runCheck | Tells each dump by its format with extract.DumpFormat and compares it with extract.CheckRoutes, extract.CheckGrants or extract.CheckCatalogue, the last against gensql.Schema's tables for PostgreSQL; reads the allowlist, and with --since the allowlist at that revision through git. |
 | #/enums/DocumentTarget | main.documentTargets |   |
@@ -4384,7 +4458,7 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command try, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -4490,7 +4564,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 |---|---|---|
 | swift/Package.swift | The package. One library, one executable, one test target. |   |
 | swift/Sources/specarch | The executable; it passes the arguments to the library and exits with its status. |   |
-| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, the model of specarch model in RFC 8785's canonical form, and the commands. | #/commands/validate, #/commands/model, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
+| swift/Sources/SpecArchKit | Everything else. Reading YAML, reading a specification tree into one document, the JSON Schema evaluator and its messages, the specification and implementation checks, the expression subset, tests and their derived cases with the rank of each, the life-cycle links, the open questions and origin, the records beside the specification, the model of specarch model in RFC 8785's canonical form, and the commands. | #/commands/validate, #/commands/model, #/commands/try, #/commands/version, #/entities/Diagnostic, #/entities/SpecFile, #/enums/Rule, #/enums/Severity, #/algorithms/exitStatus, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 | swift/embed-schemas.sh | Writes the schemas of schema/ into the library as Swift source; a test fails when they differ. |   |
 | readers/swift | The Swift reader of specarch extract, a package of its own with one executable, code-facts-swift: it parses Swift source with SwiftSyntax and writes the facts specarch extract swift reads as a code-facts dump (ADR-087). specarch facts swift builds it in the user's cache and runs it on the tracked Swift files of a committed folder. |   |
 
@@ -4504,6 +4578,7 @@ Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin
 | #/enums/Severity | SpecArchKit.Severity |   |
 | #/commands/validate | SpecArchKit.runValidate |   |
 | #/commands/model | SpecArchKit.runModel |   |
+| #/commands/try | SpecArchKit.runTry | The same lines as the Go build; --json, as for every command, is the Go build's. |
 | #/commands/version | SpecArchKit.run |   |
 | #/commands/document | SpecArchKit.run | Exits 2: this build offers no document target. |
 | #/commands/gaps | SpecArchKit.run | Exits 2: the report is a document, built in Go only; the rules about questions are in this build. |
@@ -4544,7 +4619,7 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command version | `swift test --package-path swift --filter ConformanceTests` |
+| conformance | system | every design test of command validate, command try, command version | `swift test --package-path swift --filter ConformanceTests` |
 | expressions | unit | tests of this implementation only | `swift test --package-path swift --filter ExprTests` |
 
 #### Idioms
@@ -14807,6 +14882,61 @@ minor one of the state machines, 1.3.0.
 
 **Note:** From PostgreSQL 17 Documentation, 8.5 Date/Time Types, 17, clause 8.5.1.3, Time Stamps: In a literal that has been determined to be timestamp without time zone, PostgreSQL will silently ignore any time zone indication. <https://www.postgresql.org/docs/17/datatype-datetime.html>
 
+### ADR-195: specarch try prints each operation and call of a formula as it is computed, written in the subset's own form with the value as a worked example writes it; --file takes the place of the specification's algorithm key by key, and --inputs is written as an example's inputs are
+
+Status: proposed, 2026-10-27.
+
+Context: validate evaluates each worked example of an algorithm and reports
+only an example that does not hold, with the value the formula gave.
+Nothing shows the result of an example that holds, the values that
+led to a wrong one, or what a formula not yet written into the
+specification would give on the examples it holds; a person working
+a rule out, or an editor checking a proposed formula, computes it by
+hand or edits the specification to see. CEL's reference
+implementation, cel-go, can track the value of every sub-expression
+it evaluates by the expression's ID (its state tracking), and can
+evaluate every branch whatever the result (its exhaustive
+evaluation), for debugging; a sub-expression has no text of its own
+there, only an ID and a position. The parser of the Go build is
+cel-go's, which gives a start position and no end, and the Swift
+build's parser is its own.
+
+Decision: specarch try evaluates one algorithm with the validator's
+evaluator, on each worked example, on one by --example, or once on
+--inputs, and records each operation and call after its operands,
+in the order computed: its sub-expression and the value it gave. A
+literal and a name are no step, the operand of && or || not read
+and the branch of ?: not taken are none, as cel-go's state tracking
+without exhaustive evaluation records them. A step's sub-expression
+is written from the parsed tree in the subset's own form: the
+operators with one space either side, a call as name(arguments, ...),
+parentheses only where the precedence of CEL's grammar needs them, a
+double literal with its point; the same text in both builds. A
+value is written as a worked example writes it, so it can be copied
+into one: a decimal in quotes at the scale the type check gives that
+sub-expression, and one of no fixed scale, the result of /, with the
+places it needs up to 20, rounded half away from zero past them; a
+date, an instant, a time of day and a duration in quotes, the
+duration in ISO 8601's day-and-time form (P14D, P1DT6H, PT1H30M); a
+double in the shortest form that reads back, a whole one below 1e21
+with its digits, with an exponent below 1e-4 and from 1e16; a number
+and a bool as they are. --inputs is a YAML mapping written as an example's inputs
+are, read by the same rules. --file is a design fragment holding
+algorithms; the algorithm of that name in it takes the place of the
+specification's key by key, the keys it does not give kept, and the
+specification is validated with it in place, its problems lines at
+the file. The text lines are printed by both builds; --json, in
+the Go build as for every command, adds the evaluations as data.
+
+Consequences: The evaluator of both builds takes an optional recorder and the
+type checker an optional table of each node's type; validate is
+unchanged. A transition's when and set, once the state machines are
+built, and a call's mapping (S5 of the authoring plan) are tried by
+the same recorder in later items. An editor runs specarch try --json
+on save and for each proposal.
+
+**Insight:** The steps in evaluation order because that is the order a person checks a computation by hand, each line using only what the lines above gave. Without the untaken branches because their value did not make the result, and computing one may fail where the formula does not (a division the condition guards), so exhaustive evaluation would print an error the formula never meets. A literal or a name is no step because its value is written in the expression or in the inputs line. The text written from the tree, not cut from the source, because neither parser gives a sub-expression's end, the source's parentheses and spacing would differ between the two builds' readings, and a written form is the same bytes in both; the alternative of positions alone lost because a person reads text, and the editor can still place a step by the column the problems lines use. A decimal at its checked scale because the subset tracks it (ADR-004) and the result is written at that scale, so 90 × 0.50 reads "45.00", as the example's own note writes it. A decimal of no fixed scale to 20 places because the Swift build holds a decimal to 38 digits and the Go build exactly, so a third differs in its last digits between them, and 20 places is more than any money or rate a specification states while both builds agree to it. A duration with its days because the subset reads P14D (ADR-004) and a worked example of a loan period writes it so, where PT336H says the same in a form nobody writes. --inputs as YAML because an example's inputs are YAML and a tried input becomes an example by copying it, one way to write a value; separate options per input lost because a decimal must stay a string, which a shell word cannot say. --file key by key because the question an idea asks is what a new formula gives on the examples already agreed, and a whole algorithm to copy would invite a second copy of the examples to drift; a bare formula lost because a proposal may also change an input's type or add an example. Validating with the proposal in place keeps one checker, so a proposal is held to the rules a written formula is.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15267,6 +15397,20 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
+| try-example-fails | command try | system | red | an algorithm dividing a sum among people, with examples that hold, one whose expected value is wrong, and one the formula cannot compute since it divides by zero | try is run for the algorithm | it prints the failing example's result beside its expected value, the steps computed before the division by zero and the reason, a quotient of no fixed scale with 20 places, no example_mismatch or example_error line, and exits 1 |
+| try-exit-2 | command try | system | red | a specification with an algorithm | try is run with --file naming a file that does not exist | it says the file cannot be read and exits 2 |
+| try-file | command try | system | red | an algorithm whose formula caps the fee, and a file proposing the formula without the cap | try is run with --file naming that file | it evaluates the proposed formula on the specification's own examples, prints the one the cap decided as failing, with 45.00 beside the 25.00 expected, leaves specarch.yaml as it was, and exits 1 |
+| try-file-problem | command try | system | red | a file proposing a formula that names an input the algorithm does not have | try is run with --file naming that file | it prints the validator's expression_name line at the file, refuses to evaluate the formula, and exits 1 |
+| try-inputs | command try | system | golden | an algorithm with worked examples | try is run with --inputs '{ daysLate: 30, dailyRate: "0.50", replacementCost: "25.00" }' | it evaluates the formula once on those inputs, prints the inputs, the steps and the result with no expected value, and exits 0 |
+| try-inputs-unread | command try | system | red | an algorithm with worked examples | try is run with --inputs that writes a decimal without quotes, leaves out an input and names one the algorithm does not have | it prints the input it could read and, for each other, why it cannot be read, computes nothing, and exits 1 |
+| try-json | command try | system | golden | an algorithm with worked examples | try is run with --json for one example | it prints one object with the lines and, under try, the evaluation as data, its inputs, its steps with their place in the file, its result and expected value and its outcome, and exits 0 |
+| try-short-circuit | command try | system | golden | an algorithm whose formula divides only in the branch of the conditional taken when the count is not zero, and an example with a count of zero | try is run for the algorithm | it prints the condition and the conditional with their values and not the division, which is not computed, and exits 0 |
+| try-succeeds | command try | system | golden | an algorithm whose formula caps a daily fee at a replacement cost, with three worked examples that hold | try is run for the algorithm | it prints the summary line, then each example with its inputs, each operation and call of the formula in the order computed with its value, decimals at the scale the formula gives them, and the result beside the expected value, and exits 0 |
+| try-unknown-algorithm | command try | system | red | a specification whose one algorithm is lateFee | try is run for an algorithm named lateFees | it refuses, naming lateFee, prints nothing on standard output, and exits 1 |
+| try-usage-error | command try | system | red | a specification with an algorithm | try is run with both --example and --inputs | it prints how to use it and exits 2 |
+| try-values | command try | system | golden | an algorithm taking the date of an instant in the specification's time zone and moving it by a duration of days | try is run for the algorithm | it prints the instant with its offset, the date in the zone, the duration in ISO 8601 with its days and the date it moves to, the same in both builds, and exits 0 |
+| try-values-double | command try | system | golden | an algorithm computing with an int converted to a double, a double input and a double literal | try is run for the algorithm | it prints each double in its shortest form and the literal with its point, the same in both builds, and exits 0 |
+| try-values-duration | command try | system | golden | an algorithm comparing a duration input with a duration written in place | try is run for the algorithm | it prints each duration in ISO 8601's day-and-time form, thirty hours as P1DT6H and ninety minutes as PT1H30M, the same in both builds, and exits 0 |
 | upgrade-0-1-missing-tests | command upgrade | system | red | a 0.1 file whose missing tests are warnings | upgrade is run | it moves the version line, lists each missing test as a step, says specarch derive writes them, and exits 1 |
 | upgrade-0-2-caller | command upgrade | system | red | a 0.2 file whose entity field, view property, schema property and algorithm input are named caller | upgrade is run | it moves the version line to 1.0.0, lists the four names as reserved_name steps left to the author, and exits 1 |
 | upgrade-both-keys | command upgrade | system | red | a 1.0.0 file whose member role gives rows and whose staff role gives both rowPolicies and rows | upgrade is run with --dry-run | it lists the rename of member's rows, leaves staff's rows to the author as the meta_model_deprecated error, and exits 1 |
@@ -15736,6 +15880,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-51 | specarch shall list every problem of a specification, valid or not, in one problems file and its SARIF 2.1.0 form, each error, warning and open question with a stable id, file, line and column, JSON pointer, rule, a message saying how to fix it, and notes at the sources it came from and the entries it blocks, and every file specarch writes shall mark the entry a problem touches. | interface | must | accepted | test | specarch document problems on a specification with an error, a warning and a must question writes problems.txt with one line each in the form file:line:column: severity: pointer: rule: message [id], sorted by file and line, the question followed by a note at each source it cites and each entry it blocks, and exits 1. The same run writes problems.sarif, a SARIF 2.1.0 log with the same results, the question as kind open and level none, and each id as a partial fingerprint; a second run writes the same bytes. A specification with no problem gets a problems file that says so. A fragment with one entry that does not parse reports one yaml_syntax error at that entry's line and pointer, keeps its other entries, and reports no reference to the broken entry's name; an implementation file with a broken entry still names the problems file's folder. | NEED-1, NEED-8 |
 | SA-74 | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. | interface | must | accepted | test | specarch model on a folder with a valid specification prints one JSON document whose positions name, for every entry the problems file could name, the file, line and column the problems file would report, and whose references list every satisfies, verifies, $ref, target, permission, emits, calls, decidedIn and implements link with its from, to and through; the Go build and the Swift build print the same bytes. A folder with a layout problem is printed with that problem in the problems file's form and exit status 0; a folder with no specification, or one that cannot be read, is exit status 2 and the reason on standard error. The validator's errors, warnings and open questions are not in the document; the problems file is their one list. | NEED-3, NEED-7 |
 | SA-95 | specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. | functional | must | accepted | test | A specification that says specarch "1.0.0", or a later 1.0 patch such as "1.0.4", validates with the output the same file gives on "0.3" less the version warning, in both builds. A specification that says "1.2.0", "1.0" or what is no version is reported with meta_model_version at the line, naming the versions read, the three-part spelling for a short one, and that a later specarch reads a later one, with every other problem of the file still listed. A file on 1.0 that gives a role's rows or the handover's source is warned with meta_model_deprecated at the key, naming rowPolicies or sourceDelivery and specarch upgrade, and is read as the new key; one that gives both spellings in one object is an error at the old key. A file on 0.3 or earlier is checked against the 0.3 schema and keeps its rules and its output, the rows rule named row_policies. specarch upgrade, in both builds, moves a specification and every file it is read from to 1.0.0, editing only the version lines, the editor hints and the renamed keys and leaving every other byte as it was; with --dry-run it prints each change and writes nothing; it lists each step left to the author, an error the move brings, a key given under both spellings or a file the parser cannot read, as a problem line and exits 1, and a second run changes nothing. An implementation file, a record, an idiom and an estate say their own format's version, 1.0.0 or a later 1.0 patch, or 0.1 beside it, each checked against its version's schema; a version line of theirs the program does not read is an error at the line, and the file is still read as 1.0.0; specarch version names every format's versions. | NEED-1, NEED-7 |
+| SA-100 | specarch try shall evaluate one algorithm's formula, in both builds, on each of its worked examples or on inputs given on the command line, with the specification's definition of the algorithm or a proposed one read from a file in its place, and print for each evaluation its inputs, every operation and call of the formula with the value it gave, in the order they were computed, the result and, for an example, the expected value and whether it holds. | functional | must | proposed | test | specarch try on the library lending example's lateFee prints a summary line, then each of its four examples with its inputs, each sub-expression of the formula that was computed with its value, decimals at the scale the formula gives them, the result and the expected value, all four passing, and exits 0; the Go build and the Swift build print the same lines. An example whose expected value the formula does not give is printed as failing with the result beside the expected value, and an example the formula cannot compute is printed with the steps computed before the failure and the reason; either exits 1. The operand of && or \|\| that is not read and the branch of ?: that is not taken are not printed. --example prints one example by its name; --inputs evaluates the inputs written as an example's inputs are and prints the result with no expected value; an input given there that does not fit its field is printed with the reason and exits 1. --file reads the algorithm from a fragment file in place of the specification's, each key it gives taking the place of the specification's key and the others kept, so a proposed formula is tried on the examples the specification holds; the specification's files are not changed. An algorithm the specification does not have is refused, naming the ones it has, and exits 1; a usage error, a folder or file that cannot be read, or --example with --inputs exits 2. With --json the Go build prints the evaluations as data beside the lines. | NEED-1, NEED-10 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -15953,6 +16098,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-95:** A file's version line is its promise of which rules it is written against (ADR-055); reading every version side by side keeps every specification that exists valid while the format moves on, and an author learns from one warning what moves the file and with which command (ADR-186).
 
+**Insight on SA-100:** A reader decides on a rule faster and more accurately from its result on a case they recognise than from its formula; validate says only that an example does not hold, so the result of a passing example, the steps that gave a wrong one and the effect of a proposed formula on the examples were worked out by hand, which is the cost the goal names (ADR-195).
+
 ### Traceability
 
 What satisfies and what verifies each requirement. An empty cell is a gap.
@@ -16058,6 +16205,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 | SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
+| SA-100 | commands try; decisions ADR-195 | tests try-example-fails; tests try-exit-2; tests try-file; tests try-file-problem; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
 
 ## Sources
 

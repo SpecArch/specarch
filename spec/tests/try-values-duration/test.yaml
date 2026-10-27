@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: golden
+given: an algorithm comparing a duration input with a duration written in place
+when: try is run for the algorithm
+then: it prints each duration in ISO 8601's day-and-time form, thirty hours as P1DT6H and ninety minutes as PT1H30M, the same in both builds, and exits 0
+verifies: [SA-100]

@@ -1,0 +1,13 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  share:
+    description: Each borrower's share of a group's overdue fees, rounded to the cent.
+    inputs:
+      total: { type: string, format: decimal, precision: 10, scale: 2 }
+      people: { type: integer, format: int32, minimum: 1 }
+    output: { type: string, format: decimal, precision: 10, scale: 2 }
+    formula: round(total / decimal(people, 0), 2)
+    examples:
+      - { name: a third each, inputs: { total: "10.00", people: 3 }, expected: "3.33" }
+    pseudocode: return total divided by people, rounded to two places

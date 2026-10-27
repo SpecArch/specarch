@@ -59,9 +59,10 @@ func tryAlgorithm(_ s: Spec, _ algorithm: String, _ example: String, _ given: YN
     }
     let (parsed, perrs) = parseExpr(formula.value)
     var errs = perrs
+    var gives: ExprType?
     var types: [ObjectIdentifier: ExprType] = [:]
     if let parsed, errs.isEmpty {
-        (_, types, errs) = checkExprTypes(parsed, env)
+        (gives, types, errs) = checkExprTypes(parsed, env)
     }
     guard let tree = parsed, errs.isEmpty else {
         let first = errs.first?.message ?? "it does not parse"
@@ -117,8 +118,12 @@ func tryAlgorithm(_ s: Spec, _ algorithm: String, _ example: String, _ given: YN
             e.outcome = .error
             e.error = err.message
         } else if let got {
-            e.result = showValue(got, want)
-            if want.kind == .int && want.bits == 32 && !fitsInt(got.num, 32) {
+            let (fitsOutput, why) = gives.map { fits($0, want) } ?? (true, "")
+            e.result = showValue(got, fitsOutput ? want : gives)
+            if !fitsOutput {
+                e.outcome = .fail
+                e.error = why
+            } else if want.kind == .int && want.bits == 32 && !fitsInt(got.num, 32) {
                 e.outcome = .fail
                 e.error = "\(got) does not fit the output's int32"
             } else if expected == nil {

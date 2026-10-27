@@ -1,0 +1,11 @@
+arguments: ["try", "share", "--file", "proposal.yaml", "."]
+exitStatus: 1
+standardOutput: |
+  proposal.yaml:4:14: error: /algorithms/share/formula: expression_type: the formula gives a decimal of no fixed scale, but the output's scale is 2; say how to round with round(x, 2) [expression_type@proposal.yaml#/algorithms/share/formula]
+  share: 1 example, 0 pass, 1 fail
+  example 1 "a third each": fail
+    inputs: total "10.00", people 3
+    decimal(people, 0) = "3"
+    total / decimal(people, 0) = "3.33333333333333333333"
+    result "3.33333333333333333333", expected "3.33"
+    the formula gives a decimal of no fixed scale, but the output's scale is 2; say how to round with round(x, 2)

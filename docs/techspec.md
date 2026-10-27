@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.2.1-dev of the specification: 100 requirements, 5 entities, 23 commands, 7 algorithms, 802 tests, 186 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.2.1-dev of the specification: 100 requirements, 5 entities, 23 commands, 7 algorithms, 803 tests, 186 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -4028,7 +4028,11 @@ branch of ?: not taken are not printed. A value is written as a
 worked example writes it, so it can be copied into one: a decimal in
 quotes at the scale the type check gives the sub-expression, or with
 up to 20 places when its scale is not fixed; a date, an instant and a
-duration in quotes, the duration in ISO 8601 (ADR-195). An evaluation that cannot be
+duration in quotes, the duration in ISO 8601 (ADR-195). The result is written at the
+output's type; when the formula's type does not fit the output (a
+decimal of no fixed scale for an output of scale 2), the evaluation
+fails, its result is written at the formula's own type, so the value
+compared shows, and the line after it says why. An evaluation that cannot be
 computed ends with the reason after the steps computed before it;
 one whose inputs cannot be read says which and why.
 
@@ -15404,6 +15408,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | try-exit-2 | command try | system | red | a specification with an algorithm | try is run with --file naming a file that does not exist | it says the file cannot be read and exits 2 |
 | try-file | command try | system | red | an algorithm whose formula caps the fee, and a file proposing the formula without the cap | try is run with --file naming that file | it evaluates the proposed formula on the specification's own examples, prints the one the cap decided as failing, with 45.00 beside the 25.00 expected, leaves specarch.yaml as it was, and exits 1 |
 | try-file-problem | command try | system | red | a file proposing a formula that names an input the algorithm does not have | try is run with --file naming that file | it prints the validator's expression_name line at the file, refuses to evaluate the formula, and exits 1 |
+| try-file-unrounded | command try | system | red | an algorithm that rounds a share to the cent, and a file proposing the formula without the rounding | try is run with --file naming that file | it prints the validator's line at the proposal, prints the example as failing with the result at the formula's own type, every place of the quotient, beside the 3.33 expected, says why the output cannot hold it, and exits 1 |
 | try-inputs | command try | system | golden | an algorithm with worked examples | try is run with --inputs '{ daysLate: 30, dailyRate: "0.50", replacementCost: "25.00" }' | it evaluates the formula once on those inputs, prints the inputs, the steps and the result with no expected value, and exits 0 |
 | try-inputs-unread | command try | system | red | an algorithm with worked examples | try is run with --inputs that writes a decimal without quotes, leaves out an input and names one the algorithm does not have | it prints the input it could read and, for each other, why it cannot be read, computes nothing, and exits 1 |
 | try-json | command try | system | golden | an algorithm with worked examples | try is run with --json for one example | it prints one object with the lines and, under try, the evaluation as data, its inputs, its steps with their place in the file, its result and expected value and its outcome, and exits 0 |
@@ -16208,7 +16213,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 | SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
-| SA-100 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
+| SA-100 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-file-unrounded; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
 
 ## Sources
 

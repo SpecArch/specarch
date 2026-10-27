@@ -44,7 +44,11 @@ commands:
       worked example writes it, so it can be copied into one: a decimal in
       quotes at the scale the type check gives the sub-expression, or with
       up to 20 places when its scale is not fixed; a date, an instant and a
-      duration in quotes, the duration in ISO 8601 (ADR-195). An evaluation that cannot be
+      duration in quotes, the duration in ISO 8601 (ADR-195). The result is written at the
+      output's type; when the formula's type does not fit the output (a
+      decimal of no fixed scale for an output of scale 2), the evaluation
+      fails, its result is written at the formula's own type, so the value
+      compared shows, and the line after it says why. An evaluation that cannot be
       computed ends with the reason after the steps computed before it;
       one whose inputs cannot be read says which and why.
     permission: public

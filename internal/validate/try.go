@@ -98,9 +98,10 @@ func Try(s *spec.Spec, algorithm, example string, given *yaml.Node) (*Tried, str
 		env[p.Key.Value] = d.fieldType(p.Value)
 	}
 	tree, errs := expr.Parse(formula.Value)
+	var gives expr.Type
 	var types map[*expr.Node]expr.Type
 	if len(errs) == 0 {
-		_, types, errs = expr.CheckTypes(tree, env)
+		gives, types, errs = expr.CheckTypes(tree, env)
 	}
 	if len(errs) > 0 {
 		return nil, fmt.Sprintf("the formula of algorithm %s does not check: %s; the validator's lines above say where", algorithm, errs[0].Message)
@@ -162,9 +163,16 @@ func Try(s *spec.Spec, algorithm, example string, given *yaml.Node) (*Tried, str
 		case err != nil:
 			e.Outcome, e.Error = OutcomeError, err.Error()
 		default:
-			text := expr.Show(got, want)
+			fits, why := expr.Fits(gives, want)
+			shown := want
+			if !fits {
+				shown = gives
+			}
+			text := expr.Show(got, shown)
 			e.Result = &text
 			switch {
+			case !fits:
+				e.Outcome, e.Error = OutcomeFail, why
 			case want.Kind == expr.Int && want.Bits == 32 && !expr.FitsInt(got.Num, 32):
 				e.Outcome, e.Error = OutcomeFail, fmt.Sprintf("%s does not fit the output's int32", got)
 			case expected == nil:

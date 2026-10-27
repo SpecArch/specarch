@@ -128,7 +128,7 @@ Version 1.2.1-dev of the specification: 10 needs, 100 requirements, and 2 gaps. 
 | SA-97 | NEED-6 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 | SA-98 | NEED-2 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | NEED-2 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
-| SA-100 | NEED-1, NEED-10 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
+| SA-100 | NEED-1, NEED-10 | commands try; decisions ADR-195 | tests try-example-fails; tests try-example-others-fail; tests try-exit-2; tests try-file; tests try-file-problem; tests try-file-unrounded; tests try-inputs; tests try-inputs-unread; tests try-json; tests try-short-circuit; tests try-succeeds; tests try-unknown-algorithm; tests try-usage-error; tests try-values; tests try-values-double; tests try-values-duration |
 
 ## 3. Gaps
 

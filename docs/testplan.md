@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.2.1-dev of the specification: 802 design tests, 390 golden and 412 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.2.1-dev of the specification: 803 design tests, 390 golden and 413 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.2.1-dev of the specification: 802 design tests, 390 golden and 412 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 798 |
+| system | 799 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3762,6 +3762,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-100.
 - Given: a file proposing a formula that names an input the algorithm does not have
 - When: try is run with --file naming that file
 - Then: it prints the validator's expression_name line at the file, refuses to evaluate the formula, and exits 1
+
+#### try-file-unrounded
+
+Scenario: red; level: system; covers exit 1; verifies SA-100.
+
+- Given: an algorithm that rounds a share to the cent, and a file proposing the formula without the rounding
+- When: try is run with --file naming that file
+- Then: it prints the validator's line at the proposal, prints the example as failing with the result at the formula's own type, every place of the quotient, beside the 3.33 expected, says why the output cannot hold it, and exits 1
 
 #### try-inputs
 

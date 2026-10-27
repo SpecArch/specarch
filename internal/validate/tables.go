@@ -550,6 +550,13 @@ func (c *checker) readTable(d *design, alg string, a *yaml.Node, report bool) *d
 		col := tableColumn{name: p.Key.Value, field: p.Value, t: t, ok: ordered(t.Kind) || t.Kind == expr.Enum || t.Kind == expr.Bool || t.Kind == expr.String}
 		if col.ok {
 			col.domain = d.tableDomain(p.Value, t)
+			if col.domain.empty() {
+				tab.readOK = false
+				if report {
+					c.add(p.Value, source.Pointer("algorithms", alg, "inputs", p.Key.Value), RuleDecisionTable,
+						"input %s may take no value: its minimum and maximum leave none, so no rule of the table can match; correct them", p.Key.Value)
+				}
+			}
 		}
 		byName[p.Key.Value] = len(tab.columns)
 		tab.columns = append(tab.columns, col)

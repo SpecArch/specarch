@@ -64,6 +64,16 @@ algorithms:
         - when: { loansOpen: [null, 3] }
           then: false
     pseudocode: x
+  noValue:
+    description: An input whose bounds leave no value.
+    inputs:
+      n: { type: integer, format: int32, minimum: 5, maximum: 3 }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - then: true
+    pseudocode: x
   both:
     description: A formula and a table.
     inputs:

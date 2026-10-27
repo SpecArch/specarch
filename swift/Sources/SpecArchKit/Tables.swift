@@ -690,7 +690,16 @@ extension Checker {
         for p in pairs(a.child("inputs")) {
             let t = d.fieldType(p.value)
             var col = TableColumn(name: p.key.value, field: p.value, t: t, ok: isOrdered(t.kind) || [.enumValue, .bool, .string].contains(t.kind))
-            if col.ok { col.domain = d.tableDomain(p.value, t) }
+            if col.ok {
+                col.domain = d.tableDomain(p.value, t)
+                if col.domain.isEmpty {
+                    tab.readOK = false
+                    if report {
+                        add(p.value, pointer("algorithms", alg, "inputs", p.key.value), .decisionTable,
+                            "input \(p.key.value) may take no value: its minimum and maximum leave none, so no rule of the table can match; correct them")
+                    }
+                }
+            }
             byName[p.key.value] = tab.columns.count
             tab.columns.append(col)
             inputs[p.key.value] = p.value

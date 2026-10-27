@@ -2609,7 +2609,8 @@ exclusive bounds, an int32's range and a uint's zero limit what is asked
 about. A condition or an output that cannot be read is `decision_table` at
 it, and the table is then not checked for overlap and gaps; a condition
 that holds for no value its input may take is a `decision_table` warning,
-since the rule matches nothing.
+since the rule matches nothing; an input whose minimum and maximum leave
+it no value is `decision_table` at the input.
 
 Each rule is a worked example: its inputs are the first values it reaches,
 under `first` those no earlier rule matches, and its expected value is its

@@ -45,7 +45,9 @@ decisions:
       it, and the table is then not checked for overlap and gaps, since
       the rule it is in could not be placed. A condition that holds for no
       value its input may take, such as "< 0" for an input of minimum 0,
-      is a decision_table warning at it: the rule matches nothing. Each rule is a worked
+      is a decision_table warning at it: the rule matches nothing.
+      An input whose minimum and maximum leave it no value is
+      decision_table at the input, and the table is not checked. Each rule is a worked
       example: its inputs are the first values it reaches that no
       earlier rule matches under first, or that no other rule matches
       under unique, and specarch try evaluates the table on each rule's

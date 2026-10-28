@@ -3607,7 +3607,7 @@ On standard error: A usage message on a usage error, and the reason on a path th
 
 ### specarch try
 
-Evaluate an algorithm on its worked examples or on given inputs and print each step.
+Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step.
 
 Validates its input first and prints the errors of an invalid
 specification, then works on what could be read (ADR-065); the
@@ -3668,17 +3668,37 @@ An evaluation no rule or, under unique, more than one rule matches
 cannot be computed and says which; a rule no inputs reach, since
 the rules before it match all it matches, cannot be computed.
 
+The name may instead be an operation's operationId, and then the
+worked examples of the mappings of its calls are evaluated, or the
+one --example names (ADR-207). A name that is both an algorithm's
+and an operation's is refused, naming both; an operation whose calls
+have no mapping example is refused; --inputs and --file, which read
+an algorithm, are refused with an operation. An algorithm not found
+is refused naming the algorithms there are and, when there are any,
+the operations whose calls have mapping examples. For each call
+whose mapping has examples it prints a summary line, the operation,
+the call as the derived cases name it (the dependency and the
+operation called) and how many examples pass, fail, cannot be
+computed and cannot be read; then each example's line and indented
+lines: its inputs in the order send reads them; for each field sent,
+the steps of its expression and a line with the value sent beside
+the expected one, followed by the outcome when it does not hold, or
+the reason it cannot be computed; then the answer in the order
+receive reads it and the same for each field kept. An example whose
+values cannot be read says which and why. The example_mismatch and
+example_error lines of the examples evaluated are not printed.
+
 **Insight:** A person judges a rule by its result on a case they recognise, and validate says only when an example does not hold; printing the result of every example, and the steps that gave it, puts the rule's behaviour in front of the reader, and trying a proposed formula on the examples the specification already holds tells, before the change is written, which decisions taken on those examples it breaks.
 
 ```
-specarch try <algorithm> <folder> [--example <example>] [--inputs <inputs>] [--file <file>]
+specarch try <name> <folder> [--example <example>] [--inputs <inputs>] [--file <file>]
 ```
 
 Anyone who has the program runs it.
 
 | Argument | What to give | Required |
 |---|---|---|
-| `<algorithm>` | The name of the algorithm, as the algorithms section has it, such as lateFee. | yes |
+| `<name>` | The name of the algorithm, as the algorithms section has it, such as lateFee, or the operationId of an operation whose calls have mapping examples, such as returnLoan. | yes |
 | `<folder>` | The folder holding the specification. | yes |
 
 | Option | What it does | Required |
@@ -3694,14 +3714,14 @@ It reads:
 
 It writes no file.
 
-On standard output: The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try.
+On standard output: The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try, or an operation's under tryOperation.
 
 On standard error: A usage message on a usage error, and the reason a refusal.
 
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | every evaluation is computed and every example evaluated holds |   |
-| 1 | refused, the algorithm or the example is not the specification's, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors | Read the refusal on standard error or the failing evaluation's lines, and correct the formula, the example or the command line, or run specarch validate and settle the errors. |
+| 1 | refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors | Read the refusal on standard error or the failing evaluation's lines, and correct the formula, the example or the command line, or run specarch validate and settle the errors. |
 | 2 | usage error, or a folder or file that could not be read | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch upgrade

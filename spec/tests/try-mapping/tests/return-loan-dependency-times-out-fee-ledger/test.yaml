@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency times out feeLedger]
+given: "feeLedger does not answer within PT5S"
+when: "returnLoan is called"
+then: "it answers 503: The ledger is unavailable, and the loan stays open."
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

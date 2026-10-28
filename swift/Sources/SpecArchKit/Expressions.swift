@@ -195,7 +195,7 @@ func exprLine(_ n: YNode, _ line: Int) -> Int {
 
 /// Writes a value as a worked example would, a decimal with the output's
 /// scale.
-private func show(_ v: ExprValue, _ t: ExprType) -> String {
+func show(_ v: ExprValue, _ t: ExprType) -> String {
     if v.kind == .decimal && t.scale >= 0 { return quote(fixedDecimal(v.num, t.scale)) }
     return v.description
 }

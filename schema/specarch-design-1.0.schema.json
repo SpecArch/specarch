@@ -702,7 +702,7 @@
           "$ref": "#/$defs/callRef"
         },
         "mapping": {
-          "description": "How the call is made from our values and what of the answer is kept. send: each field of their request, by its name, from an expression over the operation's parameters, its request body's fields and the fields of the record its guard names. receive: each field of that record, by its name, from an expression over the fields of their answer that succeeds.",
+          "description": "How the call is made from our values and what of the answer is kept. send: each field of their request, by its name, from an expression over the operation's parameters, its request body's fields and the fields of the record its guard names. receive: each field of that record, by its name, from an expression over the fields of their answer that succeeds. examples: worked examples of the mapping, each checked by the validator and turned into a test (ADR-207).",
           "type": "object",
           "properties": {
             "send": {
@@ -724,6 +724,13 @@
                 "$ref": "#/$defs/expression"
               },
               "minProperties": 1
+            },
+            "examples": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/mappingExample"
+              },
+              "minItems": 1
             }
           },
           "minProperties": 1,
@@ -5351,6 +5358,80 @@
           }
         }
       ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "mappingExample": {
+      "description": "SpecArch keyword. A worked example of a call's mapping: inputs, our values the send expressions read; sent, each field of their request as send gives it from them; answer, the fields of their answer that succeeds; kept, each field of our record as receive gives it from that answer. The validator evaluates send on inputs and receive on answer and reports an example that does not hold (ADR-207).",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "sent": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "answer": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "kept": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/memberName"
+          },
+          "minProperties": 1
+        },
+        "note": {
+          "description": "Why this case matters or how the values were reached.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "sent"
+          ]
+        },
+        {
+          "required": [
+            "kept"
+          ]
+        }
+      ],
+      "dependentRequired": {
+        "sent": [
+          "inputs"
+        ],
+        "kept": [
+          "answer"
+        ]
+      },
       "propertyNames": {
         "not": {
           "$ref": "#/$defs/stackSpecificKey"

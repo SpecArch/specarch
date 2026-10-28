@@ -1,0 +1,36 @@
+arguments: [try, returnLoan, .]
+exitStatus: 1
+standardOutput: |
+  tests/return-loan-dependency-fails-audit-log/test.yaml:4:10: error: /tests/return-loan-dependency-fails-audit-log/covers/0: test_case: "dependency fails auditLog" is not a case of operation returnLoan; its cases are: loanId not a valid uuid, not found loanId, denied without loans.return, dependency fails feeLedger, dependency times out feeLedger, dependency rate exceeded feeLedger, dependency retries exhausted feeLedger postCharge, dependency answers unmapped feeLedger postCharge, guard precondition fails, concurrent write, response 409, response 502, response 503 [test_case@tests/return-loan-dependency-fails-audit-log/test.yaml#/tests/return-loan-dependency-fails-audit-log/covers/0]
+  tests/return-loan-dependency-times-out-audit-log/test.yaml:4:10: error: /tests/return-loan-dependency-times-out-audit-log/covers/0: test_case: "dependency times out auditLog" is not a case of operation returnLoan; its cases are: loanId not a valid uuid, not found loanId, denied without loans.return, dependency fails feeLedger, dependency times out feeLedger, dependency rate exceeded feeLedger, dependency retries exhausted feeLedger postCharge, dependency answers unmapped feeLedger postCharge, guard precondition fails, concurrent write, response 409, response 502, response 503 [test_case@tests/return-loan-dependency-times-out-audit-log/test.yaml#/tests/return-loan-dependency-times-out-audit-log/covers/0]
+  returnLoan, call feeLedger postCharge: 3 examples, 1 pass, 1 fail, 1 cannot be computed
+  example 1 "three members": pass
+    inputs: loanId "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", groupFee "10.00", members 3
+    sent loan "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", expected "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b"
+    decimal(members, 0) = "3"
+    groupFee / decimal(members, 0) = "3.33333333333333333333"
+    round(groupFee / decimal(members, 0), 2) = "3.33"
+    sent amount "3.33", expected "3.33"
+    members > 1 = true
+    members > 1 ? "shared" : "own" = "shared"
+    sent reason "shared", expected "shared"
+    answer: entry "E-901"
+    kept ledgerEntry "E-901", expected "E-901"
+  example 2 "one member, share expected whole": fail
+    inputs: loanId "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", groupFee "10.00", members 1
+    sent loan "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", expected "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b"
+    decimal(members, 0) = "1"
+    groupFee / decimal(members, 0) = "10"
+    round(groupFee / decimal(members, 0), 2) = "10.00"
+    sent amount "10.00", expected "10.00"
+    members > 1 = false
+    members > 1 ? "shared" : "own" = "own"
+    sent reason "own", expected "shared", fail
+  example 3 "nobody": cannot be computed
+    inputs: loanId "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", groupFee "10.00", members 0
+    sent loan "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", expected "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b"
+    decimal(members, 0) = "0"
+    sent amount cannot be computed: division by zero
+    members > 1 = false
+    members > 1 ? "shared" : "own" = "own"
+    sent reason "own", expected "own"

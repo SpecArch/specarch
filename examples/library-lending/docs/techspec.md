@@ -779,6 +779,10 @@ Calls feeLedger#/operations/postCharge (POST /charges, within PT5S).
 
 The call to feeLedger#/operations/postCharge: it sends `loan = loanId`, `amount = lateFee`, `kind = "late fee"`; sends Idempotency-Key as `loanId`, so a call made again is told from a new one; tries again 2 times, PT1S apart and twice that each time, on 503 or timeout; answers their 503 as 503 and timeout as 503.
 
+| Worked example of the call to feeLedger#/operations/postCharge | Inputs | Sent | Answer | Kept | Note |
+|---|---|---|---|---|---|
+| a week late | loanId 3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b, lateFee 3.50 | loan 3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b, amount 3.50, kind late fee |   |   | The fee the lateFee algorithm gives for seven days at 0.50 a day goes out as it is, with the loan's own id. |
+
 Guard: the change writes 1 Loan record, and `status == "open" || status == "overdue"` must hold on each as it is at the moment of the change; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.
 
 Responses:

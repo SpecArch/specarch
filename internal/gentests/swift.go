@@ -32,6 +32,10 @@ func GenerateSwift(r *Request) Response {
 	w.line("")
 	w.b.WriteString(swiftPrelude + "\n")
 	w.line("")
+	if len(s.Mappings) > 0 {
+		w.b.WriteString(swiftMappingPrelude + "\n")
+		w.line("")
+	}
 	w.line("extension SpecArch {")
 	w.line("    @Suite(%s)", swiftString(s.Title+": design tests and worked examples"))
 	w.line("    struct DesignTests {")
@@ -51,6 +55,13 @@ func GenerateSwift(r *Request) Response {
 		first = false
 		w.marks(s, "/algorithms/"+mark.Escape(a.Name), swiftIndent)
 		swiftAlgorithm(w, a)
+	}
+	for _, m := range s.Mappings {
+		if !first {
+			w.line("")
+		}
+		first = false
+		swiftMapping(w, m)
 	}
 	w.line("    }")
 	w.line("}")
@@ -148,6 +159,40 @@ func swiftAlgorithm(w *writer, a Algorithm) {
 	w.line(in + "}")
 }
 
+func swiftMapping(w *writer, m Mapping) {
+	in := swiftIndent
+	name := "testMapping" + pascal(m.Operation) + pascal(m.Call)
+	if m.Sends() {
+		w.line(in+"@Test(%s, arguments: [", swiftString("mapping of "+m.Operation+"'s call to "+m.Call+": what is sent"))
+		for _, ex := range m.Examples {
+			if ex.HasSent {
+				w.line(in+"    (%s, %s as Record, %s as Record),", swiftString(ex.Label), swiftRecord(ex.Input), swiftRecord(ex.Sent))
+			}
+		}
+		w.line(in + "])")
+		w.line(in+"func %sSent(example: String, input: Record, sent: Record) async throws {", name)
+		w.line(in + "    let h = try await mappingHarness()")
+		w.line(in+"    expectRecord(try await h.send(%s, call: %s, input: input), sent, example: example)", swiftString(m.Mapping), swiftString(m.Reference))
+		w.line(in + "}")
+	}
+	if m.Sends() && m.Keeps() {
+		w.line("")
+	}
+	if m.Keeps() {
+		w.line(in+"@Test(%s, arguments: [", swiftString("mapping of "+m.Operation+"'s call to "+m.Call+": what is kept"))
+		for _, ex := range m.Examples {
+			if ex.HasKept {
+				w.line(in+"    (%s, %s as Record, %s as Record),", swiftString(ex.Label), swiftRecord(ex.Answer), swiftRecord(ex.Kept))
+			}
+		}
+		w.line(in + "])")
+		w.line(in+"func %sKept(example: String, answer: Record, kept: Record) async throws {", name)
+		w.line(in + "    let h = try await mappingHarness()")
+		w.line(in+"    expectRecord(try await h.receive(%s, call: %s, answer: answer), kept, example: example)", swiftString(m.Mapping), swiftString(m.Reference))
+		w.line(in + "}")
+	}
+}
+
 func swiftRecord(fields []Field) string {
 	if len(fields) == 0 {
 		return "[:]"
@@ -218,6 +263,40 @@ func refusedFramework(file, got, plugin, wants string) Response {
 	return Response{Files: []File{}, Diagnostics: []Diagnostic{{File: file, Line: 1, Severity: "error", Path: "/testing/framework", Rule: "generator",
 		Message: fmt.Sprintf("%s writes tests for %s, and this implementation file's testing framework is %q; name %s there, or write these tests by hand", plugin, wants, got, wants)}}}
 }
+
+// swiftMappingPrelude is the part of a generated file whose specification
+// has mapping examples: the harness they need beside Harness, so a
+// project without them is not asked for it (ADR-207).
+const swiftMappingPrelude = `extension SpecArch {
+    /// What the project's harness gives beside Harness when the
+    /// specification has worked examples of a call's mapping: send, what
+    /// the implementation sends for an operation's call from our values,
+    /// and receive, what it keeps in the record from their answer. The
+    /// mapping is the operation's, as request takes it; call is the calls
+    /// entry's call, such as feeLedger#/operations/postCharge.
+    protocol MappingHarness {
+        func send(_ mapping: String, call: String, input: Record) async throws -> Record
+        func receive(_ mapping: String, call: String, answer: Record) async throws -> Record
+    }
+
+    struct NoMappingHarness: Error, CustomStringConvertible {
+        var description: String {
+            "the harness makeHarness gives is no MappingHarness, which the mapping examples need; give it send and receive as MappingHarness declares"
+        }
+    }
+
+    /// The harness as a MappingHarness, or an error naming what to add.
+    static func mappingHarness() async throws -> any MappingHarness {
+        guard let h = try await makeHarness() as? any MappingHarness else { throw NoMappingHarness() }
+        return h
+    }
+
+    static func expectRecord(_ got: Record, _ want: Record, example: String, sourceLocation: SourceLocation = #_sourceLocation) {
+        if !holds(got, want) {
+            Issue.record("\(example): record \(got) does not hold \(want)", sourceLocation: sourceLocation)
+        }
+    }
+}`
 
 // swiftPrelude is the part of every generated Swift file that does not
 // depend on the specification: the values, the harness and the checks.

@@ -22,6 +22,10 @@ struct Evaluation {
     var result: String?
     var expected: String?
     var error = ""
+    // A mapping example's answer and each field sent or kept (ADR-207).
+    var answer: [(name: String, value: String)] = []
+    var fields: [TriedField] = []
+    var pointer = "" // where a mapping example is, for triedHere
 }
 
 /// What specarch try found for one algorithm.
@@ -40,8 +44,12 @@ func tryAlgorithm(_ s: Spec, _ algorithm: String, _ example: String, _ given: YN
     let algs = root.child("algorithms")
     guard let alg = algs?.child(algorithm) else {
         let names = pairs(algs).map { $0.key.value }.sorted(by: byteLess)
-        if names.isEmpty { return (nil, "the specification has no algorithms, so no algorithm \(algorithm)") }
-        return (nil, "the specification has no algorithm \(algorithm); it has \(names.joined(separator: ", "))")
+        var refusal = names.isEmpty ? "the specification has no algorithms, so no algorithm \(algorithm)" : "the specification has no algorithm \(algorithm); it has \(names.joined(separator: ", "))"
+        let operations = operationsWithMappingExamples(root)
+        if !operations.isEmpty {
+            refusal += ", and no operation \(algorithm); the operations whose calls have mapping examples are \(operations.joined(separator: ", "))"
+        }
+        return (nil, refusal)
     }
     let c = Checker(file: s.rootPath, files: s.files)
     c.root = root
@@ -290,12 +298,14 @@ extension Checker {
 /// worked example it evaluated that does not hold or cannot be computed.
 /// An example it did not evaluate keeps its line.
 func triedHere(_ d: Diagnostic, _ t: Tried?) -> Bool {
-    guard let t, d.rule == .exampleMismatch || d.rule == .exampleError else { return false }
-    for e in t.evaluations where e.number > 0 {
-        let base = pointer("algorithms", t.algorithm, "examples", "\(e.number - 1)")
-        if d.path == base || d.path.hasPrefix(base + "/") { return true }
-    }
-    return false
+    guard let t else { return false }
+    return triedHere(d, t.evaluations.filter { $0.number > 0 }.map { pointer("algorithms", t.algorithm, "examples", "\($0.number - 1)") })
+}
+
+/// triedHere for the places of the examples evaluated.
+func triedHere(_ d: Diagnostic, _ pointers: [String]) -> Bool {
+    guard d.rule == .exampleMismatch || d.rule == .exampleError else { return false }
+    return pointers.contains { d.path == $0 || d.path.hasPrefix($0 + "/") }
 }
 
 /// The try command: evaluates an algorithm on its worked examples or on
@@ -339,7 +349,7 @@ func runTry(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int32 {
         i += 1
     }
     if rest.count != 2 {
-        stderr.write("specarch try needs the algorithm's name and one folder, in that order\n\n\(usage)")
+        stderr.write("specarch try needs the name of an algorithm or an operation, and one folder, in that order\n\n\(usage)")
         return 2
     }
     if !example.isEmpty && !inputs.isEmpty {
@@ -365,6 +375,11 @@ func runTry(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int32 {
         return 2
     }
     let s = Spec(dir: roots[0])
+    if tryOperation(s, algorithm, "").2 && (!inputs.isEmpty || !file.isEmpty) {
+        let option = inputs.isEmpty ? "--file" : "--inputs"
+        stderr.write("specarch try: \(algorithm) is an operation, and \(option) reads an algorithm; try the operation's mapping examples without it, or name an algorithm\n")
+        return 1
+    }
     if !file.isEmpty {
         let (reason, readError) = s.overlay(file, "algorithms", algorithm)
         if readError {
@@ -377,6 +392,20 @@ func runTry(_ args: [String], _ stdout: TextSink, _ stderr: TextSink) -> Int32 {
         }
     }
     let diags = checkSpec(s, makeGiven([s]))
+    let (op, opRefusal, isOperation) = tryOperation(s, algorithm, example)
+    if isOperation {
+        var invalid = false
+        for d in diags where d.severity == .error && !triedHere(d, op?.pointers ?? []) {
+            stdout.write(d.description + "\n")
+            if let l = d.detailLine { stderr.write(l + "\n") }
+            invalid = true
+        }
+        guard let op else {
+            stderr.write("specarch try: \(opRefusal)\n")
+            return 1
+        }
+        return printTriedOperation(stdout, op) || invalid ? 1 : 0
+    }
     let (tried, refusal) = tryAlgorithm(s, algorithm, example, given)
     var invalid = false
     for d in diags where d.severity == .error && !triedHere(d, tried) {

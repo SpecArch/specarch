@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency times out auditLog]
+given: "auditLog does not answer within PT1S"
+when: "returnLoan is called"
+then: "it succeeds all the same, since it does not wait for auditLog"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

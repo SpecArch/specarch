@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [denied without loans.return]
+given: "a caller without loans.return"
+when: "returnLoan is called"
+then: "it is refused as not allowed"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

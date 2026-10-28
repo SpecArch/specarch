@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.3.1-dev of the specification: 10 needs, 105 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.3.1-dev of the specification: 10 needs, 106 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -14,7 +14,7 @@ Version 1.3.1-dev of the specification: 10 needs, 105 requirements, and 2 gaps. 
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
@@ -23,7 +23,7 @@ Version 1.3.1-dev of the specification: 10 needs, 105 requirements, and 2 gaps. 
 | NEED-7 | accepted | SA-14, SA-96, SA-74, SA-95 |
 | NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
-| NEED-10 | accepted | SA-102, SA-58, SA-60, SA-101, SA-57, SA-100 |
+| NEED-10 | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-57, SA-100 |
 
 ## 2. Requirements to design and verification
 
@@ -134,6 +134,7 @@ Version 1.3.1-dev of the specification: 10 needs, 105 requirements, and 2 gaps. 
 | SA-103 | NEED-1, NEED-5 | decisions ADR-198 | tests extract-workflows-asks-unread-end; tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-deadline-undoes; tests validate-workflow-open-branch; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused; tests validate-workflow-undo-skipped-step |
 | SA-104 | NEED-1 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
 | SA-105 | NEED-1 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
+| SA-106 | NEED-1, NEED-10 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
 
 ## 3. Gaps
 

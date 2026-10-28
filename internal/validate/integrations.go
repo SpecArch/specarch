@@ -126,13 +126,16 @@ func (c *checker) checkCallReference(d *design, e callEntry, ptr string) bool {
 
 // ours are the names a call's send expressions and idempotency key may
 // use: the operation's parameters, its request body's fields and the
-// fields of the record its guard names, with the names two of them share.
-func (d *design) ours(o operation) (expr.Env, map[string][]string) {
+// fields of the record its guard names, with the names two of them share
+// and the field each name is read at, the first of them.
+func (d *design) ours(o operation) (expr.Env, map[string][]string, map[string]*yaml.Node) {
 	env := expr.Env{}
 	from := map[string][]string{}
-	put := func(name, where string, t expr.Type) {
+	fields := map[string]*yaml.Node{}
+	put := func(name, where string, field *yaml.Node) {
 		if _, ok := env[name]; !ok {
-			env[name] = t
+			env[name] = d.fieldType(field)
+			fields[name] = field
 		}
 		if !slices.Contains(from[name], where) {
 			from[name] = append(from[name], where)
@@ -140,20 +143,20 @@ func (d *design) ours(o operation) (expr.Env, map[string][]string) {
 	}
 	for _, p := range append(source.Items(source.Child(o.pathItem, "parameters")), source.Items(source.Child(o.node, "parameters"))...) {
 		if name := source.Str(source.Child(p, "name")); name != "" {
-			put(name, "a parameter", d.fieldType(source.Child(p, "schema")))
+			put(name, "a parameter", source.Child(p, "schema"))
 		}
 	}
 	body, _ := d.requestFields(o.node)
 	for _, name := range sortedKeys(body) {
-		put(name, "a field of the request", d.fieldType(body[name]))
+		put(name, "a field of the request", body[name])
 	}
 	if ent := source.Str(source.Child(source.Child(o.node, "guard"), "entity")); d.entities[ent] != nil {
-		fields := fieldsOf(d.entities[ent])
-		for _, name := range sortedKeys(fields) {
-			put(name, "a field of "+ent, d.fieldType(fields[name]))
+		record := fieldsOf(d.entities[ent])
+		for _, name := range sortedKeys(record) {
+			put(name, "a field of "+ent, record[name])
 		}
 	}
-	return env, from
+	return env, from, fields
 }
 
 // fieldsEnv is the names and types of an object schema's properties.
@@ -215,7 +218,7 @@ func (c *checker) checkCall(d *design, o operation, e callEntry) {
 		c.add(cb, at("callback"), RuleEmits, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", cb.Value)
 	}
 
-	ours, from := d.ours(o)
+	ours, from, oursFields := d.ours(o)
 	expression := func(v *yaml.Node, ptr, what string, env expr.Env, shared map[string][]string) (expr.Type, bool) {
 		if v == nil || !source.IsScalar(v) {
 			return expr.Type{}, false
@@ -306,6 +309,11 @@ func (c *checker) checkCall(d *design, o operation, e callEntry) {
 				}
 			}
 		}
+	}
+
+	// The worked examples of the mapping (ADR-207).
+	if mapping != nil && their != nil {
+		c.checkMappingExamples(d, o, e, their, called, mode, ours, oursFields)
 	}
 
 	// The idempotency key.

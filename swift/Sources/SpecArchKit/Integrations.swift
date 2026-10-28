@@ -49,26 +49,30 @@ extension Design {
     /// The names a call's send expressions and idempotency key may use: the
     /// operation's parameters, its request body's fields and the fields of
     /// the record its guard names, with the names two of them share.
-    func ours(_ o: Operation) -> (ExprEnv, [String: [String]]) {
+    func ours(_ o: Operation) -> (ExprEnv, [String: [String]], [String: YNode]) {
         var env: ExprEnv = [:]
         var from: [String: [String]] = [:]
-        func put(_ name: String, _ whereFrom: String, _ t: ExprType) {
-            if env[name] == nil { env[name] = t }
+        var fields: [String: YNode] = [:]
+        func put(_ name: String, _ whereFrom: String, _ t: ExprType, _ field: YNode?) {
+            if env[name] == nil {
+                env[name] = t
+                if let field { fields[name] = field }
+            }
             if !(from[name] ?? []).contains(whereFrom) { from[name, default: []].append(whereFrom) }
         }
         for p in items(o.pathItem.child("parameters")) + items(o.node.child("parameters")) {
             let name = str(p.child("name"))
-            if !name.isEmpty, let schema = p.child("schema") { put(name, "a parameter", fieldType(schema)) }
-            else if !name.isEmpty { put(name, "a parameter", ExprType(.string)) }
+            if !name.isEmpty, let schema = p.child("schema") { put(name, "a parameter", fieldType(schema), schema) }
+            else if !name.isEmpty { put(name, "a parameter", ExprType(.string), nil) }
         }
         let (body, _) = requestFields(o.node)
-        for name in body.keys.sorted(by: byteLess) { put(name, "a field of the request", fieldType(body[name]!)) }
+        for name in body.keys.sorted(by: byteLess) { put(name, "a field of the request", fieldType(body[name]!), body[name]!) }
         let ent = str(o.node.child("guard")?.child("entity"))
         if let e = entities[ent] {
-            let fields = fieldsOf(e)
-            for name in fields.keys.sorted(by: byteLess) { put(name, "a field of " + ent, fieldType(fields[name]!)) }
+            let record = fieldsOf(e)
+            for name in record.keys.sorted(by: byteLess) { put(name, "a field of " + ent, fieldType(record[name]!), record[name]!) }
         }
-        return (env, from)
+        return (env, from, fields)
     }
 
     /// The names and types of an object schema's properties.
@@ -218,7 +222,7 @@ extension Checker {
             add(cb, at("callback"), .emits, "\(cb.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
         }
 
-        let (ours, from) = d.ours(o)
+        let (ours, from, oursFields) = d.ours(o)
         func expression(_ v: YNode?, _ ptr: String, _ what: String, _ env: ExprEnv, _ shared: [String: [String]]) -> ExprType? {
             guard let v, v.kind == .scalar else { return nil }
             let (tree, perrs) = parseExpr(v.value)
@@ -298,6 +302,11 @@ extension Checker {
                     }
                 }
             }
+        }
+
+        // The worked examples of the mapping (ADR-207).
+        if let their, mapping != nil {
+            checkMappingExamples(d, o, e, their, called, mode, ours, oursFields)
         }
 
         // The idempotency key.

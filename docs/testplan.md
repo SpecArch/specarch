@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.1-dev of the specification: 840 design tests, 410 golden and 430 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.1-dev of the specification: 848 design tests, 413 golden and 435 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.1-dev of the specification: 840 design tests, 410 golden and 430 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 836 |
+| system | 844 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3915,6 +3915,54 @@ Scenario: golden; level: system; verifies SA-100.
 - When: try is run with --json for one example
 - Then: it prints one object with the lines and, under try, the evaluation as data, its inputs, its steps with their place in the file, its result and expected value and its outcome, and exits 0
 
+#### try-mapping
+
+Scenario: red; level: system; covers exit 1; verifies SA-106.
+
+- Given: a call's mapping whose amount is a share of a fee and whose reason is chosen by the number of members, with an example that holds, one whose reason is wrong and one whose share divides by zero
+- When: try is run with the operation's name
+- Then: it prints a summary line naming the call by the dependency and the operation called, each example's inputs, each field's steps and its value beside the expected one, the wrong reason as failing, the division by zero after the steps before it, the answer and the field kept, no example_mismatch or example_error line, the same in both builds, and exits 1
+
+#### try-mapping-both-names
+
+Scenario: red; level: system; verifies SA-106.
+
+- Given: an operation and an algorithm that share a name
+- When: try is run with that name
+- Then: it refuses, naming both, prints nothing on standard output, and exits 1
+
+#### try-mapping-inputs
+
+Scenario: red; level: system; verifies SA-106.
+
+- Given: an operation whose call's mapping has examples
+- When: try is run with the operation's name and --inputs
+- Then: it refuses, since --inputs reads an algorithm, prints nothing on standard output, and exits 1
+
+#### try-mapping-json
+
+Scenario: golden; level: system; verifies SA-106.
+
+- Given: a call's mapping with examples
+- When: try is run with --json for one example
+- Then: it prints one object with the lines and, under tryOperation, the call, its reference and file, and the evaluation with its answer and each field kept, its expression, steps, result, expected value and outcome, and exits 0
+
+#### try-mapping-others-fail
+
+Scenario: red; level: system; verifies SA-106.
+
+- Given: a call's mapping with an example that holds, one that fails and one that cannot be computed
+- When: try is run with --example naming the one that cannot be computed
+- Then: it prints the validator's example_mismatch line of the failing example it does not evaluate, then the one it evaluates, and exits 1
+
+#### try-mapping-succeeds
+
+Scenario: golden; level: system; verifies SA-106.
+
+- Given: a call's mapping with an example sent and kept and one kept alone, both holding
+- When: try is run with the operation's name
+- Then: it prints each example passing with its values, the same in both builds, and exits 0
+
 #### try-short-circuit
 
 Scenario: golden; level: system; verifies SA-100.
@@ -5366,6 +5414,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-9.
 - Given: a schema whose fields are maps: of strings, of nullable integers, open to any value, closed beside properties, of maps of a schema; one written with {} for any value, one on a string, and an entity's map whose values carry storage
 - When: validate is run
 - Then: the maps validate; {} is refused for having neither a type nor a reference nor being a boolean, additionalProperties on a string is refused as only an object takes it, storage inside the map's values is refused as on any value inside a field, and it exits 1
+
+#### validate-mapping-examples
+
+Scenario: golden; level: system; verifies SA-106.
+
+- Given: a call's mapping with an example of what is sent from our values and what is kept from their answer, and one of what is kept alone
+- When: validate is run
+- Then: it reports nothing, the same in both builds, and exits 0
+
+#### validate-mapping-examples-wrong
+
+Scenario: red; level: system; covers exit 1; verifies SA-106.
+
+- Given: a call's mapping with examples whose sent and kept values differ from what send and receive give, that leave out a name send reads or give one it does not read or that is none of ours, leave out a field send gives or expect one it does not, give values that do not read at their fields or an answer field their answer lacks, and an example that keeps from an async call
+- When: validate is run
+- Then: it reports each as example_mismatch, example_input, example_expected or integration at the value or the key, the same in both builds, and exits 1
 
 #### validate-mapping-menu-entry
 
@@ -6819,7 +6883,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-478 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+482 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7108,6 +7172,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-105 | acceptance 4 | golden | SA-105 names no harm |
 | requirement SA-105 | acceptance 5 | golden | SA-105 names no harm |
 | requirement SA-105 | acceptance 6 | golden | SA-105 names no harm |
+| requirement SA-106 | acceptance 1 | golden | SA-106 names no harm |
+| requirement SA-106 | acceptance 2 | golden | SA-106 names no harm |
+| requirement SA-106 | acceptance 3 | golden | SA-106 names no harm |
+| requirement SA-106 | acceptance 4 | golden | SA-106 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

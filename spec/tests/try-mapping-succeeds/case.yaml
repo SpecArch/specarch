@@ -1,0 +1,14 @@
+arguments: [try, returnLoan, .]
+exitStatus: 0
+standardOutput: |
+  returnLoan, call feeLedger postCharge: 2 examples, 2 pass
+  example 1 "a week late": pass
+    inputs: loanId "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", lateFee "3.50"
+    sent loan "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b", expected "3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b"
+    sent amount "3.50", expected "3.50"
+    sent reason "late", expected "late"
+    answer: entry "E-901"
+    kept ledgerEntry "E-901", expected "E-901"
+  example 2 "the entry kept": pass
+    answer: entry "E-902"
+    kept ledgerEntry "E-902", expected "E-902"

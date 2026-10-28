@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+given: a call's mapping with an example that holds, one that fails and one that cannot be computed
+when: try is run with --example naming the one that cannot be computed
+then: it prints the validator's example_mismatch line of the failing example it does not evaluate, then the one it evaluates, and exits 1
+verifies: [SA-106]

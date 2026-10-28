@@ -621,6 +621,7 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 			if text := contractText(item); text != "" {
 				d.para(text)
 			}
+			mappingExamples(d, item)
 		}
 	}
 	if l := get(op, "listOf"); l != nil {
@@ -2063,6 +2064,29 @@ func contractText(item *yaml.Node) string {
 		return ""
 	}
 	return "The call to " + c + ": " + strings.Join(parts, "; ") + "."
+}
+
+// mappingExamples writes the worked examples of a call's mapping as a
+// table, each with our values, what is sent, their answer and what is
+// kept (ADR-207).
+func mappingExamples(d *doc, item *yaml.Node) {
+	exs := items(get(item, "mapping"), "examples")
+	if len(exs) == 0 {
+		return
+	}
+	values := func(ex *yaml.Node, key string) string {
+		var out []string
+		for _, p := range pairs(ex, key) {
+			out = append(out, p.Key.Value+" "+p.Value.Value)
+		}
+		return cell(strings.Join(out, ", "))
+	}
+	d.line("| Worked example of the call to %s | Inputs | Sent | Answer | Kept | Note |", str(item, "call"))
+	d.line("|---|---|---|---|---|---|")
+	for _, ex := range exs {
+		d.line("| %s | %s | %s | %s | %s | %s |", cell(str(ex, "name")), values(ex, "inputs"), values(ex, "sent"), values(ex, "answer"), values(ex, "kept"), cell(str(ex, "note")))
+	}
+	d.blank()
 }
 
 // proofText says how a client proves its identity, in words.

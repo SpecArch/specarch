@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.3.1-dev of the specification: 105 requirements, 5 entities, 23 commands, 7 algorithms, 840 tests, 192 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.3.1-dev of the specification: 106 requirements, 5 entities, 23 commands, 7 algorithms, 848 tests, 193 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -78,7 +78,7 @@ The interfaces the system offers, as its clients see them.
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
-| try | Evaluate an algorithm on its worked examples or on given inputs and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm or the example is not the specification's, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
+| try | Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
 | upgrade | Move a specification and its files to the newest version of each format, or list what moving them changes | public | 0: every change the move names was made, or with --dry-run can be made, and no step is left to the author; 1: a step is left to the author; 2: usage error, a path that could not be read or written, or a version --to names that this program does not write |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | version | Print the program version and the meta-model versions it reads | public | 0: printed |
@@ -303,10 +303,10 @@ Primary key: path.
 | Rule | expression_syntax | a check, a unique constraint's condition or a formula does not parse |
 | Rule | expression_name | an expression names a field, input or function that does not exist |
 | Rule | expression_type | an expression combines values of types that do not fit |
-| Rule | example_input | a worked example's inputs are missing one, name an unknown one, or have the wrong type |
-| Rule | example_expected | a worked example's expected value does not have the output's type |
-| Rule | example_mismatch | the formula evaluated on a worked example's inputs does not give the expected value |
-| Rule | example_error | the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic), or no rule of a decision table, or two under hit policy unique, match them |
+| Rule | example_input | a worked example's inputs are missing one, name an unknown one, or have the wrong type; for a call's mapping, its inputs or answer leave out a name send or receive reads, give one it does not read, or have the wrong type (ADR-207) |
+| Rule | example_expected | a worked example's expected value does not have the output's type; for a call's mapping, a sent or kept value does not have its field's type, names a field send or receive does not give, or leaves out one it gives |
+| Rule | example_mismatch | the formula evaluated on a worked example's inputs does not give the expected value, or a call's send or receive does not give a mapping example's sent or kept value |
+| Rule | example_error | the formula, or a call's send or receive, cannot be evaluated on a worked example's values (division by zero, null in arithmetic), or no rule of a decision table, or two under hit policy unique, match them |
 | Rule | decision_table | a decision table's condition names no input, its value or operator cannot be read, it tests an input of a type a table does not test, an input's minimum and maximum leave it no value, or a rule's output cannot be read; as a warning, a rule whose condition holds for no value its input may take (ADR-199) |
 | Rule | table_overlap | two rules of a decision table under hit policy unique both match some inputs; as a warning, a rule under hit policy first that the earlier rules always match first (ADR-199) |
 | Rule | table_gap | some inputs of a decision table match no rule (ADR-199) |
@@ -4073,11 +4073,31 @@ An evaluation no rule or, under unique, more than one rule matches
 cannot be computed and says which; a rule no inputs reach, since
 the rules before it match all it matches, cannot be computed.
 
+The name may instead be an operation's operationId, and then the
+worked examples of the mappings of its calls are evaluated, or the
+one --example names (ADR-207). A name that is both an algorithm's
+and an operation's is refused, naming both; an operation whose calls
+have no mapping example is refused; --inputs and --file, which read
+an algorithm, are refused with an operation. An algorithm not found
+is refused naming the algorithms there are and, when there are any,
+the operations whose calls have mapping examples. For each call
+whose mapping has examples it prints a summary line, the operation,
+the call as the derived cases name it (the dependency and the
+operation called) and how many examples pass, fail, cannot be
+computed and cannot be read; then each example's line and indented
+lines: its inputs in the order send reads them; for each field sent,
+the steps of its expression and a line with the value sent beside
+the expected one, followed by the outcome when it does not hold, or
+the reason it cannot be computed; then the answer in the order
+receive reads it and the same for each field kept. An example whose
+values cannot be read says which and why. The example_mismatch and
+example_error lines of the examples evaluated are not printed.
+
 **Insight:** A person judges a rule by its result on a case they recognise, and validate says only when an example does not hold; printing the result of every example, and the steps that gave it, puts the rule's behaviour in front of the reader, and trying a proposed formula on the examples the specification already holds tells, before the change is written, which decisions taken on those examples it breaks.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<algorithm>` | string | yes | The name of the algorithm, as the algorithms section has it, such as lateFee. |
+| `<name>` | string | yes | The name of the algorithm, as the algorithms section has it, such as lateFee, or the operationId of an operation whose calls have mapping examples, such as returnLoan. |
 | `<folder>` | string | yes | The folder holding the specification. |
 | `--example` | string |   | Evaluate only the worked example of this name. |
 | `--inputs` | string |   | Evaluate once on these inputs, a YAML mapping written as an example's inputs are, such as '{ daysLate: 7, dailyRate: "0.50", replacementCost: "25.00" }'; not with --example. |
@@ -4085,7 +4105,7 @@ the rules before it match all it matches, cannot be computed.
 
 Reads `{folder}`: The specification and its implementation files; `{file}`: The proposed algorithm, with --file.
 
-Standard output: The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try.
+Standard output: The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try, or an operation's under tryOperation.
 
 Standard error: A usage message on a usage error, and the reason a refusal.
 
@@ -4094,7 +4114,7 @@ sequenceDiagram
   participant U as User
   participant P as SpecArch toolchain
   participant F as Files
-  U->>P: try <algorithm> <folder>
+  U->>P: try <name> <folder>
   P->>F: read {folder}
   P->>F: read {file}
   P-->>U: exit status 0, 1, 2
@@ -15366,6 +15386,73 @@ as one node, and the manual says the person's home opens.
 
 **Insight:** A reserved word rather than a key beside navigate, because the event already says where it leads in one key, and signIn is said the same way (ADR-182): one way to say where an event leads. It has a capital, as signIn and signedIn do, so no specification written before it can have a page of that name, and reserving it in a 1.x minor turns no valid file into an error; home alone would fit the page name pattern and could already be a page. The first role with a home, in the session's order, is the rule the application's start already follows (ADR-197), so a person is shown the same page after signing in as when opening the application signed in. A task page's answer only, because that is where a session begins or changes; after an action or a selected row the caller is the one who opened the page, and the page they go to can be named. No role with a home is an error, not a warning, since the event would then lead nowhere and say it leads somewhere. The start for a person whose roles name no home, rather than staying on the sign-in page, because they are signed in and the page they stay on asks them to sign in again.
 
+### ADR-207: A call's mapping holds worked examples of what is sent and what is kept, checked by validate, evaluated by specarch try under the operation's name, and turned into tests through a harness of their own
+
+Status: proposed, 2026-10-28.
+
+Rests on: [ADR-195](#adr-195-specarch-try-prints-each-operation-and-call-of-a-formula-as-it-is-computed-written-in-the-subsets-own-form-with-the-value-as-a-worked-example-writes-it---file-takes-the-place-of-the-specifications-algorithm-key-by-key-and---inputs-is-written-as-an-examples-inputs-are), [ADR-200](#adr-200-a-dependency-says-how-it-is-reached-and-called-and-a-call-says-how-it-is-made-mapped-retried-and-answered).
+
+Context: A call's mapping says, as expressions, what of our values is sent
+in which of their fields and what of their answer is kept in which
+of our record's fields (ADR-200). The validator checks the names
+and the types, and nothing checks the values: a reader of
+`amount: lateFee` cannot see from it that a fee of 3.50 goes out as
+"3.50", or that a field kept from the answer is the one they meant.
+An algorithm's worked examples close the same gap for a formula: a
+person judges a case they recognise, the validator evaluates it and
+the test generators turn it into a test (ADR-004, ADR-195). ADR-200
+left examples of a mapping to a later item.
+
+Decision: A mapping may hold examples, each with name and note as an
+algorithm's worked example has them, and four records of values:
+inputs, our values the send expressions read; sent, each field of
+their request as send gives it; answer, the fields of their answer
+that succeeds; kept, each field of our record as receive gives it.
+An example gives sent with inputs, kept with answer, or both.
+
+The validator reads each value at its field: an input at the
+parameter, request body field or record field of that name, a sent
+field at their request's field, an answer field at their answer's,
+a kept field at the record's. inputs gives every name the send
+expressions read, and answer every field the receive expressions
+read; sent and kept list exactly the fields send and receive give.
+It evaluates each send expression on inputs and each receive
+expression on answer, and reports a value that differs, or one
+that cannot be computed, under the rules an algorithm's examples
+are reported under (example_input, example_expected,
+example_mismatch, example_error) at the example. kept on a call
+that does not wait, or whose mapping has no receive, and sent on a
+mapping with no send, are integration errors at the key. On a call
+through another specification's paths the examples are read and
+not checked, as the mapping is not.
+
+specarch try takes an operation's operationId in place of an
+algorithm's name and evaluates every example of the mappings of its
+calls, or the one --example names, printing for each field its
+expression's steps and its value beside the expected one. Each
+call is headed by its name as the derived cases name it: the
+dependency and the operation called. --inputs and --file stay an
+algorithm's. With --json the evaluations are under tryOperation,
+and try's own object is unchanged.
+
+The test generators write a test per example: what the
+implementation sends for inputs and what it keeps from answer,
+each compared with the example, through MappingHarness, Send and
+Receive, which the project's harness gives beside Harness. The
+file asks for it only when the specification holds a mapping
+example, and a harness that lacks it fails those tests alone,
+naming what to add.
+
+Consequences: A mapping's decisions, such as a constant sent or a field kept,
+are taken on cases a person reads, and each stays a test. The
+transitions of a state machine get examples of their own once
+their when and set are built (ADR-190); the same four records do
+not fit a transition, which has a state before and after and an
+event in place of a call and its answer. A proposed mapping is not
+yet tried from a file: --file reads an algorithm.
+
+**Insight:** An example belongs to the mapping it checks, so it sits under mapping beside send and receive, as an algorithm's examples sit beside its formula; on the calls entry it would read as examples of the retries or the errors too. Its inputs are the names the send expressions read, not every name they may read: those are the operation's parameters, its body's fields and every field of the record its guard names, and an example that had to give a whole loan to show one amount sent would hide the case behind its padding. An algorithm's example gives every input since the formula may read any of them; a mapping's expressions say which they read. sent and kept must list every field send and receive give, so a field added to the mapping later leaves no example silently checking only part of it. try is the one command that shows a result, so a mapping is tried there rather than through a second command; an operationId and an algorithm's name are both lower camel case and may meet, so a name both have is refused and names both. The tests go through an interface of their own because Harness is written by hand in every project that has generated tests: a method added to it would stop every such project from compiling, mapping examples or not.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15850,6 +15937,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | try-inputs | command try | system | golden | an algorithm with worked examples | try is run with --inputs '{ daysLate: 30, dailyRate: "0.50", replacementCost: "25.00" }' | it evaluates the formula once on those inputs, prints the inputs, the steps and the result with no expected value, and exits 0 |
 | try-inputs-unread | command try | system | red | an algorithm with worked examples | try is run with --inputs that writes a decimal without quotes, leaves out an input and names one the algorithm does not have | it prints the input it could read and, for each other, why it cannot be read, computes nothing, and exits 1 |
 | try-json | command try | system | golden | an algorithm with worked examples | try is run with --json for one example | it prints one object with the lines and, under try, the evaluation as data, its inputs, its steps with their place in the file, its result and expected value and its outcome, and exits 0 |
+| try-mapping | command try | system | red | a call's mapping whose amount is a share of a fee and whose reason is chosen by the number of members, with an example that holds, one whose reason is wrong and one whose share divides by zero | try is run with the operation's name | it prints a summary line naming the call by the dependency and the operation called, each example's inputs, each field's steps and its value beside the expected one, the wrong reason as failing, the division by zero after the steps before it, the answer and the field kept, no example_mismatch or example_error line, the same in both builds, and exits 1 |
+| try-mapping-both-names | command try | system | red | an operation and an algorithm that share a name | try is run with that name | it refuses, naming both, prints nothing on standard output, and exits 1 |
+| try-mapping-inputs | command try | system | red | an operation whose call's mapping has examples | try is run with the operation's name and --inputs | it refuses, since --inputs reads an algorithm, prints nothing on standard output, and exits 1 |
+| try-mapping-json | command try | system | golden | a call's mapping with examples | try is run with --json for one example | it prints one object with the lines and, under tryOperation, the call, its reference and file, and the evaluation with its answer and each field kept, its expression, steps, result, expected value and outcome, and exits 0 |
+| try-mapping-others-fail | command try | system | red | a call's mapping with an example that holds, one that fails and one that cannot be computed | try is run with --example naming the one that cannot be computed | it prints the validator's example_mismatch line of the failing example it does not evaluate, then the one it evaluates, and exits 1 |
+| try-mapping-succeeds | command try | system | golden | a call's mapping with an example sent and kept and one kept alone, both holding | try is run with the operation's name | it prints each example passing with its values, the same in both builds, and exits 0 |
 | try-short-circuit | command try | system | golden | an algorithm whose formula divides only in the branch of the conditional taken when the count is not zero, and an example with a count of zero | try is run for the algorithm | it prints the condition and the conditional with their values and not the division, which is not computed, and exits 0 |
 | try-succeeds | command try | system | golden | an algorithm whose formula caps a daily fee at a replacement cost, with three worked examples that hold | try is run for the algorithm | it prints the summary line, then each example with its inputs, each operation and call of the formula in the order computed with its value, decimals at the scale the formula gives them, and the result beside the expected value, and exits 0 |
 | try-unknown-algorithm | command try | system | red | a specification whose one algorithm is lateFee | try is run for an algorithm named lateFees | it refuses, naming lateFee, prints nothing on standard output, and exits 1 |
@@ -16031,6 +16124,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-link-missing-held | command validate | system | golden | two deployments with links, each running loans, whose operation calls the ledger, with no link from loans to the ledger: staging installs the environment staging, production the environment production, which an open must question blocks | validate is run | it warns as link_missing at loans in staging for the ledger, holds the warning in production, reports nothing else, and exits 0 |
 | validate-maker-checker | command validate | system | red | a form submitting to a workflow's trigger with no onSubmitted, and another whose onSubmitted has no message; a task page whose 202 event has no message; an inbox that checks another permission than its step's, one that lists another entity than the subject, one naming a step that is not an approval, one naming no workflow, and an inbox on a view; and a workflow that emits a message no channel declares | validate is run | it reports workflow eight times and emits once, and exits 1 |
 | validate-map-values | command validate | system | red | a schema whose fields are maps: of strings, of nullable integers, open to any value, closed beside properties, of maps of a schema; one written with {} for any value, one on a string, and an entity's map whose values carry storage | validate is run | the maps validate; {} is refused for having neither a type nor a reference nor being a boolean, additionalProperties on a string is refused as only an object takes it, storage inside the map's values is refused as on any value inside a field, and it exits 1 |
+| validate-mapping-examples | command validate | system | golden | a call's mapping with an example of what is sent from our values and what is kept from their answer, and one of what is kept alone | validate is run | it reports nothing, the same in both builds, and exits 0 |
+| validate-mapping-examples-wrong | command validate | system | red | a call's mapping with examples whose sent and kept values differ from what send and receive give, that leave out a name send reads or give one it does not read or that is none of ours, leave out a field send gives or expect one it does not, give values that do not read at their fields or an answer field their answer lacks, and an example that keeps from an async call | validate is run | it reports each as example_mismatch, example_input, example_expected or integration at the value or the key, the same in both builds, and exits 1 |
 | validate-mapping-menu-entry | command validate | system | red | an implementation file in TypeScript with a mapping that marks the entry of a menu another stakeholder owns, and a mapping of a menu the specification lacks | validate is run | it accepts the menu entry's mapping and its ownedBy, reports design_ref at the mapping of the missing menu, and exits 1 |
 | validate-mapping-origin | command validate | system | red | a specification built from a manual and from code, whose implementation file maps one entity stated without a citation and one inferred without a reason | validate is run | it reports origin_citation and origin_reason on the two mappings, and exits 1 |
 | validate-meta-model-0-1-missing-test | command validate | system | golden | the same specification saying specarch 0.1 | validate is run | it reports the same missing tests as warnings, with one warning at the specarch line that 0.1 is an earlier version read beside 1.0.0, and exits 0 |
@@ -16303,6 +16398,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-103 | A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them. | functional | should | proposed | test | A decision's branch whose condition names no field of the subject or gives no true or false, an otherwise that is not the last branch, a last branch with a condition, and a branch or a failure that goes on at a step that is not later are each reported at the key, as expression_name, expression_type or workflow. A task's performer that is not a role or does not grant the task's permission, and a task's escalation to a step that is not a later task, are reported as workflow; a wait's message that is not a channel message, and an at that gives no instant or date, may be null, or gives a date with no timeZone, are reported as workflow, expression_type or time_zone. A workflow gets a case per branch of each decision, the deadline at each task and each wait for a message, a task done without its permission, and the failure of each operation step with onFailure, critical whatever the harm; a case where the request ends after a step with compensatedBy names the operation that undoes it, the latest step first. specarch generate bpmn writes a decision as an exclusive gateway with a condition on each flow and its otherwise as the default flow, a task as a user task, a wait as an intermediate catch event, a failure as an error boundary event, and compensatedBy as a compensation boundary event with its handler; specarch extract workflows reads each back, so the file generate writes gives the workflow it was written from. Both builds print the same lines for every case. | NEED-1, NEED-5 |
 | SA-104 | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. | functional | should | proposed | test | A table whose rules cover every input once, or in order under first, validates, and an algorithm with a table needs no examples; one that gives both formula and table is refused by the schema. Under unique, two rules that both match some inputs are reported as table_overlap at the later rule, naming the inputs; under first, a rule the earlier ones always match first is a table_overlap warning. Inputs no rule matches are reported as table_gap at the table, written as a when that can be added as a rule; an input's minimum and maximum bound the inputs asked about. A condition naming no input, a value or an operator that cannot be read, an input of a type a table does not test, and an output that cannot be read are reported as decision_table at the condition or the output. A worked example under examples is evaluated through the table, and one whose result differs, or that two rules match under unique or no rule matches, is reported as for a formula. specarch try evaluates each rule's example and each worked example, printing the rules tested and the rule that gives the output. Both builds print the same lines for every case. | NEED-1 |
 | SA-105 | A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them. | functional | should | proposed | test | A dependency with auth, a credential naming a secret setting, a rate and operations, and calls that map, send a key, retry, map errors and call async or fire and forget, validates in both builds. An auth other than none with no credential, a credential naming no setting or one not secret, operations beside a specification, an operation of neither or both kinds, and a call naming an operation not declared are reported as integration or setting at the key. A mapping that sends a field their request lacks, leaves out one it requires, sends a value of the wrong type or of an unknown or shared name, or keeps a value in a field the record lacks, and retries or errors naming an answer that succeeds or is not declared, are reported as integration, expression_type or expression_name at the key; a post or patch retried with no idempotency key is an integration warning, and a value sent or kept that may be null where the field takes none an expression_type warning. An operation gets a case for each call's retries used up and for an answer its errors does not map, named by the operation called, and for a dependency's rate exceeded, each always written as a failing dependency's is; a timeout errors maps is answered as it maps it, and a call made fire and forget, or a dependency called only so, ends with the operation succeeding all the same. The context diagram writes a dependency's auth and rate on its node, and the technical specification lists each call's contract under the operation. Both builds print the same lines for every case. | NEED-1 |
+| SA-106 | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. | functional | should | proposed | test | A mapping whose examples hold validates in both builds; an example whose sent or kept value differs from what send or receive gives is reported as example_mismatch at the value, one the mapping cannot compute as example_error, a value that does not read at its field or a name not read or not given as example_input or example_expected, and kept on a call that does not wait or has no receive, or sent with no send, as integration at the key. specarch try on an operation prints a summary line per call, named by the dependency and the operation called, then each example with its inputs, each field's steps and its value beside the expected one, and exits 0 when all hold and 1 when one fails; the validator's lines of the examples it evaluates are not printed; a name that is both an algorithm and an operation is refused, naming both; --inputs and --file with an operation are refused. The Go, Swift and Dart test generators write a test per mapping example through MappingHarness, only when the specification holds one. Both builds print the same lines for every case. | NEED-1, NEED-10 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -16476,6 +16572,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-104:** A business states many rules as cases, and keeps them as a table; written as a formula the cases nobody decided are hidden, since the formula gives a value for them anyway. A table checked for overlap and gaps names those cases, so each is decided by a person, and each rule stays a test (ADR-199).
 
 **Insight on SA-105:** An integration is where a system most often fails in production, and the decisions that make it fail are taken in nobody's specification today; how the other system is called, what is sent, what is tried again and what the caller is answered when it fails. Written beside the call they are checked against both sides and each gets a test (ADR-200).
+
+**Insight on SA-106:** A person checks a mapping faster on a case they recognise than on its expressions, and a mapping's decision taken on an example is checked forever after once the example is a test (ADR-207).
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -16694,6 +16792,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-103 | decisions ADR-198 | tests extract-workflows-asks-unread-end; tests extract-workflows-reads-step-kinds; tests generate-bpmn-step-kinds; tests validate-workflow-deadline-undoes; tests validate-workflow-open-branch; tests validate-workflow-step-kinds; tests validate-workflow-step-kinds-refused; tests validate-workflow-undo-skipped-step |
 | SA-104 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
 | SA-105 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
+| SA-106 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
 
 ## Sources
 

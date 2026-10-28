@@ -16,11 +16,12 @@ import (
 // and prints each step (ADR-195). It works on a specification with errors
 // too, after printing them (ADR-065), and exits 1 then.
 func runTry(args []string, stdout, stderr io.Writer) int {
-	return tryInto(args, stdout, stderr, nil)
+	return tryInto(args, stdout, stderr, nil, nil)
 }
 
-// tryInto is runTry that also keeps what it found, for --json.
-func tryInto(args []string, stdout, stderr io.Writer, found **validate.Tried) int {
+// tryInto is runTry that also keeps what it found, for --json: an
+// algorithm's evaluations, or an operation's mapping examples (ADR-207).
+func tryInto(args []string, stdout, stderr io.Writer, found **validate.Tried, foundOperation **validate.TriedOperation) int {
 	example, inputs, file := "", "", ""
 	var rest []string
 	for i := 0; i < len(args); i++ {
@@ -58,7 +59,7 @@ func tryInto(args []string, stdout, stderr io.Writer, found **validate.Tried) in
 	}
 	switch {
 	case len(rest) != 2:
-		fmt.Fprintf(stderr, "specarch try needs the algorithm's name and one folder, in that order\n\n%s", usage)
+		fmt.Fprintf(stderr, "specarch try needs the name of an algorithm or an operation, and one folder, in that order\n\n%s", usage)
 		return 2
 	case example != "" && inputs != "":
 		fmt.Fprintf(stderr, "specarch try takes --example or --inputs, not both: --example evaluates a worked example, --inputs the inputs given\n\n%s", usage)
@@ -89,6 +90,14 @@ func tryInto(args []string, stdout, stderr io.Writer, found **validate.Tried) in
 		return 2
 	}
 	s := spec.Load(roots[0])
+	if _, _, isOperation := validate.TryOperation(s, algorithm, ""); isOperation && (inputs != "" || file != "") {
+		option := "--inputs"
+		if inputs == "" {
+			option = "--file"
+		}
+		fmt.Fprintf(stderr, "specarch try: %s is an operation, and %s reads an algorithm; try the operation's mapping examples without it, or name an algorithm\n", algorithm, option)
+		return 1
+	}
 	if file != "" {
 		reason, readError := s.Overlay(file, "algorithms", algorithm)
 		if readError {
@@ -101,6 +110,27 @@ func tryInto(args []string, stdout, stderr io.Writer, found **validate.Tried) in
 		}
 	}
 	diags := validate.CheckSpec(s, validate.NewGiven([]*spec.Spec{s}))
+	op, refusal, isOperation := validate.TryOperation(s, algorithm, example)
+	if isOperation {
+		invalid := false
+		for _, d := range diags {
+			if d.Severity == validate.Error && !validate.TriedHere(d, op) {
+				printDiagnostic(stdout, stderr, d)
+				invalid = true
+			}
+		}
+		if refusal != "" {
+			fmt.Fprintf(stderr, "specarch try: %s\n", refusal)
+			return 1
+		}
+		if foundOperation != nil {
+			*foundOperation = op
+		}
+		if printTriedOperation(stdout, op) || invalid {
+			return 1
+		}
+		return 0
+	}
 	t, refusal := validate.Try(s, algorithm, example, given)
 	invalid := false
 	for _, d := range diags {
@@ -202,4 +232,73 @@ func printTried(w io.Writer, t *validate.Tried, givenInputs bool) bool {
 // quoted writes a name in double quotes, as both builds do.
 func quoted(s string) string {
 	return `"` + strings.NewReplacer(`"`, `\"`, `\`, `\\`, "\n", `\n`, "\t", `\t`).Replace(s) + `"`
+}
+
+// printTriedOperation prints, for each call of an operation whose mapping
+// has examples, a summary line, then each example with its inputs, each
+// field sent with its steps, the answer and each field kept, and tells
+// whether any did not pass.
+func printTriedOperation(w io.Writer, t *validate.TriedOperation) bool {
+	failed := false
+	for _, c := range t.Calls {
+		counts := map[string]int{}
+		for _, e := range c.Evaluations {
+			counts[e.Outcome]++
+		}
+		summary := fmt.Sprintf("%s, call %s: %s, %d pass", t.Operation, c.Call, plural(len(c.Evaluations), "example"), counts[validate.OutcomePass])
+		for _, o := range []string{validate.OutcomeFail, validate.OutcomeError, validate.OutcomeUnread} {
+			if counts[o] > 0 {
+				summary += fmt.Sprintf(", %d %s", counts[o], o)
+			}
+		}
+		fmt.Fprintln(w, summary)
+		for _, e := range c.Evaluations {
+			if e.Name == "" {
+				fmt.Fprintf(w, "example %d: %s\n", e.Number, e.Outcome)
+			} else {
+				fmt.Fprintf(w, "example %d %s: %s\n", e.Number, quoted(e.Name), e.Outcome)
+			}
+			if e.Outcome != validate.OutcomePass {
+				failed = true
+			}
+			values := func(label string, vs []validate.TryInput) {
+				if len(vs) == 0 {
+					return
+				}
+				var parts []string
+				for _, v := range vs {
+					parts = append(parts, v.Name+" "+v.Value)
+				}
+				fmt.Fprintf(w, "  %s: %s\n", label, strings.Join(parts, ", "))
+			}
+			values("inputs", e.Inputs)
+			for _, u := range e.Unread {
+				fmt.Fprintf(w, "  cannot be read: %s\n", u)
+			}
+			answered := false
+			for _, f := range e.Fields {
+				if f.Direction == "kept" && !answered {
+					values("answer", e.Answer)
+					answered = true
+				}
+				for _, st := range f.Steps {
+					fmt.Fprintf(w, "  %s = %s\n", st.Expression, st.Value)
+				}
+				switch {
+				case f.Result != nil && f.Expected != nil:
+					line := fmt.Sprintf("  %s %s %s, expected %s", f.Direction, f.Field, *f.Result, *f.Expected)
+					if f.Outcome != validate.OutcomePass {
+						line += ", " + f.Outcome
+					}
+					fmt.Fprintln(w, line)
+				default:
+					fmt.Fprintf(w, "  %s %s %s: %s\n", f.Direction, f.Field, f.Outcome, f.Error)
+				}
+			}
+			if !answered {
+				values("answer", e.Answer)
+			}
+		}
+	}
+	return failed
 }

@@ -233,7 +233,7 @@ private func forgotten(_ dep: String) -> String {
 /// A calls entry as the name of a case about that call: the dependency,
 /// and the operation called when the entry names one, so two calls to one
 /// dependency give cases of their own.
-private func callCaseName(_ ref: String) -> String {
+func callCaseName(_ ref: String) -> String {
     guard let (dep, ptr) = crossRef(ref) else { return ref }
     if ptr.hasPrefix("/operations/") { return dep + " " + ptr.dropFirst("/operations/".count) }
     let tokens = ptr.dropFirst(ptr.hasPrefix("/") ? 1 : 0).split(separator: "/", omittingEmptySubsequences: false).map(String.init)
@@ -241,6 +241,19 @@ private func callCaseName(_ ref: String) -> String {
     let path = tokens[1].replacingOccurrences(of: "~1", with: " ").replacingOccurrences(of: "~0", with: " ")
         .replacingOccurrences(of: "{", with: "").replacingOccurrences(of: "}", with: "")
     return ([dep, tokens[2]] + path.split(separator: " ").map(String.init)).joined(separator: " ")
+}
+
+/// Calls entries by name as cases and try name them: the dependency and
+/// the operation called, with the call's place when two still read the
+/// same.
+func callNames(_ entries: [CallEntry]) -> [String] {
+    var named: [String: Int] = [:]
+    for e in entries { named[callCaseName(e.ref.value), default: 0] += 1 }
+    return entries.map { e in
+        var name = callCaseName(e.ref.value)
+        if named[name, default: 0] > 1 { name += " call " + String((Int(e.at[1]) ?? 0) + 1) }
+        return name
+    }
 }
 
 /// A rate in words: 20 calls per PT1S, and 5 at once above it.
@@ -552,11 +565,7 @@ extension Design {
             }
         }
         let entries = callEntries(o.node)
-        var named: [String: Int] = [:]
-        for e in entries { named[callCaseName(e.ref.value), default: 0] += 1 }
-        for e in entries {
-            var name = callCaseName(e.ref.value)
-            if named[name, default: 0] > 1 { name += " call " + String((Int(e.at[1]) ?? 0) + 1) }
+        for (e, name) in zip(entries, callNames(entries)) {
             contractCases(s, o.node, e, name, call)
         }
         signInCases(s, o, call)

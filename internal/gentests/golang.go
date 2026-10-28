@@ -42,6 +42,12 @@ func GenerateGo(r *Request) Response {
 		w.marks(s, "/algorithms/"+mark.Escape(a.Name), "")
 		goAlgorithm(w, a)
 	}
+	if len(s.Mappings) > 0 {
+		w.b.WriteString(goMappingPrelude + "\n")
+	}
+	for _, m := range s.Mappings {
+		goMapping(w, m)
+	}
 	src, err := format.Source([]byte(w.b.String()))
 	if err != nil {
 		return failed(r, fmt.Sprintf("the generated Go does not parse (%v); this is a bug in specarch-gen-tests-go", err))
@@ -145,6 +151,25 @@ func goAlgorithm(w *writer, a Algorithm) {
 	w.line("")
 }
 
+func goMapping(w *writer, m Mapping) {
+	fn := "TestMapping" + pascal(m.Operation) + pascal(m.Call)
+	w.line("// %s runs the worked examples of the mapping of %s's call to %s.", fn, m.Operation, m.Call)
+	w.line("func %s(t *testing.T) {", fn)
+	w.line("	h := mappingHarness(t, newHarness(t))")
+	for _, ex := range m.Examples {
+		w.line("	t.Run(%q, func(t *testing.T) {", ex.Label)
+		if ex.HasSent {
+			w.line("		expectRecord(t, h.Send(t, %q, %q, %s), %s)", m.Mapping, m.Reference, goRecord(ex.Input), goRecord(ex.Sent))
+		}
+		if ex.HasKept {
+			w.line("		expectRecord(t, h.Receive(t, %q, %q, %s), %s)", m.Mapping, m.Reference, goRecord(ex.Answer), goRecord(ex.Kept))
+		}
+		w.line("	})")
+	}
+	w.line("}")
+	w.line("")
+}
+
 func goRecord(fields []Field) string {
 	if len(fields) == 0 {
 		return "Record{}"
@@ -173,6 +198,39 @@ func goValue(v Value) string {
 	}
 	return out + "}"
 }
+
+// goMappingPrelude is the part of a generated file whose specification
+// has mapping examples: the harness they need beside Harness, so a
+// project without them is not asked for it (ADR-207).
+const goMappingPrelude = `// MappingHarness is what the project's harness gives beside Harness when
+// the specification has worked examples of a call's mapping: Send, what the
+// implementation sends for an operation's call from our values, and
+// Receive, what it keeps in the record from their answer. mapping is the
+// operation's, as Request takes it; call is the calls entry's call, such
+// as feeLedger#/operations/postCharge.
+type MappingHarness interface {
+	Send(t *testing.T, mapping, call string, in Record) Record
+	Receive(t *testing.T, mapping, call string, answer Record) Record
+}
+
+// mappingHarness is the harness as a MappingHarness, or a failed test
+// naming what to add.
+func mappingHarness(t *testing.T, h Harness) MappingHarness {
+	t.Helper()
+	m, ok := h.(MappingHarness)
+	if !ok {
+		t.Fatalf("the harness newHarness gives has no Send and Receive, which the mapping examples need; add them as MappingHarness declares")
+	}
+	return m
+}
+
+func expectRecord(t *testing.T, got, want Record) {
+	t.Helper()
+	if !holds(got, want) {
+		t.Errorf("record %v does not hold %v", got, want)
+	}
+}
+`
 
 // goPrelude is the part of every generated file that does not depend on the
 // specification: the values, the harness and the checks.

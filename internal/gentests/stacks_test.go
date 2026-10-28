@@ -91,7 +91,8 @@ var swiftSix = regexp.MustCompile(`Swift version ([6-9]|[1-9][0-9])\.`)
 func TestLibraryLendingSwiftCompiles(t *testing.T) {
 	r, out := libraryLending(t, asStack)
 	content := generated(t, GenerateSwift(r), SwiftFile)[SwiftFile]
-	mustContain(t, content, "func testLendACopy() async throws {", "func testAlgorithmLateFee(example: String, input: Record, expected: Value) async throws {", `Value(kind: "decimal", text: "3.50")`)
+	mustContain(t, content, "func testLendACopy() async throws {", "func testAlgorithmLateFee(example: String, input: Record, expected: Value) async throws {", `Value(kind: "decimal", text: "3.50")`,
+		"protocol MappingHarness {", "func testMappingReturnLoanFeeLedgerPostChargeSent(example: String, input: Record, sent: Record) async throws {")
 
 	if testing.Short() {
 		t.Skip("building a Swift package is not short")
@@ -169,8 +170,9 @@ func TestLibraryLendingDartAnalyzes(t *testing.T) {
 				content["testing"] = map[string]any{"framework": fw}
 			})
 			files := generated(t, GenerateDart(r), DartLibraryFile, DartTestFile)
-			mustContain(t, files[DartTestFile], "import '"+dartFrameworks[fw]+"';", "test('lend-a-copy: operation createLoan, golden scenario', () async {", "group('algorithm lateFee', () {", "const Value('decimal', '3.50')")
-			mustContain(t, files[DartLibraryFile], "import '"+dartFrameworks[fw]+"';", "abstract interface class Harness {")
+			mustContain(t, files[DartTestFile], "import '"+dartFrameworks[fw]+"';", "test('lend-a-copy: operation createLoan, golden scenario', () async {", "group('algorithm lateFee', () {", "const Value('decimal', '3.50')",
+				"group('mapping of returnLoan\\'s call to feeLedger postCharge', () {", "final h = mappingHarness(await newHarness());")
+			mustContain(t, files[DartLibraryFile], "import '"+dartFrameworks[fw]+"';", "abstract interface class Harness {", "abstract interface class MappingHarness {")
 
 			if testing.Short() {
 				t.Skip("analyzing a Dart package is not short")

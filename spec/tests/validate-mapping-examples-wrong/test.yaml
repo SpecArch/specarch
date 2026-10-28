@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a call's mapping with examples whose sent and kept values differ from what send and receive give, that leave out a name send reads or give one it does not read or that is none of ours, leave out a field send gives or expect one it does not, give values that do not read at their fields or an answer field their answer lacks, and an example that keeps from an async call
+when: validate is run
+then: it reports each as example_mismatch, example_input, example_expected or integration at the value or the key, the same in both builds, and exits 1
+verifies: [SA-106]

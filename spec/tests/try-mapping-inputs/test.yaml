@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+given: an operation whose call's mapping has examples
+when: try is run with the operation's name and --inputs
+then: it refuses, since --inputs reads an algorithm, prints nothing on standard output, and exits 1
+verifies: [SA-106]

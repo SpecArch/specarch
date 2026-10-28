@@ -20,6 +20,7 @@ type Suite struct {
 	Root       string // the root file as seen from the output folder
 	Tests      []Test
 	Algorithms []Algorithm
+	Mappings   []Mapping           // the calls whose mapping has worked examples (ADR-207)
 	Draft      string              // the draft notice, or ""
 	Marks      map[string][]string // the mark lines placed at each test and algorithm, by pointer, and at the file as a whole
 }
@@ -129,6 +130,49 @@ type Example struct {
 	Expected Value
 }
 
+// Mapping is a call of an operation whose mapping has worked examples.
+type Mapping struct {
+	Operation string // the operationId
+	Mapping   string // the operation's mapping, as a test's request takes it
+	Call      string // the call as the derived cases name it
+	Reference string // the calls entry's call, as the harness is given it
+	Pointer   string // the operation's place, for the marks
+	Examples  []MappingExample
+}
+
+// MappingExample is one worked example of a mapping: what is sent from
+// our values, and what is kept from their answer; HasSent and HasKept say
+// which it gives.
+type MappingExample struct {
+	Label   string
+	Input   []Field
+	Sent    []Field
+	Answer  []Field
+	Kept    []Field
+	HasSent bool
+	HasKept bool
+}
+
+// Sends and Keeps say whether any example of the mapping gives sent or
+// kept.
+func (m Mapping) Sends() bool {
+	for _, ex := range m.Examples {
+		if ex.HasSent {
+			return true
+		}
+	}
+	return false
+}
+
+func (m Mapping) Keeps() bool {
+	for _, ex := range m.Examples {
+		if ex.HasKept {
+			return true
+		}
+	}
+	return false
+}
+
 // Build reads a request into a Suite.
 func Build(r *Request) Suite {
 	g := &walker{spec: r.Specification, mappings: map[string]string{}}
@@ -155,6 +199,7 @@ func Build(r *Request) Suite {
 			s.Algorithms = append(s.Algorithms, alg)
 		}
 	}
+	s.Mappings = g.callMappings()
 	s.Draft = r.Draft
 	var elements []string
 	for _, t := range s.Tests {
@@ -466,6 +511,121 @@ func (g *walker) algorithm(name string, a map[string]any) (Algorithm, bool) {
 		out.Examples = append(out.Examples, Example{Label: label, Input: g.record(in, inputs), Expected: g.value(ex["expected"], output)})
 	}
 	return out, true
+}
+
+// callMappings reads every operation's calls whose mapping has worked
+// examples, in the order of the paths and their methods.
+func (g *walker) callMappings() []Mapping {
+	var out []Mapping
+	paths, _ := g.spec["paths"].(map[string]any)
+	for _, pathKey := range sortedKeys(paths) {
+		item, _ := paths[pathKey].(map[string]any)
+		for _, method := range []string{"get", "post", "put", "patch", "delete"} {
+			op, ok := item[method].(map[string]any)
+			if !ok {
+				continue
+			}
+			id := str(op, "operationId")
+			calls, _ := op["calls"].([]any)
+			var refs []string
+			for _, c := range calls {
+				if s, ok := c.(string); ok {
+					refs = append(refs, s)
+				} else {
+					refs = append(refs, str(c.(map[string]any), "call"))
+				}
+			}
+			names := callNames(refs)
+			_, _, pointer, ours := g.operation(id)
+			guard, _ := op["guard"].(map[string]any)
+			for k := range g.entityFields(str(guard, "entity")) {
+				if ours[k] == nil {
+					ours[k] = g.entityFields(str(guard, "entity"))[k]
+				}
+			}
+			for i, c := range calls {
+				entry, _ := c.(map[string]any)
+				mapping, _ := entry["mapping"].(map[string]any)
+				exs, _ := mapping["examples"].([]any)
+				if len(exs) == 0 {
+					continue
+				}
+				request, answer := g.dependencyFields(refs[i])
+				m := Mapping{Operation: id, Mapping: g.mapping(pointer, id), Call: names[i], Reference: refs[i], Pointer: strings.TrimPrefix(pointer, "#")}
+				for j, e := range exs {
+					ex, _ := e.(map[string]any)
+					label := str(ex, "name")
+					if label == "" {
+						label = fmt.Sprintf("example %d", j+1)
+					}
+					in, _ := ex["inputs"].(map[string]any)
+					sent, hasSent := ex["sent"].(map[string]any)
+					got, _ := ex["answer"].(map[string]any)
+					kept, hasKept := ex["kept"].(map[string]any)
+					m.Examples = append(m.Examples, MappingExample{Label: label, Input: g.record(in, ours), Sent: g.record(sent, request),
+						Answer: g.record(got, answer), Kept: g.record(kept, g.entityFields(str(guard, "entity"))), HasSent: hasSent, HasKept: hasKept})
+				}
+				out = append(out, m)
+			}
+		}
+	}
+	return out
+}
+
+// dependencyFields are the fields of the request and of the first answer
+// that succeeds of an operation a dependency declares, for a calls
+// entry that names one as <dependency>#/operations/<name>.
+func (g *walker) dependencyFields(ref string) (request, answer map[string]map[string]any) {
+	dep, name, ok := strings.Cut(ref, "#/operations/")
+	if !ok {
+		return nil, nil
+	}
+	op, _ := mapAt(g.spec, "dependencies", dep, "operations", name).(map[string]any)
+	req, _ := op["request"].(map[string]any)
+	request = g.schemaFields(map[string]any{"properties": req["properties"]})
+	responses, _ := op["responses"].(map[string]any)
+	for _, status := range sortedKeys(responses) {
+		if strings.HasPrefix(status, "2") {
+			r, _ := responses[status].(map[string]any)
+			answer = g.schemaFields(map[string]any{"properties": r["properties"]})
+			break
+		}
+	}
+	return request, answer
+}
+
+// callNames are calls entries by name as the derived cases name them: the
+// dependency and the operation called, with the call's place when two
+// still read the same.
+func callNames(refs []string) []string {
+	name := func(ref string) string {
+		dep, ptr, ok := strings.Cut(ref, "#")
+		switch {
+		case !ok:
+			return ref
+		case strings.HasPrefix(ptr, "/operations/"):
+			return dep + " " + strings.TrimPrefix(ptr, "/operations/")
+		}
+		tokens := strings.Split(strings.TrimPrefix(ptr, "/"), "/")
+		if len(tokens) != 3 || tokens[0] != "paths" {
+			return dep
+		}
+		path := strings.NewReplacer("~1", " ", "~0", " ", "{", "", "}", "").Replace(tokens[1])
+		return strings.Join(append([]string{dep, tokens[2]}, strings.Fields(path)...), " ")
+	}
+	named := map[string]int{}
+	for _, r := range refs {
+		named[name(r)]++
+	}
+	var out []string
+	for i, r := range refs {
+		n := name(r)
+		if named[n] > 1 {
+			n += fmt.Sprintf(" call %d", i+1)
+		}
+		out = append(out, n)
+	}
+	return out
 }
 
 // record is values by name, sorted, each with the type its field gives.

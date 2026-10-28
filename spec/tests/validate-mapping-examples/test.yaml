@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: a call's mapping with an example of what is sent from our values and what is kept from their answer, and one of what is kept alone
+when: validate is run
+then: it reports nothing, the same in both builds, and exits 0
+verifies: [SA-106]

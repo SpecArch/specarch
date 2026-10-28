@@ -702,3 +702,16 @@ requirements:
     verification: test
     needs: [NEED-1]
     why: An integration is where a system most often fails in production, and the decisions that make it fail are taken in nobody's specification today; how the other system is called, what is sent, what is tried again and what the caller is answered when it fails. Written beside the call they are checked against both sides and each gets a test (ADR-200).
+  SA-106:
+    statement: A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A mapping whose examples hold validates in both builds; an example whose sent or kept value differs from what send or receive gives is reported as example_mismatch at the value, one the mapping cannot compute as example_error, a value that does not read at its field or a name not read or not given as example_input or example_expected, and kept on a call that does not wait or has no receive, or sent with no send, as integration at the key.
+      - specarch try on an operation prints a summary line per call, named by the dependency and the operation called, then each example with its inputs, each field's steps and its value beside the expected one, and exits 0 when all hold and 1 when one fails; the validator's lines of the examples it evaluates are not printed; a name that is both an algorithm and an operation is refused, naming both; --inputs and --file with an operation are refused.
+      - The Go, Swift and Dart test generators write a test per mapping example through MappingHarness, only when the specification holds one.
+      - Both builds print the same lines for every case.
+    verification: test
+    needs: [NEED-1, NEED-10]
+    why: A person checks a mapping faster on a case they recognise than on its expressions, and a mapping's decision taken on an example is checked forever after once the example is a test (ADR-207).

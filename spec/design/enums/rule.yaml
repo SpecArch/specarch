@@ -204,10 +204,10 @@ enums:
       expression_syntax: a check, a unique constraint's condition or a formula does not parse
       expression_name: an expression names a field, input or function that does not exist
       expression_type: an expression combines values of types that do not fit
-      example_input: a worked example's inputs are missing one, name an unknown one, or have the wrong type
-      example_expected: a worked example's expected value does not have the output's type
-      example_mismatch: the formula evaluated on a worked example's inputs does not give the expected value
-      example_error: the formula cannot be evaluated on a worked example's inputs (division by zero, null in arithmetic), or no rule of a decision table, or two under hit policy unique, match them
+      example_input: a worked example's inputs are missing one, name an unknown one, or have the wrong type; for a call's mapping, its inputs or answer leave out a name send or receive reads, give one it does not read, or have the wrong type (ADR-207)
+      example_expected: a worked example's expected value does not have the output's type; for a call's mapping, a sent or kept value does not have its field's type, names a field send or receive does not give, or leaves out one it gives
+      example_mismatch: the formula evaluated on a worked example's inputs does not give the expected value, or a call's send or receive does not give a mapping example's sent or kept value
+      example_error: the formula, or a call's send or receive, cannot be evaluated on a worked example's values (division by zero, null in arithmetic), or no rule of a decision table, or two under hit policy unique, match them
       decision_table: a decision table's condition names no input, its value or operator cannot be read, it tests an input of a type a table does not test, an input's minimum and maximum leave it no value, or a rule's output cannot be read; as a warning, a rule whose condition holds for no value its input may take (ADR-199)
       table_overlap: two rules of a decision table under hit policy unique both match some inputs; as a warning, a rule under hit policy first that the earlier rules always match first (ADR-199)
       table_gap: some inputs of a decision table match no rule (ADR-199)

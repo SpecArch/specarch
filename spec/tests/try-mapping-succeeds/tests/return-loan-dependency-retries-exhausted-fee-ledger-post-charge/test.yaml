@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [dependency retries exhausted feeLedger postCharge]
+given: "feeLedger answers 503 or does not answer in time on every try"
+when: "returnLoan is called"
+then: "the call is tried 2 more times, PT1S apart and twice that each time, then it answers 503: The ledger is unavailable, and the loan stays open."
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: a failing dependency is always written. A draft: complete the given, when and then, and remove what does not hold."

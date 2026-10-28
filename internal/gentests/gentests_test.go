@@ -57,7 +57,8 @@ func TestLibraryLendingCompiles(t *testing.T) {
 		t.Fatalf("want one file and no diagnostics, got %d files and %v", len(resp.Files), resp.Diagnostics)
 	}
 	content := resp.Files[0].Content
-	for _, want := range []string{"func TestLendACopy(t *testing.T) {", "func TestAlgorithmLateFee(t *testing.T) {", `Value{Kind: "decimal", Text: "3.50"}`} {
+	for _, want := range []string{"func TestLendACopy(t *testing.T) {", "func TestAlgorithmLateFee(t *testing.T) {", `Value{Kind: "decimal", Text: "3.50"}`,
+		"type MappingHarness interface {", "func TestMappingReturnLoanFeeLedgerPostCharge(t *testing.T) {", `h.Send(t, "returnLoan", "feeLedger#/operations/postCharge", Record{`} {
 		if !strings.Contains(content, want) {
 			t.Errorf("the generated file has no %q", want)
 		}

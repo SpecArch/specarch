@@ -1,0 +1,3 @@
+arguments: [try, returnLoan, --inputs, "{ loanId: x }", .]
+exitStatus: 1
+standardOutput: ""

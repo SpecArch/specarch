@@ -8,7 +8,7 @@ usage:
   specarch validate <folder or file>...    check specifications and implementation files
   specarch upgrade [--dry-run] [--to <version>] <folder or file>...
                                             move specifications and their files to the newest version of each format
-  specarch try <algorithm> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
+  specarch try <algorithm or operation> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
                                             evaluate an algorithm on its worked examples or on the inputs
                                             given, and print each step of its formula with its value;
                                             --file reads a proposed algorithm in place of the specification's

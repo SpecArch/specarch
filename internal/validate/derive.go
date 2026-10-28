@@ -546,16 +546,8 @@ func (d *design) operationSubject(o operation) *subject {
 		}
 	}
 	entries := callEntries(o.node)
-	named := map[string]int{}
-	for _, e := range entries {
-		named[callCaseName(e.ref.Value)]++
-	}
-	for _, e := range entries {
-		name := callCaseName(e.ref.Value)
-		if named[name] > 1 {
-			name += " call " + plus(e.at[1], 1)
-		}
-		contractCases(s, o.node, e, name, call)
+	for i, name := range callNames(entries) {
+		contractCases(s, o.node, entries[i], name, call)
 	}
 	d.signInCases(s, o, call)
 	if key := source.Str(source.Child(o.node, "idempotencyKey")); key != "" {
@@ -1212,6 +1204,25 @@ func onlyForgotten(op *yaml.Node, dep string) bool {
 // fire and forget fails: what it answers anyway.
 func forgotten(dep string) string {
 	return "it succeeds all the same, since it does not wait for " + dep
+}
+
+// callNames are calls entries by name as cases and try name them: the
+// dependency and the operation called, with the call's place when two
+// still read the same.
+func callNames(entries []callEntry) []string {
+	named := map[string]int{}
+	for _, e := range entries {
+		named[callCaseName(e.ref.Value)]++
+	}
+	var out []string
+	for _, e := range entries {
+		name := callCaseName(e.ref.Value)
+		if named[name] > 1 {
+			name += " call " + plus(e.at[1], 1)
+		}
+		out = append(out, name)
+	}
+	return out
 }
 
 // callCaseName is a calls entry as the name of a case about that call:

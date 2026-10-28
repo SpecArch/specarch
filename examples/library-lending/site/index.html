@@ -2689,18 +2689,52 @@ ol.problems p{margin:2px 0}
 <dd>feeLedger#/operations/postCharge</dd>
 <dt>mapping</dt>
 <dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping">
-<div class="scroll"><table><thead><tr><th scope="col">Name</th>
-<th scope="col">loan</th>
-<th scope="col">amount</th>
-<th scope="col">kind</th>
-</tr></thead><tbody>
-<tr id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/send"><th scope="row">send <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/send">/paths/~1loans~1{loanId}~1return/post/calls/0/mapping/send</a>
-</th>
-<td>loanId</td>
-<td>lateFee</td>
-<td>&#34;late fee&#34;</td>
-</tr>
-</tbody></table></div>
+<dl>
+<dt>send</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/send">
+<dl>
+<dt>loan</dt>
+<dd>loanId</dd>
+<dt>amount</dt>
+<dd>lateFee</dd>
+<dt>kind</dt>
+<dd>&#34;late fee&#34;</dd>
+</dl>
+</dd>
+<dt>examples</dt>
+<dd>
+<ol class="items">
+<li id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/examples/0">
+<dl>
+<dt>name</dt>
+<dd>a week late</dd>
+<dt>inputs</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/examples/0/inputs">
+<dl>
+<dt>loanId</dt>
+<dd>3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b</dd>
+<dt>lateFee</dt>
+<dd>3.50</dd>
+</dl>
+</dd>
+<dt>sent</dt>
+<dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/mapping/examples/0/sent">
+<dl>
+<dt>loan</dt>
+<dd>3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b</dd>
+<dt>amount</dt>
+<dd>3.50</dd>
+<dt>kind</dt>
+<dd>late fee</dd>
+</dl>
+</dd>
+<dt>note</dt>
+<dd>The fee the lateFee algorithm gives for seven days at 0.50 a day goes out as it is, with the loan&#39;s own id.</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
 </dd>
 <dt>idempotencyKey</dt>
 <dd id="/paths/~1loans~1%7BloanId%7D~1return/post/calls/0/idempotencyKey">

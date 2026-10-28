@@ -27,6 +27,9 @@ type jsonOutput struct {
 	Messages    []string         `json:"messages"`
 	// Try is what specarch try evaluated, its evaluations as data.
 	Try *validate.Tried `json:"try,omitempty"`
+	// TryOperation is what specarch try evaluated of an operation's
+	// mapping examples (ADR-207).
+	TryOperation *validate.TriedOperation `json:"tryOperation,omitempty"`
 }
 
 // jsonDiagnostic is a problem line, by its fields.
@@ -156,9 +159,10 @@ func commandName(args []string) string {
 func runJSON(args []string, stdout, stderr io.Writer) int {
 	var out, errText bytes.Buffer
 	var tried *validate.Tried
+	var triedOperation *validate.TriedOperation
 	var status int
 	if len(args) > 0 && args[0] == "try" {
-		status = tryInto(args[1:], &out, &errText, &tried)
+		status = tryInto(args[1:], &out, &errText, &tried, &triedOperation)
 	} else {
 		status = dispatch(args, &out, &errText)
 	}
@@ -168,7 +172,7 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	meaning, remedy := exitMeaning(name, status)
-	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried}
+	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried, TryOperation: triedOperation}
 	for _, line := range lines(out.String()) {
 		if m := problemLine.FindStringSubmatch(line); m != nil {
 			l, _ := strconv.Atoi(m[2])

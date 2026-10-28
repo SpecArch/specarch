@@ -1,0 +1,10 @@
+operation: returnLoan
+level: system
+scenario: red
+covers: [loanId not a valid uuid]
+given: "..."
+when: "returnLoan is called with loanId that is not a valid uuid"
+then: "it is refused"
+verifies: [CASE-1]
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

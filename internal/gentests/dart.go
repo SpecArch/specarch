@@ -50,6 +50,9 @@ func GenerateDart(r *Request) Response {
 	lib.line("import '%s';", imp)
 	lib.line("")
 	lib.b.WriteString(dartPrelude + "\n")
+	if len(s.Mappings) > 0 {
+		lib.b.WriteString("\n" + dartMappingPrelude + "\n")
+	}
 
 	w := &writer{}
 	w.line("%s", header)
@@ -80,6 +83,13 @@ func GenerateDart(r *Request) Response {
 		first = false
 		w.marks(s, "/algorithms/"+mark.Escape(a.Name), "  ")
 		dartAlgorithm(w, a)
+	}
+	for _, m := range s.Mappings {
+		if !first {
+			w.line("")
+		}
+		first = false
+		dartMapping(w, m)
 	}
 	w.line("}")
 	return Response{Files: []File{{Path: DartLibraryFile, Content: lib.b.String()}, {Path: DartTestFile, Content: w.b.String()}}, Diagnostics: []Diagnostic{}}
@@ -166,6 +176,22 @@ func dartAlgorithm(w *writer, a Algorithm) {
 	w.line("  });")
 }
 
+func dartMapping(w *writer, m Mapping) {
+	w.line("  group(%s, () {", dartString("mapping of "+m.Operation+"'s call to "+m.Call))
+	for _, ex := range m.Examples {
+		w.line("    test(%s, () async {", dartString(ex.Label))
+		w.line("      final h = mappingHarness(await newHarness());")
+		if ex.HasSent {
+			w.line("      expectRecord(await h.send(%s, %s, %s), %s);", dartString(m.Mapping), dartString(m.Reference), dartRecord(ex.Input), dartRecord(ex.Sent))
+		}
+		if ex.HasKept {
+			w.line("      expectRecord(await h.receive(%s, %s, %s), %s);", dartString(m.Mapping), dartString(m.Reference), dartRecord(ex.Answer), dartRecord(ex.Kept))
+		}
+		w.line("    });")
+	}
+	w.line("  });")
+}
+
 func dartRecord(fields []Field) string {
 	var parts []string
 	for _, f := range fields {
@@ -239,6 +265,36 @@ func dartString(s string) string {
 	b.WriteByte('\'')
 	return b.String()
 }
+
+// dartMappingPrelude is the part of the library whose specification has
+// mapping examples: the harness they need beside Harness, so a project
+// without them is not asked for it (ADR-207).
+const dartMappingPrelude = `/// What the project's harness gives beside Harness when the specification
+/// has worked examples of a call's mapping: send, what the implementation
+/// sends for an operation's call from our values, and receive, what it
+/// keeps in the record from their answer. The mapping is the operation's,
+/// as request takes it; call is the calls entry's call, such as
+/// feeLedger#/operations/postCharge.
+abstract interface class MappingHarness {
+  Future<Fields> send(String mapping, String call, Fields input);
+  Future<Fields> receive(String mapping, String call, Fields answer);
+}
+
+/// The harness as a MappingHarness, or a failed test naming what to add.
+MappingHarness mappingHarness(Harness h) {
+  if (h is MappingHarness) {
+    return h as MappingHarness;
+  }
+  fail('the harness newHarness gives is no MappingHarness, which the '
+      'mapping examples need; give it send and receive as MappingHarness '
+      'declares');
+}
+
+void expectRecord(Fields got, Fields want) {
+  if (!holds(got, want)) {
+    fail('record $got does not hold $want');
+  }
+}`
 
 // dartPrelude is the part of the Dart library that does not depend on the
 // specification.

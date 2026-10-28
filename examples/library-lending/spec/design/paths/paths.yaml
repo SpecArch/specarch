@@ -359,6 +359,11 @@ paths:
         - call: feeLedger#/operations/postCharge
           mapping:
             send: { loan: loanId, amount: lateFee, kind: '"late fee"' }
+            examples:
+              - name: a week late
+                inputs: { loanId: 3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b, lateFee: "3.50" }
+                sent: { loan: 3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b, amount: "3.50", kind: late fee }
+                note: The fee the lateFee algorithm gives for seven days at 0.50 a day goes out as it is, with the loan's own id.
           idempotencyKey: { header: Idempotency-Key, value: loanId }
           retries: { limit: 2, delay: PT1S, backoff: exponential, on: ["503", timeout] }
           errors: { "503": "503", timeout: "503" }

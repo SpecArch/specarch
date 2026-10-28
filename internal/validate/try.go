@@ -52,6 +52,10 @@ type Evaluation struct {
 	Result   *string    `json:"result,omitempty"`
 	Expected *string    `json:"expected,omitempty"`
 	Error    string     `json:"error,omitempty"`
+	// A mapping example's answer and each field sent or kept (ADR-207).
+	Answer  []TryInput   `json:"answer,omitempty"`
+	Fields  []TriedField `json:"fields,omitempty"`
+	pointer string       // where a mapping example is, for TriedHere
 }
 
 // Tried is what specarch try found for one algorithm.
@@ -81,10 +85,14 @@ func Try(s *spec.Spec, algorithm, example string, given *yaml.Node) (*Tried, str
 			names = append(names, p.Key.Value)
 		}
 		sort.Strings(names)
+		refusal := fmt.Sprintf("the specification has no algorithm %s; it has %s", algorithm, strings.Join(names, ", "))
 		if len(names) == 0 {
-			return nil, fmt.Sprintf("the specification has no algorithms, so no algorithm %s", algorithm)
+			refusal = fmt.Sprintf("the specification has no algorithms, so no algorithm %s", algorithm)
 		}
-		return nil, fmt.Sprintf("the specification has no algorithm %s; it has %s", algorithm, strings.Join(names, ", "))
+		if _, operations := tryNames(s.Root); len(operations) > 0 {
+			refusal += fmt.Sprintf(", and no operation %s; the operations whose calls have mapping examples are %s", algorithm, strings.Join(operations, ", "))
+		}
+		return nil, refusal
 	}
 	c := &checker{file: s.RootFile, files: s.Files, root: s.Root}
 	d := newDesign(s.Root)
@@ -370,15 +378,11 @@ func (c *checker) tryTable(d *design, algorithm string, alg *yaml.Node, example 
 // TriedHere reports whether a diagnostic is one that specarch try says in
 // its own lines: a worked example it evaluated that does not hold or
 // cannot be computed. An example it did not evaluate keeps its line.
-func TriedHere(d Diagnostic, t *Tried) bool {
-	if t == nil || (d.Rule != RuleExampleMismatch && d.Rule != RuleExampleError) {
+func TriedHere(d Diagnostic, t Evaluated) bool {
+	if d.Rule != RuleExampleMismatch && d.Rule != RuleExampleError {
 		return false
 	}
-	for _, e := range t.Evaluations {
-		if e.Number == 0 {
-			continue
-		}
-		base := source.Pointer("algorithms", t.Algorithm, "examples", fmt.Sprint(e.Number-1))
+	for _, base := range t.pointers() {
 		if d.Path == base || strings.HasPrefix(d.Path, base+"/") {
 			return true
 		}

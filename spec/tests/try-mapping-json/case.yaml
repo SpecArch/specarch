@@ -1,0 +1,53 @@
+arguments: ["--json", try, returnLoan, --example, "the entry kept", .]
+exitStatus: 0
+standardOutput: |
+  {
+    "specarchOutput": "1.0.0",
+    "command": "try",
+    "exitStatus": 0,
+    "meaning": "every evaluation is computed and every example evaluated holds",
+    "diagnostics": [],
+    "lines": [
+      "returnLoan, call feeLedger postCharge: 1 example, 1 pass",
+      "example 2 \"the entry kept\": pass",
+      "  answer: entry \"E-902\"",
+      "  kept ledgerEntry \"E-902\", expected \"E-902\""
+    ],
+    "messages": [],
+    "tryOperation": {
+      "operation": "returnLoan",
+      "calls": [
+        {
+          "call": "feeLedger postCharge",
+          "reference": "feeLedger#/operations/postCharge",
+          "file": "specarch.yaml",
+          "evaluations": [
+            {
+              "number": 2,
+              "name": "the entry kept",
+              "outcome": "pass",
+              "inputs": [],
+              "steps": [],
+              "answer": [
+                {
+                  "name": "entry",
+                  "value": "\"E-902\""
+                }
+              ],
+              "fields": [
+                {
+                  "direction": "kept",
+                  "field": "ledgerEntry",
+                  "expression": "entry",
+                  "steps": [],
+                  "outcome": "pass",
+                  "result": "\"E-902\"",
+                  "expected": "\"E-902\""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }

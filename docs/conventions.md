@@ -776,6 +776,7 @@ redefined.
 | `dependencies`, `timeout`, `calls` | SpecArch | external systems an operation calls, each with a time limit per call |
 | `auth`, `credential`, `rate`, `operations` on a dependency | SpecArch; auth's values after RFC 7617, RFC 6750, RFC 6749 4.4 and RFC 8705; an operation's `method`, `path`, `channel`, `message`, `request`, `responses` after OpenAPI and AsyncAPI, one level deep | how this system proves itself to the dependency, the secret setting that holds what it sends, how often it may call, and the operations of a dependency with no specification (ADR-200) |
 | `call`, `mapping`, `send`, `receive`, `idempotencyKey`, `retries`, `errors`, `mode`, `callback` on a calls entry | SpecArch; `retries` and `limit` as a job's | a call's contract: what is sent from our values and kept from the answer, the key that tells a repeated call, what is tried again, which answers become the operation's, and whether it waits (ADR-200) |
+| `examples` on a call's mapping, each `inputs`, `sent`, `answer`, `kept` | SpecArch, after an algorithm's worked examples | worked examples of a mapping: our values and what is sent from them, their answer and what is kept from it, each checked and turned into a test (ADR-207) |
 | `kind` on a dependency, `carriedBy` on a channel | SpecArch | what a dependency is (five kinds, after C4's software system and containers), and the dependencies a channel lives on; AsyncAPI's channel `servers` names hosts, which a design file excludes (ADR-134) |
 | `protocol` on a dependency | AsyncAPI, the server object | how the dependency is reached, a lowercase URI scheme name, kept open |
 | `dependsOn` on a layout entry, in an implementation file | CycloneDX, a component's dependencies | the other packages of the layout this one calls, imports or links against (ADR-133) |
@@ -1469,6 +1470,38 @@ with no `idempotencyKey` is a warning: a try whose answer was lost may act
 twice. So is a value sent or kept that may be null where their field or
 the record's takes none. A mapping on a call through another specification's paths is read
 and not checked against that specification's fields.
+
+A mapping may hold `examples`, worked examples of it (ADR-207), each with
+`name` and `note` as an algorithm's has them and four records of values:
+`inputs`, our values the send expressions read; `sent`, each field of
+their request as send gives it; `answer`, the fields of their answer that
+succeeds; `kept`, each field of the record as receive gives it. An example
+gives `sent` with `inputs`, `kept` with `answer`, or both:
+
+```yaml
+          mapping:
+            send: { loan: loanId, amount: lateFee, kind: '"late fee"' }
+            examples:
+              - name: a week late
+                inputs: { loanId: 3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b, lateFee: "3.50" }
+                sent: { loan: 3f2b8c1e-5d4a-4e6f-9a7b-1c2d3e4f5a6b, amount: "3.50", kind: late fee }
+```
+
+Each value is read at its field: an input at the parameter, request body
+field or record field of that name, a sent value at their request's
+field, an answer value at their answer's, a kept value at the record's.
+`inputs` gives exactly the names the send expressions read, not every
+name they may read, and `answer` the fields receive reads; `sent` and
+`kept` give exactly the fields send and receive give. The validator
+evaluates send on `inputs` and receive on `answer` and reports what does
+not hold as an algorithm's examples are reported: `example_input`,
+`example_expected`, `example_mismatch`, `example_error`. `kept` on a call
+that does not wait or whose mapping has no receive, and `sent` on a
+mapping with no send, are `integration` errors. On a call through another
+specification's paths the examples are read and not checked.
+`specarch try <operationId>` prints each example's steps, and the test
+generators write a test per example through `MappingHarness`, which the
+project's harness gives beside `Harness` with `Send` and `Receive`.
 
 An operation's call adds derived cases, always written as a failing
 dependency's are: `dependency retries exhausted <call>`, ending in the

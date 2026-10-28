@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-207:
+    title: A call's mapping holds worked examples of what is sent and what is kept, checked by validate, evaluated by specarch try under the operation's name, and turned into tests through a harness of their own
+    status: proposed
+    date: "2026-10-28"
+    context: |
+      A call's mapping says, as expressions, what of our values is sent
+      in which of their fields and what of their answer is kept in which
+      of our record's fields (ADR-200). The validator checks the names
+      and the types, and nothing checks the values: a reader of
+      `amount: lateFee` cannot see from it that a fee of 3.50 goes out as
+      "3.50", or that a field kept from the answer is the one they meant.
+      An algorithm's worked examples close the same gap for a formula: a
+      person judges a case they recognise, the validator evaluates it and
+      the test generators turn it into a test (ADR-004, ADR-195). ADR-200
+      left examples of a mapping to a later item.
+    decision: |
+      A mapping may hold examples, each with name and note as an
+      algorithm's worked example has them, and four records of values:
+      inputs, our values the send expressions read; sent, each field of
+      their request as send gives it; answer, the fields of their answer
+      that succeeds; kept, each field of our record as receive gives it.
+      An example gives sent with inputs, kept with answer, or both.
+
+      The validator reads each value at its field: an input at the
+      parameter, request body field or record field of that name, a sent
+      field at their request's field, an answer field at their answer's,
+      a kept field at the record's. inputs gives every name the send
+      expressions read, and answer every field the receive expressions
+      read; sent and kept list exactly the fields send and receive give.
+      It evaluates each send expression on inputs and each receive
+      expression on answer, and reports a value that differs, or one
+      that cannot be computed, under the rules an algorithm's examples
+      are reported under (example_input, example_expected,
+      example_mismatch, example_error) at the example. kept on a call
+      that does not wait, or whose mapping has no receive, and sent on a
+      mapping with no send, are integration errors at the key. On a call
+      through another specification's paths the examples are read and
+      not checked, as the mapping is not.
+
+      specarch try takes an operation's operationId in place of an
+      algorithm's name and evaluates every example of the mappings of its
+      calls, or the one --example names, printing for each field its
+      expression's steps and its value beside the expected one. Each
+      call is headed by its name as the derived cases name it: the
+      dependency and the operation called. --inputs and --file stay an
+      algorithm's. With --json the evaluations are under tryOperation,
+      and try's own object is unchanged.
+
+      The test generators write a test per example: what the
+      implementation sends for inputs and what it keeps from answer,
+      each compared with the example, through MappingHarness, Send and
+      Receive, which the project's harness gives beside Harness. The
+      file asks for it only when the specification holds a mapping
+      example, and a harness that lacks it fails those tests alone,
+      naming what to add.
+    consequences: |
+      A mapping's decisions, such as a constant sent or a field kept,
+      are taken on cases a person reads, and each stays a test. The
+      transitions of a state machine get examples of their own once
+      their when and set are built (ADR-190); the same four records do
+      not fit a transition, which has a state before and after and an
+      event in place of a call and its answer. A proposed mapping is not
+      yet tried from a file: --file reads an algorithm.
+    why: |
+      An example belongs to the mapping it checks, so it sits under
+      mapping beside send and receive, as an algorithm's examples sit
+      beside its formula; on the calls entry it would read as examples of
+      the retries or the errors too. Its inputs are the names the send
+      expressions read, not every name they may read: those are the
+      operation's parameters, its body's fields and every field of the
+      record its guard names, and an example that had to give a whole
+      loan to show one amount sent would hide the case behind its
+      padding. An algorithm's example gives every input since the formula
+      may read any of them; a mapping's expressions say which they read.
+      sent and kept must list every field send and receive give, so a
+      field added to the mapping later leaves no example silently
+      checking only part of it.
+
+      try is the one command that shows a result, so a mapping is tried
+      there rather than through a second command; an operationId and an
+      algorithm's name are both lower camel case and may meet, so a name
+      both have is refused and names both. The tests go through an
+      interface of their own because Harness is written by hand in every
+      project that has generated tests: a method added to it would stop
+      every such project from compiling, mapping examples or not.
+    satisfies: [SA-106]
+    restsOn: [ADR-195, ADR-200]

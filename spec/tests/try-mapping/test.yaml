@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: try
+level: system
+scenario: red
+covers: [exit 1]
+given: a call's mapping whose amount is a share of a fee and whose reason is chosen by the number of members, with an example that holds, one whose reason is wrong and one whose share divides by zero
+when: try is run with the operation's name
+then: it prints a summary line naming the call by the dependency and the operation called, each example's inputs, each field's steps and its value beside the expected one, the wrong reason as failing, the division by zero after the steps before it, the answer and the field kept, no example_mismatch or example_error line, the same in both builds, and exits 1
+verifies: [SA-106]

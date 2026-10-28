@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-7
+title: Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation
+raisedBy: specification-author
+raised: "2026-10-27"
+phase: development
+type: perfective
+urgency: normal
+reason: A person going through the screens in the order they meet them could not be followed in the specification, which said neither the page each role is shown first, nor a permission that every signed-in caller holds, nor a field shown or edited by permission, and said nothing of a page no one can reach.
+affects:
+  adds:
+    - SA-102
+    - "#/decisions/ADR-197"
+    - "#/tests/validate-navigation"
+    - "#/tests/validate-navigation-valid"
+    - "#/tests/validate-signed-in"
+    - "#/tests/validate-field-modes"
+    - "#/tests/generate-ui-navigation"
+    - "#/tests/generate-ui-navigation-no-session"
+    - "#/tests/generate-ui-swiftui-navigation"
+    - "#/tests/generate-ui-typescript-navigation"
+  changes:
+    - "#/enums/Rule"
+    - "#/commands/generate"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-28"
+  outcome: approved
+  why: A role's home, the field modes by permission and the reserved permission signedIn are optional keys in the 1.0 design schema, and role_home is an error only at a home a role names; the navigation gaps are warnings. A 1.2.0 file names no home and no field mode, and the permission name pattern refused signedIn, so no 1.2.0 file declares or grants it; so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-197).
+release: 1.3.0
+status: released

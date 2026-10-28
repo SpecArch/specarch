@@ -4,18 +4,30 @@
 
 Version 1.3.0 of the specification: 20 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`.
 
-## 1.3.0, released 2026-10-27
+## 1.3.0, released 2026-10-28
 
 ### Added
 
 - CR-4, Let a specification declare its time zone and read date() of an instant in it, and design state machines and date-times: SA-98, SA-99, `#/decisions/ADR-189`, `#/decisions/ADR-190`, `#/decisions/ADR-191`, `#/decisions/ADR-192`, `#/decisions/ADR-193`, `#/decisions/ADR-194`, `#/sources/harel-1987`, `#/sources/iso-8601`, `#/sources/iso-9075-2`, `#/sources/postgresql-datetime`, `#/sources/rfc-3339`, `#/sources/rfc-6557`, `#/sources/rfc-9557`, `#/sources/scxml-1-0`, `#/sources/uml-2-5-1`, `#/tests/validate-time-zone`, `#/tests/validate-time-zone-missing`, `#/tests/validate-time-zone-unknown`.
 - CR-5, Let an author evaluate an algorithm on its worked examples or on given inputs and see each step of its formula, with specarch try: SA-100, `#/commands/try`, `#/decisions/ADR-195`, `#/tests/try-example-fails`, `#/tests/try-example-others-fail`, `#/tests/try-exit-2`, `#/tests/try-file`, `#/tests/try-file-problem`, `#/tests/try-file-unrounded`, `#/tests/try-inputs`, `#/tests/try-inputs-unread`, `#/tests/try-json`, `#/tests/try-short-circuit`, `#/tests/try-succeeds`, `#/tests/try-unknown-algorithm`, `#/tests/try-usage-error`, `#/tests/try-values`, `#/tests/try-values-double`, `#/tests/try-values-duration`.
 - CR-6, Keep each proposal for the specification as an idea record with its status, decision and what it became, checked by the validator and named by specarch decision why and rests: SA-101, `#/decisions/ADR-196`, `#/tests/validate-idea-decision`, `#/tests/validate-idea-question`, `#/tests/validate-idea-ref`, `#/tests/validate-ideas-valid`, `#/tests/decision-why-ideas`, `#/tests/decision-rests-ideas-json`.
+- CR-7, Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation: SA-102, `#/decisions/ADR-197`, `#/tests/validate-navigation`, `#/tests/validate-navigation-valid`, `#/tests/validate-signed-in`, `#/tests/validate-field-modes`, `#/tests/generate-ui-navigation`, `#/tests/generate-ui-navigation-no-session`, `#/tests/generate-ui-swiftui-navigation`, `#/tests/generate-ui-typescript-navigation`.
+- CR-8, Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0: SA-103, `#/decisions/ADR-198`, `#/tests/validate-workflow-step-kinds`, `#/tests/validate-workflow-step-kinds-refused`, `#/tests/validate-workflow-open-branch`, `#/tests/validate-workflow-deadline-undoes`, `#/tests/validate-workflow-undo-skipped-step`, `#/tests/generate-bpmn-step-kinds`, `#/tests/extract-workflows-reads-step-kinds`, `#/tests/extract-workflows-asks-unread-end`.
+- CR-9, Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates: SA-104, `#/decisions/ADR-199`, `#/tests/validate-decision-table`, `#/tests/validate-decision-table-refused`, `#/tests/try-decision-table`, `#/tests/try-decision-table-unreached`.
+- CR-10, Let a dependency say how it is reached and called, and a call how it is made, mapped, retried and answered, with the cases they make derived: SA-105, `#/decisions/ADR-200`, `#/tests/validate-integration-contract`, `#/tests/validate-integration-contract-refused`, `#/tests/validate-integration-contract-null`, `#/tests/derive-integration-contract`, `#/tests/derive-integration-contract-per-call`, `#/tests/document-techspec-integration`.
+- CR-11, Let a task page's answer lead to the caller's home with navigate callerHome, checked by both validators and opened by the three ui generators: `#/decisions/ADR-206`, `#/tests/validate-caller-home`, `#/tests/validate-caller-home-refused`, `#/tests/validate-caller-home-no-home`, `#/tests/derive-caller-home`.
+- CR-12, Let an idea say it came in by a guided walkthrough with inputMode walkthrough: `#/tests/validate-idea-input-mode`.
 
 ### Changed
 
 - CR-4, Let a specification declare its time zone and read date() of an instant in it, and design state machines and date-times: `#/enums/Rule`.
 - CR-6, Keep each proposal for the specification as an idea record with its status, decision and what it became, checked by the validator and named by specarch decision why and rests: `#/enums/Rule`, `#/commands/validate`, `#/commands/decision why`, `#/commands/decision rests`.
+- CR-7, Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation: `#/enums/Rule`, `#/commands/generate`.
+- CR-8, Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0: `#/commands/extract`, `#/tests/extract-workflows-writes-tree`.
+- CR-9, Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates: `#/enums/Rule`, `#/commands/try`.
+- CR-10, Let a dependency say how it is reached and called, and a call how it is made, mapped, retried and answered, with the cases they make derived: `#/enums/Rule`.
+- CR-11, Let a task page's answer lead to the caller's home with navigate callerHome, checked by both validators and opened by the three ui generators: `#/enums/Rule`.
+- CR-12, Let an idea say it came in by a guided walkthrough with inputMode walkthrough: `#/decisions/ADR-196`.
 
 Specification 1.3.0. Implementations: go 0.1.0, swift 0.1.0.
 

@@ -1,0 +1,29 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-9
+title: Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates
+raisedBy: specification-author
+raised: "2026-10-28"
+phase: development
+type: perfective
+urgency: normal
+reason: A choice among many cases written as one formula hid its overlaps and its gaps from the reviewer; a table of rules with a hit policy, after DMN 1.5, lets the validator name the inputs two rules both match and the inputs no rule matches.
+affects:
+  adds:
+    - SA-104
+    - "#/decisions/ADR-199"
+    - "#/tests/validate-decision-table"
+    - "#/tests/validate-decision-table-refused"
+    - "#/tests/try-decision-table"
+    - "#/tests/try-decision-table-unreached"
+  changes:
+    - "#/enums/Rule"
+    - "#/commands/try"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-28"
+  outcome: approved
+  why: The table is another way to give an algorithm, an optional key in the 1.0 design schema, and the rules decision_table, table_overlap and table_gap reach only a table; a 1.2.0 algorithm is a formula and reads and checks as before, so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-199). specarch try is new in this release, so its exit codes naming a table change nothing released.
+release: 1.3.0
+status: released

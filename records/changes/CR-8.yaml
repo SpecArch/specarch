@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-8
+title: Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0
+raisedBy: specification-author
+raised: "2026-10-27"
+phase: development
+type: perfective
+urgency: normal
+reason: A workflow held approvals and operation steps only, so a decision over the subject, a task that is not an approval, a wait for a message or a time, what a failed operation step does and which operation undoes a step were left to prose and not checked.
+affects:
+  adds:
+    - SA-103
+    - "#/decisions/ADR-198"
+    - "#/tests/validate-workflow-step-kinds"
+    - "#/tests/validate-workflow-step-kinds-refused"
+    - "#/tests/validate-workflow-open-branch"
+    - "#/tests/validate-workflow-deadline-undoes"
+    - "#/tests/validate-workflow-undo-skipped-step"
+    - "#/tests/generate-bpmn-step-kinds"
+    - "#/tests/extract-workflows-reads-step-kinds"
+    - "#/tests/extract-workflows-asks-unread-end"
+  changes:
+    - "#/commands/extract"
+    - "#/tests/extract-workflows-writes-tree"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-28"
+  outcome: approved
+  why: The step kinds decision, task and wait and an operation step's onFailure and compensatedBy are new values and optional keys in the 1.0 design schema; a 1.2.0 workflow holds none of them and reads, checks and writes in BPMN as before, and the steps still run forward only, so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-198).
+release: 1.3.0
+status: released

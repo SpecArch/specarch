@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: change and defect register
 
-Version 1.3.0 of the specification: 6 change requests and 0 defects are recorded beside it, 0 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
+Version 1.3.0 of the specification: 12 change requests and 0 defects are recorded beside it, 0 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
 
 ## 1. Change requests
 
@@ -14,6 +14,12 @@ Version 1.3.0 of the specification: 6 change requests and 0 defects are recorded
 | CR-4 | Let a specification declare its time zone and read date() of an instant in it, and design state machines and date-times | released | perfective | normal | minor | 1.3.0 |
 | CR-5 | Let an author evaluate an algorithm on its worked examples or on given inputs and see each step of its formula, with specarch try | released | perfective | normal | minor | 1.3.0 |
 | CR-6 | Keep each proposal for the specification as an idea record with its status, decision and what it became, checked by the validator and named by specarch decision why and rests | released | perfective | normal | minor | 1.3.0 |
+| CR-7 | Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation | released | perfective | normal | minor | 1.3.0 |
+| CR-8 | Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0 | released | perfective | normal | minor | 1.3.0 |
+| CR-9 | Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates | released | perfective | normal | minor | 1.3.0 |
+| CR-10 | Let a dependency say how it is reached and called, and a call how it is made, mapped, retried and answered, with the cases they make derived | released | perfective | normal | minor | 1.3.0 |
+| CR-11 | Let a task page's answer lead to the caller's home with navigate callerHome, checked by both validators and opened by the three ui generators | released | perfective | normal | minor | 1.3.0 |
+| CR-12 | Let an idea say it came in by a guided walkthrough with inputMode walkthrough | released | perfective | normal | minor | 1.3.0 |
 
 ### CR-1: Make meta-model 1.0.0 the first stable version of every SpecArch format
 
@@ -84,6 +90,78 @@ A proposal raised in a conversation, a table, an example or a review was lost on
 Affects: adds SA-101, `#/decisions/ADR-196`, `#/tests/validate-idea-decision`, `#/tests/validate-idea-question`, `#/tests/validate-idea-ref`, `#/tests/validate-ideas-valid`, `#/tests/decision-why-ideas`, `#/tests/decision-rests-ideas-json`; changes `#/enums/Rule`, `#/commands/validate`, `#/commands/decision why`, `#/commands/decision rests`.
 
 Decision: approved by specification-author on 2026-10-27. The idea kind is one more kind in the 1.0 record schema and two rules (idea_decision, idea_question), and validate, decision why and decision rests read records/ideas/ beside the specification as well. specarch diff calls those three commands' change major, since each change is the description of an entry of their reads, a list whose items have no name, and the rule for such a list is cautious on purpose so that a person decides. It is not breaking. A 1.2.0 tree with no records/ideas/ is read, checked and printed as before, and one that held an idea file got an error from 1.2.0 for a kind it did not know. So no file that is clean on 1.2.0 gets a new error, nothing a 1.2.0 run prints or writes changes, and a minor release carries it (ADR-186, ADR-196). specarch diff's version error for this release is named in the history file.
+
+Released in 1.3.0.
+
+### CR-7: Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation
+
+Raised by specification-author on 2026-10-27, in development. Perfective, normal urgency; impact minor. Status: released.
+
+A person going through the screens in the order they meet them could not be followed in the specification, which said neither the page each role is shown first, nor a permission that every signed-in caller holds, nor a field shown or edited by permission, and said nothing of a page no one can reach.
+
+Affects: adds SA-102, `#/decisions/ADR-197`, `#/tests/validate-navigation`, `#/tests/validate-navigation-valid`, `#/tests/validate-signed-in`, `#/tests/validate-field-modes`, `#/tests/generate-ui-navigation`, `#/tests/generate-ui-navigation-no-session`, `#/tests/generate-ui-swiftui-navigation`, `#/tests/generate-ui-typescript-navigation`; changes `#/enums/Rule`, `#/commands/generate`.
+
+Decision: approved by specification-author on 2026-10-28. A role's home, the field modes by permission and the reserved permission signedIn are optional keys in the 1.0 design schema, and role_home is an error only at a home a role names; the navigation gaps are warnings. A 1.2.0 file names no home and no field mode, and the permission name pattern refused signedIn, so no 1.2.0 file declares or grants it; so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-197).
+
+Released in 1.3.0.
+
+### CR-8: Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0
+
+Raised by specification-author on 2026-10-27, in development. Perfective, normal urgency; impact minor. Status: released.
+
+A workflow held approvals and operation steps only, so a decision over the subject, a task that is not an approval, a wait for a message or a time, what a failed operation step does and which operation undoes a step were left to prose and not checked.
+
+Affects: adds SA-103, `#/decisions/ADR-198`, `#/tests/validate-workflow-step-kinds`, `#/tests/validate-workflow-step-kinds-refused`, `#/tests/validate-workflow-open-branch`, `#/tests/validate-workflow-deadline-undoes`, `#/tests/validate-workflow-undo-skipped-step`, `#/tests/generate-bpmn-step-kinds`, `#/tests/extract-workflows-reads-step-kinds`, `#/tests/extract-workflows-asks-unread-end`; changes `#/commands/extract`, `#/tests/extract-workflows-writes-tree`.
+
+Decision: approved by specification-author on 2026-10-28. The step kinds decision, task and wait and an operation step's onFailure and compensatedBy are new values and optional keys in the 1.0 design schema; a 1.2.0 workflow holds none of them and reads, checks and writes in BPMN as before, and the steps still run forward only, so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-198).
+
+Released in 1.3.0.
+
+### CR-9: Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates
+
+Raised by specification-author on 2026-10-28, in development. Perfective, normal urgency; impact minor. Status: released.
+
+A choice among many cases written as one formula hid its overlaps and its gaps from the reviewer; a table of rules with a hit policy, after DMN 1.5, lets the validator name the inputs two rules both match and the inputs no rule matches.
+
+Affects: adds SA-104, `#/decisions/ADR-199`, `#/tests/validate-decision-table`, `#/tests/validate-decision-table-refused`, `#/tests/try-decision-table`, `#/tests/try-decision-table-unreached`; changes `#/enums/Rule`, `#/commands/try`.
+
+Decision: approved by specification-author on 2026-10-28. The table is another way to give an algorithm, an optional key in the 1.0 design schema, and the rules decision_table, table_overlap and table_gap reach only a table; a 1.2.0 algorithm is a formula and reads and checks as before, so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-199). specarch try is new in this release, so its exit codes naming a table change nothing released.
+
+Released in 1.3.0.
+
+### CR-10: Let a dependency say how it is reached and called, and a call how it is made, mapped, retried and answered, with the cases they make derived
+
+Raised by specification-author on 2026-10-28, in development. Perfective, normal urgency; impact minor. Status: released.
+
+A dependency was a name, a kind, a protocol and a time limit, so how this system proves itself to it, how often it may be called, how our values map to theirs, the key sent, the retries and which of their answers become ours were left to the code and not tested.
+
+Affects: adds SA-105, `#/decisions/ADR-200`, `#/tests/validate-integration-contract`, `#/tests/validate-integration-contract-refused`, `#/tests/validate-integration-contract-null`, `#/tests/derive-integration-contract`, `#/tests/derive-integration-contract-per-call`, `#/tests/document-techspec-integration`; changes `#/enums/Rule`.
+
+Decision: approved by specification-author on 2026-10-28. Every new key of a dependency and of a call is optional in the 1.0 design schema, and a call may still be a plain name; the rule integration reaches only those keys, so a 1.2.0 file gets no new error and derives the cases it derived before, and a minor release carries it (ADR-186, ADR-200).
+
+Released in 1.3.0.
+
+### CR-11: Let a task page's answer lead to the caller's home with navigate callerHome, checked by both validators and opened by the three ui generators
+
+Raised by specification-author on 2026-10-28, in development. Perfective, normal urgency; impact minor. Status: released.
+
+A task page used by several roles could only name one page to go to after its answer, so a person was sent to another role's page instead of back to their own home.
+
+Affects: adds `#/decisions/ADR-206`, `#/tests/validate-caller-home`, `#/tests/validate-caller-home-refused`, `#/tests/validate-caller-home-no-home`, `#/tests/derive-caller-home`; changes `#/enums/Rule`.
+
+Decision: approved by specification-author on 2026-10-28. callerHome is a reserved word in navigate, refused where the caller is unknown and an error only when no role names a home; no 1.2.0 file names it, since a 1.2.0 file has no role home to lead to, so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-206).
+
+Released in 1.3.0.
+
+### CR-12: Let an idea say it came in by a guided walkthrough with inputMode walkthrough
+
+Raised by specification-author on 2026-10-28, in development. Perfective, normal urgency; impact minor. Status: released.
+
+An idea raised while going through the screens in order could only be recorded as an interview or another mode, so a reader could not tell which ideas came from a walkthrough.
+
+Affects: adds `#/tests/validate-idea-input-mode`; changes `#/decisions/ADR-196`.
+
+Decision: approved by specification-author on 2026-10-28. walkthrough is one more value of inputMode in the 1.0 record schema, and the idea kind is itself new in this release, so nothing released reads it differently, and a minor release carries it (ADR-186, ADR-196).
 
 Released in 1.3.0.
 

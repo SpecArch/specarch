@@ -1,0 +1,55 @@
+{
+  "scanners" : [
+
+  ],
+  "steps" : [
+    {
+      "command" : "syft dir:. -o cyclonedx-json -o spdx-json",
+      "exit" : 0,
+      "step" : "syft"
+    },
+    {
+      "command" : "grype sbom:specarch-1.2.0.cdx.json -o json",
+      "exit" : 0,
+      "report" : "reports/grype.json",
+      "step" : "grype"
+    },
+    {
+      "command" : "osv-scanner scan source -r --allow-no-lockfiles --format json .",
+      "exit" : 1,
+      "report" : "reports/osv-scanner.json",
+      "stderr" : "reports/osv-scanner.stderr.txt",
+      "step" : "osv-scanner"
+    },
+    {
+      "command" : "govulncheck -format json ./... in .",
+      "exit" : 0,
+      "report" : "reports/govulncheck-0.json",
+      "step" : "govulncheck-0"
+    },
+    {
+      "command" : "govulncheck -format json ./... in examples/lending-desk/sources/code",
+      "exit" : 0,
+      "report" : "reports/govulncheck-1.json",
+      "step" : "govulncheck-1"
+    }
+  ],
+  "tools" : [
+    {
+      "name" : "syft",
+      "version" : "1.55.0"
+    },
+    {
+      "name" : "grype",
+      "version" : "0.121.0"
+    },
+    {
+      "name" : "osv-scanner",
+      "version" : "2.7.0"
+    },
+    {
+      "name" : "govulncheck",
+      "version" : "v1.8.0"
+    }
+  ]
+}

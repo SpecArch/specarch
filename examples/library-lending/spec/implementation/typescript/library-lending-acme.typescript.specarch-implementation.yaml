@@ -21,7 +21,7 @@ stack:
   toolchain: { name: pnpm, version: "12.9.1" }
 
 libraries:
-  next: { version: 16.4.0, licence: MIT, purpose: "The app router, the server components and the build." }
+  next: { version: 16.4.1, licence: MIT, purpose: "The app router, the server components and the build." }
   react: { version: 19.3.0, licence: MIT, purpose: Rendering. }
   react-dom: { version: 19.3.0, licence: MIT, purpose: Rendering. }
   "@carbon/react": { version: 1.118.0, licence: Apache-2.0, purpose: "The components that draw every page." }
@@ -42,7 +42,7 @@ libraries:
     purpose: The lint, with no rule turned off.
     scope: build
     why: 10 is outside the range of the React, accessibility and import plug-ins eslint-config-next brings.
-  eslint-config-next: { version: 16.4.0, licence: MIT, purpose: "Next.js's lint rules, core web vitals and TypeScript.", scope: build }
+  eslint-config-next: { version: 16.4.1, licence: MIT, purpose: "Next.js's lint rules, core web vitals and TypeScript.", scope: build }
   "@types/react": { version: 19.3.0, licence: MIT, purpose: Types., scope: build }
   "@types/react-dom": { version: 19.3.0, licence: MIT, purpose: Types., scope: build }
   "@types/node": { version: 26.6.4, licence: MIT, purpose: Types., scope: build }

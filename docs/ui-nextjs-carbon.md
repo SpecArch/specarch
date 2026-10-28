@@ -229,7 +229,7 @@ version held back.
 
 | Package | Version checked | Licence | Use |
 |---|---|---|---|
-| `next` | 16.4.0 | MIT | the app router, server routes, the build |
+| `next` | 16.4.1 | MIT | the app router, server routes, the build |
 | `react`, `react-dom` | 19.3.0 | MIT | rendering |
 | `@carbon/react` | 1.118.0 | Apache-2.0 | the components |
 | `@carbon/styles` | 1.117.0 | Apache-2.0 | the styles |
@@ -238,7 +238,7 @@ version held back.
 | `sass` (build) | 1.105.1 | MIT | Carbon's styles are Sass |
 | `typescript` (build) | 6.0.3 | Apache-2.0 | `tsc --noEmit`; 7.0 is outside the range `typescript-eslint` takes, which `eslint-config-next` lints with (below 6.1) |
 | `eslint` (build) | 9.39.5 | MIT | the lint; 10 is outside the range of the React, accessibility and import plug-ins `eslint-config-next` brings |
-| `eslint-config-next` (build) | 16.4.0 | MIT | Next.js's lint rules |
+| `eslint-config-next` (build) | 16.4.1 | MIT | Next.js's lint rules |
 | `@types/react`, `@types/react-dom`, `@types/node` (build) | 19.3.0, 19.3.0, 26.6.4 | MIT | types |
 
 Of the 400 packages resolved, all but four carry an OSI-approved licence

@@ -48,7 +48,7 @@ parts:
     stack:
       nextjs-carbon:
         libraries:
-          next: { version: 16.4.0, licence: MIT, purpose: "the app router, server routes and the build" }
+          next: { version: 16.4.1, licence: MIT, purpose: "the app router, server routes and the build" }
           react: { version: 19.3.0, licence: MIT, purpose: rendering }
           react-dom: { version: 19.3.0, licence: MIT, purpose: rendering }
           "@carbon/react": { version: 1.118.0, licence: Apache-2.0, purpose: the components }

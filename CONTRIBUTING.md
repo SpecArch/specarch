@@ -93,12 +93,23 @@ includes, sets `info.version`, both implementation files'
 Swift build, moves the editor hints whose schema changed since the last
 tag and the install lines to the new tag, and passes
 `sh scripts/landing-check.sh`. Once it is on origin's main, the tag
-`vX.Y.Z` is made on it, annotated, and the GitHub release is published
-with `specarch-X.Y.Z.cdx.json` attached: the CycloneDX SBOM of the Go
-module and the Swift package that `sh scripts/sbom.sh X.Y.Z` writes and
-scans with grype, osv-scanner and govulncheck. A finding stops the release
-until the owner has decided on it. The release notes end with the scan's
-summary: the tool versions, the result and the licences.
+`vX.Y.Z` is made on it, annotated, and pushed. The GitHub release is
+created from it as a draft (`gh release create vX.Y.Z --verify-tag
+--draft`), never published at once: the repository's releases are
+immutable, and GitHub refuses any asset on a published one. The tag's
+tree is then scanned: syft writes the CycloneDX and the SPDX SBOM
+(`specarch-X.Y.Z.cdx.json`, `specarch-X.Y.Z.spdx.json`), and grype,
+osv-scanner and govulncheck check it. Both SBOMs, each scanner's report
+and the tool versions are committed under `sbom/vX.Y.Z/`, both SBOMs are
+attached to the draft, its notes end with the scan's summary (the tool
+versions, the result and the licences), and only then is it published.
+`sh scripts/sbom.sh X.Y.Z` runs the same scanners on the Go module and the
+Swift package alone, before tagging. A finding stops the release until
+the owner has decided on it.
+
+The GitHub releases of v1.1.0 (no SBOM) and v1.2.0 (the CycloneDX SBOM
+alone) cannot take an asset any more; both SBOMs of each and their scan
+reports are in `sbom/v1.1.0/` and `sbom/v1.2.0/`.
 
 ## Style
 

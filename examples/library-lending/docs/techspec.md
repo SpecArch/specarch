@@ -1416,7 +1416,7 @@ Stack: language TypeScript 6.0; toolchain pnpm 12.9.1.
 
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
-| next | 16.4.0 | MIT | The app router, the server components and the build. |
+| next | 16.4.1 | MIT | The app router, the server components and the build. |
 | react | 19.3.0 | MIT | Rendering. |
 | react-dom | 19.3.0 | MIT | Rendering. |
 | @carbon/react | 1.118.0 | Apache-2.0 | The components that draw every page. |
@@ -1427,7 +1427,7 @@ Stack: language TypeScript 6.0; toolchain pnpm 12.9.1.
 | sass | 1.105.1 | MIT | Compiles Carbon's Sass. (build) |
 | typescript | 6.0.3 | Apache-2.0 | Type-checks the application with tsc --noEmit under strict. (build) |
 | eslint | 9.39.5 | MIT | The lint, with no rule turned off. (build) |
-| eslint-config-next | 16.4.0 | MIT | Next.js's lint rules, core web vitals and TypeScript. (build) |
+| eslint-config-next | 16.4.1 | MIT | Next.js's lint rules, core web vitals and TypeScript. (build) |
 | @types/react | 19.3.0 | MIT | Types. (build) |
 | @types/react-dom | 19.3.0 | MIT | Types. (build) |
 | @types/node | 26.6.4 | MIT | Types. (build) |
@@ -1487,7 +1487,7 @@ Stack: language TypeScript 6.0; toolchain pnpm 12.9.1.
 
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
-| next | 16.4.0 | MIT | The app router, the server components and the build. |
+| next | 16.4.1 | MIT | The app router, the server components and the build. |
 | react | 19.3.0 | MIT | Rendering. |
 | react-dom | 19.3.0 | MIT | Rendering. |
 | @carbon/react | 1.118.0 | Apache-2.0 | The components that draw every page. |
@@ -1497,7 +1497,7 @@ Stack: language TypeScript 6.0; toolchain pnpm 12.9.1.
 | sass | 1.105.1 | MIT | Compiles Carbon's Sass. (build) |
 | typescript | 6.0.3 | Apache-2.0 | Type-checks the application with tsc --noEmit under strict. (build) |
 | eslint | 9.39.5 | MIT | The lint, with no rule turned off. (build) |
-| eslint-config-next | 16.4.0 | MIT | Next.js's lint rules, core web vitals and TypeScript. (build) |
+| eslint-config-next | 16.4.1 | MIT | Next.js's lint rules, core web vitals and TypeScript. (build) |
 | @types/react | 19.3.0 | MIT | Types. (build) |
 | @types/react-dom | 19.3.0 | MIT | Types. (build) |
 | @types/node | 26.6.4 | MIT | Types. (build) |

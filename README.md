@@ -200,7 +200,7 @@ Vue (its reader is inside the program, on the TypeScript compiler's own
 Go source, so it needs no Node), Swift or Dart (their readers come with
 the program and are built once in your cache with their toolchains). It has two builds from
 the same design.
-The Go build has every verb. With Go 1.27.2 or later:
+The Go build has every verb. With Go 1.27.3 or later:
 
     go install github.com/SpecArch/specarch/cmd/specarch@v1.3.0
 

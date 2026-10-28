@@ -78,7 +78,7 @@ format and its printer's contract. Every code reader takes `--source-key
 ## The commands
 
 These commands run in zsh and in bash, from the project's root. They
-assume Go 1.27.2 or later, git, and Podman for the database and
+assume Go 1.27.3 or later, git, and Podman for the database and
 permission dumps. Give your own paths in place of `docs/`, `code/`,
 `web/`, `workflows/` and the others; any layout works, since every path
 is an argument. Leave out the lines of a source your project does not

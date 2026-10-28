@@ -2,10 +2,10 @@
 
 - Tag: `v1.1.0`
 - Commit scanned: `154c79fae623a6645392a4348e6fa6757f1e9a9b`
-- Date: 2026-10-28 03:02 UTC
+- Date: 2026-10-28 10:33 UTC
 - Result: findings
 
-SBOM: specarch-1.1.0.cdx.json (CycloneDX, 494 components). Scan (syft 1.55.0, grype 0.121.0, osv-scanner 2.7.0, govulncheck v1.8.0): 4 findings not allowlisted: CVE-2026-94482/GHSA-p3m5-59mp-jv5r in next 16.4.0 (fixed in 16.4.1); CVE-2023-54404/GHSA-mrhx-c7xc-m3w5 in zod 4.6.5 (fixed in 4.6.6); GHSA-2464-fhr4-w9xw in next 16.4.0 (fixed in 16.4.1); GHSA-673q-mjm6-r5xr in next 16.4.0 (fixed in 16.4.1).
+SBOM: specarch-1.1.0.cdx.json (CycloneDX, 500 components). Scan (syft 1.55.0, grype 0.121.0, osv-scanner 2.7.0, govulncheck v1.8.0): 4 findings not allowlisted: CVE-2026-94482/GHSA-p3m5-59mp-jv5r in next 16.4.0 (examples/library-lending/web-nextjs/pnpm-lock.yaml, ./examples/library-lending/web-nextjs/pnpm-lock.yaml) (fixed in 16.4.1); CVE-2023-54404/GHSA-mrhx-c7xc-m3w5 in zod 4.6.5 (examples/library-lending/web-nextjs/pnpm-lock.yaml, ./examples/library-lending/web-nextjs/pnpm-lock.yaml) (fixed in 4.6.6); GHSA-2464-fhr4-w9xw in next 16.4.0 (examples/library-lending/web-nextjs/pnpm-lock.yaml, ./examples/library-lending/web-nextjs/pnpm-lock.yaml) (fixed in 16.4.1); GHSA-673q-mjm6-r5xr in next 16.4.0 (examples/library-lending/web-nextjs/pnpm-lock.yaml, ./examples/library-lending/web-nextjs/pnpm-lock.yaml) (fixed in 16.4.1).
 
 ## Files
 - `specarch-1.1.0.cdx.json`: CycloneDX JSON, from syft
@@ -23,6 +23,7 @@ SBOM: specarch-1.1.0.cdx.json (CycloneDX, 494 components). Scan (syft 1.55.0, gr
 - `.build`
 - `.worktrees`
 - `references`
+- `sbom` (the records of the earlier scans, #346)
 
 ## Run it again
 

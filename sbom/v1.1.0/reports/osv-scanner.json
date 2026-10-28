@@ -1,0 +1,429 @@
+{
+  "results": [
+    {
+      "source": {
+        "path": "./examples/library-lending/web-nextjs/pnpm-lock.yaml",
+        "type": "lockfile"
+      },
+      "packages": [
+        {
+          "package": {
+            "name": "next",
+            "version": "16.4.0",
+            "ecosystem": "npm",
+            "purl": "pkg:npm/next@16.4.0"
+          },
+          "groups": [
+            {
+              "ids": [
+                "GHSA-2464-fhr4-w9xw"
+              ],
+              "aliases": [
+                "GHSA-2464-fhr4-w9xw"
+              ],
+              "max_severity": "9.5"
+            },
+            {
+              "ids": [
+                "GHSA-673q-mjm6-r5xr"
+              ],
+              "aliases": [
+                "GHSA-673q-mjm6-r5xr"
+              ],
+              "max_severity": "9.5"
+            },
+            {
+              "ids": [
+                "GHSA-p3m5-59mp-jv5r"
+              ],
+              "aliases": [
+                "CVE-2026-94482",
+                "GHSA-p3m5-59mp-jv5r"
+              ],
+              "max_severity": "8.2"
+            }
+          ],
+          "vulnerabilities": [
+            {
+              "affected": [
+                {
+                  "database_specific": {
+                    "last_known_affected_version_range": "\u003c= 15.5.27",
+                    "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/10/GHSA-2464-fhr4-w9xw/GHSA-2464-fhr4-w9xw.json"
+                  },
+                  "package": {
+                    "ecosystem": "npm",
+                    "name": "next",
+                    "purl": "pkg:npm/next"
+                  },
+                  "ranges": [
+                    {
+                      "events": [
+                        {
+                          "introduced": "10.0.0"
+                        },
+                        {
+                          "fixed": "15.5.28"
+                        }
+                      ],
+                      "type": "SEMVER"
+                    }
+                  ]
+                },
+                {
+                  "database_specific": {
+                    "last_known_affected_version_range": "\u003c= 16.4.0",
+                    "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/10/GHSA-2464-fhr4-w9xw/GHSA-2464-fhr4-w9xw.json"
+                  },
+                  "package": {
+                    "ecosystem": "npm",
+                    "name": "next",
+                    "purl": "pkg:npm/next"
+                  },
+                  "ranges": [
+                    {
+                      "events": [
+                        {
+                          "introduced": "16.0.0"
+                        },
+                        {
+                          "fixed": "16.4.1"
+                        }
+                      ],
+                      "type": "SEMVER"
+                    }
+                  ]
+                }
+              ],
+              "database_specific": {
+                "cwe_ids": [
+                  "CWE-1395"
+                ],
+                "github_reviewed": true,
+                "github_reviewed_at": "2026-10-22T15:52:53Z",
+                "nvd_published_at": null,
+                "severity": "CRITICAL"
+              },
+              "details": "## Impact\n\nA memory-related vulnerability has been discovered in an upstream library used for Image Optimization can lead to possible remote code execution (RCE) when Next.js runs on glibc-based Linux.\n\n## Workaround\n\nEnsure the version of `sharp` used by Next.js is greater than or equal to `0.35.5`. Fresh installs automatically get a fixed version of `sharp`.\nUpgrading Next.js to the patched versions will ensure package managers automatically provide a fixed version of `sharp` to Next.js.",
+              "id": "GHSA-2464-fhr4-w9xw",
+              "modified": "2026-10-22T16:00:09.125335909Z",
+              "published": "2026-10-22T15:52:53Z",
+              "references": [
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw"
+                },
+                {
+                  "type": "ADVISORY",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-96889"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/commit/5e3b687b5edb868b064bdc058d768a7021e7f6ad"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/commit/9571ec899f063df6533351bec390ccb2cc0af6a3"
+                },
+                {
+                  "type": "PACKAGE",
+                  "url": "https://github.com/vercel/next.js"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/releases/tag/v15.5.28"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/releases/tag/v16.4.1"
+                }
+              ],
+              "schema_version": "1.9.0",
+              "severity": [
+                {
+                  "score": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H",
+                  "type": "CVSS_V4"
+                }
+              ],
+              "summary": "Next.js: Unauthenticated Remote Code Execution in Image Optimization API when SVG files are used"
+            },
+            {
+              "affected": [
+                {
+                  "database_specific": {
+                    "last_known_affected_version_range": "\u003c= 16.4.0",
+                    "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/10/GHSA-673q-mjm6-r5xr/GHSA-673q-mjm6-r5xr.json"
+                  },
+                  "package": {
+                    "ecosystem": "npm",
+                    "name": "next",
+                    "purl": "pkg:npm/next"
+                  },
+                  "ranges": [
+                    {
+                      "events": [
+                        {
+                          "introduced": "16.0.0"
+                        },
+                        {
+                          "fixed": "16.4.1"
+                        }
+                      ],
+                      "type": "SEMVER"
+                    }
+                  ]
+                }
+              ],
+              "database_specific": {
+                "cwe_ids": [
+                  "CWE-502"
+                ],
+                "github_reviewed": true,
+                "github_reviewed_at": "2026-10-22T16:42:31Z",
+                "nvd_published_at": null,
+                "severity": "CRITICAL"
+              },
+              "details": "## Impact\n\nA vulnerability in applications using App router with Cache Component can lead to remote code execution. The application needs to have a `use cache` function that returns multiple typed arrays.\n\n## Workaround\n\nThere is no known workaround for affected applications with such `use cache` functions. You should upgrade immediately even if your application does not have similar functions.",
+              "id": "GHSA-673q-mjm6-r5xr",
+              "modified": "2026-10-22T17:00:04.201859111Z",
+              "published": "2026-10-22T16:42:31Z",
+              "references": [
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/commit/a4cea6aec5da89d116b8960e113189cf51745d2f"
+                },
+                {
+                  "type": "PACKAGE",
+                  "url": "https://github.com/vercel/next.js"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/releases/tag/v16.4.1"
+                }
+              ],
+              "schema_version": "1.9.0",
+              "severity": [
+                {
+                  "score": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:N",
+                  "type": "CVSS_V4"
+                }
+              ],
+              "summary": "Next.js: Unauthenticated Remote Code Execution in `use cache` functions returning typed arrays"
+            },
+            {
+              "affected": [
+                {
+                  "database_specific": {
+                    "last_known_affected_version_range": "\u003c= 15.5.27",
+                    "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/10/GHSA-p3m5-59mp-jv5r/GHSA-p3m5-59mp-jv5r.json"
+                  },
+                  "package": {
+                    "ecosystem": "npm",
+                    "name": "next",
+                    "purl": "pkg:npm/next"
+                  },
+                  "ranges": [
+                    {
+                      "events": [
+                        {
+                          "introduced": "13.0.0"
+                        },
+                        {
+                          "fixed": "15.5.28"
+                        }
+                      ],
+                      "type": "SEMVER"
+                    }
+                  ]
+                },
+                {
+                  "database_specific": {
+                    "last_known_affected_version_range": "\u003c= 16.4.0",
+                    "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/10/GHSA-p3m5-59mp-jv5r/GHSA-p3m5-59mp-jv5r.json"
+                  },
+                  "package": {
+                    "ecosystem": "npm",
+                    "name": "next",
+                    "purl": "pkg:npm/next"
+                  },
+                  "ranges": [
+                    {
+                      "events": [
+                        {
+                          "introduced": "16.0.0"
+                        },
+                        {
+                          "fixed": "16.4.1"
+                        }
+                      ],
+                      "type": "SEMVER"
+                    }
+                  ]
+                }
+              ],
+              "aliases": [
+                "CVE-2026-94482"
+              ],
+              "database_specific": {
+                "cwe_ids": [
+                  "CWE-770"
+                ],
+                "github_reviewed": true,
+                "github_reviewed_at": "2026-10-22T15:50:34Z",
+                "nvd_published_at": null,
+                "severity": "HIGH"
+              },
+              "details": "## Impact\n\nCrafted requests targeting Next.js applications using App Router with at least one Server Action can lead to excessive CPU usage blocking processing of further requests in the same process.\n\n## Workarounds\n\nNo workaround exists besides upgrading. Applications using Pages Router or not using Server Actions are not vulnerable.",
+              "id": "GHSA-p3m5-59mp-jv5r",
+              "modified": "2026-10-22T16:00:09.130954454Z",
+              "published": "2026-10-22T15:50:34Z",
+              "references": [
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r"
+                },
+                {
+                  "type": "PACKAGE",
+                  "url": "https://github.com/vercel/next.js"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/releases/tag/v15.5.28"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/vercel/next.js/releases/tag/v16.4.1"
+                }
+              ],
+              "schema_version": "1.9.0",
+              "severity": [
+                {
+                  "score": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N",
+                  "type": "CVSS_V4"
+                }
+              ],
+              "summary": "Next.js: Denial of Service in App Router using Server Actions"
+            }
+          ]
+        },
+        {
+          "package": {
+            "name": "zod",
+            "version": "4.6.5",
+            "ecosystem": "npm",
+            "purl": "pkg:npm/zod@4.6.5"
+          },
+          "groups": [
+            {
+              "ids": [
+                "GHSA-mrhx-c7xc-m3w5"
+              ],
+              "aliases": [
+                "CVE-2023-54404",
+                "GHSA-mrhx-c7xc-m3w5"
+              ],
+              "max_severity": "8.2"
+            }
+          ],
+          "vulnerabilities": [
+            {
+              "affected": [
+                {
+                  "database_specific": {
+                    "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/10/GHSA-mrhx-c7xc-m3w5/GHSA-mrhx-c7xc-m3w5.json"
+                  },
+                  "package": {
+                    "ecosystem": "npm",
+                    "name": "zod",
+                    "purl": "pkg:npm/zod"
+                  },
+                  "ranges": [
+                    {
+                      "events": [
+                        {
+                          "introduced": "0"
+                        },
+                        {
+                          "fixed": "4.6.6"
+                        }
+                      ],
+                      "type": "SEMVER"
+                    }
+                  ]
+                }
+              ],
+              "aliases": [
+                "CVE-2023-54404"
+              ],
+              "database_specific": {
+                "cwe_ids": [
+                  "CWE-770"
+                ],
+                "github_reviewed": true,
+                "github_reviewed_at": "2026-10-23T18:26:50Z",
+                "nvd_published_at": "2026-10-01T18:17:11Z",
+                "severity": "HIGH"
+              },
+              "details": "Zod schema-validation library through 4.6.5 contains an uncontrolled resource consumption vulnerability that allows attackers to exhaust memory by submitting a large array to an application using an array schema without a length constraint. Attackers can exploit the handleArrayResult parse logic in $ZodArray, which accumulates every validation issue for each failing element with no cap or early termination, causing the process to allocate excessive issue objects and crash due to out-of-memory conditions.",
+              "id": "GHSA-mrhx-c7xc-m3w5",
+              "modified": "2026-10-23T18:30:09.376405885Z",
+              "published": "2026-10-01T18:32:46Z",
+              "references": [
+                {
+                  "type": "ADVISORY",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-54404"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/colinhacks/zod/issues/1872"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/colinhacks/zod/pull/6475"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/colinhacks/zod/pull/6652"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://github.com/colinhacks/zod/commit/a0ebf970f2d752e5f58527cd2942ff48be4f46bd"
+                },
+                {
+                  "type": "PACKAGE",
+                  "url": "https://github.com/colinhacks/zod"
+                },
+                {
+                  "type": "WEB",
+                  "url": "https://www.vulncheck.com/advisories/zod-uncontrolled-resource-consumption-via-array-validation"
+                }
+              ],
+              "schema_version": "1.9.0",
+              "severity": [
+                {
+                  "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "type": "CVSS_V3"
+                },
+                {
+                  "score": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N",
+                  "type": "CVSS_V4"
+                }
+              ],
+              "summary": "Zod can exhaust memory while validating oversized constrained collections"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "experimental_config": {
+    "licenses": {
+      "summary": false,
+      "allowlist": null
+    }
+  }
+}

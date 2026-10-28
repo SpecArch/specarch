@@ -128,10 +128,14 @@ func (c *checker) tryOperation(d *design, o operation, example string) (*TriedOp
 	entries := callEntries(o.node)
 	names := callNames(entries)
 	var labels []string
+	unchecked := false
 	for k, e := range entries {
 		mapping := source.Child(e.item, "mapping")
 		examples := source.Items(source.Child(mapping, "examples"))
 		their, _ := d.dependencyOperation(e.ref.Value)
+		if len(examples) > 0 && their == nil {
+			unchecked = true
+		}
 		if len(examples) == 0 || their == nil {
 			continue
 		}
@@ -186,6 +190,8 @@ func (c *checker) tryOperation(d *design, o operation, example string) (*TriedOp
 	}
 	if len(t.Calls) == 0 {
 		switch {
+		case example == "" && unchecked:
+			return nil, fmt.Sprintf("operation %s has mapping examples only on calls through another specification's paths, whose fields are not known here, so they are read and not evaluated", o.id)
 		case example == "":
 			return nil, fmt.Sprintf("operation %s has no call whose mapping has examples; write them under a call's mapping, as examples", o.id)
 		case len(labels) == 0:

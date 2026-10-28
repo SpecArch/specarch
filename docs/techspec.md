@@ -4077,7 +4077,9 @@ The name may instead be an operation's operationId, and then the
 worked examples of the mappings of its calls are evaluated, or the
 one --example names (ADR-207). A name that is both an algorithm's
 and an operation's is refused, naming both; an operation whose calls
-have no mapping example is refused; --inputs and --file, which read
+have no mapping example is refused, and so is one whose examples are
+all on calls through another specification's paths, which are read
+and not evaluated; --inputs and --file, which read
 an algorithm, are refused with an operation. An algorithm not found
 is refused naming the algorithms there are and, when there are any,
 the operations whose calls have mapping examples. For each call

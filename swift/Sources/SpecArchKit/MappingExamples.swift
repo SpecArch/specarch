@@ -248,10 +248,13 @@ extension Checker {
         let entries = callEntries(o.node)
         let names = callNames(entries)
         var labels: [String] = []
+        var unchecked = false
         for (k, e) in entries.enumerated() {
             guard let mapping = e.item.child("mapping") else { continue }
             let examples = items(mapping.child("examples"))
-            guard !examples.isEmpty, let their = d.dependencyOperation(e.ref.value).0 else { continue }
+            let theirs = d.dependencyOperation(e.ref.value).0
+            if !examples.isEmpty && theirs == nil { unchecked = true }
+            guard !examples.isEmpty, let their = theirs else { continue }
             let (send, receive) = d.mappingSides(o, mapping, their, ours, oursFields)
             var tc = TriedCall(call: names[k])
             for (i, ex) in examples.enumerated() {
@@ -292,6 +295,9 @@ extension Checker {
             if !tc.evaluations.isEmpty { t.calls.append(tc) }
         }
         if t.calls.isEmpty {
+            if example.isEmpty && unchecked {
+                return (nil, "operation \(o.id) has mapping examples only on calls through another specification's paths, whose fields are not known here, so they are read and not evaluated")
+            }
             if example.isEmpty {
                 return (nil, "operation \(o.id) has no call whose mapping has examples; write them under a call's mapping, as examples")
             }

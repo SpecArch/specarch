@@ -10,4 +10,4 @@ Scanned ./examples/library-lending/web-nextjs/pnpm-lock.yaml file and found 453 
 Scanned ./examples/lending-desk/sources/code/go.mod file and found 1 package
 Scanned ./readers/dart/pubspec.lock file and found 18 packages
 Scanned ./readers/swift/Package.resolved file and found 1 package
-End status: 5446 dirs visited, 14313 inodes visited, 10 Extract calls, 923.348459ms elapsed, 923.352ms wall time
+End status: 5446 dirs visited, 14313 inodes visited, 10 Extract calls, 996.927334ms elapsed, 996.934ms wall time

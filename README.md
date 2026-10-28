@@ -411,3 +411,20 @@ express, and those gaps define the next version.
 ## Licence
 
 Apache License 2.0. See `LICENSE` and `NOTICE`.
+
+## Compliance and Security
+
+Every release's software bill of materials is committed in `sbom/<tag>/` at the root of this repository, in two
+formats from the same syft run: CycloneDX JSON (`<name>-<version>.cdx.json`) and SPDX JSON
+(`<name>-<version>.spdx.json`). Beside them are the report of each scanner that ran on the release's tree (grype
+on the SBOM, osv-scanner on the source, govulncheck for each Go module, and the repository's own scanners when
+it names any), `tools.json` with the scanners' versions and exit statuses, `allowlist-applied.json` with the
+accepted findings that applied, and a README.md naming the tag, the commit scanned, the date and the result.
+Where the repository's releases allow it, both SBOMs are also attached to the GitHub release.
+
+To run the scan again for a tag: `sbom-record <tag>` from the repository's root. It scans the tag's tree,
+writes `sbom/<tag>/` and commits it.
+
+Accepted findings and licences, each with its reason, are in `.dependency-allowlist.json` (`vulnerabilities`,
+`licences`, `licence_exceptions`); a scanner's own ignore file (`osv-scanner.toml`, `.grype.yaml`,
+`.trivyignore`) holds its entries where one exists.

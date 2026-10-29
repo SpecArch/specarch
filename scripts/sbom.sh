@@ -31,9 +31,10 @@ set -u
 
 version=${1:-}
 out=${2:-sbom/local/$version}
+# Exactly three numbers joined by dots: 1.2.0, never 1.2, 1.2.3. or 1..2.3.
 case $version in
-*[!0-9.]*) bad=1 ;;
-[0-9]*.[0-9]*.[0-9]*) bad= ;;
+*[!0-9.]* | .* | *. | *..* | *.*.*.*) bad=1 ;;
+*.*.*) bad= ;;
 *) bad=1 ;;
 esac
 case $bad in
@@ -54,22 +55,39 @@ for tool in syft grype osv-scanner govulncheck python3; do
 	fi
 done
 
-# The release records are refused by where <out-dir> resolves to, so
-# sbom//v1.3.0, sbom/./v1.3.0, sbom/local/../v1.3.0 and a symbolic link into
-# one are refused too. A folder made only to find that out is taken away
-# again (rmdir removes it only when empty).
+# The release records are refused by what <out-dir> resolves to, not by how
+# it is spelled: sbom//v1.3.0, sbom/./v1.3.0, sbom/local/../v1.3.0, a
+# symbolic link into one, and sbom/V1.3.0 or SBOM/v1.3.0 on a disk that
+# ignores case are all refused. Each folder of the resolved path is compared
+# with sbom/ by identity (-ef), and the name under it, lowercased, with
+# v<digit>. The folders made only to find that out are taken away again
+# (rmdir removes a folder only when empty).
 here=$(pwd -P)
-made=
-[ -d "$out" ] || made=1
+found=$out
+while [ ! -d "$found" ]; do
+	found=$(dirname "$found")
+done
 mkdir -p "$out" || exit 1
 resolved=$(cd "$out" && pwd -P) || exit 1
-case $resolved/ in
-"$here"/sbom/v[0-9]*/*)
-	[ -n "$made" ] && rmdir "$out" 2>/dev/null
-	echo "sbom: $out is inside a release record ($resolved); give another <out-dir>" >&2
-	exit 2
-	;;
-esac
+dir=$resolved
+while [ "$dir" != / ]; do
+	parent=$(dirname "$dir")
+	name=$(basename "$dir" | tr '[:upper:]' '[:lower:]')
+	case $name in
+	v[0-9]*)
+		if [ "$parent" -ef "$here/sbom" ]; then
+			made=$out
+			while [ "$made" != "$found" ]; do
+				rmdir "$made" 2>/dev/null
+				made=$(dirname "$made")
+			done
+			echo "sbom: $out is inside a release record ($resolved); give another <out-dir>" >&2
+			exit 2
+		fi
+		;;
+	esac
+	dir=$parent
+done
 
 # Only the files this script writes are removed, never the folder: a failed
 # run then leaves only the reports of the steps it ran, not an earlier run's.

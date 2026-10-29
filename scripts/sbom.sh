@@ -18,7 +18,8 @@
 #	govulncheck.txt			govulncheck's report on the code
 #	licences.txt			the licence of each component
 #
-# A run replaces the files of an earlier run of the same version. The
+# A run first removes those five files from <out-dir> (nothing else in it),
+# so a run that fails leaves only the reports of the steps it ran. The
 # release records in sbom/<tag>/ (sbom/v1.3.0 and the like) are written by
 # the release step, not by this script: it refuses an <out-dir> inside one
 # of them. sbom/local/ is gitignored; a local scan is not a record.
@@ -31,8 +32,12 @@ set -u
 version=${1:-}
 out=${2:-sbom/local/$version}
 case $version in
-[0-9]*.[0-9]*.[0-9]*) ;;
-*)
+*[!0-9.]*) bad=1 ;;
+[0-9]*.[0-9]*.[0-9]*) bad= ;;
+*) bad=1 ;;
+esac
+case $bad in
+1)
 	echo "sbom: give the release version, such as 1.2.0; got '$version'" >&2
 	exit 2
 	;;
@@ -49,14 +54,28 @@ for tool in syft grype osv-scanner govulncheck python3; do
 	fi
 done
 
-case /${out#./}/ in
-*/sbom/v[0-9]*)
-	echo "sbom: $out is inside a release record (sbom/<tag>/); give another <out-dir>" >&2
+# The release records are refused by where <out-dir> resolves to, so
+# sbom//v1.3.0, sbom/./v1.3.0, sbom/local/../v1.3.0 and a symbolic link into
+# one are refused too. A folder made only to find that out is taken away
+# again (rmdir removes it only when empty).
+here=$(pwd -P)
+made=
+[ -d "$out" ] || made=1
+mkdir -p "$out" || exit 1
+resolved=$(cd "$out" && pwd -P) || exit 1
+case $resolved/ in
+"$here"/sbom/v[0-9]*/*)
+	[ -n "$made" ] && rmdir "$out" 2>/dev/null
+	echo "sbom: $out is inside a release record ($resolved); give another <out-dir>" >&2
 	exit 2
 	;;
 esac
-mkdir -p "$out" || exit 1
-here=$(pwd -P)
+
+# Only the files this script writes are removed, never the folder: a failed
+# run then leaves only the reports of the steps it ran, not an earlier run's.
+for name in specarch-$version.cdx.json grype.txt osv-scanner.txt govulncheck.txt licences.txt; do
+	rm -f "$out/$name"
+done
 
 tmp=$(mktemp -d) || exit 1
 trap 'rm -rf "$tmp"' EXIT

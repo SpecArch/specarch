@@ -7,15 +7,29 @@
 # The SBOM covers what a release ships: the Go module (go.mod and go.sum,
 # which go install reads) and the Swift package's resolved dependencies. It
 # is read from the committed files of HEAD, never the working tree, so it
-# names what the tag holds. It is written to
-# <out-dir>/specarch-<version>.cdx.json (default: the current folder) and
-# scanned with grype and osv-scanner; govulncheck checks the module's code.
-# Any finding fails the script, naming the scanner: a release with a
-# finding is not published until the owner has decided on it.
+# names what the tag holds. It is scanned with grype and osv-scanner, and
+# govulncheck checks the module's code.
+#
+# Everything it writes goes to <out-dir>, by default sbom/local/<version>/
+# under the folder it is run from (created if missing):
+#
+#	specarch-<version>.cdx.json	the CycloneDX SBOM
+#	grype.txt, osv-scanner.txt	each scanner's report on the SBOM
+#	govulncheck.txt			govulncheck's report on the code
+#	licences.txt			the licence of each component
+#
+# A run replaces the files of an earlier run of the same version. The
+# release records in sbom/<tag>/ (sbom/v1.3.0 and the like) are written by
+# the release step, not by this script: it refuses an <out-dir> inside one
+# of them. sbom/local/ is gitignored; a local scan is not a record.
+#
+# Any finding fails the script, naming the scanner and its report: a
+# release with a finding is not published until the owner has decided on
+# it.
 set -u
 
 version=${1:-}
-out=${2:-.}
+out=${2:-sbom/local/$version}
 case $version in
 [0-9]*.[0-9]*.[0-9]*) ;;
 *)
@@ -34,6 +48,15 @@ for tool in syft grype osv-scanner govulncheck python3; do
 		exit 2
 	fi
 done
+
+case /${out#./}/ in
+*/sbom/v[0-9]*)
+	echo "sbom: $out is inside a release record (sbom/<tag>/); give another <out-dir>" >&2
+	exit 2
+	;;
+esac
+mkdir -p "$out" || exit 1
+here=$(pwd -P)
 
 tmp=$(mktemp -d) || exit 1
 trap 'rm -rf "$tmp"' EXIT
@@ -78,6 +101,22 @@ with open(dst, "w") as f:
 EOF
 }
 
+# Runs a scanner, prints its output and keeps it in <out-dir>/<report>,
+# with this folder's path taken out so the report names repository paths
+# only. The scanner's exit status is kept.
+report() {
+	file=$out/$1
+	shift
+	"$@" >"$tmp/report" 2>&1
+	status=$?
+	sed "s|$here/||g; s|$tmp/||g" "$tmp/report" >"$file"
+	cat "$file"
+	if [ $status -ne 0 ]; then
+		echo "sbom: report in $file" >&2
+	fi
+	return $status
+}
+
 licences() {
 	python3 - "$sbom" <<'EOF'
 import json, sys
@@ -92,9 +131,8 @@ EOF
 
 step "export go.mod, go.sum and the Swift package files of HEAD" export_files
 step "write $sbom with syft $(syft version 2>/dev/null | awk '/^Version:/ {print $2}')" write_sbom
-step "scan with grype $(grype version 2>/dev/null | awk '/^Version:/ {print $2}')" grype --fail-on negligible "sbom:$sbom"
-step "scan with $(osv-scanner --version 2>/dev/null | head -1)" osv-scanner scan source -L "$sbom"
-step "check the module's code with govulncheck" govulncheck ./...
-echo "sbom: licences of the components"
-licences
-echo "sbom: done; attach $sbom to the GitHub release of v$version"
+step "scan with grype $(grype version 2>/dev/null | awk '/^Version:/ {print $2}')" report grype.txt grype --fail-on negligible "sbom:$sbom"
+step "scan with $(osv-scanner --version 2>/dev/null | head -1)" report osv-scanner.txt osv-scanner scan source -L "$sbom"
+step "check the module's code with govulncheck" report govulncheck.txt govulncheck ./...
+step "list the licences of the components" report licences.txt licences
+echo "sbom: done; the SBOM and the reports are in $out/"

@@ -104,8 +104,10 @@ and the tool versions are committed under `sbom/vX.Y.Z/`, both SBOMs are
 attached to the draft, its notes end with the scan's summary (the tool
 versions, the result and the licences), and only then is it published.
 `sh scripts/sbom.sh X.Y.Z` runs the same scanners on the Go module and the
-Swift package alone, before tagging. A finding stops the release until
-the owner has decided on it.
+Swift package alone, before tagging. It writes the CycloneDX SBOM and each
+scanner's report to `sbom/local/X.Y.Z/` (gitignored), never into the
+release records in `sbom/vX.Y.Z/`. A finding stops the release until the
+owner has decided on it.
 
 The GitHub releases of v1.1.0 (no SBOM) and v1.2.0 (the CycloneDX SBOM
 alone) cannot take an asset any more; both SBOMs of each and their scan

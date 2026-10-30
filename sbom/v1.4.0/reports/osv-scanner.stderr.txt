@@ -1,0 +1,13 @@
+Scanning dir .
+Starting filesystem walk for root: /
+Scanned ./go.mod file and found 16 packages
+Scanned ./spec/tests/extract-go-handlers/testdata/service/go.mod file and found 1 package
+Scanned ./spec/tests/extract-go-handlers-changed/testdata/service/go.mod file and found 1 package
+Scanned ./spec/tests/extract-go-layout-depends-on/testdata/service/go.mod file and found 1 package
+Scanned ./third_party/typescript-go file and found 0 packages
+Scanned ./swift/Package.resolved file and found 1 package
+Scanned ./examples/library-lending/web-nextjs/pnpm-lock.yaml file and found 453 packages
+Scanned ./examples/lending-desk/sources/code/go.mod file and found 1 package
+Scanned ./readers/dart/pubspec.lock file and found 18 packages
+Scanned ./readers/swift/Package.resolved file and found 1 package
+End status: 5584 dirs visited, 14594 inodes visited, 10 Extract calls, 641.651208ms elapsed, 641.654ms wall time

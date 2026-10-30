@@ -30,7 +30,8 @@
   {
     "paths": [
       "/embed.go",
-      "docs/help/**"
+      "docs/help/**",
+      "cmd/specarch/testdata/**"
     ],
     "command": "go test ./cmd/specarch"
   },
@@ -42,10 +43,23 @@
   },
   {
     "paths": [
-      "cmd/specarch-gen-*/**",
-      "internal/gen*/**"
+      "cmd/specarch-gen-*/*/*",
+      "internal/gen*/*/*"
+    ],
+    "command": "for d in {dirs}; do dirname \"$d\"; done | sort -u | xargs sh -c 'go vet \"$@\" && go test -count=1 \"$@\" ./cmd/specarch' sh"
+  },
+  {
+    "paths": [
+      "cmd/specarch-gen-*/*",
+      "internal/gen*/*"
     ],
     "command": "go vet {dirs} && go test -count=1 {dirs} ./cmd/specarch"
+  },
+  {
+    "paths": [
+      "examples/**"
+    ],
+    "command": "sh scripts/landing-check.sh go"
   },
   {
     "paths": [
@@ -56,7 +70,6 @@
   {
     "paths": [
       "spec/**",
-      "examples/**",
       "records/**",
       "vocabularies/**",
       "readers/**",

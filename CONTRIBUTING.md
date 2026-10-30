@@ -60,9 +60,12 @@ check that covers each path: a list of rules, each a set of globs and the
 command for them, the first matching rule taking a path. In a command,
 `{paths}` is the changed paths the rule took, `{dirs}` their folders as
 `./<folder>`. A Go file runs its own package and the `cmd/specarch` tests,
-since the conformance suite there is what exercises most packages; a
-conformance case runs only that case, in both builds; a schema or idiom
-runs both parts of the landing check, since both builds embed them. A path
+since the conformance suite there is what exercises most packages; Go
+code under `examples/` is input to extraction, not a package of this
+module, so it runs the landing check's go part as the rest of the examples
+do; a conformance case runs only that case in the Go build, with the Swift
+conformance suite and `validate spec examples`; a schema or idiom runs both
+parts of the landing check, since both builds embed them. A path
 no rule takes (prose, history, CI, SBOM records) runs nothing. The landing
 check stays the test before a change lands.
 

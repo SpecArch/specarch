@@ -1,0 +1,79 @@
+[
+  {
+    "paths": [
+      "/go.mod",
+      "/go.sum"
+    ],
+    "command": "go test ./..."
+  },
+  {
+    "paths": [
+      "spec/tests/**"
+    ],
+    "command": "cases=$(printf '%s\\n' {paths} | cut -d/ -f3 | sort -u | paste -sd'|' -) && go test ./cmd/specarch -run \"^(TestConformance|TestCommandTestsHaveCases)\\$/^($cases)\\$\" && swift test --package-path swift --filter 'conformanceSuite|everyDesignTestHasACase' && go run ./cmd/specarch validate spec examples"
+  },
+  {
+    "paths": [
+      "swift/**"
+    ],
+    "command": "sh scripts/landing-check.sh swift"
+  },
+  {
+    "paths": [
+      "schema/**",
+      "idioms/**",
+      "/scripts/landing-check.sh",
+      "/scripts/regenerate.sh"
+    ],
+    "command": "sh scripts/landing-check.sh"
+  },
+  {
+    "paths": [
+      "/embed.go",
+      "docs/help/**"
+    ],
+    "command": "go test ./cmd/specarch"
+  },
+  {
+    "paths": [
+      "third_party/**"
+    ],
+    "command": "go test ./internal/extract ./cmd/specarch"
+  },
+  {
+    "paths": [
+      "cmd/specarch-gen-*/**",
+      "internal/gen*/**"
+    ],
+    "command": "go vet {dirs} && go test -count=1 {dirs} ./cmd/specarch"
+  },
+  {
+    "paths": [
+      "*.go"
+    ],
+    "command": "go vet {dirs} && go test {dirs} ./cmd/specarch"
+  },
+  {
+    "paths": [
+      "spec/**",
+      "examples/**",
+      "records/**",
+      "vocabularies/**",
+      "readers/**",
+      "tools/**",
+      "docs/techspec.md",
+      "docs/requirements.md",
+      "docs/testplan.md",
+      "docs/traceability.md",
+      "docs/deployment.md",
+      "docs/commissioning.md",
+      "docs/manual.md",
+      "docs/questions.md",
+      "docs/changes.md",
+      "docs/releases.md",
+      "docs/problems.txt",
+      "docs/problems.sarif"
+    ],
+    "command": "sh scripts/landing-check.sh go"
+  }
+]

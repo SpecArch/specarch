@@ -1,0 +1,26 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-14
+title: Let decide answer a question that blocks a decision with a record that rests on it, not with origin decided
+raisedBy: specification-author
+raised: "2026-10-29"
+phase: development
+type: perfective
+urgency: normal
+reason: decide told the author to mark a blocked decision with origin decided and decidedIn, which validate refuses with origin_decision, so following its line made the specification invalid (BUG-065).
+affects:
+  adds:
+    - "#/decisions/ADR-208"
+    - "#/tests/decide-blocks-decision"
+    - "#/tests/decide-blocks-decision-earlier"
+    - "#/tests/validate-decision-rests-on-blocked"
+  changes:
+    - "#/commands/decide"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-10-31"
+  outcome: approved
+  why: decide writes restsOn, an existing key of a decision, into the record it makes for a question that blocks a decision, and only on meta-model 1.0 and later; a question that blocks anything else is answered as before. No schema changes, and the record decide writes is one validate accepts, so a patch release carries it (ADR-155, ADR-208).
+release: 1.4.0
+status: released

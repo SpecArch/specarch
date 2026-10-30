@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-13
+title: Let a call's mapping hold worked examples of what is sent and kept, checked by validate, tried by operation with specarch try and turned into tests
+raisedBy: specification-author
+raised: "2026-10-28"
+phase: development
+type: perfective
+urgency: normal
+reason: A call's send and receive expressions could be read but not checked on real values, so an author could not see what a request would carry or what a record would keep before the code was written, and a mistake in a mapping showed only at the integration test.
+affects:
+  adds:
+    - SA-106
+    - "#/decisions/ADR-207"
+    - "#/tests/try-mapping"
+    - "#/tests/try-mapping-both-names"
+    - "#/tests/try-mapping-inputs"
+    - "#/tests/try-mapping-json"
+    - "#/tests/try-mapping-others-fail"
+    - "#/tests/try-mapping-succeeds"
+    - "#/tests/validate-mapping-examples"
+    - "#/tests/validate-mapping-examples-wrong"
+  changes:
+    - "#/enums/Rule"
+    - "#/commands/try"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-10-31"
+  outcome: approved
+  why: A mapping's examples are an optional key in the 1.0 design schema, and example_input, example_expected, example_mismatch and example_error only gain what they say of a mapping example, so a 1.3.0 file, which holds none, is checked as before. specarch diff calls the try change major, since its first argument is renamed from algorithm to name. It is not breaking. The argument is positional, so a command line is written as before, and an algorithm's name is read as before; the name may now also be an operationId. The one new refusal is a name that is both an algorithm's and an operation's, which a 1.3.0 tree holds only when an operationId equals an algorithm's name. So no file that is clean on 1.3.0 gets a new error, a try run on 1.3.0 prints the same unless that name is shared, and a minor release carries it (ADR-186, ADR-207). specarch diff's version error for this release is named in the history file.
+release: 1.4.0
+status: released

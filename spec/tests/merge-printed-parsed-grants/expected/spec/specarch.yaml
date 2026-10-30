@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.3.0/schema/specarch-design-1.0.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
 specarch: "1.0.0"
 info:
   title: Merge of 3 trees

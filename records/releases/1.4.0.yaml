@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: release
+version: 1.4.0
+status: released
+date: "2026-10-31"
+specificationVersion: 1.4.0
+implementations: { go: 0.1.0, swift: 0.1.0 }
+includes: [CR-13, CR-14]

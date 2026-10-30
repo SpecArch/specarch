@@ -5,9 +5,9 @@ standardOutput: |
   project/deployment/handover.yaml:7:3: "source" -> "sourceDelivery"
   project/design/roles.yaml:1:33: ../../../../../schema/specarch-fragment-design-0.3.schema.json -> ../../../../../schema/specarch-fragment-design-1.0.schema.json
   project/design/roles.yaml:20:5: rows -> rowPolicies
-  project/implementation/go/desk.go.specarch-implementation.yaml:1:33: https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json -> https://raw.githubusercontent.com/SpecArch/specarch/v1.3.0/schema/specarch-implementation-1.0.schema.json
+  project/implementation/go/desk.go.specarch-implementation.yaml:1:33: https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-implementation-0.1.schema.json -> https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-implementation-1.0.schema.json
   project/implementation/go/desk.go.specarch-implementation.yaml:2:25: "0.1" -> "1.0.0"
   project/implementation/go/idioms/type-rendering.specarch-idiom.yaml:1:16: "0.1" -> "1.0.0"
-  project/specarch.yaml:1:33: https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-design-0.3.schema.json -> https://raw.githubusercontent.com/SpecArch/specarch/v1.3.0/schema/specarch-design-1.0.schema.json
+  project/specarch.yaml:1:33: https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-design-0.3.schema.json -> https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
   records/releases/1.0.0.yaml:1:17: "0.1" -> "1.0.0"
   project/specarch.yaml:3:1: error: /: meta_model_version: the file has no version line specarch, which specarch upgrade does not add; add specarch with the version the file is written in, and run specarch upgrade again [meta_model_version@specarch.yaml#/]

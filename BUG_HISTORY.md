@@ -936,3 +936,17 @@ Expected: one date in both builds, the one the specification means: the instant'
 To repeat: in a copy of `spec/tests/validate-time-zone-missing`, built before this fix, run `specarch validate .` with the Go build and with the Swift build and compare the lines at `/algorithms/calendarDay`.
 
 Fix: ADR-193's rule for `date()`, built. The design has the root key `timeZone`, a name of the IANA Time Zone Database spelled as the database spells it (`schema/specarch-design-1.0.schema.json`, `rootOnly` in both builds), and the rule `time_zone`: a name the database does not hold is an error at the key, and a `date()` of an instant in a specification that declares none is a warning at the call, since a 1.0 file may hold it. Both evaluators take the zone and give the instant's date in it; the Go build keeps every instant in UTC, so both print `2026-10-26T20:00:00Z` for one instant however it was written. A name is read the same on every host: its form is checked first, and a name a folder of the host's database holds in another spelling, or one a platform's own library knows beyond the database (`PST`, `GMT+7`), is refused in both builds. Cases `validate-time-zone`, `validate-time-zone-missing` and `validate-time-zone-unknown`; the library lending example declares `timeZone: UTC`, the zone for an example that names no place, and keeps every reading it had.
+
+## BUG-065 — decide: the line for a blocked decision suggests origin decided, which validate refuses
+
+- Reported: 2026-10-29 by a user of 1.3.0
+- Closed: 2026-10-30, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-065`
+
+A must question whose `blocks` names a decision, `#/decisions/ADR-001`, was answered with `specarch decide`. It wrote ADR-002 and printed `mark it with origin: decided and decidedIn: ADR-002` for ADR-001, and the record's consequences said the same. Doing so made `specarch validate` fail with `origin_decision`: a decision is not decided by another decision.
+
+Expected: decide's line for a blocked decision names a link validate accepts.
+
+To repeat: in a copy of `spec/tests/decide-blocks-decision/project`, built before this fix, run `specarch decide Q-1 --by owner --answer "PostgreSQL holds the loans." --source owner-answer project`, follow the line it prints, and run `specarch validate project`.
+
+Fix: ADR-208. decide writes `restsOn` with each blocked decision in the new record and prints that the blocked decision keeps its own origin, or is superseded by the new record when the answer replaces it; the consequences say the record rests on it. On a meta-model before 1.0, which has no `restsOn`, it writes none and says to add it after `specarch upgrade`. validate's rule is unchanged. Cases `decide-blocks-decision`, `decide-blocks-decision-earlier` and `validate-decision-rests-on-blocked`.

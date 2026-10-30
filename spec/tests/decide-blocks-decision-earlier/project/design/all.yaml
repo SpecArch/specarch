@@ -1,0 +1,27 @@
+entities:
+  Loan:
+    type: object
+    properties: { id: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+    origin: inferred
+    why: The old document lists a loan by its number.
+decisions:
+  ADR-001:
+    title: Loans are kept in one relational database
+    status: accepted
+    date: "2026-10-08"
+    context: The old document keeps loans in tables.
+    decision: One relational database holds the loans.
+    consequences: The schema is written as SQL.
+    origin: stated
+    cites: [{ source: old-doc, clause: "5", says: "Loans are kept in tables." }]
+questions:
+  Q-1:
+    question: Which database engine holds the loans?
+    kind: decision
+    priority: must
+    blocks: ["#/decisions/ADR-001"]
+    decidedBy: owner
+    options: [PostgreSQL, SQLite]
+    why: ADR-001 chose a relational database without naming the engine.

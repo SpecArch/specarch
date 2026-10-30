@@ -11,6 +11,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/disk"
 	"github.com/SpecArch/specarch/internal/generate"
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/refine"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -186,6 +187,7 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		Consequences: refine.Wrap(consequences(entries, decisionID), 72),
 		Answers:      id,
 		DecidedBy:    by,
+		RestsOn:      recordLinks(entries),
 		Source:       src,
 	}
 	text, err := rec.Encode()
@@ -208,8 +210,14 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch decide: %s written, but %s cannot be written: %v\n", recordPath, questionFile, err)
 		return 2
 	}
+	toWrite := 0
+	for _, e := range entries {
+		if e.decision == "" || e.writes(st) != "" {
+			toWrite++
+		}
+	}
 	next := "run specarch validate"
-	switch len(entries) {
+	switch toWrite {
 	case 0:
 	case 1:
 		next = "write the entry above, then run specarch validate"
@@ -237,17 +245,28 @@ type blockedEntry struct {
 	line    int
 	reached bool // the whole pointer resolves
 	id      string
+	// decision is the decision record the pointer is in, when it is in
+	// one; exists says the specification holds it. A decision is never
+	// decided by another, so the new record rests on it instead.
+	decision string
+	exists   bool
+	links    bool // the specification's version has restsOn (1.0 and later)
 }
 
 func blockedEntries(l loaded, q *yaml.Node, decisionID string) []blockedEntry {
 	var out []blockedEntry
+	links := metamodel.AtLeast(metamodel.Design.Reads(source.Str(source.Child(l.spec.Root, "specarch"))), 1, 0)
 	for _, item := range source.Items(source.Child(q, "blocks")) {
-		e := blockedEntry{text: source.Str(item), id: decisionID}
+		e := blockedEntry{text: source.Str(item), id: decisionID, links: links}
 		b, ok := spec.ParseBlock(e.text)
 		if !ok {
 			continue
 		}
 		e.block = b
+		if b.IsPointer() && len(b.Tokens) >= 2 && b.Tokens[0] == "decisions" {
+			e.decision = b.Tokens[1]
+			e.exists = source.Child(source.Child(l.spec.Root, "decisions"), e.decision) != nil
+		}
 		if b.IsPointer() {
 			start, _, whole := validate.Locate(l.spec.Root, b.Tokens)
 			e.reached = whole
@@ -273,21 +292,77 @@ func (e blockedEntry) printed(st *generate.State) string {
 		}
 		return fmt.Sprintf("%s %s: write what the question asked from %s, each entry with origin: decided and decidedIn: %s", e.text, what, e.id, e.id)
 	}
+	if e.decision != "" {
+		return fmt.Sprintf("%s:%d: %s: %s", e.file, e.line, e.text, e.restsLine(st))
+	}
 	element := "#" + b.Element()
 	mark := fmt.Sprintf("mark %s with origin: decided and decidedIn: %s", element, e.id)
 	if element == e.text {
 		mark = fmt.Sprintf("mark it with origin: decided and decidedIn: %s", e.id)
 	}
-	var write string
-	switch {
-	case !e.reached:
-		write = fmt.Sprintf("write %s from %s", b.Tokens[len(b.Tokens)-1], e.id)
-	case len(st.Missing[source.Pointer(b.Tokens...)]) > 0:
-		write = fmt.Sprintf("write %s from %s", joinAnd(st.Missing[source.Pointer(b.Tokens...)]), e.id)
-	default:
+	write := e.writes(st)
+	if write == "" {
 		write = fmt.Sprintf("write it from %s", e.id)
 	}
 	return fmt.Sprintf("%s:%d: %s: %s; %s", e.file, e.line, e.text, write, mark)
+}
+
+// writes is what is to be written at a pointer: the key it names when it
+// does not resolve, the keys missing there, or "" when it is whole.
+func (e blockedEntry) writes(st *generate.State) string {
+	b := e.block
+	switch {
+	case !e.reached:
+		return fmt.Sprintf("write %s from %s", b.Tokens[len(b.Tokens)-1], e.id)
+	case len(st.Missing[source.Pointer(b.Tokens...)]) > 0:
+		return fmt.Sprintf("write %s from %s", joinAnd(st.Missing[source.Pointer(b.Tokens...)]), e.id)
+	}
+	return ""
+}
+
+// restsLine is what to do for a pointer into a decision record: the new
+// record rests on it, written by decide, and it keeps its own origin, or
+// is superseded by the new one when the answer replaces it; the validator
+// refuses origin decided on a decision (origin_decision).
+func (e blockedEntry) restsLine(st *generate.State) string {
+	if !e.exists {
+		return fmt.Sprintf("%s is not a decision of the specification, so %s rests on nothing; name %s where %s was meant", e.decision, e.id, e.id, e.decision)
+	}
+	rests := fmt.Sprintf("%s rests on %s, written as restsOn in its record", e.id, e.decision)
+	if !e.links {
+		rests = fmt.Sprintf("%s rests on %s, which its context names; restsOn is a key of meta-model 1.0, so add restsOn: [%s] to %s after specarch upgrade", e.id, e.decision, e.decision, e.id)
+	}
+	line := fmt.Sprintf("%s; %s keeps its own origin, since a decision is not decided by another decision, or, when %s replaces it, set status: superseded and supersededBy: %s on %s", rests, e.decision, e.id, e.id, e.decision)
+	if b := e.block; len(b.Tokens) > 2 {
+		if write := e.writes(st); write != "" {
+			line = strings.Replace(write, "write ", "write in "+e.decision+" ", 1) + "; " + line
+		}
+	}
+	return line
+}
+
+// recordLinks is the restsOn the record is written with: the decisions it
+// rests on, when the specification's version has the key.
+func recordLinks(entries []blockedEntry) []string {
+	if len(entries) == 0 || !entries[0].links {
+		return nil
+	}
+	return restsOn(entries)
+}
+
+// restsOn is the decisions the new record rests on: every decision the
+// question blocked that the specification holds, once each, in the order
+// of the blocks entries.
+func restsOn(entries []blockedEntry) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, e := range entries {
+		if e.exists && !seen[e.decision] {
+			seen[e.decision] = true
+			out = append(out, e.decision)
+		}
+	}
+	return out
 }
 
 // questionContext is the record's context: the question, its options, what
@@ -322,6 +397,9 @@ func consequences(entries []blockedEntry, decisionID string) string {
 	}
 	var names []string
 	for _, e := range entries {
+		if e.decision != "" {
+			continue
+		}
 		if e.block.IsPointer() {
 			names = append(names, e.text)
 		} else if e.block.Section != "" {
@@ -330,11 +408,28 @@ func consequences(entries []blockedEntry, decisionID string) string {
 			names = append(names, "the "+e.text+" stage")
 		}
 	}
-	if len(names) == 1 {
-		return fmt.Sprintf("%s is written from this answer, carrying origin decided and decidedIn %s.", names[0], decisionID)
+	var parts []string
+	switch len(names) {
+	case 0:
+	case 1:
+		parts = append(parts, fmt.Sprintf("%s is written from this answer, carrying origin decided and decidedIn %s.", names[0], decisionID))
+	default:
+		parts = append(parts, fmt.Sprintf("%s are written from this answer, each entry carrying origin decided and decidedIn %s.", joinAnd(names), decisionID))
 	}
-	return fmt.Sprintf("%s are written from this answer, each entry carrying origin decided and decidedIn %s.", joinAnd(names), decisionID)
+	rests := restsOn(entries)
+	switch len(rests) {
+	case 0:
+	case 1:
+		parts = append(parts, fmt.Sprintf("This decision rests on %s, which stays as it is written unless this decision supersedes it.", rests[0]))
+	default:
+		parts = append(parts, fmt.Sprintf("This decision rests on %s, which stay as they are written unless this decision supersedes them.", joinAnd(rests)))
+	}
+	if len(parts) == 0 {
+		return "Nothing the question blocked is in the specification; the specification says what it says."
+	}
+	return strings.Join(parts, " ")
 }
+
 
 func oneParagraph(s string) string {
 	return strings.Join(strings.Fields(s), " ")

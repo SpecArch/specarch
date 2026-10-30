@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-208:
+    title: A question that blocks a decision is answered by a decision that rests on it; decide writes restsOn in the new record and leaves the blocked decision's origin as it is
+    status: proposed
+    date: "2026-10-30"
+    context: |
+      decide prints, for every entry a question blocked, that the entry is
+      to carry origin decided and decidedIn the new record (ADR-155). A
+      question may block a decision, such as which engine to choose
+      inside a stack an earlier decision set. The validator refuses
+      origin decided on a decision, since a decision is not decided by
+      another decision (origin_decision), so following decide's line
+      made the specification invalid, and the record decide wrote said
+      the same in its consequences.
+    decision: |
+      For an entry of blocks that points into a decision the
+      specification holds, decide writes restsOn with that decision in
+      the new record, once for each decision, in the order of blocks, and
+      prints that the new record rests on it, that the blocked decision
+      keeps its own origin, and that, when the answer replaces it, the
+      blocked decision is set to status superseded with supersededBy the
+      new record. It prints no origin decided and no decidedIn for it,
+      and the keys to write only when the pointer names keys of the
+      decision that are missing. The record's consequences say that it
+      rests on the blocked decisions, which stay as they are written
+      unless it supersedes them.
+
+      A specification on a meta-model before 1.0 has no restsOn: decide
+      writes none, and prints that the record's context names the
+      blocked decision and that restsOn is added after specarch upgrade.
+      A pointer into a decision the specification does not hold is
+      printed as that: the new record rests on nothing.
+    consequences: |
+      What decide prints for a blocked decision is what validate
+      accepts, and the link between the two decisions is written by the
+      command, so specarch decision why and rests show it at once. The
+      validator's rule that no decision is decided by another stays.
+    why: |
+      The validator's rule protects the record model decide follows: a
+      decision is superseded by a later one or built on by one, never
+      edited into the consequence of another, and its origin says where
+      the decision itself came from. Relaxing the rule would make
+      decidedIn mean two things, the element an answer settled and the
+      decision another builds on, and the second already has its key,
+      restsOn, which runs from a later decision to the earlier ones
+      (ADR-188). The question blocked the earlier decision because the
+      answer settles what it left open, so the new record rests on it;
+      that is derived from blocks, and decide writes what can be derived
+      and prints what cannot (ADR-155). Whether the answer replaces the
+      earlier decision is the reader's judgment of the answer, so the
+      command prints the choice and does not supersede on its own.
+    cites:
+      - source: adr-nygard
+        says: "A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited."
+    satisfies: [SA-85]
+    restsOn: [ADR-155, ADR-188]

@@ -1,0 +1,19 @@
+# Written by specarch decide; answers Q-1. Edit it as any decision.
+decisions:
+  ADR-002:
+    title: Which database engine holds the loans?
+    status: accepted
+    date: "2026-10-30"
+    context: |-
+      Q-1 asked: Which database engine holds the loans? The options were:
+      PostgreSQL; SQLite. It blocked #/decisions/ADR-001. ADR-001 chose a
+      relational database without naming the engine.
+    decision: PostgreSQL holds the loans.
+    consequences: |-
+      This decision rests on ADR-001, which stays as it is written unless this
+      decision supersedes it.
+    answers: [Q-1]
+    decidedBy: owner
+    origin: stated
+    cites:
+      - {source: owner-answer, says: PostgreSQL holds the loans.}

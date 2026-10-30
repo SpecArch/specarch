@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decide
+level: system
+scenario: golden
+given: "a specification on 1.0.0 that tracks origin, with an accepted decision ADR-001 and a must question Q-1 in design/all.yaml that blocks #/decisions/ADR-001"
+when: "decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date"
+then: "it writes design/decisions/ADR-002.yaml with restsOn: [ADR-001] and consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that ADR-002 rests on it and that it keeps its own origin or is superseded by ADR-002, never origin decided or decidedIn, and exits 0"
+verifies: [SA-85]

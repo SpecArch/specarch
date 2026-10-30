@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decide
+level: system
+scenario: golden
+given: "the same specification on 0.1, whose decisions have no restsOn"
+when: "decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date"
+then: "it writes design/decisions/ADR-002.yaml without restsOn, its consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that restsOn is added after specarch upgrade and that ADR-001 keeps its own origin or is superseded by ADR-002, and exits 0"
+verifies: [SA-85]

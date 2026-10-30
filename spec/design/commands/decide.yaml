@@ -21,7 +21,10 @@ commands:
       the entries the question blocked, which are to be written from the
       answer, `answers` the question's ID and `decidedBy` the stakeholder;
       with `--source` it is stated, citing that source with the answer as
-      what it says.
+      what it says. When the question blocked a decision the
+      specification holds, the record rests on it: `restsOn` names each
+      such decision once, in the order of `blocks`, on meta-model 1.0 and
+      later, which have the key, and the consequences say so (ADR-208).
 
       Takes the question's entry out of the file that holds it by editing
       the text, as the marks are written (ADR-066): the lines from the
@@ -37,7 +40,13 @@ commands:
       writes them: for a pointer, the file and line of the deepest entry
       that exists, the pointer, and the keys missing there; for a stage or
       a section, its name; each ending with the origin and decision the
-      entry is to carry. A must question's covering ends with the question,
+      entry is to carry. For a pointer into a decision it prints instead
+      that the new record rests on it, that the decision keeps its own
+      origin, since no decision is decided by another (origin_decision),
+      or that it is superseded by the new record when the answer replaces
+      it, and the keys to write only when keys of it are missing; before
+      meta-model 1.0 it says to add `restsOn` after `specarch upgrade`
+      (ADR-208). A must question's covering ends with the question,
       so the keys it covered are errors until they are written; `validate`
       holds the agent to it.
     permission: public

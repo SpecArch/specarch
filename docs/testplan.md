@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.3.1-dev of the specification: 848 design tests, 413 golden and 435 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.3.1-dev of the specification: 851 design tests, 416 golden and 435 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.3.1-dev of the specification: 848 design tests, 413 golden and 435 red
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 844 |
+| system | 847 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -166,6 +166,22 @@ Scenario: red; level: system; covers usage error; verifies SA-72.
 - Then: it prints how to use it and exits 2
 
 ### Command decide
+
+#### decide-blocks-decision
+
+Scenario: golden; level: system; verifies SA-85.
+
+- Given: a specification on 1.0.0 that tracks origin, with an accepted decision ADR-001 and a must question Q-1 in design/all.yaml that blocks #/decisions/ADR-001
+- When: decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date
+- Then: it writes design/decisions/ADR-002.yaml with restsOn: [ADR-001] and consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that ADR-002 rests on it and that it keeps its own origin or is superseded by ADR-002, never origin decided or decidedIn, and exits 0
+
+#### decide-blocks-decision-earlier
+
+Scenario: golden; level: system; verifies SA-85.
+
+- Given: the same specification on 0.1, whose decisions have no restsOn
+- When: decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date
+- Then: it writes design/decisions/ADR-002.yaml without restsOn, its consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that restsOn is added after specarch upgrade and that ADR-001 keeps its own origin or is superseded by ADR-002, and exits 0
 
 #### decide-needs-source
 
@@ -4478,6 +4494,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-97.
 - Given: three decisions whose restsOn links come back to each of them, one resting on itself
 - When: validate is run
 - Then: it reports decision_cycle at every restsOn entry on a cycle, each naming the chain from its decision, and exits 1
+
+#### validate-decision-rests-on-blocked
+
+Scenario: golden; level: system; verifies SA-85.
+
+- Given: the specification decide-blocks-decision leaves: ADR-001 as written, with origin stated, and ADR-002, which answers the question that blocked ADR-001, with restsOn: [ADR-001]
+- When: validate is run
+- Then: it reports nothing and exits 0
 
 #### validate-decision-rests-on-missing
 

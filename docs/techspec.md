@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.3.1-dev of the specification: 106 requirements, 5 entities, 23 commands, 7 algorithms, 848 tests, 193 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.3.1-dev of the specification: 106 requirements, 5 entities, 23 commands, 7 algorithms, 851 tests, 194 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -875,7 +875,10 @@ blocked and its Insight, its decision the answer, its consequences
 the entries the question blocked, which are to be written from the
 answer, `answers` the question's ID and `decidedBy` the stakeholder;
 with `--source` it is stated, citing that source with the answer as
-what it says.
+what it says. When the question blocked a decision the
+specification holds, the record rests on it: `restsOn` names each
+such decision once, in the order of `blocks`, on meta-model 1.0 and
+later, which have the key, and the consequences say so (ADR-208).
 
 Takes the question's entry out of the file that holds it by editing
 the text, as the marks are written (ADR-066): the lines from the
@@ -891,7 +894,13 @@ Prints one line per entry the question blocked, so that the agent
 writes them: for a pointer, the file and line of the deepest entry
 that exists, the pointer, and the keys missing there; for a stage or
 a section, its name; each ending with the origin and decision the
-entry is to carry. A must question's covering ends with the question,
+entry is to carry. For a pointer into a decision it prints instead
+that the new record rests on it, that the decision keeps its own
+origin, since no decision is decided by another (origin_decision),
+or that it is superseded by the new record when the answer replaces
+it, and the keys to write only when keys of it are missing; before
+meta-model 1.0 it says to add `restsOn` after `specarch upgrade`
+(ADR-208). A must question's covering ends with the question,
 so the keys it covered are errors until they are written; `validate`
 holds the agent to it.
 
@@ -4437,7 +4446,7 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
 | internal/expr | The expression subset. Parses with the cel-go parser, refuses what is outside the subset, type-checks with CEL's strict rules, and evaluates with exact integers and decimals; on request it records each operation and call as computed and each node's type, and writes a sub-expression and a value in the form specarch try prints (ADR-195). |   |
 | internal/generate | The document targets. techspec writes the arc42 document and its Mermaid diagrams and rewrites the regions between markers in hand-written Markdown; requirements, testplan, traceability, deployment and commissioning write the other documents; questions writes the open questions and what they hold up, the text gaps prints; comparison writes the old documents against the refined specification from origin, citations and decisions (ADR-157); html writes the whole specification as one page, with the entity diagram as SVG and the workflows and screens made in memory with internal/genbpmn and internal/genui. Every one renders why as an Insight, each citation as a Note, an element's origin as an Origin line and the open questions about it as Open question paragraphs, and marks an internal element; ForEveryone cuts the specification to what a document for everyone shows, counting what it left out. | #/algorithms/markersWellFormed |
-| internal/refine | specarch decide: the next decision ID, the decision record written for a question, and the question's entry taken out of its file as text, with the problem marks above it and the questions key when it was the only one (ADR-155). |   |
+| internal/refine | specarch decide: the next decision ID, the decision record written for a question, with restsOn the decisions the question blocked (ADR-208), and the question's entry taken out of its file as text, with the problem marks above it and the questions key when it was the only one (ADR-155). |   |
 | internal/problems | The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification. | #/entities/Problem, #/entities/ProblemNote, #/enums/ProblemSeverity |
 | internal/validate | Schema validation with plain messages, the interface boundary, cross-references across the tree, fail-closed access, concrete integers, expressions, worked examples, tests and their derived cases with the rank of each and the cases left out, the life-cycle links and traceability warnings with the requirements another stakeholder owns exempt, the audience of what an element for everyone names, the open questions and what they cover, origin, implementation references, the records beside the specification, and the positions, resolved references and layout problems specarch model prints. | #/entities/Diagnostic, #/enums/Rule, #/enums/Severity, #/algorithms/referenceResolves, #/algorithms/permissionGranted, #/algorithms/workedExampleHolds |
 
@@ -15455,6 +15464,48 @@ yet tried from a file: --file reads an algorithm.
 
 **Insight:** An example belongs to the mapping it checks, so it sits under mapping beside send and receive, as an algorithm's examples sit beside its formula; on the calls entry it would read as examples of the retries or the errors too. Its inputs are the names the send expressions read, not every name they may read: those are the operation's parameters, its body's fields and every field of the record its guard names, and an example that had to give a whole loan to show one amount sent would hide the case behind its padding. An algorithm's example gives every input since the formula may read any of them; a mapping's expressions say which they read. sent and kept must list every field send and receive give, so a field added to the mapping later leaves no example silently checking only part of it. try is the one command that shows a result, so a mapping is tried there rather than through a second command; an operationId and an algorithm's name are both lower camel case and may meet, so a name both have is refused and names both. The tests go through an interface of their own because Harness is written by hand in every project that has generated tests: a method added to it would stop every such project from compiling, mapping examples or not.
 
+### ADR-208: A question that blocks a decision is answered by a decision that rests on it; decide writes restsOn in the new record and leaves the blocked decision's origin as it is
+
+Status: proposed, 2026-10-30.
+
+Rests on: [ADR-155](#adr-155-specarch-decide-writes-the-decision-as-a-file-of-its-own-under-the-next-id-takes-the-question-out-of-its-file-as-text-prints-the-entries-to-write-rather-than-writing-them-and-asks-for-a-source-when-the-specification-tracks-origin), [ADR-188](#adr-188-a-decision-names-the-decisions-it-rests-on-under-restson-in-the-decision-record-that-exists-the-validator-checks-the-chain-and-specarch-decision-why-and-rests-print-it).
+
+Context: decide prints, for every entry a question blocked, that the entry is
+to carry origin decided and decidedIn the new record (ADR-155). A
+question may block a decision, such as which engine to choose
+inside a stack an earlier decision set. The validator refuses
+origin decided on a decision, since a decision is not decided by
+another decision (origin_decision), so following decide's line
+made the specification invalid, and the record decide wrote said
+the same in its consequences.
+
+Decision: For an entry of blocks that points into a decision the
+specification holds, decide writes restsOn with that decision in
+the new record, once for each decision, in the order of blocks, and
+prints that the new record rests on it, that the blocked decision
+keeps its own origin, and that, when the answer replaces it, the
+blocked decision is set to status superseded with supersededBy the
+new record. It prints no origin decided and no decidedIn for it,
+and the keys to write only when the pointer names keys of the
+decision that are missing. The record's consequences say that it
+rests on the blocked decisions, which stay as they are written
+unless it supersedes them.
+
+A specification on a meta-model before 1.0 has no restsOn: decide
+writes none, and prints that the record's context names the
+blocked decision and that restsOn is added after specarch upgrade.
+A pointer into a decision the specification does not hold is
+printed as that: the new record rests on nothing.
+
+Consequences: What decide prints for a blocked decision is what validate
+accepts, and the link between the two decisions is written by the
+command, so specarch decision why and rests show it at once. The
+validator's rule that no decision is decided by another stays.
+
+**Insight:** The validator's rule protects the record model decide follows: a decision is superseded by a later one or built on by one, never edited into the consequence of another, and its origin says where the decision itself came from. Relaxing the rule would make decidedIn mean two things, the element an answer settled and the decision another builds on, and the second already has its key, restsOn, which runs from a later decision to the earlier ones (ADR-188). The question blocked the earlier decision because the answer settles what it left open, so the new record rests on it; that is derived from blocks, and decide writes what can be derived and prints what cannot (ADR-155). Whether the answer replaces the earlier decision is the reader's judgment of the answer, so the command prints the choice and does not supersede on its own.
+
+**Note:** From Documenting architecture decisions, 2011: A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15475,6 +15526,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | check-skips-a-partition | command check | system | golden | a specification of an events entity with a check whose implementation file maps it to the events table and lists its index idx_at, and a repository whose first commit holds the migration of a table partitioned by range with that check and that index, a partition partitioned again by list, and a default partition with a check and an index of its own, and whose second commit holds the catalogue dump made from it | check is run on the catalogue dump | it compares the events table alone, finds no difference since the partitions are not compared, neither as tables nor by the check and index of their own, and the index, which the catalogue prints with ON ONLY, is the plain index the mapping lists, reports the check's text the database rewrote, and exits 0 |
 | check-succeeds | command check | system | golden | a specification of branches and copies with its implementation file, and a repository whose first commit holds the migrations, the router and the permission check and whose second holds the catalogue dump, the route table and the permission table made from them, naming the first, and an allowlist of three lines; the router serves a route the specification does not name, the database has a table it does not hold and a CHAR column where it has a string of that width, a check whose text the database rewrote and an index on an expression, an operation the specification makes public is a route that checks no permission, a clerk is granted a permission the specification's clerk holds through implies, and the foreign key's no action is the reader's restrict | check is run with the allowlist and --since HEAD on the three dumps | it counts the three differences the allowlist names and does not print them, prints the check's text and the index the mapping does not list as warnings, finds no other difference, and exits 0 |
 | check-usage-error | command check | system | red | a specification and no dump | check is run with the specification alone | it prints how to use it and exits 2 |
+| decide-blocks-decision | command decide | system | golden | a specification on 1.0.0 that tracks origin, with an accepted decision ADR-001 and a must question Q-1 in design/all.yaml that blocks #/decisions/ADR-001 | decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date | it writes design/decisions/ADR-002.yaml with restsOn: [ADR-001] and consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that ADR-002 rests on it and that it keeps its own origin or is superseded by ADR-002, never origin decided or decidedIn, and exits 0 |
+| decide-blocks-decision-earlier | command decide | system | golden | the same specification on 0.1, whose decisions have no restsOn | decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date | it writes design/decisions/ADR-002.yaml without restsOn, its consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that restsOn is added after specarch upgrade and that ADR-001 keeps its own origin or is superseded by ADR-002, and exits 0 |
 | decide-needs-source | command decide | system | red | a specification that tracks origin | decide is run without --source | it refuses, saying to declare the answer as an interview source and name it, writes nothing and exits 1 |
 | decide-removes-questions-file | command decide | system | golden | a specification that does not track origin, with no decision yet and one could question Q-3, alone in design/questions.yaml under a comment line, blocking a key that is written | decide is run for Q-3 with --by owner, the answer and a date, with no --source | it writes design/decisions/ADR-001.yaml without origin or cites, removes design/questions.yaml since nothing but the comment was left, prints the entity's file and line with the key to write, and exits 0 |
 | decide-unknown-question | command decide | system | red | a specification with the open questions Q-1, Q-2 and Q-3 | decide is run for Q-9 | it refuses, naming the open questions, writes nothing and exits 1 |
@@ -16009,6 +16062,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-decision | command validate | system | red | a decision superseded by one that does not exist | validate is run | it reports decision and exits 1 |
 | validate-decision-chain | command validate | system | golden | three decisions, the second resting on the first and the third on both | validate is run | it prints nothing and exits 0 |
 | validate-decision-cycle | command validate | system | red | three decisions whose restsOn links come back to each of them, one resting on itself | validate is run | it reports decision_cycle at every restsOn entry on a cycle, each naming the chain from its decision, and exits 1 |
+| validate-decision-rests-on-blocked | command validate | system | golden | the specification decide-blocks-decision leaves: ADR-001 as written, with origin stated, and ADR-002, which answers the question that blocked ADR-001, with restsOn: [ADR-001] | validate is run | it reports nothing and exits 0 |
 | validate-decision-rests-on-missing | command validate | system | red | a decision whose restsOn names a decision that does not exist | validate is run | it reports decision at the entry, naming the nearest decision, and exits 1 |
 | validate-decision-rests-on-superseded | command validate | system | golden | a superseded decision, its successor resting on it, an accepted decision resting on it, and a superseded decision resting on it | validate is run | it warns decision_superseded at the accepted decision's entry only, naming the successor, and exits 0 |
 | validate-decision-table | command validate | system | golden | an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when, an instant input no rule names and a worked example that gives it, and one under unique whose rules split a string's values, an age's range, a nullable date's null and values, and a double's values with no overlap and no gap, and with no examples | validate is run | it reports no problem, the same in both builds, and exits 0 |
@@ -16773,7 +16827,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-82 | enums Rule | tests derive-0-3-rows; tests generate-go-dxlib-rows; tests generate-go-dxlib-rows-warned; tests generate-sql-0-3-rows; tests generate-sql-0-3-rows-changed; tests generate-sql-0-3-rows-mariadb; tests validate-0-3-caller-property; tests validate-0-3-meta-model-0-2; tests validate-0-3-reserved-name; tests validate-0-3-rows; tests validate-0-3-rows-valid; tests validate-row-policies; tests validate-row-policies-valid |
 | SA-83 | enums Rule; decisions ADR-171 | tests derive-0-3-clients; tests derive-caller-estate; tests document-techspec-0-3-clients; tests validate-0-3-callers; tests validate-0-3-clients; tests validate-0-3-clients-valid; tests validate-0-3-nobody; tests validate-0-3-through; tests validate-caller-identity-cases |
 | SA-84 | enums Rule | tests derive-0-3-tokens; tests document-techspec-0-3-tokens; tests generate-openapi-0-3-tokens; tests validate-0-3-claims; tests validate-0-3-security-events; tests validate-0-3-token-audience; tests validate-0-3-tokens; tests validate-0-3-tokens-valid; tests validate-0-3-txn-token; tests validate-0-3-via |
-| SA-85 | commands decide; decisions ADR-155; decisions ADR-156 | tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists |
+| SA-85 | commands decide; decisions ADR-155; decisions ADR-156; decisions ADR-208 | tests decide-blocks-decision; tests decide-blocks-decision-earlier; tests decide-needs-source; tests decide-removes-questions-file; tests decide-unknown-question; tests decide-unknown-source; tests decide-unknown-stakeholder; tests decide-usage-error; tests decide-writes-decision; tests document-problems-lists; tests validate-decision-rests-on-blocked |
 | SA-86 | enums DocumentTarget; commands document; decisions ADR-157 | tests document-writes-comparison; tests document-writes-comparison-citation-without-source |
 | SA-87 | decisions ADR-158; decisions ADR-167; decisions ADR-168 | tests generate-scripts; tests generate-scripts-dialect-refused; tests generate-scripts-hand-written-refused; tests generate-scripts-mariadb |
 | SA-88 | enums Rule; decisions ADR-171 | tests derive-caller-estate; tests document-techspec-caller-estate; tests gaps-caller-alone; tests validate-caller-chain-gap; tests validate-caller-chain-wrong; tests validate-caller-estate; tests validate-caller-estate-wrong; tests validate-caller-identity-case-waits; tests validate-caller-identity-cases |

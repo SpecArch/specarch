@@ -220,7 +220,7 @@ layout:
     implements: ["#/algorithms/markersWellFormed"]
     dependsOn: [internal/semver, internal/source, internal/spec, internal/validate]
   internal/refine:
-    description: "specarch decide: the next decision ID, the decision record written for a question, and the question's entry taken out of its file as text, with the problem marks above it and the questions key when it was the only one (ADR-155)."
+    description: "specarch decide: the next decision ID, the decision record written for a question, with restsOn the decisions the question blocked (ADR-208), and the question's entry taken out of its file as text, with the problem marks above it and the questions key when it was the only one (ADR-155)."
     dependsOn: [internal/source]
   internal/problems:
     description: The problems of a specification, valid or not, gathered from validate's diagnostics and the open questions into one list with ids, columns and notes, written as problems.txt and as a SARIF 2.1.0 log, and marked above their entries in the YAML files of the specification.

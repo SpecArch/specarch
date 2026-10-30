@@ -42,7 +42,8 @@ type Record struct {
 	Consequences string
 	Answers      string // the question's ID
 	DecidedBy    string
-	Source       string // the source cited, or "" for none
+	RestsOn      []string // the decisions the question blocked, which the record builds on
+	Source       string   // the source cited, or "" for none
 }
 
 // Encode is the record as the text of a fragment file holding one accepted
@@ -60,6 +61,13 @@ func (r Record) Encode() ([]byte, error) {
 	add("consequences", text(r.Consequences))
 	add("answers", &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle, Content: []*yaml.Node{scalar(r.Answers)}})
 	add("decidedBy", scalar(r.DecidedBy))
+	if len(r.RestsOn) > 0 {
+		links := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle}
+		for _, id := range r.RestsOn {
+			links.Content = append(links.Content, scalar(id))
+		}
+		add("restsOn", links)
+	}
 	if r.Source != "" {
 		add("origin", scalar("stated"))
 		cite := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Style: yaml.FlowStyle, Content: []*yaml.Node{scalar("source"), scalar(r.Source), scalar("says"), scalar(r.Says)}}

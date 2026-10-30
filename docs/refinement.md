@@ -227,6 +227,17 @@ and the keys missing there, and what the entry is to carry:
 
     requirements/all.yaml:4: #/requirements/CASE-1/priority: write priority from ADR-002; mark #/requirements/CASE-1 with origin: decided and decidedIn: ADR-002
 
+A question may block a decision, such as which engine to use inside a stack
+an earlier decision set. No decision is decided by another
+(`origin_decision`), so the new record rests on the blocked one instead:
+decide writes `restsOn` with it in the record, and prints that the blocked
+decision keeps its own origin, or is set to `status: superseded` with
+`supersededBy` the new record when the answer replaces it (ADR-208). A
+specification on a meta-model before 1.0 has no `restsOn`, and the line says
+to add it after `specarch upgrade`:
+
+    design/all.yaml:10: #/decisions/ADR-001: ADR-002 rests on ADR-001, written as restsOn in its record; ADR-001 keeps its own origin, since a decision is not decided by another decision, or, when ADR-002 replaces it, set status: superseded and supersededBy: ADR-002 on ADR-001
+
 The command writes nothing into those entries: the answer is prose and the
 entry is data, so what the answer becomes there is the agent's reading of
 it, which the validator checks. From that run on, the keys a `must`

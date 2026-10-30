@@ -1,0 +1,4 @@
+arguments: [decide, Q-1, --by, owner, --answer, "PostgreSQL holds the loans.", --source, owner-answer, --date, "2026-10-30", project]
+exitStatus: 0
+standardOutput: |
+  design/all.yaml:10: #/decisions/ADR-001: ADR-002 rests on ADR-001, written as restsOn in its record; ADR-001 keeps its own origin, since a decision is not decided by another decision, or, when ADR-002 replaces it, set status: superseded and supersededBy: ADR-002 on ADR-001

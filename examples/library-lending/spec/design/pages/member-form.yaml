@@ -10,6 +10,9 @@ pages:
     fields: [fullName, email, tier, address, phones]
     states:
       failed:
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
+        not-signed-in: { message: "Your session has ended. Sign in again, then try once more." }
+        not-allowed: { message: Your role does not allow this. Ask a desk supervisor. }
         email-taken: { message: Another member already has this email address., field: email }
     onSubmitted: { navigate: member-view, with: { memberId: id }, message: The member is registered. }
     satisfies: [LIB-7]

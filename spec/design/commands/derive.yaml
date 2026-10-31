@@ -12,9 +12,31 @@ commands:
       validator suggests, with the subject, the scenario, the level,
       `covers`, `given`, `when` and `then` as the derivation words them,
       `verifies` from what the subject satisfies, `origin: inferred` and a
-      `why` that says why the case was chosen, and the expected status or
-      exit, or the caller of a denied case, where the design says them for
-      certain. The cases read the identity module when it is given in the
+      `why` that says why the case was chosen, and the `fixture`, `input`
+      and `expect` the design fixes, so that the tests target writes a
+      test that runs rather than one whose body is written by hand
+      (ADR-213). For an operation the design fixes the call when it
+      declares the status the case answers: the success status, 403 for
+      a denied case, 404 for a not-found case, 401 for a case denied when
+      not signed in, and 400, or 422 when it has no 400, for a missing
+      field or a value of the wrong form or outside a limit. The call is
+      then a `caller` that holds the permission, or for a denied case the
+      first role by name that does not; a value inside every limit of
+      each required parameter and body field, its `example`, its
+      `default`, its first `examples` item, its enum's first value or one
+      made from its type and limits, a UUID made from the field's name
+      for a `uuid`; the field the case is about left out, or set to the
+      value on or past its limit or of the wrong form; and a record, by
+      its one-field primary key, of each entity a body field's relation
+      or a path parameter's name (`memberId` for `Member` keyed by `id`)
+      names, but for the one a not-found case looks for. A value
+      `test_data` would refuse, a malformed date or a value not of an
+      enum, is not written, and neither is the call of a required field
+      no value can be made for, an object, a list or a field with a
+      `pattern`: such a case keeps the status and the caller alone, as
+      do `response <status>`, `repeated with the same <key>` and `denied
+      with expired session`, whose set-up the data cannot say. A command's
+      success and `exit <code>` cases carry their exit. The cases read the identity module when it is given in the
       same run, in an estate or among the folders given (ADR-171): the
       through of its roles that names a permission of the specification,
       and the security events and trust domain it declares, so each
@@ -58,8 +80,22 @@ commands:
       keeps its tests in the root file is refused: each derived test needs
       a folder of its own. Writing tests changes the specification, so an
       approval of it no longer holds.
+
+      With `--fill` it also adds that data to each test that has none of
+      `fixture`, `input` and `expect`, no `input/` or `expected/` folder
+      and no `notApplicable`: the data of the case it covers, or of the
+      success when a golden test covers none. A test of several cases is
+      filled when one case's data holds what the others give, as `not
+      found memberId` holds `response 404`; otherwise it is left as it is
+      and named on standard error with the reason. The lines go at the
+      end of the test's file, and nothing else in it changes: the author
+      reads them against the test's `given`, `when` and `then`, which the
+      data cannot read. Each test filled is printed as a draft is.
     permission: public
     options:
+      fill:
+        description: Also add the fixture, input and expect the design fixes to each test that has none of them.
+        schema: { type: boolean, default: false }
       dry-run:
         description: Write nothing; print each draft test it would write, as would write <path>.
         schema: { type: boolean, default: false }
@@ -72,9 +108,9 @@ commands:
     reads:
       - { path: "{paths}", description: The specifications. }
     writes:
-      - { path: "tests/<name>/test.yaml under each specification's folder", description: "One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); no other file is touched." }
-    standardOutput: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
-    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, a question for each test whose name took a suffix, and the count written.
+      - { path: "tests/<name>/test.yaml under each specification's folder", description: "One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); with --fill, the fixture, input and expect added at the end of each test that had none; no other file is touched." }
+    standardOutput: The errors of an invalid specification, one line each; otherwise the path of each test written or filled, one per line.
+    standardError: A usage message on a usage error, the reason on an unreadable path, each test left out, kept, not written or not filled with the reason, a question for each test whose name took a suffix, and the count written and filled.
     exitCodes:
       "0": the tests were written, or there was nothing to write
       "1": a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject
@@ -82,7 +118,7 @@ commands:
     remedies:
       "1": "Run specarch validate and settle the errors it prints, or rename the draft it names, then run it again."
       "2": "Read the reason on standard error; move tests kept in the root file into the tests stage's folder, or correct the command line or the path it names, and run it again."
-    satisfies: [SA-28]
+    satisfies: [SA-28, SA-111]
     why: |
       The validator already says which tests a specification implies and
       gives each one to copy; writing them out is the step that turns the
@@ -100,4 +136,8 @@ commands:
       (ADR-122); a suffix and a question rather than an error, because
       the two subjects are different and each draft can be written, and
       the reviewer who reads the question decides whether the name
-      suits.
+      suits. The data is drafted only where the design fixes it, so a
+      draft never holds a status the operation does not answer or a
+      value of a type its field does not take; `--fill` is an option, not
+      the default, because it writes into tests an author wrote, which
+      derive otherwise never touches (ADR-213).

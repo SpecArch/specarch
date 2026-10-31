@@ -516,9 +516,31 @@ writes a test: a folder `tests/<name>/test.yaml` named as the
 validator suggests, with the subject, the scenario, the level,
 `covers`, `given`, `when` and `then` as the derivation words them,
 `verifies` from what the subject satisfies, `origin: inferred` and a
-`why` that says why the case was chosen, and the expected status or
-exit, or the caller of a denied case, where the design says them for
-certain. The cases read the identity module when it is given in the
+`why` that says why the case was chosen, and the `fixture`, `input`
+and `expect` the design fixes, so that the tests target writes a
+test that runs rather than one whose body is written by hand
+(ADR-213). For an operation the design fixes the call when it
+declares the status the case answers: the success status, 403 for
+a denied case, 404 for a not-found case, 401 for a case denied when
+not signed in, and 400, or 422 when it has no 400, for a missing
+field or a value of the wrong form or outside a limit. The call is
+then a `caller` that holds the permission, or for a denied case the
+first role by name that does not; a value inside every limit of
+each required parameter and body field, its `example`, its
+`default`, its first `examples` item, its enum's first value or one
+made from its type and limits, a UUID made from the field's name
+for a `uuid`; the field the case is about left out, or set to the
+value on or past its limit or of the wrong form; and a record, by
+its one-field primary key, of each entity a body field's relation
+or a path parameter's name (`memberId` for `Member` keyed by `id`)
+names, but for the one a not-found case looks for. A value
+`test_data` would refuse, a malformed date or a value not of an
+enum, is not written, and neither is the call of a required field
+no value can be made for, an object, a list or a field with a
+`pattern`: such a case keeps the status and the caller alone, as
+do `response <status>`, `repeated with the same <key>` and `denied
+with expired session`, whose set-up the data cannot say. A command's
+success and `exit <code>` cases carry their exit. The cases read the identity module when it is given in the
 same run, in an estate or among the folders given (ADR-171): the
 through of its roles that names a permission of the specification,
 and the security events and trust domain it declares, so each
@@ -563,10 +585,21 @@ keeps its tests in the root file is refused: each derived test needs
 a folder of its own. Writing tests changes the specification, so an
 approval of it no longer holds.
 
-**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055). A name made valid rather than copied, because a folder whose name validate refuses would make the tree derive writes one validate refuses, and every tree a command writes passes validate (ADR-122); a suffix and a question rather than an error, because the two subjects are different and each draft can be written, and the reviewer who reads the question decides whether the name suits.
+With `--fill` it also adds that data to each test that has none of
+`fixture`, `input` and `expect`, no `input/` or `expected/` folder
+and no `notApplicable`: the data of the case it covers, or of the
+success when a golden test covers none. A test of several cases is
+filled when one case's data holds what the others give, as `not
+found memberId` holds `response 404`; otherwise it is left as it is
+and named on standard error with the reason. The lines go at the
+end of the test's file, and nothing else in it changes: the author
+reads them against the test's `given`, `when` and `then`, which the
+data cannot read. Each test filled is printed as a draft is.
+
+**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055). A name made valid rather than copied, because a folder whose name validate refuses would make the tree derive writes one validate refuses, and every tree a command writes passes validate (ADR-122); a suffix and a question rather than an error, because the two subjects are different and each draft can be written, and the reviewer who reads the question decides whether the name suits. The data is drafted only where the design fixes it, so a draft never holds a status the operation does not answer or a value of a type its field does not take; `--fill` is an option, not the default, because it writes into tests an author wrote, which derive otherwise never touches (ADR-213).
 
 ```
-specarch derive <paths>... [--dry-run]
+specarch derive <paths>... [--fill] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -577,6 +610,7 @@ Anyone who has the program runs it.
 
 | Option | What it does | Required |
 |---|---|---|
+| `--fill` | Also add the fixture, input and expect the design fixes to each test that has none of them. |  |
 | `--dry-run` | Write nothing; print each draft test it would write, as would write <path>. |  |
 
 It reads:
@@ -585,11 +619,11 @@ It reads:
 
 It writes:
 
-- `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); no other file is touched.
+- `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); with --fill, the fixture, input and expect added at the end of each test that had none; no other file is touched.
 
-On standard output: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
+On standard output: The errors of an invalid specification, one line each; otherwise the path of each test written or filled, one per line.
 
-On standard error: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, a question for each test whose name took a suffix, and the count written.
+On standard error: A usage message on a usage error, the reason on an unreadable path, each test left out, kept, not written or not filled with the reason, a question for each test whose name took a suffix, and the count written and filled.
 
 | Exit status | It means | What to do |
 |---|---|---|
@@ -729,7 +763,11 @@ modules' own documents are written as when each is named (ADR-113).
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
 requirement with its attributes and acceptance criteria. The
-testplan target writes `testplan.md`: the levels, how each
+testplan target writes `testplan.md`: how many of the tests that
+apply the tests target writes with their bodies, a test of an
+operation, a command or a page that gives input or expect, and how
+many with a body written by hand, counted by kind of subject in its
+first section (ADR-213); the levels, how each
 implementation's suites run the tests, and every design test as a
 test case, grouped by subject, then each state machine with its
 state diagram and its paths from an initial to a terminal state, each

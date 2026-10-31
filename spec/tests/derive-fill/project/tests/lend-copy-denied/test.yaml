@@ -1,0 +1,8 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [denied without loans.create, response 403]
+given: "a visitor, who does not hold loans.create"
+when: "lendCopy is called"
+then: "it answers 403"
+verifies: [LEND-1]

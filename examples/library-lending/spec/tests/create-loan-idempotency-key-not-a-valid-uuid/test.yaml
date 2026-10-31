@@ -2,7 +2,13 @@
 operation: createLoan
 level: system
 scenario: red
-covers: [Idempotency-Key not a valid uuid]
+covers: [Idempotency-Key not a valid uuid, response 400]
 given: a member and a book that exist
 when: createLoan is called with an Idempotency-Key that is not a UUID
 then: it is refused and no loan is created
+fixture:
+  caller: librarian
+  Book: [{ id: "d560a9f8-90db-51af-9fb2-40ab426d5a46" }]
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { Idempotency-Key: "not a uuid", bookId: "d560a9f8-90db-51af-9fb2-40ab426d5a46", dueOn: "2026-01-15", lentOn: "2026-01-15", memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530" }
+expect: { status: 400 }

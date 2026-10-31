@@ -26,7 +26,12 @@ export const schema = {
       permission: "fees.approve",
       confirm: "fee-waivers-inbox.actions.approveFeeWaiver.confirm",
       message: "fee-waivers-inbox.actions.approveFeeWaiver.message",
-      failed: [],
+      failed: [
+        { status: 404, problem: "fee-waiver-not-found", message: "fee-waivers-inbox.failed.fee-waiver-not-found" },
+        { status: 403, problem: "not-allowed", message: "fee-waivers-inbox.failed.not-allowed" },
+        { status: 401, problem: "not-signed-in", message: "fee-waivers-inbox.failed.not-signed-in" },
+        { status: 400, problem: "request-invalid", message: "fee-waivers-inbox.failed.request-invalid" },
+      ],
     },
     {
       label: "fee-waivers-inbox.actions.refuseFeeWaiver.label",
@@ -38,12 +43,20 @@ export const schema = {
       confirm: "fee-waivers-inbox.actions.refuseFeeWaiver.confirm",
       reason: { property: "reason", label: "fee-waivers-inbox.actions.refuseFeeWaiver.reason", maxLength: 500 },
       message: "fee-waivers-inbox.actions.refuseFeeWaiver.message",
-      failed: [],
+      failed: [
+        { status: 404, problem: "fee-waiver-not-found", message: "fee-waivers-inbox.failed.fee-waiver-not-found" },
+        { status: 403, problem: "not-allowed", message: "fee-waivers-inbox.failed.not-allowed" },
+        { status: 401, problem: "not-signed-in", message: "fee-waivers-inbox.failed.not-signed-in" },
+        { status: 400, problem: "request-invalid", message: "fee-waivers-inbox.failed.request-invalid" },
+      ],
     },
   ],
   empty: "fee-waivers-inbox.empty",
   filteredEmpty: "fee-waivers-inbox.filteredEmpty",
-  failed: [],
+  failed: [
+    { status: 403, problem: "not-allowed", message: "fee-waivers-inbox.failed.not-allowed" },
+    { status: 401, problem: "not-signed-in", message: "fee-waivers-inbox.failed.not-signed-in" },
+  ],
   wire: {
     page: "page",
     pageSize: "pageSize",

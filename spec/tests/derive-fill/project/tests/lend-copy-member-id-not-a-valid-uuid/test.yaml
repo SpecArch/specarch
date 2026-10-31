@@ -1,0 +1,15 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [memberId not a valid uuid]
+given: "..."
+when: "lendCopy is called with memberId that is not a valid uuid"
+then: "it is refused"
+verifies: [LEND-1]
+origin: inferred
+why: "Written by hand."
+fixture:
+  caller: clerk
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { copies: 1, lentOn: "2026-01-15", memberId: "not a uuid" }
+expect: { status: 400 }

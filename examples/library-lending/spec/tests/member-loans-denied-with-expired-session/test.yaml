@@ -2,7 +2,7 @@
 page: member-loans
 level: system
 scenario: red
-covers: [denied with expired session]
+covers: [denied with expired session, fails with not-signed-in]
 given: a librarian whose session expired after half an hour without a request
 when: the page member-loans is opened
 then: it is refused as not signed in

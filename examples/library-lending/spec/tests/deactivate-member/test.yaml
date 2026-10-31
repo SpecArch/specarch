@@ -5,3 +5,8 @@ scenario: golden
 given: a librarian and an active member
 when: "deactivateMember is called for that member with the reason \"Moved away.\""
 then: "it answers 200 with the member inactive, and the reason is kept with the record"
+fixture:
+  caller: librarian
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530", reason: "reason" }
+expect: { status: 200 }

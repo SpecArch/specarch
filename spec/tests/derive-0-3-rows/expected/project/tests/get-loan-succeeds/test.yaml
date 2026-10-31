@@ -6,4 +6,8 @@ when: "getLoan is called with values inside every limit"
 then: "it answers 200: The loan."
 origin: inferred
 why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+fixture:
+  caller: member
+  Loan: [{ id: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }]
+input: { loanId: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }
 expect: { status: 200 }

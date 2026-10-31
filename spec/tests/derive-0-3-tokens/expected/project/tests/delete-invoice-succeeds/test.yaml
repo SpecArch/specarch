@@ -6,4 +6,8 @@ when: "deleteInvoice is called with values inside every limit"
 then: "it answers 204: Deleted."
 origin: inferred
 why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+fixture:
+  caller: invoice-manager
+  Invoice: [{ id: "invoice-id" }]
+input: { invoiceId: "invoice-id" }
 expect: { status: 204 }

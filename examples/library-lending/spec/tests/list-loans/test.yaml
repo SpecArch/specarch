@@ -5,3 +5,5 @@ scenario: golden
 given: an open loan and a returned loan
 when: listLoans is called with status open
 then: only the open loan is answered
+fixture: { caller: auditor }
+expect: { status: 200 }

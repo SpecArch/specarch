@@ -6,3 +6,6 @@ covers: [not found memberId, response 404]
 given: a librarian and no member with a given id
 when: deactivateMember is called with that id
 then: it answers 404
+fixture: { caller: librarian }
+input: { memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530", reason: "reason" }
+expect: { status: 404 }

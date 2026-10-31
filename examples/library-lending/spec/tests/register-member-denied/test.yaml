@@ -6,3 +6,6 @@ covers: [denied without members.write]
 given: a caller holding only the member role
 when: createMember is called
 then: it is refused as not allowed
+fixture: { caller: member }
+input: { email: "email@example.com", fullName: "full-name", tier: "standard" }
+expect: { status: 403 }

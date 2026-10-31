@@ -30,10 +30,16 @@ form({
   // What the operations' refusals say, by status, and the field each is about.
   refusals: {
     submit: {
+      "400": { message: "Something in the request is missing or not in its form. Check it and try again." },
+      "401": { message: "Your session has ended. Sign in again, then try once more." },
+      "403": { message: "Your role does not allow this. Ask a desk supervisor." },
       "404": { message: "There is no member with this card." },
       "409": { message: "This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available." },
     },
     source: {
+      "400": "Something in the request is missing or not in its form. Check it and try again.",
+      "401": "Your session has ended. Sign in again, then try once more.",
+      "403": "Your role does not allow this. Ask a desk supervisor.",
       "404": "There is no member with this card.",
     },
   },

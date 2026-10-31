@@ -6,3 +6,8 @@ covers: [denied without fees.request]
 given: a member, who does not hold fees.request
 when: requestFeeWaiver is called for one of their own loans
 then: it is refused as not allowed, and no request is made
+fixture:
+  caller: member
+  Loan: [{ id: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }]
+input: { loanId: "84cd339d-fc88-537c-a3c6-2eca80cc7069", amount: "1.00", reason: "reason" }
+expect: { status: 403 }

@@ -34,6 +34,9 @@ form({
   // What the operations' refusals say, by status, and the field each is about.
   refusals: {
     submit: {
+      "400": { message: "Something in the request is missing or not in its form. Check it and try again." },
+      "401": { message: "Your session has ended. Sign in again, then try once more." },
+      "403": { message: "Your role does not allow this. Ask a desk supervisor." },
       "409": { message: "This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows." },
     },
   },

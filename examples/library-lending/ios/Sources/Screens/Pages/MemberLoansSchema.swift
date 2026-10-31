@@ -9,7 +9,12 @@ let memberLoansSchema = FormPageSchema(
     source: .init(
         operation: "getMember",
         path: "/members/{memberId}",
-        failed: [.init(status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found")]
+        failed: [
+            .init(status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found"),
+            .init(status: 403, problem: "not-allowed", message: "member-loans.failed.not-allowed"),
+            .init(status: 401, problem: "not-signed-in", message: "member-loans.failed.not-signed-in"),
+            .init(status: 400, problem: "request-invalid", message: "member-loans.failed.request-invalid")
+        ]
     ),
     submit: .init(
         operation: "lendCopies",
@@ -51,7 +56,10 @@ let memberLoansSchema = FormPageSchema(
     checks: [],
     failed: [
         .init(status: 409, problem: "lending-refused", message: "member-loans.failed.lending-refused"),
-        .init(status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found")
+        .init(status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found"),
+        .init(status: 403, problem: "not-allowed", message: "member-loans.failed.not-allowed"),
+        .init(status: 401, problem: "not-signed-in", message: "member-loans.failed.not-signed-in"),
+        .init(status: 400, problem: "request-invalid", message: "member-loans.failed.request-invalid")
     ],
     events: [.init(navigate: "member-view", with: ["memberId": "id"], message: "member-loans.onSubmitted")]
 )

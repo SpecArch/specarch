@@ -6,4 +6,7 @@ when: "createLoan is called with values inside every limit"
 then: "it answers 201: The loan."
 origin: inferred
 why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+fixture:
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { dueOn: "2026-01-15", lentOn: "2026-01-15", memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530", pin: "pin" }
 expect: { status: 201 }

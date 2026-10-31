@@ -7,3 +7,5 @@ given: a librarian, who does not hold fees.approve
 when: listFeeWaivers is called
 then: it is refused as not allowed
 verifies: [LIB-8]
+fixture: { caller: librarian }
+expect: { status: 403 }

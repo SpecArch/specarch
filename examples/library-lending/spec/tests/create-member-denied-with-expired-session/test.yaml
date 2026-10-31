@@ -6,3 +6,4 @@ covers: [denied with expired session]
 given: a librarian whose session expired after half an hour without a request
 when: createMember is called
 then: it is refused as not signed in, and nothing changes
+expect: { status: 401 }

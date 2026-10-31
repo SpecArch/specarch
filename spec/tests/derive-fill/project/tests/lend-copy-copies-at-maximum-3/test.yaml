@@ -1,0 +1,15 @@
+operation: lendCopy
+level: system
+scenario: golden
+covers: [copies at maximum 3]
+given: "..."
+when: "lendCopy is called with copies equal to 3"
+then: "it succeeds"
+verifies: [LEND-1]
+origin: inferred
+why: "Written by hand."
+fixture:
+  caller: clerk
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { copies: 3, lentOn: "2026-01-15", memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530" }
+expect: { status: 201 }

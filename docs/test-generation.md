@@ -19,7 +19,9 @@ writes the drafts. The fifth: the Go test plug-in. The sixth: the
 concepts the waiting red paths needed, dependencies with a time limit, an
 idempotency key, validity, sessions and guards, with their derived cases.
 And the seventh: the Swift and Dart test plug-ins, Dart serving Flutter.
-The items are listed at the end.
+And the eighth: the drafts carry the call the design fixes, `--fill` adds
+it to tests that have none, and the test plan counts the bodies still
+written by hand. The items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -335,11 +337,48 @@ placeholder. Writing tests changes the specification's files, so it
 voids an approval, as any edit does. Exit 0 when it wrote or had nothing
 to write, 1 when the specification has errors, 2 on a usage or read error
 or a specification that keeps its tests in its root file, since each
-derived test needs a folder of its own. The structured data it fills is
-what the design says for certain: the status of a success or a response
-case, the exit of a command, 404 for a not-found case when the operation
-has that response, and for a denied case 403 and a role that lacks the
-permission.
+derived test needs a folder of its own.
+
+The structured data it fills is what the design fixes (ADR-213), so that
+the `tests` target writes the test's body rather than a body to write by
+hand. For an operation's case it drafts the whole call when the operation
+declares the status the case answers: the success status, 403 for a
+denied case, 404 for a not-found case, 401 for one denied when not signed
+in, and 400, or 422 when there is no 400, for a missing field, a value of
+the wrong form or one on or past a limit. The call is a `caller` that
+holds the permission (for a denied case the first role by name that does
+not); a value inside every limit of each required parameter and body
+field, taken from its `example`, `default`, first `examples` item or
+enum's first value or made from its type, a UUID made from the field's
+name for a `uuid`; the field the case is about left out or set to the
+value on or past its limit or of the wrong form; and a record, by its
+one-field primary key, of each entity a body field's relation or a path
+parameter's name (`memberId` for `Member` keyed by `id`) names, but for
+the one a not-found case looks for. A value `test_data` would refuse, a
+malformed date or a value not of an enum, is never written, so such a
+case, a call with a required object, list or patterned field, and the
+cases whose set-up the data cannot say (`response <status>`, `repeated
+with the same <key>`, `denied with expired session`) keep the status and
+the caller alone. A command's success and exit cases carry their `exit`.
+
+`specarch derive --fill` adds the same data to the tests that already
+exist and have none of `fixture`, `input` and `expect`, no `input/` or
+`expected/` folder and no `notApplicable`: the data of the case the test
+covers, or of the success when a golden test covers none. A test of
+several cases is filled when one case's data holds what the others give,
+as `not found memberId` holds `response 404`; one whose cases draft
+different data, four missing fields for one, is named with the reason and
+left as it is, since one call shows one case. A role the test's own
+`given` or `when` names is taken as the caller when it holds the
+permission as the drafted one does or does not. The lines go at the end
+of the file and nothing else in it changes; the author reads them against
+the test's words, which the data cannot read. The idea of turning every
+item of a specification into something that runs, rather than text to
+turn into code, comes from Spec Kit's tasks step.
+
+The test plan says how many of the tests that apply the `tests` target
+writes with their bodies and counts them by kind of subject, so the bodies
+still owed are a number, not a surprise when the suite is first run.
 
 ## From the tests to code
 
@@ -446,3 +485,9 @@ validator builds where it adds a rule, and the conformance cases.
    tests are built in Swift and analyzed in Dart beside a harness that does
    nothing, and the first real project on each stack repeats the check
    against its own test.
+8. Built. Draft data where the design fixes it, `specarch derive
+   --fill`, and the count of tests generated with a body in the test
+   plan (ADR-213). The `tests` target still makes no call for a
+   constraint, a transition, a page, a workflow, a job, a flow or a
+   requirement; giving it one is the next item, since it changes the
+   harness each plug-in asks the project for.

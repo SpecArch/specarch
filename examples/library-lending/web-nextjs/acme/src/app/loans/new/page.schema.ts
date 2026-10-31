@@ -57,6 +57,11 @@ export const schema = {
       field: "dueOn",
     },
   ],
-  failed: [{ status: 409, problem: "lending-refused", message: "loan-form.failed.lending-refused" }],
+  failed: [
+    { status: 409, problem: "lending-refused", message: "loan-form.failed.lending-refused" },
+    { status: 403, problem: "not-allowed", message: "loan-form.failed.not-allowed" },
+    { status: 401, problem: "not-signed-in", message: "loan-form.failed.not-signed-in" },
+    { status: 400, problem: "request-invalid", message: "loan-form.failed.request-invalid" },
+  ],
   events: [{ navigate: "member-view", with: { memberId: "memberId" }, message: "loan-form.onSubmitted" }],
 } satisfies FormPageSchema;

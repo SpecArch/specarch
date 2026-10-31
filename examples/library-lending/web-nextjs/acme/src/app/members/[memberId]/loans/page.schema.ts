@@ -8,7 +8,12 @@ export const schema = {
   source: {
     operation: "getMember",
     path: "/members/{memberId}",
-    failed: [{ status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found" }],
+    failed: [
+      { status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found" },
+      { status: 403, problem: "not-allowed", message: "member-loans.failed.not-allowed" },
+      { status: 401, problem: "not-signed-in", message: "member-loans.failed.not-signed-in" },
+      { status: 400, problem: "request-invalid", message: "member-loans.failed.request-invalid" },
+    ],
   },
   submit: { operation: "lendCopies", method: "POST", path: "/members/{memberId}/loans", fields: [], idempotencyKey: "Idempotency-Key" },
   layout: "page",
@@ -39,6 +44,9 @@ export const schema = {
   failed: [
     { status: 409, problem: "lending-refused", message: "member-loans.failed.lending-refused" },
     { status: 404, problem: "member-not-found", message: "member-loans.failed.member-not-found" },
+    { status: 403, problem: "not-allowed", message: "member-loans.failed.not-allowed" },
+    { status: 401, problem: "not-signed-in", message: "member-loans.failed.not-signed-in" },
+    { status: 400, problem: "request-invalid", message: "member-loans.failed.request-invalid" },
   ],
   events: [{ navigate: "member-view", with: { memberId: "id" }, message: "member-loans.onSubmitted" }],
 } satisfies FormPageSchema;

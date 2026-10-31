@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 198 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 199 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -375,6 +375,11 @@ Every refusal is an RFC 9457 problem document of one of these types; each operat
 | sign-in-refused | 401 | Sign-in refused | No one has the email address, or the password does not match it. |
 | second-factor-refused | 401 | Second factor refused | The code is not the one the authenticator app shows now, or the sign-in challenge is closed after five wrong codes or five minutes. |
 | reset-code-refused | 409 | Reset code refused | No one was sent the reset code, or it was used or has expired. |
+| request-invalid | 400 | The request cannot be read | A required field or parameter is missing, or a value is of the wrong form or outside its limits. |
+| not-signed-in | 401 | Not signed in | The request carries no session, or its session has expired. |
+| not-allowed | 403 | Not allowed | The caller's role does not hold the permission the operation needs. |
+| loan-not-found | 404 | No such loan | No loan has the id in the path. |
+| fee-waiver-not-found | 404 | No such fee waiver request | No request to waive a fee has the id in the path. |
 
 ### listBooks (GET /books)
 
@@ -391,6 +396,7 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | Matching books. | list of [Book](#book) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -422,6 +428,7 @@ Responses:
 | 200 | Signed in; the session starts. | none |
 | 201 | The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code. | none |
 | 401 | The email address or the password is wrong. | the problem document sign-in-refused (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -478,6 +485,7 @@ Responses:
 |---|---|---|
 | 200 | The caller's own member record. | [Member](#member) |
 | 404 | The caller holds no library card. | the problem document member-not-found (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -509,6 +517,7 @@ Responses:
 |---|---|---|
 | 200 | Signed in; the session starts. | none |
 | 401 | The code is wrong, or the sign-in challenge is closed. | the problem document second-factor-refused (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -540,6 +549,7 @@ Responses:
 |---|---|---|
 | 204 | The password is set; sign in with it. | none |
 | 409 | The reset code is wrong, used or expired. | the problem document reset-code-refused (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -564,6 +574,9 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | All members. | list of [Member](#member) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -593,6 +606,9 @@ Responses:
 |---|---|---|
 | 201 | The member, with card number assigned. | [Member](#member) |
 | 409 | Email address already registered. | the problem document email-taken (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -616,6 +632,9 @@ Responses:
 |---|---|---|
 | 200 | The member, with their loans. | [MemberWithLoans](#memberwithloans) |
 | 404 | No such member. | the problem document member-not-found (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -654,6 +673,9 @@ Responses:
 | 201 | The new loans, each with its due date set from the member's tier. | an object, fields below |
 | 404 | No such member. | the problem document member-not-found (RFC 9457) |
 | 409 | Loan limit reached, fees outstanding, no copy available, or due too late. | the problem document lending-refused (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 Body of the 201 response:
 
@@ -689,6 +711,9 @@ Responses:
 |---|---|---|
 | 200 | The member, inactive. | [Member](#member) |
 | 404 | No such member. | the problem document member-not-found (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -714,6 +739,9 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | Matching loans. | list of [Loan](#loan) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -754,6 +782,9 @@ Responses:
 |---|---|---|
 | 201 | The new loan. | [Loan](#loan) |
 | 409 | Loan limit reached, fees outstanding, or no copy available. | the problem document lending-refused (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -792,6 +823,10 @@ Responses:
 | 200 | The closed loan, with the late fee computed. | [Loan](#loan) |
 | 409 | The loan is already closed. | the problem document loan-closed (RFC 9457) |
 | 503 | The fee ledger is unavailable, and the loan stays as it was. | the problem document fee-ledger-unavailable (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
+| 404 | No such loan. | the problem document loan-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -828,6 +863,10 @@ Responses:
 | 200 | The closed loan. | [Loan](#loan) |
 | 409 | The loan is already closed. | the problem document loan-closed (RFC 9457) |
 | 503 | The fee ledger is unavailable, and the loan stays as it was. | the problem document fee-ledger-unavailable (RFC 9457) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
+| 404 | No such loan. | the problem document loan-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -865,6 +904,10 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 202 | The request is accepted and waits for a desk supervisor. | [FeeWaiverRequest](#feewaiverrequest) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
+| 404 | No such loan. | the problem document loan-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -885,6 +928,8 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | The waiting requests. | list of [FeeWaiverRequest](#feewaiverrequest) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -909,6 +954,10 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | The fee is waived. | [FeeWaiverRequest](#feewaiverrequest) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
+| 404 | No such fee waiver request. | the problem document fee-waiver-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -936,6 +985,10 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | The request is approved. | [FeeWaiverRequest](#feewaiverrequest) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
+| 404 | No such fee waiver request. | the problem document fee-waiver-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -968,6 +1021,10 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | The request is refused. | [FeeWaiverRequest](#feewaiverrequest) |
+| 400 | A field or parameter is missing or not of its form. | the problem document request-invalid (RFC 9457) |
+| 401 | The caller is not signed in, or the session has expired. | the problem document not-signed-in (RFC 9457) |
+| 403 | The caller's role does not hold the permission. | the problem document not-allowed (RFC 9457) |
+| 404 | No such fee waiver request. | the problem document fee-waiver-not-found (RFC 9457) |
 
 ```mermaid
 sequenceDiagram
@@ -1755,21 +1812,44 @@ What each page shows when it is empty or fails; while it loads or submits, the s
 | Page | State | Message |
 |---|---|---|
 | fee-waivers-inbox | empty | No request waits for approval. |
+| fee-waivers-inbox | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
+| fee-waivers-inbox | failed: not-allowed | Your role does not allow this. Ask a desk supervisor. |
+| fee-waivers-inbox | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
+| fee-waivers-inbox | failed: fee-waiver-not-found | This request is no longer there. Refresh the list. |
+| loan-form | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
+| loan-form | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
+| loan-form | failed: not-allowed | Your role does not allow this. Ask a desk supervisor. |
 | loan-form | failed: lending-refused | This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows. |
 | loans-list | empty | No loans yet. A loan is made from a member's record. |
 | loans-list | filtered empty | No loan matches these filters. |
 | loans-list | failed: loan-closed | This loan was already closed, so nothing changed. |
 | loans-list | failed: default | The loans cannot be shown or changed right now. Try again in a moment. |
+| member-form | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
+| member-form | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
+| member-form | failed: not-allowed | Your role does not allow this. Ask a desk supervisor. |
 | member-form | failed: email-taken, beside email | Another member already has this email address. |
+| member-loans | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
+| member-loans | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
+| member-loans | failed: not-allowed | Your role does not allow this. Ask a desk supervisor. |
 | member-loans | failed: member-not-found | There is no member with this card. |
 | member-loans | failed: lending-refused | This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available. |
+| member-view | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
+| member-view | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
+| member-view | failed: not-allowed | Your role does not allow this. Ask a desk supervisor. |
 | member-view | failed: member-not-found | There is no member with this card. |
 | members-list | empty | No members yet. Register the first one. |
 | members-list | filtered empty | No member is in this tier. |
+| members-list | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
+| members-list | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
+| members-list | failed: not-allowed | Your role does not allow this. Ask a desk supervisor. |
 | members-list | failed: member-not-found | This member is no longer on record, so nothing changed. |
+| profile | failed: not-signed-in | Your session has ended. Sign in again, then try once more. |
 | profile | failed: member-not-found | Your account holds no library card, so there is no member record to show. |
+| reset-password | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
 | reset-password | failed: reset-code-refused, beside code | The reset code is wrong, used or expired. Ask for a new one. |
+| second-factor | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
 | second-factor | failed: second-factor-refused, beside code | The code is wrong, or it came too late. Type the code the app shows now, or sign in again. |
+| sign-in | failed: request-invalid | Something in the request is missing or not in its form. Check it and try again. |
 | sign-in | failed: sign-in-refused, beside password | The email address or the password is wrong. |
 
 ### Flow lend-a-copy
@@ -2089,6 +2169,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | member-form-denied | page member-form | system | red | a caller holding only the member role | the page member-form is opened | it is not shown |
 | member-form-denied-with-expired-session | page member-form | system | red | a librarian whose session expired after half an hour without a request | the page member-form is opened | it is not shown, and the sign-in page is shown instead |
 | member-form-shown | page member-form | system | golden | a librarian | the page member-form is filled in and sent | the member is registered |
+| member-loans-bad-member-id | page member-loans | system | red | a librarian | the page member-loans is opened for an id that is not a UUID | it shows: Something in the request is missing or not in its form. Check it and try again. |
 | member-loans-denied | page member-loans | system | red | a caller holding only the member role | the page member-loans is opened | it is refused as not allowed |
 | member-loans-denied-with-expired-session | page member-loans | system | red | a librarian whose session expired after half an hour without a request | the page member-loans is opened | it is refused as not signed in |
 | member-loans-not-found | page member-loans | system | red | a librarian | the page member-loans is opened for an id no member has | it shows: There is no member with this card. |

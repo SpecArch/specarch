@@ -64,6 +64,13 @@ paths:
                   - items
                   - totalItems
                   - totalPages
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
       security: []
       x-specarch-permission: public
       x-specarch-satisfies:
@@ -114,6 +121,20 @@ paths:
                   - items
                   - totalItems
                   - totalPages
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
       security:
         - bearerAuth: []
       x-specarch-permission: fees.approve
@@ -140,6 +161,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeeWaiverRequest'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
+        "404":
+          description: No such fee waiver request.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: fee-waiver-not-found
       security:
         - bearerAuth: []
       x-specarch-permission: fees.approve
@@ -181,6 +230,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeeWaiverRequest'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
+        "404":
+          description: No such fee waiver request.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: fee-waiver-not-found
       security:
         - bearerAuth: []
       x-specarch-permission: fees.approve
@@ -204,6 +281,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeeWaiverRequest'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
+        "404":
+          description: No such fee waiver request.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: fee-waiver-not-found
       security:
         - bearerAuth: []
       x-specarch-permission: fees.approve
@@ -273,6 +378,27 @@ paths:
                   - items
                   - totalItems
                   - totalPages
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
       security:
         - bearerAuth: []
       x-specarch-callers:
@@ -325,6 +451,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Loan'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
         "409":
           description: Loan limit reached, fees outstanding, or no copy available.
           content:
@@ -385,6 +532,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeeWaiverRequest'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
+        "404":
+          description: No such loan.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: loan-not-found
       security:
         - bearerAuth: []
       x-specarch-permission: fees.request
@@ -408,6 +583,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Loan'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
+        "404":
+          description: No such loan.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: loan-not-found
         "409":
           description: The loan is already closed.
           content:
@@ -445,6 +648,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Loan'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
+        "404":
+          description: No such loan.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: loan-not-found
         "409":
           description: The loan is already closed.
           content:
@@ -531,6 +762,27 @@ paths:
                   - items
                   - totalItems
                   - totalPages
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
       security:
         - bearerAuth: []
       x-specarch-permission: members.read
@@ -571,6 +823,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Member'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
         "409":
           description: Email address already registered.
           content:
@@ -601,6 +874,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemberWithLoans'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
         "404":
           description: No such member.
           content:
@@ -643,6 +937,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Member'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
         "404":
           description: No such member.
           content:
@@ -711,6 +1026,27 @@ paths:
                       $ref: '#/components/schemas/Loan'
                 required:
                   - loans
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
+        "403":
+          description: The caller's role does not hold the permission.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-allowed
         "404":
           description: No such member.
           content:
@@ -771,6 +1107,13 @@ paths:
       responses:
         "204":
           description: The password is set; sign in with it.
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
         "409":
           description: The reset code is wrong, used or expired.
           content:
@@ -796,6 +1139,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Member'
+        "401":
+          description: The caller is not signed in, or the session has expired.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: not-signed-in
         "404":
           description: The caller holds no library card.
           content:
@@ -842,6 +1192,13 @@ paths:
           description: Signed in; the session starts.
         "201":
           description: 'The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code.'
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
         "401":
           description: The email address or the password is wrong.
           content:
@@ -922,6 +1279,13 @@ paths:
       responses:
         "200":
           description: Signed in; the session starts.
+        "400":
+          description: A field or parameter is missing or not of its form.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          x-specarch-problem: request-invalid
         "401":
           description: The code is wrong, or the sign-in challenge is closed.
           content:
@@ -1366,6 +1730,10 @@ components:
       status: 503
       title: The fee ledger is unavailable
       condition: The fee ledger failed or did not answer in time, and the loan stays as it was.
+    fee-waiver-not-found:
+      status: 404
+      title: No such fee waiver request
+      condition: No request to waive a fee has the id in the path.
     lending-refused:
       status: 409
       title: The copy cannot be lent
@@ -1374,10 +1742,26 @@ components:
       status: 409
       title: The loan is already closed
       condition: The loan was returned or reported lost before.
+    loan-not-found:
+      status: 404
+      title: No such loan
+      condition: No loan has the id in the path.
     member-not-found:
       status: 404
       title: No such member
       condition: No member has the id in the path.
+    not-allowed:
+      status: 403
+      title: Not allowed
+      condition: The caller's role does not hold the permission the operation needs.
+    not-signed-in:
+      status: 401
+      title: Not signed in
+      condition: The request carries no session, or its session has expired.
+    request-invalid:
+      status: 400
+      title: The request cannot be read
+      condition: A required field or parameter is missing, or a value is of the wrong form or outside its limits.
     reset-code-refused:
       status: 409
       title: Reset code refused

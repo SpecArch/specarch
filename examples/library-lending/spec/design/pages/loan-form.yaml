@@ -15,6 +15,9 @@ pages:
       due-after-lent: { expression: "lentOn == null || dueOn > lentOn", message: A copy is due after the day it is lent., field: dueOn }
     states:
       failed:
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
+        not-signed-in: { message: "Your session has ended. Sign in again, then try once more." }
+        not-allowed: { message: Your role does not allow this. Ask a desk supervisor. }
         lending-refused: { message: "This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows." }
     onSubmitted: { navigate: member-view, with: { memberId: memberId }, message: The copy is lent. }
     satisfies: [LIB-7]

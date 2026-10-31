@@ -2,7 +2,7 @@
 page: member-loans
 level: system
 scenario: red
-covers: [denied without loans.create]
+covers: [denied without loans.create, fails with not-allowed]
 given: a caller holding only the member role
 when: the page member-loans is opened
 then: it is refused as not allowed

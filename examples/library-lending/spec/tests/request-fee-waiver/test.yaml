@@ -6,3 +6,8 @@ given: a librarian, and a loan returned seven days late with a late fee of 3.50
 when: requestFeeWaiver is called for it with amount 3.50 and the reason "The book drop was closed for repairs."
 then: it answers 202 with the request, which waits for a desk supervisor, and the fee still stands
 verifies: [LIB-8]
+fixture:
+  caller: librarian
+  Loan: [{ id: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }]
+input: { loanId: "84cd339d-fc88-537c-a3c6-2eca80cc7069", amount: "1.00", reason: "reason" }
+expect: { status: 202 }

@@ -1,0 +1,15 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [note longer than 20 characters]
+given: "..."
+when: "lendCopy is called with note of 21 characters"
+then: "it is refused"
+verifies: [LEND-1]
+origin: inferred
+why: "Written by hand."
+fixture:
+  caller: clerk
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { copies: 1, lentOn: "2026-01-15", memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530", note: "xxxxxxxxxxxxxxxxxxxxx" }
+expect: { status: 400 }

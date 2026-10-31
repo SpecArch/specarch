@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-213:
+    title: specarch derive drafts the fixture, input and expect the design fixes, --fill adds them to tests that have none, and the test plan counts the tests generated with a body
+    status: proposed
+    date: "2026-11-01"
+    context: |
+      The tests target writes a test's body only when the test gives
+      `input` or `expect`; every other test is generated with its given,
+      when and then and a call to a body written by hand. In the library
+      lending example 185 of the 197 tests that apply were generated that
+      way, because derive drafted only a status, an exit or the caller of
+      a denied case, and the hand-written tests gave structured data in
+      12. A comparison with Spec Kit, whose task list turns each
+      specification item into work an agent carries out, showed the gap:
+      SpecArch derived far more cases, and left most of them as text a
+      person had to turn into code. Nothing said how many.
+
+      The design already fixes much of a call: the permission says who
+      may make it, the parameters and body fields say what it carries and
+      their limits, the relations and the path parameters say which
+      records the values name, and the responses say what it answers.
+      What it does not fix is the set-up of a case the data cannot say:
+      an expired session, a dependency that fails, two writers, a key
+      sent twice, a record past its validity.
+
+      `test_data` checks a value against its field's type, so a
+      malformed date or a value not of an enum cannot be written in a
+      test; it does not check a string's format, a pattern, a length or a
+      limit, so a value of the wrong form for a `uuid` or `email` field
+      and a value past a limit can be.
+    decision: |
+      derive drafts, for an operation's case, the call the design fixes,
+      when the operation declares the status the case answers: the
+      success status; 403 for a denied case; 404 for a not-found case;
+      401 for a case denied when not signed in; 400, or 422 when there is
+      no 400, for a missing field, a value of the wrong form or one on or
+      past a limit. The call is a caller that holds the permission, or
+      for a denied case the first role by name that does not; a value of
+      every required parameter and body field inside its limits (its
+      example, default, first examples item, enum's first value, or one
+      made from its type, a UUID made from the field's name for a uuid);
+      the field the case is about left out or changed; and a record, by
+      its one-field key, of each entity a body field's relation or a path
+      parameter's name names, but for the one a not-found case looks for.
+      A value test_data would refuse is not written, and a call with a
+      required field no value can be made for (an object, a list, a
+      pattern) is not drafted: the case keeps the status and the caller,
+      as before. So do `response <status>`, `repeated with the same
+      <key>` and `denied with expired session`.
+
+      `specarch derive --fill` adds the same data to each test that has
+      none of fixture, input and expect, no input/ or expected/ folder and
+      no notApplicable: the data of the case it covers, or of the success
+      for a golden test that covers none. A test of several cases is
+      filled when one case's data holds what the others give; otherwise
+      it is named with the reason and left as it is. A caller the test's
+      own given or when names, holding the permission as the drafted one
+      does or does not, is taken in place of the first by name. The lines
+      go at the end of the file; nothing else changes.
+
+      The test plan says, after its summary, how many of the tests that
+      apply the tests target writes with their bodies, and, in section 1,
+      the count per kind of subject, generated and written by hand.
+    consequences: |
+      In the library lending example, with 400, 401 and 403 declared on
+      its operations, 66 of the 198 tests that apply are generated with a
+      body, against 12: 66 of its 112 operation tests. Tests of constraints, transitions, pages, workflows,
+      jobs, flows and requirements stay with a body written by hand,
+      since the tests target makes no call for them; the test plan names
+      how many. A test that covers several cases whose data differ, such
+      as four missing fields, stays as it is, and derive says so: one
+      call can show one case. A filled caller or record can disagree with
+      the test's words, which the data cannot read, so the author reads
+      the lines --fill adds; the drafts already ask the same of every
+      draft.
+    why: |
+      A test generated with its body runs the day it is generated, and a
+      wrong expectation shows as a failing test instead of a body nobody
+      wrote; that is the cheapest way back from the specification to a
+      reviewer's question. Only what the design fixes is drafted, so a
+      draft never holds a status the operation does not answer or a
+      value test_data refuses: the rule test_data protects, a test holds
+      only values of the field's type, stays as it is, and the cases it
+      would refuse keep their status alone. A status is not assumed from
+      HTTP's meaning when the operation does not declare it, because then
+      the generated test would check a response the design does not have.
+      --fill is an option, not the default, because it writes into tests
+      an author wrote, which derive otherwise never touches; it adds and
+      never changes. The count goes in the test plan rather than gaps,
+      because gaps lists what is undecided and a body written by hand is
+      a choice the plan should show beside the tests it counts.
+    cites:
+      - source: spec-kit
+        says: "/speckit.tasks: Generate actionable task lists for implementation. /speckit.implement: Execute all tasks to build the feature according to the plan."
+    satisfies: [SA-111]
+    restsOn: [ADR-041]

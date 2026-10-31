@@ -6,3 +6,4 @@ covers: [response 409]
 given: a loan already lost
 when: reportLost is called on it
 then: it answers 409 and nothing is charged twice
+expect: { status: 409 }

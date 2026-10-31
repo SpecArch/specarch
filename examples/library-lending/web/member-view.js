@@ -50,9 +50,15 @@ view({
   // What each operation's refusals say, by status: the page's failed states.
   refusals: {
     getMember: {
+      "400": "Something in the request is missing or not in its form. Check it and try again.",
+      "401": "Your session has ended. Sign in again, then try once more.",
+      "403": "Your role does not allow this. Ask a desk supervisor.",
       "404": "There is no member with this card.",
     },
     deactivateMember: {
+      "400": "Something in the request is missing or not in its form. Check it and try again.",
+      "401": "Your session has ended. Sign in again, then try once more.",
+      "403": "Your role does not allow this. Ask a desk supervisor.",
       "404": "There is no member with this card.",
     },
   },

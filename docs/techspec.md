@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 110 requirements, 5 entities, 24 commands, 7 algorithms, 887 tests, 198 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 111 requirements, 5 entities, 24 commands, 7 algorithms, 889 tests, 199 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1039,9 +1039,31 @@ writes a test: a folder `tests/<name>/test.yaml` named as the
 validator suggests, with the subject, the scenario, the level,
 `covers`, `given`, `when` and `then` as the derivation words them,
 `verifies` from what the subject satisfies, `origin: inferred` and a
-`why` that says why the case was chosen, and the expected status or
-exit, or the caller of a denied case, where the design says them for
-certain. The cases read the identity module when it is given in the
+`why` that says why the case was chosen, and the `fixture`, `input`
+and `expect` the design fixes, so that the tests target writes a
+test that runs rather than one whose body is written by hand
+(ADR-213). For an operation the design fixes the call when it
+declares the status the case answers: the success status, 403 for
+a denied case, 404 for a not-found case, 401 for a case denied when
+not signed in, and 400, or 422 when it has no 400, for a missing
+field or a value of the wrong form or outside a limit. The call is
+then a `caller` that holds the permission, or for a denied case the
+first role by name that does not; a value inside every limit of
+each required parameter and body field, its `example`, its
+`default`, its first `examples` item, its enum's first value or one
+made from its type and limits, a UUID made from the field's name
+for a `uuid`; the field the case is about left out, or set to the
+value on or past its limit or of the wrong form; and a record, by
+its one-field primary key, of each entity a body field's relation
+or a path parameter's name (`memberId` for `Member` keyed by `id`)
+names, but for the one a not-found case looks for. A value
+`test_data` would refuse, a malformed date or a value not of an
+enum, is not written, and neither is the call of a required field
+no value can be made for, an object, a list or a field with a
+`pattern`: such a case keeps the status and the caller alone, as
+do `response <status>`, `repeated with the same <key>` and `denied
+with expired session`, whose set-up the data cannot say. A command's
+success and `exit <code>` cases carry their exit. The cases read the identity module when it is given in the
 same run, in an estate or among the folders given (ADR-171): the
 through of its roles that names a permission of the specification,
 and the security events and trust domain it declares, so each
@@ -1086,20 +1108,32 @@ keeps its tests in the root file is refused: each derived test needs
 a folder of its own. Writing tests changes the specification, so an
 approval of it no longer holds.
 
-**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055). A name made valid rather than copied, because a folder whose name validate refuses would make the tree derive writes one validate refuses, and every tree a command writes passes validate (ADR-122); a suffix and a question rather than an error, because the two subjects are different and each draft can be written, and the reviewer who reads the question decides whether the name suits.
+With `--fill` it also adds that data to each test that has none of
+`fixture`, `input` and `expect`, no `input/` or `expected/` folder
+and no `notApplicable`: the data of the case it covers, or of the
+success when a golden test covers none. A test of several cases is
+filled when one case's data holds what the others give, as `not
+found memberId` holds `response 404`; otherwise it is left as it is
+and named on standard error with the reason. The lines go at the
+end of the test's file, and nothing else in it changes: the author
+reads them against the test's `given`, `when` and `then`, which the
+data cannot read. Each test filled is printed as a draft is.
+
+**Insight:** The validator already says which tests a specification implies and gives each one to copy; writing them out is the step that turns the warnings into a test suite the author completes, instead of one the author types out from the warnings. A name takes its subject key only when it is shared, so the names of a specification without a shared one stay short; writing one of two drafts of a name would leave the other unwritten with nothing said, so a name that is still shared is an error at each draft. The missing-test errors of a 0.2 file do not stop it, because a command that refused the errors it exists to settle could never be run on the file that needs it (ADR-055). A name made valid rather than copied, because a folder whose name validate refuses would make the tree derive writes one validate refuses, and every tree a command writes passes validate (ADR-122); a suffix and a question rather than an error, because the two subjects are different and each draft can be written, and the reviewer who reads the question decides whether the name suits. The data is drafted only where the design fixes it, so a draft never holds a status the operation does not answer or a value of a type its field does not take; `--fill` is an option, not the default, because it writes into tests an author wrote, which derive otherwise never touches (ADR-213).
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+| `--fill` | bool |   | Also add the fixture, input and expect the design fixes to each test that has none of them. |
 | `--dry-run` | bool |   | Write nothing; print each draft test it would write, as would write <path>. |
 
 Reads `{paths}`: The specifications.
 
-Writes `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); no other file is touched.
+Writes `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); with --fill, the fixture, input and expect added at the end of each test that had none; no other file is touched.
 
-Standard output: The errors of an invalid specification, one line each; otherwise the path of each test written, one per line.
+Standard output: The errors of an invalid specification, one line each; otherwise the path of each test written or filled, one per line.
 
-Standard error: A usage message on a usage error, the reason on an unreadable path, each test left out, kept or not written with the reason, a question for each test whose name took a suffix, and the count written.
+Standard error: A usage message on a usage error, the reason on an unreadable path, each test left out, kept, not written or not filled with the reason, a question for each test whose name took a suffix, and the count written and filled.
 
 ```mermaid
 sequenceDiagram
@@ -1234,7 +1268,11 @@ modules' own documents are written as when each is named (ADR-113).
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
 requirement with its attributes and acceptance criteria. The
-testplan target writes `testplan.md`: the levels, how each
+testplan target writes `testplan.md`: how many of the tests that
+apply the tests target writes with their bodies, a test of an
+operation, a command or a page that gives input or expect, and how
+many with a body written by hand, counted by kind of subject in its
+first section (ADR-213); the levels, how each
 implementation's suites run the tests, and every design test as a
 test case, grouped by subject, then each state machine with its
 state diagram and its paths from an initial to a terminal state, each
@@ -16002,6 +16040,86 @@ the Go build only, as every extract reader is.
 
 **Note:** From Spec Kit: A toolkit for specification-driven development whose specification step starts from what an agent is given to read. <https://github.com/github/spec-kit>
 
+### ADR-213: specarch derive drafts the fixture, input and expect the design fixes, --fill adds them to tests that have none, and the test plan counts the tests generated with a body
+
+Status: proposed, 2026-11-01.
+
+Rests on: [ADR-041](#adr-041-the-swift-and-dart-test-plug-ins-write-the-go-plug-ins-tests-through-a-harness-of-the-same-shape-for-swift-testing-and-for-packagetest-or-flutter_test).
+
+Context: The tests target writes a test's body only when the test gives
+`input` or `expect`; every other test is generated with its given,
+when and then and a call to a body written by hand. In the library
+lending example 185 of the 197 tests that apply were generated that
+way, because derive drafted only a status, an exit or the caller of
+a denied case, and the hand-written tests gave structured data in
+12. A comparison with Spec Kit, whose task list turns each
+specification item into work an agent carries out, showed the gap:
+SpecArch derived far more cases, and left most of them as text a
+person had to turn into code. Nothing said how many.
+
+The design already fixes much of a call: the permission says who
+may make it, the parameters and body fields say what it carries and
+their limits, the relations and the path parameters say which
+records the values name, and the responses say what it answers.
+What it does not fix is the set-up of a case the data cannot say:
+an expired session, a dependency that fails, two writers, a key
+sent twice, a record past its validity.
+
+`test_data` checks a value against its field's type, so a
+malformed date or a value not of an enum cannot be written in a
+test; it does not check a string's format, a pattern, a length or a
+limit, so a value of the wrong form for a `uuid` or `email` field
+and a value past a limit can be.
+
+Decision: derive drafts, for an operation's case, the call the design fixes,
+when the operation declares the status the case answers: the
+success status; 403 for a denied case; 404 for a not-found case;
+401 for a case denied when not signed in; 400, or 422 when there is
+no 400, for a missing field, a value of the wrong form or one on or
+past a limit. The call is a caller that holds the permission, or
+for a denied case the first role by name that does not; a value of
+every required parameter and body field inside its limits (its
+example, default, first examples item, enum's first value, or one
+made from its type, a UUID made from the field's name for a uuid);
+the field the case is about left out or changed; and a record, by
+its one-field key, of each entity a body field's relation or a path
+parameter's name names, but for the one a not-found case looks for.
+A value test_data would refuse is not written, and a call with a
+required field no value can be made for (an object, a list, a
+pattern) is not drafted: the case keeps the status and the caller,
+as before. So do `response <status>`, `repeated with the same
+<key>` and `denied with expired session`.
+
+`specarch derive --fill` adds the same data to each test that has
+none of fixture, input and expect, no input/ or expected/ folder and
+no notApplicable: the data of the case it covers, or of the success
+for a golden test that covers none. A test of several cases is
+filled when one case's data holds what the others give; otherwise
+it is named with the reason and left as it is. A caller the test's
+own given or when names, holding the permission as the drafted one
+does or does not, is taken in place of the first by name. The lines
+go at the end of the file; nothing else changes.
+
+The test plan says, after its summary, how many of the tests that
+apply the tests target writes with their bodies, and, in section 1,
+the count per kind of subject, generated and written by hand.
+
+Consequences: In the library lending example, with 400, 401 and 403 declared on
+its operations, 66 of the 198 tests that apply are generated with a
+body, against 12: 66 of its 112 operation tests. Tests of constraints, transitions, pages, workflows,
+jobs, flows and requirements stay with a body written by hand,
+since the tests target makes no call for them; the test plan names
+how many. A test that covers several cases whose data differ, such
+as four missing fields, stays as it is, and derive says so: one
+call can show one case. A filled caller or record can disagree with
+the test's words, which the data cannot read, so the author reads
+the lines --fill adds; the drafts already ask the same of every
+draft.
+
+**Insight:** A test generated with its body runs the day it is generated, and a wrong expectation shows as a failing test instead of a body nobody wrote; that is the cheapest way back from the specification to a reviewer's question. Only what the design fixes is drafted, so a draft never holds a status the operation does not answer or a value test_data refuses: the rule test_data protects, a test holds only values of the field's type, stays as it is, and the cases it would refuse keep their status alone. A status is not assumed from HTTP's meaning when the operation does not declare it, because then the generated test would check a response the design does not have. --fill is an option, not the default, because it writes into tests an author wrote, which derive otherwise never touches; it adds and never changes. The count goes in the test plan rather than gaps, because gaps lists what is undecided and a body written by hand is a choice the plan should show beside the tests it counts.
+
+**Note:** From Spec Kit: /speckit.tasks: Generate actionable task lists for implementation. /speckit.implement: Execute all tasks to build the feature according to the plan. <https://github.com/github/spec-kit>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -16048,6 +16166,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-0-3-tokens | command derive | system | golden | the specification of validate-0-3-tokens-valid with only the list's golden test, and an import only the reconciliation service calls, which proves itself with a signed request and presents no token | derive is run | it writes denied with expired access on the list and denied with expired transaction on the delete, each ending with the event token (low), beside the permission and key drafts, and no token case on the import, since the default token is a person's and its only caller presents none; and exits 0 |
 | derive-caller-estate | command derive | system | golden | an estate of two modules: an identity module with the trust domain, the security events, the clients, among them a reporting service that signs each request and has an admitted version range, a role that grants the core's delete by reference and narrows it to the administration application, and a role that grants the core's list to the reporting service; and the core, which declares no roles, no clients and no security events, whose list names the reporting service in callers by reference and whose list and delete each satisfy a requirement with a harm | derive is run on the estate file | it writes the core's drafts with the case of a caller through a client the identity module's role does not list, the reporting service's bad signature and version outside its range at the list, the confused deputy's cases of a service's own token and a person's token with no actor, the token cases' given saying an access token, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0 |
 | derive-caller-home | command derive | system | golden | the specification of validate-caller-home, whose every test is written but the sign-in page's golden one | derive is run | it writes the sign-in page's golden draft, answered 200 and leading to the caller's home with its message, lists it and exits 0 |
+| derive-drafts-calls | command derive | system | golden | a specification whose operation declares 400, 403 and 404, takes a body field that names a member through a relation, a date, a number with limits and an optional text with a length, and satisfies a requirement with a harm | derive is run | each draft carries the call the design fixes: a caller that may or, denied, one that may not, a valid value of every required field and the member record its id names, the field of the case left out or past its limit, the member left out for not found, and the status; it exits 0 |
+| derive-fill | command derive | system | golden | a specification whose tests cover every chosen case, five of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of two missing fields, a test with an input/ folder; and one test with expect already | derive --fill is run | it adds the success's call to the golden test and the visitor's denied call to the denied test at the end of their files, names the test of two missing fields and the one with input/ on standard error and leaves them, leaves the test with expect as it is, prints the two files and exits 0 |
 | derive-integration-contract | command derive | system | golden | an operation whose call to a dependency with a rate retries, maps its errors and its timeout to the operation's answers, beside an async call and a fire-and-forget call to another dependency, with only its golden test written | derive is run | it writes a draft for the retries used up, ending in the answer the first retried status maps to, for an error the mapping does not name, for the rate exceeded, for the timeout answered as errors maps it, and for the fire-and-forget dependency's failure and timeout as cases the operation still succeeds in, beside the drafts of the permission, the key and the guard, and exits 0 |
 | derive-integration-contract-per-call | command derive | system | golden | an operation that calls two operations of one dependency, each with retries, one mapping only its timeout, and calls another dependency with a rate fire and forget three times with retries, twice naming the dependency alone | derive is run | it writes a draft per call for the retries used up, named by the operation called, or by the call's place when two calls name the same, writes no draft for an unmapped error when errors maps only the timeout, ends the fire-and-forget call's retries and rate exceeded in the operation succeeding all the same, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
@@ -16935,6 +17055,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-31 | specarch generate tests shall write, through the plug-in for an implementation file's stack, one test per design test and one per worked example, in Go, in Swift with Swift Testing, or in Dart with package:test or flutter_test, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated tests are the same on every project of that language. | functional | should | accepted | test | generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH. The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, in Go, in Swift and in Dart for both frameworks, and a worked example's expected decimal is compared as a decimal. The Go, Swift and Dart tests generated from one specification hold the same tests, calls and checks. A Swift or Dart implementation file whose testing framework is not one the plug-in writes for is refused by name, and nothing is written. | NEED-9 |
 | SA-29 | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. | functional | must | accepted | test | A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule. A guard's writes on a PUT of its entity by its key or on a DELETE by its key, a delete beside a transition the entry triggers, a set of a field the entity lacks, of its key or of its state field, and a value that is neither given nor a literal of the field's type are each reported under guard. An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared. | NEED-9 |
 | SA-28 | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. | functional | should | accepted | test | A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards. A test folder that exists is kept as it is. A subject a must question blocks gets no test, and derive names it. Two subjects of different kinds that give the same name get drafts of different names, and a draft whose name is still taken is not written; derive names it and exits 1. | NEED-9 |
+| SA-111 | specarch derive shall draft the fixture, input and expected outcome of a derived case wherever the design fixes them, shall add them on request to a test that has none, and the test plan shall say how many tests the tests target writes with their bodies. | functional | should | proposed | test | A draft of an operation's case carries a caller, a valid value of every required parameter and body field, the records those values name and the status the case answers, when the operation declares that status: the success status, 403 denied, 404 not found, 401 not signed in, 400 or 422 for a missing field or a value of the wrong form or past a limit; a value test_data would refuse is never written. derive --fill adds that data at the end of each test that has none of fixture, input and expect, leaves a test of several cases whose data differ as it is and names it with the reason, and leaves a test with an input/ or expected/ folder as it is. The test plan says how many of the tests that apply are generated with their bodies and counts them by kind of subject. | NEED-9 |
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
 | SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
 | SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
@@ -17052,6 +17173,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-29:** From OWASP Session Management Cheat Sheet: All sessions should implement an idle timeout and an absolute timeout. <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
 
 **Insight on SA-28:** The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
+
+**Insight on SA-111:** A generated test whose body is written by hand is a test nobody runs until someone writes it; most of a call is already in the design, and saying how many bodies are owed shows what is left (ADR-213).
 
 **Insight on SA-27:** A generator can only write a test from data it can read, and data checked against the design cannot describe a record that could never exist.
 
@@ -17397,6 +17520,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
+| SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-fill; tests document-writes-testplan |
 
 ## Sources
 

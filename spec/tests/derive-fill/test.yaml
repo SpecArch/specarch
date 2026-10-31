@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification whose tests cover every chosen case, five of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of two missing fields, a test with an input/ folder; and one test with expect already"
+when: "derive --fill is run"
+then: "it adds the success's call to the golden test and the visitor's denied call to the denied test at the end of their files, names the test of two missing fields and the one with input/ on standard error and leaves them, leaves the test with expect as it is, prints the two files and exits 0"
+verifies: [SA-111]

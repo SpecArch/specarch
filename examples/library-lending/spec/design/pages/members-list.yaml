@@ -13,6 +13,9 @@ pages:
       empty: { message: No members yet. Register the first one. }
       filteredEmpty: { message: No member is in this tier. }
       failed:
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
+        not-signed-in: { message: "Your session has ended. Sign in again, then try once more." }
+        not-allowed: { message: Your role does not allow this. Ask a desk supervisor. }
         member-not-found: { message: "This member is no longer on record, so nothing changed." }
     onSelect: { navigate: member-view, with: { memberId: id } }
     actions:

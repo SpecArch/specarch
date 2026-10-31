@@ -20,6 +20,7 @@ view({
   // What each operation's refusals say, by status: the page's failed states.
   refusals: {
     getProfile: {
+      "401": "Your session has ended. Sign in again, then try once more.",
       "404": "Your account holds no library card, so there is no member record to show.",
     },
   },

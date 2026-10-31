@@ -41,6 +41,9 @@ let resetPasswordSchema = TaskPageSchema(
             field: "confirmPassword"
         )
     ],
-    failed: [.init(status: 409, problem: "reset-code-refused", message: "reset-password.failed.reset-code-refused", field: "code")],
+    failed: [
+        .init(status: 400, problem: "request-invalid", message: "reset-password.failed.request-invalid"),
+        .init(status: 409, problem: "reset-code-refused", message: "reset-password.failed.reset-code-refused", field: "code")
+    ],
     events: [.init(status: 204, navigate: "sign-in", message: "reset-password.onSubmitted.204", keepsReturnTo: true)]
 )

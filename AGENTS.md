@@ -224,7 +224,7 @@ Error codes of --json:
   exit 1: refused, the decision is not one of the specification's; or
   printed, while the specification has errors
   exit 2: usage error, or a folder that could not be read
-- `specarch derive [--dry-run] <paths>...`
+- `specarch derive [--fill] [--dry-run] <paths>...`
   Write a draft test for every derived case no test covers.
   exit 0: the tests were written, or there was nothing to write
   exit 1: a specification has errors other than the missing tests it writes,

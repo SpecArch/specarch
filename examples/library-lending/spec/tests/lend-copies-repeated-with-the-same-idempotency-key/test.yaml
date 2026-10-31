@@ -7,3 +7,4 @@ given: two loans were lent to a member under an Idempotency-Key, and the client 
 when: lendCopies is called again with the same Idempotency-Key, member and books
 then: "it answers 201 with the loans already created, no further loan exists, and the books' copies available are unchanged"
 verifies: [LIB-3]
+expect: { status: 201 }

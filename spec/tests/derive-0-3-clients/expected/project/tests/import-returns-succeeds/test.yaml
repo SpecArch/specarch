@@ -6,4 +6,5 @@ when: "importReturns is called"
 then: "it answers 202: Accepted."
 origin: inferred
 why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+fixture: { caller: auditor }
 expect: { status: 202 }

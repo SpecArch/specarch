@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 110 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 111 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -41,7 +41,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-97 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-108, SA-57, SA-100 |
 
 ## 4. Requirements
@@ -51,6 +51,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-31 | functional | should | accepted | specarch generate tests shall write, through the plug-in for an implementation file's stack, one test per design test and one per worked example, in Go, in Swift with Swift Testing, or in Dart with package:test or flutter_test, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated tests are the same on every project of that language. |
 | SA-29 | functional | must | accepted | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. |
 | SA-28 | functional | should | accepted | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. |
+| SA-111 | functional | should | proposed | specarch derive shall draft the fixture, input and expected outcome of a derived case wherever the design fixes them, shall add them on request to a test that has none, and the test plan shall say how many tests the tests target writes with their bodies. |
 | SA-27 | functional | should | accepted | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. |
 | SA-21 | functional | must | accepted | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. |
 | SA-22 | functional | must | accepted | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. |
@@ -206,6 +207,20 @@ Acceptance criteria:
 - Two subjects of different kinds that give the same name get drafts of different names, and a draft whose name is still taken is not written; derive names it and exits 1.
 
 **Insight:** The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
+
+### SA-111
+
+specarch derive shall draft the fixture, input and expected outcome of a derived case wherever the design fixes them, shall add them on request to a test that has none, and the test plan shall say how many tests the tests target writes with their bodies.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-9.
+
+Acceptance criteria:
+
+- A draft of an operation's case carries a caller, a valid value of every required parameter and body field, the records those values name and the status the case answers, when the operation declares that status: the success status, 403 denied, 404 not found, 401 not signed in, 400 or 422 for a missing field or a value of the wrong form or past a limit; a value test_data would refuse is never written.
+- derive --fill adds that data at the end of each test that has none of fixture, input and expect, leaves a test of several cases whose data differ as it is and names it with the reason, and leaves a test with an input/ or expected/ folder as it is.
+- The test plan says how many of the tests that apply are generated with their bodies and counts them by kind of subject.
+
+**Insight:** A generated test whose body is written by hand is a test nobody runs until someone writes it; most of a call is already in the design, and saying how many bodies are owed shows what is left (ADR-213).
 
 ### SA-27
 

@@ -7,3 +7,4 @@ given: "a member registered with ana@example.org"
 when: createMember is called with the same email address
 then: it answers 409 and no member is created
 verifies: [LIB-1]
+expect: { status: 409 }

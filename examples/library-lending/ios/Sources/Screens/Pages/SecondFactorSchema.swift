@@ -8,6 +8,9 @@ let secondFactorSchema = TaskPageSchema(
     submit: .init(operation: "confirmSecondFactor", method: "POST", path: "/sessions/second-factor"),
     fields: [.init(type: "text", name: "code", label: "second-factor.fields.code", required: true, maxLength: 6, pattern: "^[0-9]{6}$")],
     checks: [],
-    failed: [.init(status: 401, problem: "second-factor-refused", message: "second-factor.failed.second-factor-refused", field: "code")],
+    failed: [
+        .init(status: 400, problem: "request-invalid", message: "second-factor.failed.request-invalid"),
+        .init(status: 401, problem: "second-factor-refused", message: "second-factor.failed.second-factor-refused", field: "code")
+    ],
     events: [.init(status: 200, home: true, message: "second-factor.onSubmitted.200")]
 )

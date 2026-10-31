@@ -1,0 +1,15 @@
+operation: lendCopy
+level: system
+scenario: golden
+covers: [note of 20 characters]
+given: "..."
+when: "lendCopy is called with note of 20 characters"
+then: "it succeeds"
+verifies: [LEND-1]
+origin: inferred
+why: "Written by specarch derive: operation lendCopy is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."
+fixture:
+  caller: clerk
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { copies: 1, lentOn: "2026-01-15", memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530", note: "xxxxxxxxxxxxxxxxxxxx" }
+expect: { status: 201 }

@@ -62,6 +62,11 @@ let memberFormSchema = FormPageSchema(
     ],
     rows: [],
     checks: [],
-    failed: [.init(status: 409, problem: "email-taken", message: "member-form.failed.email-taken")],
+    failed: [
+        .init(status: 409, problem: "email-taken", message: "member-form.failed.email-taken"),
+        .init(status: 403, problem: "not-allowed", message: "member-form.failed.not-allowed"),
+        .init(status: 401, problem: "not-signed-in", message: "member-form.failed.not-signed-in"),
+        .init(status: 400, problem: "request-invalid", message: "member-form.failed.request-invalid")
+    ],
     events: [.init(navigate: "member-view", with: ["memberId": "id"], message: "member-form.onSubmitted")]
 )

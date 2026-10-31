@@ -19,7 +19,10 @@ export const schema = {
     },
   ],
   checks: [],
-  failed: [{ status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused", field: "password" }],
+  failed: [
+    { status: 400, problem: "request-invalid", message: "sign-in.failed.request-invalid" },
+    { status: 401, problem: "sign-in-refused", message: "sign-in.failed.sign-in-refused", field: "password" },
+  ],
   events: [
     { status: 200, home: true, message: "sign-in.onSubmitted.200" },
     { status: 201, navigate: "second-factor", keepsReturnTo: true },

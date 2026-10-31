@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 887 design tests, 436 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 889 design tests, 438 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -10,14 +10,23 @@ Version 1.4.0 of the specification: 887 design tests, 436 golden and 451 red, ab
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
+Of the 889 tests that apply, the tests target writes 0 with their bodies, from their input and expected outcome, and 889 with a body written by hand (section 1).
+
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 883 |
+| system | 885 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
+
+| Subject | Design tests | Body generated | Body written by hand |
+|---|---|---|---|
+| command | 885 | 0 | 885 |
+| constraint | 4 | 0 | 4 |
+
+The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
 
 ### Implementation: SpecArch toolchain in Go
 
@@ -380,6 +389,22 @@ Scenario: golden; level: system; verifies SA-102.
 - Given: the specification of validate-caller-home, whose every test is written but the sign-in page's golden one
 - When: derive is run
 - Then: it writes the sign-in page's golden draft, answered 200 and leading to the caller's home with its message, lists it and exits 0
+
+#### derive-drafts-calls
+
+Scenario: golden; level: system; verifies SA-111.
+
+- Given: a specification whose operation declares 400, 403 and 404, takes a body field that names a member through a relation, a date, a number with limits and an optional text with a length, and satisfies a requirement with a harm
+- When: derive is run
+- Then: each draft carries the call the design fixes: a caller that may or, denied, one that may not, a valid value of every required field and the member record its id names, the field of the case left out or past its limit, the member left out for not found, and the status; it exits 0
+
+#### derive-fill
+
+Scenario: golden; level: system; verifies SA-111.
+
+- Given: a specification whose tests cover every chosen case, five of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of two missing fields, a test with an input/ folder; and one test with expect already
+- When: derive --fill is run
+- Then: it adds the success's call to the golden test and the visitor's denied call to the denied test at the end of their files, names the test of two missing fields and the one with input/ on standard error and leaves them, leaves the test with expect as it is, prints the two files and exits 0
 
 #### derive-integration-contract
 
@@ -1375,7 +1400,7 @@ Scenario: golden; level: system; verifies SA-7, SA-8.
 
 #### document-writes-testplan
 
-Scenario: golden; level: system; verifies SA-16.
+Scenario: golden; level: system; verifies SA-16, SA-111.
 
 - Given: a specification with a golden and a red test of one entity constraint, one with a why
 - When: document testplan is run
@@ -7197,7 +7222,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-503 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+506 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7212,6 +7237,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-28 | acceptance 2 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 3 | golden | SA-28 names no harm |
 | requirement SA-28 | acceptance 4 | golden | SA-28 names no harm |
+| requirement SA-111 | acceptance 1 | golden | SA-111 names no harm |
+| requirement SA-111 | acceptance 2 | golden | SA-111 names no harm |
+| requirement SA-111 | acceptance 3 | golden | SA-111 names no harm |
 | requirement SA-27 | acceptance 1 | golden | SA-27 names no harm |
 | requirement SA-27 | acceptance 2 | golden | SA-27 names no harm |
 | requirement SA-27 | acceptance 3 | golden | SA-27 names no harm |

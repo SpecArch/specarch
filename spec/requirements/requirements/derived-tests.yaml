@@ -44,6 +44,18 @@ requirements:
     verification: test
     needs: [NEED-9]
     why: The tests a specification implies are only worth listing if writing them out is cheap; a draft the author completes is cheaper than a warning the author copies.
+  SA-111:
+    statement: specarch derive shall draft the fixture, input and expected outcome of a derived case wherever the design fixes them, shall add them on request to a test that has none, and the test plan shall say how many tests the tests target writes with their bodies.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - "A draft of an operation's case carries a caller, a valid value of every required parameter and body field, the records those values name and the status the case answers, when the operation declares that status: the success status, 403 denied, 404 not found, 401 not signed in, 400 or 422 for a missing field or a value of the wrong form or past a limit; a value test_data would refuse is never written."
+      - derive --fill adds that data at the end of each test that has none of fixture, input and expect, leaves a test of several cases whose data differ as it is and names it with the reason, and leaves a test with an input/ or expected/ folder as it is.
+      - The test plan says how many of the tests that apply are generated with their bodies and counts them by kind of subject.
+    verification: test
+    needs: [NEED-9]
+    why: A generated test whose body is written by hand is a test nobody runs until someone writes it; most of a call is already in the design, and saying how many bodies are owed shows what is left (ADR-213).
   SA-27:
     statement: A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design.
     kind: functional

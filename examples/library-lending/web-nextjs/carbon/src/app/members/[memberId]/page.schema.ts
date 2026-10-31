@@ -8,7 +8,12 @@ export const schema = {
   source: {
     operation: "getMember",
     path: "/members/{memberId}",
-    failed: [{ status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found" }],
+    failed: [
+      { status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found" },
+      { status: 403, problem: "not-allowed", message: "member-view.failed.not-allowed" },
+      { status: 401, problem: "not-signed-in", message: "member-view.failed.not-signed-in" },
+      { status: 400, problem: "request-invalid", message: "member-view.failed.request-invalid" },
+    ],
   },
   sections: [
     {
@@ -70,7 +75,12 @@ export const schema = {
       confirm: "member-view.actions.deactivateMember.confirm",
       reason: { property: "reason", label: "member-view.actions.deactivateMember.reason", maxLength: 500 },
       message: "member-view.actions.deactivateMember.message",
-      failed: [{ status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found" }],
+      failed: [
+        { status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found" },
+        { status: 403, problem: "not-allowed", message: "member-view.failed.not-allowed" },
+        { status: 401, problem: "not-signed-in", message: "member-view.failed.not-signed-in" },
+        { status: 400, problem: "request-invalid", message: "member-view.failed.request-invalid" },
+      ],
     },
   ],
 } satisfies ViewPageSchema;

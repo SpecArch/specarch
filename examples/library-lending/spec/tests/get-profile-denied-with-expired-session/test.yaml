@@ -7,3 +7,4 @@ given: "a member whose session has expired"
 when: "getProfile is called"
 then: "it is refused as not signed in"
 verifies: [LIB-6]
+expect: { status: 401 }

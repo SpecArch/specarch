@@ -58,6 +58,11 @@ let loanFormSchema = FormPageSchema(
             field: "dueOn"
         )
     ],
-    failed: [.init(status: 409, problem: "lending-refused", message: "loan-form.failed.lending-refused")],
+    failed: [
+        .init(status: 409, problem: "lending-refused", message: "loan-form.failed.lending-refused"),
+        .init(status: 403, problem: "not-allowed", message: "loan-form.failed.not-allowed"),
+        .init(status: 401, problem: "not-signed-in", message: "loan-form.failed.not-signed-in"),
+        .init(status: 400, problem: "request-invalid", message: "loan-form.failed.request-invalid")
+    ],
     events: [.init(navigate: "member-view", with: ["memberId": "memberId"], message: "loan-form.onSubmitted")]
 )

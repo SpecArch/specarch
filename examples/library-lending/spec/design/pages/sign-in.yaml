@@ -9,6 +9,7 @@ pages:
     fields: [email, password]
     states:
       failed:
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
         sign-in-refused: { message: The email address or the password is wrong., field: password }
     onSubmitted:
       "200": { navigate: callerHome, message: You are signed in. }

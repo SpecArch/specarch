@@ -7,3 +7,4 @@ given: "a caller with no session"
 when: "getProfile is called"
 then: "it is refused as not signed in, and no member record is answered"
 verifies: [LIB-6]
+expect: { status: 401 }

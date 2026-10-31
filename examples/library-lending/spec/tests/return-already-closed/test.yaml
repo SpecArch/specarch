@@ -6,3 +6,4 @@ covers: [response 409]
 given: a loan already returned
 when: returnLoan is called on it
 then: it answers 409 and nothing changes
+expect: { status: 409 }

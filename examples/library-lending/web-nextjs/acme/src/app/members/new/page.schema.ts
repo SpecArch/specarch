@@ -47,6 +47,11 @@ export const schema = {
   ],
   rows: [],
   checks: [],
-  failed: [{ status: 409, problem: "email-taken", message: "member-form.failed.email-taken" }],
+  failed: [
+    { status: 409, problem: "email-taken", message: "member-form.failed.email-taken" },
+    { status: 403, problem: "not-allowed", message: "member-form.failed.not-allowed" },
+    { status: 401, problem: "not-signed-in", message: "member-form.failed.not-signed-in" },
+    { status: 400, problem: "request-invalid", message: "member-form.failed.request-invalid" },
+  ],
   events: [{ navigate: "member-view", with: { memberId: "id" }, message: "member-form.onSubmitted" }],
 } satisfies FormPageSchema;

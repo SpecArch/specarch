@@ -6,3 +6,5 @@ given: "two members, one of them signed in, and a librarian signed in as staff"
 when: "getProfile is called by the member, then by the librarian"
 then: "the member is answered 200 with their own record; the librarian, who holds no card, is answered 404 member-not-found"
 verifies: [LIB-6]
+fixture: { caller: member }
+expect: { status: 200 }

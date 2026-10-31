@@ -6,3 +6,6 @@ covers: [not found loanId]
 given: a librarian and no loan with a given id
 when: requestFeeWaiver is called for that id
 then: it is refused as not found, and no request is made
+fixture: { caller: librarian }
+input: { loanId: "84cd339d-fc88-537c-a3c6-2eca80cc7069", amount: "1.00", reason: "reason" }
+expect: { status: 404 }

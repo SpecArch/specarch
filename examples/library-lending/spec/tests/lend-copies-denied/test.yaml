@@ -2,8 +2,9 @@
 operation: lendCopies
 level: system
 scenario: red
-covers: [denied without loans.create]
+covers: [denied without loans.create, response 403]
 given: a caller holding only the member role
 when: lendCopies is called
 then: it is refused as not allowed
 fixture: { caller: member }
+expect: { status: 403 }

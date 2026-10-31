@@ -9,7 +9,10 @@ let profileSchema = ViewPageSchema(
     source: .init(
         operation: "getProfile",
         path: "/profile",
-        failed: [.init(status: 404, problem: "member-not-found", message: "profile.failed.member-not-found")]
+        failed: [
+            .init(status: 404, problem: "member-not-found", message: "profile.failed.member-not-found"),
+            .init(status: 401, problem: "not-signed-in", message: "profile.failed.not-signed-in")
+        ]
     ),
     sections: [
         .init(

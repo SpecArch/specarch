@@ -7,3 +7,4 @@ given: a desk supervisor whose session has expired
 when: listFeeWaivers is called
 then: it is refused as not signed in
 verifies: [LIB-8]
+expect: { status: 401 }

@@ -6,3 +6,6 @@ given: a fee-waiver request for 3.50 that a desk supervisor has approved
 when: waiveFee is called for it
 then: it answers 200, and the loan's late fee is 0.00
 verifies: [LIB-8]
+fixture: { caller: desk-supervisor }
+input: { waiverId: "eced74aa-7484-5285-a42e-0cdb9b680338" }
+expect: { status: 200 }

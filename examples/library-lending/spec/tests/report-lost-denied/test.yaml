@@ -6,3 +6,8 @@ covers: [denied without loans.return]
 given: a caller holding only the member role
 when: reportLost is called
 then: it is refused as not allowed
+fixture:
+  caller: member
+  Loan: [{ id: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }]
+input: { loanId: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }
+expect: { status: 403 }

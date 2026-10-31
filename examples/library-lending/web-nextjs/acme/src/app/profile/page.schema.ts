@@ -8,7 +8,10 @@ export const schema = {
   source: {
     operation: "getProfile",
     path: "/profile",
-    failed: [{ status: 404, problem: "member-not-found", message: "profile.failed.member-not-found" }],
+    failed: [
+      { status: 404, problem: "member-not-found", message: "profile.failed.member-not-found" },
+      { status: 401, problem: "not-signed-in", message: "profile.failed.not-signed-in" },
+    ],
   },
   sections: [
     {

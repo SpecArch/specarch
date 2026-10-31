@@ -1,0 +1,9 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [not found memberId, response 404]
+given: "a clerk and no member"
+when: "lendCopy is called for a member id no member has"
+then: "it answers 404"
+verifies: [LEND-1]
+expect: { status: 404 }

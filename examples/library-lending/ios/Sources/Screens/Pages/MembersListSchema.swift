@@ -32,13 +32,22 @@ let membersListSchema = ListPageSchema(
             confirm: "members-list.actions.deactivateMember.confirm",
             reason: .init(property: "reason", label: "members-list.actions.deactivateMember.reason", maxLength: 500),
             message: "members-list.actions.deactivateMember.message",
-            failed: [.init(status: 404, problem: "member-not-found", message: "members-list.failed.member-not-found")]
+            failed: [
+                .init(status: 404, problem: "member-not-found", message: "members-list.failed.member-not-found"),
+                .init(status: 403, problem: "not-allowed", message: "members-list.failed.not-allowed"),
+                .init(status: 401, problem: "not-signed-in", message: "members-list.failed.not-signed-in"),
+                .init(status: 400, problem: "request-invalid", message: "members-list.failed.request-invalid")
+            ]
         )
     ],
     select: .init(navigate: "member-view", with: ["memberId": "id"]),
     empty: "members-list.empty",
     filteredEmpty: "members-list.filteredEmpty",
-    failed: [],
+    failed: [
+        .init(status: 403, problem: "not-allowed", message: "members-list.failed.not-allowed"),
+        .init(status: 401, problem: "not-signed-in", message: "members-list.failed.not-signed-in"),
+        .init(status: 400, problem: "request-invalid", message: "members-list.failed.request-invalid")
+    ],
     wire: .init(
         page: "page",
         pageSize: "pageSize",

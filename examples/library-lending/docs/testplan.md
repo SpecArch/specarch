@@ -2,18 +2,34 @@
 
 # Library Lending: test plan
 
-Version 0.1.0 of the specification: 198 design tests, 56 golden and 141 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 0.1.0 of the specification: 199 design tests, 56 golden and 142 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 1 test is marked not applicable, with the reason.
+
+Of the 198 tests that apply, the tests target writes 66 with their bodies, from their input and expected outcome, and 132 with a body written by hand (section 1).
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 12 |
-| system | 186 |
+| system | 187 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
+
+| Subject | Design tests | Body generated | Body written by hand |
+|---|---|---|---|
+| constraint | 14 | 0 | 14 |
+| entity | 1 | 0 | 1 |
+| flow | 2 | 0 | 2 |
+| job | 2 | 0 | 2 |
+| operation | 112 | 66 | 46 |
+| page | 47 | 0 | 47 |
+| requirement | 2 | 0 | 2 |
+| transition | 10 | 0 | 10 |
+| workflow | 8 | 0 | 8 |
+
+The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
 
 ## 2. Test cases
 
@@ -127,7 +143,7 @@ Scenario: golden; level: system.
 
 #### create-loan-denied-with-expired-session
 
-Scenario: red; level: system; covers denied with expired session.
+Scenario: red; level: system; covers denied with expired session, response 401.
 
 - Given: a librarian whose session expired after half an hour without a request
 - When: createLoan is called for a member and a book that exist
@@ -143,7 +159,7 @@ Scenario: red; level: system; covers expired memberId.
 
 #### create-loan-idempotency-key-not-a-valid-uuid
 
-Scenario: red; level: system; covers Idempotency-Key not a valid uuid.
+Scenario: red; level: system; covers Idempotency-Key not a valid uuid, response 400.
 
 - Given: a member and a book that exist
 - When: createLoan is called with an Idempotency-Key that is not a UUID
@@ -231,7 +247,7 @@ Scenario: red; level: system; covers memberId not a valid uuid, bookId not a val
 
 #### lend-denied
 
-Scenario: red; level: system; covers denied without loans.create.
+Scenario: red; level: system; covers denied without loans.create, response 403.
 
 - Given: a caller holding only the member role
 - When: createLoan is called
@@ -695,7 +711,7 @@ Scenario: red; level: system; covers missing loans, loans with fewer than 1 item
 
 #### lend-copies-bad-member-id
 
-Scenario: red; level: system; covers memberId not a valid uuid.
+Scenario: red; level: system; covers memberId not a valid uuid, response 400.
 
 - Given: a librarian
 - When: lendCopies is called with memberId abc
@@ -703,7 +719,7 @@ Scenario: red; level: system; covers memberId not a valid uuid.
 
 #### lend-copies-denied
 
-Scenario: red; level: system; covers denied without loans.create.
+Scenario: red; level: system; covers denied without loans.create, response 403.
 
 - Given: a caller holding only the member role
 - When: lendCopies is called
@@ -711,7 +727,7 @@ Scenario: red; level: system; covers denied without loans.create.
 
 #### lend-copies-denied-with-expired-session
 
-Scenario: red; level: system; covers denied with expired session.
+Scenario: red; level: system; covers denied with expired session, response 401.
 
 - Given: a librarian whose session expired after half an hour without a request
 - When: lendCopies is called for a member and a book that exist
@@ -1125,9 +1141,17 @@ Scenario: golden; level: system.
 
 ### Page member-loans
 
+#### member-loans-bad-member-id
+
+Scenario: red; level: system; covers fails with request-invalid.
+
+- Given: a librarian
+- When: the page member-loans is opened for an id that is not a UUID
+- Then: it shows: Something in the request is missing or not in its form. Check it and try again.
+
 #### member-loans-denied
 
-Scenario: red; level: system; covers denied without loans.create.
+Scenario: red; level: system; covers denied without loans.create, fails with not-allowed.
 
 - Given: a caller holding only the member role
 - When: the page member-loans is opened
@@ -1135,7 +1159,7 @@ Scenario: red; level: system; covers denied without loans.create.
 
 #### member-loans-denied-with-expired-session
 
-Scenario: red; level: system; covers denied with expired session.
+Scenario: red; level: system; covers denied with expired session, fails with not-signed-in.
 
 - Given: a librarian whose session expired after half an hour without a request
 - When: the page member-loans is opened
@@ -1768,25 +1792,29 @@ stateDiagram-v2
 
 ## 4. Derived cases left out
 
-99 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+169 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
 | operation listBooks | refused for a service's own token | red | rare case, and operation listBooks satisfies no requirement with a harm |
 | operation listBooks | page beyond last | golden | occasional case, and operation listBooks satisfies no requirement with a harm |
 | operation listBooks | page size above 100 | red | occasional case, and operation listBooks satisfies no requirement with a harm |
+| operation listBooks | response 400 | red | occasional case, and operation listBooks satisfies no requirement with a harm |
 | operation signIn | password shorter than 8 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password of 8 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password longer than 200 characters | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | password of 200 characters | golden | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | refused for a service's own token | red | rare case, and operation signIn satisfies no requirement with a harm |
 | operation signIn | response 401 | red | occasional case, and operation signIn satisfies no requirement with a harm |
+| operation signIn | response 400 | red | occasional case, and operation signIn satisfies no requirement with a harm |
 | operation getSession | refused for a service's own token | red | rare case, and operation getSession satisfies no requirement with a harm |
 | operation getProfile | refused for a service's own token | red | rare case, and operation getProfile satisfies no requirement with a harm |
 | operation getProfile | response 404 | red | occasional case, and operation getProfile satisfies no requirement with a harm |
+| operation getProfile | response 401 | red | occasional case, and operation getProfile satisfies no requirement with a harm |
 | operation confirmSecondFactor | code longer than 6 characters | red | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
 | operation confirmSecondFactor | code of 6 characters | golden | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
 | operation confirmSecondFactor | refused for a service's own token | red | rare case, and operation confirmSecondFactor satisfies no requirement with a harm |
+| operation confirmSecondFactor | response 400 | red | occasional case, and operation confirmSecondFactor satisfies no requirement with a harm |
 | operation resetPassword | code shorter than 1 character | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation resetPassword | code of 1 character | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation resetPassword | code longer than 200 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
@@ -1800,64 +1828,130 @@ stateDiagram-v2
 | operation resetPassword | newPassword longer than 200 characters | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation resetPassword | newPassword of 200 characters | golden | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation resetPassword | refused for a service's own token | red | rare case, and operation resetPassword satisfies no requirement with a harm |
+| operation resetPassword | response 400 | red | occasional case, and operation resetPassword satisfies no requirement with a harm |
 | operation listMembers | deleted Member not listed | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | refused for a service's own token | red | rare case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page beyond last | golden | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | page size above 100 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation listMembers | sort by a field not sortable | red | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation listMembers | response 400 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation listMembers | response 401 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
+| operation listMembers | response 403 | red | occasional case, and operation listMembers satisfies no requirement with a harm |
 | operation createMember | phones with more than 3 items | red | occasional case, and operation createMember satisfies no requirement with a harm |
 | operation createMember | refused for a service's own token | red | rare case, and operation createMember satisfies no requirement with a harm |
+| operation createMember | response 400 | red | occasional case, and operation createMember satisfies no requirement with a harm |
+| operation createMember | response 401 | red | occasional case, and operation createMember satisfies no requirement with a harm |
+| operation createMember | response 403 | red | occasional case, and operation createMember satisfies no requirement with a harm |
 | operation getMember | deleted Member read | red | occasional case, and operation getMember satisfies no requirement with a harm |
 | operation getMember | refused for a service's own token | red | rare case, and operation getMember satisfies no requirement with a harm |
+| operation getMember | response 400 | red | occasional case, and operation getMember satisfies no requirement with a harm |
+| operation getMember | response 401 | red | occasional case, and operation getMember satisfies no requirement with a harm |
+| operation getMember | response 403 | red | occasional case, and operation getMember satisfies no requirement with a harm |
 | operation deactivateMember | reason shorter than 1 character | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation deactivateMember | reason of 1 character | golden | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation deactivateMember | reason longer than 500 characters | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation deactivateMember | reason of 500 characters | golden | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation deactivateMember | refused for a service's own token | red | rare case, and operation deactivateMember satisfies no requirement with a harm |
+| operation deactivateMember | response 400 | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
+| operation deactivateMember | response 401 | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
+| operation deactivateMember | response 403 | red | occasional case, and operation deactivateMember satisfies no requirement with a harm |
 | operation listLoans | refused for every caller not listed | red | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | refused with a bad signature from fee-ledger-batch | red | rare case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | refused for a service's own token | red | rare case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | page beyond last | golden | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | page size above 100 | red | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation listLoans | sort by a field not sortable | red | occasional case, and operation listLoans satisfies no requirement with a harm |
+| operation listLoans | response 400 | red | occasional case, and operation listLoans satisfies no requirement with a harm |
+| operation listLoans | response 401 | red | occasional case, and operation listLoans satisfies no requirement with a harm |
+| operation listLoans | response 403 | red | occasional case, and operation listLoans satisfies no requirement with a harm |
 | operation returnLoan | refused for a service's own token | red | rare case, and operation returnLoan satisfies no requirement with a harm |
 | operation returnLoan | guard precondition fails | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation returnLoan | response 503 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
+| operation returnLoan | response 400 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
+| operation returnLoan | response 401 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
+| operation returnLoan | response 403 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
+| operation returnLoan | response 404 | red | occasional case, and operation returnLoan satisfies no requirement with a harm |
 | operation reportLost | refused for a service's own token | red | rare case, and operation reportLost satisfies no requirement with a harm |
 | operation reportLost | guard precondition fails | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | operation reportLost | response 503 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| operation reportLost | response 400 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| operation reportLost | response 401 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| operation reportLost | response 403 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
+| operation reportLost | response 404 | red | occasional case, and operation reportLost satisfies no requirement with a harm |
 | operation requestFeeWaiver | reason shorter than 1 character | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation requestFeeWaiver | reason of 1 character | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation requestFeeWaiver | reason longer than 500 characters | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation requestFeeWaiver | reason of 500 characters | golden | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation requestFeeWaiver | refused for a service's own token | red | rare case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | response 400 | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | response 401 | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | response 403 | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
+| operation requestFeeWaiver | response 404 | red | occasional case, and operation requestFeeWaiver satisfies no requirement with a harm |
 | operation listFeeWaivers | refused for a service's own token | red | rare case, and operation listFeeWaivers satisfies no requirement with a harm |
 | operation listFeeWaivers | page beyond last | golden | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
 | operation listFeeWaivers | page size above 100 | red | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
+| operation listFeeWaivers | response 401 | red | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
+| operation listFeeWaivers | response 403 | red | occasional case, and operation listFeeWaivers satisfies no requirement with a harm |
 | operation waiveFee | refused for a service's own token | red | rare case, and operation waiveFee satisfies no requirement with a harm |
+| operation waiveFee | response 400 | red | occasional case, and operation waiveFee satisfies no requirement with a harm |
+| operation waiveFee | response 401 | red | occasional case, and operation waiveFee satisfies no requirement with a harm |
+| operation waiveFee | response 403 | red | occasional case, and operation waiveFee satisfies no requirement with a harm |
+| operation waiveFee | response 404 | red | occasional case, and operation waiveFee satisfies no requirement with a harm |
 | operation approveFeeWaiver | refused for a service's own token | red | rare case, and operation approveFeeWaiver satisfies no requirement with a harm |
+| operation approveFeeWaiver | response 400 | red | occasional case, and operation approveFeeWaiver satisfies no requirement with a harm |
+| operation approveFeeWaiver | response 401 | red | occasional case, and operation approveFeeWaiver satisfies no requirement with a harm |
+| operation approveFeeWaiver | response 403 | red | occasional case, and operation approveFeeWaiver satisfies no requirement with a harm |
+| operation approveFeeWaiver | response 404 | red | occasional case, and operation approveFeeWaiver satisfies no requirement with a harm |
 | operation refuseFeeWaiver | reason shorter than 1 character | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
 | operation refuseFeeWaiver | reason of 1 character | golden | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
 | operation refuseFeeWaiver | reason longer than 500 characters | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
 | operation refuseFeeWaiver | reason of 500 characters | golden | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
 | operation refuseFeeWaiver | refused for a service's own token | red | rare case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | response 400 | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | response 401 | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | response 403 | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
+| operation refuseFeeWaiver | response 404 | red | occasional case, and operation refuseFeeWaiver satisfies no requirement with a harm |
 | job markOverdue | an item fails every try | red | occasional case, and job markOverdue satisfies no requirement with a harm |
 | page fee-waivers-inbox | empty | golden | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
+| page fee-waivers-inbox | fails with not-signed-in | red | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
+| page fee-waivers-inbox | fails with not-allowed | red | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
+| page fee-waivers-inbox | fails with request-invalid | red | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
+| page fee-waivers-inbox | fails with fee-waiver-not-found | red | occasional case, and page fee-waivers-inbox satisfies no requirement with a harm |
 | page loan-form | fails with lending-refused | red | occasional case, and page loan-form satisfies no requirement with a harm |
+| page loan-form | fails with request-invalid | red | occasional case, and page loan-form satisfies no requirement with a harm |
+| page loan-form | fails with not-signed-in | red | occasional case, and page loan-form satisfies no requirement with a harm |
+| page loan-form | fails with not-allowed | red | occasional case, and page loan-form satisfies no requirement with a harm |
 | page loans-list | empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | filtered empty | golden | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | fails with request-invalid | red | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | fails with not-signed-in | red | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | fails with not-allowed | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | fails with loan-closed | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | fails with fee-ledger-unavailable | red | occasional case, and page loans-list satisfies no requirement with a harm |
+| page loans-list | fails with loan-not-found | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | Return not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | Lost not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page loans-list | Ask to waive the fee not offered | red | occasional case, and page loans-list satisfies no requirement with a harm |
 | page member-form | fails with email-taken | red | occasional case, and page member-form satisfies no requirement with a harm |
+| page member-form | fails with request-invalid | red | occasional case, and page member-form satisfies no requirement with a harm |
+| page member-form | fails with not-signed-in | red | occasional case, and page member-form satisfies no requirement with a harm |
+| page member-form | fails with not-allowed | red | occasional case, and page member-form satisfies no requirement with a harm |
 | page member-view | fails with member-not-found | red | occasional case, and page member-view satisfies no requirement with a harm |
+| page member-view | fails with request-invalid | red | occasional case, and page member-view satisfies no requirement with a harm |
+| page member-view | fails with not-signed-in | red | occasional case, and page member-view satisfies no requirement with a harm |
+| page member-view | fails with not-allowed | red | occasional case, and page member-view satisfies no requirement with a harm |
 | page member-view | Deactivate not offered | red | occasional case, and page member-view satisfies no requirement with a harm |
 | page members-list | empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | filtered empty | golden | occasional case, and page members-list satisfies no requirement with a harm |
+| page members-list | fails with request-invalid | red | occasional case, and page members-list satisfies no requirement with a harm |
+| page members-list | fails with not-signed-in | red | occasional case, and page members-list satisfies no requirement with a harm |
+| page members-list | fails with not-allowed | red | occasional case, and page members-list satisfies no requirement with a harm |
 | page members-list | fails with member-not-found | red | occasional case, and page members-list satisfies no requirement with a harm |
 | page profile | fails with member-not-found | red | occasional case, and page profile satisfies no requirement with a harm |
+| page profile | fails with not-signed-in | red | occasional case, and page profile satisfies no requirement with a harm |
+| page reset-password | fails with request-invalid | red | occasional case, and page reset-password satisfies no requirement with a harm |
+| page second-factor | fails with request-invalid | red | occasional case, and page second-factor satisfies no requirement with a harm |
+| page sign-in | fails with request-invalid | red | occasional case, and page sign-in satisfies no requirement with a harm |
 | Loan state machine | open to overdue to returned | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to overdue to lost | golden | no transition on the path satisfies a requirement with a harm |
 | Loan state machine | open to lost | golden | no transition on the path satisfies a requirement with a harm |

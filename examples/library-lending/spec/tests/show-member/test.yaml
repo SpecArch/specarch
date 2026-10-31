@@ -5,3 +5,8 @@ scenario: golden
 given: a member and a librarian
 when: "getMember is called with the member's id"
 then: the member is answered
+fixture:
+  caller: librarian
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530" }
+expect: { status: 200 }

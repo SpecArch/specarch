@@ -19,6 +19,7 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Book" } }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
       satisfies: [LIB-2]
 
   /sessions:
@@ -44,6 +45,7 @@ paths:
         "200": { description: Signed in; the session starts. }
         "201": { description: "The password is right, and the account confirms each sign-in with a second factor: a sign-in challenge is opened for five minutes and kept with the browser, and the session starts once confirmSecondFactor accepts its code." }
         "401": { description: The email address or the password is wrong., problem: sign-in-refused }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
 
   /sessions/current:
     get:
@@ -97,6 +99,7 @@ paths:
             application/json:
               schema: { $ref: "#/entities/Member" }
         "404": { description: The caller holds no library card., problem: member-not-found }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
       satisfies: [LIB-6]
 
   /sessions/second-factor:
@@ -122,6 +125,7 @@ paths:
       responses:
         "200": { description: Signed in; the session starts. }
         "401": { description: "The code is wrong, or the sign-in challenge is closed.", problem: second-factor-refused }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
 
   /password-resets:
     post:
@@ -146,6 +150,7 @@ paths:
       responses:
         "204": { description: The password is set; sign in with it. }
         "409": { description: "The reset code is wrong, used or expired.", problem: reset-code-refused }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
 
   /members:
     get:
@@ -165,6 +170,9 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Member" } }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
     post:
       operationId: createMember
       summary: Register a new member
@@ -189,6 +197,9 @@ paths:
             application/json:
               schema: { $ref: "#/entities/Member" }
         "409": { description: Email address already registered., problem: email-taken }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
       satisfies: [LIB-1]
 
   /members/{memberId}:
@@ -205,6 +216,9 @@ paths:
             application/json:
               schema: { $ref: "#/views/MemberWithLoans" }
         "404": { description: No such member., problem: member-not-found }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
 
   /members/{memberId}/loans:
     parameters:
@@ -253,6 +267,9 @@ paths:
                 required: [loans]
         "404": { description: No such member., problem: member-not-found }
         "409": { description: "Loan limit reached, fees outstanding, no copy available, or due too late.", problem: lending-refused }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
       satisfies: [LIB-3]
 
   /members/{memberId}/deactivate:
@@ -278,6 +295,9 @@ paths:
             application/json:
               schema: { $ref: "#/entities/Member" }
         "404": { description: No such member., problem: member-not-found }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
 
   /loans:
     get:
@@ -298,6 +318,9 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/Loan" } }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
     post:
       operationId: createLoan
       summary: Lend a copy to a member
@@ -335,6 +358,9 @@ paths:
             application/json:
               schema: { $ref: "#/entities/Loan" }
         "409": { description: "Loan limit reached, fees outstanding, or no copy available.", problem: lending-refused }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
       emits: [loan.lifecycle/LoanCreated]
       satisfies: [LIB-3]
 
@@ -354,6 +380,10 @@ paths:
               schema: { $ref: "#/entities/Loan" }
         "409": { description: The loan is already closed., problem: loan-closed }
         "503": { description: "The fee ledger is unavailable, and the loan stays as it was.", problem: fee-ledger-unavailable }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
+        "404": { description: No such loan., problem: loan-not-found }
       emits: [loan.lifecycle/LoanReturned]
       calls:
         - call: feeLedger#/operations/postCharge
@@ -385,6 +415,10 @@ paths:
               schema: { $ref: "#/entities/Loan" }
         "409": { description: The loan is already closed., problem: loan-closed }
         "503": { description: "The fee ledger is unavailable, and the loan stays as it was.", problem: fee-ledger-unavailable }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
+        "404": { description: No such loan., problem: loan-not-found }
       emits: [loan.lifecycle/LoanLost]
       calls: [feeLedger]
       guard: { entity: Loan, precondition: 'status == "open" || status == "overdue"', recordsChanged: 1 }
@@ -415,6 +449,10 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/FeeWaiverRequest" }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
+        "404": { description: No such loan., problem: loan-not-found }
       satisfies: [LIB-8]
 
   /fee-waivers:
@@ -431,6 +469,8 @@ paths:
           content:
             application/json:
               schema: { type: array, items: { $ref: "#/entities/FeeWaiverRequest" } }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
       satisfies: [LIB-8]
 
   /fee-waivers/{waiverId}/waive:
@@ -446,6 +486,10 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/FeeWaiverRequest" }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
+        "404": { description: No such fee waiver request., problem: fee-waiver-not-found }
       satisfies: [LIB-8]
 
   /fee-waivers/{waiverId}/approve:
@@ -464,6 +508,10 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/FeeWaiverRequest" }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
+        "404": { description: No such fee waiver request., problem: fee-waiver-not-found }
       satisfies: [LIB-8]
 
   /fee-waivers/{waiverId}/refuse:
@@ -492,4 +540,8 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/entities/FeeWaiverRequest" }
+        "400": { description: A field or parameter is missing or not of its form., problem: request-invalid }
+        "401": { description: "The caller is not signed in, or the session has expired.", problem: not-signed-in }
+        "403": { description: The caller's role does not hold the permission., problem: not-allowed }
+        "404": { description: No such fee waiver request., problem: fee-waiver-not-found }
       satisfies: [LIB-8]

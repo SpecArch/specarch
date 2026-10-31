@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification whose operation declares 400, 403 and 404, takes a body field that names a member through a relation, a date, a number with limits and an optional text with a length, and satisfies a requirement with a harm"
+when: "derive is run"
+then: "each draft carries the call the design fixes: a caller that may or, denied, one that may not, a valid value of every required field and the member record its id names, the field of the case left out or past its limit, the member left out for not found, and the status; it exits 0"
+verifies: [SA-111]

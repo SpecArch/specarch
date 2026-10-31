@@ -29,6 +29,7 @@ form({
   // What the operations' refusals say, by status, and the field each is about.
   refusals: {
     submit: {
+      "400": { message: "Something in the request is missing or not in its form. Check it and try again." },
       "409": { message: "The reset code is wrong, used or expired. Ask for a new one.", field: "code" },
     },
   },

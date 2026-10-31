@@ -115,7 +115,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#/channels">Channels</a> <span class="count">3</span></li>
 <li><a href="#/dependencies">Dependencies</a> <span class="count">2</span></li>
 <li><a href="#/jobs">Jobs</a> <span class="count">1</span></li>
-<li><a href="#/errors">Errors</a> <span class="count">8</span></li>
+<li><a href="#/errors">Errors</a> <span class="count">13</span></li>
 </ol></li>
 <li><a href="#pages-and-menus">Pages and menus</a><ol>
 <li><a href="#/pages">Pages</a> <span class="count">12</span></li>
@@ -132,7 +132,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#/decisions">Decisions</a> <span class="count">4</span></li>
 </ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
-<li><a href="#/tests">Tests</a> <span class="count">198</span></li>
+<li><a href="#/tests">Tests</a> <span class="count">199</span></li>
 <li><a href="#traceability">Traceability</a></li>
 </ol></li>
 <li><a href="#deployment-commissioning-and-operation">Deployment, commissioning and operation</a><ol>
@@ -177,7 +177,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/channels">Channels</a></td><td>3</td></tr>
 <tr><td><a href="#/dependencies">Dependencies</a></td><td>2</td></tr>
 <tr><td><a href="#/jobs">Jobs</a></td><td>1</td></tr>
-<tr><td><a href="#/errors">Errors</a></td><td>8</td></tr>
+<tr><td><a href="#/errors">Errors</a></td><td>13</td></tr>
 <tr><td><a href="#/pages">Pages</a></td><td>12</td></tr>
 <tr><td><a href="#/menus">Menus</a></td><td>3</td></tr>
 <tr><td><a href="#/flows">Flows</a></td><td>1</td></tr>
@@ -186,7 +186,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/workflows">Workflows</a></td><td>1</td></tr>
 <tr><td><a href="#/algorithms">Algorithms</a></td><td>2</td></tr>
 <tr><td><a href="#/decisions">Decisions</a></td><td>4</td></tr>
-<tr><td><a href="#/tests">Tests</a></td><td>198</td></tr>
+<tr><td><a href="#/tests">Tests</a></td><td>199</td></tr>
 <tr><td><a href="#/environments">Environments</a></td><td>3</td></tr>
 <tr><td><a href="#/configuration">Configuration</a></td><td>4</td></tr>
 <tr><td><a href="#/release">Release</a></td><td>one</td></tr>
@@ -1559,11 +1559,19 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1books/get/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1books/get/responses/200">/paths/~1books/get/responses/200</a>
 </th>
 <td>Matching books.</td>
 <td><code>{application/json: {schema: {type: array, items: {$ref: #/entities/Book}}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1books/get/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1books/get/responses/400">/paths/~1books/get/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -1648,6 +1656,11 @@ ol.problems p{margin:2px 0}
 </th>
 <td>The email address or the password is wrong.</td>
 <td><a href="#/errors/sign-in-refused">sign-in-refused</a></td>
+</tr>
+<tr id="/paths/~1sessions/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1sessions/post/responses/400">/paths/~1sessions/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -1753,6 +1766,12 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td><a href="#/errors/member-not-found">member-not-found</a></td>
 </tr>
+<tr id="/paths/~1profile/get/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1profile/get/responses/401">/paths/~1profile/get/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
 </tbody></table></div>
 </dd>
 <dt>satisfies</dt>
@@ -1828,6 +1847,11 @@ ol.problems p{margin:2px 0}
 </th>
 <td>The code is wrong, or the sign-in challenge is closed.</td>
 <td><a href="#/errors/second-factor-refused">second-factor-refused</a></td>
+</tr>
+<tr id="/paths/~1sessions~1second-factor/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1sessions~1second-factor/post/responses/400">/paths/~1sessions~1second-factor/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -1907,6 +1931,11 @@ ol.problems p{margin:2px 0}
 <td>The reset code is wrong, used or expired.</td>
 <td><a href="#/errors/reset-code-refused">reset-code-refused</a></td>
 </tr>
+<tr id="/paths/~1password-resets/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1password-resets/post/responses/400">/paths/~1password-resets/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
 </tbody></table></div>
 </dd>
 </dl>
@@ -1972,11 +2001,31 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1members/get/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1members/get/responses/200">/paths/~1members/get/responses/200</a>
 </th>
 <td>All members.</td>
 <td><code>{application/json: {schema: {type: array, items: {$ref: #/entities/Member}}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1members/get/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1members/get/responses/400">/paths/~1members/get/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1members/get/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1members/get/responses/401">/paths/~1members/get/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1members/get/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1members/get/responses/403">/paths/~1members/get/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -2058,6 +2107,24 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td><a href="#/errors/email-taken">email-taken</a></td>
 </tr>
+<tr id="/paths/~1members/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1members/post/responses/400">/paths/~1members/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1members/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1members/post/responses/401">/paths/~1members/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1members/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1members/post/responses/403">/paths/~1members/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
 </tbody></table></div>
 </dd>
 <dt>satisfies</dt>
@@ -2122,6 +2189,24 @@ ol.problems p{margin:2px 0}
 <td>No such member.</td>
 <td></td>
 <td><a href="#/errors/member-not-found">member-not-found</a></td>
+</tr>
+<tr id="/paths/~1members~1%7BmemberId%7D/get/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1members~1%7BmemberId%7D/get/responses/400">/paths/~1members~1{memberId}/get/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1members~1%7BmemberId%7D/get/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1members~1%7BmemberId%7D/get/responses/401">/paths/~1members~1{memberId}/get/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1members~1%7BmemberId%7D/get/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1members~1%7BmemberId%7D/get/responses/403">/paths/~1members~1{memberId}/get/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -2281,6 +2366,33 @@ ol.problems p{margin:2px 0}
 <dd><a href="#/errors/lending-refused">lending-refused</a></dd>
 </dl>
 </dd>
+<dt>400</dt>
+<dd id="/paths/~1members~1%7BmemberId%7D~1loans/post/responses/400">
+<dl>
+<dt>description</dt>
+<dd>A field or parameter is missing or not of its form.</dd>
+<dt>problem</dt>
+<dd><a href="#/errors/request-invalid">request-invalid</a></dd>
+</dl>
+</dd>
+<dt>401</dt>
+<dd id="/paths/~1members~1%7BmemberId%7D~1loans/post/responses/401">
+<dl>
+<dt>description</dt>
+<dd>The caller is not signed in, or the session has expired.</dd>
+<dt>problem</dt>
+<dd><a href="#/errors/not-signed-in">not-signed-in</a></dd>
+</dl>
+</dd>
+<dt>403</dt>
+<dd id="/paths/~1members~1%7BmemberId%7D~1loans/post/responses/403">
+<dl>
+<dt>description</dt>
+<dd>The caller&#39;s role does not hold the permission.</dd>
+<dt>problem</dt>
+<dd><a href="#/errors/not-allowed">not-allowed</a></dd>
+</dl>
+</dd>
 </dl>
 </dd>
 <dt>satisfies</dt>
@@ -2382,6 +2494,24 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td><a href="#/errors/member-not-found">member-not-found</a></td>
 </tr>
+<tr id="/paths/~1members~1%7BmemberId%7D~1deactivate/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1members~1%7BmemberId%7D~1deactivate/post/responses/400">/paths/~1members~1{memberId}~1deactivate/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1members~1%7BmemberId%7D~1deactivate/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1members~1%7BmemberId%7D~1deactivate/post/responses/401">/paths/~1members~1{memberId}~1deactivate/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1members~1%7BmemberId%7D~1deactivate/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1members~1%7BmemberId%7D~1deactivate/post/responses/403">/paths/~1members~1{memberId}~1deactivate/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
 </tbody></table></div>
 </dd>
 </dl>
@@ -2464,11 +2594,31 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1loans/get/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1loans/get/responses/200">/paths/~1loans/get/responses/200</a>
 </th>
 <td>Matching loans.</td>
 <td><code>{application/json: {schema: {type: array, items: {$ref: #/entities/Loan}}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1loans/get/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1loans/get/responses/400">/paths/~1loans/get/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1loans/get/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1loans/get/responses/401">/paths/~1loans/get/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1loans/get/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1loans/get/responses/403">/paths/~1loans/get/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -2597,6 +2747,24 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td><a href="#/errors/lending-refused">lending-refused</a></td>
 </tr>
+<tr id="/paths/~1loans/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1loans/post/responses/400">/paths/~1loans/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1loans/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1loans/post/responses/401">/paths/~1loans/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1loans/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1loans/post/responses/403">/paths/~1loans/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
 </tbody></table></div>
 </dd>
 <dt>emits</dt>
@@ -2673,6 +2841,30 @@ ol.problems p{margin:2px 0}
 <td>The fee ledger is unavailable, and the loan stays as it was.</td>
 <td></td>
 <td><a href="#/errors/fee-ledger-unavailable">fee-ledger-unavailable</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1return/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post/responses/400">/paths/~1loans~1{loanId}~1return/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1return/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post/responses/401">/paths/~1loans~1{loanId}~1return/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1return/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post/responses/403">/paths/~1loans~1{loanId}~1return/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1return/post/responses/404"><th scope="row">404 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1return/post/responses/404">/paths/~1loans~1{loanId}~1return/post/responses/404</a>
+</th>
+<td>No such loan.</td>
+<td></td>
+<td><a href="#/errors/loan-not-found">loan-not-found</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -2853,6 +3045,30 @@ ol.problems p{margin:2px 0}
 <td></td>
 <td><a href="#/errors/fee-ledger-unavailable">fee-ledger-unavailable</a></td>
 </tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1lost/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1lost/post/responses/400">/paths/~1loans~1{loanId}~1lost/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1lost/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1lost/post/responses/401">/paths/~1loans~1{loanId}~1lost/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1lost/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1lost/post/responses/403">/paths/~1loans~1{loanId}~1lost/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1lost/post/responses/404"><th scope="row">404 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1lost/post/responses/404">/paths/~1loans~1{loanId}~1lost/post/responses/404</a>
+</th>
+<td>No such loan.</td>
+<td></td>
+<td><a href="#/errors/loan-not-found">loan-not-found</a></td>
+</tr>
 </tbody></table></div>
 </dd>
 <dt>emits</dt>
@@ -2962,11 +3178,37 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/202"><th scope="row">202 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/202">/paths/~1loans~1{loanId}~1fee-waivers/post/responses/202</a>
 </th>
 <td>The request is accepted and waits for a desk supervisor.</td>
 <td><code>{application/json: {schema: {$ref: #/entities/FeeWaiverRequest}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/400">/paths/~1loans~1{loanId}~1fee-waivers/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/401">/paths/~1loans~1{loanId}~1fee-waivers/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/403">/paths/~1loans~1{loanId}~1fee-waivers/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
+<tr id="/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/404"><th scope="row">404 <a class="ptr" href="#/paths/~1loans~1%7BloanId%7D~1fee-waivers/post/responses/404">/paths/~1loans~1{loanId}~1fee-waivers/post/responses/404</a>
+</th>
+<td>No such loan.</td>
+<td></td>
+<td><a href="#/errors/loan-not-found">loan-not-found</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -3025,6 +3267,24 @@ ol.problems p{margin:2px 0}
 </dd>
 </dl>
 </dd>
+<dt>401</dt>
+<dd id="/paths/~1fee-waivers/get/responses/401">
+<dl>
+<dt>description</dt>
+<dd>The caller is not signed in, or the session has expired.</dd>
+<dt>problem</dt>
+<dd><a href="#/errors/not-signed-in">not-signed-in</a></dd>
+</dl>
+</dd>
+<dt>403</dt>
+<dd id="/paths/~1fee-waivers/get/responses/403">
+<dl>
+<dt>description</dt>
+<dd>The caller&#39;s role does not hold the permission.</dd>
+<dt>problem</dt>
+<dd><a href="#/errors/not-allowed">not-allowed</a></dd>
+</dl>
+</dd>
 </dl>
 </dd>
 <dt>satisfies</dt>
@@ -3076,11 +3336,37 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/200">/paths/~1fee-waivers~1{waiverId}~1waive/post/responses/200</a>
 </th>
 <td>The fee is waived.</td>
 <td><code>{application/json: {schema: {$ref: #/entities/FeeWaiverRequest}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/400">/paths/~1fee-waivers~1{waiverId}~1waive/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/401">/paths/~1fee-waivers~1{waiverId}~1waive/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/403">/paths/~1fee-waivers~1{waiverId}~1waive/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/404"><th scope="row">404 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1waive/post/responses/404">/paths/~1fee-waivers~1{waiverId}~1waive/post/responses/404</a>
+</th>
+<td>No such fee waiver request.</td>
+<td></td>
+<td><a href="#/errors/fee-waiver-not-found">fee-waiver-not-found</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -3137,11 +3423,37 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/200">/paths/~1fee-waivers~1{waiverId}~1approve/post/responses/200</a>
 </th>
 <td>The request is approved.</td>
 <td><code>{application/json: {schema: {$ref: #/entities/FeeWaiverRequest}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/400">/paths/~1fee-waivers~1{waiverId}~1approve/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/401">/paths/~1fee-waivers~1{waiverId}~1approve/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/403">/paths/~1fee-waivers~1{waiverId}~1approve/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/404"><th scope="row">404 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1approve/post/responses/404">/paths/~1fee-waivers~1{waiverId}~1approve/post/responses/404</a>
+</th>
+<td>No such fee waiver request.</td>
+<td></td>
+<td><a href="#/errors/fee-waiver-not-found">fee-waiver-not-found</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -3234,11 +3546,37 @@ ol.problems p{margin:2px 0}
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">description</th>
 <th scope="col">content</th>
+<th scope="col">problem</th>
 </tr></thead><tbody>
 <tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/200">/paths/~1fee-waivers~1{waiverId}~1refuse/post/responses/200</a>
 </th>
 <td>The request is refused.</td>
 <td><code>{application/json: {schema: {$ref: #/entities/FeeWaiverRequest}}}</code></td>
+<td></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/400"><th scope="row">400 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/400">/paths/~1fee-waivers~1{waiverId}~1refuse/post/responses/400</a>
+</th>
+<td>A field or parameter is missing or not of its form.</td>
+<td></td>
+<td><a href="#/errors/request-invalid">request-invalid</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/401"><th scope="row">401 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/401">/paths/~1fee-waivers~1{waiverId}~1refuse/post/responses/401</a>
+</th>
+<td>The caller is not signed in, or the session has expired.</td>
+<td></td>
+<td><a href="#/errors/not-signed-in">not-signed-in</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/403"><th scope="row">403 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/403">/paths/~1fee-waivers~1{waiverId}~1refuse/post/responses/403</a>
+</th>
+<td>The caller&#39;s role does not hold the permission.</td>
+<td></td>
+<td><a href="#/errors/not-allowed">not-allowed</a></td>
+</tr>
+<tr id="/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/404"><th scope="row">404 <a class="ptr" href="#/paths/~1fee-waivers~1%7BwaiverId%7D~1refuse/post/responses/404">/paths/~1fee-waivers~1{waiverId}~1refuse/post/responses/404</a>
+</th>
+<td>No such fee waiver request.</td>
+<td></td>
+<td><a href="#/errors/fee-waiver-not-found">fee-waiver-not-found</a></td>
 </tr>
 </tbody></table></div>
 </dd>
@@ -3634,6 +3972,41 @@ ol.problems p{margin:2px 0}
 <td>No one was sent the reset code, or it was used or has expired.</td>
 <td></td>
 </tr>
+<tr data-search id="/errors/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/errors/request-invalid">/errors/request-invalid</a>
+</th>
+<td>400</td>
+<td>The request cannot be read</td>
+<td>A required field or parameter is missing, or a value is of the wrong form or outside its limits.</td>
+<td>Correct the field the problem names and send the request again.</td>
+</tr>
+<tr data-search id="/errors/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/errors/not-signed-in">/errors/not-signed-in</a>
+</th>
+<td>401</td>
+<td>Not signed in</td>
+<td>The request carries no session, or its session has expired.</td>
+<td>Sign in again, then repeat what you were doing.</td>
+</tr>
+<tr data-search id="/errors/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/errors/not-allowed">/errors/not-allowed</a>
+</th>
+<td>403</td>
+<td>Not allowed</td>
+<td>The caller&#39;s role does not hold the permission the operation needs.</td>
+<td>Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it.</td>
+</tr>
+<tr data-search id="/errors/loan-not-found"><th scope="row">loan-not-found <a class="ptr" href="#/errors/loan-not-found">/errors/loan-not-found</a>
+</th>
+<td>404</td>
+<td>No such loan</td>
+<td>No loan has the id in the path.</td>
+<td>Refresh the list of loans; the link may be old.</td>
+</tr>
+<tr data-search id="/errors/fee-waiver-not-found"><th scope="row">fee-waiver-not-found <a class="ptr" href="#/errors/fee-waiver-not-found">/errors/fee-waiver-not-found</a>
+</th>
+<td>404</td>
+<td>No such fee waiver request</td>
+<td>No request to waive a fee has the id in the path.</td>
+<td>Refresh the list of waiting requests; the link may be old.</td>
+</tr>
 </tbody></table></div>
 </section>
 </section>
@@ -4013,14 +4386,38 @@ label {
 </dd>
 <dt>states</dt>
 <dd id="/pages/fee-waivers-inbox/states">
+<dl>
+<dt>failed</dt>
+<dd id="/pages/fee-waivers-inbox/states/failed">
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">message</th>
 </tr></thead><tbody>
-<tr id="/pages/fee-waivers-inbox/states/empty"><th scope="row">empty <a class="ptr" href="#/pages/fee-waivers-inbox/states/empty">/pages/fee-waivers-inbox/states/empty</a>
+<tr id="/pages/fee-waivers-inbox/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/fee-waivers-inbox/states/failed/not-signed-in">/pages/fee-waivers-inbox/states/failed/not-signed-in</a>
 </th>
-<td>No request waits for approval.</td>
+<td>Your session has ended. Sign in again, then try once more.</td>
+</tr>
+<tr id="/pages/fee-waivers-inbox/states/failed/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/pages/fee-waivers-inbox/states/failed/not-allowed">/pages/fee-waivers-inbox/states/failed/not-allowed</a>
+</th>
+<td>Your role does not allow this. Ask a desk supervisor.</td>
+</tr>
+<tr id="/pages/fee-waivers-inbox/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/fee-waivers-inbox/states/failed/request-invalid">/pages/fee-waivers-inbox/states/failed/request-invalid</a>
+</th>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+</tr>
+<tr id="/pages/fee-waivers-inbox/states/failed/fee-waiver-not-found"><th scope="row">fee-waiver-not-found <a class="ptr" href="#/pages/fee-waivers-inbox/states/failed/fee-waiver-not-found">/pages/fee-waivers-inbox/states/failed/fee-waiver-not-found</a>
+</th>
+<td>This request is no longer there. Refresh the list.</td>
 </tr>
 </tbody></table></div>
+</dd>
+<dt>empty</dt>
+<dd id="/pages/fee-waivers-inbox/states/empty">
+<dl>
+<dt>message</dt>
+<dd>No request waits for approval.</dd>
+</dl>
+</dd>
+</dl>
 </dd>
 <dt>satisfies</dt>
 <dd>
@@ -4227,6 +4624,18 @@ label {
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">message</th>
 </tr></thead><tbody>
+<tr id="/pages/loan-form/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/loan-form/states/failed/request-invalid">/pages/loan-form/states/failed/request-invalid</a>
+</th>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+</tr>
+<tr id="/pages/loan-form/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/loan-form/states/failed/not-signed-in">/pages/loan-form/states/failed/not-signed-in</a>
+</th>
+<td>Your session has ended. Sign in again, then try once more.</td>
+</tr>
+<tr id="/pages/loan-form/states/failed/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/pages/loan-form/states/failed/not-allowed">/pages/loan-form/states/failed/not-allowed</a>
+</th>
+<td>Your role does not allow this. Ask a desk supervisor.</td>
+</tr>
 <tr id="/pages/loan-form/states/failed/lending-refused"><th scope="row">lending-refused <a class="ptr" href="#/pages/loan-form/states/failed/lending-refused">/pages/loan-form/states/failed/lending-refused</a>
 </th>
 <td>This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows.</td>
@@ -4730,14 +5139,36 @@ label {
 </dd>
 <dt>states</dt>
 <dd id="/pages/member-form/states">
+<dl>
+<dt>failed</dt>
+<dd id="/pages/member-form/states/failed">
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
-<th scope="col">email-taken</th>
+<th scope="col">message</th>
+<th scope="col">field</th>
 </tr></thead><tbody>
-<tr id="/pages/member-form/states/failed"><th scope="row">failed <a class="ptr" href="#/pages/member-form/states/failed">/pages/member-form/states/failed</a>
+<tr id="/pages/member-form/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/member-form/states/failed/request-invalid">/pages/member-form/states/failed/request-invalid</a>
 </th>
-<td><code>{message: Another member already has this email address., field: email}</code></td>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+<td></td>
+</tr>
+<tr id="/pages/member-form/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/member-form/states/failed/not-signed-in">/pages/member-form/states/failed/not-signed-in</a>
+</th>
+<td>Your session has ended. Sign in again, then try once more.</td>
+<td></td>
+</tr>
+<tr id="/pages/member-form/states/failed/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/pages/member-form/states/failed/not-allowed">/pages/member-form/states/failed/not-allowed</a>
+</th>
+<td>Your role does not allow this. Ask a desk supervisor.</td>
+<td></td>
+</tr>
+<tr id="/pages/member-form/states/failed/email-taken"><th scope="row">email-taken <a class="ptr" href="#/pages/member-form/states/failed/email-taken">/pages/member-form/states/failed/email-taken</a>
+</th>
+<td>Another member already has this email address.</td>
+<td>email</td>
 </tr>
 </tbody></table></div>
+</dd>
+</dl>
 </dd>
 <dt>onSubmitted</dt>
 <dd id="/pages/member-form/onSubmitted">
@@ -4960,6 +5391,18 @@ label {
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">message</th>
 </tr></thead><tbody>
+<tr id="/pages/member-loans/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/member-loans/states/failed/request-invalid">/pages/member-loans/states/failed/request-invalid</a>
+</th>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+</tr>
+<tr id="/pages/member-loans/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/member-loans/states/failed/not-signed-in">/pages/member-loans/states/failed/not-signed-in</a>
+</th>
+<td>Your session has ended. Sign in again, then try once more.</td>
+</tr>
+<tr id="/pages/member-loans/states/failed/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/pages/member-loans/states/failed/not-allowed">/pages/member-loans/states/failed/not-allowed</a>
+</th>
+<td>Your role does not allow this. Ask a desk supervisor.</td>
+</tr>
 <tr id="/pages/member-loans/states/failed/member-not-found"><th scope="row">member-not-found <a class="ptr" href="#/pages/member-loans/states/failed/member-not-found">/pages/member-loans/states/failed/member-not-found</a>
 </th>
 <td>There is no member with this card.</td>
@@ -5224,14 +5667,31 @@ label {
 </dd>
 <dt>states</dt>
 <dd id="/pages/member-view/states">
+<dl>
+<dt>failed</dt>
+<dd id="/pages/member-view/states/failed">
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
-<th scope="col">member-not-found</th>
+<th scope="col">message</th>
 </tr></thead><tbody>
-<tr id="/pages/member-view/states/failed"><th scope="row">failed <a class="ptr" href="#/pages/member-view/states/failed">/pages/member-view/states/failed</a>
+<tr id="/pages/member-view/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/member-view/states/failed/request-invalid">/pages/member-view/states/failed/request-invalid</a>
 </th>
-<td><code>{message: There is no member with this card.}</code></td>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+</tr>
+<tr id="/pages/member-view/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/member-view/states/failed/not-signed-in">/pages/member-view/states/failed/not-signed-in</a>
+</th>
+<td>Your session has ended. Sign in again, then try once more.</td>
+</tr>
+<tr id="/pages/member-view/states/failed/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/pages/member-view/states/failed/not-allowed">/pages/member-view/states/failed/not-allowed</a>
+</th>
+<td>Your role does not allow this. Ask a desk supervisor.</td>
+</tr>
+<tr id="/pages/member-view/states/failed/member-not-found"><th scope="row">member-not-found <a class="ptr" href="#/pages/member-view/states/failed/member-not-found">/pages/member-view/states/failed/member-not-found</a>
+</th>
+<td>There is no member with this card.</td>
 </tr>
 </tbody></table></div>
+</dd>
+</dl>
 </dd>
 <dt>actions</dt>
 <dd>
@@ -5465,26 +5925,45 @@ label {
 </dd>
 <dt>states</dt>
 <dd id="/pages/members-list/states">
+<dl>
+<dt>empty</dt>
+<dd id="/pages/members-list/states/empty">
+<dl>
+<dt>message</dt>
+<dd>No members yet. Register the first one.</dd>
+</dl>
+</dd>
+<dt>filteredEmpty</dt>
+<dd id="/pages/members-list/states/filteredEmpty">
+<dl>
+<dt>message</dt>
+<dd>No member is in this tier.</dd>
+</dl>
+</dd>
+<dt>failed</dt>
+<dd id="/pages/members-list/states/failed">
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">message</th>
-<th scope="col">member-not-found</th>
 </tr></thead><tbody>
-<tr id="/pages/members-list/states/empty"><th scope="row">empty <a class="ptr" href="#/pages/members-list/states/empty">/pages/members-list/states/empty</a>
+<tr id="/pages/members-list/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/members-list/states/failed/request-invalid">/pages/members-list/states/failed/request-invalid</a>
 </th>
-<td>No members yet. Register the first one.</td>
-<td></td>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
 </tr>
-<tr id="/pages/members-list/states/filteredEmpty"><th scope="row">filteredEmpty <a class="ptr" href="#/pages/members-list/states/filteredEmpty">/pages/members-list/states/filteredEmpty</a>
+<tr id="/pages/members-list/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/members-list/states/failed/not-signed-in">/pages/members-list/states/failed/not-signed-in</a>
 </th>
-<td>No member is in this tier.</td>
-<td></td>
+<td>Your session has ended. Sign in again, then try once more.</td>
 </tr>
-<tr id="/pages/members-list/states/failed"><th scope="row">failed <a class="ptr" href="#/pages/members-list/states/failed">/pages/members-list/states/failed</a>
+<tr id="/pages/members-list/states/failed/not-allowed"><th scope="row">not-allowed <a class="ptr" href="#/pages/members-list/states/failed/not-allowed">/pages/members-list/states/failed/not-allowed</a>
 </th>
-<td></td>
-<td><code>{message: This member is no longer on record, so nothing changed.}</code></td>
+<td>Your role does not allow this. Ask a desk supervisor.</td>
+</tr>
+<tr id="/pages/members-list/states/failed/member-not-found"><th scope="row">member-not-found <a class="ptr" href="#/pages/members-list/states/failed/member-not-found">/pages/members-list/states/failed/member-not-found</a>
+</th>
+<td>This member is no longer on record, so nothing changed.</td>
 </tr>
 </tbody></table></div>
+</dd>
+</dl>
 </dd>
 <dt>onSelect</dt>
 <dd id="/pages/members-list/onSelect">
@@ -5732,6 +6211,10 @@ label {
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
 <th scope="col">message</th>
 </tr></thead><tbody>
+<tr id="/pages/profile/states/failed/not-signed-in"><th scope="row">not-signed-in <a class="ptr" href="#/pages/profile/states/failed/not-signed-in">/pages/profile/states/failed/not-signed-in</a>
+</th>
+<td>Your session has ended. Sign in again, then try once more.</td>
+</tr>
 <tr id="/pages/profile/states/failed/member-not-found"><th scope="row">member-not-found <a class="ptr" href="#/pages/profile/states/failed/member-not-found">/pages/profile/states/failed/member-not-found</a>
 </th>
 <td>Your account holds no library card, so there is no member record to show.</td>
@@ -5918,6 +6401,11 @@ label {
 <th scope="col">message</th>
 <th scope="col">field</th>
 </tr></thead><tbody>
+<tr id="/pages/reset-password/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/reset-password/states/failed/request-invalid">/pages/reset-password/states/failed/request-invalid</a>
+</th>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+<td></td>
+</tr>
 <tr id="/pages/reset-password/states/failed/reset-code-refused"><th scope="row">reset-code-refused <a class="ptr" href="#/pages/reset-password/states/failed/reset-code-refused">/pages/reset-password/states/failed/reset-code-refused</a>
 </th>
 <td>The reset code is wrong, used or expired. Ask for a new one.</td>
@@ -6093,6 +6581,11 @@ label {
 <th scope="col">message</th>
 <th scope="col">field</th>
 </tr></thead><tbody>
+<tr id="/pages/second-factor/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/second-factor/states/failed/request-invalid">/pages/second-factor/states/failed/request-invalid</a>
+</th>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+<td></td>
+</tr>
 <tr id="/pages/second-factor/states/failed/second-factor-refused"><th scope="row">second-factor-refused <a class="ptr" href="#/pages/second-factor/states/failed/second-factor-refused">/pages/second-factor/states/failed/second-factor-refused</a>
 </th>
 <td>The code is wrong, or it came too late. Type the code the app shows now, or sign in again.</td>
@@ -6264,14 +6757,26 @@ label {
 </dd>
 <dt>states</dt>
 <dd id="/pages/sign-in/states">
+<dl>
+<dt>failed</dt>
+<dd id="/pages/sign-in/states/failed">
 <div class="scroll"><table><thead><tr><th scope="col">Name</th>
-<th scope="col">sign-in-refused</th>
+<th scope="col">message</th>
+<th scope="col">field</th>
 </tr></thead><tbody>
-<tr id="/pages/sign-in/states/failed"><th scope="row">failed <a class="ptr" href="#/pages/sign-in/states/failed">/pages/sign-in/states/failed</a>
+<tr id="/pages/sign-in/states/failed/request-invalid"><th scope="row">request-invalid <a class="ptr" href="#/pages/sign-in/states/failed/request-invalid">/pages/sign-in/states/failed/request-invalid</a>
 </th>
-<td><code>{message: The email address or the password is wrong., field: password}</code></td>
+<td>Something in the request is missing or not in its form. Check it and try again.</td>
+<td></td>
+</tr>
+<tr id="/pages/sign-in/states/failed/sign-in-refused"><th scope="row">sign-in-refused <a class="ptr" href="#/pages/sign-in/states/failed/sign-in-refused">/pages/sign-in/states/failed/sign-in-refused</a>
+</th>
+<td>The email address or the password is wrong.</td>
+<td>password</td>
 </tr>
 </tbody></table></div>
+</dd>
+</dl>
 </dd>
 <dt>onSubmitted</dt>
 <dd id="/pages/sign-in/onSubmitted">
@@ -7246,6 +7751,27 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>fixture</dt>
+<dd id="/tests/approve-fee-waiver/fixture">
+<dl>
+<dt>caller</dt>
+<dd>desk-supervisor</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/approve-fee-waiver/input">
+<dl>
+<dt>waiverId</dt>
+<dd>eced74aa-7484-5285-a42e-0cdb9b680338</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/approve-fee-waiver/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/approve-fee-waiver-denied">
@@ -7397,6 +7923,22 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-2">LIB-2</a></p>
 </dd>
+<dt>input</dt>
+<dd id="/tests/browse-catalogue/input">
+<dl>
+<dt>q</dt>
+<dd>
+<p>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p>
+</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/browse-catalogue/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/browse-catalogue-query-too-long">
@@ -7418,6 +7960,22 @@ label {
 <dd>listBooks is called with a 201-character q</dd>
 <dt>then</dt>
 <dd>it is refused as invalid input</dd>
+<dt>input</dt>
+<dd id="/tests/browse-catalogue-query-too-long/input">
+<dl>
+<dt>q</dt>
+<dd>
+<p>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p>
+</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/browse-catalogue-query-too-long/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/confirm-second-factor-bad-code">
@@ -7504,7 +8062,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>denied with expired session</p>
+<p>denied with expired session, response 401</p>
 </dd>
 <dt>given</dt>
 <dd>a librarian whose session expired after half an hour without a request</dd>
@@ -7512,6 +8070,13 @@ label {
 <dd>createLoan is called for a member and a book that exist</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/create-loan-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/create-loan-expired-member-id">
@@ -7546,7 +8111,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>Idempotency-Key not a valid uuid</p>
+<p>Idempotency-Key not a valid uuid, response 400</p>
 </dd>
 <dt>given</dt>
 <dd>a member and a book that exist</dd>
@@ -7554,6 +8119,57 @@ label {
 <dd>createLoan is called with an Idempotency-Key that is not a UUID</dd>
 <dt>then</dt>
 <dd>it is refused and no loan is created</dd>
+<dt>fixture</dt>
+<dd id="/tests/create-loan-idempotency-key-not-a-valid-uuid/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Book</dt>
+<dd>
+<ol class="items">
+<li id="/tests/create-loan-idempotency-key-not-a-valid-uuid/fixture/Book/0">
+<dl>
+<dt>id</dt>
+<dd>d560a9f8-90db-51af-9fb2-40ab426d5a46</dd>
+</dl>
+</li>
+</ol>
+</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/create-loan-idempotency-key-not-a-valid-uuid/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/create-loan-idempotency-key-not-a-valid-uuid/input">
+<dl>
+<dt>Idempotency-Key</dt>
+<dd>not a uuid</dd>
+<dt>bookId</dt>
+<dd>d560a9f8-90db-51af-9fb2-40ab426d5a46</dd>
+<dt>dueOn</dt>
+<dd>2026-01-15</dd>
+<dt>lentOn</dt>
+<dd>2026-01-15</dd>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/create-loan-idempotency-key-not-a-valid-uuid/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/create-loan-idempotency-key-reused-for-another-request">
@@ -7669,6 +8285,13 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-3">LIB-3</a></p>
 </dd>
+<dt>expect</dt>
+<dd id="/tests/create-loan-repeated-with-the-same-idempotency-key/expect">
+<dl>
+<dt>status</dt>
+<dd>201</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/create-loan-request-larger-than-1024-bytes">
@@ -7717,6 +8340,13 @@ label {
 <dd>createMember is called</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/create-member-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/deactivate-member">
@@ -7734,6 +8364,40 @@ label {
 <dd>deactivateMember is called for that member with the reason &#34;Moved away.&#34;</dd>
 <dt>then</dt>
 <dd>it answers 200 with the member inactive, and the reason is kept with the record</dd>
+<dt>fixture</dt>
+<dd id="/tests/deactivate-member/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/deactivate-member/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/deactivate-member/input">
+<dl>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/deactivate-member/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/deactivate-member-bad-input">
@@ -7776,6 +8440,40 @@ label {
 <dd>deactivateMember is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed, and the member stays active</dd>
+<dt>fixture</dt>
+<dd id="/tests/deactivate-member-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/deactivate-member-denied/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/deactivate-member-denied/input">
+<dl>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/deactivate-member-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/deactivate-member-denied-with-expired-session">
@@ -7797,6 +8495,13 @@ label {
 <dd>deactivateMember is called for an active member</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/deactivate-member-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/deactivate-member-not-found">
@@ -7818,6 +8523,29 @@ label {
 <dd>deactivateMember is called with that id</dd>
 <dt>then</dt>
 <dd>it answers 404</dd>
+<dt>fixture</dt>
+<dd id="/tests/deactivate-member-not-found/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/deactivate-member-not-found/input">
+<dl>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/deactivate-member-not-found/expect">
+<dl>
+<dt>status</dt>
+<dd>404</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/fee-waiver">
@@ -8285,6 +9013,13 @@ label {
 <dd>getMember is called for a member that exists</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/get-member-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/get-profile-denied-when-not-signed-in">
@@ -8309,6 +9044,13 @@ label {
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LIB-6">LIB-6</a></p>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/get-profile-denied-when-not-signed-in/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -8335,6 +9077,13 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-6">LIB-6</a></p>
 </dd>
+<dt>expect</dt>
+<dd id="/tests/get-profile-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/get-profile-succeeds">
@@ -8355,6 +9104,20 @@ label {
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LIB-6">LIB-6</a></p>
+</dd>
+<dt>fixture</dt>
+<dd id="/tests/get-profile-succeeds/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/get-profile-succeeds/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -8659,7 +9422,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>memberId not a valid uuid</p>
+<p>memberId not a valid uuid, response 400</p>
 </dd>
 <dt>given</dt>
 <dd>a librarian</dd>
@@ -8667,6 +9430,13 @@ label {
 <dd>lendCopies is called with memberId abc</dd>
 <dt>then</dt>
 <dd>it is refused as invalid input</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-copies-bad-member-id/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-copies-denied">
@@ -8680,7 +9450,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>denied without loans.create</p>
+<p>denied without loans.create, response 403</p>
 </dd>
 <dt>given</dt>
 <dd>a caller holding only the member role</dd>
@@ -8693,6 +9463,13 @@ label {
 <dl>
 <dt>caller</dt>
 <dd>member</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-copies-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
 </dl>
 </dd>
 </dl>
@@ -8708,7 +9485,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>denied with expired session</p>
+<p>denied with expired session, response 401</p>
 </dd>
 <dt>given</dt>
 <dd>a librarian whose session expired after half an hour without a request</dd>
@@ -8716,6 +9493,13 @@ label {
 <dd>lendCopies is called for a member and a book that exist</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-copies-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-copies-idempotency-key-not-a-valid-uuid">
@@ -8836,6 +9620,13 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-3">LIB-3</a></p>
 </dd>
+<dt>expect</dt>
+<dd id="/tests/lend-copies-repeated-with-the-same-idempotency-key/expect">
+<dl>
+<dt>status</dt>
+<dd>201</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-copies-unknown-member">
@@ -8877,7 +9668,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>denied without loans.create</p>
+<p>denied without loans.create, response 403</p>
 </dd>
 <dt>given</dt>
 <dd>a caller holding only the member role</dd>
@@ -8885,6 +9676,57 @@ label {
 <dd>createLoan is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed</dd>
+<dt>fixture</dt>
+<dd id="/tests/lend-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+<dt>Book</dt>
+<dd>
+<ol class="items">
+<li id="/tests/lend-denied/fixture/Book/0">
+<dl>
+<dt>id</dt>
+<dd>d560a9f8-90db-51af-9fb2-40ab426d5a46</dd>
+</dl>
+</li>
+</ol>
+</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/lend-denied/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/lend-denied/input">
+<dl>
+<dt>Idempotency-Key</dt>
+<dd>18829cdf-5182-5a27-87a4-dcabe25a4ee1</dd>
+<dt>bookId</dt>
+<dd>d560a9f8-90db-51af-9fb2-40ab426d5a46</dd>
+<dt>dueOn</dt>
+<dd>2026-01-15</dd>
+<dt>lentOn</dt>
+<dd>2026-01-15</dd>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-event-not-delivered">
@@ -8930,6 +9772,13 @@ label {
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LIB-3">LIB-3</a></p>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-limit-reached/expect">
+<dl>
+<dt>status</dt>
+<dd>409</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -9023,6 +9872,13 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>expect</dt>
+<dd id="/tests/list-fee-waivers-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-fee-waivers-denied-without-fees-approve">
@@ -9048,6 +9904,20 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>fixture</dt>
+<dd id="/tests/list-fee-waivers-denied-without-fees-approve/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-fee-waivers-denied-without-fees-approve/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-fee-waivers-succeeds">
@@ -9069,6 +9939,20 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>fixture</dt>
+<dd id="/tests/list-fee-waivers-succeeds/fixture">
+<dl>
+<dt>caller</dt>
+<dd>desk-supervisor</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-fee-waivers-succeeds/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-loans">
@@ -9086,6 +9970,20 @@ label {
 <dd>listLoans is called with status open</dd>
 <dt>then</dt>
 <dd>only the open loan is answered</dd>
+<dt>fixture</dt>
+<dd id="/tests/list-loans/fixture">
+<dl>
+<dt>caller</dt>
+<dd>auditor</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-loans/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-loans-bad-filter">
@@ -9107,6 +10005,27 @@ label {
 <dd>listLoans is called with status lent and again with memberId abc</dd>
 <dt>then</dt>
 <dd>both are refused as invalid input</dd>
+<dt>fixture</dt>
+<dd id="/tests/list-loans-bad-filter/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/list-loans-bad-filter/input">
+<dl>
+<dt>memberId</dt>
+<dd>not a uuid</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-loans-bad-filter/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-loans-denied">
@@ -9149,6 +10068,13 @@ label {
 <dd>listLoans is called</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/list-loans-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-loans-shows-only-the-rows-of-member">
@@ -9200,6 +10126,20 @@ label {
 <dd>listMembers is called</dd>
 <dt>then</dt>
 <dd>both members are answered</dd>
+<dt>fixture</dt>
+<dd id="/tests/list-members/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-members/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-members-bad-tier">
@@ -9242,6 +10182,20 @@ label {
 <dd>listMembers is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed</dd>
+<dt>fixture</dt>
+<dd id="/tests/list-members-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-members-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-members-denied-with-expired-session">
@@ -9263,6 +10217,13 @@ label {
 <dd>listMembers is called</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/list-members-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/loan-becomes-overdue">
@@ -9885,6 +10846,27 @@ label {
 <dd>the member is registered</dd>
 </dl>
 </article>
+<article class="element" data-search id="/tests/member-loans-bad-member-id">
+<h4>member-loans-bad-member-id <a class="ptr" href="#/tests/member-loans-bad-member-id">/tests/member-loans-bad-member-id</a></h4>
+<dl>
+<dt>page</dt>
+<dd><a href="#/pages/member-loans">member-loans</a></dd>
+<dt>level</dt>
+<dd>system</dd>
+<dt>scenario</dt>
+<dd>red</dd>
+<dt>covers</dt>
+<dd>
+<p>fails with request-invalid</p>
+</dd>
+<dt>given</dt>
+<dd>a librarian</dd>
+<dt>when</dt>
+<dd>the page member-loans is opened for an id that is not a UUID</dd>
+<dt>then</dt>
+<dd>it shows: Something in the request is missing or not in its form. Check it and try again.</dd>
+</dl>
+</article>
 <article class="element" data-search id="/tests/member-loans-denied">
 <h4>member-loans-denied <a class="ptr" href="#/tests/member-loans-denied">/tests/member-loans-denied</a></h4>
 <dl>
@@ -9896,7 +10878,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>denied without loans.create</p>
+<p>denied without loans.create, fails with not-allowed</p>
 </dd>
 <dt>given</dt>
 <dd>a caller holding only the member role</dd>
@@ -9917,7 +10899,7 @@ label {
 <dd>red</dd>
 <dt>covers</dt>
 <dd>
-<p>denied with expired session</p>
+<p>denied with expired session, fails with not-signed-in</p>
 </dd>
 <dt>given</dt>
 <dd>a librarian whose session expired after half an hour without a request</dd>
@@ -10462,6 +11444,29 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>fixture</dt>
+<dd id="/tests/refuse-fee-waiver/fixture">
+<dl>
+<dt>caller</dt>
+<dd>desk-supervisor</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/refuse-fee-waiver/input">
+<dl>
+<dt>waiverId</dt>
+<dd>eced74aa-7484-5285-a42e-0cdb9b680338</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/refuse-fee-waiver/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/refuse-fee-waiver-bad-input">
@@ -10550,6 +11555,31 @@ label {
 <dd>createMember is called with email set to &#39;not-an-address&#39;, and with tier set to gold</dd>
 <dt>then</dt>
 <dd>both are refused as invalid input</dd>
+<dt>fixture</dt>
+<dd id="/tests/register-member-bad-values/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/register-member-bad-values/input">
+<dl>
+<dt>email</dt>
+<dd>not a email</dd>
+<dt>fullName</dt>
+<dd>full-name</dd>
+<dt>tier</dt>
+<dd>standard</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/register-member-bad-values/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/register-member-card-number-clash">
@@ -10590,6 +11620,31 @@ label {
 <dd>createMember is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed</dd>
+<dt>fixture</dt>
+<dd id="/tests/register-member-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/register-member-denied/input">
+<dl>
+<dt>email</dt>
+<dd>email@example.com</dd>
+<dt>fullName</dt>
+<dd>full-name</dd>
+<dt>tier</dt>
+<dd>standard</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/register-member-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/register-member-email-taken">
@@ -10614,6 +11669,13 @@ label {
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LIB-1">LIB-1</a></p>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/register-member-email-taken/expect">
+<dl>
+<dt>status</dt>
+<dd>409</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -10697,6 +11759,38 @@ label {
 <dd>reportLost is called</dd>
 <dt>then</dt>
 <dd>the loan is lost and 25.00 is added to the member&#39;s outstanding fees</dd>
+<dt>fixture</dt>
+<dd id="/tests/report-lost/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Loan</dt>
+<dd>
+<ol class="items">
+<li id="/tests/report-lost/fixture/Loan/0">
+<dl>
+<dt>id</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/report-lost/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/report-lost/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/report-lost-already-closed">
@@ -10718,6 +11812,13 @@ label {
 <dd>reportLost is called on it</dd>
 <dt>then</dt>
 <dd>it answers 409 and nothing is charged twice</dd>
+<dt>expect</dt>
+<dd id="/tests/report-lost-already-closed/expect">
+<dl>
+<dt>status</dt>
+<dd>409</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/report-lost-concurrent-write">
@@ -10760,6 +11861,38 @@ label {
 <dd>reportLost is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed</dd>
+<dt>fixture</dt>
+<dd id="/tests/report-lost-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+<dt>Loan</dt>
+<dd>
+<ol class="items">
+<li id="/tests/report-lost-denied/fixture/Loan/0">
+<dl>
+<dt>id</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/report-lost-denied/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/report-lost-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/report-lost-denied-with-expired-session">
@@ -10781,6 +11914,13 @@ label {
 <dd>reportLost is called for an open loan</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/report-lost-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/report-lost-dependency-fails-fee-ledger">
@@ -10907,6 +12047,42 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>fixture</dt>
+<dd id="/tests/request-fee-waiver/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Loan</dt>
+<dd>
+<ol class="items">
+<li id="/tests/request-fee-waiver/fixture/Loan/0">
+<dl>
+<dt>id</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/request-fee-waiver/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+<dt>amount</dt>
+<dd>1.00</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/request-fee-waiver/expect">
+<dl>
+<dt>status</dt>
+<dd>202</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/request-fee-waiver-bad-input">
@@ -10949,6 +12125,42 @@ label {
 <dd>requestFeeWaiver is called for one of their own loans</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed, and no request is made</dd>
+<dt>fixture</dt>
+<dd id="/tests/request-fee-waiver-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+<dt>Loan</dt>
+<dd>
+<ol class="items">
+<li id="/tests/request-fee-waiver-denied/fixture/Loan/0">
+<dl>
+<dt>id</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/request-fee-waiver-denied/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+<dt>amount</dt>
+<dd>1.00</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/request-fee-waiver-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/request-fee-waiver-denied-with-expired-session">
@@ -10970,6 +12182,13 @@ label {
 <dd>requestFeeWaiver is called</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and no request is made</dd>
+<dt>expect</dt>
+<dd id="/tests/request-fee-waiver-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/request-fee-waiver-unknown-loan">
@@ -10991,6 +12210,31 @@ label {
 <dd>requestFeeWaiver is called for that id</dd>
 <dt>then</dt>
 <dd>it is refused as not found, and no request is made</dd>
+<dt>fixture</dt>
+<dd id="/tests/request-fee-waiver-unknown-loan/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/request-fee-waiver-unknown-loan/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+<dt>amount</dt>
+<dd>1.00</dd>
+<dt>reason</dt>
+<dd>reason</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/request-fee-waiver-unknown-loan/expect">
+<dl>
+<dt>status</dt>
+<dd>404</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/reset-password-missing-field">
@@ -11144,6 +12388,13 @@ label {
 <dd>returnLoan is called on it</dd>
 <dt>then</dt>
 <dd>it answers 409 and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/return-already-closed/expect">
+<dl>
+<dt>status</dt>
+<dd>409</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/return-denied">
@@ -11165,6 +12416,38 @@ label {
 <dd>returnLoan is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed</dd>
+<dt>fixture</dt>
+<dd id="/tests/return-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+<dt>Loan</dt>
+<dd>
+<ol class="items">
+<li id="/tests/return-denied/fixture/Loan/0">
+<dl>
+<dt>id</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/return-denied/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/return-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/return-event-not-delivered">
@@ -11206,6 +12489,38 @@ label {
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LIB-5">LIB-5</a></p>
+</dd>
+<dt>fixture</dt>
+<dd id="/tests/return-late/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Loan</dt>
+<dd>
+<ol class="items">
+<li id="/tests/return-late/fixture/Loan/0">
+<dl>
+<dt>id</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/return-late/input">
+<dl>
+<dt>loanId</dt>
+<dd>84cd339d-fc88-537c-a3c6-2eca80cc7069</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/return-late/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -11249,6 +12564,13 @@ label {
 <dd>returnLoan is called for an open loan</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and nothing changes</dd>
+<dt>expect</dt>
+<dd id="/tests/return-loan-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/return-loan-dependency-answers-unmapped-fee-ledger-post-charge">
@@ -11432,6 +12754,38 @@ label {
 <dd>getMember is called with the member&#39;s id</dd>
 <dt>then</dt>
 <dd>the member is answered</dd>
+<dt>fixture</dt>
+<dd id="/tests/show-member/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/show-member/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/show-member/input">
+<dl>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/show-member/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/show-member-bad-id">
@@ -11453,6 +12807,38 @@ label {
 <dd>getMember is called with memberId abc</dd>
 <dt>then</dt>
 <dd>it is refused as invalid input</dd>
+<dt>fixture</dt>
+<dd id="/tests/show-member-bad-id/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/show-member-bad-id/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/show-member-bad-id/input">
+<dl>
+<dt>memberId</dt>
+<dd>not a uuid</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/show-member-bad-id/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/show-member-denied">
@@ -11474,6 +12860,38 @@ label {
 <dd>getMember is called</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed</dd>
+<dt>fixture</dt>
+<dd id="/tests/show-member-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>member</dd>
+<dt>Member</dt>
+<dd>
+<ol class="items">
+<li id="/tests/show-member-denied/fixture/Member/0">
+<dl>
+<dt>id</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/show-member-denied/input">
+<dl>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/show-member-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/show-member-not-found">
@@ -11495,6 +12913,27 @@ label {
 <dd>getMember is called with that id</dd>
 <dt>then</dt>
 <dd>it answers 404</dd>
+<dt>fixture</dt>
+<dd id="/tests/show-member-not-found/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/show-member-not-found/input">
+<dl>
+<dt>memberId</dt>
+<dd>327df10c-01b1-5568-8dc7-7491ca8c1530</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/show-member-not-found/expect">
+<dl>
+<dt>status</dt>
+<dd>404</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/sign-in-asks-second-factor">
@@ -11540,6 +12979,22 @@ label {
 <dd>signIn is called with an email that is not an email address</dd>
 <dt>then</dt>
 <dd>it is refused as invalid input</dd>
+<dt>input</dt>
+<dd id="/tests/sign-in-bad-email/input">
+<dl>
+<dt>email</dt>
+<dd>not a email</dd>
+<dt>password</dt>
+<dd>password</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/sign-in-bad-email/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/sign-in-missing-field">
@@ -11665,6 +13120,27 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+<dt>fixture</dt>
+<dd id="/tests/waive-fee/fixture">
+<dl>
+<dt>caller</dt>
+<dd>desk-supervisor</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/waive-fee/input">
+<dl>
+<dt>waiverId</dt>
+<dd>eced74aa-7484-5285-a42e-0cdb9b680338</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/waive-fee/expect">
+<dl>
+<dt>status</dt>
+<dd>200</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/waive-fee-denied">
@@ -11686,6 +13162,27 @@ label {
 <dd>waiveFee is called for it</dd>
 <dt>then</dt>
 <dd>it is refused as not allowed, and the fee still stands</dd>
+<dt>fixture</dt>
+<dd id="/tests/waive-fee-denied/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>input</dt>
+<dd id="/tests/waive-fee-denied/input">
+<dl>
+<dt>waiverId</dt>
+<dd>eced74aa-7484-5285-a42e-0cdb9b680338</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/waive-fee-denied/expect">
+<dl>
+<dt>status</dt>
+<dd>403</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/waive-fee-denied-with-expired-session">
@@ -11707,6 +13204,13 @@ label {
 <dd>waiveFee is called</dd>
 <dt>then</dt>
 <dd>it is refused as not signed in, and the fee still stands</dd>
+<dt>expect</dt>
+<dd id="/tests/waive-fee-denied-with-expired-session/expect">
+<dl>
+<dt>status</dt>
+<dd>401</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/waive-fee-unknown-waiver">

@@ -56,7 +56,7 @@ standardOutput: |
         Print the decisions that rest on a decision, nearest first.
     specarch decision why <decision> <folder>
         Print the chain of decisions a decision rests on, earliest first.
-    specarch derive [--dry-run] <paths>...
+    specarch derive [--fill] [--dry-run] <paths>...
         Write a draft test for every derived case no test covers.
     specarch diff <old> <new>
         Compare two versions of a specification and check the release between

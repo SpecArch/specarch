@@ -40,6 +40,9 @@ export const schema = {
       field: "confirmPassword",
     },
   ],
-  failed: [{ status: 409, problem: "reset-code-refused", message: "reset-password.failed.reset-code-refused", field: "code" }],
+  failed: [
+    { status: 400, problem: "request-invalid", message: "reset-password.failed.request-invalid" },
+    { status: 409, problem: "reset-code-refused", message: "reset-password.failed.reset-code-refused", field: "code" },
+  ],
   events: [{ status: 204, navigate: "sign-in", message: "reset-password.onSubmitted.204", keepsReturnTo: true }],
 } satisfies TaskPageSchema;

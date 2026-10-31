@@ -247,6 +247,11 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	if na > 0 {
 		d.para(fmt.Sprintf("%s marked not applicable, with the reason.", countText(na, "test is", "tests are")))
 	}
+	bodies := bodyShare(tests)
+	if applies := len(tests) - na; applies > 0 {
+		d.para(fmt.Sprintf("Of the %s that apply, the tests target writes %d with their bodies, from their input and expected outcome, and %d with a body written by hand (section 1).",
+			countText(applies, "test", "tests"), bodies.generated, applies-bodies.generated))
+	}
 
 	d.section("Levels and how the tests run")
 	levels := map[string]int{}
@@ -260,6 +265,16 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 	d.blank()
 	d.para("System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.")
+	if len(bodies.kinds) > 0 {
+		d.line("| Subject | Design tests | Body generated | Body written by hand |")
+		d.line("|---|---|---|---|")
+		for _, k := range bodies.kinds {
+			c := bodies.byKind[k]
+			d.line("| %s | %d | %d | %d |", k, c[0]+c[1], c[0], c[1])
+		}
+		d.blank()
+		d.para("The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.")
+	}
 	for _, i := range impls {
 		testing := get(i.Node, "testing")
 		if testing == nil {
@@ -320,6 +335,46 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 	d.sourcesIndex("Sources")
 	return d.String()
+}
+
+// share is how many tests the tests target writes with their bodies,
+// overall and by the kind of their subject, in the order of the kinds.
+type share struct {
+	generated int
+	kinds     []string
+	byKind    map[string]*[2]int // generated, written by hand
+}
+
+// bodyShare counts the tests that apply by whether the tests target
+// writes their bodies: a test of an operation, a command or a page that
+// gives input or expect, as specarch-gen-tests-go and its siblings read it.
+func bodyShare(tests []sourcePair) share {
+	sh := share{byKind: map[string]*[2]int{}}
+	for _, t := range tests {
+		if str(t.Value, "notApplicable") != "" {
+			continue
+		}
+		kind := "other"
+		for _, k := range []string{"operation", "command", "page", "job", "process", "gateway", "workflow", "flow", "requirement", "constraint", "transition", "entity"} {
+			if get(t.Value, k) != nil {
+				kind = k
+				break
+			}
+		}
+		if sh.byKind[kind] == nil {
+			sh.byKind[kind] = &[2]int{}
+			sh.kinds = append(sh.kinds, kind)
+		}
+		called := kind == "operation" || kind == "command" || kind == "page"
+		if called && (get(t.Value, "input") != nil || get(t.Value, "expect") != nil) {
+			sh.generated++
+			sh.byKind[kind][0]++
+		} else {
+			sh.byKind[kind][1]++
+		}
+	}
+	slices.Sort(sh.kinds)
+	return sh
 }
 
 // requirementsByRelease groups the requirements by the release each is

@@ -23,6 +23,7 @@ import (
 // specification that keeps its tests in the root file.
 func runDerive(args []string, stdout, stderr io.Writer) int {
 	w := disk.Real
+	fill := false
 	var paths []string
 	for i := 0; i < len(args); i++ {
 		a := args[i]
@@ -32,8 +33,10 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 			i = len(args)
 		case a == "--dry-run":
 			w = disk.DryRun(stdout)
+		case a == "--fill":
+			fill = true
 		case len(a) > 1 && a[0] == '-':
-			fmt.Fprintf(stderr, "specarch derive has no option %s; its one option is --dry-run\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch derive has no option %s; its options are --fill and --dry-run\n\n%s", a, usage)
 			return 2
 		default:
 			paths = append(paths, a)
@@ -60,9 +63,17 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 	}
-	written, collisions := 0, 0
+	written, filled, collisions := 0, 0, 0
 	for _, l := range specs {
 		var drafts []string
+		if fill {
+			n, files, status := fillTests(l.spec.Dir, validate.Fills(l.spec.Root, l.given), w, stdout, stderr)
+			if status != 0 {
+				return status
+			}
+			filled += n
+			drafts = append(drafts, files...)
+		}
 		for _, dr := range validate.Drafts(l.spec.Root, l.given) {
 			folder := filepath.Join(l.spec.Dir, "tests", dr.Name)
 			if len(dr.BlockedBy) > 0 {
@@ -99,15 +110,75 @@ func runDerive(args []string, stdout, stderr io.Writer) int {
 			}
 		}
 	}
-	if w.Dry() {
+	switch {
+	case w.Dry() && fill:
+		fmt.Fprintf(stderr, "specarch derive: %s to write and %s to fill; nothing written (--dry-run)\n", plural(written, "draft test"), plural(filled, "test"))
+	case w.Dry():
 		fmt.Fprintf(stderr, "specarch derive: %s to write; nothing written (--dry-run)\n", plural(written, "draft test"))
-	} else {
+	case fill:
+		fmt.Fprintf(stderr, "specarch derive: %s written, %s filled\n", plural(written, "draft test"), plural(filled, "test"))
+	default:
 		fmt.Fprintf(stderr, "specarch derive: %s written\n", plural(written, "draft test"))
 	}
 	if collisions > 0 {
 		return 1
 	}
 	return 0
+}
+
+// fillTests adds to each test of a specification's folder the fixture,
+// input and expect its cases draft, when it has none of them and no
+// input/ or expected/ folder, which say the same in files: the number
+// filled and their files, or a status of 2 when a file cannot be read or
+// written. Each test left as it is with a reason is named on standard
+// error.
+func fillTests(dir string, fills []validate.Fill, w *disk.Writer, stdout, stderr io.Writer) (int, []string, int) {
+	n := 0
+	var files []string
+	for _, f := range fills {
+		folder := filepath.Join(dir, "tests", f.Name)
+		if f.Reason != "" {
+			fmt.Fprintf(stderr, "specarch derive: left %s as it is: %s\n", filepath.ToSlash(folder), f.Reason)
+			continue
+		}
+		if kept := dataFolders(folder); kept != "" {
+			fmt.Fprintf(stderr, "specarch derive: left %s as it is: it keeps its data in %s, and a test says one thing one way\n", filepath.ToSlash(folder), kept)
+			continue
+		}
+		file := filepath.Join(folder, "test.yaml")
+		data, err := os.ReadFile(file)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch derive: cannot read %s to fill it: %v\n", file, err)
+			return 0, nil, 2
+		}
+		text := string(data)
+		if text != "" && !strings.HasSuffix(text, "\n") {
+			text += "\n"
+		}
+		text += strings.Join(f.Lines, "\n") + "\n"
+		if err := w.WriteFile(file, []byte(text), 0o644); err != nil {
+			fmt.Fprintf(stderr, "specarch derive: cannot write %s: %v\n", file, err)
+			return 0, nil, 2
+		}
+		if !w.Dry() {
+			fmt.Fprintln(stdout, filepath.ToSlash(file))
+		}
+		files = append(files, file)
+		n++
+	}
+	return n, files, 0
+}
+
+// dataFolders names the input/ and expected/ folders a test folder holds,
+// or "".
+func dataFolders(folder string) string {
+	var held []string
+	for _, name := range []string{"input", "expected"} {
+		if info, err := os.Stat(filepath.Join(folder, name)); err == nil && info.IsDir() {
+			held = append(held, name+"/")
+		}
+	}
+	return strings.Join(held, " and ")
 }
 
 // writeTree writes a tree extract or merge read into out, then what also

@@ -6,3 +6,5 @@ given: a desk supervisor, and one request waiting at approve
 when: listFeeWaivers is called
 then: it answers 200 with that request
 verifies: [LIB-8]
+fixture: { caller: desk-supervisor }
+expect: { status: 200 }

@@ -9,7 +9,12 @@ let memberViewSchema = ViewPageSchema(
     source: .init(
         operation: "getMember",
         path: "/members/{memberId}",
-        failed: [.init(status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found")]
+        failed: [
+            .init(status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found"),
+            .init(status: 403, problem: "not-allowed", message: "member-view.failed.not-allowed"),
+            .init(status: 401, problem: "not-signed-in", message: "member-view.failed.not-signed-in"),
+            .init(status: 400, problem: "request-invalid", message: "member-view.failed.request-invalid")
+        ]
     ),
     sections: [
         .init(
@@ -71,7 +76,12 @@ let memberViewSchema = ViewPageSchema(
             confirm: "member-view.actions.deactivateMember.confirm",
             reason: .init(property: "reason", label: "member-view.actions.deactivateMember.reason", maxLength: 500),
             message: "member-view.actions.deactivateMember.message",
-            failed: [.init(status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found")]
+            failed: [
+                .init(status: 404, problem: "member-not-found", message: "member-view.failed.member-not-found"),
+                .init(status: 403, problem: "not-allowed", message: "member-view.failed.not-allowed"),
+                .init(status: 401, problem: "not-signed-in", message: "member-view.failed.not-signed-in"),
+                .init(status: 400, problem: "request-invalid", message: "member-view.failed.request-invalid")
+            ]
         )
     ]
 )

@@ -1,0 +1,10 @@
+requirement: LEND-1
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "..."
+when: "..."
+then: "A lent copy is on the member's loans."
+verifies: [LEND-1]
+origin: inferred
+why: "Written by hand."

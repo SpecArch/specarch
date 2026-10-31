@@ -7,6 +7,9 @@ export const schema = {
   submit: { operation: "confirmSecondFactor", method: "POST", path: "/sessions/second-factor" },
   fields: [{ type: "text", name: "code", label: "second-factor.fields.code", required: true, maxLength: 6, pattern: "^[0-9]{6}$" }],
   checks: [],
-  failed: [{ status: 401, problem: "second-factor-refused", message: "second-factor.failed.second-factor-refused", field: "code" }],
+  failed: [
+    { status: 400, problem: "request-invalid", message: "second-factor.failed.request-invalid" },
+    { status: 401, problem: "second-factor-refused", message: "second-factor.failed.second-factor-refused", field: "code" },
+  ],
   events: [{ status: 200, home: true, message: "second-factor.onSubmitted.200" }],
 } satisfies TaskPageSchema;

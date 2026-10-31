@@ -6,3 +6,5 @@ covers: [denied without members.read]
 given: a caller holding only the member role
 when: listMembers is called
 then: it is refused as not allowed
+fixture: { caller: member }
+expect: { status: 403 }

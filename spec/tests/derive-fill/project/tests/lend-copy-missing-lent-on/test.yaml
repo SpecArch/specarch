@@ -1,0 +1,8 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [missing lentOn]
+given: "a clerk"
+when: "lendCopy is called with the body in input/, which has no lentOn"
+then: "it answers 400"
+verifies: [LEND-1]

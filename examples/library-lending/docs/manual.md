@@ -88,6 +88,15 @@ What can be done here:
 - **Approve**: Approve a request to waive a late fee, at its approve step. It asks first: "Approve waiving this fee?". Then: The request is approved and the fee is waived.
 - **Refuse**: Refuse a request to waive a late fee, at its approve step, saying why. It asks first: "Refuse this request? The fee stands.", and for the reason. Then: The request is refused.
 
+When the system refuses:
+
+| You see | Why | What to do |
+|---|---|---|
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
+| Your role does not allow this. Ask a desk supervisor. | The caller's role does not hold the permission the operation needs. | Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it. |
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
+| This request is no longer there. Refresh the list. | No request to waive a fee has the id in the path. | Refresh the list of waiting requests; the link may be old. |
+
 ### Lend a copy
 
 Reached from the menu Loans › Lend a copy and the action Lend a book on the Member page.
@@ -109,6 +118,9 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
+| Your role does not allow this. Ask a desk supervisor. | The caller's role does not hold the permission the operation needs. | Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it. |
 | This member cannot borrow now: the loan limit is reached, fees are outstanding, no copy is available, or the due day is later than the tier allows. | The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available. | Open the member's record: return a copy first, settle the fees, or pick an earlier due day; for a book with no copy left, the member waits for one to come back. |
 
 ### Loans
@@ -161,6 +173,9 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
+| Your role does not allow this. Ask a desk supervisor. | The caller's role does not hold the permission the operation needs. | Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it. |
 | Another member already has this email address. | A member with the same email address exists. | Look the member up by the email address in the list of members; they are registered already. |
 
 ### Lend copies
@@ -184,6 +199,9 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
+| Your role does not allow this. Ask a desk supervisor. | The caller's role does not hold the permission the operation needs. | Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it. |
 | There is no member with this card. | No member has the id in the path. |   |
 | This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available. | The member is inactive, holds the most open loans their tier allows or has outstanding fees, or the book has no copy available. | Open the member's record: return a copy first, settle the fees, or pick an earlier due day; for a book with no copy left, the member waits for one to come back. |
 
@@ -217,6 +235,9 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
+| Your role does not allow this. Ask a desk supervisor. | The caller's role does not hold the permission the operation needs. | Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it. |
 | There is no member with this card. | No member has the id in the path. |   |
 
 ### Members
@@ -245,6 +266,9 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
+| Your role does not allow this. Ask a desk supervisor. | The caller's role does not hold the permission the operation needs. | Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it. |
 | This member is no longer on record, so nothing changed. | No member has the id in the path. |   |
 
 ### My profile
@@ -269,6 +293,7 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Your session has ended. Sign in again, then try once more. | The request carries no session, or its session has expired. | Sign in again, then repeat what you were doing. |
 | Your account holds no library card, so there is no member record to show. | No member has the id in the path. |   |
 
 ### Set a new password
@@ -289,6 +314,7 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
 | The reset code is wrong, used or expired. Ask for a new one. | No one was sent the reset code, or it was used or has expired. |   |
 
 ### Confirm it is you
@@ -305,6 +331,7 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
 | The code is wrong, or it came too late. Type the code the app shows now, or sign in again. | The code is not the one the authenticator app shows now, or the sign-in challenge is closed after five wrong codes or five minutes. | Type the code the authenticator app shows now, or sign in again. |
 
 ### Sign in
@@ -322,6 +349,7 @@ When the system refuses:
 
 | You see | Why | What to do |
 |---|---|---|
+| Something in the request is missing or not in its form. Check it and try again. | A required field or parameter is missing, or a value is of the wrong form or outside its limits. | Correct the field the problem names and send the request again. |
 | The email address or the password is wrong. | No one has the email address, or the password does not match it. | Type the email address and the password again; after a forgotten password, reset it. |
 
 ## 5. Commands

@@ -9,6 +9,7 @@ pages:
     fields: [code]
     states:
       failed:
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
         second-factor-refused: { message: "The code is wrong, or it came too late. Type the code the app shows now, or sign in again.", field: code }
     onSubmitted:
       "200": { navigate: callerHome, message: You are signed in. }

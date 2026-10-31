@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+page: member-loans
+level: system
+scenario: red
+covers: [fails with request-invalid]
+given: a librarian
+when: the page member-loans is opened for an id that is not a UUID
+then: "it shows: Something in the request is missing or not in its form. Check it and try again."

@@ -113,6 +113,18 @@ Kit, which starts from whatever its agent is given to read, showed the
 gap. Not built: tables in a PDF, which the file does not mark, and the
 text of a scanned page.
 
+`specarch derive` drafts the fixture, input and expect the design fixes
+for an operation's case, `derive --fill` adds them to the tests that have
+none, and the test plan counts the tests the `tests` target writes with
+their bodies, by kind of subject (ADR-213, SA-111,
+`spec/tests/derive-drafts-calls`, `spec/tests/derive-fill`): built on
+main, in no release yet. In the library lending example 66 of 198 tests
+are generated with their bodies, against 12. Spec Kit's tasks step, which
+turns every item into work an agent carries out, showed the gap. Next:
+a call of the `tests` target for a constraint, a transition and a page,
+then the other subjects, through optional harness methods in the Go,
+Swift and Dart plug-ins; 86 tests of the example wait on them.
+
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the

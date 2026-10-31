@@ -2,7 +2,8 @@
 operation: lendCopies
 level: system
 scenario: red
-covers: [memberId not a valid uuid]
+covers: [memberId not a valid uuid, response 400]
 given: a librarian
 when: lendCopies is called with memberId abc
 then: it is refused as invalid input
+expect: { status: 400 }

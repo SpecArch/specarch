@@ -6,3 +6,8 @@ covers: [memberId not a valid uuid]
 given: a librarian
 when: getMember is called with memberId abc
 then: it is refused as invalid input
+fixture:
+  caller: librarian
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { memberId: "not a uuid" }
+expect: { status: 400 }

@@ -2,7 +2,13 @@
 operation: createLoan
 level: system
 scenario: red
-covers: [denied without loans.create]
+covers: [denied without loans.create, response 403]
 given: a caller holding only the member role
 when: createLoan is called
 then: it is refused as not allowed
+fixture:
+  caller: member
+  Book: [{ id: "d560a9f8-90db-51af-9fb2-40ab426d5a46" }]
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { Idempotency-Key: "18829cdf-5182-5a27-87a4-dcabe25a4ee1", bookId: "d560a9f8-90db-51af-9fb2-40ab426d5a46", dueOn: "2026-01-15", lentOn: "2026-01-15", memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530" }
+expect: { status: 403 }

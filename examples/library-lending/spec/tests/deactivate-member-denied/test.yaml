@@ -6,3 +6,8 @@ covers: [denied without members.write]
 given: a caller holding only the member role
 when: deactivateMember is called
 then: it is refused as not allowed, and the member stays active
+fixture:
+  caller: member
+  Member: [{ id: "327df10c-01b1-5568-8dc7-7491ca8c1530" }]
+input: { memberId: "327df10c-01b1-5568-8dc7-7491ca8c1530", reason: "reason" }
+expect: { status: 403 }

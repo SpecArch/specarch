@@ -6,3 +6,4 @@ covers: [denied with expired session]
 given: a desk supervisor whose session expired after half an hour without a request
 when: waiveFee is called
 then: it is refused as not signed in, and the fee still stands
+expect: { status: 401 }

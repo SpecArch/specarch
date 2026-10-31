@@ -162,7 +162,8 @@ func withViews(r *Request) {
 	l["view"] = "LoanRow"
 	l["sortable"] = []any{"dueOn", "memberName"}
 	for _, resp := range get["responses"].(map[string]any) {
-		for _, c := range resp.(map[string]any)["content"].(map[string]any) {
+		content, _ := resp.(map[string]any)["content"].(map[string]any)
+		for _, c := range content {
 			if s := c.(map[string]any)["schema"].(map[string]any); s["items"] != nil {
 				s["items"] = map[string]any{"$ref": "#/views/LoanRow"}
 			}

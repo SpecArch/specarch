@@ -14,6 +14,9 @@ pages:
       - { relation: loans, title: Loans, fields: [bookId, dueOn], maximum: 6, lockLoadedRows: true }
     states:
       failed:
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
+        not-signed-in: { message: "Your session has ended. Sign in again, then try once more." }
+        not-allowed: { message: Your role does not allow this. Ask a desk supervisor. }
         member-not-found: { message: There is no member with this card. }
         lending-refused: { message: "This member cannot borrow these copies now: the loan limit is reached, fees are outstanding, or a copy is not available." }
     onSubmitted: { navigate: member-view, with: { memberId: id }, message: The copies are lent. }

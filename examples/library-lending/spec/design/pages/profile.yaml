@@ -12,6 +12,7 @@ pages:
       - { title: Membership, fields: [joinedOn, membershipEndsOn, outstandingFees] }
     states:
       failed:
+        not-signed-in: { message: "Your session has ended. Sign in again, then try once more." }
         member-not-found: { message: "Your account holds no library card, so there is no member record to show." }
     satisfies: [LIB-6]
     why: Every person who holds a card sees their own record and what they owe; the page needs no permission granted by role, so a role added later has it too, and staff, who hold no card, are told so.

@@ -13,5 +13,10 @@ pages:
       - { label: Approve, kind: operation, target: approveFeeWaiver, confirm: "Approve waiving this fee?", then: { message: The request is approved and the fee is waived. } }
       - { label: Refuse, kind: operation, target: refuseFeeWaiver, confirm: "Refuse this request? The fee stands.", reason: reason, then: { message: The request is refused. } }
     states:
+      failed:
+        not-signed-in: { message: "Your session has ended. Sign in again, then try once more." }
+        not-allowed: { message: Your role does not allow this. Ask a desk supervisor. }
+        request-invalid: { message: Something in the request is missing or not in its form. Check it and try again. }
+        fee-waiver-not-found: { message: This request is no longer there. Refresh the list. }
       empty: { message: No request waits for approval. }
     satisfies: [LIB-8]

@@ -26,8 +26,15 @@ const messages = {
 
 // What each operation's refusals say, by status: the page's failed states.
 const refusals = {
-  listMembers: {},
+  listMembers: {
+    "400": "Something in the request is missing or not in its form. Check it and try again.",
+    "401": "Your session has ended. Sign in again, then try once more.",
+    "403": "Your role does not allow this. Ask a desk supervisor.",
+  },
   deactivateMember: {
+    "400": "Something in the request is missing or not in its form. Check it and try again.",
+    "401": "Your session has ended. Sign in again, then try once more.",
+    "403": "Your role does not allow this. Ask a desk supervisor.",
     "404": "This member is no longer on record, so nothing changed.",
   },
 };

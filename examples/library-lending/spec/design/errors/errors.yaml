@@ -38,3 +38,28 @@ errors:
     status: 409
     title: Reset code refused
     condition: No one was sent the reset code, or it was used or has expired.
+  request-invalid:
+    status: 400
+    title: The request cannot be read
+    condition: A required field or parameter is missing, or a value is of the wrong form or outside its limits.
+    remedy: Correct the field the problem names and send the request again.
+  not-signed-in:
+    status: 401
+    title: Not signed in
+    condition: The request carries no session, or its session has expired.
+    remedy: Sign in again, then repeat what you were doing.
+  not-allowed:
+    status: 403
+    title: Not allowed
+    condition: The caller's role does not hold the permission the operation needs.
+    remedy: Ask a desk supervisor for a role that holds the permission, or for the supervisor to do it.
+  loan-not-found:
+    status: 404
+    title: No such loan
+    condition: No loan has the id in the path.
+    remedy: Refresh the list of loans; the link may be old.
+  fee-waiver-not-found:
+    status: 404
+    title: No such fee waiver request
+    condition: No request to waive a fee has the id in the path.
+    remedy: Refresh the list of waiting requests; the link may be old.

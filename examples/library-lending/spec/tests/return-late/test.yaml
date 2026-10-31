@@ -6,3 +6,8 @@ given: "an overdue loan returned 7 days late, a daily rate of 0.50 and a replace
 when: returnLoan is called
 then: "the loan is returned with a late fee of 3.50, the copy is available again, and LoanReturned is published"
 verifies: [LIB-5]
+fixture:
+  caller: librarian
+  Loan: [{ id: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }]
+input: { loanId: "84cd339d-fc88-537c-a3c6-2eca80cc7069" }
+expect: { status: 200 }

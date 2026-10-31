@@ -163,13 +163,8 @@ func (d *design) draftText(root *yaml.Node, s *subject, dc derivedCase, why stri
 		why += "; " + s.renamed
 	}
 	line("why: %q", "Written by specarch derive: "+why+". A draft: complete the given, when and then, and remove what does not hold.")
-	if caller, expect := d.draftData(root, s, dc); caller != "" || expect != "" {
-		if caller != "" {
-			line("fixture: { caller: %s }", caller)
-		}
-		if expect != "" {
-			line("expect: { %s }", expect)
-		}
+	for _, l := range d.draftData(s, dc).lines() {
+		line("%s", l)
 	}
 	return b.String()
 }
@@ -196,58 +191,26 @@ func (d *design) draftVerifies(root *yaml.Node, s *subject) []string {
 }
 
 // draftData fills what the design says for certain: the status or exit
-// the case expects, and for a denied case a role without the permission.
-func (d *design) draftData(root *yaml.Node, s *subject, dc derivedCase) (caller, expect string) {
-	var op *yaml.Node
-	if s.kind == "operation" {
-		if o, ok := d.operations[strings.TrimPrefix(s.yamlKey, "operation: ")]; ok {
-			op = o.node
-		}
-	}
-	has := func(status string) bool { return source.Child(source.Child(op, "responses"), status) != nil }
+// the case expects, and for an operation the call itself where the design
+// fixes it: a caller who may or, for a denied case, one who may not;
+// valid values of every required parameter and body field, with the one
+// the case is about left out or changed; and the records those values
+// name, or not the one a not-found case looks for.
+func (d *design) draftData(s *subject, dc derivedCase) draftCall {
+	exit := func(code string) draftCall { return draftCall{expect: []keyText{{"exit", code}}} }
 	switch {
 	case s.kind == "command" && dc.name == "":
-		return "", "exit: 0"
+		return exit("0")
 	case (s.kind == "command" || s.kind == "process") && strings.HasPrefix(dc.name, "exit "):
-		return "", "exit: " + strings.TrimPrefix(dc.name, "exit ")
-	case op == nil:
-		return "", ""
-	case dc.name == "":
-		for _, r := range source.Pairs(source.Child(op, "responses")) {
-			if strings.HasPrefix(r.Key.Value, "2") {
-				return "", "status: " + r.Key.Value
-			}
-		}
-	case strings.HasPrefix(dc.name, "response "):
-		return "", "status: " + strings.TrimPrefix(dc.name, "response ")
-	case strings.HasPrefix(dc.name, "repeated with the same "):
-		for _, r := range source.Pairs(source.Child(op, "responses")) {
-			if strings.HasPrefix(r.Key.Value, "2") {
-				return "", "status: " + r.Key.Value
-			}
-		}
-	case dc.name == "denied with expired session" && has("401"):
-		return "", "status: 401"
-	case strings.HasPrefix(dc.name, "not found ") && has("404"):
-		return "", "status: 404"
-	case strings.HasPrefix(dc.name, "denied without "):
-		perm := strings.TrimPrefix(dc.name, "denied without ")
-		var roles []string
-		for name, role := range d.roles {
-			if !d.roleHolds(role)[perm] {
-				roles = append(roles, name)
-			}
-		}
-		sort.Strings(roles)
-		if len(roles) > 0 {
-			caller = roles[0]
-		}
-		if has("403") {
-			expect = "status: 403"
-		}
-		return caller, expect
+		return exit(strings.TrimPrefix(dc.name, "exit "))
+	case s.kind != "operation":
+		return draftCall{}
 	}
-	return "", ""
+	o, ok := d.operations[strings.TrimPrefix(s.yamlKey, "operation: ")]
+	if !ok {
+		return draftCall{}
+	}
+	return d.operationCall(d.operationDraft(o), dc)
 }
 
 // blockingQuestions lists the must and should questions with what they

@@ -7,3 +7,5 @@ given: "three books by two authors, and a visitor without a card"
 when: "listBooks is called with q set to one author's name, and again with a 200-character q"
 then: "the first call answers that author's books, the second an empty list"
 verifies: [LIB-2]
+input: { q: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" }
+expect: { status: 200 }

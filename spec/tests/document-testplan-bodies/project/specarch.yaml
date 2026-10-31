@@ -1,0 +1,58 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [tests, implementation]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  LEND-1:
+    statement: A clerk shall lend a copy of a book to a member, which is paid for by the member.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A lent copy is on the member's loans.]
+    harm: [money]
+permissions:
+  loans.create: { description: Lend copies. }
+  loans.read: { description: See loans. }
+roles:
+  clerk: { description: Staff., permissions: [loans.create, loans.read] }
+  visitor: { description: Someone looking., permissions: [loans.read] }
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    required: [id]
+    primaryKey: [id]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+      lentOn: { type: string, format: date }
+      copies: { type: integer, format: int32, minimum: 1, maximum: 3 }
+      note: { type: string, maxLength: 20 }
+    required: [id, memberId, lentOn, copies]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+paths:
+  /loans:
+    post:
+      operationId: lendCopy
+      summary: Lend a copy
+      permission: loans.create
+      satisfies: [LEND-1]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "201":
+          description: Lent.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "400": { description: The request cannot be read. }
+        "403": { description: Not allowed. }
+        "404": { description: No such member. }

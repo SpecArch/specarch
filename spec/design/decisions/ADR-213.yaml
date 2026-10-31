@@ -59,8 +59,9 @@ decisions:
       does or does not, is taken in place of the first by name. The lines
       go at the end of the file; nothing else changes.
 
-      The test plan says, after its summary, how many of the tests that
-      apply the tests target writes with their bodies, and, in section 1,
+      When an implementation file declares the tests target, the test
+      plan says, after its summary, how many of the tests that apply that
+      target writes with their bodies, and, in section 1,
       the count per kind of subject, generated and written by hand.
     consequences: |
       In the library lending example, with 400, 401 and 403 declared on
@@ -92,6 +93,7 @@ decisions:
       a choice the plan should show beside the tests it counts.
     cites:
       - source: spec-kit
-        says: "/speckit.tasks: Generate actionable task lists for implementation. /speckit.implement: Execute all tasks to build the feature according to the plan."
+        clause: "Spec-Driven Development"
+        says: "Define what to build and why, then turn the specification into a plan, tasks, and working code."
     satisfies: [SA-111]
     restsOn: [ADR-041]

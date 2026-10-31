@@ -376,8 +376,8 @@ the test's words, which the data cannot read. The idea of turning every
 item of a specification into something that runs, rather than text to
 turn into code, comes from Spec Kit's tasks step.
 
-The test plan says how many of the tests that apply the `tests` target
-writes with their bodies and counts them by kind of subject, so the bodies
+When an implementation file declares the `tests` target, the test plan
+says how many of the tests that apply that target writes with their bodies and counts them by kind of subject, so the bodies
 still owed are a number, not a surprise when the suite is first run.
 
 ## From the tests to code

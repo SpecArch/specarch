@@ -6,6 +6,8 @@ given: a desk supervisor, and a request by another librarian to waive a fee of 3
 when: approveFeeWaiver is called for it
 then: it answers 200, the request is approved, and the loan's late fee is 0.00
 verifies: [LIB-8]
-fixture: { caller: desk-supervisor }
+fixture:
+  caller: desk-supervisor
+  FeeWaiverRequest: [{ id: "eced74aa-7484-5285-a42e-0cdb9b680338", amount: "3.50" }]
 input: { waiverId: "eced74aa-7484-5285-a42e-0cdb9b680338" }
 expect: { status: 200 }

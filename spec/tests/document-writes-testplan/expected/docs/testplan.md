@@ -4,8 +4,6 @@
 
 Version 1.0.0 of the specification: 2 design tests, 1 golden and 1 red, about 1 subject. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-Of the 2 tests that apply, the tests target writes 0 with their bodies, from their input and expected outcome, and 2 with a body written by hand (section 1).
-
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
@@ -13,12 +11,6 @@ Of the 2 tests that apply, the tests target writes 0 with their bodies, from the
 | system | 2 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
-
-| Subject | Design tests | Body generated | Body written by hand |
-|---|---|---|---|
-| constraint | 2 | 0 | 2 |
-
-The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
 
 ## 2. Test cases
 

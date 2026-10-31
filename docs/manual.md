@@ -763,8 +763,9 @@ modules' own documents are written as when each is named (ADR-113).
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
 requirement with its attributes and acceptance criteria. The
-testplan target writes `testplan.md`: how many of the tests that
-apply the tests target writes with their bodies, a test of an
+testplan target writes `testplan.md`: when an implementation file
+declares the tests target, how many of the tests that apply that
+target writes with their bodies, a test of an
 operation, a command or a page that gives input or expect, and how
 many with a body written by hand, counted by kind of subject in its
 first section (ADR-213); the levels, how each

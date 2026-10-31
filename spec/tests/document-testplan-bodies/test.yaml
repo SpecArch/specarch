@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose implementation file declares the tests target, with four operation tests, three of them giving input or expect, and an acceptance test"
+when: "document testplan is run"
+then: "it says that the tests target writes 3 of the 5 tests that apply with their bodies and 2 with a body written by hand, and counts them by kind of subject: operation 3 and 1, requirement 0 and 1; it exits 0"
+verifies: [SA-111]

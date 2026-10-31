@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 889 design tests, 438 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 890 design tests, 439 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -10,23 +10,14 @@ Version 1.4.0 of the specification: 889 design tests, 438 golden and 451 red, ab
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
-Of the 889 tests that apply, the tests target writes 0 with their bodies, from their input and expected outcome, and 889 with a body written by hand (section 1).
-
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 885 |
+| system | 886 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
-
-| Subject | Design tests | Body generated | Body written by hand |
-|---|---|---|---|
-| command | 885 | 0 | 885 |
-| constraint | 4 | 0 | 4 |
-
-The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
 
 ### Implementation: SpecArch toolchain in Go
 
@@ -1214,6 +1205,14 @@ Scenario: golden; level: system.
 - When: document techspec is run with --out docs
 - Then: it writes docs/shop.techspec.md without chapter 7 and exits 0
 
+#### document-testplan-bodies
+
+Scenario: golden; level: system; verifies SA-111.
+
+- Given: a specification whose implementation file declares the tests target, with four operation tests, three of them giving input or expect, and an acceptance test
+- When: document testplan is run
+- Then: it says that the tests target writes 3 of the 5 tests that apply with their bodies and 2 with a body written by hand, and counts them by kind of subject: operation 3 and 1, requirement 0 and 1; it exits 0
+
 #### document-testplan-by-release
 
 Scenario: golden; level: system; verifies SA-16, SA-24.
@@ -1400,7 +1399,7 @@ Scenario: golden; level: system; verifies SA-7, SA-8.
 
 #### document-writes-testplan
 
-Scenario: golden; level: system; verifies SA-16, SA-111.
+Scenario: golden; level: system; verifies SA-16.
 
 - Given: a specification with a golden and a red test of one entity constraint, one with a why
 - When: document testplan is run

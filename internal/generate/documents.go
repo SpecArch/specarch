@@ -247,8 +247,13 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	if na > 0 {
 		d.para(fmt.Sprintf("%s marked not applicable, with the reason.", countText(na, "test is", "tests are")))
 	}
-	bodies := bodyShare(tests)
-	if applies := len(tests) - na; applies > 0 {
+	// The count is the tests target's, so it is shown only where an
+	// implementation file declares that target.
+	var bodies share
+	if implementsTests(impls) {
+		bodies = bodyShare(tests)
+	}
+	if applies := len(tests) - na; applies > 0 && len(bodies.kinds) > 0 {
 		d.para(fmt.Sprintf("Of the %s that apply, the tests target writes %d with their bodies, from their input and expected outcome, and %d with a body written by hand (section 1).",
 			countText(applies, "test", "tests"), bodies.generated, applies-bodies.generated))
 	}
@@ -343,6 +348,17 @@ type share struct {
 	generated int
 	kinds     []string
 	byKind    map[string]*[2]int // generated, written by hand
+}
+
+// implementsTests reports whether an implementation file declares the
+// tests target.
+func implementsTests(impls []Implementation) bool {
+	for _, i := range impls {
+		if get(get(i.Node, "targets"), "tests") != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // bodyShare counts the tests that apply by whether the tests target

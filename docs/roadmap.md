@@ -117,7 +117,8 @@ text of a scanned page.
 for an operation's case, `derive --fill` adds them to the tests that have
 none, and the test plan counts the tests the `tests` target writes with
 their bodies, by kind of subject (ADR-213, SA-111,
-`spec/tests/derive-drafts-calls`, `spec/tests/derive-fill`): built on
+`spec/tests/derive-drafts-calls`, `spec/tests/derive-fill`,
+`spec/tests/document-testplan-bodies`): built on
 main, in no release yet. In the library lending example 66 of 198 tests
 are generated with their bodies, against 12. Spec Kit's tasks step, which
 turns every item into work an agent carries out, showed the gap. Next:

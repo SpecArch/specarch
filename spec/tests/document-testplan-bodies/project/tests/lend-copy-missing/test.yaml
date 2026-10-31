@@ -1,0 +1,8 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [missing memberId, missing copies, response 400]
+given: "a clerk"
+when: "lendCopy is called without memberId, and again without copies"
+then: "both answer 400"
+verifies: [LEND-1]

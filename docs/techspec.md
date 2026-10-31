@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 111 requirements, 5 entities, 24 commands, 7 algorithms, 889 tests, 199 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 111 requirements, 5 entities, 24 commands, 7 algorithms, 890 tests, 199 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1268,8 +1268,9 @@ modules' own documents are written as when each is named (ADR-113).
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
 requirement with its attributes and acceptance criteria. The
-testplan target writes `testplan.md`: how many of the tests that
-apply the tests target writes with their bodies, a test of an
+testplan target writes `testplan.md`: when an implementation file
+declares the tests target, how many of the tests that apply that
+target writes with their bodies, a test of an
 operation, a command or a page that gives input or expect, and how
 many with a body written by hand, counted by kind of subject in its
 first section (ADR-213); the levels, how each
@@ -16100,8 +16101,9 @@ own given or when names, holding the permission as the drafted one
 does or does not, is taken in place of the first by name. The lines
 go at the end of the file; nothing else changes.
 
-The test plan says, after its summary, how many of the tests that
-apply the tests target writes with their bodies, and, in section 1,
+When an implementation file declares the tests target, the test
+plan says, after its summary, how many of the tests that apply that
+target writes with their bodies, and, in section 1,
 the count per kind of subject, generated and written by hand.
 
 Consequences: In the library lending example, with 400, 401 and 403 declared on
@@ -16118,7 +16120,7 @@ draft.
 
 **Insight:** A test generated with its body runs the day it is generated, and a wrong expectation shows as a failing test instead of a body nobody wrote; that is the cheapest way back from the specification to a reviewer's question. Only what the design fixes is drafted, so a draft never holds a status the operation does not answer or a value test_data refuses: the rule test_data protects, a test holds only values of the field's type, stays as it is, and the cases it would refuse keep their status alone. A status is not assumed from HTTP's meaning when the operation does not declare it, because then the generated test would check a response the design does not have. --fill is an option, not the default, because it writes into tests an author wrote, which derive otherwise never touches; it adds and never changes. The count goes in the test plan rather than gaps, because gaps lists what is undecided and a body written by hand is a choice the plan should show beside the tests it counts.
 
-**Note:** From Spec Kit: /speckit.tasks: Generate actionable task lists for implementation. /speckit.implement: Execute all tasks to build the feature according to the plan. <https://github.com/github/spec-kit>
+**Note:** From Spec Kit, clause Spec-Driven Development: Define what to build and why, then turn the specification into a plan, tasks, and working code. <https://github.com/github/spec-kit>
 
 ## 10. Quality requirements
 
@@ -16268,6 +16270,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-techspec-sign-in-oidc | command document | system | golden | the specification of validate-sign-in-oidc | document techspec is run | it writes, in the runtime view, a section on the sign-in through identityProvider with the client, the callback, the identity token and what the deployment gives, a table of the callback's six checks with the derived case, the security event, its severity and the clause that asks for it, the back-channel logout, and the flow as a sequence diagram from the browser through the provider to the callback; the six events among the security events; the sign-in at the provider as a node of the screen flow; and exits 0 |
 | document-techspec-tenant | command document | system | golden | the specification of model-tenant-rules | document techspec is run with --out | it writes the technical specification that says the tenant scope with its key, property and shared entities, and lists in the rows table the derived rule beside the roles' own, and exits 0 |
 | document-techspec-without-implementation | command document | system | golden | a design file and no implementation file | document techspec is run with --out docs | it writes docs/shop.techspec.md without chapter 7 and exits 0 |
+| document-testplan-bodies | command document | system | golden | a specification whose implementation file declares the tests target, with four operation tests, three of them giving input or expect, and an acceptance test | document testplan is run | it says that the tests target writes 3 of the 5 tests that apply with their bodies and 2 with a body written by hand, and counts them by kind of subject: operation 3 and 1, requirement 0 and 1; it exits 0 |
 | document-testplan-by-release | command document | system | golden | requirements meant for a released and a planned release, and one with no release, verified by design tests | document testplan is run | it writes testplan.md with the requirements grouped by release, oldest first, each with the tests that verify it, the one with no release last, and exits 0 |
 | document-testplan-gateway | command document | system | golden | the specification of validate-gateway, whose three tests name the gateway api | document testplan is run | the gateway is a subject of its own, Gateway api, with its three tests beside the operation's, and its occasional and rare cases no test covers are listed among the derived cases left out |
 | document-testplan-left-out | command document | acceptance | golden | an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long | document testplan is run | it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0 |
@@ -17520,7 +17523,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
-| SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-fill; tests document-writes-testplan |
+| SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-fill; tests document-testplan-bodies |
 
 ## Sources
 

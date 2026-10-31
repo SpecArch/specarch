@@ -8,8 +8,6 @@ Version 1.1.0-dev of the specification: 3 design tests, 2 golden and 1 red, abou
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement DESK-3; add verifies: [DESK-3] to the test that shows it is met [requirement_unverified@specarch.yaml#/requirements/DESK-3]
 
-Of the 3 tests that apply, the tests target writes 0 with their bodies, from their input and expected outcome, and 3 with a body written by hand (section 1).
-
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
@@ -17,12 +15,6 @@ Of the 3 tests that apply, the tests target writes 0 with their bodies, from the
 | system | 3 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
-
-| Subject | Design tests | Body generated | Body written by hand |
-|---|---|---|---|
-| command | 3 | 0 | 3 |
-
-The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
 
 ## 2. Test cases
 

@@ -6,6 +6,8 @@ covers: [denied without fees.approve]
 given: a librarian, who does not hold fees.approve, and an approved request
 when: waiveFee is called for it
 then: it is refused as not allowed, and the fee still stands
-fixture: { caller: librarian }
+fixture:
+  caller: librarian
+  FeeWaiverRequest: [{ id: "eced74aa-7484-5285-a42e-0cdb9b680338", amount: "3.50" }]
 input: { waiverId: "eced74aa-7484-5285-a42e-0cdb9b680338" }
 expect: { status: 403 }

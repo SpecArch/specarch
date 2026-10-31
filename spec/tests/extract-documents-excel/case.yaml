@@ -1,0 +1,14 @@
+arguments: [extract, documents, --out, spec, docs/lending-register.xlsx]
+repository:
+  folder: docs
+  commits:
+    - [lending-register.xlsx]
+exitStatus: 0
+standardOutput: |
+  commit f3dcad0b0cded8ef547e9adfc0164c6eb14d7571: the last change to lending-register.xlsx
+  counted 4 headings, 0 numbered paragraphs, 15 sentences (1 commitment) and 2 tables (1 table of fields): every sheet as a heading, every region of touching cells of two rows and two columns or more as a table, its first row the header, and every sentence of a cell of text
+  wrote 1 requirement, 1 entity and 6 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: the sheet Chart is a chart or a dialog sheet, which holds no cells; it is not read; could question Q-4
+  not held: the table at Register!A1:D3, headed ID | Requirement | Owner | Due: only a table whose first column is Field, and whose others are Type, Required, Sensitivity or Description, is read; could question Q-5
+  not held: field balance of AccountFields, at 'Account fields'!B2:D5, of type "money": the meta-model holds no type for it; left out; could question Q-6
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

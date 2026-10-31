@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 879 design tests, 430 golden and 449 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 885 design tests, 435 golden and 450 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 879 design tests, 430 golden and 449 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 875 |
+| system | 881 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1487,6 +1487,22 @@ Scenario: golden; level: system; verifies SA-44.
 - When: extract database is run on the dump
 - Then: it writes one entity per table, with the types, keys, relations and constraints it can hold, a question for every constraint message and for the missing primary key, names the commit, counts what it read, prints a line and writes a could question citing the table for the money column, the fixed width, the default it cannot hold, the index and the view, and exits 0
 
+#### extract-documents-email
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding an email message with an encoded subject, a plain and an HTML body in quoted-printable, a quoted line and a signature, the Word document of extract-documents-word attached in base64 and a picture attached
+- When: extract documents is run on the message
+- Then: it prints the sender, the recipient, the date and the subject, writes the body as the clause body titled by the subject with its two requirements, the attachment's clauses after its name, lending-rules.docx: 2.1.1, with their requirements, prints a line and writes a could question for the quoted line, the signature, the attachment's picture and tracked changes and the picture attachment, and exits 0
+
+#### extract-documents-excel
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding a workbook titled in its properties, with a register sheet of shared, inline and date cells whose requirement column holds a commitment, a sheet whose name holds a space with a table of fields starting at B2, one of a type the meta-model does not hold, and a chart sheet
+- When: extract documents is run on the workbook
+- Then: it writes the register's range and the one cell a requirement cites as clauses, the table of fields as an entity citing its quoted range 'Account fields'!B2:D5, prints a line and writes a could question for the register table, the field's type and the chart sheet, and exits 0
+
 #### extract-documents-language-not-shipped
 
 Scenario: red; level: system; covers exit 2; verifies SA-64.
@@ -1497,11 +1513,35 @@ Scenario: red; level: system; covers exit 2; verifies SA-64.
 
 #### extract-documents-not-markdown
 
-Scenario: red; level: system; covers exit 1; verifies SA-44.
+Scenario: red; level: system; covers exit 1; verifies SA-44, SA-110.
 
-- Given: a handbook kept as plain text rather than Markdown
+- Given: a handbook kept as plain text, a format extract documents does not read
 - When: extract documents is run on it
-- Then: it says this build reads Markdown documents, writes nothing and exits 1
+- Then: it names the formats this build reads, Markdown, PDF, Word, PowerPoint, Excel and email messages, writes nothing and exits 1
+
+#### extract-documents-pdf
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding a PDF printed by a web browser with subset fonts and ligatures: a paragraph before the first heading, headings at two sizes numbered 1 to 3, paragraphs numbered 2.1, 2.2 and 3.1, and a blank second page
+- When: extract documents is run on the PDF
+- Then: it writes the document's title from the file, the text before the first heading in the clause page 1, the numbered paragraphs as the clauses 2.1, 2.2 and 3.1 with their requirements, a ligature read as its letters, prints a line and writes a could question for the page that holds no text, and exits 0
+
+#### extract-documents-pdf-does-not-parse
+
+Scenario: red; level: system; covers exit 1; verifies SA-110.
+
+- Given: a file named notice.pdf whose body is not a PDF
+- When: extract documents is run on it
+- Then: it says the file cannot be read as a PDF document, with the reader's error, writes nothing and exits 1
+
+#### extract-documents-powerpoint
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding a presentation of two slides: the first with a title, a text box of two paragraphs, a slide number and speaker notes holding a commitment; the second with a title, a table of fields, a picture and a chart
+- When: extract documents is run on the presentation
+- Then: it writes the clauses slide 1, slide 1 notes and slide 2 titled by their slides, a requirement citing slide 1 and one citing slide 1 notes, the table as an entity named after its slide, leaves the slide number out, prints a line and writes a could question for the picture and the chart, and exits 0
 
 #### extract-documents-upper-case-name
 
@@ -1526,6 +1566,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-64.
 - Given: a German vocabulary that lists personenbezogen under both sensitivities.internal and sensitivities.personal, and a handbook
 - When: extract documents is run on the handbook with that vocabulary
 - Then: it refuses the vocabulary on standard error, naming the file, the line and the two lists, writes nothing, and exits 1
+
+#### extract-documents-word
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding a Word document with a Title paragraph, headings numbered by the document's numbering at two levels and an annex numbered Annex A, paragraphs numbered 2.1.1 and 2.1.2 by a third level, a bulleted paragraph, a paragraph with a picture, a paragraph with tracked changes and a table of fields
+- When: extract documents is run on the document
+- Then: it writes the computed numbers 1, 2.1.1, 2.1.2, 3.1 and Annex A as the clauses with the Title paragraph as the source's title, one requirement per commitment citing its clause, the table as an entity, reads the inserted text and not the deleted, prints a line and writes a could question naming the paragraph for the picture and the tracked changes, and exits 0
 
 #### extract-documents-writes-tree
 
@@ -7133,7 +7181,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-497 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+503 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7575,6 +7623,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-64 | acceptance 3 | golden | SA-64 names no harm |
 | requirement SA-64 | acceptance 4 | golden | SA-64 names no harm |
 | requirement SA-64 | acceptance 5 | golden | SA-64 names no harm |
+| requirement SA-110 | acceptance 1 | golden | SA-110 names no harm |
+| requirement SA-110 | acceptance 2 | golden | SA-110 names no harm |
+| requirement SA-110 | acceptance 3 | golden | SA-110 names no harm |
+| requirement SA-110 | acceptance 4 | golden | SA-110 names no harm |
+| requirement SA-110 | acceptance 5 | golden | SA-110 names no harm |
+| requirement SA-110 | acceptance 6 | golden | SA-110 names no harm |
 | requirement SA-72 | acceptance 1 | golden | SA-72 names no harm |
 | requirement SA-72 | acceptance 2 | golden | SA-72 names no harm |
 | requirement SA-72 | acceptance 3 | golden | SA-72 names no harm |

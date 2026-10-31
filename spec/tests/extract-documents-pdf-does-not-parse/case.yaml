@@ -1,0 +1,7 @@
+arguments: [extract, documents, --out, spec, docs/notice.pdf]
+repository:
+  folder: docs
+  commits:
+    - [notice.pdf]
+exitStatus: 1
+standardOutput: ""

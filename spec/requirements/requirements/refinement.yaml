@@ -161,6 +161,21 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: A document in another language gave its outline and nothing else, every table a could line, since the commitment words, the headers and the units were English in the code; a wrong or missing word has to be one line in a data file that the project changes without a release.
+  SA-110:
+    statement: specarch extract documents shall read a PDF, a Word document, a PowerPoint presentation, an Excel workbook and an email message as it reads a Markdown document, with no conversion, no other program and no network, and cite every requirement, entity and question at the clause, page, slide, cell or range, or attachment of the file read, naming what it does not read.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - extract documents on a Word document whose headings and clauses are numbered by the document's numbering writes those numbers as the clauses, 2.1.1 and Annex A, and the Title style or the package's title as the source's title; a picture, tracked changes and a footnote each print a line naming the paragraph and are could questions.
+      - extract documents on a PDF reads the headings by their size, a paragraph that starts with a section number as its clause, the text before the first heading as the clause of its page, and a page with no text as a line and a could question; a file that does not parse or is encrypted with a password is refused with status 1 and the reader's error.
+      - extract documents on a PowerPoint presentation writes every slide as a clause, slide 1, titled by its title, and its speaker notes as slide 1 notes; a picture and a chart are lines and could questions.
+      - extract documents on an Excel workbook writes every table of touching cells as the clause of its range and every cell of text a requirement cites as the clause of its cell, a table headed Field as an entity; a chart sheet is a line and a could question.
+      - "extract documents on an email message writes its From, To, Date and Subject in the source's description and a line, its body as the clause body, and every attachment as a clause of its name; an attachment in a format it reads is read with its clauses after its name, lending-rules.docx: 2.1.1, and quoted lines, the signature and any other attachment are lines and could questions."
+      - extract documents on a Markdown document writes the tree it wrote before, byte for byte, and any other file is refused with status 1 naming the formats read.
+    verification: test
+    needs: [NEED-8]
+    why: Most requirement documents are PDF or Word, and a records repository also holds decks, registers and correspondence; converting each to Markdown by hand is a step nobody reviews, and the converters drop Word's computed clause numbers, so the citation would no longer name the clause a reader of the file finds (ADR-212).
   SA-72:
     statement: specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none.
     kind: functional

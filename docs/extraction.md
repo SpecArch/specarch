@@ -251,8 +251,24 @@ Steps, in order:
    `docs/vocabularies.md`): English is shipped and read by default,
    `--language` or `--vocabulary` names another, and the source records
    its `language`; a leading row-number column is skipped in every
-   table, and `--given-outside` marks the source. PDF and slide decks
-   follow once a reader for them passes the dependency rules.
+   table, and `--given-outside` marks the source. The same reader takes
+   PDF, Word, PowerPoint, Excel and email messages (ADR-212, SA-110):
+   each format has a reader of its own that gives the Markdown reader's
+   headings, paragraphs and tables, so the rules above hold for all of
+   them, and no file is converted first. A citation names what a reader
+   of that file finds: Word's computed clause number (2.1.1, Annex A),
+   the page before a PDF's first heading, slide 3 and slide 3 notes, a
+   range or a cell as a formula writes it (`'Account fields'!B2:D5`),
+   and an attachment's name before its own clause
+   (`lending-rules.docx: 2.1.1`). Pictures, charts, tracked changes,
+   footnotes, scanned pages, running headers, quoted replies, the
+   signature and an attachment of another kind are each a line and a
+   could question. Word, PowerPoint, Excel and email are read with the
+   standard library; PDF with `github.com/ledongthuc/pdf` (BSD-3-Clause,
+   no dependencies); the workbook reader, `internal/xlsx`, is shared
+   with the tabular data source. Cases `spec/tests/extract-documents-word`,
+   `-pdf`, `-powerpoint`, `-excel`, `-email` and
+   `-pdf-does-not-parse`.
 7. Built. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and
    3.1, in YAML or JSON, with no dependency beyond the YAML library
    (ADR-049): operations, parameters, request and response schemas, as a

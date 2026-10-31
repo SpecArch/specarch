@@ -271,11 +271,13 @@ Error codes of --json:
   line of history than the permission table's, a router root that gives one
   route twice or holds no page, a path with changes not committed, untracked
   files, a shallow clone, a path outside a git repository, a document that
-  is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file
-  that is not BPMN 2.0 XML or holds no process, a workflow table that does
-  not parse, is stale, lacks a key of the format or holds another, names a
-  step kind other than approval, operation or other, lists a workflow twice
-  or gives a workflow, a step or a form field no name, a gateway table that
+  is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its
+  extension, or that does not parse as its format or is a PDF encrypted with
+  a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that
+  is not BPMN 2.0 XML or holds no process, a workflow table that does not
+  parse, is stale, lacks a key of the format or holds another, names a step
+  kind other than approval, operation or other, lists a workflow twice or
+  gives a workflow, a step or a form field no name, a gateway table that
   does not parse, is stale, lacks a key of the format or holds another,
   gives a row no value or a value twice, or names a gateway or a claim that
   is no name, a file given to systemd that is not a unit ending in .service

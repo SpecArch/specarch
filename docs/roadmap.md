@@ -102,6 +102,17 @@ leaves to the host (ADR-211, SA-109, `spec/tests/validate-processes-*`,
 `examples/release-watcher/`): built on main, in no release yet. Spec Kit's free-form specification showed
 the gap.
 
+`specarch extract documents` reads PDF, Word, PowerPoint, Excel and email
+messages beside Markdown, each with a reader of its own and no
+conversion, and cites the clause, page, slide, cell range or attachment
+of the file read; Word's clause numbers are computed from the document's
+numbering, which a conversion to Markdown loses (ADR-212, SA-110,
+`spec/tests/extract-documents-word`, `-pdf`, `-powerpoint`, `-excel`,
+`-email`): built on main, in no release yet. A capture trial beside Spec
+Kit, which starts from whatever its agent is given to read, showed the
+gap. Not built: tables in a PDF, which the file does not mark, and the
+text of a scanned page.
+
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the

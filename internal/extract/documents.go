@@ -79,6 +79,8 @@ type docClause struct {
 	parent    *docClause
 	children  int
 	own       bool // holds text of its own
+	cited     bool // listed only when a requirement or a question cites it
+	used      bool // a requirement or a question cites it
 }
 
 type docSentence struct {
@@ -88,7 +90,7 @@ type docSentence struct {
 
 type docTable struct {
 	clause *docClause
-	line   int
+	place  string
 	header []string
 	rows   [][]string
 }
@@ -100,14 +102,16 @@ type DocumentOptions struct {
 	GivenOutside bool                   // the document was given to parties outside
 }
 
-// Documents reads one Markdown document into a tree: its outline as the
+// Documents reads one document (Markdown, PDF, Word, PowerPoint, Excel or
+// an email message, docs/extraction.md) into a tree: its outline as the
 // clauses of one document source, every commitment sentence as a
 // requirement, and every table with a known header as an entity's fields,
 // by the words of the vocabulary named, or English.
 func Documents(path, out string, opts DocumentOptions) (*Result, error) {
 	key := opts.Key
-	if ext := strings.ToLower(filepath.Ext(path)); ext != ".md" && ext != ".markdown" {
-		return nil, refuse("%s is not a Markdown file; this build reads Markdown documents, and PDF and slide decks come in a later step", path)
+	format, ok := documentFormat(path)
+	if !ok {
+		return nil, refuse("%s is not a document this build reads: it reads %s, by the file's extension; save the document in one of these formats and read that file", path, documentFormatList())
 	}
 	r, err := Open([]string{path})
 	if err != nil {
@@ -123,6 +127,10 @@ func Documents(path, out string, opts DocumentOptions) (*Result, error) {
 	if !regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`).MatchString(key) {
 		return nil, fmt.Errorf("the file name %s gives no source key; name one with --source-key", filepath.Base(path))
 	}
+	in, err := format.read(filepath.Base(path), data, 0)
+	if err != nil {
+		return nil, refuse("%s cannot be read as %s: %v", path, format.name, err)
+	}
 	res := &Result{Tree: newTree()}
 	commitLine(res, r)
 	v := opts.Vocabulary
@@ -131,10 +139,18 @@ func Documents(path, out string, opts DocumentOptions) (*Result, error) {
 	} else {
 		res.say("vocabulary: the words of %s, from %s", v.Language, v.Path)
 	}
-	d := &docReader{key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, words: newDocWords(v)}
-	d.parse(strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n"))
-	if line, text, ok := generatedMark(path); ok {
-		res.say("generated: %s:%d says it is generated from another source: %s", r.Paths[0], line, text)
+	for _, line := range in.says {
+		res.say("%s", line)
+	}
+	d := &docReader{key: key, res: res, questions: &yaml.Node{Kind: yaml.MappingNode}, words: newDocWords(v), counted: in.counted}
+	d.read(in.blocks)
+	if in.title != "" {
+		d.title = in.title
+	}
+	if format.text {
+		if line, text, ok := generatedMark(path); ok {
+			res.say("generated: %s:%d says it is generated from another source: %s", r.Paths[0], line, text)
+		}
 	}
 	d.write()
 
@@ -148,6 +164,9 @@ func Documents(path, out string, opts DocumentOptions) (*Result, error) {
 	}
 	var clauses []*yaml.Node
 	for _, c := range d.clauses {
+		if c.cited && !c.used {
+			continue
+		}
 		if c.children == 0 || c.own {
 			clauses = append(clauses, flow(mapping("clause", c.id, "title", c.title)))
 		}
@@ -167,7 +186,7 @@ func Documents(path, out string, opts DocumentOptions) (*Result, error) {
 	if d.entities != nil || d.designQuestions != nil {
 		stages = append(stages, "design")
 	}
-	description := fmt.Sprintf("The document %s, read at commit %s: every heading and numbered section is a clause, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.\n", r.Paths[0], r.Commit)
+	description := fmt.Sprintf("The document %s, read at commit %s: %s, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.\n", r.Paths[0], r.Commit, in.clauses)
 	res.Tree.put("specarch.yaml", rootFile(title, description, stages, mapping(key, src)))
 	return res, nil
 }
@@ -188,12 +207,13 @@ type docReader struct {
 	questions       *yaml.Node // about the requirements stage
 	designQuestions *yaml.Node // about the design stage
 	nextID          int
+	counted         string // what the counts count, in the format's words
 }
 
 // gap records what the meta-model cannot hold, at the clause the document
-// says it in, or at its line before the first heading.
-func (d *docReader) gap(at *docClause, line int, block string, format string, args ...any) {
-	clause := fmt.Sprintf("line %d", line)
+// says it in, or at its place before the first clause.
+func (d *docReader) gap(at *docClause, place string, block string, format string, args ...any) {
+	clause := place
 	if at != nil {
 		clause = at.id
 	}
@@ -212,31 +232,49 @@ func (d *docReader) questionsFor(blocks []string) *yaml.Node {
 	return d.questions
 }
 
-// parse reads the lines into clauses, sentences and tables, in order.
-func (d *docReader) parse(lines []string) {
-	var stack []*docClause // the open headings by level
-	var levels []int
-	var current *docClause
+// blockKind is what one block of a document is.
+type blockKind int
+
+const (
+	blockHeading   blockKind = iota // a heading whose text may start with its number
+	blockSection                    // a clause the format names itself: a page, a slide, a sheet, a cell, an attachment
+	blockParagraph                  // a paragraph or a list item
+	blockTable                      // a table, its header row first
+	blockCode                       // a block of code
+	blockNotHeld                    // something of the document the reader does not read
+)
+
+// docBlock is one block of a document as a reader of its format gives it.
+// Every format's reader gives the same blocks, and one reader turns them
+// into clauses, sentences and tables.
+type docBlock struct {
+	kind  blockKind
+	level int    // heading and section: 1 for the top
+	text  string // heading, paragraph and not held: the text
+	id    string // section: the clause as citations name it
+	title string // section: the clause's title
+	rows  [][]string
+	place string // where in the file: line 12, paragraph 4, page 2, slide 3, Sheet1!A1:C4
+	// prefix goes before every clause the block names: an attachment's
+	// name, so that its clauses stay apart from the message's.
+	prefix string
+	// plain: the paragraph's first word is never read as a section number
+	// (a slide or a cell is its own clause).
+	plain bool
+	// cited: the section is listed only when a requirement or a question
+	// cites it (a cell of a workbook).
+	cited bool
+}
+
+// markdownBlocks reads Markdown lines into blocks: ATX headings,
+// paragraphs, list items, tables and fenced code.
+func markdownBlocks(lines []string) []docBlock {
+	var out []docBlock
 	var para []string
 	flush := func() {
-		if len(para) == 0 {
-			return
-		}
-		text := strings.Join(para, " ")
-		para = nil
-		if m := paragraphNumber.FindStringSubmatch(text); m != nil && len(stack) > 0 {
-			parent := stack[len(stack)-1]
-			title := parent.title
-			current = d.clause(m[1], title, parent)
-			d.counts.numbered++
-			text = m[2]
-		}
-		if current == nil {
-			return
-		}
-		current.own = true
-		for _, s := range sentences(text) {
-			d.sentences = append(d.sentences, docSentence{clause: current, text: s})
+		if len(para) > 0 {
+			out = append(out, docBlock{kind: blockParagraph, text: strings.Join(para, " ")})
+			para = nil
 		}
 	}
 	for i := 0; i < len(lines); i++ {
@@ -248,41 +286,19 @@ func (d *docReader) parse(lines []string) {
 			start := i + 1
 			for i++; i < len(lines) && !strings.HasPrefix(strings.TrimSpace(lines[i]), open); i++ {
 			}
-			d.counts.codeBlocks++
-			d.gap(current, start, "requirements", "a code block at line %d: code in a document is not read as a commitment", start)
+			out = append(out, docBlock{kind: blockCode, place: fmt.Sprintf("line %d", start)})
 		case mdHeading.MatchString(line):
 			flush()
 			m := mdHeading.FindStringSubmatch(line)
-			level, text := len(m[1]), strings.TrimSpace(m[2])
-			for len(levels) > 0 && levels[len(levels)-1] >= level {
-				stack, levels = stack[:len(stack)-1], levels[:len(levels)-1]
-			}
-			var parent *docClause
-			if len(stack) > 0 {
-				parent = stack[len(stack)-1]
-			}
-			id, title := text, text
-			if n := headingNumber.FindStringSubmatch(text); n != nil {
-				id, title = n[1], n[2]
-			}
-			if level == 1 && d.title == "" {
-				d.title = text
-			}
-			current = d.clause(id, title, parent)
-			d.counts.headings++
-			stack, levels = append(stack, current), append(levels, level)
+			out = append(out, docBlock{kind: blockHeading, level: len(m[1]), text: strings.TrimSpace(m[2]), place: fmt.Sprintf("line %d", i+1)})
 		case strings.HasPrefix(strings.TrimSpace(line), "|") && i+1 < len(lines) && tableRule.MatchString(lines[i+1]):
 			flush()
-			t := docTable{clause: current, line: i + 1, header: cells(line)}
+			t := docBlock{kind: blockTable, place: fmt.Sprintf("line %d", i+1), rows: [][]string{cells(line)}}
 			for i += 2; i < len(lines) && strings.HasPrefix(strings.TrimSpace(lines[i]), "|"); i++ {
 				t.rows = append(t.rows, cells(lines[i]))
 			}
 			i--
-			if current != nil {
-				current.own = true
-			}
-			d.tables = append(d.tables, t)
-			d.counts.tables++
+			out = append(out, t)
 		case strings.TrimSpace(line) == "":
 			flush()
 		case listItem.MatchString(line) && !paragraphNumber.MatchString(strings.TrimSpace(line)):
@@ -293,13 +309,79 @@ func (d *docReader) parse(lines []string) {
 		}
 	}
 	flush()
+	return out
+}
+
+// read turns the blocks into clauses, sentences and tables, in order.
+func (d *docReader) read(blocks []docBlock) {
+	var stack []*docClause // the open headings by level
+	var levels []int
+	var current *docClause
+	open := func(level int, id, title string, b docBlock) {
+		for len(levels) > 0 && levels[len(levels)-1] >= level {
+			stack, levels = stack[:len(stack)-1], levels[:len(levels)-1]
+		}
+		var parent *docClause
+		if len(stack) > 0 {
+			parent = stack[len(stack)-1]
+		}
+		current = d.clause(b.prefix+id, title, parent)
+		current.cited = current.cited || b.cited
+		stack, levels = append(stack, current), append(levels, level)
+	}
+	for _, b := range blocks {
+		switch b.kind {
+		case blockHeading:
+			id, title := b.text, b.text
+			if n := headingNumber.FindStringSubmatch(b.text); n != nil {
+				id, title = n[1], n[2]
+			}
+			if b.level == 1 && d.title == "" && b.prefix == "" {
+				d.title = b.text
+			}
+			open(b.level, id, title, b)
+			d.counts.headings++
+		case blockSection:
+			open(b.level, b.id, b.title, b)
+			if !b.cited {
+				d.counts.headings++
+			}
+		case blockParagraph:
+			text := b.text
+			if m := paragraphNumber.FindStringSubmatch(text); m != nil && len(stack) > 0 && !b.plain {
+				parent := stack[len(stack)-1]
+				current = d.clause(b.prefix+m[1], parent.title, parent)
+				d.counts.numbered++
+				text = m[2]
+			}
+			if current == nil {
+				continue
+			}
+			current.own = true
+			for _, s := range sentences(text) {
+				d.sentences = append(d.sentences, docSentence{clause: current, text: s})
+			}
+		case blockTable:
+			t := docTable{clause: current, place: b.place, header: b.rows[0], rows: b.rows[1:]}
+			if current != nil {
+				current.own = true
+			}
+			d.tables = append(d.tables, t)
+			d.counts.tables++
+		case blockCode:
+			d.counts.codeBlocks++
+			d.gap(current, b.place, "requirements", "a code block at %s: code in a document is not read as a commitment", b.place)
+		case blockNotHeld:
+			d.gap(current, b.place, "requirements", "%s", b.text)
+		}
+	}
 }
 
 // clause adds a clause to the outline; a clause named twice is one.
 func (d *docReader) clause(id, title string, parent *docClause) *docClause {
 	for _, c := range d.clauses {
 		if c.id == id {
-			d.gap(c, 0, "requirements", "the section %s is named twice; both are cited as one clause", id)
+			d.gap(c, "", "requirements", "the section %s is named twice; both are cited as one clause", id)
 			return c
 		}
 	}
@@ -404,6 +486,7 @@ func (d *docReader) write() {
 		}
 		d.counts.commitments++
 		cite := citation(d.key, s.clause.id, s.text)
+		s.clause.used = true
 		if d.words.pronounStart.MatchString(s.text) {
 			d.question(fmt.Sprintf("Section %s says %q, and does not name what it commits; which element is it?", s.clause.id, s.text), priority,
 				[]string{"requirements"}, "A sentence that names its subject only by a word such as it or they cannot be placed as one element without guessing.", []*yaml.Node{cite})
@@ -431,9 +514,9 @@ func (d *docReader) write() {
 			blocks, "A document states what is committed, not which kind of requirement it is.", nil)
 	}
 	d.readTables()
-	d.res.say("counted %s, %s, %s (%s) and %s (%s): every ATX heading, every paragraph that starts with a section number such as 3.1, every sentence of a paragraph or list item, and every table, outside fenced code",
+	d.res.say("counted %s, %s, %s (%s) and %s (%s): %s",
 		plural(d.counts.headings, "heading"), plural(d.counts.numbered, "numbered paragraph"), plural(d.counts.sentences, "sentence"),
-		plural(d.counts.commitments, "commitment"), plural(d.counts.tables, "table"), plural(d.counts.known, "table")+" of fields")
+		plural(d.counts.commitments, "commitment"), plural(d.counts.tables, "table"), plural(d.counts.known, "table")+" of fields", d.counted)
 	entities := 0
 	if d.entities != nil {
 		entities = len(d.entities.Content) / 2
@@ -474,7 +557,7 @@ func (d *docReader) readTables() {
 			known = known && header[i] != "" && header[i] != vocabulary.RowNumber
 		}
 		if !known || t.clause == nil {
-			d.gap(t.clause, t.line, "entities", "the table at line %d, headed %s: only a table whose first column is %s, and whose others are %s, %s, %s or %s, is read", t.line, strings.Join(t.header, " | "),
+			d.gap(t.clause, t.place, "entities", "the table at %s, headed %s: only a table whose first column is %s, and whose others are %s, %s, %s or %s, is read", t.place, strings.Join(t.header, " | "),
 				v.HeaderWord(vocabulary.Field), v.HeaderWord(vocabulary.Type), v.HeaderWord(vocabulary.Required), v.HeaderWord(vocabulary.Sensitivity), v.HeaderWord(vocabulary.Description))
 			continue
 		}
@@ -482,7 +565,7 @@ func (d *docReader) readTables() {
 		heading := t.clause
 		name := namePascal(heading.title)
 		if name == "" {
-			d.gap(t.clause, t.line, "entities", "the table at line %d: the heading %q gives no entity name", t.line, heading.title)
+			d.gap(t.clause, t.place, "entities", "the table at %s: the heading %q gives no entity name", t.place, heading.title)
 			continue
 		}
 		props := &yaml.Node{Kind: yaml.MappingNode}
@@ -504,7 +587,7 @@ func (d *docReader) readTables() {
 					set(f, tt[i].(string), tt[i+1])
 				}
 			} else {
-				d.gap(t.clause, t.line, "#/entities/"+name, "field %s of %s, at line %d, of type %q: the meta-model holds no type for it; left out", col["field"], name, t.line, col["type"])
+				d.gap(t.clause, t.place, "#/entities/"+name, "field %s of %s, at %s, of type %q: the meta-model holds no type for it; left out", col["field"], name, t.place, col["type"])
 				continue
 			}
 			if s := vocabulary.Key(v.Sensitivities, col["sensitivity"]); s != "" {
@@ -529,6 +612,7 @@ func (d *docReader) readTables() {
 		}
 		set(e, "origin", "stated")
 		set(e, "cites", []*yaml.Node{citation(d.key, t.clause.id, says)})
+		t.clause.used = true
 		if d.entities == nil {
 			d.entities = &yaml.Node{Kind: yaml.MappingNode}
 		}

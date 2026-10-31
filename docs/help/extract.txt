@@ -6,7 +6,9 @@ A system that exists already gets its specification from what it has:
 
 reads one surface into a partial specification tree. The sources:
 outline, database (a catalogue dump), router (a route table), documents
-(a Markdown document), openapi, permissions (a permission table), pages
+(a Markdown, PDF, Word, PowerPoint, Excel or email file, each cited
+by its own clauses: a section number, a page, a slide, a cell range or
+an attachment), openapi, permissions (a permission table), pages
 (a file-system router), workflows (BPMN 2.0, or a workflow table with
 --table), gateway, go, swift, javascript and dart (code-facts dumps).
 

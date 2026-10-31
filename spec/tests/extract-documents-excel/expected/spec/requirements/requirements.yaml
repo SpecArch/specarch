@@ -1,0 +1,34 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement LENDINGREGISTER-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LENDINGREGISTER-1]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LENDINGREGISTER-1; add satisfies: [LENDINGREGISTER-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LENDINGREGISTER-1]
+  LENDINGREGISTER-1:
+    statement: A member shall be told of a loan due within 2 days.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: lending-register, clause: Register!B2, says: A member shall be told of a loan due within 2 days.}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: LENDINGREGISTER-1? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which kind is each requirement read from the document: LENDINGREGISTER-1? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/LENDINGREGISTER-1/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.
+  # specarch-problem: question: open_question: (could, decision) Not held: the sheet Chart is a chart or a dialog sheet, which holds no cells; it is not read. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: the sheet Chart is a chart or a dialog sheet, which holds no cells; it is not read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: lending-register, clause: sheet Chart, says: 'Not held: the sheet Chart is a chart or a dialog sheet, which holds no cells; it is not read.'}

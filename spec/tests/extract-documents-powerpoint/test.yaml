@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a presentation of two slides: the first with a title, a text box of two paragraphs, a slide number and speaker notes holding a commitment; the second with a title, a table of fields, a picture and a chart"
+when: "extract documents is run on the presentation"
+then: "it writes the clauses slide 1, slide 1 notes and slide 2 titled by their slides, a requirement citing slide 1 and one citing slide 1 notes, the table as an entity named after its slide, leaves the slide number out, prints a line and writes a could question for the picture and the chart, and exits 0"
+verifies: [SA-110]

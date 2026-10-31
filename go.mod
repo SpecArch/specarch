@@ -17,6 +17,7 @@ require (
 	cel.dev/expr v0.25.3 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
+	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728 // indirect
 	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20261005182115-fad411399dd8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261005182115-fad411399dd8 // indirect

@@ -3,7 +3,7 @@ command: extract
 level: system
 scenario: red
 covers: [exit 1]
-given: "a handbook kept as plain text rather than Markdown"
+given: "a handbook kept as plain text, a format extract documents does not read"
 when: "extract documents is run on it"
-then: "it says this build reads Markdown documents, writes nothing and exits 1"
-verifies: [SA-44]
+then: "it names the formats this build reads, Markdown, PDF, Word, PowerPoint, Excel and email messages, writes nothing and exits 1"
+verifies: [SA-44, SA-110]

@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Lending register
+  version: 0.1.0
+  description: |
+    The document lending-register.xlsx, read at commit f3dcad0b0cded8ef547e9adfc0164c6eb14d7571: every sheet and every table of cells is a clause, as Sheet1!A1:C4, and so is every cell of text a citation names, as Sheet1!B4, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  lending-register:
+    kind: document
+    title: Lending register
+    edition: f3dcad0b0cded8ef547e9adfc0164c6eb14d7571
+    url: ../docs/lending-register.xlsx
+    clauses:
+      - {clause: 'Register!A1:D3', title: Register}
+      - {clause: Register!B2, title: Requirement}
+      - {clause: '''Account fields''!B2:D5', title: Account fields}
+      - {clause: sheet Chart, title: Set aside; the question that cites it says why}

@@ -1,0 +1,53 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement LOANBRIEFING-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LOANBRIEFING-1]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LOANBRIEFING-1; add satisfies: [LOANBRIEFING-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LOANBRIEFING-1]
+  LOANBRIEFING-1:
+    statement: A member shall borrow at most 5 books.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: loan-briefing, clause: slide 1, says: A member shall borrow at most 5 books.}
+  # specarch-problem: warning: acceptance_missing: requirement LOANBRIEFING-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LOANBRIEFING-2]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LOANBRIEFING-2; add satisfies: [LOANBRIEFING-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LOANBRIEFING-2]
+  LOANBRIEFING-2:
+    statement: The renewal must be confirmed by email within 1 day.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: loan-briefing, clause: slide 1 notes, says: The renewal must be confirmed by email within 1 day.}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: LOANBRIEFING-1, LOANBRIEFING-2? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which kind is each requirement read from the document: LOANBRIEFING-1, LOANBRIEFING-2? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/LOANBRIEFING-1/kind', '#/requirements/LOANBRIEFING-2/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.
+  # specarch-problem: question: open_question: (could, decision) Not held: a picture on slide 2: it is not read. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: a picture on slide 2: it is not read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: loan-briefing, clause: slide 2, says: 'Not held: a picture on slide 2: it is not read.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: a chart, a diagram or an embedded object on slide 2: it is not read. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Not held: a chart, a diagram or an embedded object on slide 2: it is not read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: loan-briefing, clause: slide 2, says: 'Not held: a chart, a diagram or an embedded object on slide 2: it is not read.'}

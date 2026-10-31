@@ -1,0 +1,13 @@
+arguments: [extract, documents, --out, spec, docs/loan-briefing.pptx]
+repository:
+  folder: docs
+  commits:
+    - [loan-briefing.pptx]
+exitStatus: 0
+standardOutput: |
+  commit 5e2033986a736ecbdaa2fd5b35b1352f80c2cfd6: the last change to loan-briefing.pptx
+  counted 3 headings, 0 numbered paragraphs, 3 sentences (2 commitments) and 1 table (1 table of fields): every slide and its speaker notes as a heading, every sentence of a title, a text box or the notes, and every table
+  wrote 2 requirements, 1 entity and 5 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: a picture on slide 2: it is not read; could question Q-4
+  not held: a chart, a diagram or an embedded object on slide 2: it is not read; could question Q-5
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

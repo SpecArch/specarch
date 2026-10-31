@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 109 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 110 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -40,7 +40,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-97 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-108, SA-74, SA-95 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-108, SA-57, SA-100 |
 
@@ -139,6 +139,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-45 | functional | must | accepted | specarch merge shall merge the partial specification trees the readers write into one specification that keeps the citations of every tree, turn every disagreement between the trees into a must question that cites both, and give byte-identical output for the same trees in the same order. |
 | SA-57 | functional | should | proposed | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. |
 | SA-64 | functional | must | accepted | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. |
+| SA-110 | functional | should | proposed | specarch extract documents shall read a PDF, a Word document, a PowerPoint presentation, an Excel workbook and an email message as it reads a Markdown document, with no conversion, no other program and no network, and cite every requirement, entity and question at the clause, page, slide, cell or range, or attachment of the file read, naming what it does not read. |
 | SA-72 | functional | should | accepted | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. |
 | SA-76 | functional | should | proposed | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it. |
 | SA-79 | functional | should | accepted | specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line. |
@@ -1618,6 +1619,23 @@ Acceptance criteria:
 - merge reads a requirement's number of days in the units and number words of its source's language, from the shipped vocabulary or the one given with --vocabulary, and says once per source that its requirements are not compared when there is neither.
 
 **Insight:** A document in another language gave its outline and nothing else, every table a could line, since the commitment words, the headers and the units were English in the code; a wrong or missing word has to be one line in a data file that the project changes without a release.
+
+### SA-110
+
+specarch extract documents shall read a PDF, a Word document, a PowerPoint presentation, an Excel workbook and an email message as it reads a Markdown document, with no conversion, no other program and no network, and cite every requirement, entity and question at the clause, page, slide, cell or range, or attachment of the file read, naming what it does not read.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- extract documents on a Word document whose headings and clauses are numbered by the document's numbering writes those numbers as the clauses, 2.1.1 and Annex A, and the Title style or the package's title as the source's title; a picture, tracked changes and a footnote each print a line naming the paragraph and are could questions.
+- extract documents on a PDF reads the headings by their size, a paragraph that starts with a section number as its clause, the text before the first heading as the clause of its page, and a page with no text as a line and a could question; a file that does not parse or is encrypted with a password is refused with status 1 and the reader's error.
+- extract documents on a PowerPoint presentation writes every slide as a clause, slide 1, titled by its title, and its speaker notes as slide 1 notes; a picture and a chart are lines and could questions.
+- extract documents on an Excel workbook writes every table of touching cells as the clause of its range and every cell of text a requirement cites as the clause of its cell, a table headed Field as an entity; a chart sheet is a line and a could question.
+- extract documents on an email message writes its From, To, Date and Subject in the source's description and a line, its body as the clause body, and every attachment as a clause of its name; an attachment in a format it reads is read with its clauses after its name, lending-rules.docx: 2.1.1, and quoted lines, the signature and any other attachment are lines and could questions.
+- extract documents on a Markdown document writes the tree it wrote before, byte for byte, and any other file is refused with status 1 naming the formats read.
+
+**Insight:** Most requirement documents are PDF or Word, and a records repository also holds decks, registers and correspondence; converting each to Markdown by hand is a step nobody reviews, and the converters drop Word's computed clause numbers, so the citation would no longer name the clause a reader of the file finds (ADR-212).
 
 ### SA-72
 

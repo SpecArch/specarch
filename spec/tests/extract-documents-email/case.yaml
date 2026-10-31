@@ -1,0 +1,17 @@
+arguments: [extract, documents, --out, spec, docs/rules-edition.eml]
+repository:
+  folder: docs
+  commits:
+    - [rules-edition.eml]
+exitStatus: 0
+standardOutput: |
+  commit 100fba25f8ac417da1d172ab0b07f221207559cb: the last change to rules-edition.eml
+  message: from Lending Office <office@example.org> to Library Board <board@example.org>, sent 2026-10-30T09:15:00+01:00, subject "Lending rules – new edition", with 2 attachments
+  counted 9 headings, 2 numbered paragraphs, 11 sentences (7 commitments) and 1 table (1 table of fields): the body and every attachment as a heading, and every heading, paragraph, sentence and table of an attachment in a format this build reads, as that format's reader counts them
+  wrote 6 requirements, 1 entity and 8 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: the lines of the body that start with >, quoted from an earlier message: they are not read; read that message itself; could question Q-4
+  not held: the signature after the line "-- ": it is not read; could question Q-5
+  not held: lending-rules.docx: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it; could question Q-6
+  not held: lending-rules.docx: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant; could question Q-7
+  not held: the attachment desk.png, of type image/png: this build reads attachments in Markdown (.md, .markdown), PDF (.pdf), Word (.docx), PowerPoint (.pptx), Excel (.xlsx) and email messages (.eml); it is not read; could question Q-8
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

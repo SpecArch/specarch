@@ -428,6 +428,30 @@ sources:
     edition: "2024"
     author: IEEE and The Open Group
     url: https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/signal.h.html
+  iso-29500:
+    kind: standard
+    title: ISO/IEC 29500-1, Office Open XML File Formats, Fundamentals and Markup Language Reference
+    edition: "2016"
+    author: ISO/IEC JTC 1/SC 34
+    url: https://www.iso.org/standard/71691.html
+  iso-32000-2:
+    kind: standard
+    title: ISO 32000-2, Document management, Portable document format, Part 2, PDF 2.0
+    edition: "2020"
+    author: ISO/TC 171/SC 2
+    url: https://www.iso.org/standard/75839.html
+  rfc-5322:
+    kind: standard
+    title: RFC 5322, Internet Message Format
+    edition: "2008"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc5322
+  rfc-2045:
+    kind: standard
+    title: RFC 2045, Multipurpose Internet Mail Extensions (MIME) Part One, Format of Internet Message Bodies
+    edition: "1996"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc2045
   spec-kit:
     kind: document
     title: Spec Kit

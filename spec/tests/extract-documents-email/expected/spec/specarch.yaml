@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Lending rules – new edition
+  version: 0.1.0
+  description: |
+    The document rules-edition.eml, read at commit 100fba25f8ac417da1d172ab0b07f221207559cb: the message "Lending rules – new edition" from Lending Office <office@example.org> to Library Board <board@example.org>, sent 2026-10-30T09:15:00+01:00: its body is a clause, as body, and so is every attachment, as its file name, whose own clauses follow its name, as rules.docx: 2.1, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  rules-edition:
+    kind: document
+    title: Lending rules – new edition
+    edition: 100fba25f8ac417da1d172ab0b07f221207559cb
+    url: ../docs/rules-edition.eml
+    clauses:
+      - {clause: body, title: Lending rules – new edition}
+      - {clause: 'lending-rules.docx: 1', title: Scope}
+      - {clause: 'lending-rules.docx: 2.1.1', title: Limits}
+      - {clause: 'lending-rules.docx: 2.1.2', title: Limits}
+      - {clause: 'lending-rules.docx: 3.1', title: Member}
+      - {clause: 'lending-rules.docx: Annex A', title: Fees}
+      - {clause: desk.png, title: desk.png}

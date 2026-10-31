@@ -183,7 +183,7 @@ question with a decision record and takes the question out, `approve`
 records that the documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
 existing code or documents to a specification (its outline, database,
-router, Markdown documents, OpenAPI, permissions, pages, workflows, Go,
+router, documents (Markdown, PDF, Word, PowerPoint, Excel and email), OpenAPI, permissions, pages, workflows, Go,
 Swift, JavaScript and Dart readers, as `docs/extraction.md` lists), `merge` joins the
 trees extract writes into one, `check` compares a specification with the
 dumps of its code and fails on a difference its allowlist does not name,

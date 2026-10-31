@@ -1,0 +1,12 @@
+arguments: [extract, documents, --out, spec, docs/lending-rules.pdf]
+repository:
+  folder: docs
+  commits:
+    - [lending-rules.pdf]
+exitStatus: 0
+standardOutput: |
+  commit 5e0f4873272426396b5491c003448fb8c72c3fb3: the last change to lending-rules.pdf
+  counted 5 headings, 3 numbered paragraphs, 9 sentences (4 commitments) and 0 tables (0 tables of fields): every line set larger than the body text, or in bold with a section number, as a heading, every page before the first heading, every paragraph that starts with a section number such as 3.1, and every sentence of a paragraph; a table is read as its lines, since a PDF does not mark one
+  wrote 3 requirements, 0 entities and 3 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: page 2 holds no text: a scanned page is a picture of text, which is not read; read the page's text from a copy that holds it; could question Q-3
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

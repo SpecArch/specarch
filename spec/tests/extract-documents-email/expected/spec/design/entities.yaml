@@ -1,0 +1,20 @@
+entities:
+  Member:
+    type: object
+    properties:
+      name: {type: string, sensitivity: personal}
+      email: {type: string, format: email, sensitivity: personal}
+      joined: {type: string, format: date, sensitivity: internal}
+    required: [name, email]
+    origin: stated
+    cites:
+      - {source: rules-edition, clause: 'lending-rules.docx: 3.1', says: 'A table of the fields of Member: name, email, joined.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Member, its primary key? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Which fields identify one Member, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Member/primaryKey']
+    decidedBy: system-owner
+    why: A table of fields does not say which of them identify a record.

@@ -1,0 +1,185 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-212:
+    title: extract documents reads PDF, Word, PowerPoint, Excel and email messages with readers of its own, not through a conversion to Markdown, and every reader gives the Markdown reader's blocks, so a citation names the clause, page, slide, cell range or attachment of the file people hold
+    status: proposed
+    date: "2026-10-31"
+    context: |
+      extract documents read Markdown only (ADR-048), while most
+      requirement documents are PDF or Word files, and a records
+      repository holds more: controlled documents in Word and PDF,
+      meeting decks in PowerPoint, registers in Excel and the
+      correspondence as email messages with those files attached. In a
+      capture trial beside Spec Kit, whose specification step starts
+      from whatever its agent is given to read, SpecArch could take
+      none of them without a person converting each first. There were
+      two ways: a reader per format inside the program, or a documented
+      conversion to Markdown, by pandoc or pdftotext, before the
+      Markdown reader. Either had to keep the citation true: a
+      requirement cites the clause it was read from, and the clause
+      must be the one the reader of the file finds.
+
+      A Word document numbers its headings and clauses with the
+      numbering the document defines, not with text: a heading reads
+      Limits, and the 2.1 before it is counted from the list it is in.
+      Converted with pandoc 3 (docx to Markdown) and with textutil
+      (docx to text), a document with numbered headings 1 Scope, 2
+      Loans, 2.1 Limits came out as Scope, Loans, Limits: every number
+      was lost, so every citation would have named a title, and two
+      sections of one title would have been one clause.
+    decision: |
+      extract documents chooses the reader by the file's extension:
+      .md and .markdown, .pdf, .docx, .pptx, .xlsx and .eml. Any other
+      file is refused, exit 1, naming the formats; a file of one of
+      these that does not parse, or a PDF encrypted with a password, is
+      refused with the reader's own error. Each reader gives the same
+      blocks the Markdown reader gives (a heading with its level, a
+      clause the format names itself, a paragraph, a table, a block of
+      code, and a thing not read with its place), and one reader turns
+      the blocks into clauses, requirements, entities and questions, so
+      every format gets the same rules for commitments, tables of
+      fields and questions, and Markdown's output is byte for byte what
+      it was. What a format holds that is not read (a picture, a chart,
+      tracked changes, a footnote, a scanned page, a quoted reply, an
+      attachment of another type) is a line and a could question at its
+      place, never left out in silence.
+
+      Word: the paragraphs, tables and numbering of the package, read
+      with the standard library. A heading is a paragraph whose style,
+      or the style it is based on, or its own setting gives an outline
+      level, or a style named heading 1 to 9; its number is computed
+      from the document's numbering: the level's text such as %1.%2,
+      its start and start override, decimal, letter and roman formats,
+      and a lower level restarting under a higher one. A numbered
+      heading is the clause of its number (2.1, Annex A); a numbered
+      paragraph whose number is a section number such as 2.1.3 is a
+      clause too. The Title style, or else the package's title, names
+      the source. Places are paragraphs, counted in the document's
+      order with those in tables.
+
+      PDF: the text of each page with its position, size and font, by
+      github.com/ledongthuc/pdf (BSD-3-Clause, no dependencies). Glyphs
+      are joined into lines by height and position; a line set larger
+      than the body text, or in bold starting with a section number, is
+      a heading, its level by its size; a paragraph that starts with a
+      section number is a clause as in Markdown. Text before the first
+      heading is in the clause of its page, page 1. A line that repeats
+      on three pages or more is a running header or footer and not
+      read; a page with no text is a scanned page and a could question.
+      A table in a PDF is read as its lines, since the file does not
+      mark one.
+
+      PowerPoint: every slide is a clause, slide 3, titled by its title
+      placeholder; its text boxes are paragraphs and its tables tables;
+      the notes' body is the clause slide 3 notes. A slide's number or
+      footer is not read, and a picture or a chart is a could question.
+
+      Excel: every sheet is a heading; every rectangle of touching cells
+      of two rows and two columns or more is a table under the clause of
+      its range, Register!A1:D3, its first row the header, so a table
+      headed Field gives an entity as in a document; every cell of text
+      is a paragraph in the clause of its cell, Register!B2, listed
+      among the clauses only when a requirement or a question cites it.
+      The workbook is read by internal/xlsx, which gives every sheet's
+      cells with their reference, value and kind (text, number, boolean,
+      a date as ISO 8601, an error) and the rectangles of touching
+      cells, for every reader of a workbook to use.
+
+      Email: the From, To, Date and Subject headers name the message in
+      the source's description and in a line; the body, the text/plain
+      part or else the HTML part as text, is the clause body, titled by
+      the subject; every attachment is a clause of its file name, and
+      one in a format this build reads is read by that format's reader,
+      its clauses after its name, lending-rules.docx: 2.1, up to three
+      messages deep. Lines quoted from an earlier message and the
+      signature after "-- " are not read.
+    consequences: |
+      A requirement read from any of these files cites a clause a
+      person finds in the file: Word's own numbers, a page, a slide, a
+      cell or a range as a formula names it, or an attachment and its
+      clause. The source's url and edition name the file as committed,
+      so the citation is checked against the file people review and not
+      against a converted copy that nobody reviews. The program holds
+      one more library, for PDF, recorded under libraries with its scan;
+      the Office formats and email use only the standard library and
+      golang.org/x/text, which the program already holds, for the
+      character sets of a message. No reader calls the network or
+      another program. A PDF made from scanned pages gives a could
+      question per page and nothing else, and a PDF's tables give
+      their lines as sentences, not fields: a table of fields is read
+      from the Word, Excel or Markdown copy. A heading numbered in a
+      format the reader does not compute (ordinal words, Chinese
+      counting) is a section cited by its title, with a could question
+      saying so. The tabular data source reader can build on
+      internal/xlsx without going through documents. The readers are in
+      the Go build only, as every extract reader is.
+    why: |
+      Readers, not conversion. Conversion was rejected because it loses
+      the citation in the format most requirement documents are in:
+      pandoc and textutil drop Word's computed numbers, so a
+      requirement converted from clause 2.1 would cite Limits, and two
+      clauses titled Scope would merge; a converted copy is also a
+      second file, read at its own edition, that nobody reviews. The
+      tools that convert are not ours to ship: pandoc and pdftotext are
+      GPL programs, an outside install on every machine, which macOS's
+      textutil is not on Linux; the dependency rules ask before GPL.
+      A reader inside the program reads the file at the commit that
+      names it, which is what makes a citation true (ADR-048).
+
+      One block stream for all readers, because the rules that make a
+      requirement, an entity or a question are the program's and not a
+      format's: each format reader knows only its format, and a change
+      to the rules is made once. The Markdown reader became the first
+      such reader rather than the only one, and its cases are
+      unchanged.
+
+      The Office formats with the standard library: a .docx, .pptx or
+      .xlsx is a zip of XML parts (ISO/IEC 29500), which archive/zip and
+      encoding/xml read; a library would add code for writing and
+      formatting the readers never need. Word's numbering is computed
+      because it is the clause number; tracked changes, footnotes and
+      pictures are named because leaving them out in silence would make
+      the tree look complete (docs/principles.md). Email with net/mail,
+      mime and mime/multipart (RFC 5322, RFC 2045 to 2049), and the
+      character sets by golang.org/x/text, already a dependency.
+
+      PDF with a library: a PDF's text is in compressed content
+      streams, set in fonts whose codes map to characters through each
+      font's tables, which is a parser of its own. github.com/ledongthuc/pdf
+      is a maintained fork of the Go authors' PDF reader, BSD-3-Clause,
+      pure Go with no dependencies, read-only, and no network; it was
+      read for this item and run on a Chrome PDF with subset TrueType
+      fonts, whose text and sizes came out right. Rejected: pdfcpu
+      (Apache-2.0) is built to validate, change and write PDFs, far more
+      than a reader needs; UniPDF is AGPL or commercial; rsc.io/pdf is the unmaintained
+      original of the chosen one. The library panics on a malformed
+      file, as the original does, so the reader recovers and refuses
+      with the library's message. It has no release tags, so it is
+      pinned at an exact commit by its pseudo-version.
+
+      The clause names follow how people cite each format: a page, a
+      slide number, a cell or range as Excel's formulas write it, with
+      the sheet's name quoted when it holds a space, and an
+      attachment's file name. A workbook's cells are listed as clauses
+      only when cited, because a register of five hundred rows would
+      otherwise list every cell; its tables are always listed, as a
+      document's sections are. The reader of workbooks is a package of
+      its own so that the tabular data source, a following item, reads
+      workbooks without the document rules.
+    cites:
+      - source: iso-29500
+        clause: "Part 1, 17.9"
+        says: "Numbering: a paragraph's number is computed from the numbering definition it references, with the level text naming the levels it shows, such as %1.%2."
+      - source: iso-32000-2
+        clause: "9.10"
+        says: "Extraction of text content: a conforming reader maps the character codes shown by text-showing operators to Unicode through the font's ToUnicode CMap or its encoding."
+      - source: rfc-5322
+        clause: "3.6"
+        says: "Field definitions: the origination date, originator (From), destination (To) and informational (Subject) fields of a message."
+      - source: rfc-2045
+        clause: "6"
+        says: "Content-Transfer-Encoding: base64 and quoted-printable encode a body part's octets as text."
+      - source: spec-kit
+        says: "A toolkit for specification-driven development whose specification step starts from what an agent is given to read."
+    satisfies: [SA-110]
+    restsOn: [ADR-048, ADR-105]

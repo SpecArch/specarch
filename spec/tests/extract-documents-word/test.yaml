@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Word document with a Title paragraph, headings numbered by the document's numbering at two levels and an annex numbered Annex A, paragraphs numbered 2.1.1 and 2.1.2 by a third level, a bulleted paragraph, a paragraph with a picture, a paragraph with tracked changes and a table of fields"
+when: "extract documents is run on the document"
+then: "it writes the computed numbers 1, 2.1.1, 2.1.2, 3.1 and Annex A as the clauses with the Title paragraph as the source's title, one requirement per commitment citing its clause, the table as an entity, reads the inserted text and not the deleted, prints a line and writes a could question naming the paragraph for the picture and the tracked changes, and exits 0"
+verifies: [SA-110]

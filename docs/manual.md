@@ -1046,9 +1046,14 @@ The sources this build reads:
   about their names (ADR-121); every permission checked
   is declared, and a must question asks which role grants it. A route that checks no permission is a must question,
   never written as public.
-- `documents`: one Markdown document, as one document source under
+- `documents`: one document, as one document source under
   `--source-key` (default the file's name in kebab-case, without its
-  extension). Every ATX heading and every paragraph that starts with
+  extension), read by the reader its extension names: Markdown
+  (`.md`, `.markdown`), PDF (`.pdf`), Word (`.docx`), PowerPoint
+  (`.pptx`), Excel (`.xlsx`) or an email message (`.eml`), with no
+  conversion, no other program and no network (ADR-212); every
+  reader gives the clauses, paragraphs and tables the rules below
+  read. In Markdown, every ATX heading and every paragraph that starts with
   a section number such as `3.1` is a clause, the number its name
   and the heading its title; a heading with clauses under it is
   listed only when it holds text of its own. A sentence that makes a
@@ -1075,7 +1080,34 @@ The sources this build reads:
   reader then reads by its words and writes `language` on the source;
   with neither, English is read and no `language` is written.
   `--given-outside` writes `givenOutside: true` on the source. The
-  edition is the commit that last changed the file.
+  edition is the commit that last changed the file. In Word, a
+  heading is a paragraph its style or its own setting gives an
+  outline level, numbered as the document's numbering counts it, so
+  the clause is 2.1 or Annex A as the reader sees it; a numbered
+  paragraph whose number is a section number such as 2.1.3 is a
+  clause, the Title style or else the package's title is the
+  source's title, and a picture, tracked changes and a footnote
+  each print a line naming the paragraph. In a PDF, a line set
+  larger than the body text, or in bold starting with a section
+  number, is a heading, the text before the first heading is in the
+  clause of its page (page 1), a line on three pages or more is a
+  running header and a page with no text a scanned page, each a
+  line; a table is read as its lines. In PowerPoint, each slide is
+  the clause slide 3, titled by its title, and its notes slide 3
+  notes; a picture or a chart prints a line. In Excel, each sheet
+  is a heading, each rectangle of touching cells of two rows and two
+  columns or more a table in the clause of its range
+  (`Register!A1:D3`), its first row the header, and each cell of
+  text a paragraph in the clause of its cell (`Register!B2`),
+  listed only when cited; a chart sheet prints a line. In an email
+  message, From, To, Date and Subject are named in a line and the
+  source's description, the plain body (or else the HTML body) is
+  the clause body, and every attachment a clause of its name; an
+  attachment in one of these formats is read with its clauses after
+  its name (`lending-rules.docx: 2.1.1`), three messages deep at
+  most, and quoted lines, the signature and any other attachment
+  each print a line. Every line names its place and is a could
+  question.
 - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as
   one document source under `--source-key` (default as for
   documents), whose clauses are the JSON pointers of its operations
@@ -2622,7 +2654,7 @@ Anyone who has the program runs it.
 | Argument | What to give | Required |
 |---|---|---|
 | `<source>` | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`. | yes |
-| `<paths>` | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. One or more. | yes |
+| `<paths>` | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. One or more. | yes |
 
 | Option | What it does | Required |
 |---|---|---|
@@ -2687,7 +2719,7 @@ On standard error: A usage message on a usage error, and the reason a source cou
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | the specification was written |   |
-| 1 | the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML | Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again. |
+| 1 | the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML | Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again. |
 | 2 | usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch facts

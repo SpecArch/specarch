@@ -55,7 +55,7 @@ readers read files and dumps; they never run the project.
 
 | Source | Give it | It needs |
 |---|---|---|
-| `documents` | one Markdown file | Markdown only; convert a Word or PDF document first. English is read by default; for another language give `--vocabulary <file>` ([`docs/vocabularies.md`](docs/vocabularies.md)) and `--language <tag>`. `--given-outside` marks a document given to parties outside, such as a published manual |
+| `documents` | one Markdown, PDF, Word (`.docx`), PowerPoint (`.pptx`), Excel (`.xlsx`) or email (`.eml`) file | read as it is, no conversion: a citation names the section number, page, slide, cell range or attachment of the file (ADR-212); a scanned PDF gives a question per page, so read the text copy. English is read by default; for another language give `--vocabulary <file>` ([`docs/vocabularies.md`](docs/vocabularies.md)) and `--language <tag>`. `--given-outside` marks a document given to parties outside, such as a published manual |
 | `openapi` | one OpenAPI 3.0 or 3.1 file, YAML or JSON | nothing more |
 | `go` | Go source folders of one module | `--implementation <file>` naming the project's permission check, so that each route gets its permission; without it, each route's permission is a question. `--implementation-out <file>` writes each handler as a mapping |
 | `javascript` | a dump from `specarch facts javascript <folder> <dump>` | nothing more; the TypeScript compiler is built into `specarch` |

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a PDF printed by a web browser with subset fonts and ligatures: a paragraph before the first heading, headings at two sizes numbered 1 to 3, paragraphs numbered 2.1, 2.2 and 3.1, and a blank second page"
+when: "extract documents is run on the PDF"
+then: "it writes the document's title from the file, the text before the first heading in the clause page 1, the numbered paragraphs as the clauses 2.1, 2.2 and 3.1 with their requirements, a ligature read as its letters, prints a line and writes a could question for the page that holds no text, and exits 0"
+verifies: [SA-110]

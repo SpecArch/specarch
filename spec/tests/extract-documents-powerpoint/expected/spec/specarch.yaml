@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Loan policy
+  version: 0.1.0
+  description: |
+    The document loan-briefing.pptx, read at commit 5e2033986a736ecbdaa2fd5b35b1352f80c2cfd6: every slide is a clause, as slide 3, and so are its speaker notes, as slide 3 notes, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  loan-briefing:
+    kind: document
+    title: Loan policy
+    edition: 5e2033986a736ecbdaa2fd5b35b1352f80c2cfd6
+    url: ../docs/loan-briefing.pptx
+    clauses:
+      - {clause: slide 1, title: Loan policy}
+      - {clause: slide 1 notes, title: Loan policy}
+      - {clause: slide 2, title: Book}

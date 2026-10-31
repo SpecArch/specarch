@@ -57,7 +57,8 @@ const usage = `usage:
                                             javascript, dart and pages read the permission checks the implementation
                                             file names, pages reads Next.js and Nuxt files' code through --facts, and
                                             permissions gives each route of the route table --routes its permission;
-                                            documents reads the words of --language or --vocabulary, English by default;
+                                            documents reads a Markdown, PDF, Word, PowerPoint, Excel or email file by
+                                            the words of --language or --vocabulary, English by default;
                                             workflows reads a BPMN 2.0 XML file, or with --table a workflow table;
                                             gateway reads a gateway table; systemd reads service and timer units
   specarch facts [--dry-run] <language> <folder> <dump>

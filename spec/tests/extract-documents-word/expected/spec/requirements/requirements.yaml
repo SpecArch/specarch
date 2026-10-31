@@ -1,0 +1,81 @@
+stakeholders:
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement LENDINGRULES-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LENDINGRULES-1]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LENDINGRULES-1; add satisfies: [LENDINGRULES-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LENDINGRULES-1]
+  LENDINGRULES-1:
+    statement: A member shall borrow at most 5 books at a time.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: lending-rules, clause: 2.1.1, says: A member shall borrow at most 5 books at a time.}
+  # specarch-problem: warning: acceptance_missing: requirement LENDINGRULES-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LENDINGRULES-2]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LENDINGRULES-2; add satisfies: [LENDINGRULES-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LENDINGRULES-2]
+  LENDINGRULES-2:
+    statement: A loan must be returned within 14 days.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: lending-rules, clause: 2.1.2, says: A loan must be returned within 14 days.}
+  # specarch-problem: warning: acceptance_missing: requirement LENDINGRULES-3 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LENDINGRULES-3]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LENDINGRULES-3; add satisfies: [LENDINGRULES-3] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LENDINGRULES-3]
+  LENDINGRULES-3:
+    statement: The desk opens at 08:00.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: lending-rules, clause: 2.1.2, says: 'The desk opens at 08:00.'}
+  # specarch-problem: warning: acceptance_missing: requirement LENDINGRULES-4 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LENDINGRULES-4]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LENDINGRULES-4; add satisfies: [LENDINGRULES-4] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LENDINGRULES-4]
+  LENDINGRULES-4:
+    statement: A reminder should be sent two days before the due date.
+    priority: should
+    status: accepted
+    origin: stated
+    cites:
+      - {source: lending-rules, clause: 2.1.2, says: A reminder should be sent two days before the due date.}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Section Annex A says "It must be paid at the desk.", and does not name what it commits; which element is it? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Section Annex A says "It must be paid at the desk.", and does not name what it commits; which element is it?
+    kind: decision
+    priority: must
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: A sentence that names its subject only by a word such as it or they cannot be placed as one element without guessing.
+    cites:
+      - {source: lending-rules, clause: Annex A, says: It must be paid at the desk.}
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: LENDINGRULES-1, LENDINGRULES-2, LENDINGRULES-3, LENDINGRULES-4? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Which kind is each requirement read from the document: LENDINGRULES-1, LENDINGRULES-2, LENDINGRULES-3, LENDINGRULES-4? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/LENDINGRULES-1/kind', '#/requirements/LENDINGRULES-2/kind', '#/requirements/LENDINGRULES-3/kind', '#/requirements/LENDINGRULES-4/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.
+  # specarch-problem: question: open_question: (could, decision) Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: lending-rules, clause: 2.1.2, says: 'Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: lending-rules, clause: 2.1.2, says: 'Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant.'}

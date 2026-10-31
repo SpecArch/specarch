@@ -1,0 +1,27 @@
+entities:
+  Book:
+    type: object
+    properties:
+      title: {type: string}
+      published: {type: string, format: date}
+    required: [title]
+    origin: stated
+    cites:
+      - {source: loan-briefing, clause: slide 2, says: 'A table of the fields of Book: title, published.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Book, its primary key? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which fields identify one Book, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Book/primaryKey']
+    decidedBy: system-owner
+    why: A table of fields does not say which of them identify a record.
+  # specarch-problem: question: open_question: (should, decision) How sensitive is each of these fields of Book: title, published? Public, internal, personal or credential. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'How sensitive is each of these fields of Book: title, published? Public, internal, personal or credential.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Book/properties/title/sensitivity', '#/entities/Book/properties/published/sensitivity']
+    decidedBy: system-owner
+    why: The document has no sensitivity column for them and no sentence that calls them personal or a credential.

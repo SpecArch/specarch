@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a workbook titled in its properties, with a register sheet of shared, inline and date cells whose requirement column holds a commitment, a sheet whose name holds a space with a table of fields starting at B2, one of a type the meta-model does not hold, and a chart sheet"
+when: "extract documents is run on the workbook"
+then: "it writes the register's range and the one cell a requirement cites as clauses, the table of fields as an entity citing its quoted range 'Account fields'!B2:D5, prints a line and writes a could question for the register table, the field's type and the chart sheet, and exits 0"
+verifies: [SA-110]

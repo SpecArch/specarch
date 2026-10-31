@@ -226,7 +226,7 @@ func (sr *systemdReader) service(u *unitFile, timer *unitFile) {
 		sr.timer(timer, name, p, func(e *unitEntry, says string) { cite(timer, e, says) })
 	}
 	sr.environment(u, name, p, func(c *yaml.Node) { cites = append(cites, c) })
-	sr.signals(u, name, p, cite)
+	sr.signals(u, name, p, cite, func(c *yaml.Node) { cites = append(cites, c) })
 	sr.restart(u, name, runs, p, cite)
 	if e := u.last("Service", "WatchdogSec"); e != nil {
 		if d, ok := sr.span(u, e, at); ok {
@@ -348,7 +348,7 @@ func (sr *systemdReader) environment(u *unitFile, name string, p *yaml.Node, add
 
 // signals writes the stop signal with its timeout and SIGHUP when the
 // reload sends it.
-func (sr *systemdReader) signals(u *unitFile, name string, p *yaml.Node, cite func(*unitFile, *unitEntry, string)) {
+func (sr *systemdReader) signals(u *unitFile, name string, p *yaml.Node, cite func(*unitFile, *unitEntry, string), addCite func(*yaml.Node)) {
 	at := "#/processes/" + name
 	sigs := mapping()
 	stop := "SIGTERM"
@@ -363,6 +363,9 @@ func (sr *systemdReader) signals(u *unitFile, name string, p *yaml.Node, cite fu
 	if kill != nil || timeout != nil {
 		if !processSignal(stop) {
 			sr.notHeld(u.file, kill.line, at, "KillSignal=%s is not one of the signals a process honours (SIGTERM, SIGINT, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2)", kill.value)
+			if timeout != nil {
+				sr.notHeld(u.file, timeout.line, at, "TimeoutStopSec= is the time after the stop signal, and the stop signal KillSignal=%s is not held, so the time has no signal to go under", kill.value)
+			}
 		} else {
 			s := mapping("description", "stops: the service manager sends it to stop the process, and kills the process when it has not ended within the time")
 			if kill != nil {
@@ -380,7 +383,7 @@ func (sr *systemdReader) signals(u *unitFile, name string, p *yaml.Node, cite fu
 	if e := u.last("Service", "ExecReload"); e != nil {
 		if reloadHUP.MatchString(e.value) && stop != "SIGHUP" {
 			set(sigs, "SIGHUP", mapping("description", "reloads: the service manager sends it when the process is reloaded"))
-			cite(u, e, "a reload sends SIGHUP")
+			addCite(citation(sr.key, u.file, fmt.Sprintf("Line %d: ExecReload= sends SIGHUP to $MAINPID; a reload sends SIGHUP; the command is not copied, since it may carry a secret", e.line)))
 		} else {
 			sr.notHeld(u.file, e.line, at, "ExecReload= runs a command, not a signal the reader recognises; the command is not copied, since it may carry a secret")
 		}

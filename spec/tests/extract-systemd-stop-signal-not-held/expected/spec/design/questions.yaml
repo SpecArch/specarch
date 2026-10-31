@@ -1,0 +1,21 @@
+questions:
+  # specarch-problem: question: open_question: (could, decision) Not held: units/stopper.service:6: KillSignal=SIGKILL is not one of the signals a process honours (SIGTERM, SIGINT, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2). Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Not held: units/stopper.service:6: KillSignal=SIGKILL is not one of the signals a process honours (SIGTERM, SIGINT, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2). Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/processes/stopper']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'units/stopper.service:6', says: 'Not held: KillSignal=SIGKILL is not one of the signals a process honours (SIGTERM, SIGINT, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2).'}
+  # specarch-problem: question: open_question: (could, decision) Not held: units/stopper.service:7: TimeoutStopSec= is the time after the stop signal, and the stop signal KillSignal=SIGKILL is not held, so the time has no signal to go under. Does the specification need it, written another way or described by hand? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: 'Not held: units/stopper.service:7: TimeoutStopSec= is the time after the stop signal, and the stop signal KillSignal=SIGKILL is not held, so the time has no signal to go under. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: ['#/processes/stopper']
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: code, clause: 'units/stopper.service:7', says: 'Not held: TimeoutStopSec= is the time after the stop signal, and the stop signal KillSignal=SIGKILL is not held, so the time has no signal to go under.'}

@@ -1453,8 +1453,6 @@ func sensitiveFields(root *yaml.Node) [][3]string {
 	return out
 }
 
-// jobDetails writes what starts a job, what it acts as, reads, writes,
-// calls and publishes, and how it retries.
 // processText says how a process runs, the jobs it runs, the settings it
 // reads, the signals and exit statuses it honours, when it is restarted
 // and given up, its health and the monitors that watch it (ADR-211).
@@ -1498,6 +1496,8 @@ func processText(p *yaml.Node) string {
 	return text
 }
 
+// jobDetails writes what starts a job, what it acts as, reads, writes,
+// calls and publishes, and how it retries.
 func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
 	trigger := get(j, "trigger")
 	var start string

@@ -47,8 +47,8 @@ extension Checker {
                     continue
                 }
                 runBy[j.value] = name
-                if runs == "scheduled" && job.child("trigger")?.child("consumes") != nil {
-                    add(j, at("jobs", "\(i)"), .process, "job \(j.value) consumes messages, and a consumer waits for them, but process \(name) is scheduled and exits after its run; run the job in a process that runs always")
+                if !runs.isEmpty && runs != "always" && job.child("trigger")?.child("consumes") != nil {
+                    add(j, at("jobs", "\(i)"), .process, "job \(j.value) consumes messages, and a consumer waits for them, but process \(name) runs \(runs) and exits when its work is done; run the job in a process that runs always")
                 }
             }
             for (i, s) in items(p.value.child("configuration")).enumerated() where d.settings[s.value] == nil {

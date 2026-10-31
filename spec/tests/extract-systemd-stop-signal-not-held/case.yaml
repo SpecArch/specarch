@@ -1,0 +1,13 @@
+arguments: [extract, systemd, --out, spec, repo/units/stopper.service]
+repository:
+  folder: repo
+  commits:
+    - [units]
+exitStatus: 0
+standardOutput: |
+  commit b7145ab0255d6ff3f5ec3193ab98fef081dd24b1: the last change to units/stopper.service
+  counted 1 service unit and 0 timer units in units/stopper.service
+  wrote 1 process, 0 settings and 2 questions: one process per service unit, its time from its timer, one setting per variable Environment= sets, and one question per thing the units leave to the host or do not say
+  not held: units/stopper.service:6: KillSignal=SIGKILL is not one of the signals a process honours (SIGTERM, SIGINT, SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2); could question Q-1
+  not held: units/stopper.service:7: TimeoutStopSec= is the time after the stop signal, and the stop signal KillSignal=SIGKILL is not held, so the time has no signal to go under; could question Q-2
+  derived 3 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

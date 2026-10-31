@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 878 design tests, 429 golden and 449 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 879 design tests, 430 golden and 449 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 878 design tests, 429 golden and 449 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 874 |
+| system | 875 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2190,6 +2190,14 @@ Scenario: golden; level: system; verifies SA-109.
 - Given: a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, three variables, one a token, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression
 - When: extract systemd is run on the three units
 - Then: it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable with no value anywhere in the tree, the token API_TOKEN carries included, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0
+
+#### extract-systemd-stop-signal-not-held
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a committed daemon unit whose KillSignal= is SIGKILL, a signal a process cannot honour, and whose TimeoutStopSec= is 30s
+- When: extract systemd is run on it
+- Then: it writes no stop signal and no stop time, and a not-held line and a could question for KillSignal= and for TimeoutStopSec= each, so neither is dropped without a line, and exits 0
 
 #### extract-usage-error
 
@@ -5909,7 +5917,7 @@ Scenario: golden; level: system; verifies SA-109.
 
 Scenario: red; level: system; covers exit 1; verifies SA-109.
 
-- Given: processes on the lean profile that name a job, a setting and a monitor that do not exist, run a job another process runs, write a time while they run always, while they run jobs or twice, write none while scheduled with no job, run a consumer while scheduled, are restarted with no limit, write restart keys while never restarted, never restart on a status they lack, and one given up after its limit with no monitor
+- Given: processes on the lean profile that name a job, a setting and a monitor that do not exist, run a job another process runs, write a time while they run always, while they run jobs or twice, write none while scheduled with no job, run a consumer while scheduled or on demand, are restarted with no limit, write restart keys while never restarted, never restart on a status they lack, and one given up after its limit with no monitor
 - When: validate is run
 - Then: it reports each as process at its key, the process with no monitor as a process warning, derives no permission or caller case for any process, and exits 1
 

@@ -1,0 +1,19 @@
+processes:
+  stopper:
+    description: Answers health checks
+    runs: always
+    restart:
+      when: onFailure
+      delay: PT5S
+      # specarch-problem: warning: process: process stopper is given up after its limit, and no monitor watches it, so nobody is told it has stopped; name the monitor under monitors [process@design/processes.yaml#/processes/stopper/restart/limit]
+      limit:
+        times: 3
+        within: PT1M
+    origin: stated
+    cites:
+      - {source: code, clause: units/stopper.service, says: 'Line 2: Description=Answers health checks; the description'}
+      - {source: code, clause: units/stopper.service, says: 'Line 5: Type=simple; a service that is not oneshot runs until it is stopped, so it runs always'}
+      - {source: code, clause: units/stopper.service, says: 'Line 8: Restart=on-failure; when it is started again'}
+      - {source: code, clause: units/stopper.service, says: 'Line 9: RestartSec=5s; the delay before it is started again'}
+      - {source: code, clause: units/stopper.service, says: 'Line 10: StartLimitBurst=3; the starts after which it is given up'}
+      - {source: code, clause: units/stopper.service, says: 'Line 11: StartLimitIntervalSec=1min; within this time'}

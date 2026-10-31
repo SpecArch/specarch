@@ -60,8 +60,8 @@ func (c *checker) checkProcesses(d *design) {
 				continue
 			}
 			runBy[j.Value] = name
-			if runs == "scheduled" && source.Child(source.Child(job, "trigger"), "consumes") != nil {
-				c.add(j, at("jobs", fmt.Sprint(i)), RuleProcess, "job %s consumes messages, and a consumer waits for them, but process %s is scheduled and exits after its run; run the job in a process that runs always", j.Value, name)
+			if runs != "" && runs != "always" && source.Child(source.Child(job, "trigger"), "consumes") != nil {
+				c.add(j, at("jobs", fmt.Sprint(i)), RuleProcess, "job %s consumes messages, and a consumer waits for them, but process %s runs %s and exits when its work is done; run the job in a process that runs always", j.Value, name, runs)
 			}
 		}
 		for i, s := range source.Items(source.Child(p.Value, "configuration")) {

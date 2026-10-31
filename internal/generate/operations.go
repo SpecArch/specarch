@@ -72,7 +72,7 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 
 	d.section("Daily checklist")
 	if len(mons)+len(jobs)+len(procs)+len(deps) == 0 {
-		d.para("The specification has no monitors, jobs or dependencies, so there is nothing to look at each day; they are written under monitors, jobs and dependencies.")
+		d.para("The specification has no monitors, jobs, processes or dependencies, so there is nothing to look at each day; they are written under monitors, jobs, processes and dependencies.")
 	} else {
 		d.para("What to look at on the live system each day. Tick the last column as each is seen to be as expected.")
 		d.line("| Check | What to look at | Expected | Seen |")

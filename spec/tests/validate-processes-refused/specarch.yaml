@@ -15,10 +15,12 @@ channels:
     description: Releases as they are published.
     messages:
       ReleasePublished: { summary: A release was published., payload: { type: object, properties: { tag: { type: string } } } }
+      ReleaseWithdrawn: { summary: A release was withdrawn., payload: { type: object, properties: { tag: { type: string } } } }
 jobs:
   sweep: { description: Looks for a new release., trigger: { every: PT1M }, role: installer }
   nightly: { description: Prunes old releases., trigger: { schedule: "0 3 * * *" }, role: installer }
   onPublish: { description: Installs a published release., trigger: { consumes: releases.events/ReleasePublished }, role: installer }
+  onWithdraw: { description: Removes a withdrawn release., trigger: { consumes: releases.events/ReleaseWithdrawn }, role: installer }
 processes:
   watcher:
     description: Watches for releases.
@@ -50,3 +52,7 @@ processes:
     runs: always
     exitCodes: { "0": it was asked to stop }
     restart: { when: always, limit: { times: 3, within: PT1M }, exceptExitCodes: ["78"] }
+  remover:
+    description: Removes withdrawn releases when a person starts it.
+    runs: onDemand
+    jobs: [onWithdraw]

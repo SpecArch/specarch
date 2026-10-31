@@ -1901,8 +1901,9 @@ keep their roles.
 `onDemand` (started by a person or another program). When work happens is
 said in one place, a job's trigger: a scheduled process that runs jobs is
 started at each job's `schedule` or `every` and writes no time of its
-own, and a job of it that `consumes` messages is an error, since a
-consumer waits for them. A scheduled process that runs no job writes its
+own. A job that `consumes` messages is an error under a process that is
+scheduled or runs on demand, since a consumer waits for them and such a
+process exits when its work is done. A scheduled process that runs no job writes its
 own `schedule` or `every`, one of them; a process that is not scheduled
 writes neither. A job is run by one process.
 
@@ -1922,7 +1923,8 @@ monitors of the operation stage that watch it.
 
 The validator reports as `process` a job, a setting or a monitor that does
 not exist, a job two processes run, a time written where it is not said
-or missing where it is, a consumer under a scheduled process, a restart
+or missing where it is, a consumer under a process that does not run
+always, a restart
 with no limit, restart keys besides `when` on one never restarted, and an
 `exceptExitCodes` status that `exitCodes` lacks; a process given up after
 its limit that no monitor watches is a `process` warning. A scheduled

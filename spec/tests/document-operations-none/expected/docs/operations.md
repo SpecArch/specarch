@@ -10,7 +10,7 @@ The specification has no environments; each place the system runs, and the one a
 
 ## 2. Daily checklist
 
-The specification has no monitors, jobs or dependencies, so there is nothing to look at each day; they are written under monitors, jobs and dependencies.
+The specification has no monitors, jobs, processes or dependencies, so there is nothing to look at each day; they are written under monitors, jobs, processes and dependencies.
 
 ## 3. Monitors
 

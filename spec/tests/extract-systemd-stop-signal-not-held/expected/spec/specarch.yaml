@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Processes of units/stopper.service
+  version: 0.1.0
+  description: |
+    The processes the systemd units units/stopper.service define at commit b7145ab0255d6ff3f5ec3193ab98fef081dd24b1: how each runs, is restarted and given up, is stopped and reloaded, and the settings it reads. Every process cites its unit; what a unit leaves to the host's defaults or does not say is a question.
+  tracksOrigin: true
+stages: [requirements, design, tests]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: b7145ab0255d6ff3f5ec3193ab98fef081dd24b1
+    url: ../repo
+    clauses:
+      - {clause: units/stopper.service, title: The systemd unit stopper.service}

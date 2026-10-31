@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a committed daemon unit whose KillSignal= is SIGKILL, a signal a process cannot honour, and whose TimeoutStopSec= is 30s"
+when: "extract systemd is run on it"
+then: "it writes no stop signal and no stop time, and a not-held line and a could question for KillSignal= and for TimeoutStopSec= each, so neither is dropped without a line, and exits 0"
+verifies: [SA-109]

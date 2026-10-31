@@ -40,7 +40,7 @@ processes:
       - {source: code, clause: units/release-watcher.service, says: 'Line 9: Type=notify; a service that is not oneshot runs until it is stopped, so it runs always'}
       - {source: code, clause: units/release-watcher.service, says: 'Line 12: Environment= sets REGISTRY_ADDRESS, LOG_LEVEL, API_TOKEN; the settings it reads, their values not copied'}
       - {source: code, clause: units/release-watcher.service, says: 'Line 17: TimeoutStopSec=30s; the time the service manager waits before it kills the process'}
-      - {source: code, clause: units/release-watcher.service, says: 'Line 11: ExecReload=/bin/kill -HUP $MAINPID; a reload sends SIGHUP'}
+      - {source: code, clause: units/release-watcher.service, says: 'Line 11: ExecReload= sends SIGHUP to $MAINPID; a reload sends SIGHUP; the command is not copied, since it may carry a secret'}
       - {source: code, clause: units/release-watcher.service, says: 'Line 14: Restart=on-failure; when it is started again'}
       - {source: code, clause: units/release-watcher.service, says: 'Line 15: RestartSec=5s; the delay before it is started again'}
       - {source: code, clause: units/release-watcher.service, says: 'Line 5: StartLimitBurst=5; the starts after which it is given up'}

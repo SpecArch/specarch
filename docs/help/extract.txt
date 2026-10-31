@@ -10,7 +10,8 @@ outline, database (a catalogue dump), router (a route table), documents
 by its own clauses: a section number, a page, a slide, a cell range or
 an attachment), openapi, permissions (a permission table), pages
 (a file-system router), workflows (BPMN 2.0, or a workflow table with
---table), gateway, go, swift, javascript and dart (code-facts dumps).
+--table), gateway, systemd (service and timer units), go, swift,
+javascript and dart (code-facts dumps).
 
   specarch facts <language> <folder> <dump>
 

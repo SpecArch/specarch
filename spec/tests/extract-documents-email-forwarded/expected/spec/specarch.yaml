@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: 'Fwd: Loan limits'
+  version: 0.1.0
+  description: |
+    The document loan-limits.eml, read at commit e00aed61ba94e9f7714de547156040ce8fc54739: the message "Fwd: Loan limits" from Library Board <board@example.org> to Desk Staff <desk@example.org>, sent with no date: its body is a clause, as body, and so is every attachment, as its file name, whose own clauses follow its name, as rules.docx: 2.1, every sentence that makes a commitment is a requirement citing its clause, and every table of fields is an entity's fields. What the document does not say is a question, and so is what the meta-model cannot hold.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  loan-limits:
+    kind: document
+    title: 'Fwd: Loan limits'
+    edition: e00aed61ba94e9f7714de547156040ce8fc54739
+    url: ../docs/loan-limits.eml
+    clauses:
+      - {clause: body, title: 'Fwd: Loan limits'}
+      - {clause: 'message "Loan limits": body', title: Loan limits}
+      - {clause: 'message "Loan limits": attachment 1: 1', title: Scope}
+      - {clause: 'message "Loan limits": attachment 1: 2.1.1', title: Limits}
+      - {clause: 'message "Loan limits": attachment 1: 2.1.2', title: Limits}
+      - {clause: 'message "Loan limits": attachment 1: 3.1', title: Member}
+      - {clause: 'message "Loan limits": attachment 1: Annex A', title: Fees}

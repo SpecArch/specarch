@@ -55,7 +55,11 @@ decisions:
       paragraph whose number is a section number such as 2.1.3 is a
       clause too. The Title style, or else the package's title, names
       the source. Places are paragraphs, counted in the document's
-      order with those in tables.
+      order with those in tables. A text box sits inside the paragraph
+      that anchors it: its text is not read, the paragraph's own text
+      around it is, and the box is a line at that paragraph; of an
+      alternate content only the choice is read, since the fallback
+      repeats it for older readers.
 
       PDF: the text of each page with its position, size and font, by
       github.com/ledongthuc/pdf (BSD-3-Clause, no dependencies). Glyphs
@@ -89,9 +93,13 @@ decisions:
       the source's description and in a line; the body, the text/plain
       part or else the HTML part as text, is the clause body, titled by
       the subject; every attachment is a clause of its file name, and
-      one in a format this build reads is read by that format's reader,
+      one in a format this build reads, known by the extension of its
+      name or else by its media type, is read by that format's reader,
       its clauses after its name, lending-rules.docx: 2.1, up to three
-      messages deep. Lines quoted from an earlier message and the
+      messages deep. A forwarded message, a message/rfc822 part sent
+      with no file name, is named by its subject, message "Loan
+      limits"; a message with no Date header is said to be sent with
+      no date. Lines quoted from an earlier message and the
       signature after "-- " are not read.
     consequences: |
       A requirement read from any of these files cites a clause a

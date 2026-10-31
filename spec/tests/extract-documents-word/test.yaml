@@ -2,7 +2,7 @@
 command: extract
 level: system
 scenario: golden
-given: "a repository holding a Word document with a Title paragraph, headings numbered by the document's numbering at two levels and an annex numbered Annex A, paragraphs numbered 2.1.1 and 2.1.2 by a third level, a bulleted paragraph, a paragraph with a picture, a paragraph with tracked changes and a table of fields"
+given: "a repository holding a Word document with a Title paragraph, headings numbered by the document's numbering at two levels and an annex numbered Annex A, paragraphs numbered 2.1.1 and 2.1.2 by a third level, a paragraph with a footnote, a bulleted paragraph, a paragraph with a picture, a paragraph with tracked changes, a table of fields and a paragraph with text before and after a text box written twice, as a drawing and as its older fallback"
 when: "extract documents is run on the document"
-then: "it writes the computed numbers 1, 2.1.1, 2.1.2, 3.1 and Annex A as the clauses with the Title paragraph as the source's title, one requirement per commitment citing its clause, the table as an entity, reads the inserted text and not the deleted, prints a line and writes a could question naming the paragraph for the picture and the tracked changes, and exits 0"
+then: "it writes the computed numbers 1, 2.1.1, 2.1.2, 3.1 and Annex A as the clauses with the Title paragraph as the source's title, one requirement per commitment citing its clause, the table as an entity, reads the inserted text and not the deleted, reads the text around the text box as its paragraph and the box's own text not at all, prints a line and writes a could question naming the paragraph for the footnote, the picture, the tracked changes and the text box, and exits 0"
 verifies: [SA-110]

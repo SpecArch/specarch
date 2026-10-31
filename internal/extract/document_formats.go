@@ -38,20 +38,21 @@ type docInput struct {
 
 // docFormat is one format extract documents reads.
 type docFormat struct {
-	name string // as messages name it
-	exts []string
-	text bool // a text file, which a generated mark can be read from
-	read func(name string, data []byte, depth int) (*docInput, error)
+	name  string // as messages name it
+	exts  []string
+	media []string // the media types an email attachment of the format is sent as
+	text  bool     // a text file, which a generated mark can be read from
+	read  func(name string, data []byte, depth int) (*docInput, error)
 }
 
 func documentFormats() []docFormat {
 	return []docFormat{
-		{"a Markdown document", []string{".md", ".markdown"}, true, readMarkdown},
-		{"a PDF document", []string{".pdf"}, false, readPDF},
-		{"a Word document", []string{".docx"}, false, readDOCX},
-		{"a PowerPoint presentation", []string{".pptx"}, false, readPPTX},
-		{"an Excel workbook", []string{".xlsx"}, false, readXLSX},
-		{"an email message", []string{".eml"}, true, readEML},
+		{"a Markdown document", []string{".md", ".markdown"}, []string{"text/markdown"}, true, readMarkdown},
+		{"a PDF document", []string{".pdf"}, []string{"application/pdf"}, false, readPDF},
+		{"a Word document", []string{".docx"}, []string{"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}, false, readDOCX},
+		{"a PowerPoint presentation", []string{".pptx"}, []string{"application/vnd.openxmlformats-officedocument.presentationml.presentation"}, false, readPPTX},
+		{"an Excel workbook", []string{".xlsx"}, []string{"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}, false, readXLSX},
+		{"an email message", []string{".eml"}, []string{"message/rfc822"}, true, readEML},
 	}
 }
 
@@ -61,6 +62,24 @@ func documentFormat(name string) (docFormat, bool) {
 	for _, f := range documentFormats() {
 		for _, e := range f.exts {
 			if e == ext {
+				return f, true
+			}
+		}
+	}
+	return docFormat{}, false
+}
+
+// attachmentFormat is the format of an email attachment: the one its file
+// name's extension names, or else the one its media type names, since a
+// forwarded message and many a mail client's attachment carry no file name
+// or one with no extension.
+func attachmentFormat(name, media string) (docFormat, bool) {
+	if f, ok := documentFormat(name); ok {
+		return f, true
+	}
+	for _, f := range documentFormats() {
+		for _, m := range f.media {
+			if strings.EqualFold(m, media) {
 				return f, true
 			}
 		}
@@ -85,7 +104,10 @@ func readMarkdown(_ string, data []byte, _ int) (*docInput, error) {
 
 // --- Word (.docx, ISO/IEC 29500 WordprocessingML) ---
 
-const wordML = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+const (
+	wordML              = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+	markupCompatibility = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+)
 
 type wordStyle struct {
 	name, basedOn string
@@ -137,8 +159,8 @@ func readDOCX(_ string, data []byte, _ int) (*docInput, error) {
 		style, numID, ilvl string
 		outline            int
 		text               strings.Builder
-		picture, inserted  bool
-		note               bool
+		drawings, boxes    int // drawings, and text boxes among them
+		inserted, note     bool
 	}
 	var p *para
 	var inText bool
@@ -163,8 +185,11 @@ func readDOCX(_ string, data []byte, _ int) (*docInput, error) {
 			}
 			cell.WriteString(text)
 		}
-		if cur.picture {
+		if cur.drawings > cur.boxes {
 			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("a picture at %s: a picture is not read; what it shows becomes a requirement only once a sentence says it", place)})
+		}
+		if cur.boxes > 0 {
+			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("a text box at %s: the text inside a text box is not read, and the paragraph's own text around it is; what the box says becomes a requirement only once the body says it", place)})
 		}
 		if cur.inserted {
 			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("%s holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant", place)})
@@ -224,8 +249,12 @@ func readDOCX(_ string, data []byte, _ int) (*docInput, error) {
 		switch t := tok.(type) {
 		case xml.StartElement:
 			if t.Name.Space != wordML {
-				if t.Name.Local == "graphic" && p != nil {
-					p.picture = true
+				// mc:Fallback repeats mc:Choice for older readers, a text box
+				// or a drawing in VML: read only the choice.
+				if t.Name.Space == markupCompatibility && t.Name.Local == "Fallback" {
+					if err := dec.Skip(); err != nil {
+						return nil, fmt.Errorf("word/document.xml does not parse as XML: %v", err)
+					}
 				}
 				continue
 			}
@@ -272,7 +301,16 @@ func readDOCX(_ string, data []byte, _ int) (*docInput, error) {
 				}
 			case "drawing", "pict", "object":
 				if p != nil {
-					p.picture = true
+					p.drawings++
+				}
+			case "txbxContent":
+				// A text box's paragraphs sit inside the paragraph that
+				// anchors it; reading them would end that paragraph early.
+				if p != nil {
+					p.boxes++
+				}
+				if err := dec.Skip(); err != nil {
+					return nil, fmt.Errorf("word/document.xml does not parse as XML: %v", err)
 				}
 			case "ins":
 				if p != nil {
@@ -900,6 +938,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		if err == pdf.ErrInvalidPassword {
 			return nil, fmt.Errorf("the PDF is encrypted with a password; save a copy without one and read that")
 		}
+		if strings.Contains(err.Error(), "encrypt") {
+			return nil, fmt.Errorf("the PDF is encrypted in a way this build does not open (%v); save a copy without encryption and read that", err)
+		}
 		return nil, fmt.Errorf("the PDF does not parse: %v", err)
 	}
 	in = &docInput{
@@ -1129,6 +1170,8 @@ func readEML(_ string, data []byte, depth int) (*docInput, error) {
 	sent := header("Date")
 	if t, err := mail.ParseDate(sent); err == nil {
 		sent = t.Format(time.RFC3339)
+	} else if sent == "" {
+		sent = "with no date"
 	}
 	var text, htmlText []string
 	var attachments []emailAttachment
@@ -1182,7 +1225,21 @@ func readEML(_ string, data []byte, depth int) (*docInput, error) {
 		if err != nil {
 			return fmt.Errorf("a %s part does not decode: %v", media, err)
 		}
-		if name != "" || disposition == "attachment" {
+		forwarded := strings.EqualFold(media, "message/rfc822")
+		if name != "" || disposition == "attachment" || forwarded {
+			if name == "" && forwarded {
+				// A forwarded message is sent with no file name: it is
+				// named by its subject, quoted, since a subject may hold
+				// the ": " that ends a name in a clause.
+				if m, err := mail.ReadMessage(bytes.NewReader(content)); err == nil {
+					if s, err := dec.DecodeHeader(m.Header.Get("Subject")); err == nil && strings.TrimSpace(s) != "" {
+						name = "message " + strconv.Quote(strings.Join(strings.Fields(s), " "))
+					}
+				}
+				if name == "" {
+					name = "message " + strconv.Itoa(len(attachments)+1)
+				}
+			}
 			if name == "" {
 				name = "attachment " + strconv.Itoa(len(attachments)+1)
 			}
@@ -1215,9 +1272,9 @@ func readEML(_ string, data []byte, depth int) (*docInput, error) {
 		title = "the message"
 	}
 	in := &docInput{title: subject,
-		clauses: fmt.Sprintf("the message %q from %s to %s, sent %s: its body is a clause, as body, and so is every attachment, as its file name, whose own clauses follow its name, as rules.docx: 2.1", subject, orNone(from), orNone(to), orNone(sent)),
+		clauses: fmt.Sprintf("the message %q from %s to %s, sent %s: its body is a clause, as body, and so is every attachment, as its file name, whose own clauses follow its name, as rules.docx: 2.1", subject, orNone(from), orNone(to), sent),
 		counted: "the body and every attachment as a heading, and every heading, paragraph, sentence and table of an attachment in a format this build reads, as that format's reader counts them",
-		says:    []string{fmt.Sprintf("message: from %s to %s, sent %s, subject %q, with %s", orNone(from), orNone(to), orNone(sent), subject, plural(len(attachments), "attachment"))}}
+		says:    []string{fmt.Sprintf("message: from %s to %s, sent %s, subject %q, with %s", orNone(from), orNone(to), sent, subject, plural(len(attachments), "attachment"))}}
 	in.blocks = append(in.blocks, docBlock{kind: blockSection, level: 1, id: "body", title: title, place: "body"})
 	quoted, signature := false, false
 	var para []string
@@ -1256,7 +1313,7 @@ func readEML(_ string, data []byte, depth int) (*docInput, error) {
 	for _, a := range attachments {
 		place := a.name
 		in.blocks = append(in.blocks, docBlock{kind: blockSection, level: 1, id: a.name, title: a.name, place: place})
-		f, ok := documentFormat(a.name)
+		f, ok := attachmentFormat(a.name, a.mediaType)
 		if !ok || depth+1 > maxAttachmentDepth {
 			why := fmt.Sprintf("this build reads attachments in %s", documentFormatList())
 			if ok {

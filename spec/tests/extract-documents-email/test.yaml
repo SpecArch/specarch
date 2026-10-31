@@ -2,7 +2,7 @@
 command: extract
 level: system
 scenario: golden
-given: "a repository holding an email message with an encoded subject, a plain and an HTML body in quoted-printable, a quoted line and a signature, the Word document of extract-documents-word attached in base64 and a picture attached"
+given: "a repository holding an email message with an encoded subject, a plain and an HTML body in quoted-printable, a quoted line and a signature, a Word document like that of extract-documents-word, without its footnote and text box, attached in base64 and a picture attached"
 when: "extract documents is run on the message"
 then: "it prints the sender, the recipient, the date and the subject, writes the body as the clause body titled by the subject with its two requirements, the attachment's clauses after its name, lending-rules.docx: 2.1.1, with their requirements, prints a line and writes a could question for the quoted line, the signature, the attachment's picture and tracked changes and the picture attachment, and exits 0"
 verifies: [SA-110]

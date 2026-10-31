@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a PDF encrypted by the standard security handler with a user password, RC4 with a 128-bit key"
+when: "extract documents is run on it"
+then: "it says the PDF is encrypted with a password and to read a copy saved without one, writes nothing and exits 1"
+verifies: [SA-110]

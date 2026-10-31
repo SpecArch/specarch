@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding an email message with no Date header that forwards a message as a message/rfc822 part with no file name, which holds a Word document attached with its media type and no file name"
+when: "extract documents is run on the message"
+then: "it says the message was sent with no date, names the forwarded message by its subject, message \"Loan limits\", reads it as an email message and its attachment as a Word document by their media types, cites their clauses after both names, message \"Loan limits\": attachment 1: 2.1.1, and exits 0"
+verifies: [SA-110]

@@ -5,9 +5,11 @@ repository:
     - [lending-rules.docx]
 exitStatus: 0
 standardOutput: |
-  commit 54fae82e91cbf3314b3389a6dc55267196593b27: the last change to lending-rules.docx
-  counted 6 headings, 2 numbered paragraphs, 8 sentences (5 commitments) and 1 table (1 table of fields): every heading (a paragraph whose style or own setting gives it an outline level), with the number the document's numbering gives it, every paragraph that starts with a section number such as 3.1, every sentence of a paragraph or list item, and every table
-  wrote 4 requirements, 1 entity and 5 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
-  not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it; could question Q-4
-  not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant; could question Q-5
+  commit f9fb71dd2ba260865982dc2b45f89b8e3a1b8f4f: the last change to lending-rules.docx
+  counted 6 headings, 2 numbered paragraphs, 9 sentences (6 commitments) and 1 table (1 table of fields): every heading (a paragraph whose style or own setting gives it an outline level), with the number the document's numbering gives it, every paragraph that starts with a section number such as 3.1, every sentence of a paragraph or list item, and every table
+  wrote 5 requirements, 1 entity and 7 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: a footnote or an endnote at paragraph 3: notes are not read; could question Q-4
+  not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it; could question Q-5
+  not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant; could question Q-6
+  not held: a text box at paragraph 30: the text inside a text box is not read, and the paragraph's own text around it is; what the box says becomes a requirement only once the body says it; could question Q-7
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

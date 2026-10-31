@@ -110,7 +110,9 @@ commands:
         paragraph whose number is a section number such as 2.1.3 is a
         clause, the Title style or else the package's title is the
         source's title, and a picture, tracked changes and a footnote
-        each print a line naming the paragraph. In a PDF, a line set
+        each print a line naming the paragraph; a text box's own text is
+        not read and prints a line, and the paragraph's text around it is
+        read. In a PDF, a line set
         larger than the body text, or in bold starting with a section
         number, is a heading, the text before the first heading is in the
         clause of its page (page 1), a line on three pages or more is a
@@ -126,9 +128,11 @@ commands:
         message, From, To, Date and Subject are named in a line and the
         source's description, the plain body (or else the HTML body) is
         the clause body, and every attachment a clause of its name; an
-        attachment in one of these formats is read with its clauses after
-        its name (`lending-rules.docx: 2.1.1`), three messages deep at
-        most, and quoted lines, the signature and any other attachment
+        attachment in one of these formats, by its name's extension or
+        else its media type, is read with its clauses after its name
+        (`lending-rules.docx: 2.1.1`), three messages deep at most, a
+        forwarded message with no file name named by its subject
+        (`message "Loan limits": body`), and quoted lines, the signature and any other attachment
         each print a line. Every line names its place and is a could
         question.
       - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as

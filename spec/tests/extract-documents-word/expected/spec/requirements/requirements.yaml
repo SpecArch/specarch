@@ -40,6 +40,15 @@ requirements:
     origin: stated
     cites:
       - {source: lending-rules, clause: 2.1.2, says: A reminder should be sent two days before the due date.}
+  # specarch-problem: warning: acceptance_missing: requirement LENDINGRULES-5 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LENDINGRULES-5]
+  # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LENDINGRULES-5; add satisfies: [LENDINGRULES-5] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LENDINGRULES-5]
+  LENDINGRULES-5:
+    statement: A receipt shall be given.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: lending-rules, clause: Annex A, says: A receipt shall be given.}
 questions:
   # specarch-problem: question: open_question: (must, decision) Section Annex A says "It must be paid at the desk.", and does not name what it commits; which element is it? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
   Q-1:
@@ -51,16 +60,26 @@ questions:
     why: A sentence that names its subject only by a word such as it or they cannot be placed as one element without guessing.
     cites:
       - {source: lending-rules, clause: Annex A, says: It must be paid at the desk.}
-  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: LENDINGRULES-1, LENDINGRULES-2, LENDINGRULES-3, LENDINGRULES-4? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: LENDINGRULES-1, LENDINGRULES-2, LENDINGRULES-3, LENDINGRULES-4, LENDINGRULES-5? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
   Q-2:
-    question: 'Which kind is each requirement read from the document: LENDINGRULES-1, LENDINGRULES-2, LENDINGRULES-3, LENDINGRULES-4? Functional, quality, interface or constraint.'
+    question: 'Which kind is each requirement read from the document: LENDINGRULES-1, LENDINGRULES-2, LENDINGRULES-3, LENDINGRULES-4, LENDINGRULES-5? Functional, quality, interface or constraint.'
     kind: decision
     priority: must
-    blocks: ['#/requirements/LENDINGRULES-1/kind', '#/requirements/LENDINGRULES-2/kind', '#/requirements/LENDINGRULES-3/kind', '#/requirements/LENDINGRULES-4/kind']
+    blocks: ['#/requirements/LENDINGRULES-1/kind', '#/requirements/LENDINGRULES-2/kind', '#/requirements/LENDINGRULES-3/kind', '#/requirements/LENDINGRULES-4/kind', '#/requirements/LENDINGRULES-5/kind']
     decidedBy: system-owner
     why: A document states what is committed, not which kind of requirement it is.
-  # specarch-problem: question: open_question: (could, decision) Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  # specarch-problem: question: open_question: (could, decision) Not held: a footnote or an endnote at paragraph 3: notes are not read. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
+    question: 'Not held: a footnote or an endnote at paragraph 3: notes are not read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: lending-rules, clause: "1", says: 'Not held: a footnote or an endnote at paragraph 3: notes are not read.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
     question: 'Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -69,8 +88,8 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: lending-rules, clause: 2.1.2, says: 'Not held: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it.'}
-  # specarch-problem: question: open_question: (could, decision) Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
-  Q-5:
+  # specarch-problem: question: open_question: (could, decision) Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
     question: 'Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant. Does the specification need it, written another way or described by hand?'
     kind: decision
     priority: could
@@ -79,3 +98,13 @@ questions:
     why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
     cites:
       - {source: lending-rules, clause: 2.1.2, says: 'Not held: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: a text box at paragraph 30: the text inside a text box is not read, and the paragraph's own text around it is; what the box says becomes a requirement only once the body says it. Does the specification need it, written another way or described by hand? It blocks requirements. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'Not held: a text box at paragraph 30: the text inside a text box is not read, and the paragraph''s own text around it is; what the box says becomes a requirement only once the body says it. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: lending-rules, clause: Annex A, says: 'Not held: a text box at paragraph 30: the text inside a text box is not read, and the paragraph''s own text around it is; what the box says becomes a requirement only once the body says it.'}

@@ -1,0 +1,15 @@
+arguments: [extract, documents, --out, spec, docs/loan-limits.eml]
+repository:
+  folder: docs
+  commits:
+    - [loan-limits.eml]
+exitStatus: 0
+standardOutput: |
+  commit e00aed61ba94e9f7714de547156040ce8fc54739: the last change to loan-limits.eml
+  message: from Library Board <board@example.org> to Desk Staff <desk@example.org>, sent with no date, subject "Fwd: Loan limits", with 1 attachment
+  attachment message "Loan limits": message: from Lending Office <office@example.org> to Library Board <board@example.org>, sent 2026-10-29T16:40:00+01:00, subject "Loan limits", with 1 attachment
+  counted 10 headings, 2 numbered paragraphs, 12 sentences (7 commitments) and 1 table (1 table of fields): the body and every attachment as a heading, and every heading, paragraph, sentence and table of an attachment in a format this build reads, as that format's reader counts them
+  wrote 6 requirements, 1 entity and 5 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  not held: message "Loan limits": attachment 1: a picture at paragraph 9: a picture is not read; what it shows becomes a requirement only once a sentence says it; could question Q-4
+  not held: message "Loan limits": attachment 1: paragraph 10 holds tracked changes not yet accepted: the inserted text is read and the deleted text is not; accept or reject them in the document to settle which is meant; could question Q-5
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

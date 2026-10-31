@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 885 design tests, 435 golden and 450 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 887 design tests, 436 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 885 design tests, 435 golden and 450 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 881 |
+| system | 883 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1491,9 +1491,17 @@ Scenario: golden; level: system; verifies SA-44.
 
 Scenario: golden; level: system; verifies SA-110.
 
-- Given: a repository holding an email message with an encoded subject, a plain and an HTML body in quoted-printable, a quoted line and a signature, the Word document of extract-documents-word attached in base64 and a picture attached
+- Given: a repository holding an email message with an encoded subject, a plain and an HTML body in quoted-printable, a quoted line and a signature, a Word document like that of extract-documents-word, without its footnote and text box, attached in base64 and a picture attached
 - When: extract documents is run on the message
 - Then: it prints the sender, the recipient, the date and the subject, writes the body as the clause body titled by the subject with its two requirements, the attachment's clauses after its name, lending-rules.docx: 2.1.1, with their requirements, prints a line and writes a could question for the quoted line, the signature, the attachment's picture and tracked changes and the picture attachment, and exits 0
+
+#### extract-documents-email-forwarded
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding an email message with no Date header that forwards a message as a message/rfc822 part with no file name, which holds a Word document attached with its media type and no file name
+- When: extract documents is run on the message
+- Then: it says the message was sent with no date, names the forwarded message by its subject, message "Loan limits", reads it as an email message and its attachment as a Word document by their media types, cites their clauses after both names, message "Loan limits": attachment 1: 2.1.1, and exits 0
 
 #### extract-documents-excel
 
@@ -1535,6 +1543,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-110.
 - When: extract documents is run on it
 - Then: it says the file cannot be read as a PDF document, with the reader's error, writes nothing and exits 1
 
+#### extract-documents-pdf-encrypted
+
+Scenario: red; level: system; covers exit 1; verifies SA-110.
+
+- Given: a PDF encrypted by the standard security handler with a user password, RC4 with a 128-bit key
+- When: extract documents is run on it
+- Then: it says the PDF is encrypted with a password and to read a copy saved without one, writes nothing and exits 1
+
 #### extract-documents-powerpoint
 
 Scenario: golden; level: system; verifies SA-110.
@@ -1571,9 +1587,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-64.
 
 Scenario: golden; level: system; verifies SA-110.
 
-- Given: a repository holding a Word document with a Title paragraph, headings numbered by the document's numbering at two levels and an annex numbered Annex A, paragraphs numbered 2.1.1 and 2.1.2 by a third level, a bulleted paragraph, a paragraph with a picture, a paragraph with tracked changes and a table of fields
+- Given: a repository holding a Word document with a Title paragraph, headings numbered by the document's numbering at two levels and an annex numbered Annex A, paragraphs numbered 2.1.1 and 2.1.2 by a third level, a paragraph with a footnote, a bulleted paragraph, a paragraph with a picture, a paragraph with tracked changes, a table of fields and a paragraph with text before and after a text box written twice, as a drawing and as its older fallback
 - When: extract documents is run on the document
-- Then: it writes the computed numbers 1, 2.1.1, 2.1.2, 3.1 and Annex A as the clauses with the Title paragraph as the source's title, one requirement per commitment citing its clause, the table as an entity, reads the inserted text and not the deleted, prints a line and writes a could question naming the paragraph for the picture and the tracked changes, and exits 0
+- Then: it writes the computed numbers 1, 2.1.1, 2.1.2, 3.1 and Annex A as the clauses with the Title paragraph as the source's title, one requirement per commitment citing its clause, the table as an entity, reads the inserted text and not the deleted, reads the text around the text box as its paragraph and the box's own text not at all, prints a line and writes a could question naming the paragraph for the footnote, the picture, the tracked changes and the text box, and exits 0
 
 #### extract-documents-writes-tree
 

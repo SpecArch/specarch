@@ -1,6 +1,10 @@
 package extract
 
-import "testing"
+import (
+	"os"
+	"strings"
+	"testing"
+)
 
 func TestWordNumbering(t *testing.T) {
 	wn := &wordNumbering{
@@ -20,7 +24,7 @@ func TestWordNumbering(t *testing.T) {
 		{"1", "1", "2.1"}, {"1", "2", "(i)"},
 		{"3", "0", "Annex A"}, {"3", "0", "Annex B"},
 		{"4", "0", "7."}, {"4", "1", "7.1"}, // a start override restarts its own list
-		{"5", "1", "1.1"},                 // a skipped level counts from its start; legal numbering is decimal
+		{"5", "1", "1.1"}, // a skipped level counts from its start; legal numbering is decimal
 		{"0", "0", ""}, {"", "0", ""}, {"9", "0", ""},
 	}
 	for _, s := range steps {
@@ -38,5 +42,18 @@ func TestRoman(t *testing.T) {
 		if got := roman(n); got != want {
 			t.Errorf("roman(%d) = %s, want %s", n, got, want)
 		}
+	}
+}
+
+// A PDF encrypted with a user password is refused with the reason, not as
+// a file that does not parse.
+func TestEncryptedPDF(t *testing.T) {
+	data, err := os.ReadFile("../../spec/tests/extract-documents-pdf-encrypted/docs/notice.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = readPDF("notice.pdf", data, 0)
+	if err == nil || !strings.Contains(err.Error(), "the PDF is encrypted with a password") {
+		t.Fatalf("readPDF on an encrypted PDF gave %v, want the password named", err)
 	}
 }

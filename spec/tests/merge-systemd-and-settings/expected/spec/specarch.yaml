@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Processes of units/release-prune.service, units/release-prune.timer, units/release-watcher.service; Settings of the release watcher. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: e49f80fdef1769bb5b9d26f7a33822be0150c693
+    url: ../repo
+    clauses:
+      - {clause: units/release-prune.service, title: The systemd unit release-prune.service}
+      - {clause: units/release-prune.timer, title: The systemd unit release-prune.timer}
+      - {clause: units/release-watcher.service, title: The systemd unit release-watcher.service}
+  config-doc:
+    kind: document
+    title: The release watcher's configuration document

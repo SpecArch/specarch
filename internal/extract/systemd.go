@@ -225,7 +225,7 @@ func (sr *systemdReader) service(u *unitFile, timer *unitFile) {
 	case "scheduled":
 		sr.timer(timer, name, p, func(e *unitEntry, says string) { cite(timer, e, says) })
 	}
-	sr.environment(u, name, p, cite)
+	sr.environment(u, name, p, func(c *yaml.Node) { cites = append(cites, c) })
 	sr.signals(u, name, p, cite)
 	sr.restart(u, name, runs, p, cite)
 	if e := u.last("Service", "WatchdogSec"); e != nil {
@@ -303,7 +303,7 @@ func (sr *systemdReader) timer(t *unitFile, name string, p *yaml.Node, cite func
 
 // environment writes a setting for each variable Environment= names,
 // never its value, and asks what an EnvironmentFile= holds.
-func (sr *systemdReader) environment(u *unitFile, name string, p *yaml.Node, cite func(*unitFile, *unitEntry, string)) {
+func (sr *systemdReader) environment(u *unitFile, name string, p *yaml.Node, addCite func(*yaml.Node)) {
 	var names []string
 	for i := range u.entries {
 		e := &u.entries[i]
@@ -312,12 +312,14 @@ func (sr *systemdReader) environment(u *unitFile, name string, p *yaml.Node, cit
 		}
 		switch e.key {
 		case "Environment":
+			var vars []string
 			for _, a := range splitQuoted(e.value) {
 				v, _, _ := strings.Cut(a, "=")
 				s := unitName(v)
 				if s == "" {
 					continue
 				}
+				vars = append(vars, v)
 				if source0Has(sr.settings, s) {
 					names = appendNew(names, s)
 					continue
@@ -329,7 +331,9 @@ func (sr *systemdReader) environment(u *unitFile, name string, p *yaml.Node, cit
 					priority: "must", blocks: []string{"#/configuration/" + s + "/description", "#/configuration/" + s + "/secret", "#/configuration/" + s + "/schema"},
 					why: "The unit sets the variable and says nothing of what it is; its value is left out, since it may be a secret.", deployment: true})
 			}
-			cite(u, e, "the settings it reads")
+			// The values are never copied: a variable may hold a secret.
+			cites := citation(sr.key, u.file, fmt.Sprintf("Line %d: Environment= sets %s; the settings it reads, their values not copied", e.line, strings.Join(vars, ", ")))
+			addCite(cites)
 		case "EnvironmentFile":
 			sr.ask(questionAt{text: fmt.Sprintf("Which settings does process %s read from %s? The unit names the file and not what it holds.", name, e.value),
 				priority: "should", blocks: []string{"#/processes/" + name + "/configuration"},
@@ -378,7 +382,7 @@ func (sr *systemdReader) signals(u *unitFile, name string, p *yaml.Node, cite fu
 			set(sigs, "SIGHUP", mapping("description", "reloads: the service manager sends it when the process is reloaded"))
 			cite(u, e, "a reload sends SIGHUP")
 		} else {
-			sr.notHeld(u.file, e.line, at, "ExecReload=%s runs a command, not a signal the reader recognises", e.value)
+			sr.notHeld(u.file, e.line, at, "ExecReload= runs a command, not a signal the reader recognises; the command is not copied, since it may carry a secret")
 		}
 	}
 	if len(sigs.Content) > 0 {

@@ -4,14 +4,14 @@ info:
   title: Processes of units/release-prune.service, units/release-prune.timer, units/release-watcher.service
   version: 0.1.0
   description: |
-    The processes the systemd units units/release-prune.service, units/release-prune.timer, units/release-watcher.service define at commit 9cf88718eea329d0678ba3ee8262c5001d86b902: how each runs, is restarted and given up, is stopped and reloaded, and the settings it reads. Every process cites its unit; what a unit leaves to the host's defaults or does not say is a question.
+    The processes the systemd units units/release-prune.service, units/release-prune.timer, units/release-watcher.service define at commit e49f80fdef1769bb5b9d26f7a33822be0150c693: how each runs, is restarted and given up, is stopped and reloaded, and the settings it reads. Every process cites its unit; what a unit leaves to the host's defaults or does not say is a question.
   tracksOrigin: true
 stages: [requirements, design, deployment]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: 9cf88718eea329d0678ba3ee8262c5001d86b902
+    edition: e49f80fdef1769bb5b9d26f7a33822be0150c693
     url: ../repo
     clauses:
       - {clause: units/release-prune.service, title: The systemd unit release-prune.service}

@@ -1,0 +1,12 @@
+specarch: "1.0.0"
+info:
+  title: Settings of the release watcher
+  version: 0.1.0
+  description: |
+    The settings the release watcher reads, from its configuration document.
+  tracksOrigin: true
+stages: [requirements, deployment]
+sources:
+  config-doc:
+    kind: document
+    title: The release watcher's configuration document

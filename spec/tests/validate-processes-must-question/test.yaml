@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a scheduled process with no job and no time, and a process restarted on failure with no limit, each key asked for by an open must question, as extract systemd writes them"
+when: "validate is run"
+then: "it reports no process error, since each waits for its question's answer, lists the two questions, and exits 0"
+verifies: [SA-109]

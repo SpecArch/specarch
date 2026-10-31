@@ -1,0 +1,17 @@
+configuration:
+  registryAddress:
+    origin: stated
+    cites:
+      - {source: code, clause: units/release-watcher.service, says: 'Line 12: Environment= sets REGISTRY_ADDRESS; its value is not copied, since it may be a secret'}
+      - {source: config-doc, clause: "2", says: "REGISTRY_ADDRESS is the registry's address."}
+    description: The address of the registry the watcher asks for new releases.
+    secret: false
+    schema: {type: string, format: uri}
+  logLevel:
+    origin: stated
+    cites:
+      - {source: code, clause: units/release-watcher.service, says: 'Line 12: Environment= sets LOG_LEVEL; its value is not copied, since it may be a secret'}
+  apiToken:
+    origin: stated
+    cites:
+      - {source: code, clause: units/release-watcher.service, says: 'Line 12: Environment= sets API_TOKEN; its value is not copied, since it may be a secret'}

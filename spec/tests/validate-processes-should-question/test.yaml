@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the same two processes, each key asked for by an open should question"
+when: "validate is run"
+then: "it reports the process error at each, since only a must question holds an error, and exits 1"
+verifies: [SA-109]

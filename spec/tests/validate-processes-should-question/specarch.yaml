@@ -1,0 +1,27 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0, profile: lean }
+stakeholders:
+  system-owner: { description: Who decides. }
+processes:
+  nightly:
+    description: Cleans the disk each night.
+    runs: scheduled
+  daemon:
+    description: Serves the release list.
+    runs: always
+    restart: { when: onFailure }
+questions:
+  Q-1:
+    question: When is process nightly started, as a cron expression of five fields in UTC?
+    kind: decision
+    priority: should
+    blocks: ['#/processes/nightly/schedule']
+    decidedBy: system-owner
+    why: The timer gives a calendar expression, which is not cron.
+  Q-2:
+    question: After how many starts within what time is process daemon given up?
+    kind: decision
+    priority: should
+    blocks: ['#/processes/daemon/restart/limit']
+    decidedBy: system-owner
+    why: The unit leaves the limit to the host's defaults.

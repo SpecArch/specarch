@@ -9,7 +9,7 @@ StartLimitIntervalSec=10min
 Type=notify
 ExecStart=/usr/local/bin/release-watcher
 ExecReload=/bin/kill -HUP $MAINPID
-Environment=REGISTRY_ADDRESS=https://registry.example.org LOG_LEVEL=info
+Environment=REGISTRY_ADDRESS=https://registry.example.org LOG_LEVEL=info API_TOKEN=s3cr3t-do-not-copy
 EnvironmentFile=/etc/release-watcher/secrets.env
 Restart=on-failure
 RestartSec=5s

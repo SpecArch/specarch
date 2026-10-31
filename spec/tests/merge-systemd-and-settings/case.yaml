@@ -1,0 +1,11 @@
+arguments: [merge, --out, spec, trees/units, trees/settings]
+exitStatus: 0
+standardOutput: |
+  tree trees/units: Processes of units/release-prune.service, units/release-prune.timer, units/release-watcher.service, on the code side: 6 elements and 15 questions
+  tree trees/settings: Settings of the release watcher, on the documents side: 2 elements and 0 questions
+  answered: Q-4 of trees/units, on #/configuration/registryAddress/description, #/configuration/registryAddress/secret, #/configuration/registryAddress/schema, is left out; Settings of the release watcher gives it
+  merged 6 elements, each an entry of a section or an operation: 2 in more than one tree, and 0 keys the trees disagree on
+  wrote 14 questions: 14 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for process releasePrune, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 7 draft tests for process releaseWatcher, held up by Q-2, Q-3; the validator warns for them until the questions are answered

@@ -2,7 +2,7 @@
 command: extract
 level: system
 scenario: golden
-given: "a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, two variables, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression"
+given: "a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, three variables, one a token, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression"
 when: "extract systemd is run on the three units"
-then: "it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable without its value, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0"
+then: "it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable with no value anywhere in the tree, the token API_TOKEN carries included, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0"
 verifies: [SA-109]

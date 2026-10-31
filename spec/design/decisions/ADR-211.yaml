@@ -102,8 +102,6 @@ decisions:
       a process here is the operating-system process, and a workflow's
       business process keeps its own word, workflow.
     cites:
-      - source: spec-kit
-        says: "A specification is written in free form, so a daemon is described as easily as a web service."
       - source: systemd-service
         clause: "Options"
         says: "Restart= configures whether the service shall be restarted when the service process exits, is killed, or a timeout is reached; RestartPreventExitStatus= takes a list of exit status definitions that, when returned by the main service process, will prevent automatic service restarts."

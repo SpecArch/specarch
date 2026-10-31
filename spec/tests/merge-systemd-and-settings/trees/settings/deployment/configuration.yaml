@@ -1,0 +1,8 @@
+configuration:
+  registryAddress:
+    description: The address of the registry the watcher asks for new releases.
+    secret: false
+    schema: { type: string, format: uri }
+    origin: stated
+    cites:
+      - { source: config-doc, clause: "2", says: "REGISTRY_ADDRESS is the registry's address." }

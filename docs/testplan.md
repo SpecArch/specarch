@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 875 design tests, 427 golden and 448 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 878 design tests, 429 golden and 449 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 875 design tests, 427 golden and 448 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 871 |
+| system | 874 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2187,9 +2187,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-109.
 
 Scenario: golden; level: system; verifies SA-109.
 
-- Given: a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, two variables, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression
+- Given: a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, three variables, one a token, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression
 - When: extract systemd is run on the three units
-- Then: it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable without its value, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0
+- Then: it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable with no value anywhere in the tree, the token API_TOKEN carries included, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0
 
 #### extract-usage-error
 
@@ -3840,6 +3840,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-45.
 - Given: two trees that both declare the source code, at two different urls
 - When: merge is run on the two trees
 - Then: it refuses them, naming the source and what differs, writes nothing and exits 1
+
+#### merge-systemd-and-settings
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: the tree extract systemd wrote from a daemon and a timed unit, and a tree from a configuration document that describes one of the daemon's settings
+- When: merge is run on the two
+- Then: it keeps both processes with their citations and questions, joins the setting from both trees with each tree's citation, leaves out the systemd tree's question on that setting since the document answers it, and exits 0
 
 #### merge-takes-derived-drafts
 
@@ -5889,6 +5897,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-5.
 - When: validate is run
 - Then: the missing description is covered by the question, and it still reports permission_ungranted and exits 1
 
+#### validate-processes-must-question
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a scheduled process with no job and no time, and a process restarted on failure with no limit, each key asked for by an open must question, as extract systemd writes them
+- When: validate is run
+- Then: it reports no process error, since each waits for its question's answer, lists the two questions, and exits 0
+
 #### validate-processes-refused
 
 Scenario: red; level: system; covers exit 1; verifies SA-109.
@@ -5896,6 +5912,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-109.
 - Given: processes on the lean profile that name a job, a setting and a monitor that do not exist, run a job another process runs, write a time while they run always, while they run jobs or twice, write none while scheduled with no job, run a consumer while scheduled, are restarted with no limit, write restart keys while never restarted, never restart on a status they lack, and one given up after its limit with no monitor
 - When: validate is run
 - Then: it reports each as process at its key, the process with no monitor as a process warning, derives no permission or caller case for any process, and exits 1
+
+#### validate-processes-should-question
+
+Scenario: red; level: system; covers exit 1; verifies SA-109.
+
+- Given: the same two processes, each key asked for by an open should question
+- When: validate is run
+- Then: it reports the process error at each, since only a must question holds an error, and exits 1
 
 #### validate-processes-valid
 

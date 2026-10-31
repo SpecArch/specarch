@@ -14,7 +14,8 @@ systemd.
 - `docs/` holds the technical specification and the operations guide
   `specarch document` writes from `spec/`.
 
-To see what a reader takes from the units alone, run
+To see what a reader takes from the units alone, run, from this folder
+in a checkout where they are committed,
 
     specarch extract systemd --out /tmp/release-watcher sources/units/release-watcher.service sources/units/release-prune.service sources/units/release-prune.timer
 

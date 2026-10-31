@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/validate"
 )
 
@@ -30,6 +31,9 @@ type jsonOutput struct {
 	// TryOperation is what specarch try evaluated of an operation's
 	// mapping examples (ADR-207).
 	TryOperation *validate.TriedOperation `json:"tryOperation,omitempty"`
+	// Next is what specarch gaps --next ranked first, per specification
+	// (ADR-209).
+	Next []generate.Next `json:"next,omitempty"`
 }
 
 // jsonDiagnostic is a problem line, by its fields.
@@ -160,9 +164,12 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 	var out, errText bytes.Buffer
 	var tried *validate.Tried
 	var triedOperation *validate.TriedOperation
+	var next []generate.Next
 	var status int
 	if len(args) > 0 && args[0] == "try" {
 		status = tryInto(args[1:], &out, &errText, &tried, &triedOperation)
+	} else if len(args) > 0 && args[0] == "gaps" {
+		status = gapsInto(args[1:], &out, &errText, &next)
 	} else {
 		status = dispatch(args, &out, &errText)
 	}
@@ -172,7 +179,7 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	meaning, remedy := exitMeaning(name, status)
-	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried, TryOperation: triedOperation}
+	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried, TryOperation: triedOperation, Next: next}
 	for _, line := range lines(out.String()) {
 		if m := problemLine.FindStringSubmatch(line); m != nil {
 			l, _ := strconv.Atoi(m[2])

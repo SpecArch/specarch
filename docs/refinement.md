@@ -263,6 +263,88 @@ specification is a change request, as `docs/maintenance.md` designs; an
 answer to an open question of an unapproved one is not, since nothing was
 promised yet.
 
+## Asking a person
+
+A question is recorded well; it also has to be asked well. People answer
+one question with a choice better than a list, so the agent asks one at a
+time, in the order that moves the most work, with an answer it
+recommends, and records each answer before it asks the next (ADR-209). The
+method comes from Spec Kit's clarify command (github.com/github/spec-kit,
+MIT), with two differences: the order is computed from the specification,
+and there is no fixed number of questions.
+
+    specarch gaps --next spec
+
+prints, per specification given, the one open question ranked first:
+
+| Rank | Why |
+|---|---|
+| priority: `must`, then `should`, then `could` | a must question leaves keys undefined and stops everything that reads them |
+| more outputs held up first | the documents of the outputs table whose sections it blocks, and code generation or each code target: the answer that releases more work is worth more |
+| more `blocks` entries first | among equals, the answer that settles more entries |
+| earlier stage first | an answer in requirements shapes design, not the other way |
+| lower ID, as gaps orders IDs | so the order is the same on every run |
+
+With it go who decides, what it blocks with the keys missing there, the
+outputs it holds up, the options, the Insight, how many questions are
+open, and the `decide` line that records the answer, with `--source`
+naming the interview source the root file declares (a document source for
+a material question), or a line saying which to declare or choose:
+
+    Next question in Case (spec/specarch.yaml), ranked first of 3 open questions: Q-1 (must, decision)
+
+    How important is the five-book limit, and how is it shown to be met?
+
+    - Decided by: owner
+    - Blocks: #/requirements/CASE-1/priority, #/requirements/CASE-1/acceptance
+    - Holds up: techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql
+    - Options:
+      1. must
+      2. should
+    - Insight: The old document lists the limit under "rules" without saying whether a release without it is acceptable.
+    - Record the answer: specarch decide Q-1 --by owner --answer "<answer>" --source owner-answer spec
+
+    Put it to owner alone, with one answer recommended and why; specarch help asking.
+
+That is the case `gaps-next-json` as text, its folder named `spec`.
+
+With `--json` the same is under `next`, one entry per specification: the
+root file, the title, `openQuestions`, and `question` (null when none is
+open) with its fields, `holdsUp`, `decide` as arguments and
+`recommendation: null`. The program does not recommend: the agent fills
+`recommendation` with an answer and its reason before it passes the
+object on, to a queue or to the stakeholder.
+
+The procedure, which `specarch help asking` prints:
+
+1. Run `specarch gaps --next`. Ask the stakeholder it names, a role; when
+   the person at hand is not that role, pass the question on.
+2. Put that one question alone, in its own words.
+3. Give two to five options, the question's own or ones written from the
+   specification and its sources, one marked recommended with its reason
+   and how sure the agent is, so the person can accept it in a word.
+4. Record the answer with the printed `decide` line: the full text of the
+   option chosen, never "yes" or "2", and `--source` the interview.
+5. Write the entries `decide` lists, then `specarch validate`.
+6. Run `specarch gaps --next` again: an answer can settle other questions
+   or open new ones, so a second question is never asked from the first
+   ranking.
+
+It stops when no `must` or `should` question is left, or when the person
+stops. Spec Kit stops after five questions to keep a session short;
+SpecArch has no cap, since a specification is never complete and a must
+question left unasked leaves keys undefined, and `gaps` lists what is
+left. A material question is asked the same way, as a request for the
+file, and recorded with the document received as its source.
+
+How unsure the people are of an answer is not in the specification:
+`certainty` is set only on questions a reader asks about code. So the
+program ranks on what an answer unblocks, and the agent states its
+uncertainty in the reason of its recommendation. The recommendation is not
+a key of the question either: it would change the meta-model and write a
+guess into the design that no person has seen, and the decision record
+already keeps what was decided and where it came from.
+
 ## Approval
 
 A specification is approved by reading its documents. The approval is a
@@ -383,7 +465,10 @@ stage concerns every document that reads a section of it.
 ## Fit with the agent queue
 
 The agent that builds a specification from a source writes the questions as
-it goes, and ends its item with `specarch gaps`. The dispatcher turns each
+it goes, and ends its item with `specarch gaps`. To ask, it follows Asking
+a person above: `specarch gaps --next --json` gives the one question to put
+next, which it passes on with its recommendation filled. A dispatcher
+that takes them all at once turns each
 `must` and `should` question into one question to the person it is for,
 with the options when the question has them, the `decidedBy` role saying
 whose answer it is, and `blocks` saying what waits. The answer comes back

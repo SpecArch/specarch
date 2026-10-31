@@ -1,0 +1,18 @@
+arguments: [gaps, --next, project]
+exitStatus: 1
+standardOutput: |
+  Next question in Case (project/specarch.yaml), ranked first of 3 open questions: Q-5 (must, decision)
+
+  How important is the five-book limit, and how is it shown to be met?
+
+  - Decided by: owner
+  - Blocks: #/requirements/CASE-1/priority
+  - Holds up: techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql
+  - Options:
+    1. must
+    2. should
+  - Insight: The old document lists the limit under "rules" without saying whether a release without it is acceptable.
+  - Record the answer: specarch decide Q-5 --by owner --answer "<answer>" project
+  - Source: the root file declares 2 sources of kind interview (owner-answer and chair-interview); add --source with the one the answer came from
+
+  Put it to owner alone, with one answer recommended and why; specarch help asking.

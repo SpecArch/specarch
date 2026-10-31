@@ -13,8 +13,10 @@ standardOutput: |
   3. After every edit run `specarch validate <folder>`: exit 0 is valid, 1
      lists the errors one per line, 2 is a usage or read error.
   4. Run `specarch gaps <folder>` for the open questions and what each holds
-     up; take each must or should question to the owner and record the answer
-     with `specarch decide`.
+     up; then ask: `specarch gaps --next <folder>` gives the one question to
+     put next, put it to the stakeholder it names with two to five options and
+     one recommended, record the answer with `specarch decide`, and run `gaps
+     --next` again; `specarch help asking` is the procedure.
   5. Write what people read with `specarch document <target> --out <folder>
      <folder>` (techspec, requirements, problems, questions, manual and the
      others); once the owner has read them, they record the approval with
@@ -66,7 +68,7 @@ standardOutput: |
         Write a specification from existing code or documents.
     specarch facts <language> <folder> <dump> [--dry-run]
         Write the code-facts dump extract reads of a committed folder.
-    specarch gaps <paths>...
+    specarch gaps [--next] <paths>...
         List the open questions and what they hold up.
     specarch generate <target> [--out <out>] [--check] [--estate <estate>]...
       [--unapproved] [--dry-run] <paths>...

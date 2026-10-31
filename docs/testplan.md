@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 851 design tests, 416 golden and 435 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 858 design tests, 417 golden and 441 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 851 design tests, 416 golden and 435 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 847 |
+| system | 854 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2314,6 +2314,62 @@ Scenario: red; level: system; covers exit 1; verifies SA-19, SA-69.
 - Given: the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation
 - When: gaps is run
 - Then: each of those questions lists the name it gives and the file and line of the element that leaves the key out, the outputs name the first three of the six questions in the design stage and count the rest, and it exits 1
+
+#### gaps-next-json
+
+Scenario: red; level: system; covers exit 1; verifies SA-107.
+
+- Given: a specification with two must questions and a could question
+- When: gaps --next is run with --json
+- Then: the output object holds next with one entry for the specification: its root file, title and three open questions, and the question ranked first as fields, with the outputs it holds up, the decide command as arguments and a recommendation of null; it exits 1
+
+#### gaps-next-none
+
+Scenario: golden; level: system; verifies SA-107.
+
+- Given: a specification with no open question
+- When: gaps --next is run
+- Then: it prints that the specification has no open question and exits 0
+
+#### gaps-next-ranks-by-blocks
+
+Scenario: red; level: system; covers exit 1; verifies SA-107.
+
+- Given: a specification with an error, a requirement without its priority, two must questions on design entities that hold up the same outputs, Q-2 blocking one entity and Q-4 two, and a could question blocking three entries
+- When: gaps --next is run
+- Then: it prints the error as a problem line, then Q-4, which blocks more entries, before Q-2, which has the lower ID, and the could question last, with the decide line citing the one interview source, and exits 1
+
+#### gaps-next-ranks-by-outputs
+
+Scenario: red; level: system; covers exit 1; verifies SA-107.
+
+- Given: a specification with two must questions, Q-2 blocking two design entities and holding up four outputs, Q-5 blocking one key of a requirement and holding up seven, a could question, and two interview sources
+- When: gaps --next is run
+- Then: it prints Q-5, which holds up more outputs, before Q-2, which blocks more entries and has the lower ID, with who decides, what it blocks, what it holds up, its options and Insight, the decide line without --source and a line naming the two interview sources to choose from, and exits 1
+
+#### gaps-next-should-before-could
+
+Scenario: red; level: system; covers exit 1; verifies SA-107.
+
+- Given: a specification with a could question Q-1 blocking three entries and a should question Q-2 blocking one
+- When: gaps --next is run
+- Then: it prints Q-2, the should question, before the could question that blocks more and has the lower ID, and exits 1
+
+#### gaps-next-unknown-option
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-107.
+
+- Given: --next and an option gaps does not have
+- When: gaps is run with --next --first and a folder
+- Then: it names the option it does not have, prints how to use it and exits 2
+
+#### gaps-next-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-107.
+
+- Given: --next and no folder
+- When: gaps is run with --next alone
+- Then: it prints how to use it and exits 2
 
 #### gaps-none
 
@@ -6907,7 +6963,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-482 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+486 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7300,6 +7356,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-19 | acceptance 1 | golden | SA-19 names no harm |
 | requirement SA-19 | acceptance 2 | golden | SA-19 names no harm |
 | requirement SA-19 | acceptance 3 | golden | SA-19 names no harm |
+| requirement SA-107 | acceptance 1 | golden | SA-107 names no harm |
+| requirement SA-107 | acceptance 2 | golden | SA-107 names no harm |
+| requirement SA-107 | acceptance 3 | golden | SA-107 names no harm |
+| requirement SA-107 | acceptance 4 | golden | SA-107 names no harm |
 | requirement SA-20 | acceptance 1 | golden | SA-20 names no harm |
 | requirement SA-20 | acceptance 2 | golden | SA-20 names no harm |
 | requirement SA-30 | acceptance 1 | golden | SA-30 names no harm |

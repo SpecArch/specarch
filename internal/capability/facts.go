@@ -9,7 +9,7 @@ var Workflow = []string{
 	"Pin the program: record the module version and checksum `go version -m` prints for the installed specarch in the repository's agent instructions, and check them at the start of each session; `specarch capabilities --json` names the version, the formats and the plug-ins this install has.",
 	"Specification first: change the specification (specarch.yaml, its stage folders, the implementation files) before the code made from it, never a generated file; a generated file's first lines say which command made it.",
 	"After every edit run `specarch validate <folder>`: exit 0 is valid, 1 lists the errors one per line, 2 is a usage or read error.",
-	"Run `specarch gaps <folder>` for the open questions and what each holds up; take each must or should question to the owner and record the answer with `specarch decide`.",
+	"Run `specarch gaps <folder>` for the open questions and what each holds up; then ask: `specarch gaps --next <folder>` gives the one question to put next, put it to the stakeholder it names with two to five options and one recommended, record the answer with `specarch decide`, and run `gaps --next` again; `specarch help asking` is the procedure.",
 	"Write what people read with `specarch document <target> --out <folder> <folder>` (techspec, requirements, problems, questions, manual and the others); once the owner has read them, they record the approval with `specarch approve`.",
 	"Write code with `specarch generate <target> <folder>`; it refuses an unapproved specification unless `--unapproved` makes the output a draft. `--dry-run` lists what it would write; `--check` fails when the files on disk differ, so run it before each commit and in CI.",
 	"For a system that exists already: `specarch extract <source>` once per surface (documents, database, router, code), `specarch merge` the trees, then validate and gaps; `specarch check` compares the specification with the code's own tables later.",
@@ -27,7 +27,7 @@ var ReadingProblems = []string{
 
 // AskTheOwner is when an agent stops and asks.
 var AskTheOwner = []string{
-	"Every open must or should question, and any choice between two sources that disagree (a document and the code): the agent records the question, never picks an answer; the owner answers and `specarch decide` records it.",
+	"Every open must or should question, and any choice between two sources that disagree (a document and the code): the agent records the question, never picks an answer; it asks one at a time, as `specarch gaps --next` ranks them, with an answer it recommends, the owner answers and `specarch decide` records it.",
 	"Approving a specification: `specarch approve --by <stakeholder>` records a person's approval, so only that person's word runs it.",
 	"Generating a draft with --unapproved for anything that will be used, and overwriting a file built by hand.",
 	"Any error the agent cannot settle from the specification and its sources, a refusal it does not understand, and anything a remedy does not cover.",

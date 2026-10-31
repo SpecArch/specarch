@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 106 requirements, 5 entities, 23 commands, 7 algorithms, 851 tests, 194 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 107 requirements, 5 entities, 23 commands, 7 algorithms, 858 tests, 195 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -3235,6 +3235,35 @@ the errors that concern it) or waiting (the errors, the questions,
 and the approval that is missing or void), the questions given per
 stage as how many and the first three by priority then ID.
 
+With `--next` it prints, after the same problem lines, for each
+specification given only the one open question to put to a person
+next (ADR-209): ranked first by priority, must, should, could; then
+by how many outputs it holds up, the documents of the outputs table
+whose sections it blocks and code generation, more first; then by
+how many entries it blocks, more first; then by stage in life-cycle
+order; then by ID as gaps orders IDs. A line names the
+specification, the question with its priority and kind, and how
+many questions are open; then the question; who decides it, or for
+material whom it is needed from; what it blocks, with the keys
+missing there; the outputs it holds up; its options; its Insight;
+and the decide command that records the answer, with the question,
+the stakeholder, the folder and `--source` naming the interview
+source the root file declares, for material the document source,
+or saying which to declare when there is none or which to choose
+when there are several. A specification without an open question
+prints that it has none. The errors of an invalid specification are
+printed first as problem lines, and its next question is still
+ranked from what could be read. With `--json` the output object
+holds `next`, one entry per specification: `specification` (the
+root file), `openQuestions`, and `question`, null when none is
+open, with `id`, `question`, `kind`, `priority`, `decidedBy`,
+`stage`, `blocks`, `missing` (the keys missing per blocked
+pointer), `holdsUp`, `options`, `insight`, `certainty` and `names`
+as the question has them, `decide` (the command as arguments, the
+answer as `<answer>`) and `recommendation`, always null: the agent
+fills it with the answer it recommends and why before it puts the
+question (`specarch help asking`).
+
 **Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
@@ -3242,10 +3271,11 @@ stage as how many and the first three by priority then ID.
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
+| `--next` | bool |   | Print only the one open question to ask next per specification, ranked by what its answer unblocks, with the decide command that records the answer. |
 
 Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder, when there is one.
 
-Standard output: The problems of each estate given, then the open questions document of each specification, with its errors listed in it.
+Standard output: The problems of each estate given, then the open questions document of each specification, with its errors listed in it; with --next the errors as problem lines and each specification's next question, and with --json that question as data under next.
 
 Standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -3514,7 +3544,8 @@ sequenceDiagram
 
 Without a topic it prints the usage and the list of topics. A topic
 is an area, with a short guide of its own (format, extract,
-validate, generate, upgrade, gaps, plugins, conventions, examples),
+validate, generate, upgrade, gaps, asking, plugins, conventions,
+examples),
 or a command's name, `idioms-diff` or `idioms diff` for the
 subcommand. A command's topic prints the command's reference made
 from its definition in this specification: the synopsis, the
@@ -15506,6 +15537,63 @@ validator's rule that no decision is decided by another stays.
 
 **Note:** From Documenting architecture decisions, 2011: A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
+### ADR-209: Questions are put to a person one at a time, the next one chosen by gaps --next from what its answer unblocks, with a recommended answer the agent gives and no fixed number of questions
+
+Status: proposed, 2026-10-31.
+
+Rests on: [ADR-155](#adr-155-specarch-decide-writes-the-decision-as-a-file-of-its-own-under-the-next-id-takes-the-question-out-of-its-file-as-text-prints-the-entries-to-write-rather-than-writing-them-and-asks-for-a-source-when-the-specification-tracks-origin).
+
+Context: SpecArch records answers well: a question names what it blocks and
+who decides, decide writes the record and takes the question out,
+and the record cites the source the answer came from. It gave the
+agent no method for asking. gaps prints every open question at
+once, by stage, which is a document for reading, not a way to put
+questions to a person, who answers a list worse than one question
+at a time. Spec Kit's clarify command asks one question at a time,
+each with two to five options and a recommended one the person
+can accept in a word, ranked by impact and uncertainty, and stops
+after five.
+
+Decision: specarch help asking holds the procedure, and the agent guide's
+workflow and its list of what to ask the owner point to it: run
+gaps --next; put the one question it prints to the person it names
+(decidedBy), with its options, or two to five the agent writes
+when it has none, and one of them recommended with its reason;
+record the answer with decide and an interview source, the option's
+full text when the person accepts it in a word; validate; run gaps
+--next again, since an answer can settle or open other questions.
+Stop when no must or should question is left or the person stops;
+no number of questions is fixed. A material question is asked as a
+request for the file, recorded with the document received as its
+source.
+
+gaps --next prints, per specification given, the one open
+question ranked first: must before should before could; then the
+one holding up more outputs (the documents whose sections it
+blocks, and code generation); then the one blocking more entries;
+then the earlier stage in life-cycle order; then the lower ID, as
+gaps orders IDs. With it go who decides, what it blocks with the
+keys missing there, the outputs it holds up, the options, the
+Insight, how many questions are open, and the decide command with
+the question, the stakeholder and the interview source the
+specification declares. --json gives the same under next, with a
+recommendation of null: the program does not recommend, the agent
+does, in the object it passes on to whoever puts the question.
+
+Consequences: An agent asks in the order that moves the most work, one question
+at a time, and every answer goes through decide, so it is recorded
+with its source and the elements it settles are named. The
+program still asks nothing itself: gaps --next prints and exits,
+and a person answers through the agent or runs decide. The
+exit status of gaps --next is that of gaps, so a script reads it
+the same way.
+
+**Insight:** The order uses only what the specification holds. A must question leaves keys undefined and stops everything that reads them, so it comes first, as priority already says; among equals, the answer that releases more documents and code, then more entries, is worth more; an earlier stage shapes the later ones. Spec Kit weighs uncertainty too, but no key says how unsure the people are of an answer: certainty is set only on questions a reader asks about code. A score guessed by the program would put a guess first, so uncertainty is left to the agent, who says it in the reason of its recommendation. Spec Kit stops after five questions to keep a session short. A specification is never complete, and a must question left open leaves keys undefined; a fixed cap would leave such questions unasked with no reason given. The person ends the session, and gaps lists what is left. The recommendation is not a key of the question in the specification. That would change the meta-model, add a check to both validators, and write a guess into the design that the person has not seen; the decision record already keeps what was decided and its source. It is given in the output, as null, so that an agent passing the question on, to a queue or to the stakeholder's inbox, has one place for it.
+
+**Note:** From Spec Kit, the clarify command: The clarify command asks one question at a time, each with a short set of options and a recommended answer the user can accept, ranked by impact and uncertainty, at most five per run. <https://github.com/github/spec-kit>
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15792,6 +15880,13 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-link-missing-held | command gaps | system | golden | the specification of validate-link-missing-held, whose open must question blocks the environment production and so holds the link_missing warning of the deployment that installs it | gaps is run on it | it lists the question under the deployment stage with what it blocks, shows the deployment, technical specification, html and operations documents as drafts and code generation waiting on it, and exits 1 |
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them a material question blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the decisions to take and the material to provide per stakeholder, the elements by origin, the decisions by stage, the material question in a group of its own with who it is needed from and the missing keys of the blocked entity, and the outputs with what each waits on per stage, and exits 1 |
 | gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, the outputs name the first three of the six questions in the design stage and count the rest, and it exits 1 |
+| gaps-next-json | command gaps | system | red | a specification with two must questions and a could question | gaps --next is run with --json | the output object holds next with one entry for the specification: its root file, title and three open questions, and the question ranked first as fields, with the outputs it holds up, the decide command as arguments and a recommendation of null; it exits 1 |
+| gaps-next-none | command gaps | system | golden | a specification with no open question | gaps --next is run | it prints that the specification has no open question and exits 0 |
+| gaps-next-ranks-by-blocks | command gaps | system | red | a specification with an error, a requirement without its priority, two must questions on design entities that hold up the same outputs, Q-2 blocking one entity and Q-4 two, and a could question blocking three entries | gaps --next is run | it prints the error as a problem line, then Q-4, which blocks more entries, before Q-2, which has the lower ID, and the could question last, with the decide line citing the one interview source, and exits 1 |
+| gaps-next-ranks-by-outputs | command gaps | system | red | a specification with two must questions, Q-2 blocking two design entities and holding up four outputs, Q-5 blocking one key of a requirement and holding up seven, a could question, and two interview sources | gaps --next is run | it prints Q-5, which holds up more outputs, before Q-2, which blocks more entries and has the lower ID, with who decides, what it blocks, what it holds up, its options and Insight, the decide line without --source and a line naming the two interview sources to choose from, and exits 1 |
+| gaps-next-should-before-could | command gaps | system | red | a specification with a could question Q-1 blocking three entries and a should question Q-2 blocking one | gaps --next is run | it prints Q-2, the should question, before the could question that blocks more and has the lower ID, and exits 1 |
+| gaps-next-unknown-option | command gaps | system | red | --next and an option gaps does not have | gaps is run with --next --first and a folder | it names the option it does not have, prints how to use it and exits 2 |
+| gaps-next-usage-error | command gaps | system | red | --next and no folder | gaps is run with --next alone | it prints how to use it and exits 2 |
 | gaps-none | command gaps | system | golden | a specification without open questions and without an approval | gaps is run | it prints that there is no open question, that every document is ready and that code generation waits on the approval, and exits 0 |
 | gaps-outline-not-read | command gaps | system | golden | the tree extract outline wrote for a folder of workflow definitions: one source whose clauses are the folder's files, and no element | gaps is run | it lists every file of the source as producing nothing, so the files show as not read, and exits 0 |
 | gaps-question-opened | command gaps | system | golden | a question opened by a decision that answered a question an earlier decision opened, and a question opened by a proposed decision that answered none | gaps is run | each question names the decision that opened it and the questions that decision answered, back along the chain, and gaps exits 0 since only could questions are open |
@@ -16482,6 +16577,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
+| SA-107 | specarch gaps --next shall print, for each specification given, the one open question to put to a person next, ranked by what an answer unblocks, with who decides, what it blocks, the outputs it holds up, its options, its Insight and the decide command that records the answer, and with --json the same as data with a recommendation for the agent to fill; specarch help asking shall describe how to put questions to a person one at a time with a recommended answer, with no fixed number of questions. | functional | should | accepted | test | Of open questions of every priority, gaps --next prints a must question before a should and a should before a could; among questions of one priority, the one holding up more outputs, then the one blocking more entries, then the earlier stage, then the lower ID; and exits as gaps does. A specification with no open question prints that it has none and exits 0. With --json the object holds next, one entry per specification, its question as fields, the outputs it holds up, the decide command as arguments and a recommendation of null. gaps given an option other than --next is a usage error, exit 2. | NEED-8 |
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
 | SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it, and is a could question in the tree citing its table. extract database reads a partition as the table it is a partition of, with one entity for the table and none for a partition, one could question at the entity listing the partitions with their bounds, and one for each constraint, index or column setting a partition has of its own, citing the partition's entry. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, maps a name in dxlib_module's capitals by the rule of ADR-076 and declares that permission inferred, and asks a must question for an operation that names none, more than one, public, two names that give one permission or a name the rule cannot map. extract go on a committed Go module on dxlib writes each endpoint NewEndPoint registers with literal values as an operation citing its registration's and its handler's file and line, with the parameters the handler reads and the problems it answers, in a code source with reading parsed, and asks a must question for a registration in a loop, behind a condition or computed, and for a parameter read the endpoint does not declare. extract go on a committed Go module on dxlib and dxlib_module also writes each table NewModelDBTable declares with literal names as the entity extract database writes for it, the roles its seeds grant with the permissions mapped by the rule of ADR-076, and each setting it reads or a dxlib configuration file holds under configuration, and asks a must question for each gate on a setting it finds in an endpoint's middleware, in the words extract permissions uses. extract permissions maps a privilege in dxlib_module's capitals by the rule of ADR-076 and declares the permission inferred, and asks a must question on a grant of EVERYTHING, a name the rule cannot map and two names that give one permission. extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them. | NEED-8 |
@@ -16691,6 +16787,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-17:** From IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications, 1998, clause 4.3.3: A to-be-determined item is accompanied by why it is open, what must be done to close it, who is responsible and by when.
 
+**Insight on SA-107:** The questions gaps lists are answered by people, who answer better one question at a time with a choice and a recommended answer than a list at once; ranking by what an answer unblocks puts first the question whose answer moves the most work.
+
 **Note on SA-20:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
 **Insight on SA-30:** The owner of an existing system reads a partial specification to find out what the documents and the code really say and where they part; a section of either that produced nothing is the first thing to look at, and it cannot be seen without the outline.
@@ -16849,6 +16947,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-104 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
 | SA-105 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 | SA-106 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
+| SA-107 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
 
 ## Sources
 
@@ -16918,6 +17017,7 @@ Every source a Note in this document cites.
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | scxml-1-0 | State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015 | 1.0 | W3C | https://www.w3.org/TR/scxml/ |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
+| spec-kit | Spec Kit, the clarify command |   | GitHub | https://github.com/github/spec-kit |
 | spiffe | The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT |   | The SPIFFE project, Cloud Native Computing Foundation | https://github.com/spiffe/spiffe/tree/main/standards |
 | uml-2-5-1 | OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines | formal/2017-12-05 | Object Management Group | https://www.omg.org/spec/UML/2.5.1/ |
 | wcag-2-2 | Web Content Accessibility Guidelines (WCAG) 2.2 | 2023 | W3C | https://www.w3.org/TR/WCAG22/ |

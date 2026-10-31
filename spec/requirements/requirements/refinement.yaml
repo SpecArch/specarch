@@ -41,6 +41,19 @@ requirements:
       - A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement.
     verification: test
     needs: [NEED-8, NEED-3]
+  SA-107:
+    statement: specarch gaps --next shall print, for each specification given, the one open question to put to a person next, ranked by what an answer unblocks, with who decides, what it blocks, the outputs it holds up, its options, its Insight and the decide command that records the answer, and with --json the same as data with a recommendation for the agent to fill; specarch help asking shall describe how to put questions to a person one at a time with a recommended answer, with no fixed number of questions.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - Of open questions of every priority, gaps --next prints a must question before a should and a should before a could; among questions of one priority, the one holding up more outputs, then the one blocking more entries, then the earlier stage, then the lower ID; and exits as gaps does.
+      - A specification with no open question prints that it has none and exits 0.
+      - With --json the object holds next, one entry per specification, its question as fields, the outputs it holds up, the decide command as arguments and a recommendation of null.
+      - gaps given an option other than --next is a usage error, exit 2.
+    verification: test
+    needs: [NEED-8]
+    why: The questions gaps lists are answered by people, who answer better one question at a time with a choice and a recommended answer than a list at once; ranking by what an answer unblocks puts first the question whose answer moves the most work.
   SA-20:
     statement: specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current.
     kind: functional

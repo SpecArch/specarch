@@ -1,0 +1,18 @@
+arguments: [gaps, --next, project]
+exitStatus: 1
+standardOutput: |
+  project/requirements/all.yaml:5:5: error: /requirements/CASE-1: schema: priority is missing; add it here [schema@requirements/all.yaml#/requirements/CASE-1]
+
+  Next question in Case (project/specarch.yaml), ranked first of 3 open questions: Q-4 (must, decision)
+
+  Is a loan kept after the book comes back, and does a member keep its id when it leaves?
+
+  - Decided by: owner
+  - Blocks: #/entities/Loan (primaryKey, properties and type missing), #/entities/Member
+  - Holds up: techspec document, traceability document, html document and code target sql
+  - Options:
+    1. both are kept
+    2. both are removed
+  - Record the answer: specarch decide Q-4 --by owner --answer "<answer>" --source owner-answer project
+
+  Put it to owner alone, with one answer recommended and why; specarch help asking.

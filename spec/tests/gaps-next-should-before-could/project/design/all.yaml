@@ -1,0 +1,20 @@
+entities:
+  Member:
+    type: object
+    properties: { id: { type: string }, name: { type: string } }
+    primaryKey: [id]
+    satisfies: [CASE-1]
+questions:
+  Q-1:
+    question: Is the member's name shown on the loan slip?
+    kind: decision
+    priority: could
+    blocks: ["#/entities/Member/properties/name", "#/entities/Member/properties/id", "#/entities/Member/primaryKey"]
+    decidedBy: owner
+  Q-2:
+    question: Is the member id an opaque string, as inferred from the old screens?
+    kind: decision
+    priority: should
+    blocks: ["#/entities/Member/properties/id"]
+    decidedBy: owner
+    options: ["yes, an opaque string", "no, the card number"]

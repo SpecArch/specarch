@@ -412,3 +412,9 @@ sources:
     edition: "17"
     author: The PostgreSQL Global Development Group
     url: https://www.postgresql.org/docs/17/datatype-datetime.html
+  spec-kit:
+    kind: document
+    title: Spec Kit, the clarify command
+    author: GitHub
+    url: https://github.com/github/spec-kit
+    description: An open-source toolkit for specification-driven development (MIT licence); its clarify command asks one question at a time, each with a few options and a recommended one, ranked by impact and uncertainty, at most five per run.

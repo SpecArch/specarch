@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-209:
+    title: Questions are put to a person one at a time, the next one chosen by gaps --next from what its answer unblocks, with a recommended answer the agent gives and no fixed number of questions
+    status: proposed
+    date: "2026-10-31"
+    context: |
+      SpecArch records answers well: a question names what it blocks and
+      who decides, decide writes the record and takes the question out,
+      and the record cites the source the answer came from. It gave the
+      agent no method for asking. gaps prints every open question at
+      once, by stage, which is a document for reading, not a way to put
+      questions to a person, who answers a list worse than one question
+      at a time. Spec Kit's clarify command asks one question at a time,
+      each with two to five options and a recommended one the person
+      can accept in a word, ranked by impact and uncertainty, and stops
+      after five.
+    decision: |
+      specarch help asking holds the procedure, and the agent guide's
+      workflow and its list of what to ask the owner point to it: run
+      gaps --next; put the one question it prints to the person it names
+      (decidedBy), with its options, or two to five the agent writes
+      when it has none, and one of them recommended with its reason;
+      record the answer with decide and an interview source, the option's
+      full text when the person accepts it in a word; validate; run gaps
+      --next again, since an answer can settle or open other questions.
+      Stop when no must or should question is left or the person stops;
+      no number of questions is fixed. A material question is asked as a
+      request for the file, recorded with the document received as its
+      source.
+
+      gaps --next prints, per specification given, the one open
+      question ranked first: must before should before could; then the
+      one holding up more outputs (the documents whose sections it
+      blocks, and code generation); then the one blocking more entries;
+      then the earlier stage in life-cycle order; then the lower ID, as
+      gaps orders IDs. With it go who decides, what it blocks with the
+      keys missing there, the outputs it holds up, the options, the
+      Insight, how many questions are open, and the decide command with
+      the question, the stakeholder and the interview source the
+      specification declares. --json gives the same under next, with a
+      recommendation of null: the program does not recommend, the agent
+      does, in the object it passes on to whoever puts the question.
+    consequences: |
+      An agent asks in the order that moves the most work, one question
+      at a time, and every answer goes through decide, so it is recorded
+      with its source and the elements it settles are named. The
+      program still asks nothing itself: gaps --next prints and exits,
+      and a person answers through the agent or runs decide. The
+      exit status of gaps --next is that of gaps, so a script reads it
+      the same way.
+    why: |
+      The order uses only what the specification holds. A must question
+      leaves keys undefined and stops everything that reads them, so it
+      comes first, as priority already says; among equals, the answer
+      that releases more documents and code, then more entries, is worth
+      more; an earlier stage shapes the later ones. Spec Kit weighs
+      uncertainty too, but no key says how unsure the people are of an
+      answer: certainty is set only on questions a reader asks about
+      code. A score guessed by the program would put a guess first, so
+      uncertainty is left to the agent, who says it in the reason of
+      its recommendation.
+
+      Spec Kit stops after five questions to keep a session short. A
+      specification is never complete, and a must question left open
+      leaves keys undefined; a fixed cap would leave such questions
+      unasked with no reason given. The person ends the session, and
+      gaps lists what is left.
+
+      The recommendation is not a key of the question in the
+      specification. That would change the meta-model, add a check to
+      both validators, and write a guess into the design that the
+      person has not seen; the decision record already keeps what was
+      decided and its source. It is given in the output, as null, so
+      that an agent passing the question on, to a queue or to the
+      stakeholder's inbox, has one place for it.
+    cites:
+      - source: spec-kit
+        says: "The clarify command asks one question at a time, each with a short set of options and a recommended answer the user can accept, ranked by impact and uncertainty, at most five per run."
+      - source: iso-29148
+        clause: "6.6.3"
+        says: "The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work."
+    satisfies: [SA-107]
+    restsOn: [ADR-155]

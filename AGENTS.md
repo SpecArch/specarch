@@ -72,8 +72,10 @@ in YAML, lists every problem in it, and writes documents and code from it.
 3. After every edit run `specarch validate <folder>`: exit 0 is valid, 1
    lists the errors one per line, 2 is a usage or read error.
 4. Run `specarch gaps <folder>` for the open questions and what each holds
-   up; take each must or should question to the owner and record the answer
-   with `specarch decide`.
+   up; then ask: `specarch gaps --next <folder>` gives the one question to
+   put next, put it to the stakeholder it names with two to five options and
+   one recommended, record the answer with `specarch decide`, and run `gaps
+   --next` again; `specarch help asking` is the procedure.
 5. Write what people read with `specarch document <target> --out <folder>
    <folder>` (techspec, requirements, problems, questions, manual and the
    others); once the owner has read them, they record the approval with
@@ -113,7 +115,9 @@ in YAML, lists every problem in it, and writes documents and code from it.
 
 - Every open must or should question, and any choice between two sources
   that disagree (a document and the code): the agent records the question,
-  never picks an answer; the owner answers and `specarch decide` records it.
+  never picks an answer; it asks one at a time, as `specarch gaps --next`
+  ranks them, with an answer it recommends, the owner answers and `specarch
+  decide` records it.
 - Approving a specification: `specarch approve --by <stakeholder>` records a
   person's approval, so only that person's word runs it.
 - Generating a draft with --unapproved for anything that will be used, and
@@ -292,7 +296,7 @@ Error codes of --json:
   exit 2: usage error, a language this build does not read, a folder that
   does not exist, a dump file whose folder does not exist or that could not
   be written, or a submodule folder with a quote or a backslash
-- `specarch gaps <paths>...`
+- `specarch gaps [--next] <paths>...`
   List the open questions and what they hold up.
   exit 0: no must or should question is open and no specification has an
   error

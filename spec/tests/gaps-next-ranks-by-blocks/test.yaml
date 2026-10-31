@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: gaps
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with an error, a requirement without its priority, two must questions on design entities that hold up the same outputs, Q-2 blocking one entity and Q-4 two, and a could question blocking three entries"
+when: "gaps --next is run"
+then: "it prints the error as a problem line, then Q-4, which blocks more entries, before Q-2, which has the lower ID, and the could question last, with the decide line citing the one interview source, and exits 1"
+verifies: [SA-107]

@@ -1,0 +1,16 @@
+arguments: [gaps, --next, project]
+exitStatus: 1
+standardOutput: |
+  Next question in Case (project/specarch.yaml), ranked first of 2 open questions: Q-2 (should, decision)
+
+  Is the member id an opaque string, as inferred from the old screens?
+
+  - Decided by: owner
+  - Blocks: #/entities/Member/properties/id
+  - Holds up: techspec document, traceability document, html document and code generation
+  - Options:
+    1. yes, an opaque string
+    2. no, the card number
+  - Record the answer: specarch decide Q-2 --by owner --answer "<answer>" --source owner-answer project
+
+  Put it to owner alone, with one answer recommended and why; specarch help asking.

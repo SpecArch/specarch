@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: gaps
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with two must questions, Q-2 blocking two design entities and holding up four outputs, Q-5 blocking one key of a requirement and holding up seven, a could question, and two interview sources"
+when: "gaps --next is run"
+then: "it prints Q-5, which holds up more outputs, before Q-2, which blocks more entries and has the lower ID, with who decides, what it blocks, what it holds up, its options and Insight, the decide line without --source and a line naming the two interview sources to choose from, and exits 1"
+verifies: [SA-107]

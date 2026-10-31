@@ -2768,12 +2768,41 @@ the errors that concern it) or waiting (the errors, the questions,
 and the approval that is missing or void), the questions given per
 stage as how many and the first three by priority then ID.
 
+With `--next` it prints, after the same problem lines, for each
+specification given only the one open question to put to a person
+next (ADR-209): ranked first by priority, must, should, could; then
+by how many outputs it holds up, the documents of the outputs table
+whose sections it blocks and code generation, more first; then by
+how many entries it blocks, more first; then by stage in life-cycle
+order; then by ID as gaps orders IDs. A line names the
+specification, the question with its priority and kind, and how
+many questions are open; then the question; who decides it, or for
+material whom it is needed from; what it blocks, with the keys
+missing there; the outputs it holds up; its options; its Insight;
+and the decide command that records the answer, with the question,
+the stakeholder, the folder and `--source` naming the interview
+source the root file declares, for material the document source,
+or saying which to declare when there is none or which to choose
+when there are several. A specification without an open question
+prints that it has none. The errors of an invalid specification are
+printed first as problem lines, and its next question is still
+ranked from what could be read. With `--json` the output object
+holds `next`, one entry per specification: `specification` (the
+root file), `openQuestions`, and `question`, null when none is
+open, with `id`, `question`, `kind`, `priority`, `decidedBy`,
+`stage`, `blocks`, `missing` (the keys missing per blocked
+pointer), `holdsUp`, `options`, `insight`, `certainty` and `names`
+as the question has them, `decide` (the command as arguments, the
+answer as `<answer>`) and `recommendation`, always null: the agent
+fills it with the answer it recommends and why before it puts the
+question (`specarch help asking`).
+
 **Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
 
 ```
-specarch gaps <paths>...
+specarch gaps <paths>... [--next]
 ```
 
 Anyone who has the program runs it.
@@ -2782,6 +2811,10 @@ Anyone who has the program runs it.
 |---|---|---|
 | `<paths>` | Folders holding specifications, searched as validate searches them. One or more. | yes |
 
+| Option | What it does | Required |
+|---|---|---|
+| `--next` | Print only the one open question to ask next per specification, ranked by what its answer unblocks, with the decide command that records the answer. |  |
+
 It reads:
 
 - `{paths}`: The specifications and their implementation files.
@@ -2789,7 +2822,7 @@ It reads:
 
 It writes no file.
 
-On standard output: The problems of each estate given, then the open questions document of each specification, with its errors listed in it.
+On standard output: The problems of each estate given, then the open questions document of each specification, with its errors listed in it; with --next the errors as problem lines and each specification's next question, and with --json that question as data under next.
 
 On standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -3071,7 +3104,8 @@ Explain an area of SpecArch or one command, from the text built into the program
 
 Without a topic it prints the usage and the list of topics. A topic
 is an area, with a short guide of its own (format, extract,
-validate, generate, upgrade, gaps, plugins, conventions, examples),
+validate, generate, upgrade, gaps, asking, plugins, conventions,
+examples),
 or a command's name, `idioms-diff` or `idioms diff` for the
 subcommand. A command's topic prints the command's reference made
 from its definition in this specification: the synopsis, the

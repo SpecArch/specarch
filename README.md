@@ -150,7 +150,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/stages.md` | the seven life-cycle stages: what each holds, which standard says so, and why |
 | `docs/maintenance.md` | after commissioning: change requests, defects, releases, incidents and operation, and the records that hold them; the release rules, the diff verb and their documents as designed |
 | `docs/diagnostics.md` | the problems file, its SARIF form and the marks at each entry in every output, with the steps that build them |
-| `docs/refinement.md` | from an old document to code: partial specifications, open questions, origin, approval and the gate on generation |
+| `docs/refinement.md` | from an old document to code: partial specifications, open questions, asking a person one question at a time, origin, approval and the gate on generation |
 | `docs/test-generation.md` | tests from the specification: the golden paths, which red paths are written and why, structured test data, the derive verb and the tests target, as designed |
 | `docs/dxlib-lessons.md` | what SpecArch takes from dxlib, the owner's Go library: one type rendered to many targets, the design keywords it proves are needed, a Go implementation on dxlib, and what is left behind |
 | `docs/idioms.md` | idioms: how each recurring implementation concern is done the same way everywhere, shipped with SpecArch and overridable per project |

@@ -1,0 +1,4 @@
+arguments: [gaps, --next, project]
+exitStatus: 0
+standardOutput: |
+  Case (project/specarch.yaml) has no open question.

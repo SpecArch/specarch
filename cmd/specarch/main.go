@@ -37,7 +37,8 @@ const version = specarch.Version
 
 const usage = `usage:
   specarch validate <folder or file>...    check specifications and implementation files
-  specarch gaps <folder>...                 list the open questions and what they hold up
+  specarch gaps [--next] <folder>...        list the open questions and what they hold up;
+                                            --next only the one to ask next
   specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] <folder>...
                                             write a document from a specification
   specarch decide <question> --by <stakeholder> --answer <text> [--source <key>] [--date <date>] [--dry-run] <folder>

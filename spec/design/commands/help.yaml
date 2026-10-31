@@ -5,7 +5,8 @@ commands:
     description: |
       Without a topic it prints the usage and the list of topics. A topic
       is an area, with a short guide of its own (format, extract,
-      validate, generate, upgrade, gaps, plugins, conventions, examples),
+      validate, generate, upgrade, gaps, asking, plugins, conventions,
+      examples),
       or a command's name, `idioms-diff` or `idioms diff` for the
       subcommand. A command's topic prints the command's reference made
       from its definition in this specification: the synopsis, the

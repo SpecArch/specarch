@@ -381,6 +381,10 @@ A question sits in the stage folder of what it blocks. `decidedBy` names a
 stakeholder by role, never a person. `docs/conventions.md`, Open
 questions, has every rule.
 
+To get the answers, ask one question at a time: `specarch gaps --next`
+names the one to put next, and `specarch help asking` is the procedure
+(`docs/refinement.md`, Asking a person).
+
 ### 3.6 Check after every step
 
     specarch validate spec

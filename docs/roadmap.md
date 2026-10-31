@@ -301,7 +301,11 @@ needs of each question (ADR-156), and the document target
 reading of the log is the agent queue's item. A
 system with both documents and code is written by the procedure in
 `docs/from-sources.md`, and `gaps` shows which section of each source
-produced which elements.
+produced which elements. How the questions are put to a
+person, one at a time with a recommended answer and no fixed number, is
+`specarch help asking`, and `specarch gaps --next` ranks the one to ask
+next by what its answer unblocks, with `--json` for an agent (ADR-209,
+SA-107, `spec/tests/gaps-next-*`): built on main, in no release yet.
 
 Candidates, in rough order of size: a menu-bar agent manager (macOS), a home
 solar monitoring system (Go services on a small board plus an iPhone app), a

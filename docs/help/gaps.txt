@@ -9,6 +9,12 @@ decision that opened it; then the references into other specifications
 that do not resolve, and which documents and code targets are ready,
 drafts or waiting.
 
+  specarch gaps --next <folder>...
+
+prints only the question to ask next in each specification, ranked by
+what its answer unblocks, with the decide command that records the
+answer; specarch help asking is how to put it to a person.
+
 A question is written in the specification, under questions, when a
 source does not say something or two sources disagree:
 

@@ -1,0 +1,59 @@
+Asking a person: one question at a time, with a recommended answer
+
+The open questions are answered by people, and a person answers one
+question with a choice better than a list. specarch gaps --next picks the
+question to ask next; the agent puts it, with an answer it recommends;
+specarch decide records the answer. Then the next one.
+
+  specarch gaps --next <folder>
+
+prints, per specification, the one open question ranked first: a must
+question before a should, a should before a could; then the one holding
+up more outputs (the documents whose sections it blocks, and code); then
+the one blocking more entries; then the earlier stage; then the lower ID.
+With it: who decides, what it blocks, what it holds up, its options, its
+Insight and the decide command that records the answer. With --json the
+same is under next, with recommendation null, for the agent to fill
+before it passes the question on.
+
+The procedure
+
+1. Run specarch gaps --next. Ask the stakeholder it names under Decided
+   by, a role; for material, under Needed from. When the person you are
+   talking to is not that role, pass the question to the person who is.
+2. Put that one question alone, in the words of its question line, with
+   what it blocks in one sentence when the person needs it.
+3. Give two to five options, numbered: the question's own when it has
+   them, otherwise ones you write from the specification and its
+   sources. Mark one recommended, with its reason in one line, and say
+   how sure you are. The person may accept it in a word (yes, 2).
+4. Record the answer with the decide line printed: the full text of the
+   option chosen, never the word or the number the person said, and
+   --source the interview it was given in. Run with --dry-run first when
+   unsure what it writes.
+5. Write the entries decide lists as blocked, from the answer, then
+   specarch validate.
+6. Run specarch gaps --next again. An answer can settle other questions
+   or open new ones, so never ask a second question from the first
+   ranking.
+
+Stop when no must or should question is left, or when the person stops.
+There is no fixed number of questions: a must question left unasked
+leaves keys undefined, and gaps lists what is left. Never answer a
+question yourself, and never pick between two sources that disagree; the
+person does.
+
+A material question asks for something to read: a document, a file, a
+screenshot, a record. Ask for it the same way, one at a time; declare
+what is received as a source of kind document and record it with decide
+--source naming it.
+
+When the person's answer is none of the options, record it in their
+words. When they cannot answer, leave the question open and go to the
+next one with gaps; say who else could answer it.
+
+The program itself asks nothing: gaps --next prints and exits, and every
+answer is recorded by decide, with its source and the entries it
+settles. The order of questions, one at a time with a recommended option,
+comes from Spec Kit's clarify command (github.com/github/spec-kit, MIT);
+Spec Kit stops after five questions, SpecArch does not.

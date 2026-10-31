@@ -1,0 +1,75 @@
+arguments: [gaps, --next, --json, project]
+exitStatus: 1
+standardOutput: |
+  {
+    "specarchOutput": "1.0.0",
+    "command": "gaps",
+    "exitStatus": 1,
+    "meaning": "at least one must or should question is open, or a specification or an estate has an error",
+    "remedy": "Answer the open must and should questions it lists with specarch decide and settle the errors, then run it again.",
+    "diagnostics": [],
+    "lines": [
+      "Next question in Case (project/specarch.yaml), ranked first of 3 open questions: Q-1 (must, decision)",
+      "",
+      "How important is the five-book limit, and how is it shown to be met?",
+      "",
+      "- Decided by: owner",
+      "- Blocks: #/requirements/CASE-1/priority, #/requirements/CASE-1/acceptance",
+      "- Holds up: techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql",
+      "- Options:",
+      "  1. must",
+      "  2. should",
+      "- Insight: The old document lists the limit under \"rules\" without saying whether a release without it is acceptable.",
+      "- Record the answer: specarch decide Q-1 --by owner --answer \"\u003canswer\u003e\" --source owner-answer project",
+      "",
+      "Put it to owner alone, with one answer recommended and why; specarch help asking."
+    ],
+    "messages": [],
+    "next": [
+      {
+        "specification": "project/specarch.yaml",
+        "title": "Case",
+        "openQuestions": 3,
+        "question": {
+          "id": "Q-1",
+          "question": "How important is the five-book limit, and how is it shown to be met?",
+          "kind": "decision",
+          "priority": "must",
+          "decidedBy": "owner",
+          "stage": "requirements",
+          "blocks": [
+            "#/requirements/CASE-1/priority",
+            "#/requirements/CASE-1/acceptance"
+          ],
+          "missing": {},
+          "holdsUp": [
+            "techspec document",
+            "requirements document",
+            "testplan document",
+            "traceability document",
+            "html document",
+            "code target echo",
+            "code target sql"
+          ],
+          "options": [
+            "must",
+            "should"
+          ],
+          "insight": "The old document lists the limit under \"rules\" without saying whether a release without it is acceptable.",
+          "decide": [
+            "specarch",
+            "decide",
+            "Q-1",
+            "--by",
+            "owner",
+            "--answer",
+            "\u003canswer\u003e",
+            "--source",
+            "owner-answer",
+            "project"
+          ],
+          "recommendation": null
+        }
+      }
+    ]
+  }

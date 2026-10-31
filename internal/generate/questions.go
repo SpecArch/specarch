@@ -449,63 +449,27 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.para("What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.")
 	d.line("| Output | State | Waits on |")
 	d.line("|---|---|---|")
-	for _, t := range DocumentTargets {
-		if !BuiltDocuments[t] || RefinementDocuments[t] || recordDocuments[t] {
-			continue
-		}
-		if t == "handover" && get(root, "handover") == nil {
-			continue // a specification with no handover has no handover document (ADR-129)
-		}
-		var waits []string
-		if ids := holding(qs, documentReads[t]); len(ids) > 0 {
-			waits = append(waits, byStage(qs, ids))
-		}
-		if errors := d.errorsConcerning(documentReads[t]); errors > 0 {
-			waits = append(waits, countText(errors, "error", "errors"))
-		}
-		if len(waits) == 0 {
-			d.line("| %s document | ready | |", t)
-		} else {
-			d.line("| %s document | draft | %s |", t, strings.Join(waits, ", "))
-		}
-	}
-	codeTargets := map[string][]string{}
-	var codeNames []string
-	for _, i := range impls {
-		for _, p := range pairs(i.Node, "targets") {
-			name := p.Key.Value
-			if IsDocumentTarget(name) {
-				continue
-			}
-			if _, seen := codeTargets[name]; !seen {
-				codeNames = append(codeNames, name)
-			}
-			reads := strs(p.Value, "reads")
-			if len(reads) == 0 {
-				reads = []string{"*"}
-			}
-			codeTargets[name] = append(codeTargets[name], reads...)
-		}
-	}
-	sort.Strings(codeNames)
 	approval := "the approval"
 	if state != nil {
 		approval = state.Approval
 	}
-	if len(codeNames) == 0 {
-		codeNames = []string{"code generation"}
-		codeTargets["code generation"] = []string{"*"}
-	}
-	for _, name := range codeNames {
-		reads := codeTargets[name]
-		for _, r := range reads {
-			if r == "*" {
-				reads = []string{"*"}
-				break
-			}
-		}
-		ids := holding(qs, reads)
+	for _, o := range outputReads(root, impls) {
+		ids := holding(qs, o.reads)
 		var waits []string
+		if o.document {
+			if len(ids) > 0 {
+				waits = append(waits, byStage(qs, ids))
+			}
+			if errors := d.errorsConcerning(o.reads); errors > 0 {
+				waits = append(waits, countText(errors, "error", "errors"))
+			}
+			if len(waits) == 0 {
+				d.line("| %s | ready | |", o.name)
+			} else {
+				d.line("| %s | draft | %s |", o.name, strings.Join(waits, ", "))
+			}
+			continue
+		}
 		if errors := d.errorCount(); errors > 0 {
 			waits = append(waits, countText(errors, "error", "errors"))
 		}
@@ -515,14 +479,10 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		if state == nil || !state.Approved {
 			waits = append(waits, approval)
 		}
-		label := name
-		if name != "code generation" {
-			label = "code target " + name
-		}
 		if len(waits) == 0 {
-			d.line("| %s | ready | |", label)
+			d.line("| %s | ready | |", o.name)
 		} else {
-			d.line("| %s | waits | %s |", label, cell(strings.Join(waits, "; ")))
+			d.line("| %s | waits | %s |", o.name, cell(strings.Join(waits, "; ")))
 		}
 	}
 	d.blank()

@@ -23,6 +23,10 @@ type draftCall struct {
 	input    []keyText
 	hasInput bool
 	expect   []keyText
+	// partial marks a call that stands for its case without the data the
+	// case is about: a value test_data would refuse or none that can be
+	// made, so only the status and the caller are written.
+	partial bool
 }
 
 type draftRecord struct {
@@ -388,9 +392,26 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 	status := func(s string) []keyText { return []keyText{{"status", s}} }
 	// valid is the call a caller who may makes with valid values, the
 	// records they name existing.
-	valid := func(expect, dropInput, dropRecord string, change keyText) draftCall {
-		if !od.inputOK || !od.holderOK || expect == "" {
+	// alone is the status and a caller who may, without the call's data:
+	// what a case keeps when the call cannot be made, a required field
+	// having no value that can be made for it or no role holding the
+	// permission. Empty when the operation declares no such status.
+	alone := func(expect string) draftCall {
+		if expect == "" {
 			return draftCall{}
+		}
+		c := draftCall{expect: status(expect), partial: true}
+		if od.holderOK {
+			c.caller = od.holder
+		}
+		return c
+	}
+	valid := func(expect, dropInput, dropRecord string, change keyText) draftCall {
+		if expect == "" {
+			return draftCall{}
+		}
+		if !od.inputOK || !od.holderOK {
+			return alone(expect)
 		}
 		c := draftCall{caller: od.holder, hasInput: true, expect: status(expect)}
 		for i, r := range od.records {
@@ -417,12 +438,7 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 	name := dc.name
 	switch {
 	case name == "":
-		if c := valid(successStatus(op), "", "", keyText{}); !c.empty() {
-			return c
-		}
-		if s := successStatus(op); s != "" {
-			return draftCall{expect: status(s)}
-		}
+		return valid(successStatus(op), "", "", keyText{})
 	case strings.HasPrefix(name, "response "):
 		return draftCall{expect: status(strings.TrimPrefix(name, "response "))}
 	case strings.HasPrefix(name, "repeated with the same "):
@@ -432,15 +448,9 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 	case name == "denied with expired session" && has("401"):
 		return draftCall{expect: status("401")}
 	case strings.HasPrefix(name, "denied without "):
+		// The role and the status the design gives, as far as it gives
+		// them: empty when no 403 is declared.
 		c := valid(map[bool]string{true: "403"}[has("403")], "", "", keyText{})
-		if c.empty() {
-			// The input cannot be made, or no status is declared: the role
-			// and the status the design gives, as far as it gives them.
-			c = draftCall{}
-			if has("403") {
-				c.expect = status("403")
-			}
-		}
 		c.caller = od.lacker
 		if c.caller == "" {
 			// No role lacks the permission: the status alone.
@@ -459,17 +469,22 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 		if _, ok := od.recordOf[field]; ok {
 			return valid("404", "", field, keyText{})
 		}
-		return draftCall{expect: status("404")}
+		return alone("404")
 	case strings.HasPrefix(name, "missing "):
 		field := strings.TrimPrefix(name, "missing ")
 		if od.fields[field] != nil {
 			return valid(badStatus(op), field, "", keyText{})
 		}
 	default:
-		if field, value, golden := d.limitValue(od, name, dc); field != "" {
+		if field, value, golden, limit := d.limitValue(od, name, dc); limit {
 			expect := badStatus(op)
 			if golden {
 				expect = successStatus(op)
+			}
+			if field == "" {
+				// A value test_data would refuse, or none that can be
+				// made: the status and the caller alone.
+				return alone(expect)
 			}
 			return valid(expect, "", "", keyText{field, value})
 		}
@@ -478,16 +493,18 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 }
 
 // limitValue is the field and the value of a case about one field's form
-// or limits: not a valid format, below or above a limit, shorter or longer
-// than a length, or golden at a limit. "" when the case is of no such
-// kind, or its value is one test_data would refuse (a malformed date, a
-// value not of an enum): such a value cannot be written in a test, which
-// holds only values of the field's type.
-func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (field, value string, golden bool) {
+// or limits: not a valid format, not one of its values, not matching its
+// pattern, below or above a limit, shorter or longer than a length, with
+// fewer or more items, or golden at a limit. limit is false when the case
+// is of no such kind. field is "" when the case is of such a kind but no
+// value can be written for it: a value test_data would refuse (a malformed
+// date, a value not of an enum), since a test holds only values of the
+// field's type, or one the generator does not make (a pattern, a list).
+func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (field, value string, golden, limit bool) {
 	f := dc.fieldName
 	schema := od.fields[f]
 	if f == "" || schema == nil || !strings.HasPrefix(name, f+" ") {
-		return "", "", false
+		return "", "", false, false
 	}
 	rest := strings.TrimPrefix(name, f+" ")
 	t := d.fieldType(schema)
@@ -510,9 +527,14 @@ func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (fie
 		}
 		return strconv.Quote(strings.Repeat("x", int(n)+off))
 	}
+	limit = true
 	switch {
-	case strings.HasPrefix(rest, "not a valid ") && t.Kind == expr.String:
-		value = strconv.Quote("not a " + strings.TrimPrefix(rest, "not a valid "))
+	case strings.HasPrefix(rest, "not a valid "):
+		if t.Kind == expr.String {
+			value = strconv.Quote("not a " + strings.TrimPrefix(rest, "not a valid "))
+		}
+	case rest == "not one of its values", rest == "not matching its pattern",
+		strings.HasPrefix(rest, "with fewer than "), strings.HasPrefix(rest, "with more than "):
 	case strings.HasPrefix(rest, "below minimum "):
 		value = number("minimum", -1)
 	case strings.HasPrefix(rest, "above maximum "):
@@ -525,20 +547,27 @@ func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (fie
 		value = number("exclusiveMinimum", 0)
 	case strings.HasPrefix(rest, "at exclusive maximum "):
 		value = number("exclusiveMaximum", 0)
-	case strings.HasPrefix(rest, "shorter than ") && t.Kind == expr.String:
-		value = length("minLength", -1)
-	case strings.HasPrefix(rest, "longer than ") && t.Kind == expr.String:
-		value = length("maxLength", 1)
-	case strings.HasPrefix(rest, "of ") && t.Kind == expr.String:
-		n := strings.TrimSuffix(strings.TrimSuffix(strings.TrimPrefix(rest, "of "), " characters"), " character")
-		if c, err := strconv.Atoi(n); err == nil {
-			value, golden = strconv.Quote(strings.Repeat("x", c)), true
+	case strings.HasPrefix(rest, "shorter than "):
+		if t.Kind == expr.String {
+			value = length("minLength", -1)
 		}
+	case strings.HasPrefix(rest, "longer than "):
+		if t.Kind == expr.String {
+			value = length("maxLength", 1)
+		}
+	case strings.HasPrefix(rest, "of ") && strings.HasSuffix(rest, " character"), strings.HasPrefix(rest, "of ") && strings.HasSuffix(rest, " characters"):
+		golden = true
+		n := strings.TrimSuffix(strings.TrimSuffix(strings.TrimPrefix(rest, "of "), " characters"), " character")
+		if c, err := strconv.Atoi(n); err == nil && t.Kind == expr.String {
+			value = strconv.Quote(strings.Repeat("x", c))
+		}
+	default:
+		return "", "", false, false
 	}
 	if value == "" || !d.takes(value, schema) {
-		return "", "", false
+		return "", "", golden, true
 	}
-	return f, value, golden
+	return f, value, golden, true
 }
 
 // Fill is the structured data derive --fill adds to a test that has none:
@@ -555,9 +584,10 @@ type Fill struct {
 // not marked notApplicable, the data its cases draft: the data of the one
 // case it covers, or of the success when a golden test covers none. A
 // test of several cases is filled when the data of one of them holds what
-// the others give, as not found memberId does response 404; otherwise its
-// cases draft different data, and it is left as it is with that reason.
-// A test whose cases the design fixes nothing about is not listed.
+// the others give, as not found memberId does response 404; otherwise,
+// its cases drafting different data or one of them drafting none, or only
+// the status of a value no test can hold, it is left as it is with that
+// reason. A test whose cases the design fixes nothing about is not listed.
 func Fills(root *yaml.Node, given Given) []Fill {
 	d := newDesign(root).withIdentity(given)
 	bySubject := map[string]*subject{}
@@ -575,33 +605,47 @@ func Fills(root *yaml.Node, given Given) []Fill {
 			continue
 		}
 		var calls []draftCall
+		var names []string
 		covers := source.Items(source.Child(t, "covers"))
 		if len(covers) == 0 && source.Str(source.Child(t, "scenario")) == "golden" {
 			success := s.success
 			success.name = ""
 			calls = append(calls, d.draftData(s, success))
+			names = append(names, "the success")
 		}
 		for _, item := range covers {
 			for _, dc := range s.cases {
 				if dc.name == item.Value {
 					calls = append(calls, d.draftData(s, dc))
+					names = append(names, dc.name)
 					break
 				}
 			}
 		}
 		var nonEmpty []draftCall
-		for _, c := range calls {
-			if !c.empty() {
-				c.caller = d.namedCaller(s, c.caller, source.Str(source.Child(t, "given"))+" "+source.Str(source.Child(t, "when")))
-				nonEmpty = append(nonEmpty, c)
+		var bare, partial []string // the cases that draft nothing, or only a status
+		for i, c := range calls {
+			if c.empty() {
+				bare = append(bare, names[i])
+				continue
 			}
+			if c.partial {
+				partial = append(partial, names[i])
+			}
+			c.caller = d.namedCaller(s, c.caller, source.Str(source.Child(t, "given"))+" "+source.Str(source.Child(t, "when")))
+			nonEmpty = append(nonEmpty, c)
 		}
 		if len(nonEmpty) == 0 {
 			continue
 		}
 		f := Fill{Name: p.Key.Value, Subject: s.label}
-		if whole, ok := holdingAll(nonEmpty); ok {
+		if len(bare) > 0 {
+			// The data of the other cases would leave these unchecked.
+			f.Reason = "the design fixes no data for its case " + strings.Join(bare, ", ") + ", so the data of the others would leave it unchecked; give the fixture, input and expect by hand, or split it into one test per case"
+		} else if whole, ok := holdingAll(nonEmpty); ok {
 			f.Lines = whole.lines()
+		} else if len(partial) > 0 && len(partial) < len(nonEmpty) {
+			f.Reason = "its case " + strings.Join(partial, ", ") + " is about a value no test can hold, so the data of the others would leave it unchecked; give the fixture, input and expect by hand, or split it into one test per case"
 		} else {
 			f.Reason = "its cases draft different data; give the fixture, input and expect of the case it is about by hand, or split it into one test per case"
 		}
@@ -612,6 +656,8 @@ func Fills(root *yaml.Node, given Given) []Fill {
 
 // holdingAll is the call among calls that holds what every other gives:
 // the same expected outcome, and no caller, record or input that differs.
+// A partial call is held only by its equal: its case is about a value the
+// others' data does not carry.
 func holdingAll(calls []draftCall) (draftCall, bool) {
 	for _, big := range calls {
 		all := true
@@ -632,7 +678,7 @@ func holds(big, small draftCall) bool {
 	if big.equal(small) {
 		return true
 	}
-	if joinKeyText(big.expect) != joinKeyText(small.expect) {
+	if small.partial || joinKeyText(big.expect) != joinKeyText(small.expect) {
 		return false
 	}
 	return (small.caller == "" || small.caller == big.caller) && len(small.records) == 0 && !small.hasInput

@@ -1,0 +1,7 @@
+operation: lendCopy
+level: system
+scenario: golden
+given: "a clerk and a member"
+when: "lendCopy is called"
+then: "it answers 201"
+verifies: [LEND-1]

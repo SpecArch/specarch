@@ -367,8 +367,10 @@ exist and have none of `fixture`, `input` and `expect`, no `input/` or
 covers, or of the success when a golden test covers none. A test of
 several cases is filled when one case's data holds what the others give,
 as `not found memberId` holds `response 404`; one whose cases draft
-different data, four missing fields for one, is named with the reason and
-left as it is, since one call shows one case. A role the test's own
+different data, four missing fields for one, or one of whose cases drafts
+nothing or keeps its status alone while another's data differs, is named
+with the reason and left as it is, since one call shows one case and the
+data of the others would leave that case unchecked. A role the test's own
 `given` or `when` names is taken as the caller when it holds the
 permission as the drafted one does or does not. The lines go at the end
 of the file and nothing else in it changes; the author reads them against
@@ -487,7 +489,9 @@ validator builds where it adds a rule, and the conformance cases.
    against its own test.
 8. Built. Draft data where the design fixes it, `specarch derive
    --fill`, and the count of tests generated with a body in the test
-   plan (ADR-213). The `tests` target still makes no call for a
-   constraint, a transition, a page, a workflow, a job, a flow or a
-   requirement; giving it one is the next item, since it changes the
-   harness each plug-in asks the project for.
+   plan (ADR-213). derive drafts no call for a page yet, though the
+   `tests` target writes the body of a page test that gives its input or
+   expect. The `tests` target still makes no call for a constraint, a
+   transition, a workflow, a job, a flow or a requirement; giving it one
+   is the next item, since it changes the harness each plug-in asks the
+   project for.

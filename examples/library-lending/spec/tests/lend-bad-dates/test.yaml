@@ -6,3 +6,5 @@ covers: [lentOn not a valid date, dueOn not a valid date]
 given: a librarian, a member and a book with a copy available
 when: createLoan is called with lentOn 2026-02-30 and again with dueOn 28/10/2026
 then: both are refused as invalid input
+fixture: { caller: librarian }
+expect: { status: 400 }

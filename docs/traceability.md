@@ -139,7 +139,7 @@ Version 1.4.0 of the specification: 10 needs, 111 requirements, and 2 gaps. Each
 | SA-108 | NEED-7, NEED-10 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | NEED-1 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | NEED-8 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
-| SA-111 | NEED-9 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-fill; tests document-testplan-bodies |
+| SA-111 | NEED-9 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
 
 ## 3. Gaps
 

@@ -505,7 +505,7 @@ On standard error: A usage message on a usage error, and the reason a refusal.
 
 ### specarch derive
 
-Write a draft test for every derived case no test covers.
+Write a draft test for every derived case no test covers, and with --fill add the fixture, input and expect the design fixes to each test that has none.
 
 Validates its input first and writes nothing from an invalid
 specification. In a 0.2 file the errors for a test it would write
@@ -590,8 +590,14 @@ With `--fill` it also adds that data to each test that has none of
 and no `notApplicable`: the data of the case it covers, or of the
 success when a golden test covers none. A test of several cases is
 filled when one case's data holds what the others give, as `not
-found memberId` holds `response 404`; otherwise it is left as it is
-and named on standard error with the reason. The lines go at the
+found memberId` holds `response 404`. It is left as it is and named
+on standard error with the reason when its cases draft different
+data, when one of them drafts nothing, or when one keeps its status
+alone because no test can hold its value and another case's data
+differs: the data of the others would leave that case unchecked. A
+case that keeps its status alone is held only by the same data, so
+`missing code` and `code not matching its pattern`, both keeping
+400 alone, fill one test. The lines go at the
 end of the test's file, and nothing else in it changes: the author
 reads them against the test's `given`, `when` and `then`, which the
 data cannot read. Each test filled is printed as a draft is.

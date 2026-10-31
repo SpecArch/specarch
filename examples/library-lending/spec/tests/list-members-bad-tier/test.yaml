@@ -6,3 +6,5 @@ covers: [tier not one of its values]
 given: a librarian
 when: listMembers is called with the tier gold-plus, which is not a membership tier
 then: it is refused as invalid input
+fixture: { caller: librarian }
+expect: { status: 400 }

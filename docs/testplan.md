@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 890 design tests, 439 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 891 design tests, 440 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 890 design tests, 439 golden and 451 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 886 |
+| system | 887 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -389,13 +389,21 @@ Scenario: golden; level: system; verifies SA-111.
 - When: derive is run
 - Then: each draft carries the call the design fixes: a caller that may or, denied, one that may not, a valid value of every required field and the member record its id names, the field of the case left out or past its limit, the member left out for not found, and the status; it exits 0
 
+#### derive-drafts-status-alone
+
+Scenario: golden; level: system; verifies SA-111.
+
+- Given: a specification whose operation declares 400, 403 and 404 and requires a list field, for which no value can be made, beside a member id, a date and a number with limits
+- When: derive is run
+- Then: no draft carries an input or a record; the missing, limit, form and not found drafts keep a caller that may and the status the operation declares for them, 400, 201 at a limit or 404, and the denied draft a caller that may not and 403; it exits 0
+
 #### derive-fill
 
 Scenario: golden; level: system; verifies SA-111.
 
-- Given: a specification whose tests cover every chosen case, five of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of two missing fields, a test with an input/ folder; and one test with expect already
+- Given: a specification whose tests cover every chosen case, seven of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of a date that is not valid, a test of two missing fields, a test of a uuid and a date that are not valid, a test with an input/ folder; and one test with expect already
 - When: derive --fill is run
-- Then: it adds the success's call to the golden test and the visitor's denied call to the denied test at the end of their files, names the test of two missing fields and the one with input/ on standard error and leaves them, leaves the test with expect as it is, prints the two files and exits 0
+- Then: it adds the success's call to the golden test, the visitor's denied call to the denied test, and a caller who may and status 400 alone to the test of the date, which no valid value can show, at the end of their files; it leaves the test of two missing fields, the one of the uuid and the date, the one with input/ and the one with expect as they are, prints the three files and exits 0
 
 #### derive-integration-contract
 

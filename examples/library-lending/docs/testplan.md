@@ -6,7 +6,7 @@ Version 0.1.0 of the specification: 199 design tests, 56 golden and 142 red, abo
 
 1 test is marked not applicable, with the reason.
 
-Of the 198 tests that apply, the tests target writes 66 with their bodies, from their input and expected outcome, and 132 with a body written by hand (section 1).
+Of the 198 tests that apply, the tests target writes 68 with their bodies, from their input and expected outcome, and 130 with a body written by hand (section 1).
 
 ## 1. Levels and how the tests run
 
@@ -23,13 +23,13 @@ System and acceptance tests are design tests, written in the specification and r
 | entity | 1 | 0 | 1 |
 | flow | 2 | 0 | 2 |
 | job | 2 | 0 | 2 |
-| operation | 112 | 66 | 46 |
+| operation | 112 | 68 | 44 |
 | page | 47 | 0 | 47 |
 | requirement | 2 | 0 | 2 |
 | transition | 10 | 0 | 10 |
 | workflow | 8 | 0 | 8 |
 
-The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
+The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the operation and command tests that have none; it drafts no call for a page or any other subject.
 
 ## 2. Test cases
 

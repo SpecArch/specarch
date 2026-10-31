@@ -6,3 +6,5 @@ covers: [missing loans, loans with fewer than 1 items, loans with more than 6 it
 given: a librarian
 when: lendCopies is called without loans, with no loan, and with seven
 then: each is refused as invalid input, and no loan is created
+fixture: { caller: librarian }
+expect: { status: 400 }

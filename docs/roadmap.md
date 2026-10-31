@@ -119,12 +119,14 @@ none, and the test plan counts the tests the `tests` target writes with
 their bodies, by kind of subject (ADR-213, SA-111,
 `spec/tests/derive-drafts-calls`, `spec/tests/derive-fill`,
 `spec/tests/document-testplan-bodies`): built on
-main, in no release yet. In the library lending example 66 of 198 tests
+main, in no release yet. In the library lending example 68 of 198 tests
 are generated with their bodies, against 12. Spec Kit's tasks step, which
 turns every item into work an agent carries out, showed the gap. Next:
-a call of the `tests` target for a constraint, a transition and a page,
-then the other subjects, through optional harness methods in the Go,
-Swift and Dart plug-ins; 86 tests of the example wait on them.
+a page's call drafted by derive, since the `tests` target already writes
+the body of a page test that gives its input or expect (47 tests of the
+example); then a call of the `tests` target for a constraint and a
+transition, then the other subjects, through optional harness methods in
+the Go, Swift and Dart plug-ins (39 tests of the example).
 
 ## 2. Targets, in order of payoff
 

@@ -1,0 +1,8 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [memberId not a valid uuid, lentOn not a valid date]
+given: "a clerk"
+when: "lendCopy is called with memberId abc, and again with lentOn 2026-02-30"
+then: "both answer 400"
+verifies: [LEND-1]

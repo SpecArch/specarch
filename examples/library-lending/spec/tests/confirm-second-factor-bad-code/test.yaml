@@ -6,3 +6,4 @@ covers: [missing code, code not matching its pattern]
 given: a sign-in challenge signIn opened a minute ago
 when: confirmSecondFactor is called without code and again with a code of five digits
 then: both are refused as invalid input, and the challenge stays open
+expect: { status: 400 }

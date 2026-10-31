@@ -6,6 +6,3 @@ covers: [status not one of its values, memberId not a valid uuid]
 given: a librarian
 when: listLoans is called with status lent and again with memberId abc
 then: both are refused as invalid input
-fixture: { caller: librarian }
-input: { memberId: "not a uuid" }
-expect: { status: 400 }

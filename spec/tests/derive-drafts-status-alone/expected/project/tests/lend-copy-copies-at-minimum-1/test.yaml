@@ -1,0 +1,12 @@
+operation: lendCopy
+level: system
+scenario: golden
+covers: [copies at minimum 1]
+given: "..."
+when: "lendCopy is called with copies equal to 1"
+then: "it succeeds"
+verifies: [LEND-1]
+origin: inferred
+why: "Written by specarch derive: operation lendCopy is at stake in a requirement that names a harm, so its cases are written. A draft: complete the given, when and then, and remove what does not hold."
+fixture: { caller: clerk }
+expect: { status: 201 }

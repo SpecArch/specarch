@@ -8010,6 +8010,13 @@ label {
 <dd>confirmSecondFactor is called without code and again with a code of five digits</dd>
 <dt>then</dt>
 <dd>both are refused as invalid input, and the challenge stays open</dd>
+<dt>expect</dt>
+<dd id="/tests/confirm-second-factor-bad-code/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/confirm-second-factor-refused">
@@ -9352,6 +9359,20 @@ label {
 <dd>createLoan is called with lentOn 2026-02-30 and again with dueOn 28/10/2026</dd>
 <dt>then</dt>
 <dd>both are refused as invalid input</dd>
+<dt>fixture</dt>
+<dd id="/tests/lend-bad-dates/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-bad-dates/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-bad-ids">
@@ -9422,6 +9443,20 @@ label {
 <dd>lendCopies is called without loans, with no loan, and with seven</dd>
 <dt>then</dt>
 <dd>each is refused as invalid input, and no loan is created</dd>
+<dt>fixture</dt>
+<dd id="/tests/lend-copies-bad-loans/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-copies-bad-loans/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-copies-bad-member-id">
@@ -9534,6 +9569,20 @@ label {
 <dd>lendCopies is called with an Idempotency-Key that is not a UUID</dd>
 <dt>then</dt>
 <dd>it is refused and no loan is created</dd>
+<dt>fixture</dt>
+<dd id="/tests/lend-copies-idempotency-key-not-a-valid-uuid/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/lend-copies-idempotency-key-not-a-valid-uuid/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/lend-copies-idempotency-key-reused-for-another-request">
@@ -10018,27 +10067,6 @@ label {
 <dd>listLoans is called with status lent and again with memberId abc</dd>
 <dt>then</dt>
 <dd>both are refused as invalid input</dd>
-<dt>fixture</dt>
-<dd id="/tests/list-loans-bad-filter/fixture">
-<dl>
-<dt>caller</dt>
-<dd>librarian</dd>
-</dl>
-</dd>
-<dt>input</dt>
-<dd id="/tests/list-loans-bad-filter/input">
-<dl>
-<dt>memberId</dt>
-<dd>not a uuid</dd>
-</dl>
-</dd>
-<dt>expect</dt>
-<dd id="/tests/list-loans-bad-filter/expect">
-<dl>
-<dt>status</dt>
-<dd>400</dd>
-</dl>
-</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-loans-denied">
@@ -10174,6 +10202,20 @@ label {
 <dd>listMembers is called with the tier gold-plus, which is not a membership tier</dd>
 <dt>then</dt>
 <dd>it is refused as invalid input</dd>
+<dt>fixture</dt>
+<dd id="/tests/list-members-bad-tier/fixture">
+<dl>
+<dt>caller</dt>
+<dd>librarian</dd>
+</dl>
+</dd>
+<dt>expect</dt>
+<dd id="/tests/list-members-bad-tier/expect">
+<dl>
+<dt>status</dt>
+<dd>400</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/list-members-denied">
@@ -11581,31 +11623,6 @@ label {
 <dd>createMember is called with email set to &#39;not-an-address&#39;, and with tier set to gold</dd>
 <dt>then</dt>
 <dd>both are refused as invalid input</dd>
-<dt>fixture</dt>
-<dd id="/tests/register-member-bad-values/fixture">
-<dl>
-<dt>caller</dt>
-<dd>librarian</dd>
-</dl>
-</dd>
-<dt>input</dt>
-<dd id="/tests/register-member-bad-values/input">
-<dl>
-<dt>email</dt>
-<dd>not a email</dd>
-<dt>fullName</dt>
-<dd>full-name</dd>
-<dt>tier</dt>
-<dd>standard</dd>
-</dl>
-</dd>
-<dt>expect</dt>
-<dd id="/tests/register-member-bad-values/expect">
-<dl>
-<dt>status</dt>
-<dd>400</dd>
-</dl>
-</dd>
 </dl>
 </article>
 <article class="element" data-search id="/tests/register-member-card-number-clash">
@@ -11695,13 +11712,6 @@ label {
 <dt>verifies</dt>
 <dd>
 <p><a href="#/requirements/LIB-1">LIB-1</a></p>
-</dd>
-<dt>expect</dt>
-<dd id="/tests/register-member-email-taken/expect">
-<dl>
-<dt>status</dt>
-<dd>409</dd>
-</dl>
 </dd>
 </dl>
 </article>

@@ -2,4 +2,5 @@ arguments: [derive, --fill, project]
 exitStatus: 0
 standardOutput: |
   project/tests/lend-copy-denied/test.yaml
+  project/tests/lend-copy-lent-on-not-a-valid-date/test.yaml
   project/tests/lend-copy-works/test.yaml

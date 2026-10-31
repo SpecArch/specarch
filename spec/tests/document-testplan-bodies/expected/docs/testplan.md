@@ -20,7 +20,7 @@ System and acceptance tests are design tests, written in the specification and r
 | operation | 4 | 3 | 1 |
 | requirement | 1 | 0 | 1 |
 
-The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the tests that have none; it makes no call for the other subjects.
+The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the operation and command tests that have none; it drafts no call for a page or any other subject.
 
 ## 2. Test cases
 

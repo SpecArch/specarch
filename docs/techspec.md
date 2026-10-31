@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 111 requirements, 5 entities, 24 commands, 7 algorithms, 890 tests, 199 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 111 requirements, 5 entities, 24 commands, 7 algorithms, 891 tests, 199 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -65,7 +65,7 @@ The interfaces the system offers, as its clients see them.
 | decide | Answer an open question with a decision record and take the question out | public | 0: the record is written and the question taken out; 1: refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors; 2: usage error, or a file that could not be read or written |
 | decision why | Print the chain of decisions a decision rests on, earliest first | public | 0: the chain is printed; 1: refused, the decision is not one of the specification's; or printed, while the specification has errors; 2: usage error, or a folder that could not be read |
 | decision rests | Print the decisions that rest on a decision, nearest first | public | 0: the decisions are printed; 1: refused, the decision is not one of the specification's; or printed, while the specification has errors; 2: usage error, or a folder that could not be read |
-| derive | Write a draft test for every derived case no test covers | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
+| derive | Write a draft test for every derived case no test covers, and with --fill add the fixture, input and expect the design fixes to each test that has none | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written |
 | extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
@@ -1113,8 +1113,14 @@ With `--fill` it also adds that data to each test that has none of
 and no `notApplicable`: the data of the case it covers, or of the
 success when a golden test covers none. A test of several cases is
 filled when one case's data holds what the others give, as `not
-found memberId` holds `response 404`; otherwise it is left as it is
-and named on standard error with the reason. The lines go at the
+found memberId` holds `response 404`. It is left as it is and named
+on standard error with the reason when its cases draft different
+data, when one of them drafts nothing, or when one keeps its status
+alone because no test can hold its value and another case's data
+differs: the data of the others would leave that case unchecked. A
+case that keeps its status alone is held only by the same data, so
+`missing code` and `code not matching its pattern`, both keeping
+400 alone, fill one test. The lines go at the
 end of the test's file, and nothing else in it changes: the author
 reads them against the test's `given`, `when` and `then`, which the
 data cannot read. Each test filled is printed as a draft is.
@@ -16095,8 +16101,12 @@ as before. So do `response <status>`, `repeated with the same
 none of fixture, input and expect, no input/ or expected/ folder and
 no notApplicable: the data of the case it covers, or of the success
 for a golden test that covers none. A test of several cases is
-filled when one case's data holds what the others give; otherwise
-it is named with the reason and left as it is. A caller the test's
+filled when one case's data holds what the others give; otherwise,
+its cases drafting different data, one drafting nothing, or one
+keeping its status alone while another's data differs, it is named
+with the reason and left as it is. A case that keeps its status
+alone is held only by the same data: what the others draft would
+leave its value unchecked. A caller the test's
 own given or when names, holding the permission as the drafted one
 does or does not, is taken in place of the first by name. The lines
 go at the end of the file; nothing else changes.
@@ -16107,13 +16117,22 @@ target writes with their bodies, and, in section 1,
 the count per kind of subject, generated and written by hand.
 
 Consequences: In the library lending example, with 400, 401 and 403 declared on
-its operations, 66 of the 198 tests that apply are generated with a
-body, against 12: 66 of its 112 operation tests. Tests of constraints, transitions, pages, workflows,
-jobs, flows and requirements stay with a body written by hand,
-since the tests target makes no call for them; the test plan names
-how many. A test that covers several cases whose data differ, such
-as four missing fields, stays as it is, and derive says so: one
-call can show one case. A filled caller or record can disagree with
+its operations, 68 of the 198 tests that apply are generated with a
+body, against 12: 68 of its 112 operation tests. Its 47 page tests
+stay with a body written by hand because derive drafts no page call,
+though the tests target writes the body of a page test that gives
+its input or expect. Its 39 tests of constraints, transitions,
+workflows, jobs, flows, requirements and entities stay with a body
+written by hand, since the tests target makes no call for them; the
+test plan names how many. A test that covers several cases whose
+data differ, such as four missing fields, stays as it is, and derive
+says so: one call can show one case. So does a test one of whose
+cases keeps its status alone while another's data differs, such as
+an email that is not valid beside a tier not of its values: filling
+it with the email's data would leave the tier unchecked. Five tests
+of the example whose value no test can hold carry their status and
+caller alone, so their generated body calls without the value and
+can answer 400 for another reason; the author adds the input. A filled caller or record can disagree with
 the test's words, which the data cannot read, so the author reads
 the lines --fill adds; the drafts already ask the same of every
 draft.
@@ -16169,7 +16188,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-caller-estate | command derive | system | golden | an estate of two modules: an identity module with the trust domain, the security events, the clients, among them a reporting service that signs each request and has an admitted version range, a role that grants the core's delete by reference and narrows it to the administration application, and a role that grants the core's list to the reporting service; and the core, which declares no roles, no clients and no security events, whose list names the reporting service in callers by reference and whose list and delete each satisfy a requirement with a harm | derive is run on the estate file | it writes the core's drafts with the case of a caller through a client the identity module's role does not list, the reporting service's bad signature and version outside its range at the list, the confused deputy's cases of a service's own token and a person's token with no actor, the token cases' given saying an access token, each refusal's then naming its security event with the identifier under the identity module's trust domain, marks no problem in them, and exits 0 |
 | derive-caller-home | command derive | system | golden | the specification of validate-caller-home, whose every test is written but the sign-in page's golden one | derive is run | it writes the sign-in page's golden draft, answered 200 and leading to the caller's home with its message, lists it and exits 0 |
 | derive-drafts-calls | command derive | system | golden | a specification whose operation declares 400, 403 and 404, takes a body field that names a member through a relation, a date, a number with limits and an optional text with a length, and satisfies a requirement with a harm | derive is run | each draft carries the call the design fixes: a caller that may or, denied, one that may not, a valid value of every required field and the member record its id names, the field of the case left out or past its limit, the member left out for not found, and the status; it exits 0 |
-| derive-fill | command derive | system | golden | a specification whose tests cover every chosen case, five of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of two missing fields, a test with an input/ folder; and one test with expect already | derive --fill is run | it adds the success's call to the golden test and the visitor's denied call to the denied test at the end of their files, names the test of two missing fields and the one with input/ on standard error and leaves them, leaves the test with expect as it is, prints the two files and exits 0 |
+| derive-drafts-status-alone | command derive | system | golden | a specification whose operation declares 400, 403 and 404 and requires a list field, for which no value can be made, beside a member id, a date and a number with limits | derive is run | no draft carries an input or a record; the missing, limit, form and not found drafts keep a caller that may and the status the operation declares for them, 400, 201 at a limit or 404, and the denied draft a caller that may not and 403; it exits 0 |
+| derive-fill | command derive | system | golden | a specification whose tests cover every chosen case, seven of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of a date that is not valid, a test of two missing fields, a test of a uuid and a date that are not valid, a test with an input/ folder; and one test with expect already | derive --fill is run | it adds the success's call to the golden test, the visitor's denied call to the denied test, and a caller who may and status 400 alone to the test of the date, which no valid value can show, at the end of their files; it leaves the test of two missing fields, the one of the uuid and the date, the one with input/ and the one with expect as they are, prints the three files and exits 0 |
 | derive-integration-contract | command derive | system | golden | an operation whose call to a dependency with a rate retries, maps its errors and its timeout to the operation's answers, beside an async call and a fire-and-forget call to another dependency, with only its golden test written | derive is run | it writes a draft for the retries used up, ending in the answer the first retried status maps to, for an error the mapping does not name, for the rate exceeded, for the timeout answered as errors maps it, and for the fire-and-forget dependency's failure and timeout as cases the operation still succeeds in, beside the drafts of the permission, the key and the guard, and exits 0 |
 | derive-integration-contract-per-call | command derive | system | golden | an operation that calls two operations of one dependency, each with retries, one mapping only its timeout, and calls another dependency with a rate fire and forget three times with retries, twice naming the dependency alone | derive is run | it writes a draft per call for the retries used up, named by the operation called, or by the call's place when two calls name the same, writes no draft for an unmapped error when errors maps only the timeout, ends the fire-and-forget call's retries and rate exceeded in the operation succeeding all the same, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
@@ -17523,7 +17543,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
-| SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-fill; tests document-testplan-bodies |
+| SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
 
 ## Sources
 

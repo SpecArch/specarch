@@ -53,8 +53,12 @@ decisions:
       none of fixture, input and expect, no input/ or expected/ folder and
       no notApplicable: the data of the case it covers, or of the success
       for a golden test that covers none. A test of several cases is
-      filled when one case's data holds what the others give; otherwise
-      it is named with the reason and left as it is. A caller the test's
+      filled when one case's data holds what the others give; otherwise,
+      its cases drafting different data, one drafting nothing, or one
+      keeping its status alone while another's data differs, it is named
+      with the reason and left as it is. A case that keeps its status
+      alone is held only by the same data: what the others draft would
+      leave its value unchecked. A caller the test's
       own given or when names, holding the permission as the drafted one
       does or does not, is taken in place of the first by name. The lines
       go at the end of the file; nothing else changes.
@@ -65,13 +69,22 @@ decisions:
       the count per kind of subject, generated and written by hand.
     consequences: |
       In the library lending example, with 400, 401 and 403 declared on
-      its operations, 66 of the 198 tests that apply are generated with a
-      body, against 12: 66 of its 112 operation tests. Tests of constraints, transitions, pages, workflows,
-      jobs, flows and requirements stay with a body written by hand,
-      since the tests target makes no call for them; the test plan names
-      how many. A test that covers several cases whose data differ, such
-      as four missing fields, stays as it is, and derive says so: one
-      call can show one case. A filled caller or record can disagree with
+      its operations, 68 of the 198 tests that apply are generated with a
+      body, against 12: 68 of its 112 operation tests. Its 47 page tests
+      stay with a body written by hand because derive drafts no page call,
+      though the tests target writes the body of a page test that gives
+      its input or expect. Its 39 tests of constraints, transitions,
+      workflows, jobs, flows, requirements and entities stay with a body
+      written by hand, since the tests target makes no call for them; the
+      test plan names how many. A test that covers several cases whose
+      data differ, such as four missing fields, stays as it is, and derive
+      says so: one call can show one case. So does a test one of whose
+      cases keeps its status alone while another's data differs, such as
+      an email that is not valid beside a tier not of its values: filling
+      it with the email's data would leave the tier unchecked. Five tests
+      of the example whose value no test can hold carry their status and
+      caller alone, so their generated body calls without the value and
+      can answer 400 for another reason; the author adds the input. A filled caller or record can disagree with
       the test's words, which the data cannot read, so the author reads
       the lines --fill adds; the drafts already ask the same of every
       draft.

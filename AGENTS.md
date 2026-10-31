@@ -225,7 +225,9 @@ Error codes of --json:
   printed, while the specification has errors
   exit 2: usage error, or a folder that could not be read
 - `specarch derive [--fill] [--dry-run] <paths>...`
-  Write a draft test for every derived case no test covers.
+  Write a draft test for every derived case no test covers, and with --fill
+  add the fixture, input and expect the design fixes to each test that has
+  none.
   exit 0: the tests were written, or there was nothing to write
   exit 1: a specification has errors other than the missing tests it writes,
   or a draft's name is taken by another draft or by a test of another

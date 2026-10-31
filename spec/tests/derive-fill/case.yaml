@@ -4,3 +4,9 @@ standardOutput: |
   project/tests/lend-copy-denied/test.yaml
   project/tests/lend-copy-lent-on-not-a-valid-date/test.yaml
   project/tests/lend-copy-works/test.yaml
+standardError: |
+  specarch derive: left project/tests/lend-copy-bad-values as it is: its case lentOn not a valid date keeps its status alone because the value it is about is not one lentOn takes, and a test holds only values its field takes, as test_data checks them; the data of the others would leave it unchecked; give the fixture, input and expect by hand, or split it into one test per case
+  specarch derive: left project/tests/lend-copy-duplicate-loan as it is: the design fixes no data for its case duplicate loan_member_lent_on_unique, so the data of the others would leave it unchecked; give the fixture, input and expect by hand, or split it into one test per case
+  specarch derive: left project/tests/lend-copy-missing as it is: its cases draft different data; give the fixture, input and expect of the case it is about by hand, or split it into one test per case
+  specarch derive: left project/tests/lend-copy-missing-lent-on as it is: it keeps its data in input/, and a test says one thing one way
+  specarch derive: 0 draft tests written, 3 tests filled

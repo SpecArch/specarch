@@ -89,9 +89,13 @@ commands:
       found memberId` holds `response 404`. It is left as it is and named
       on standard error with the reason when its cases draft different
       data, when one of them drafts nothing, or when one keeps its status
-      alone because no test can hold its value and another case's data
-      differs: the data of the others would leave that case unchecked. A
-      case that keeps its status alone is held only by the same data, so
+      alone and another case's data differs: the data of the others would
+      leave that case unchecked. The reason names why such a case keeps
+      its status alone: the value it is about is not one its field takes,
+      derive makes no such value (a text not matching a pattern, a list's
+      number of items), derive can make no value for a required field,
+      derive finds no record the field names, or no role holds the
+      permission. A case that keeps its status alone is held only by the same data, so
       `missing code` and `code not matching its pattern`, both keeping
       400 alone, fill one test. The lines go at the
       end of the test's file, and nothing else in it changes: the author

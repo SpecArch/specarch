@@ -72,8 +72,9 @@ check stays the test before a change lands.
 `go test` runs the conformance suite, which is the tests stage of SpecArch's
 own specification, `spec/tests/`: every test folder holds `test.yaml` (the
 design test), `case.yaml` with the arguments, the exit status and the exact
-output expected, the input files of the case, and, when the case writes
-files, an `expected/` folder with each file as it must be afterwards. A
+output expected (standard error too, under `standardError`, in a case that
+records it; the Go build compares it), the input files of the case, and,
+when the case writes files, an `expected/` folder with each file as it must be afterwards. A
 case that needs a generator plug-in carries it as an executable under
 `plugins/`, which the harness puts on PATH for that run; with no such
 folder, PATH holds nothing. The Go and Swift builds of `specarch` both pass

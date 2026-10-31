@@ -1116,9 +1116,13 @@ filled when one case's data holds what the others give, as `not
 found memberId` holds `response 404`. It is left as it is and named
 on standard error with the reason when its cases draft different
 data, when one of them drafts nothing, or when one keeps its status
-alone because no test can hold its value and another case's data
-differs: the data of the others would leave that case unchecked. A
-case that keeps its status alone is held only by the same data, so
+alone and another case's data differs: the data of the others would
+leave that case unchecked. The reason names why such a case keeps
+its status alone: the value it is about is not one its field takes,
+derive makes no such value (a text not matching a pattern, a list's
+number of items), derive can make no value for a required field,
+derive finds no record the field names, or no role holds the
+permission. A case that keeps its status alone is held only by the same data, so
 `missing code` and `code not matching its pattern`, both keeping
 400 alone, fill one test. The lines go at the
 end of the test's file, and nothing else in it changes: the author
@@ -16104,7 +16108,11 @@ for a golden test that covers none. A test of several cases is
 filled when one case's data holds what the others give; otherwise,
 its cases drafting different data, one drafting nothing, or one
 keeping its status alone while another's data differs, it is named
-with the reason and left as it is. A case that keeps its status
+with the reason and left as it is. The reason names why such a case
+keeps its status alone, since each cause asks the author for a
+different fix: a value its field does not take, a value derive does
+not make, a required field derive can make no value for, no record
+the field names, or no role holding the permission. A case that keeps its status
 alone is held only by the same data: what the others draft would
 leave its value unchecked. A caller the test's
 own given or when names, holding the permission as the drafted one
@@ -16189,7 +16197,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-caller-home | command derive | system | golden | the specification of validate-caller-home, whose every test is written but the sign-in page's golden one | derive is run | it writes the sign-in page's golden draft, answered 200 and leading to the caller's home with its message, lists it and exits 0 |
 | derive-drafts-calls | command derive | system | golden | a specification whose operation declares 400, 403 and 404, takes a body field that names a member through a relation, a date, a number with limits and an optional text with a length, and satisfies a requirement with a harm | derive is run | each draft carries the call the design fixes: a caller that may or, denied, one that may not, a valid value of every required field and the member record its id names, the field of the case left out or past its limit, the member left out for not found, and the status; it exits 0 |
 | derive-drafts-status-alone | command derive | system | golden | a specification whose operation declares 400, 403 and 404 and requires a list field, for which no value can be made, beside a member id, a date and a number with limits | derive is run | no draft carries an input or a record; the missing, limit, form and not found drafts keep a caller that may and the status the operation declares for them, 400, 201 at a limit or 404, and the denied draft a caller that may not and 403; it exits 0 |
-| derive-fill | command derive | system | golden | a specification whose tests cover every chosen case, seven of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of a date that is not valid, a test of two missing fields, a test of a uuid and a date that are not valid, a test with an input/ folder; and one test with expect already | derive --fill is run | it adds the success's call to the golden test, the visitor's denied call to the denied test, and a caller who may and status 400 alone to the test of the date, which no valid value can show, at the end of their files; it leaves the test of two missing fields, the one of the uuid and the date, the one with input/ and the one with expect as they are, prints the three files and exits 0 |
+| derive-fill | command derive | system | golden | a specification whose tests cover every chosen case, eight of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of a date that is not valid, a test of two missing fields, a test of a uuid and a date that are not valid, a test of a unique constraint's duplicate that also covers response 409, a test with an input/ folder; and one test with expect already | derive --fill is run | it adds the success's call to the golden test, the visitor's denied call to the denied test, and a caller who may and status 400 alone to the test of the date, which no valid value can show, at the end of their files; it leaves the test of two missing fields, the one of the uuid and the date, the one of the duplicate, the one with input/ and the one with expect as they are, naming each but the last on standard error with its reason (the date's value is not one its field takes; the design fixes no data for the duplicate), prints the three files and exits 0 |
 | derive-integration-contract | command derive | system | golden | an operation whose call to a dependency with a rate retries, maps its errors and its timeout to the operation's answers, beside an async call and a fire-and-forget call to another dependency, with only its golden test written | derive is run | it writes a draft for the retries used up, ending in the answer the first retried status maps to, for an error the mapping does not name, for the rate exceeded, for the timeout answered as errors maps it, and for the fire-and-forget dependency's failure and timeout as cases the operation still succeeds in, beside the drafts of the permission, the key and the guard, and exits 0 |
 | derive-integration-contract-per-call | command derive | system | golden | an operation that calls two operations of one dependency, each with retries, one mapping only its timeout, and calls another dependency with a rate fire and forget three times with retries, twice naming the dependency alone | derive is run | it writes a draft per call for the retries used up, named by the operation called, or by the call's place when two calls name the same, writes no draft for an unmapped error when errors maps only the timeout, ends the fire-and-forget call's retries and rate exceeded in the operation succeeding all the same, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |

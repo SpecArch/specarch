@@ -401,9 +401,9 @@ Scenario: golden; level: system; verifies SA-111.
 
 Scenario: golden; level: system; verifies SA-111.
 
-- Given: a specification whose tests cover every chosen case, seven of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of a date that is not valid, a test of two missing fields, a test of a uuid and a date that are not valid, a test with an input/ folder; and one test with expect already
+- Given: a specification whose tests cover every chosen case, eight of them with no fixture, input or expect: a golden test, a denied test that also covers response 403 and names a visitor, a test of a date that is not valid, a test of two missing fields, a test of a uuid and a date that are not valid, a test of a unique constraint's duplicate that also covers response 409, a test with an input/ folder; and one test with expect already
 - When: derive --fill is run
-- Then: it adds the success's call to the golden test, the visitor's denied call to the denied test, and a caller who may and status 400 alone to the test of the date, which no valid value can show, at the end of their files; it leaves the test of two missing fields, the one of the uuid and the date, the one with input/ and the one with expect as they are, prints the three files and exits 0
+- Then: it adds the success's call to the golden test, the visitor's denied call to the denied test, and a caller who may and status 400 alone to the test of the date, which no valid value can show, at the end of their files; it leaves the test of two missing fields, the one of the uuid and the date, the one of the duplicate, the one with input/ and the one with expect as they are, naming each but the last on standard error with its reason (the date's value is not one its field takes; the design fixes no data for the duplicate), prints the three files and exits 0
 
 #### derive-integration-contract
 

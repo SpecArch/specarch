@@ -36,6 +36,11 @@ entities:
     primaryKey: [id]
     relations:
       member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+    constraints:
+      loan_member_lent_on_unique:
+        kind: unique
+        fields: [memberId, lentOn]
+        message: This member already has a loan lent on that day.
 paths:
   /loans:
     post:
@@ -56,3 +61,4 @@ paths:
         "400": { description: The request cannot be read. }
         "403": { description: Not allowed. }
         "404": { description: No such member. }
+        "409": { description: The member already has a loan lent on that day. }

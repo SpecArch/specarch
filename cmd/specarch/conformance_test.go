@@ -22,6 +22,9 @@ type conformanceCase struct {
 	Arguments      []string `yaml:"arguments"`
 	ExitStatus     int      `yaml:"exitStatus"`
 	StandardOutput string   `yaml:"standardOutput"`
+	// StandardError, when the case has the key, is the exact standard
+	// error the run must print; a case without it does not check it.
+	StandardError *string `yaml:"standardError"`
 	// Plugins names the targets whose plug-in from this repository the
 	// case runs with, such as openapi for cmd/specarch-gen-openapi: each is
 	// built once and put on PATH.
@@ -229,7 +232,7 @@ func TestConformance(t *testing.T) {
 			status := run(c.Arguments, &stdout, &stderr)
 			t.Logf("standard error:\n%s", stderr.String())
 			if os.Getenv(recordVariable) != "" {
-				recordCase(t, caseDir, raw, status, stdout.String(), inputs, readTree(t, work), c.Removed)
+				recordCase(t, caseDir, raw, status, stdout.String(), stderr.String(), inputs, readTree(t, work), c.Removed)
 				return
 			}
 			if status != c.ExitStatus {
@@ -237,6 +240,9 @@ func TestConformance(t *testing.T) {
 			}
 			if got := stdout.String(); got != c.StandardOutput {
 				t.Errorf("standard output differs\ngot:\n%s\nwant:\n%s", got, c.StandardOutput)
+			}
+			if c.StandardError != nil && stderr.String() != *c.StandardError {
+				t.Errorf("standard error differs\ngot:\n%s\nwant:\n%s", stderr.String(), *c.StandardError)
 			}
 			after := readTree(t, work)
 			want := map[string][]byte{}
@@ -289,43 +295,54 @@ func TestConformance(t *testing.T) {
 // read like any other change.
 const recordVariable = "SPECARCH_CONFORMANCE_RECORD"
 
-// recordCase writes a run into its case: the exit status and the standard
-// output into case.yaml, its other keys and comments kept, and every file
-// the run changed or added, apart from those it removes, into expected/.
-func recordCase(t *testing.T, dir string, raw []byte, status int, stdout string, inputs, after map[string][]byte, removed []string) {
-	t.Helper()
-	var block []string
+// textBlock writes a key and a text as a YAML literal block, or as "" when
+// the text is empty.
+func textBlock(key, text string) []string {
+	if text == "" {
+		return []string{key + `: ""`}
+	}
+	indicator := "|"
 	switch {
-	case stdout == "":
-		block = []string{`standardOutput: ""`}
-	default:
-		indicator := "|"
-		switch {
-		case !strings.HasSuffix(stdout, "\n"):
-			indicator = "|-"
-		case strings.HasSuffix(stdout, "\n\n"):
-			indicator = "|+"
-		}
-		if strings.HasPrefix(stdout, " ") {
-			indicator = "|2" + strings.TrimPrefix(indicator, "|")
-		}
-		block = []string{"standardOutput: " + indicator}
-		for _, l := range strings.Split(strings.TrimSuffix(stdout, "\n"), "\n") {
-			if l == "" {
-				block = append(block, "")
-			} else {
-				block = append(block, "  "+l)
-			}
+	case !strings.HasSuffix(text, "\n"):
+		indicator = "|-"
+	case strings.HasSuffix(text, "\n\n"):
+		indicator = "|+"
+	}
+	if strings.HasPrefix(text, " ") {
+		indicator = "|2" + strings.TrimPrefix(indicator, "|")
+	}
+	block := []string{key + ": " + indicator}
+	for _, l := range strings.Split(strings.TrimSuffix(text, "\n"), "\n") {
+		if l == "" {
+			block = append(block, "")
+		} else {
+			block = append(block, "  "+l)
 		}
 	}
+	return block
+}
+
+// recordCase writes a run into its case: the exit status and the standard
+// output into case.yaml, and the standard error when it has that key, its
+// other keys and comments kept, and every file the run changed or added,
+// apart from those it removes, into expected/.
+func recordCase(t *testing.T, dir string, raw []byte, status int, stdout, stderr string, inputs, after map[string][]byte, removed []string) {
+	t.Helper()
 	lines := strings.Split(string(raw), "\n")
 	var out []string
 	for i := 0; i < len(lines); i++ {
 		l := lines[i]
+		var block []string
+		switch {
+		case strings.HasPrefix(l, "standardOutput:"):
+			block = textBlock("standardOutput", stdout)
+		case strings.HasPrefix(l, "standardError:"):
+			block = textBlock("standardError", stderr)
+		}
 		switch {
 		case strings.HasPrefix(l, "exitStatus:"):
 			out = append(out, fmt.Sprintf("exitStatus: %d", status))
-		case strings.HasPrefix(l, "standardOutput:"):
+		case block != nil:
 			out = append(out, block...)
 			for i+1 < len(lines) && (strings.HasPrefix(lines[i+1], " ") || lines[i+1] == "" && i+2 < len(lines) && strings.HasPrefix(lines[i+2], " ")) {
 				i++
@@ -339,11 +356,11 @@ func recordCase(t *testing.T, dir string, raw []byte, status int, stdout string,
 	}
 	text := strings.Join(out, "\n")
 	var was conformanceCase
-	if yaml.Unmarshal(raw, &was) == nil && was.ExitStatus == status && was.StandardOutput == stdout {
+	if yaml.Unmarshal(raw, &was) == nil && was.ExitStatus == status && was.StandardOutput == stdout && (was.StandardError == nil || *was.StandardError == stderr) {
 		text = string(raw) // unchanged: keep the case as it is written
 	}
 	var check conformanceCase
-	if err := yaml.Unmarshal([]byte(text), &check); err != nil || check.StandardOutput != stdout || check.ExitStatus != status {
+	if err := yaml.Unmarshal([]byte(text), &check); err != nil || check.StandardOutput != stdout || check.ExitStatus != status || check.StandardError != nil && *check.StandardError != stderr {
 		t.Fatalf("cannot record the case: case.yaml would not read back as the run (%v); record it by hand", err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "case.yaml"), []byte(text), 0o644); err != nil {

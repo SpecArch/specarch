@@ -23,10 +23,12 @@ type draftCall struct {
 	input    []keyText
 	hasInput bool
 	expect   []keyText
-	// partial marks a call that stands for its case without the data the
-	// case is about: a value test_data would refuse or none that can be
-	// made, so only the status and the caller are written.
-	partial bool
+	// alone, when not empty, marks a call that stands for its case
+	// without the data the case is about, only the status and the caller
+	// being written, and says why, as a clause after "because": the value
+	// the case is about is not of its field's type, derive makes no such
+	// value, or the call itself cannot be made.
+	alone string
 }
 
 type draftRecord struct {
@@ -93,6 +95,8 @@ type operationDraft struct {
 	inputOK  bool                  // every required one has a value
 	records  []draftRecord
 	recordOf map[string]int // a field's name to the record it names
+	unmade   []string       // the required ones no value can be made for
+	perm     string         // the permission the operation needs
 	holder   string         // a role that holds the permission, or "" for none needed
 	holderOK bool           // a role holds it, or none is needed
 	lacker   string         // a role that does not hold it
@@ -134,6 +138,7 @@ func (d *design) operationDraft(o operation) operationDraft {
 		v, ok := d.sampleValue(f.name, f.field)
 		if !ok {
 			od.inputOK = false
+			od.unmade = append(od.unmade, f.name)
 			continue
 		}
 		od.input = append(od.input, keyText{f.name, v})
@@ -147,6 +152,7 @@ func (d *design) operationDraft(o operation) operationDraft {
 		}
 	}
 	perm := source.Str(source.Child(o.node, "permission"))
+	od.perm = perm
 	od.holder, od.holderOK = d.roleFor(perm, true)
 	od.lacker, _ = d.roleFor(perm, false)
 	return od
@@ -393,14 +399,14 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 	// valid is the call a caller who may makes with valid values, the
 	// records they name existing.
 	// alone is the status and a caller who may, without the call's data:
-	// what a case keeps when the call cannot be made, a required field
-	// having no value that can be made for it or no role holding the
-	// permission. Empty when the operation declares no such status.
-	alone := func(expect string) draftCall {
+	// what a case keeps when the call cannot be made or the value it is
+	// about cannot be written, why saying which. Empty when the operation
+	// declares no such status.
+	alone := func(expect, why string) draftCall {
 		if expect == "" {
 			return draftCall{}
 		}
-		c := draftCall{expect: status(expect), partial: true}
+		c := draftCall{expect: status(expect), alone: why}
 		if od.holderOK {
 			c.caller = od.holder
 		}
@@ -410,8 +416,11 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 		if expect == "" {
 			return draftCall{}
 		}
-		if !od.inputOK || !od.holderOK {
-			return alone(expect)
+		if !od.inputOK {
+			return alone(expect, "derive can make no value for "+namedList("its required field", "its required fields", od.unmade)+" (an object, a list or a text with a pattern), so the call cannot be made")
+		}
+		if !od.holderOK {
+			return alone(expect, "no role holds "+od.perm+", so no caller may make the call")
 		}
 		c := draftCall{caller: od.holder, hasInput: true, expect: status(expect)}
 		for i, r := range od.records {
@@ -466,17 +475,17 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 		return c
 	case strings.HasPrefix(name, "not found ") && has("404"):
 		field := strings.TrimPrefix(name, "not found ")
-		if _, ok := od.recordOf[field]; ok {
+		if _, ok := od.recordOf[field]; ok || !od.inputOK || !od.holderOK {
 			return valid("404", "", field, keyText{})
 		}
-		return alone("404")
+		return alone("404", "derive finds no record that "+field+" names: a field names a record only as the via of a relation of the entity the operation answers with, or as a path parameter named after an entity and its one key field, as memberId names Member")
 	case strings.HasPrefix(name, "missing "):
 		field := strings.TrimPrefix(name, "missing ")
 		if od.fields[field] != nil {
 			return valid(badStatus(op), field, "", keyText{})
 		}
 	default:
-		if field, value, golden, limit := d.limitValue(od, name, dc); limit {
+		if field, value, why, golden, limit := d.limitValue(od, name, dc); limit {
 			expect := badStatus(op)
 			if golden {
 				expect = successStatus(op)
@@ -484,7 +493,7 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 			if field == "" {
 				// A value test_data would refuse, or none that can be
 				// made: the status and the caller alone.
-				return alone(expect)
+				return alone(expect, why)
 			}
 			return valid(expect, "", "", keyText{field, value})
 		}
@@ -497,14 +506,16 @@ func (d *design) operationCall(od operationDraft, dc derivedCase) draftCall {
 // pattern, below or above a limit, shorter or longer than a length, with
 // fewer or more items, or golden at a limit. limit is false when the case
 // is of no such kind. field is "" when the case is of such a kind but no
-// value can be written for it: a value test_data would refuse (a malformed
-// date, a value not of an enum), since a test holds only values of the
-// field's type, or one the generator does not make (a pattern, a list).
-func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (field, value string, golden, limit bool) {
+// value can be written for it, and why says which, as a clause after
+// "because": a value test_data would refuse (a malformed date, a value not
+// of an enum), since a test holds only values of the field's type, or one
+// derive does not make (a text not matching a pattern, a list's number of
+// items).
+func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (field, value, why string, golden, limit bool) {
 	f := dc.fieldName
 	schema := od.fields[f]
 	if f == "" || schema == nil || !strings.HasPrefix(name, f+" ") {
-		return "", "", false, false
+		return "", "", "", false, false
 	}
 	rest := strings.TrimPrefix(name, f+" ")
 	t := d.fieldType(schema)
@@ -528,13 +539,17 @@ func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (fie
 		return strconv.Quote(strings.Repeat("x", int(n)+off))
 	}
 	limit = true
+	notMade := ""
 	switch {
 	case strings.HasPrefix(rest, "not a valid "):
 		if t.Kind == expr.String {
 			value = strconv.Quote("not a " + strings.TrimPrefix(rest, "not a valid "))
 		}
-	case rest == "not one of its values", rest == "not matching its pattern",
-		strings.HasPrefix(rest, "with fewer than "), strings.HasPrefix(rest, "with more than "):
+	case rest == "not one of its values":
+	case rest == "not matching its pattern":
+		notMade = "a text that does not match a pattern"
+	case strings.HasPrefix(rest, "with fewer than "), strings.HasPrefix(rest, "with more than "):
+		notMade = "a list of a given number of items"
 	case strings.HasPrefix(rest, "below minimum "):
 		value = number("minimum", -1)
 	case strings.HasPrefix(rest, "above maximum "):
@@ -562,12 +577,15 @@ func (d *design) limitValue(od operationDraft, name string, dc derivedCase) (fie
 			value = strconv.Quote(strings.Repeat("x", c))
 		}
 	default:
-		return "", "", false, false
+		return "", "", "", false, false
 	}
-	if value == "" || !d.takes(value, schema) {
-		return "", "", golden, true
+	switch {
+	case notMade != "":
+		return "", "", "derive makes no value for it: it does not make " + notMade, golden, true
+	case value == "" || !d.takes(value, schema):
+		return "", "", "the value it is about is not one " + f + " takes, and a test holds only values its field takes, as test_data checks them", golden, true
 	}
-	return f, value, golden, true
+	return f, value, "", golden, true
 }
 
 // Fill is the structured data derive --fill adds to a test that has none:
@@ -586,8 +604,8 @@ type Fill struct {
 // test of several cases is filled when the data of one of them holds what
 // the others give, as not found memberId does response 404; otherwise,
 // its cases drafting different data or one of them drafting none, or only
-// the status of a value no test can hold, it is left as it is with that
-// reason. A test whose cases the design fixes nothing about is not listed.
+// a status, it is left as it is with that reason, which names why such a
+// case keeps its status alone. A test whose cases the design fixes nothing about is not listed.
 func Fills(root *yaml.Node, given Given) []Fill {
 	d := newDesign(root).withIdentity(given)
 	bySubject := map[string]*subject{}
@@ -623,14 +641,14 @@ func Fills(root *yaml.Node, given Given) []Fill {
 			}
 		}
 		var nonEmpty []draftCall
-		var bare, partial []string // the cases that draft nothing, or only a status
+		var bare, alone []string // the cases that draft nothing, or only a status and why
 		for i, c := range calls {
 			if c.empty() {
 				bare = append(bare, names[i])
 				continue
 			}
-			if c.partial {
-				partial = append(partial, names[i])
+			if c.alone != "" {
+				alone = append(alone, "its case "+names[i]+" keeps its status alone because "+c.alone)
 			}
 			c.caller = d.namedCaller(s, c.caller, source.Str(source.Child(t, "given"))+" "+source.Str(source.Child(t, "when")))
 			nonEmpty = append(nonEmpty, c)
@@ -644,8 +662,8 @@ func Fills(root *yaml.Node, given Given) []Fill {
 			f.Reason = "the design fixes no data for its case " + strings.Join(bare, ", ") + ", so the data of the others would leave it unchecked; give the fixture, input and expect by hand, or split it into one test per case"
 		} else if whole, ok := holdingAll(nonEmpty); ok {
 			f.Lines = whole.lines()
-		} else if len(partial) > 0 && len(partial) < len(nonEmpty) {
-			f.Reason = "its case " + strings.Join(partial, ", ") + " is about a value no test can hold, so the data of the others would leave it unchecked; give the fixture, input and expect by hand, or split it into one test per case"
+		} else if len(alone) > 0 && len(alone) < len(nonEmpty) {
+			f.Reason = strings.Join(alone, "; ") + "; the data of the others would leave " + map[bool]string{true: "it", false: "them"}[len(alone) == 1] + " unchecked; give the fixture, input and expect by hand, or split it into one test per case"
 		} else {
 			f.Reason = "its cases draft different data; give the fixture, input and expect of the case it is about by hand, or split it into one test per case"
 		}
@@ -656,8 +674,8 @@ func Fills(root *yaml.Node, given Given) []Fill {
 
 // holdingAll is the call among calls that holds what every other gives:
 // the same expected outcome, and no caller, record or input that differs.
-// A partial call is held only by its equal: its case is about a value the
-// others' data does not carry.
+// A call that keeps its status alone is held only by its equal: its case
+// is about something the others' data does not carry.
 func holdingAll(calls []draftCall) (draftCall, bool) {
 	for _, big := range calls {
 		all := true
@@ -678,7 +696,7 @@ func holds(big, small draftCall) bool {
 	if big.equal(small) {
 		return true
 	}
-	if small.partial || joinKeyText(big.expect) != joinKeyText(small.expect) {
+	if small.alone != "" || joinKeyText(big.expect) != joinKeyText(small.expect) {
 		return false
 	}
 	return (small.caller == "" || small.caller == big.caller) && len(small.records) == 0 && !small.hasInput
@@ -738,4 +756,16 @@ func wordIndex(text, word string) int {
 		}
 		from = i + 1
 	}
+}
+
+// namedList names one item after the singular words, or several after the
+// plural ones, the last joined with "and".
+func namedList(one, many string, items []string) string {
+	switch len(items) {
+	case 0:
+		return many
+	case 1:
+		return one + " " + items[0]
+	}
+	return many + " " + strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
 }

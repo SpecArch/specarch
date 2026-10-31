@@ -1,0 +1,8 @@
+operation: lendCopy
+level: system
+scenario: red
+covers: [duplicate loan_member_lent_on_unique, response 409]
+given: "a clerk, and a loan to the member lent on 2026-01-15"
+when: "lendCopy is called for the same member on the same day"
+then: "it answers 409 and no loan is added"
+verifies: [LEND-1]

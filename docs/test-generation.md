@@ -370,7 +370,12 @@ as `not found memberId` holds `response 404`; one whose cases draft
 different data, four missing fields for one, or one of whose cases drafts
 nothing or keeps its status alone while another's data differs, is named
 with the reason and left as it is, since one call shows one case and the
-data of the others would leave that case unchecked. A role the test's own
+data of the others would leave that case unchecked. The reason names why
+such a case keeps its status alone: a value its field does not take, a
+value derive does not make, a required field derive can make no value
+for, no record the field names (a field names one only as a relation's
+`via` or as a path parameter named after an entity and its key, as
+`memberId` names `Member`), or no role holding the permission. A role the test's own
 `given` or `when` names is taken as the caller when it holds the
 permission as the drafted one does or does not. The lines go at the end
 of the file and nothing else in it changes; the author reads them against

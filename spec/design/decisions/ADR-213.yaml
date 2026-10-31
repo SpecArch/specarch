@@ -56,7 +56,11 @@ decisions:
       filled when one case's data holds what the others give; otherwise,
       its cases drafting different data, one drafting nothing, or one
       keeping its status alone while another's data differs, it is named
-      with the reason and left as it is. A case that keeps its status
+      with the reason and left as it is. The reason names why such a case
+      keeps its status alone, since each cause asks the author for a
+      different fix: a value its field does not take, a value derive does
+      not make, a required field derive can make no value for, no record
+      the field names, or no role holding the permission. A case that keeps its status
       alone is held only by the same data: what the others draft would
       leave its value unchecked. A caller the test's
       own given or when names, holding the permission as the drafted one

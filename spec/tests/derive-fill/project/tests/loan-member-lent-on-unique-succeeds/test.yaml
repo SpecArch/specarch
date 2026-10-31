@@ -1,0 +1,8 @@
+entity: Loan
+constraint: loan_member_lent_on_unique
+level: system
+scenario: golden
+given: "no loan to the member lent on that day"
+when: "a loan is saved"
+then: "it is saved"
+verifies: [LEND-1]

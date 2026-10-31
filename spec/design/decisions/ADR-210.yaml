@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-210:
+    title: A short on-ramp, specarch init and specarch help start, and a lean profile under info.profile that makes only the missing tests derive writes warnings
+    status: proposed
+    date: "2026-10-31"
+    context: |
+      The smallest specification, specarch and info with a title and a
+      version, already validated, but nothing said so, and the step after
+      it met a wall of errors. A first draft of one entity and one
+      operation, written as a newcomer writes it, gave eight errors: three
+      keys the schema requires (primaryKey, an operation's summary and
+      permission, a response's description), an int64 sent as a JSON
+      number, and three tests the design implies. With the keys written,
+      the draft in specarch help start still gives five errors, all of
+      them tests: the operation's success and four derived cases (the
+      missing permission, a malformed identifier, two missing fields). In
+      the library lending example 198 of 283 YAML files are tests. A
+      small tool or an internal daemon could not be validated, documented
+      or shown until every test was written, which is the opposite of
+      showing a result early (docs/acceptance.md). Spec Kit sets up a
+      project in one command and asks nothing of a first draft; SpecArch
+      checks far more, and that checking is why it is used, so the on-ramp
+      lowers the first wall without hiding what is checked.
+    decision: |
+      specarch init <folder> writes specarch.yaml: the $schema line pinned
+      to the release, the meta-model version, and info with the title
+      (--title, or the folder's own name) and version 0.1.0, and with
+      --profile the profile. It writes nothing else and never overwrites a
+      specarch.yaml; a folder that holds one is exit 2. specarch help start
+      shows the next step: a first entity and operation that validate, the
+      five things a first draft often leaves out that every profile asks
+      for and why, and the profile.
+
+      info.profile takes lean or full; left out, the profile is full. On
+      lean, the demands relaxed are exactly the tests specarch derive would
+      write: test_golden_missing where the design gives the subject's
+      success, and test_case_missing. Each is a warning there, as an open
+      question holding up the subject already makes it, and one warning
+      at info.profile (rule profile) names the rules relaxed and how to
+      tighten. Every other rule is as on full: no schema-required key, no
+      permission rule, no correctness rule is relaxed. Writing full, or
+      removing the key, tightens the specification; specarch derive writes
+      the drafts either way.
+    consequences: |
+      A small tool's first draft validates, so its documents can be
+      written and shown and its code generated as a draft, with every
+      missing test listed as a warning in the problems file and at its
+      entry. approve and generate refuse errors only, so a lean
+      specification can be approved and generated with its tests
+      missing; the profile warning and the test warnings say so in every
+      output, and switching to full is one word. A lean specification
+      shipped to people other than its builders should be switched to
+      full first; the program does not decide that. Both validators read
+      the profile; derive, gaps and the documents read the diagnostics
+      as they are.
+    why: |
+      The relaxed list is the one with a principle behind it: a test
+      derive writes is a demand the program can meet itself, so leaving
+      it for later costs one command, and nothing about the design is
+      unknown while it is missing. Every other demand is a fact only a
+      person can give.
+
+      The schema-required keys stay required. An operation's permission
+      is the fail-closed rule: access is closed unless granted, so a
+      missing permission would read as open by omission, and public and
+      signedIn already say open in one word (ADR-096, ADR-197). A
+      response's description is OpenAPI's own requirement, kept so a
+      specification's paths stay valid OpenAPI. summary and primaryKey
+      are what the documents and the generators print and key by, and
+      relaxing a required key on a root key would mean every definition
+      of the schema written twice, once per profile. unsafe_integer and
+      the other correctness rules catch a mistake, not a missing
+      demand, and a mistake is an error on every profile.
+
+      One warning at the key, not a suffix on each test warning, follows
+      the meta-model 0.1 warning (ADR-186): the reason is said once at
+      the place that causes it, and each test warning keeps the wording
+      it has on full. Two values, not a scale: a third profile would be a
+      second way to say which demands hold, and the Low IQ Tax rules that
+      out. The profile is a key of the specification, not an option of
+      validate, so every command and every reader sees the same rules
+      and the choice is written down where it is reviewed.
+
+      init writes no placeholder entity: a key nobody decided is a
+      definition the validator reads as made, so the example lives in
+      help start, kept equal to a conformance case that validates in
+      both builds. The title from the folder's name is a fact, one word
+      to change.
+    cites:
+      - source: spec-kit
+        says: "The init command sets up a project for specification-driven development in one step."
+      - source: openapi
+        clause: "4.8.17 Response Object"
+        says: "description: REQUIRED. A description of the response."
+    satisfies: [SA-108]
+    restsOn: [ADR-055, ADR-096, ADR-186]

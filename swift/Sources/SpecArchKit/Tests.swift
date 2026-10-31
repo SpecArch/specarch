@@ -1072,6 +1072,16 @@ extension Checker {
         }
     }
 
+    /// Warns once at info.profile in a specification on the lean profile,
+    /// naming the demands it makes warnings and how to tighten it, so a
+    /// missing test printed as a warning says why it is not an error
+    /// (ADR-210).
+    func checkProfile(_ d: Design) {
+        guard d.lean else { return }
+        warn(d.root.child("info")?.child("profile"), "/info/profile", .profile,
+             "the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests")
+    }
+
     /// Warns at each key a file on 1.0 gives under the spelling 1.0.0
     /// deprecated, which is read as its replacement until 2.0.0, and
     /// reports a key given under both spellings, since one thing is said
@@ -1138,10 +1148,11 @@ extension Checker {
             }
         }
 
-        // In a 0.2 or 0.3 file a test specarch derive writes and nobody has is
-        // an error, except for a subject an open must or should question holds
-        // up, whose test derive leaves out too (ADR-055).
-        let strict = metaModelAtLeast(d.reads, 0, 2)
+        // In a 0.2 or later file a test specarch derive writes and nobody has
+        // is an error, except for a subject an open must or should question
+        // holds up, whose test derive leaves out too (ADR-055), and in a
+        // specification on the lean profile, where it is a warning (ADR-210).
+        let strict = metaModelAtLeast(d.reads, 0, 2) && !d.lean
         let blocking = blockingQuestions(d.root)
         for s in subjects {
             let id = ObjectIdentifier(s)

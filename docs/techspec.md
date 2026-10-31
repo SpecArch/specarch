@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 107 requirements, 5 entities, 23 commands, 7 algorithms, 858 tests, 195 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 108 requirements, 5 entities, 24 commands, 7 algorithms, 867 tests, 196 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -76,6 +76,7 @@ The interfaces the system offers, as its clients see them.
 | help | Explain an area of SpecArch or one command, from the text built into the program | public | 0: printed; 2: no such topic |
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
+| init | Write the smallest specification that validates into a new folder | public | 0: the specification was written, or with --dry-run would be; 2: usage error, a folder that already holds specarch.yaml, or a path that could not be written |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
 | try | Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
@@ -316,9 +317,9 @@ Primary key: path.
 | Rule | change_log | a description reads as a change log instead of the current truth (a warning) |
 | Rule | test_subject | a test is about an operation, command, page, constraint or transition that does not exist |
 | Rule | test_case | a test covers a case its subject does not have, or a red case in a golden test |
-| Rule | test_golden_missing | a subject has no golden scenario; an error in a 0.2 file when the design gives the subject's success, which `specarch derive` writes, unless an open must or should question holds the subject up, and a warning otherwise |
+| Rule | test_golden_missing | a subject has no golden scenario; an error in a 0.2 file when the design gives the subject's success, which `specarch derive` writes, unless an open must or should question holds the subject up or the specification is on the lean profile (ADR-210), and a warning otherwise |
 | Rule | test_red_missing | a subject has no red scenario and no derived red case (a warning, since there is no case to derive a test from) |
-| Rule | test_case_missing | a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often; an error in a 0.2 file unless an open must or should question holds the subject up, and a warning otherwise |
+| Rule | test_case_missing | a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often; an error in a 0.2 file unless an open must or should question holds the subject up or the specification is on the lean profile (ADR-210), and a warning otherwise |
 | Rule | suite | an implementation's test suite names a design test or subject that does not exist |
 | Rule | test_data | a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it |
 | Rule | layout | a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage |
@@ -420,6 +421,7 @@ Primary key: path.
 | Rule | exit_code | a command's remedies names status 0, which needs no remedy, or a status its exitCodes does not list (ADR-165) |
 | Rule | decision_cycle | a decision's `restsOn` chain comes back to the decision itself, through any number of decisions; a decision rests on earlier decisions only, so the error is at every `restsOn` entry on the cycle, each naming the chain from its decision (ADR-188) |
 | Rule | decision_superseded | as a warning, a decision that is not itself superseded rests on a superseded decision, named with its successor; the decision rests on what no longer holds, and only a new decision that supersedes it, resting on the successor, clears the warning (ADR-188) |
+| Rule | profile | as a warning, once at `info.profile`, the specification is on the lean profile: a test `specarch derive` would write and nobody has (`test_golden_missing`, `test_case_missing`) is a warning there, not an error, and every other rule is as on full; writing `full`, or removing the key, makes them errors again (ADR-210) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -3544,8 +3546,8 @@ sequenceDiagram
 
 Without a topic it prints the usage and the list of topics. A topic
 is an area, with a short guide of its own (format, extract,
-validate, generate, upgrade, gaps, asking, plugins, conventions,
-examples),
+validate, generate, upgrade, gaps, asking, start, plugins,
+conventions, examples),
 or a command's name, `idioms-diff` or `idioms diff` for the
 subcommand. A command's topic prints the command's reference made
 from its definition in this specification: the synopsis, the
@@ -3646,6 +3648,50 @@ sequenceDiagram
   participant F as Files
   U->>P: idioms diff <idiom> <paths>
   P->>F: read {paths}
+  P-->>U: exit status 0, 2
+```
+
+### Command init
+
+Writes `specarch.yaml` into the folder given, making the folder when
+it does not exist: the `$schema` line pinned to this release, the
+meta-model version, and `info` with the title and the version the
+format requires, `0.1.0`. The title is `--title`, or the folder's
+own name. With `--profile` the file names that profile under
+`info.profile`; without it no profile is written and the
+specification is on full (ADR-210). Nothing else is written: no
+entity, operation or stage to rename or delete, since a placeholder
+is a definition nobody made. `specarch help start` shows the next
+step, a first entity and operation that validate.
+
+A folder that already holds `specarch.yaml` is refused and nothing
+is written: init never overwrites a specification.
+
+**Insight:** The first minutes decide whether a small project uses SpecArch at all. Spec Kit's init writes a project skeleton in one command; this init writes only what the format requires, since every key beyond it is a decision the author has not made yet, and a placeholder would be a definition the validator reads as made. The title from the folder's name is a fact, not a guess, and is one word to change. Refusing an existing specarch.yaml, rather than merging into it, keeps the command one that cannot lose work.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<folder>` | string | yes | The folder the specification goes in; made when it does not exist. |
+| `--title` | string |   | The specification's title, written as info.title; the folder's own name when left out. |
+| `--profile` | string |   | The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full. |
+| `--dry-run` | bool |   | Write nothing; print would write <path> and the text it would write. |
+
+Reads `{folder}/specarch.yaml`: Only whether it exists, to refuse overwriting it.
+
+Writes `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile.
+
+Standard output: The path written, or with --dry-run would write <path> and the text.
+
+Standard error: A usage message on a usage error; the file that is already there or the reason a path could not be written; after writing, the next step.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: init <folder>
+  P->>F: read {folder}/specarch.yaml
+  P->>F: write {folder}/specarch.yaml
   P-->>U: exit status 0, 2
 ```
 
@@ -15590,9 +15636,71 @@ the same way.
 
 **Insight:** The order uses only what the specification holds. A must question leaves keys undefined and stops everything that reads them, so it comes first, as priority already says; among equals, the answer that releases more documents and code, then more entries, is worth more; an earlier stage shapes the later ones. Spec Kit weighs uncertainty too, but no key says how unsure the people are of an answer: certainty is set only on questions a reader asks about code. A score guessed by the program would put a guess first, so uncertainty is left to the agent, who says it in the reason of its recommendation. Spec Kit stops after five questions to keep a session short. A specification is never complete, and a must question left open leaves keys undefined; a fixed cap would leave such questions unasked with no reason given. The person ends the session, and gaps lists what is left. The recommendation is not a key of the question in the specification. That would change the meta-model, add a check to both validators, and write a guess into the design that the person has not seen; the decision record already keeps what was decided and its source. It is given in the output, as null, so that an agent passing the question on, to a queue or to the stakeholder's inbox, has one place for it.
 
-**Note:** From Spec Kit, the clarify command: The clarify command asks one question at a time, each with a short set of options and a recommended answer the user can accept, ranked by impact and uncertainty, at most five per run. <https://github.com/github/spec-kit>
+**Note:** From Spec Kit: The clarify command asks one question at a time, each with a short set of options and a recommended answer the user can accept, ranked by impact and uncertainty, at most five per run. <https://github.com/github/spec-kit>
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
+
+### ADR-210: A short on-ramp, specarch init and specarch help start, and a lean profile under info.profile that makes only the missing tests derive writes warnings
+
+Status: proposed, 2026-10-31.
+
+Rests on: [ADR-055](#adr-055-meta-model-02-turns-a-derived-case-no-test-covers-into-an-error-except-where-an-open-question-holds-up-its-subject-and-reads-01-files-with-warnings-until-10), [ADR-096](#adr-096-machine-callers-are-clients-that-hold-roles-with-a-proof-per-request-after-rfc-9421-an-operation-says-callers-clients-and-nobody-is-a-reserved-permission-for-a-route-closed-on-purpose), [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file).
+
+Context: The smallest specification, specarch and info with a title and a
+version, already validated, but nothing said so, and the step after
+it met a wall of errors. A first draft of one entity and one
+operation, written as a newcomer writes it, gave eight errors: three
+keys the schema requires (primaryKey, an operation's summary and
+permission, a response's description), an int64 sent as a JSON
+number, and three tests the design implies. With the keys written,
+the draft in specarch help start still gives five errors, all of
+them tests: the operation's success and four derived cases (the
+missing permission, a malformed identifier, two missing fields). In
+the library lending example 198 of 283 YAML files are tests. A
+small tool or an internal daemon could not be validated, documented
+or shown until every test was written, which is the opposite of
+showing a result early (docs/acceptance.md). Spec Kit sets up a
+project in one command and asks nothing of a first draft; SpecArch
+checks far more, and that checking is why it is used, so the on-ramp
+lowers the first wall without hiding what is checked.
+
+Decision: specarch init <folder> writes specarch.yaml: the $schema line pinned
+to the release, the meta-model version, and info with the title
+(--title, or the folder's own name) and version 0.1.0, and with
+--profile the profile. It writes nothing else and never overwrites a
+specarch.yaml; a folder that holds one is exit 2. specarch help start
+shows the next step: a first entity and operation that validate, the
+five things a first draft often leaves out that every profile asks
+for and why, and the profile.
+
+info.profile takes lean or full; left out, the profile is full. On
+lean, the demands relaxed are exactly the tests specarch derive would
+write: test_golden_missing where the design gives the subject's
+success, and test_case_missing. Each is a warning there, as an open
+question holding up the subject already makes it, and one warning
+at info.profile (rule profile) names the rules relaxed and how to
+tighten. Every other rule is as on full: no schema-required key, no
+permission rule, no correctness rule is relaxed. Writing full, or
+removing the key, tightens the specification; specarch derive writes
+the drafts either way.
+
+Consequences: A small tool's first draft validates, so its documents can be
+written and shown and its code generated as a draft, with every
+missing test listed as a warning in the problems file and at its
+entry. approve and generate refuse errors only, so a lean
+specification can be approved and generated with its tests
+missing; the profile warning and the test warnings say so in every
+output, and switching to full is one word. A lean specification
+shipped to people other than its builders should be switched to
+full first; the program does not decide that. Both validators read
+the profile; derive, gaps and the documents read the diagnostics
+as they are.
+
+**Insight:** The relaxed list is the one with a principle behind it: a test derive writes is a demand the program can meet itself, so leaving it for later costs one command, and nothing about the design is unknown while it is missing. Every other demand is a fact only a person can give. The schema-required keys stay required. An operation's permission is the fail-closed rule: access is closed unless granted, so a missing permission would read as open by omission, and public and signedIn already say open in one word (ADR-096, ADR-197). A response's description is OpenAPI's own requirement, kept so a specification's paths stay valid OpenAPI. summary and primaryKey are what the documents and the generators print and key by, and relaxing a required key on a root key would mean every definition of the schema written twice, once per profile. unsafe_integer and the other correctness rules catch a mistake, not a missing demand, and a mistake is an error on every profile. One warning at the key, not a suffix on each test warning, follows the meta-model 0.1 warning (ADR-186): the reason is said once at the place that causes it, and each test warning keeps the wording it has on full. Two values, not a scale: a third profile would be a second way to say which demands hold, and the Low IQ Tax rules that out. The profile is a key of the specification, not an option of validate, so every command and every reader sees the same rules and the choice is written down where it is reviewed. init writes no placeholder entity: a key nobody decided is a definition the validator reads as made, so the example lives in help start, kept equal to a conformance case that validates in both builds. The title from the folder's name is a fact, one word to change.
+
+**Note:** From Spec Kit: The init command sets up a project for specification-driven development in one step. <https://github.com/github/spec-kit>
+
+**Note:** From OpenAPI Specification, 3.1.0, clause 4.8.17 Response Object: description: REQUIRED. A description of the response. <https://spec.openapis.org/oas/v3.1.0>
 
 ## 10. Quality requirements
 
@@ -16025,6 +16133,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.4.0, replacing types, with the reason, and exits 0 |
 | idioms-lists-ui-framework | command idioms | system | golden | a specification with a list page and three implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, one in JavaScript whose ui target is platform web and names no framework, so plain-javascript, and one in Swift whose ui target is platform iphone and names no framework, so swiftui | idioms is run | it lists ui-components 1.10.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0 |
 | idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
+| init-dry-run | command init | system | golden | a folder that does not exist | init is run with --dry-run | it prints the path and the text it would write, makes no folder and writes nothing, and exits 0 |
+| init-lean-profile | command init | system | golden | a folder that does not exist | init is run with --profile lean and a title holding a colon | it writes the title quoted as YAML needs and profile: lean under info, and the file validates with the one profile warning |
+| init-refuses-existing | command init | system | red | a folder that already holds specarch.yaml | init is run on it | it names the file, writes nothing, leaves the file as it was and exits 2 |
+| init-usage-error | command init | system | red | the program | init is run with a profile that does not exist | it names the profiles there are, prints how to use it, writes nothing and exits 2 |
+| init-writes-specification | command init | system | golden | a folder that does not exist | init is run on it with no option | it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0 |
 | merge-bypassed-check | command merge | system | golden | a tree extract permissions wrote, reading: printed, whose permission table says the check Require is skipped for every client and whose route table gives it three operations with a permission; and a tree extract go wrote, reading: parsed, whose implementation file says the same of Require, which it finds guarding two of those operations | merge is run on the two trees | it asks the question on the bypassed check once, blocking the permission of every operation either tree says the check guards, with both trees' citations, never leaves it out as answered by a tree that gives those permissions, prints a line for the join, and exits 0 |
 | merge-documents-and-code | command merge | system | golden | a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface | merge is run on the two trees | it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0 |
 | merge-documents-days | command merge | system | golden | a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days | merge is run on the two trees | the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0 |
@@ -16313,6 +16426,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-permission-undeclared | command validate | system | red | an operation whose permission is not declared | validate is run | it reports permission_undeclared and exits 1 |
 | validate-permission-ungranted | command validate | system | red | a declared permission that no role grants | validate is run | it reports permission_ungranted and exits 1 |
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
+| validate-profile-absent-missing-tests | command validate | system | red | the same specification with no profile | validate is run | it reads it as full: the missing golden and derived tests are errors, and it exits 1 |
+| validate-profile-full-missing-tests | command validate | system | red | the same specification on the full profile | validate is run | it reports the missing golden and derived tests as errors, with no profile warning, and exits 1 |
+| validate-profile-lean-missing-tests | command validate | system | golden | a specification on the lean profile with one operation and none of its tests | validate is run | it reports the missing golden and derived tests as warnings, with one warning at info.profile naming what the lean profile relaxes, and exits 0 |
+| validate-profile-lean-permission-missing | command validate | system | red | a specification on the lean profile whose operation names no permission | validate is run | the missing permission is still an error, since an operation without one would be open by omission, and it exits 1 |
 | validate-question-answered | command validate | system | red | an accepted decision that answers a question still present | validate is run | it reports question_answered at the answers entry and exits 1 |
 | validate-question-block | command validate | system | red | a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name | validate is run | it reports each with question_block or stakeholder and exits 1 |
 | validate-question-covers-element-with-content | command validate | system | golden | an entity with a field that has its width and no type, and a constraint that has its message and no kind, each blocked by its pointer by a must question | validate is run | the keys missing at the blocked field and constraint are covered by the questions, as they are for an element known only by name; it prints nothing and exits 0 |
@@ -16578,6 +16695,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
 | SA-107 | specarch gaps --next shall print, for each specification given, the one open question to put to a person next, ranked by what an answer unblocks, with who decides, what it blocks, the outputs it holds up, its options, its Insight and the decide command that records the answer, and with --json the same as data with a recommendation for the agent to fill; specarch help asking shall describe how to put questions to a person one at a time with a recommended answer, with no fixed number of questions. | functional | should | accepted | test | Of open questions of every priority, gaps --next prints a must question before a should and a should before a could; among questions of one priority, the one holding up more outputs, then the one blocking more entries, then the earlier stage, then the lower ID; and exits as gaps does. A specification with no open question prints that it has none and exits 0. With --json the object holds next, one entry per specification, its question as fields, the outputs it holds up, the decide command as arguments and a recommendation of null. gaps given an option other than --next is a usage error, exit 2. | NEED-8 |
+| SA-108 | specarch init shall write the smallest specification that validates into a folder that holds none, and specarch help start shall show the path from it to a first entity and operation that validates; a specification shall be able to name the lean profile under info.profile, where a test specarch derive would write and nobody has is a warning, not an error, every other rule stays as on full, a permission on every operation and command included, and one warning at the key says so. | functional | should | accepted | test | specarch init on a new folder writes specarch.yaml with the meta-model version and the info the format requires, which validate passes with no error and no warning, and exits 0. specarch init on a folder that already holds specarch.yaml writes nothing, names the file and exits 2. With --profile lean the file names the lean profile, and validate prints the one profile warning. On the lean profile a missing golden or derived test is a warning and validate exits 0 when nothing else is wrong; the same specification on full, or with no profile, reports them as errors and exits 1. On the lean profile an operation without a permission is still an error. The example of specarch help start validates with no error. | NEED-7, NEED-10 |
 | SA-20 | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. | functional | must | accepted | test | generate on a specification with an approval record whose digest matches writes its files; after one byte of one file changes it refuses, and runs with --unapproved. approve refuses while a configured document differs from what the specification generates, and writes records/approvals/<version>.yaml once the documents are current. | NEED-8 |
 | SA-30 | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. | functional | must | accepted | test | A mapping stated without a citation is reported as origin_citation, and one inferred without a reason as origin_reason, in both builds. gaps on a specification whose manual and code list their clauses prints, per source, the elements under each clause, the count of clauses that produced nothing, and every citation that names a clause outside the outline. | NEED-8 |
 | SA-44 | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. | functional | must | accepted | test | extract database on a committed catalogue dump writes a tree that validate accepts with no errors, and a second run writes the same bytes. A column type the meta-model cannot hold is printed as a line naming it, and is a could question in the tree citing its table. extract database reads a partition as the table it is a partition of, with one entity for the table and none for a partition, one could question at the entity listing the partitions with their bounds, and one for each constraint, index or column setting a partition has of its own, citing the partition's entry. A dump older than the last change to the path it was made from, a path with changes not committed and a shallow clone are each refused with status 1. extract outline on a folder writes a source listing its files as clauses, and gaps on that tree lists each of them as producing nothing. extract router on a committed route table writes one operation per method and path pair, with its path parameters and the permission it checks, that validate accepts with no errors, and a route that checks no permission is a must question. extract openapi on a document in dxlib's dialect writes the one privilege an operation's x-dxlib-privileges names as its permission and declares it, maps a name in dxlib_module's capitals by the rule of ADR-076 and declares that permission inferred, and asks a must question for an operation that names none, more than one, public, two names that give one permission or a name the rule cannot map. extract go on a committed Go module on dxlib writes each endpoint NewEndPoint registers with literal values as an operation citing its registration's and its handler's file and line, with the parameters the handler reads and the problems it answers, in a code source with reading parsed, and asks a must question for a registration in a loop, behind a condition or computed, and for a parameter read the endpoint does not declare. extract go on a committed Go module on dxlib and dxlib_module also writes each table NewModelDBTable declares with literal names as the entity extract database writes for it, the roles its seeds grant with the permissions mapped by the rule of ADR-076, and each setting it reads or a dxlib configuration file holds under configuration, and asks a must question for each gate on a setting it finds in an endpoint's middleware, in the words extract permissions uses. extract permissions maps a privilege in dxlib_module's capitals by the rule of ADR-076 and declares the permission inferred, and asks a must question on a grant of EVERYTHING, a name the rule cannot map and two names that give one permission. extract workflows on a committed BPMN 2.0 file writes one workflow per process with its approvals, deadlines and operation steps, that validate accepts with no errors, prints a line with the file's line for each element outside the sequential subset and writes it as a could question citing that line, and asks for the operations the file names with a must question that names them. | NEED-8 |
@@ -16789,6 +16907,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-107:** The questions gaps lists are answered by people, who answer better one question at a time with a choice and a recommended answer than a list at once; ranking by what an answer unblocks puts first the question whose answer moves the most work.
 
+**Insight on SA-108:** A first draft of a small tool met a wall of errors before anything could be shown, most of them tests the program can write itself; the lean profile lets such a draft validate, keeps every demand visible as a warning, and is tightened by one word, while the smallest specification and its next step take the guessing out of the first minutes.
+
 **Note on SA-20:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
 **Insight on SA-30:** The owner of an existing system reads a partial specification to find out what the documents and the code really say and where they part; a section of either that produced nothing is the first thing to look at, and it cannot be seen without the outline.
@@ -16948,6 +17068,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-105 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 | SA-106 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
 | SA-107 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
+| SA-108 | commands init; decisions ADR-210 | tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 
 ## Sources
 
@@ -17017,7 +17138,7 @@ Every source a Note in this document cites.
 | sarif | Static Analysis Results Interchange Format (SARIF) Version 2.1.0 | 2020 | OASIS | https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html |
 | scxml-1-0 | State Chart XML (SCXML), State Machine Notation for Control Abstraction, W3C Recommendation 1 September 2015 | 1.0 | W3C | https://www.w3.org/TR/scxml/ |
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
-| spec-kit | Spec Kit, the clarify command |   | GitHub | https://github.com/github/spec-kit |
+| spec-kit | Spec Kit |   | GitHub | https://github.com/github/spec-kit |
 | spiffe | The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT |   | The SPIFFE project, Cloud Native Computing Foundation | https://github.com/spiffe/spiffe/tree/main/standards |
 | uml-2-5-1 | OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines | formal/2017-12-05 | Object Management Group | https://www.omg.org/spec/UML/2.5.1/ |
 | wcag-2-2 | Web Content Accessibility Guidelines (WCAG) 2.2 | 2023 | W3C | https://www.w3.org/TR/WCAG22/ |

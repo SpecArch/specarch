@@ -9,7 +9,7 @@ let designSchemaJSON = #"""
   "type": "object",
   "properties": {
     "specarch": {
-      "description": "Meta-model version this file is written against, in three parts, major.minor.patch: 1.0.0, or a later 1.0 patch, which is read as 1.0 since no patch changes what is valid or what a file means. A file valid on 1.0.0 stays valid and means the same on every 1.x. The name caller is reserved for the caller record wherever an expression's names come from, and a derived case no test covers is an error. A file on 0.1, 0.2 or 0.3 is checked against specarch-design-0.3.schema.json and read beside 1.0 with one warning; specarch upgrade moves it to 1.0.0.",
+      "description": "Meta-model version this file is written against, in three parts, major.minor.patch: 1.0.0, or a later 1.0 patch, which is read as 1.0 since no patch changes what is valid or what a file means. A file valid on 1.0.0 stays valid and means the same on every 1.x. The name caller is reserved for the caller record wherever an expression's names come from, and a derived case no test covers is an error, unless info.profile is lean, where it is a warning. A file on 0.1, 0.2 or 0.3 is checked against specarch-design-0.3.schema.json and read beside 1.0 with one warning; specarch upgrade moves it to 1.0.0.",
       "type": "string",
       "pattern": "^1\\.0\\.(0|[1-9][0-9]*)$"
     },
@@ -888,6 +888,14 @@ let designSchemaJSON = #"""
           "type": "string",
           "enum": [
             "snake_case"
+          ]
+        },
+        "profile": {
+          "description": "SpecArch keyword. How much the validator demands of a first draft. full: every demand is an error. lean, for a small tool or an internal daemon: a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing), and the validator says so in one warning at this key (profile); every other rule is as on full, a permission on every operation and command included. Tighten by writing full, or by removing the key. Left out, the profile is full (ADR-210).",
+          "type": "string",
+          "enum": [
+            "lean",
+            "full"
           ]
         }
       },

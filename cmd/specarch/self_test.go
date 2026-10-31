@@ -66,8 +66,10 @@ func TestCommandsMatchDefinitions(t *testing.T) {
 }
 
 // firstArguments are values that get each command past its positional
-// arguments to its options.
+// arguments to its options; init's is --dry-run, since the tests run in
+// this folder and init would write a specification into it.
 var firstArguments = map[string][]string{
+	"init":     {"--dry-run"},
 	"document": {"techspec"},
 	"generate": {"sql"},
 	"extract":  {"outline"},
@@ -108,6 +110,7 @@ func TestDefinedOptionsAreTaken(t *testing.T) {
 // file names as a string literal is one of these commands' options.
 var commandFiles = map[string][]string{
 	"approve.go":  {"approve"},
+	"init.go":     {"init"},
 	"check.go":    {"check"},
 	"decide.go":   {"decide"},
 	"decision.go": {"decision why", "decision rests"},
@@ -381,7 +384,7 @@ func TestAgentsFile(t *testing.T) {
 func TestHelpTopics(t *testing.T) {
 	noPlugins(t)
 	topics := helpTopics()
-	for _, want := range []string{"format", "validate", "gaps", "generate", "extract", "upgrade", "plugins", "conventions", "examples", "try"} {
+	for _, want := range []string{"format", "validate", "gaps", "generate", "extract", "upgrade", "plugins", "conventions", "examples", "try", "start"} {
 		if topics[want] == "" {
 			t.Errorf("docs/help has no %s.txt", want)
 		}
@@ -398,6 +401,27 @@ func TestHelpTopics(t *testing.T) {
 				t.Errorf("help %s has a line of %d columns: %s", topic, len(line), line)
 			}
 		}
+	}
+}
+
+// TestStartExampleIsACase checks that the example of specarch help start is
+// the specification of the conformance case that validates it in both
+// builds, so the example a newcomer copies is one that validates.
+func TestStartExampleIsACase(t *testing.T) {
+	topic := helpTopics()["start"]
+	data, err := os.ReadFile(filepath.Join(conformanceDir, "validate-profile-lean-missing-tests", "specarch.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var indented strings.Builder
+	for _, line := range strings.Split(strings.TrimRight(string(data), "\n"), "\n") {
+		if line != "" {
+			indented.WriteString("  " + line)
+		}
+		indented.WriteString("\n")
+	}
+	if !strings.Contains(topic, indented.String()) {
+		t.Errorf("docs/help/start.txt does not hold spec/tests/validate-profile-lean-missing-tests/specarch.yaml indented by two spaces; copy the case's file into the topic, or the topic's example into the case\nwant:\n%s", indented.String())
 	}
 }
 
@@ -419,6 +443,7 @@ func TestDryRunWritesNothing(t *testing.T) {
 		{name: "document", from: "../../spec/tests/document-techspec-content", args: []string{"document", "techspec", "--out", "docs", "project"}},
 		{name: "document problems", from: "../../examples/lending-desk", args: []string{"document", "problems", "--out", "out", "spec"}},
 		{name: "derive", from: "../../spec/tests/derive-keeps-existing", args: []string{"derive", "project"}},
+		{name: "init", from: "../../spec/tests/init-writes-specification", args: []string{"init", "notes"}},
 		{name: "approve", from: "../../spec/tests/approve-writes-record", args: []string{"approve", "--by", "owner", "--date", "2026-10-08", "project"}},
 		{name: "decide", from: "../../spec/tests/decide-writes-decision", args: []string{"decide", "Q-1", "--by", "owner", "--answer", "Must.", "--source", "owner-answer", "--date", "2026-10-20", "project"}},
 		{name: "decide removing a file", from: "../../spec/tests/decide-removes-questions-file", args: []string{"decide", "Q-3", "--by", "owner", "--answer", "No.", "--date", "2026-10-20", "project"}},

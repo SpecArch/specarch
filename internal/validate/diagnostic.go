@@ -171,6 +171,7 @@ const (
 	RuleExitCode               Rule = "exit_code"
 	RuleDecisionCycle          Rule = "decision_cycle"
 	RuleDecisionSuperseded     Rule = "decision_superseded"
+	RuleProfile                Rule = "profile"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -332,6 +333,7 @@ var Rules = []Rule{
 	RuleExitCode,
 	RuleDecisionCycle,
 	RuleDecisionSuperseded,
+	RuleProfile,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

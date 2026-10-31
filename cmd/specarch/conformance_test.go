@@ -372,7 +372,9 @@ func recordCase(t *testing.T, dir string, raw []byte, status int, stdout string,
 
 // treeOut is the folders a case writes a tree into: the folder an extract
 // or merge case writes, each folder a derive case writes its drafts into
-// and each an approve case writes its record into; none for a case of another command or one that exits other than 0.
+// and each an approve case writes its record into, and the folder an init
+// case writes its specification into; none for a case of another command
+// or one that exits other than 0.
 func treeOut(c conformanceCase) []string {
 	if len(c.Arguments) == 0 || c.ExitStatus != 0 {
 		return nil
@@ -384,13 +386,15 @@ func treeOut(c conformanceCase) []string {
 				return []string{c.Arguments[i+1]}
 			}
 		}
-	case "derive", "approve":
+	case "derive", "approve", "init":
 		var out []string
 		args := c.Arguments[1:]
 		for i := 0; i < len(args); i++ {
 			switch a := args[i]; {
-			case a == "--by" || a == "--date":
-				i++ // approve's options that take the next argument
+			case a == "--dry-run":
+				return nil // writes nothing
+			case a == "--by" || a == "--date" || a == "--title" || a == "--profile":
+				i++ // approve's and init's options that take the next argument
 			case !strings.HasPrefix(a, "-"):
 				out = append(out, a)
 			}

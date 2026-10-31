@@ -17,7 +17,7 @@ import (
 )
 
 // The schema line of every root file a reader writes.
-const schemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json\n"
+const SchemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json\n"
 
 // Node builders. A tree is built from yaml.Node values, never from Go
 // maps, so its keys keep the order they were added in.
@@ -114,7 +114,7 @@ func (t *Tree) Write(w *disk.Writer, out string) error {
 			return err
 		}
 		if name == "specarch.yaml" {
-			text = append([]byte(schemaLine), text...)
+			text = append([]byte(SchemaLine), text...)
 		}
 		if err := w.WriteFile(filepath.Join(out, filepath.FromSlash(name)), text, 0o644); err != nil {
 			return err

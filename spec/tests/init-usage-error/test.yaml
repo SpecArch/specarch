@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: init
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "the program"
+when: "init is run with a profile that does not exist"
+then: "it names the profiles there are, prints how to use it, writes nothing and exits 2"
+verifies: [SA-108]

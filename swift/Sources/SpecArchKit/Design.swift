@@ -293,6 +293,7 @@ extension Checker {
         checkSeparationOfDuties(d)
         checkExpressions(d)
         checkMetaModelVersion(d)
+        checkProfile(d)
         checkDeprecated(d)
         checkTests(d)
         checkTestData(d)

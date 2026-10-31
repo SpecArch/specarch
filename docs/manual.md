@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.4.0 of the specification: 0 tasks, 0 pages and 23 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.4.0 of the specification: 0 tasks, 0 pages and 24 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, merge, model, try, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, merge, model, try, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -3104,8 +3104,8 @@ Explain an area of SpecArch or one command, from the text built into the program
 
 Without a topic it prints the usage and the list of topics. A topic
 is an area, with a short guide of its own (format, extract,
-validate, generate, upgrade, gaps, asking, plugins, conventions,
-examples),
+validate, generate, upgrade, gaps, asking, start, plugins,
+conventions, examples),
 or a command's name, `idioms-diff` or `idioms diff` for the
 subcommand. A command's topic prints the command's reference made
 from its definition in this specification: the synopsis, the
@@ -3227,6 +3227,59 @@ On standard error: A usage message on a usage error, the reason on an unreadable
 |---|---|---|
 | 0 | the overrides were printed, or there was none |   |
 | 2 | usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors | Run specarch validate and settle its errors, or correct the idiom's name or the path it names, then run it again. |
+
+### specarch init
+
+Write the smallest specification that validates into a new folder.
+
+Writes `specarch.yaml` into the folder given, making the folder when
+it does not exist: the `$schema` line pinned to this release, the
+meta-model version, and `info` with the title and the version the
+format requires, `0.1.0`. The title is `--title`, or the folder's
+own name. With `--profile` the file names that profile under
+`info.profile`; without it no profile is written and the
+specification is on full (ADR-210). Nothing else is written: no
+entity, operation or stage to rename or delete, since a placeholder
+is a definition nobody made. `specarch help start` shows the next
+step, a first entity and operation that validate.
+
+A folder that already holds `specarch.yaml` is refused and nothing
+is written: init never overwrites a specification.
+
+**Insight:** The first minutes decide whether a small project uses SpecArch at all. Spec Kit's init writes a project skeleton in one command; this init writes only what the format requires, since every key beyond it is a decision the author has not made yet, and a placeholder would be a definition the validator reads as made. The title from the folder's name is a fact, not a guess, and is one word to change. Refusing an existing specarch.yaml, rather than merging into it, keeps the command one that cannot lose work.
+
+```
+specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<folder>` | The folder the specification goes in; made when it does not exist. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--title <title>` | The specification's title, written as info.title; the folder's own name when left out. |  |
+| `--profile <profile>` | The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full. One of: lean, full. |  |
+| `--dry-run` | Write nothing; print would write <path> and the text it would write. |  |
+
+It reads:
+
+- `{folder}/specarch.yaml`: Only whether it exists, to refuse overwriting it.
+
+It writes:
+
+- `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile.
+
+On standard output: The path written, or with --dry-run would write <path> and the text.
+
+On standard error: A usage message on a usage error; the file that is already there or the reason a path could not be written; after writing, the next step.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | the specification was written, or with --dry-run would be |   |
+| 2 | usage error, a folder that already holds specarch.yaml, or a path that could not be written | Read the reason on standard error: give a folder without specarch.yaml, or a profile of lean or full, or a path that can be written, and run it again. |
 
 ### specarch merge
 

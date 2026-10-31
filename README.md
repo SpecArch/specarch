@@ -174,7 +174,8 @@ a defect in the roadmap, not an accepted state.
 
 ## Installing and running
 
-`specarch` is one program with verbs named by direction: `validate`
+`specarch` is one program with verbs named by direction: `init` writes
+the smallest specification that validates, `validate`
 checks, `gaps` lists the open questions and what they hold up, `document`
 goes from the specification to a document, `decide` answers an open
 question with a decision record and takes the question out, `approve`
@@ -254,6 +255,21 @@ version verbs and gives the same output. With Swift 6:
 
     swift build -c release --package-path swift
     swift/.build/release/specarch validate spec examples
+
+Start a specification; `init` writes the smallest one that validates,
+the meta-model version and the title and version the format requires, and
+nothing a person has not decided:
+
+    specarch init --profile lean notes/
+
+`specarch help start` shows the next step, a first entity and operation
+that validate. On the lean profile, for a small tool or an internal
+daemon, a test the design implies and nobody has written yet is a warning
+rather than an error, and one warning at `info.profile` says so; every
+other rule, a permission on every operation among them, is as on full.
+`specarch derive` writes the missing tests, and `profile: full`, or no
+profile, makes them errors again. The idea of setting a project up in one
+command comes from Spec Kit (github.com/github/spec-kit).
 
 Check specifications; a folder is searched for them, and a folder holding
 `specarch.yaml` is read as one specification:

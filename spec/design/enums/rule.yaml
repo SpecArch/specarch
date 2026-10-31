@@ -163,6 +163,7 @@ enums:
       - exit_code
       - decision_cycle
       - decision_superseded
+      - profile
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -217,9 +218,9 @@ enums:
       change_log: a description reads as a change log instead of the current truth (a warning)
       test_subject: a test is about an operation, command, page, constraint or transition that does not exist
       test_case: a test covers a case its subject does not have, or a red case in a golden test
-      test_golden_missing: a subject has no golden scenario; an error in a 0.2 file when the design gives the subject's success, which `specarch derive` writes, unless an open must or should question holds the subject up, and a warning otherwise
+      test_golden_missing: a subject has no golden scenario; an error in a 0.2 file when the design gives the subject's success, which `specarch derive` writes, unless an open must or should question holds the subject up or the specification is on the lean profile (ADR-210), and a warning otherwise
       test_red_missing: a subject has no red scenario and no derived red case (a warning, since there is no case to derive a test from)
-      test_case_missing: a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often; an error in a 0.2 file unless an open must or should question holds the subject up, and a warning otherwise
+      test_case_missing: a chosen case derived from the design has no test; a case is chosen when its subject satisfies a requirement with `harm`, when it is a failing dependency, or when users get it wrong often; an error in a 0.2 file unless an open must or should question holds the subject up or the specification is on the lean profile (ADR-210), and a warning otherwise
       test_data: a test's fixture, input or expect names what the design does not have, carries a value of the wrong type, holds a record a check constraint refuses, or says the same thing as a data folder beside it
       suite: an implementation's test suite names a design test or subject that does not exist
       depends_on: a layout entry's `dependsOn` names no key of the layout, or the entry itself
@@ -321,4 +322,5 @@ enums:
       exit_code: "a command's remedies names status 0, which needs no remedy, or a status its exitCodes does not list (ADR-165)"
       decision_cycle: "a decision's `restsOn` chain comes back to the decision itself, through any number of decisions; a decision rests on earlier decisions only, so the error is at every `restsOn` entry on the cycle, each naming the chain from its decision (ADR-188)"
       decision_superseded: "as a warning, a decision that is not itself superseded rests on a superseded decision, named with its successor; the decision rests on what no longer holds, and only a new decision that supersedes it, resting on the successor, clears the warning (ADR-188)"
+      profile: "as a warning, once at `info.profile`, the specification is on the lean profile: a test `specarch derive` would write and nobody has (`test_golden_missing`, `test_case_missing`) is a warning there, not an error, and every other rule is as on full; writing `full`, or removing the key, makes them errors again (ADR-210)"
     satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93]

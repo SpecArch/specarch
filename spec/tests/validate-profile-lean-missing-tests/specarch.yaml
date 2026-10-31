@@ -1,0 +1,41 @@
+specarch: "1.0.0"
+
+info:
+  title: Note keeper
+  version: 0.1.0
+  profile: lean
+
+permissions:
+  notes.write:
+    description: Write a note.
+
+roles:
+  writer:
+    description: Someone who keeps notes.
+    permissions: [notes.write]
+
+entities:
+  Note:
+    type: object
+    primaryKey: [id]
+    properties:
+      id: { type: string, format: uuid }
+      text: { type: string, minLength: 1, maxLength: 200 }
+    required: [id, text]
+
+paths:
+  /notes:
+    post:
+      operationId: createNote
+      summary: Keep a note
+      permission: notes.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/entities/Note' }
+      responses:
+        "201":
+          description: The note is kept.
+          content:
+            application/json:
+              schema: { $ref: '#/entities/Note' }

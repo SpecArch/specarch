@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: init
+level: system
+scenario: golden
+given: "a folder that does not exist"
+when: "init is run with --profile lean and a title holding a colon"
+then: "it writes the title quoted as YAML needs and profile: lean under info, and the file validates with the one profile warning"
+verifies: [SA-108]

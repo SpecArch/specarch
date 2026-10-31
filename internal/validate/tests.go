@@ -115,10 +115,11 @@ func (c *checker) checkTests(d *design) {
 		}
 	}
 
-	// In a 0.2 or 0.3 file a test specarch derive writes and nobody has is
-	// an error, except for a subject an open must or should question holds
-	// up, whose test derive leaves out too (ADR-055).
-	strict := metamodel.AtLeast(d.reads(), 0, 2)
+	// In a 0.2 or later file a test specarch derive writes and nobody has
+	// is an error, except for a subject an open must or should question
+	// holds up, whose test derive leaves out too (ADR-055), and in a
+	// specification on the lean profile, where it is a warning (ADR-210).
+	strict := metamodel.AtLeast(d.reads(), 0, 2) && !d.lean()
 	blocking := blockingQuestions(d.root)
 	for _, s := range subjects {
 		cv := cov[s]
@@ -184,6 +185,24 @@ func (c *checker) checkMetaModelVersion(d *design) {
 			}
 		}
 	}
+}
+
+// lean reports whether the specification is on the lean profile, which a
+// file on 1.0 sets under info.profile; an earlier version has no profile.
+func (d *design) lean() bool {
+	return !metamodel.Design.IsEarlier(d.metaModelVersion()) &&
+		source.Str(source.Child(source.Child(d.root, "info"), "profile")) == "lean"
+}
+
+// checkProfile warns once at info.profile in a specification on the lean
+// profile, naming the demands it makes warnings and how to tighten it, so a
+// missing test printed as a warning says why it is not an error (ADR-210).
+func (c *checker) checkProfile(d *design) {
+	if !d.lean() {
+		return
+	}
+	c.warn(source.Child(source.Child(d.root, "info"), "profile"), "/info/profile", RuleProfile,
+		"the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests")
 }
 
 // checkDeprecated warns at each key a file on 1.0 gives under the spelling

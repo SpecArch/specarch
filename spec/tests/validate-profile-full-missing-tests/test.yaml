@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "the same specification on the full profile"
+when: "validate is run"
+then: "it reports the missing golden and derived tests as errors, with no profile warning, and exits 1"
+verifies: [SA-108]

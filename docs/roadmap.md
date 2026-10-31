@@ -79,6 +79,14 @@ validator is the first thing to be in version control and runnable by
 anyone, which the lessons from an earlier in-house language made the first
 requirement.
 
+A short on-ramp for small tools: `specarch init` writes the smallest
+specification that validates, `specarch help start` shows a first entity
+and operation, and `info.profile: lean` makes the tests `specarch derive`
+would write warnings rather than errors, every other rule kept, the
+permission on every operation among them (ADR-210, SA-108,
+`spec/tests/init-*`, `spec/tests/validate-profile-*`): built on main, in
+no release yet. Setting a project up in one command follows Spec Kit.
+
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the

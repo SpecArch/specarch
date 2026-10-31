@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: init
+level: system
+scenario: golden
+given: "a folder that does not exist"
+when: "init is run on it with no option"
+then: "it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0"
+verifies: [SA-108]

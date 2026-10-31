@@ -160,6 +160,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case exitCode = "exit_code"
     case decisionCycle = "decision_cycle"
     case decisionSuperseded = "decision_superseded"
+    case profile = "profile"
 }
 
 /// Whether a diagnostic makes the file invalid.

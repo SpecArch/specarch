@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: init
+level: system
+scenario: red
+covers: [exit 2]
+given: "a folder that already holds specarch.yaml"
+when: "init is run on it"
+then: "it names the file, writes nothing, leaves the file as it was and exits 2"
+verifies: [SA-108]

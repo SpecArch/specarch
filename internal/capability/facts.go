@@ -7,6 +7,7 @@ package capability
 // Workflow is the order of work, one step each.
 var Workflow = []string{
 	"Pin the program: record the module version and checksum `go version -m` prints for the installed specarch in the repository's agent instructions, and check them at the start of each session; `specarch capabilities --json` names the version, the formats and the plug-ins this install has.",
+	"A new specification: `specarch init <folder>` writes the smallest one that validates, and `--profile lean` makes a missing test a warning for a small tool or an internal daemon; `specarch help start` shows a first entity and operation, what lean relaxes and how to tighten it.",
 	"Specification first: change the specification (specarch.yaml, its stage folders, the implementation files) before the code made from it, never a generated file; a generated file's first lines say which command made it.",
 	"After every edit run `specarch validate <folder>`: exit 0 is valid, 1 lists the errors one per line, 2 is a usage or read error.",
 	"Run `specarch gaps <folder>` for the open questions and what each holds up; then ask: `specarch gaps --next <folder>` gives the one question to put next, put it to the stakeholder it names with two to five options and one recommended, record the answer with `specarch decide`, and run `gaps --next` again; `specarch help asking` is the procedure.",

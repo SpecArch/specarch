@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on the lean profile with one operation and none of its tests"
+when: "validate is run"
+then: "it reports the missing golden and derived tests as warnings, with one warning at info.profile naming what the lean profile relaxes, and exits 0"
+verifies: [SA-108]

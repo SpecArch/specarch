@@ -1,0 +1,4 @@
+arguments: [init, notes]
+exitStatus: 0
+standardOutput: |
+  notes/specarch.yaml

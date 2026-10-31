@@ -1,0 +1,4 @@
+arguments: [init, --profile, lean, --title, "Note keeper: the first draft", notes]
+exitStatus: 0
+standardOutput: |
+  notes/specarch.yaml

@@ -54,6 +54,21 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: The questions gaps lists are answered by people, who answer better one question at a time with a choice and a recommended answer than a list at once; ranking by what an answer unblocks puts first the question whose answer moves the most work.
+  SA-108:
+    statement: specarch init shall write the smallest specification that validates into a folder that holds none, and specarch help start shall show the path from it to a first entity and operation that validates; a specification shall be able to name the lean profile under info.profile, where a test specarch derive would write and nobody has is a warning, not an error, every other rule stays as on full, a permission on every operation and command included, and one warning at the key says so.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - specarch init on a new folder writes specarch.yaml with the meta-model version and the info the format requires, which validate passes with no error and no warning, and exits 0.
+      - specarch init on a folder that already holds specarch.yaml writes nothing, names the file and exits 2.
+      - With --profile lean the file names the lean profile, and validate prints the one profile warning.
+      - On the lean profile a missing golden or derived test is a warning and validate exits 0 when nothing else is wrong; the same specification on full, or with no profile, reports them as errors and exits 1.
+      - On the lean profile an operation without a permission is still an error.
+      - The example of specarch help start validates with no error.
+    verification: test
+    needs: [NEED-7, NEED-10]
+    why: A first draft of a small tool met a wall of errors before anything could be shown, most of them tests the program can write itself; the lean profile lets such a draft validate, keeps every demand visible as a warning, and is tightened by one word, while the smallest specification and its next step take the guessing out of the first minutes.
   SA-20:
     statement: specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current.
     kind: functional

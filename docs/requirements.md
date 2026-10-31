@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 107 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 108 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -39,10 +39,10 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-97 |
-| NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-74, SA-95 |
+| NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-27, SA-21, SA-22, SA-75 |
-| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-57, SA-100 |
+| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-108, SA-57, SA-100 |
 
 ## 4. Requirements
 
@@ -131,6 +131,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-18 | functional | must | accepted | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. |
 | SA-19 | functional | must | accepted | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. |
 | SA-107 | functional | should | accepted | specarch gaps --next shall print, for each specification given, the one open question to put to a person next, ranked by what an answer unblocks, with who decides, what it blocks, the outputs it holds up, its options, its Insight and the decide command that records the answer, and with --json the same as data with a recommendation for the agent to fill; specarch help asking shall describe how to put questions to a person one at a time with a recommended answer, with no fixed number of questions. |
+| SA-108 | functional | should | accepted | specarch init shall write the smallest specification that validates into a folder that holds none, and specarch help start shall show the path from it to a first entity and operation that validates; a specification shall be able to name the lean profile under info.profile, where a test specarch derive would write and nobody has is a warning, not an error, every other rule stays as on full, a permission on every operation and command included, and one warning at the key says so. |
 | SA-20 | functional | must | accepted | specarch generate shall refuse to run a target while a must or should question blocks a section it reads, and shall refuse without a record that a stakeholder read the current documents and approved the specification's files as they are, unless --unapproved is given; specarch approve shall write that record only when the documents on disk are current. |
 | SA-30 | functional | must | accepted | A specification built from existing documents and existing code shall cite each element to the document section or the code file and line it came from, mappings of an implementation file included, and specarch gaps shall show for every source that lists its outline which elements each section or file produced and which produced nothing. |
 | SA-44 | functional | must | accepted | specarch extract shall read one surface of an existing system into a specification tree in which every element carries its origin and cites where it was read, name the commit it read, refuse a source no commit names, and give byte-identical output for the same sources at the same commit. |
@@ -1481,6 +1482,23 @@ Acceptance criteria:
 - gaps given an option other than --next is a usage error, exit 2.
 
 **Insight:** The questions gaps lists are answered by people, who answer better one question at a time with a choice and a recommended answer than a list at once; ranking by what an answer unblocks puts first the question whose answer moves the most work.
+
+### SA-108
+
+specarch init shall write the smallest specification that validates into a folder that holds none, and specarch help start shall show the path from it to a first entity and operation that validates; a specification shall be able to name the lean profile under info.profile, where a test specarch derive would write and nobody has is a warning, not an error, every other rule stays as on full, a permission on every operation and command included, and one warning at the key says so.
+
+Kind: functional; priority: should; status: accepted; verified by test; refines NEED-7, NEED-10.
+
+Acceptance criteria:
+
+- specarch init on a new folder writes specarch.yaml with the meta-model version and the info the format requires, which validate passes with no error and no warning, and exits 0.
+- specarch init on a folder that already holds specarch.yaml writes nothing, names the file and exits 2.
+- With --profile lean the file names the lean profile, and validate prints the one profile warning.
+- On the lean profile a missing golden or derived test is a warning and validate exits 0 when nothing else is wrong; the same specification on full, or with no profile, reports them as errors and exits 1.
+- On the lean profile an operation without a permission is still an error.
+- The example of specarch help start validates with no error.
+
+**Insight:** A first draft of a small tool met a wall of errors before anything could be shown, most of them tests the program can write itself; the lean profile lets such a draft validate, keeps every demand visible as a warning, and is tightened by one word, while the smallest specification and its next step take the guessing out of the first minutes.
 
 ### SA-20
 

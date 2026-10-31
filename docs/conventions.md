@@ -180,6 +180,32 @@ specification upgrades cleanly. `--dry-run` prints every change as
 nothing; the exit status is 0 when nothing is left to the author and 1
 when a step is.
 
+### Profiles: lean and full
+
+`info.profile` says how much the validator demands of a first draft
+(ADR-210). Left out, the profile is `full`: every demand is an error. On
+`lean`, for a small tool or an internal daemon, the demands relaxed are
+exactly the tests `specarch derive` would write: a subject's success
+(`test_golden_missing`, where the design gives it) and each chosen
+derived case (`test_case_missing`) are warnings, not errors. One warning
+at `info.profile` (`profile`) names them and says how to tighten.
+
+| Rule | full | lean |
+|---|---|---|
+| `test_golden_missing`, where the design gives the success | error | warning |
+| `test_case_missing` | error | warning |
+| every other rule, the schema's required keys and the permission on every operation and command among them | as it is | as on full |
+
+A permission stays required on lean: access is closed unless granted,
+so an operation without one would be open by omission; `public` and
+`signedIn` say open in one word. A response's `description` is OpenAPI's
+own requirement, and `summary` and `primaryKey` are what the documents
+and generators print and key by. Tighten by writing `profile: full` or
+removing the key; `specarch derive` writes the drafts on either profile.
+`specarch init --profile lean <folder>` starts a specification on lean,
+and `specarch help start` shows a first entity and operation that
+validate.
+
 ## Design and implementation
 
 A specification has two sides, and every fact belongs in exactly one of

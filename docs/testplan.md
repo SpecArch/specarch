@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 858 design tests, 417 golden and 441 red, about 25 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 867 design tests, 421 golden and 446 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 858 design tests, 417 golden and 441 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 854 |
+| system | 863 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3485,6 +3485,48 @@ Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
 - When: idioms is run without arguments
 - Then: it prints the usage and exits 2
 
+### Command init
+
+#### init-dry-run
+
+Scenario: golden; level: system; verifies SA-108.
+
+- Given: a folder that does not exist
+- When: init is run with --dry-run
+- Then: it prints the path and the text it would write, makes no folder and writes nothing, and exits 0
+
+#### init-lean-profile
+
+Scenario: golden; level: system; verifies SA-108.
+
+- Given: a folder that does not exist
+- When: init is run with --profile lean and a title holding a colon
+- Then: it writes the title quoted as YAML needs and profile: lean under info, and the file validates with the one profile warning
+
+#### init-refuses-existing
+
+Scenario: red; level: system; covers exit 2; verifies SA-108.
+
+- Given: a folder that already holds specarch.yaml
+- When: init is run on it
+- Then: it names the file, writes nothing, leaves the file as it was and exits 2
+
+#### init-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-108.
+
+- Given: the program
+- When: init is run with a profile that does not exist
+- Then: it names the profiles there are, prints how to use it, writes nothing and exits 2
+
+#### init-writes-specification
+
+Scenario: golden; level: system; verifies SA-108.
+
+- Given: a folder that does not exist
+- When: init is run on it with no option
+- Then: it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0
+
 ### Command merge
 
 #### merge-bypassed-check
@@ -5799,6 +5841,38 @@ Scenario: red; level: system; covers exit 1; verifies SA-5.
 - When: validate is run
 - Then: the missing description is covered by the question, and it still reports permission_ungranted and exits 1
 
+#### validate-profile-absent-missing-tests
+
+Scenario: red; level: system; covers exit 1; verifies SA-108.
+
+- Given: the same specification with no profile
+- When: validate is run
+- Then: it reads it as full: the missing golden and derived tests are errors, and it exits 1
+
+#### validate-profile-full-missing-tests
+
+Scenario: red; level: system; covers exit 1; verifies SA-108.
+
+- Given: the same specification on the full profile
+- When: validate is run
+- Then: it reports the missing golden and derived tests as errors, with no profile warning, and exits 1
+
+#### validate-profile-lean-missing-tests
+
+Scenario: golden; level: system; verifies SA-108.
+
+- Given: a specification on the lean profile with one operation and none of its tests
+- When: validate is run
+- Then: it reports the missing golden and derived tests as warnings, with one warning at info.profile naming what the lean profile relaxes, and exits 0
+
+#### validate-profile-lean-permission-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-108.
+
+- Given: a specification on the lean profile whose operation names no permission
+- When: validate is run
+- Then: the missing permission is still an error, since an operation without one would be open by omission, and it exits 1
+
 #### validate-question-answered
 
 Scenario: red; level: system; covers exit 1; verifies SA-17.
@@ -6963,7 +7037,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-486 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+492 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7360,6 +7434,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-107 | acceptance 2 | golden | SA-107 names no harm |
 | requirement SA-107 | acceptance 3 | golden | SA-107 names no harm |
 | requirement SA-107 | acceptance 4 | golden | SA-107 names no harm |
+| requirement SA-108 | acceptance 1 | golden | SA-108 names no harm |
+| requirement SA-108 | acceptance 2 | golden | SA-108 names no harm |
+| requirement SA-108 | acceptance 3 | golden | SA-108 names no harm |
+| requirement SA-108 | acceptance 4 | golden | SA-108 names no harm |
+| requirement SA-108 | acceptance 5 | golden | SA-108 names no harm |
+| requirement SA-108 | acceptance 6 | golden | SA-108 names no harm |
 | requirement SA-20 | acceptance 1 | golden | SA-20 names no harm |
 | requirement SA-20 | acceptance 2 | golden | SA-20 names no harm |
 | requirement SA-30 | acceptance 1 | golden | SA-30 names no harm |

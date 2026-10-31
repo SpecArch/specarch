@@ -59,6 +59,8 @@ standardOutput: |
         List the idioms each implementation file uses, and how.
     specarch idioms diff <idiom> <paths>...
         Print a shipped idiom's parts beside each override's.
+    specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
+        Write the smallest specification that validates into a new folder.
     specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run]
       <trees>...
         Merge the partial specifications the readers wrote into one.

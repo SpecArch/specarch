@@ -1,0 +1,91 @@
+Starting: the smallest specification, and the lean profile
+
+  specarch init --profile lean notes
+
+writes notes/specarch.yaml, the smallest specification that validates:
+the meta-model version and the title and version the format requires,
+with profile: lean. Nothing else: every key beyond these is a decision
+nobody has made yet. Run specarch validate notes after each edit.
+
+The first entity and operation
+
+A first draft names what is kept, what may be done with it, and who may
+do it. This one validates:
+
+  specarch: "1.0.0"
+
+  info:
+    title: Note keeper
+    version: 0.1.0
+    profile: lean
+
+  permissions:
+    notes.write:
+      description: Write a note.
+
+  roles:
+    writer:
+      description: Someone who keeps notes.
+      permissions: [notes.write]
+
+  entities:
+    Note:
+      type: object
+      primaryKey: [id]
+      properties:
+        id: { type: string, format: uuid }
+        text: { type: string, minLength: 1, maxLength: 200 }
+      required: [id, text]
+
+  paths:
+    /notes:
+      post:
+        operationId: createNote
+        summary: Keep a note
+        permission: notes.write
+        requestBody:
+          content:
+            application/json:
+              schema: { $ref: '#/entities/Note' }
+        responses:
+          "201":
+            description: The note is kept.
+            content:
+              application/json:
+                schema: { $ref: '#/entities/Note' }
+
+Five things a first draft often leaves out are errors on every profile,
+since each says something no other key says:
+
+- primaryKey on an entity: what tells two records apart.
+- summary on an operation, and description on each response: what the
+  documents print; OpenAPI asks for the response's description too.
+- permission on an operation or a command: the one permission a caller
+  must hold. Access is closed unless granted, so an operation without a
+  permission would be open by omission. Write public for one open to
+  everyone, signedIn for every caller who is signed in.
+- An int64 sent as a JSON number loses digits above 2^53 in JavaScript;
+  carry it as a string, or bound it with minimum and maximum.
+
+The lean profile
+
+On full, the default, every test the design implies and nobody has
+written is an error: the success of each operation and command
+(test_golden_missing), and each case derived from it, such as a field
+missing, a value of the wrong form, or a caller without the permission
+(test_case_missing). The draft above has five. On lean they are warnings,
+so a small tool or an internal daemon can validate, be documented and
+be shown before its tests are written. Every other rule is as on full,
+and one warning at info.profile says the profile is lean and what it
+relaxes.
+
+  specarch derive notes
+
+writes a draft test for each of them, which the author completes.
+
+Tightening
+
+Write profile: full, or remove the key. The missing tests are errors
+again, and validate exits 1 until derive has written them and they are
+complete. Nothing else changes: lean never hides a problem, it prints
+every one as a warning, and the problems document lists them.

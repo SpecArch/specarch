@@ -1,6 +1,7 @@
 // Command specarch checks SpecArch specifications and makes documents and
 // code from them.
 //
+//	specarch init [--title <title>] [--profile lean|full] [--dry-run] <folder>
 //	specarch validate <folder or file>...
 //	specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] <folder>...
 //	specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--estate <file>] <folder>...
@@ -36,6 +37,8 @@ import (
 const version = specarch.Version
 
 const usage = `usage:
+  specarch init [--title <title>] [--profile lean|full] [--dry-run] <folder>
+                                            write the smallest specification that validates into a new folder
   specarch validate <folder or file>...    check specifications and implementation files
   specarch gaps [--next] <folder>...        list the open questions and what they hold up;
                                             --next only the one to ask next
@@ -104,6 +107,7 @@ func main() {
 // commands are the program's commands by their first word, each run with
 // the arguments after it. help also answers to -h and --help.
 var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
+	"init":         runInit,
 	"validate":     runValidate,
 	"gaps":         runGaps,
 	"decide":       runDecide,

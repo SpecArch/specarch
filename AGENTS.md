@@ -66,29 +66,33 @@ in YAML, lists every problem in it, and writes documents and code from it.
    prints for the installed specarch in the repository's agent instructions,
    and check them at the start of each session; `specarch capabilities
    --json` names the version, the formats and the plug-ins this install has.
-2. Specification first: change the specification (specarch.yaml, its stage
+2. A new specification: `specarch init <folder>` writes the smallest one
+   that validates, and `--profile lean` makes a missing test a warning for a
+   small tool or an internal daemon; `specarch help start` shows a first
+   entity and operation, what lean relaxes and how to tighten it.
+3. Specification first: change the specification (specarch.yaml, its stage
    folders, the implementation files) before the code made from it, never a
    generated file; a generated file's first lines say which command made it.
-3. After every edit run `specarch validate <folder>`: exit 0 is valid, 1
+4. After every edit run `specarch validate <folder>`: exit 0 is valid, 1
    lists the errors one per line, 2 is a usage or read error.
-4. Run `specarch gaps <folder>` for the open questions and what each holds
+5. Run `specarch gaps <folder>` for the open questions and what each holds
    up; then ask: `specarch gaps --next <folder>` gives the one question to
    put next, put it to the stakeholder it names with two to five options and
    one recommended, record the answer with `specarch decide`, and run `gaps
    --next` again; `specarch help asking` is the procedure.
-5. Write what people read with `specarch document <target> --out <folder>
+6. Write what people read with `specarch document <target> --out <folder>
    <folder>` (techspec, requirements, problems, questions, manual and the
    others); once the owner has read them, they record the approval with
    `specarch approve`.
-6. Write code with `specarch generate <target> <folder>`; it refuses an
+7. Write code with `specarch generate <target> <folder>`; it refuses an
    unapproved specification unless `--unapproved` makes the output a draft.
    `--dry-run` lists what it would write; `--check` fails when the files on
    disk differ, so run it before each commit and in CI.
-7. For a system that exists already: `specarch extract <source>` once per
+8. For a system that exists already: `specarch extract <source>` once per
    surface (documents, database, router, code), `specarch merge` the trees,
    then validate and gaps; `specarch check` compares the specification with
    the code's own tables later.
-8. When a release moves the formats: `specarch upgrade --dry-run <folder>`
+9. When a release moves the formats: `specarch upgrade --dry-run <folder>`
    lists the changes and the steps left to the author, `specarch upgrade
    <folder>` makes them.
 
@@ -332,6 +336,11 @@ Error codes of --json:
   exit 0: the overrides were printed, or there was none
   exit 2: usage error, an idiom this program does not ship, a path that
   could not be read, or a specification with errors
+- `specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]`
+  Write the smallest specification that validates into a new folder.
+  exit 0: the specification was written, or with --dry-run would be
+  exit 2: usage error, a folder that already holds specarch.yaml, or a path
+  that could not be written
 - `specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run] <trees>...`
   Merge the partial specifications the readers wrote into one.
   exit 0: the merged specification was written

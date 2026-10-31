@@ -14,6 +14,12 @@ extension Design {
     /// line this program does not read.
     var reads: String { MetaModelFormat.design.reads(metaModelVersion) }
 
+    /// Whether the specification is on the lean profile, which a file on
+    /// 1.0 sets under info.profile; an earlier version has no profile.
+    var lean: Bool {
+        !MetaModelFormat.design.isEarlier(metaModelVersion) && str(root.child("info")?.child("profile")) == "lean"
+    }
+
     /// Whether the file is written against a version that reserves the
     /// name caller: 0.3 and later.
     var reservesCaller: Bool { metaModelAtLeast(reads, 0, 3) }

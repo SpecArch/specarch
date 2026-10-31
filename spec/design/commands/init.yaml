@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+commands:
+  init:
+    summary: Write the smallest specification that validates into a new folder
+    description: |
+      Writes `specarch.yaml` into the folder given, making the folder when
+      it does not exist: the `$schema` line pinned to this release, the
+      meta-model version, and `info` with the title and the version the
+      format requires, `0.1.0`. The title is `--title`, or the folder's
+      own name. With `--profile` the file names that profile under
+      `info.profile`; without it no profile is written and the
+      specification is on full (ADR-210). Nothing else is written: no
+      entity, operation or stage to rename or delete, since a placeholder
+      is a definition nobody made. `specarch help start` shows the next
+      step, a first entity and operation that validate.
+
+      A folder that already holds `specarch.yaml` is refused and nothing
+      is written: init never overwrites a specification.
+    permission: public
+    options:
+      title:
+        description: The specification's title, written as info.title; the folder's own name when left out.
+        schema: { type: string, minLength: 1 }
+      profile:
+        description: The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full.
+        schema: { type: string, enum: [lean, full] }
+      dry-run:
+        description: Write nothing; print would write <path> and the text it would write.
+        schema: { type: boolean, default: false }
+    arguments:
+      - name: folder
+        description: The folder the specification goes in; made when it does not exist.
+        required: true
+        repeatable: false
+        schema: { type: string }
+    reads:
+      - { path: "{folder}/specarch.yaml", description: "Only whether it exists, to refuse overwriting it." }
+    writes:
+      - { path: "{folder}/specarch.yaml", description: "The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile." }
+    standardOutput: The path written, or with --dry-run would write <path> and the text.
+    standardError: A usage message on a usage error; the file that is already there or the reason a path could not be written; after writing, the next step.
+    exitCodes:
+      "0": the specification was written, or with --dry-run would be
+      "2": usage error, a folder that already holds specarch.yaml, or a path that could not be written
+    remedies:
+      "2": "Read the reason on standard error: give a folder without specarch.yaml, or a profile of lean or full, or a path that can be written, and run it again."
+    satisfies: [SA-108]
+    why: |
+      The first minutes decide whether a small project uses SpecArch at
+      all. Spec Kit's init writes a project skeleton in one command; this
+      init writes only what the format requires, since every key beyond
+      it is a decision the author has not made yet, and a placeholder
+      would be a definition the validator reads as made. The title from
+      the folder's name is a fact, not a guess, and is one word to change.
+      Refusing an existing specarch.yaml, rather than merging into
+      it, keeps the command one that cannot lose work.

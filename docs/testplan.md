@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 867 design tests, 421 golden and 446 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 868 design tests, 422 golden and 446 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 867 design tests, 421 golden and 446 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 863 |
+| system | 864 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -412,6 +412,14 @@ Scenario: golden; level: system; verifies SA-28.
 - Given: the same specification, with a test folder already named as the missing-name draft would be
 - When: derive is run
 - Then: it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0
+
+#### derive-lean-profile
+
+Scenario: golden; level: system; verifies SA-108.
+
+- Given: a specification on the lean profile that lists tests in stages, with its success test written and none of its derived cases
+- When: derive is run
+- Then: it writes a draft for each derived case as on full, since the missing tests are warnings there and do not stop it, and exits 0
 
 #### derive-meta-model-0-2
 

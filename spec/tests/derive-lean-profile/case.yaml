@@ -1,0 +1,7 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/create-note-missing-id/test.yaml
+  project/tests/create-note-missing-text/test.yaml
+  project/tests/create-note-id-not-a-valid-uuid/test.yaml
+  project/tests/create-note-denied-without-notes-write/test.yaml

@@ -91,7 +91,6 @@ decisions:
       - source: spec-kit
         says: "The init command sets up a project for specification-driven development in one step."
       - source: openapi
-        clause: "4.8.17 Response Object"
-        says: "description: REQUIRED. A description of the response."
+        says: "A Response Object's description is required: a description of the response."
     satisfies: [SA-108]
     restsOn: [ADR-055, ADR-096, ADR-186]

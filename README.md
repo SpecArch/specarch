@@ -267,7 +267,8 @@ that validate. On the lean profile, for a small tool or an internal
 daemon, a test the design implies and nobody has written yet is a warning
 rather than an error, and one warning at `info.profile` says so; every
 other rule, a permission on every operation among them, is as on full.
-`specarch derive` writes the missing tests, and `profile: full`, or no
+`specarch derive` writes the missing tests into the tests stage's
+folder once `stages` lists it, and `profile: full`, or no
 profile, makes them errors again. The idea of setting a project up in one
 command comes from Spec Kit (github.com/github/spec-kit).
 

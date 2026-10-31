@@ -201,7 +201,9 @@ so an operation without one would be open by omission; `public` and
 `signedIn` say open in one word. A response's `description` is OpenAPI's
 own requirement, and `summary` and `primaryKey` are what the documents
 and generators print and key by. Tighten by writing `profile: full` or
-removing the key; `specarch derive` writes the drafts on either profile.
+removing the key; `specarch derive` writes the drafts on either profile,
+each into a folder of its own under the tests stage, so `stages` lists
+`tests` first (`spec/tests/derive-lean-profile`).
 `specarch init --profile lean <folder>` starts a specification on lean,
 and `specarch help start` shows a first entity and operation that
 validate.

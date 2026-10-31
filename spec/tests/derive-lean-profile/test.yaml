@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification on the lean profile that lists tests in stages, with its success test written and none of its derived cases"
+when: "derive is run"
+then: "it writes a draft for each derived case as on full, since the missing tests are warnings there and do not stop it, and exits 0"
+verifies: [SA-108]

@@ -79,13 +79,25 @@ be shown before its tests are written. Every other rule is as on full,
 and one warning at info.profile says the profile is lean and what it
 relaxes.
 
+Writing the tests
+
+Each test is a folder of its own under tests/, so list the stage in
+specarch.yaml and make the folder:
+
+  stages: [tests]
+
+Then
+
   specarch derive notes
 
-writes a draft test for each of them, which the author completes.
+writes a draft test for each of them, with origin: inferred and the
+given, when and then the derivation words; complete each one and remove
+what does not hold. derive refuses a specification that keeps its tests
+in specarch.yaml.
 
 Tightening
 
-Write profile: full, or remove the key. The missing tests are errors
-again, and validate exits 1 until derive has written them and they are
-complete. Nothing else changes: lean never hides a problem, it prints
-every one as a warning, and the problems document lists them.
+Write profile: full, or remove the key. A test still missing is an error
+again, and validate exits 1 until derive has written it. Nothing else
+changes: lean never hides a problem, it prints every one as a warning,
+and the problems document lists them.

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 108 requirements, 5 entities, 24 commands, 7 algorithms, 867 tests, 196 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 108 requirements, 5 entities, 24 commands, 7 algorithms, 868 tests, 196 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15700,7 +15700,7 @@ as they are.
 
 **Note:** From Spec Kit: The init command sets up a project for specification-driven development in one step. <https://github.com/github/spec-kit>
 
-**Note:** From OpenAPI Specification, 3.1.0, clause 4.8.17 Response Object: description: REQUIRED. A description of the response. <https://spec.openapis.org/oas/v3.1.0>
+**Note:** From OpenAPI Specification, 3.1.0: A Response Object's description is required: a description of the response. <https://spec.openapis.org/oas/v3.1.0>
 
 ## 10. Quality requirements
 
@@ -15752,6 +15752,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-integration-contract-per-call | command derive | system | golden | an operation that calls two operations of one dependency, each with retries, one mapping only its timeout, and calls another dependency with a rate fire and forget three times with retries, twice naming the dependency alone | derive is run | it writes a draft per call for the retries used up, named by the operation called, or by the call's place when two calls name the same, writes no draft for an unmapped error when errors maps only the timeout, ends the fire-and-forget call's retries and rate exceeded in the operation succeeding all the same, and exits 0 |
 | derive-invalid-spec | command derive | system | red | a specification whose operation names a permission that is not declared | derive is run | it prints the error, writes nothing and exits 1 |
 | derive-keeps-existing | command derive | system | golden | the same specification, with a test folder already named as the missing-name draft would be | derive is run | it keeps that folder as it is, says so on standard error, writes the other drafts and exits 0 |
+| derive-lean-profile | command derive | system | golden | a specification on the lean profile that lists tests in stages, with its success test written and none of its derived cases | derive is run | it writes a draft for each derived case as on full, since the missing tests are warnings there and do not stop it, and exits 0 |
 | derive-meta-model-0-2 | command derive | system | golden | a specification that says specarch 0.2, whose only errors are the tests derive writes, with a must question holding up one operation | derive is run | it writes the drafts of the operation and the requirement no test covers, leaves out the held-up operation's drafts, and exits 0 |
 | derive-meta-model-0-2-other-error | command derive | system | red | the same specification with an operation naming a permission that is not declared | derive is run | it prints that error and none of the missing tests, writes nothing, and exits 1 |
 | derive-name-taken | command derive | system | red | a specification whose two entities each have a constraint email_unique, and whose folder page-sign-in-succeeds holds a test of the operation signIn | derive is run | it writes neither constraint's draft nor the page's success draft, names each on standard error with what took its name, writes the other drafts and exits 1 |
@@ -17068,7 +17069,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-105 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 | SA-106 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
 | SA-107 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
-| SA-108 | commands init; decisions ADR-210 | tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
+| SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 
 ## Sources
 

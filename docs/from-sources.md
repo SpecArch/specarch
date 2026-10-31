@@ -393,7 +393,8 @@ must report no errors. A missing test is an error in 0.2: `specarch
 derive spec` drafts every one it can, and `specarch extract` and `specarch
 merge` have already drafted those of their trees. A test of a subject an
 open must or should question holds up stays a warning until the question
-is answered; every other warning is work. Then:
+is answered, as does every missing test on the lean profile
+(`info.profile`, `docs/conventions.md`); every other warning is work. Then:
 
     specarch gaps spec
 

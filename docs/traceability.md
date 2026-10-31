@@ -136,7 +136,7 @@ Version 1.4.0 of the specification: 10 needs, 108 requirements, and 2 gaps. Each
 | SA-105 | NEED-1 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 | SA-106 | NEED-1, NEED-10 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
 | SA-107 | NEED-8 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
-| SA-108 | NEED-7, NEED-10 | commands init; decisions ADR-210 | tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
+| SA-108 | NEED-7, NEED-10 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 
 ## 3. Gaps
 

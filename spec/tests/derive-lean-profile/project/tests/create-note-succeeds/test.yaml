@@ -1,0 +1,6 @@
+operation: createNote
+level: system
+scenario: golden
+given: "a caller with notes.write"
+when: "createNote is called with a note of 12 characters"
+then: "it answers 201 with the note"

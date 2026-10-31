@@ -41,6 +41,7 @@ spec first.
 | events | the publisher calls and the topic or channel registry | list topics, then the payload type each publisher sends |
 | pages | the schema objects the component library renders from | read them as data |
 | algorithms | the code, with the numbers from an existing test or a real record | the record becomes the first worked example |
+| processes | the unit file the service manager runs, such as a systemd `.service` and its `.timer` | `specarch extract systemd`; what the unit leaves to the host's defaults is asked |
 | decisions | commit history, review threads, chat | the only surface that is written by hand |
 
 Where a surface has no reader yet, extraction is a manual method with this
@@ -49,7 +50,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift`, `javascript` and `dart`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` and `dart`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract

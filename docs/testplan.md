@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 873 design tests, 426 golden and 447 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 875 design tests, 427 golden and 448 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 873 design tests, 426 golden and 447 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 869 |
+| system | 871 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2174,6 +2174,22 @@ Scenario: golden; level: system; verifies SA-44.
 - Given: a code-facts dump of a Vapor service whose routes function registers routes on the Application, on groups with literal segments and a group guarded by the check the implementation file names, under two such groups, and under a group whose check's permission is not a literal; with on and a method the meta-model lacks, the same route twice, a catch-all, a wildcard, a segment that is not a literal and a route behind a condition; a RouteCollection registered on the Application and on a group, with a group closure, a handler that decodes a list of a Content type and one that reads a parameter its path lacks; a RouteCollection nothing registers; and a function given a RoutesBuilder by a caller not followed
 - When: extract swift is run on the dump with the implementation file
 - Then: it writes one operation per route with literal segments under a builder it follows, named after its handler or by its method and path, citing its registration and its handler, the permission the guarded group's check names, and the request body a handler decodes; asks a must question on each route's summary and responses, its parameters' values, whether the running system registers it and its permission where no one check gives it, on the route twice, the segment that is not a literal, the route behind a condition, the collection nothing registers, the builder not followed and each parameter read that the path lacks; prints a line for the catch-all, the wildcard, the method and each handler that serves more than one route; and exits 0
+
+#### extract-systemd-not-a-unit
+
+Scenario: red; level: system; covers exit 1; verifies SA-109.
+
+- Given: a committed file holding unit settings whose name ends in neither .service nor .timer
+- When: extract systemd is run on it
+- Then: it says the file is not a unit ending in .service or .timer, writes nothing and exits 1
+
+#### extract-systemd-reads-units
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, two variables, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression
+- When: extract systemd is run on the three units
+- Then: it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable without its value, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0
 
 #### extract-usage-error
 

@@ -1,0 +1,7 @@
+job: sweep
+level: system
+scenario: golden
+given: "the registry holds release 1.4.0 of a service and 1.3.0 is installed"
+when: "the job sweep runs"
+then: "it installs 1.4.0"
+verifies: [RW-1]

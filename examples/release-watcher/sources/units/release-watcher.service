@@ -1,0 +1,22 @@
+[Unit]
+Description=Asks the registry for a new release of each service and installs it
+After=network-online.target
+Wants=network-online.target
+StartLimitBurst=5
+StartLimitIntervalSec=10min
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/release-watcher
+ExecReload=/bin/kill -HUP $MAINPID
+Environment=REGISTRY_ADDRESS=https://registry.example.org LOG_LEVEL=info
+EnvironmentFile=/etc/release-watcher/secrets.env
+Restart=on-failure
+RestartSec=5s
+RestartPreventExitStatus=78
+TimeoutStopSec=30s
+WatchdogSec=2min
+User=watcher
+
+[Install]
+WantedBy=multi-user.target

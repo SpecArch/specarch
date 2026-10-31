@@ -1,0 +1,22 @@
+arguments: [extract, systemd, --out, spec, repo/units/release-watcher.service, repo/units/release-prune.service, repo/units/release-prune.timer]
+repository:
+  folder: repo
+  commits:
+    - [units]
+exitStatus: 0
+standardOutput: |
+  commit 9cf88718eea329d0678ba3ee8262c5001d86b902: the last change to units/release-prune.service, units/release-prune.timer, units/release-watcher.service
+  counted 2 service units and 1 timer unit in units/release-prune.service, units/release-prune.timer, units/release-watcher.service
+  wrote 2 processes, 2 settings and 14 questions: one process per service unit, its time from its timer, one setting per variable Environment= sets, and one question per thing the units leave to the host or do not say
+  not held: units/release-prune.service:6: [Service] ExecStart= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-6
+  not held: units/release-prune.timer:2: [Unit] Description= describes the timer, and the process takes its description from its service; could question Q-7
+  not held: units/release-prune.timer:6: [Timer] Persistent= has no key in a process; could question Q-8
+  not held: units/release-prune.timer:9: [Install] WantedBy= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-9
+  not held: units/release-watcher.service:3: [Unit] After= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-10
+  not held: units/release-watcher.service:4: [Unit] Wants= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-11
+  not held: units/release-watcher.service:10: [Service] ExecStart= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-12
+  not held: units/release-watcher.service:19: [Service] User= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-13
+  not held: units/release-watcher.service:22: [Install] WantedBy= says how this host runs the process, which an implementation file's deployment holds, not the design; could question Q-14
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+  not derived: 1 draft test for process releasePrune, held up by Q-1; the validator warns for them until the question is answered
+  not derived: 6 draft tests for process releaseWatcher, held up by Q-2, Q-3; the validator warns for them until the questions are answered

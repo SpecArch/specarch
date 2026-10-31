@@ -1,0 +1,8 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [secret missing registryToken]
+given: "the secret registryToken is missing"
+when: "the process releaseWatcher starts"
+then: "it exits 78 before it asks the registry, naming registryToken"
+expect: { exit: 78 }

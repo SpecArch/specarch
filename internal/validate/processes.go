@@ -18,6 +18,10 @@ import (
 // never restarted on is one of its exit statuses.
 func (c *checker) checkProcesses(d *design) {
 	runBy := map[string]string{}
+	// A key an open must question asks for is not an error while it waits
+	// for the answer, as a reader writes it (docs/principles.md).
+	held := blockedPointers(d.root)
+	waits := func(parent, key string) bool { return held.under(parent) || contains(held.keys[parent], key) }
 	for _, p := range source.Pairs(source.Child(d.root, "processes")) {
 		name := p.Key.Value
 		at := func(tokens ...string) string {
@@ -35,7 +39,7 @@ func (c *checker) checkProcesses(d *design) {
 			}
 		case runs == "scheduled" && schedule != nil && every != nil:
 			c.add(source.Key(p.Value, "every"), at("every"), RuleProcess, "process %s writes both schedule and every; when it is started is said once, so keep one", name)
-		case runs == "scheduled" && schedule == nil && every == nil:
+		case runs == "scheduled" && schedule == nil && every == nil && !waits(at(), "schedule") && !waits(at(), "every"):
 			c.add(source.Key(p.Value, "runs"), at("runs"), RuleProcess, "process %s runs scheduled and runs no job, but says neither schedule nor every; write when it is started", name)
 		case runs != "scheduled" && runs != "":
 			for _, k := range []string{"schedule", "every"} {
@@ -80,6 +84,7 @@ func (c *checker) checkProcesses(d *design) {
 					c.add(source.Key(r, k), at("restart", k), RuleProcess, "process %s is never restarted, so %s says nothing; remove it, or write when: onFailure or always", name, k)
 				}
 			}
+		case source.Child(r, "limit") == nil && waits(at("restart"), "limit"):
 		case source.Child(r, "limit") == nil:
 			c.add(source.Key(r, "when"), at("restart", "when"), RuleProcess, "process %s is restarted %s with no limit; write limit with times and within, after which the service manager gives up, since a manager's own default differs from one manager to the next", name, whenText(when))
 		case len(source.Items(source.Child(p.Value, "monitors"))) == 0:

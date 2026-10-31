@@ -1,0 +1,9 @@
+process: releasePrune
+level: system
+scenario: red
+covers: [exit 1]
+given: "a release directory the program cannot remove"
+when: "the process releasePrune ends"
+then: "it exits 1: a release could not be removed"
+verifies: [RW-3]
+expect: { exit: 1 }

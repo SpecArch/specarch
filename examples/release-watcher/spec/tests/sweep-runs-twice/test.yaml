@@ -1,0 +1,8 @@
+job: sweep
+level: system
+scenario: golden
+covers: [runs twice]
+given: "the job sweep has installed release 1.4.0"
+when: "it runs again and the registry still holds 1.4.0"
+then: "it installs nothing a second time"
+verifies: [RW-1]

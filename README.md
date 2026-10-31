@@ -170,6 +170,7 @@ a defect in the roadmap, not an accepted state.
 | `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md`, and `extract.sh`, which reads the same sources with every reader and merges them |
 | `examples/estate/` | an estate of three modules, the lending desk above, a small catalogue service it depends on, and a gateway in front of both that forwards by the access token's audience: `specarch-estate.yaml` lists and pins them, and `docs/estate.md` is their module map |
 | `examples/reading-list/` | an iPhone app on SwiftUI and SwiftData and the Vapor server it calls, with the code-facts dumps of their Swift source and `extract.sh`, which reads both and merges them |
+| `examples/release-watcher/` | a daemon and a nightly program under systemd: their unit files, the specification of the two processes with every test they imply, and its technical specification and operations guide |
 | `examples/room-booking/` | one Express service written in TypeScript and in plain JavaScript, with the code-facts dumps of both and `extract.sh`, which reads both and lists the questions only one of them asks |
 
 ## Installing and running

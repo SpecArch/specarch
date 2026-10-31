@@ -1,0 +1,8 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [exit 78]
+given: "the setting registryAddress is not a URI"
+when: "the process releaseWatcher ends"
+then: "it exits 78 and the service manager does not start it again"
+expect: { exit: 78 }

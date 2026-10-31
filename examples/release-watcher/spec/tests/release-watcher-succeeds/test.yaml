@@ -1,0 +1,7 @@
+process: releaseWatcher
+level: system
+scenario: golden
+given: "its settings are valid and a new release is in the registry"
+when: "the process releaseWatcher starts"
+then: "it is healthy: it asks the registry each minute, tells the service manager so, and installs the new release within two minutes"
+verifies: [RW-1]

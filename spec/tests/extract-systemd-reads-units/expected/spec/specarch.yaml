@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Processes of units/release-prune.service, units/release-prune.timer, units/release-watcher.service
+  version: 0.1.0
+  description: |
+    The processes the systemd units units/release-prune.service, units/release-prune.timer, units/release-watcher.service define at commit 9cf88718eea329d0678ba3ee8262c5001d86b902: how each runs, is restarted and given up, is stopped and reloaded, and the settings it reads. Every process cites its unit; what a unit leaves to the host's defaults or does not say is a question.
+  tracksOrigin: true
+stages: [requirements, design, deployment]
+sources:
+  code:
+    kind: code
+    title: The code repository
+    edition: 9cf88718eea329d0678ba3ee8262c5001d86b902
+    url: ../repo
+    clauses:
+      - {clause: units/release-prune.service, title: The systemd unit release-prune.service}
+      - {clause: units/release-prune.timer, title: The systemd unit release-prune.timer}
+      - {clause: units/release-watcher.service, title: The systemd unit release-watcher.service}

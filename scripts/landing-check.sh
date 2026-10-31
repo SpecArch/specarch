@@ -59,7 +59,8 @@ build_tools() {
 # one CONTRIBUTING.md gives, over every specification at once;
 # examples/lending-desk configures only the documents an owner reads while
 # questions are open, so that loop warns for it at testplan, deployment and
-# commissioning and goes on (ADR-073).
+# commissioning and goes on (ADR-073); examples/release-watcher adds its
+# operations guide to the techspec the first loop writes.
 documents_current() {
 	for target in techspec requirements testplan traceability deployment commissioning handover; do
 		"$bin/specarch" document $target --check spec examples || return 1
@@ -70,6 +71,7 @@ documents_current() {
 	for target in techspec requirements traceability questions problems html; do
 		"$bin/specarch" document $target --check examples/lending-desk || return 1
 	done
+	"$bin/specarch" document operations --check examples/release-watcher || return 1
 }
 
 # generated_current checks the library lending example's generated code and

@@ -1,0 +1,40 @@
+stakeholders:
+  host-owner:
+    description: The person who runs the host and its services.
+
+needs:
+  NEED-1:
+    statement: The host's services run their latest release without a person installing each one.
+    stakeholders: [host-owner]
+    status: accepted
+
+requirements:
+  RW-1:
+    statement: The release watcher shall install a new release of a service within two minutes of its publication in the registry.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - A release published while the watcher runs is installed within two minutes.
+    verification: test
+    needs: [NEED-1]
+  RW-2:
+    statement: The release watcher shall come back after a crash, and a person shall be told when it stops for good.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance:
+      - After a crash the watcher runs again within five seconds.
+      - After five crashes within ten minutes it stays stopped and the monitor watcher-running alerts.
+    verification: test
+    harm: [availability]
+    needs: [NEED-1]
+  RW-3:
+    statement: The host shall keep the last three releases of each service and no more.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - After the nightly prune each service has at most three releases on disk.
+    verification: test
+    needs: [NEED-1]

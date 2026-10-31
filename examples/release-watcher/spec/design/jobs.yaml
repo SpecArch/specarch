@@ -1,0 +1,11 @@
+jobs:
+  sweep:
+    description: Asks the registry for the latest release of each service and installs one newer than the installed.
+    trigger: { every: PT1M }
+    role: installer
+    satisfies: [RW-1]
+  prune:
+    description: Removes the releases of each service older than its last three.
+    trigger: { schedule: "0 3 * * *" }
+    role: installer
+    satisfies: [RW-3]

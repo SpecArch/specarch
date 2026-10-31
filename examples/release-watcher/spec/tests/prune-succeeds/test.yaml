@@ -1,0 +1,7 @@
+job: prune
+level: system
+scenario: golden
+given: "four releases of a service are on disk"
+when: "the job prune runs"
+then: "the oldest is removed and the last three are kept"
+verifies: [RW-3]

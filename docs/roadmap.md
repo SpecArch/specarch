@@ -95,9 +95,11 @@ which it is given up, its health and its monitors, and no permission; the
 rule `process` in both validators, the cases a process implies (a signal,
 a setting missing, an exit status, a restart and the crash loop) with
 `process:` as a test's subject, and the process in the technical
-specification and the operations guide (ADR-211, SA-109,
-`spec/tests/validate-processes-*`, `spec/tests/derive-processes`): built
-on main, in no release yet. Spec Kit's free-form specification showed
+specification and the operations guide, and `specarch extract systemd`
+reading service and timer units into processes, asking for what a unit
+leaves to the host (ADR-211, SA-109, `spec/tests/validate-processes-*`,
+`spec/tests/derive-processes`, `spec/tests/extract-systemd-*`,
+`examples/release-watcher/`): built on main, in no release yet. Spec Kit's free-form specification showed
 the gap.
 
 ## 2. Targets, in order of payoff

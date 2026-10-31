@@ -1,0 +1,8 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [setting invalid registryAddress]
+given: "the setting registryAddress is missing"
+when: "the process releaseWatcher starts"
+then: "it exits 78 before it asks the registry, naming registryAddress"
+expect: { exit: 78 }

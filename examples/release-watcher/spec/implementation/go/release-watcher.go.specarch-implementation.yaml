@@ -1,0 +1,23 @@
+specarchImplementation: "1.0.0"
+
+info:
+  title: Release watcher in Go, under systemd
+  version: 1.0.0
+  description: |
+    One Go program for both processes, run by the systemd units in
+    ../sources/units: the daemon for releaseWatcher, and the same program
+    with the argument prune for releasePrune.
+
+implements:
+  file: ../../specarch.yaml
+  version: 1.0.0
+
+stack:
+  language: { name: Go, version: "1.26" }
+
+targets:
+  techspec:
+    output: ../../../docs
+  operations:
+    output: ../../../docs
+    description: What the host's owner looks at each day to keep the release watcher running.

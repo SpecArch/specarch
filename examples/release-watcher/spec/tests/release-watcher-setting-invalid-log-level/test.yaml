@@ -1,0 +1,8 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [setting invalid logLevel]
+given: "the setting logLevel is verbose, which is not one of error, info and debug"
+when: "the process releaseWatcher starts"
+then: "it exits 78 before it asks the registry, naming logLevel"
+expect: { exit: 78 }

@@ -1,0 +1,8 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [restarted after a crash]
+given: "the process releaseWatcher is running"
+when: "it ends with status 1"
+then: "the service manager starts it again after PT5S"
+verifies: [RW-2]

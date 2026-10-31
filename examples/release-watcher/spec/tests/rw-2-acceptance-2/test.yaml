@@ -1,0 +1,8 @@
+requirement: RW-2
+level: acceptance
+scenario: golden
+covers: [acceptance 2]
+given: "the release watcher's registryAddress names a host that refuses every connection, so each run fails"
+when: "it has failed five times within ten minutes"
+then: "it stays stopped and the monitor watcher-running alerts"
+verifies: [RW-2]

@@ -1,0 +1,17 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) What is setting registryAddress (the variable REGISTRY_ADDRESS): what it controls, whether it is a secret, and its type? Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'What is setting registryAddress (the variable REGISTRY_ADDRESS): what it controls, whether it is a secret, and its type?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/registryAddress/description', '#/configuration/registryAddress/secret', '#/configuration/registryAddress/schema']
+    decidedBy: system-owner
+    why: The unit sets the variable and says nothing of what it is; its value is left out, since it may be a secret.
+  # specarch-problem: question: open_question: (must, decision) What is setting logLevel (the variable LOG_LEVEL): what it controls, whether it is a secret, and its type? Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'What is setting logLevel (the variable LOG_LEVEL): what it controls, whether it is a secret, and its type?'
+    kind: decision
+    priority: must
+    blocks: ['#/configuration/logLevel/description', '#/configuration/logLevel/secret', '#/configuration/logLevel/schema']
+    decidedBy: system-owner
+    why: The unit sets the variable and says nothing of what it is; its value is left out, since it may be a secret.

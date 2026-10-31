@@ -1,0 +1,18 @@
+environments:
+  production:
+    description: The host whose services the watcher keeps current.
+    runBy: vendor
+
+configuration:
+  registryAddress:
+    description: The address of the registry the watcher asks for new releases.
+    secret: false
+    schema: { type: string, format: uri }
+  registryToken:
+    description: The token the watcher reads the registry with, from the environment file only root reads.
+    secret: true
+    schema: { type: string }
+  logLevel:
+    description: How much the watcher logs.
+    secret: false
+    schema: { type: string, enum: [error, info, debug] }

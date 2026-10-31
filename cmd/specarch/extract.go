@@ -16,7 +16,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "gateway", "go", "swift", "javascript", "dart"}
+var extractSources = []string{"outline", "database", "router", "documents", "openapi", "permissions", "pages", "workflows", "gateway", "systemd", "go", "swift", "javascript", "dart"}
 
 var sourceKey = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
@@ -195,6 +195,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		}
 	case "gateway":
 		res, err = extract.GatewayTable(paths[0], out, key, implementationOut != "")
+	case "systemd":
+		res, err = extract.Systemd(paths, out, key)
 	case "go":
 		res, err = extract.Go(paths, out, key, implementation, implementationOut != "")
 	case "swift":

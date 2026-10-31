@@ -278,7 +278,8 @@ Error codes of --json:
   or gives a workflow, a step or a form field no name, a gateway table that
   does not parse, is stale, lacks a key of the format or holds another,
   gives a row no value or a value twice, or names a gateway or a claim that
-  is no name, or an implementation file that does not parse as YAML
+  is no name, a file given to systemd that is not a unit ending in .service
+  or .timer, or an implementation file that does not parse as YAML
   exit 2: usage error, a source this build does not offer, --implementation
   given to a source other than go, swift, javascript, dart or pages, --facts
   given to a source other than pages, --routes given to a source other than

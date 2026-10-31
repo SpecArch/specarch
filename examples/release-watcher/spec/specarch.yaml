@@ -1,0 +1,17 @@
+specarch: "1.0.0"
+
+info:
+  title: Release watcher
+  version: 1.0.0
+  description: |
+    A daemon that asks a registry for new releases of a host's services and
+    installs them, and a nightly program that prunes old releases. Both run
+    under systemd; their unit files are in ../sources/units.
+
+stages: [requirements, design, implementation, tests, deployment, operation]
+
+sources:
+  units:
+    kind: code
+    title: The systemd units of the release watcher
+    url: ../sources/units

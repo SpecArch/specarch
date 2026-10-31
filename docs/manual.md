@@ -1516,6 +1516,37 @@ The sources this build reads:
   of each setting; with no environment it is not written and a
   line says so.
 
+- `systemd`: one or more systemd unit files in one repository,
+  each a `.service` or a `.timer` (ADR-211), read as
+  systemd.syntax(7) writes them. Each service unit is a process,
+  named after its file in camelCase, whose time is the timer that
+  starts it (its `Unit=`, or the timer of the same name). Only what
+  a unit states is written, each citing its line: `Description=`
+  the description; `runs` scheduled with a timer, onDemand for a
+  `Type=oneshot` with none, and always otherwise; `Restart=` (no,
+  always, on-failure) as `restart.when`, `RestartSec=` its delay,
+  and `StartLimitBurst=` with `StartLimitIntervalSec=` its limit;
+  `KillSignal=` and `TimeoutStopSec=` the stop signal and its
+  `within`; an `ExecReload=` that sends SIGHUP to `$MAINPID` the
+  signal SIGHUP; `WatchdogSec=` the health; a timer's
+  `OnUnitActiveSec=` its `every`; and each variable `Environment=`
+  sets a setting under configuration, in camelCase, never its
+  value, with a must question for what it is, whether it is a
+  secret and its type. A time span is read in days, hours, minutes
+  and seconds. What the unit leaves to the host is a question: a
+  restart with no limit (a must question, since system.conf's
+  defaults decide), a daemon with no `Restart=` (should), the exit
+  statuses `RestartPreventExitStatus=` and `SuccessExitStatus=` name
+  (must, for exitCodes and exceptExitCodes), an `OnCalendar=`,
+  which is a calendar expression in the host's time zone and not
+  cron (must, for schedule, naming it), and an `EnvironmentFile=`
+  (should, naming it, never read). Every other key prints a line
+  with its file and line and is a could question: the keys that say
+  how a host runs the program (`ExecStart=`, `User=`,
+  `WorkingDirectory=`, the ordering keys) belong to an
+  implementation file's deployment. A file not ending in `.service`
+  or `.timer` is refused.
+
 - `go`: the tracked Go files under the paths, in one repository,
   each read by the standard library's parser by its syntax alone
   (ADR-075), as one code source with `reading: parsed` whose clauses
@@ -2590,8 +2621,8 @@ Anyone who has the program runs it.
 
 | Argument | What to give | Required |
 |---|---|---|
-| `<source>` | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `go`, `swift`, `javascript` or `dart`. | yes |
-| `<paths>` | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. One or more. | yes |
+| `<source>` | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`. | yes |
+| `<paths>` | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. One or more. | yes |
 
 | Option | What it does | Required |
 |---|---|---|
@@ -2656,7 +2687,7 @@ On standard error: A usage message on a usage error, and the reason a source cou
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | the specification was written |   |
-| 1 | the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, or an implementation file that does not parse as YAML | Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again. |
+| 1 | the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML | Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again. |
 | 2 | usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch facts

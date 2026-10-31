@@ -1,0 +1,7 @@
+process: releaseWatcher
+level: system
+scenario: golden
+covers: [signal SIGHUP]
+given: "the process releaseWatcher is running and logLevel has changed to debug"
+when: "it receives SIGHUP"
+then: "it reads its settings again and logs at debug, without a restart"

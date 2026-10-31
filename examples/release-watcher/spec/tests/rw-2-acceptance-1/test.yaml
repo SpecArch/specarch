@@ -1,0 +1,8 @@
+requirement: RW-2
+level: acceptance
+scenario: golden
+covers: [acceptance 1]
+given: "the release watcher is running"
+when: "it is killed with SIGKILL"
+then: "it runs again within five seconds"
+verifies: [RW-2]

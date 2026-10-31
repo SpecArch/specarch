@@ -1,0 +1,8 @@
+job: prune
+level: system
+scenario: golden
+covers: [runs twice]
+given: "the job prune has run and three releases of each service are left"
+when: "it runs again over the same records"
+then: "nothing changes a second time"
+verifies: [RW-3]

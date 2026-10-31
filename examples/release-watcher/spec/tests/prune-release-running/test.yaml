@@ -1,0 +1,6 @@
+job: prune
+level: system
+scenario: red
+given: "the oldest of four releases of a service is the one running"
+when: "the job prune runs"
+then: "it keeps the running release and removes the oldest of the others"

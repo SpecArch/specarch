@@ -1925,7 +1925,10 @@ not exist, a job two processes run, a time written where it is not said
 or missing where it is, a consumer under a scheduled process, a restart
 with no limit, restart keys besides `when` on one never restarted, and an
 `exceptExitCodes` status that `exitCodes` lacks; a process given up after
-its limit that no monitor watches is a `process` warning. A test names a
+its limit that no monitor watches is a `process` warning. A scheduled
+process with no time, or a restart with no limit, is no error while an
+open must question asks for that key, as `specarch extract systemd`
+writes them when a unit leaves them to the host. A test names a
 process with `process: <name>`, and may expect its `exit` as a command's.
 A process gets no permission or caller case; its cases are in the table
 under Tests.

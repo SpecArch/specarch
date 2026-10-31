@@ -82,7 +82,7 @@ standardOutput: |
     deployment, commissioning, handover, questions, problems, comparison,
     changes, releases, html, manual, operations
   Extract sources: outline, database, router, documents, openapi, permissions,
-    pages, workflows, gateway, go, swift, javascript, dart
+    pages, workflows, gateway, systemd, go, swift, javascript, dart
 
   Plug-ins found on PATH
     none: put the specarch-gen-<target> executables on PATH to generate code.

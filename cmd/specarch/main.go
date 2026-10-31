@@ -53,13 +53,13 @@ const usage = `usage:
   specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--table] [--dry-run] --out <folder> <path>...
                                             write a specification from one surface of existing code or
                                             documents; the sources are outline, database, router, documents, openapi,
-                                            permissions, pages, workflows, gateway, go, swift, javascript and dart; go, swift,
+                                            permissions, pages, workflows, gateway, systemd, go, swift, javascript and dart; go, swift,
                                             javascript, dart and pages read the permission checks the implementation
                                             file names, pages reads Next.js and Nuxt files' code through --facts, and
                                             permissions gives each route of the route table --routes its permission;
                                             documents reads the words of --language or --vocabulary, English by default;
                                             workflows reads a BPMN 2.0 XML file, or with --table a workflow table;
-                                            gateway reads a gateway table
+                                            gateway reads a gateway table; systemd reads service and timer units
   specarch facts [--dry-run] <language> <folder> <dump>
                                             write the code-facts dump extract reads of a committed folder;
                                             the languages are javascript, swift and dart

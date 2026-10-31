@@ -1,7 +1,8 @@
 #!/bin/sh
 # Writes every generated file landing-check.sh checks, from the repository
 # root: the fragment schemas and hint lines, the documents of SpecArch's own
-# specification, of examples/library-lending and of examples/lending-desk,
+# specification, of examples/library-lending, of examples/lending-desk and
+# of examples/release-watcher,
 # the library lending example's generated code and data, and the reading
 # room's screens, generated across the estate in examples/estate. To settle a
 # conflict in one of these files, take either side, then run this script on
@@ -43,6 +44,7 @@ documents() {
 	for target in techspec requirements traceability questions problems html; do
 		"$bin/specarch" document $target examples/lending-desk || return 1
 	done
+	"$bin/specarch" document operations examples/release-watcher || return 1
 }
 
 generated() {

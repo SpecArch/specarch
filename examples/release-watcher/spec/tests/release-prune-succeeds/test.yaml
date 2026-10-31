@@ -1,0 +1,7 @@
+process: releasePrune
+level: system
+scenario: golden
+given: "four releases of a service are on disk"
+when: "the process releasePrune is started at 03:00 UTC, when the job prune is due"
+then: "it does its work and exits 0: it removed what was older than the last three releases"
+verifies: [RW-3]

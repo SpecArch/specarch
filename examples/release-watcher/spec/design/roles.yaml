@@ -1,0 +1,10 @@
+permissions:
+  releases.install:
+    description: Install a release of a service on the host.
+  releases.prune:
+    description: Remove a release of a service from the host.
+
+roles:
+  installer:
+    description: What the release watcher's jobs act as on the host.
+    permissions: [releases.install, releases.prune]

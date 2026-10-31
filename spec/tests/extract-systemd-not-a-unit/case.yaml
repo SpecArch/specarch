@@ -1,0 +1,7 @@
+arguments: [extract, systemd, --out, spec, units/app.conf]
+repository:
+  folder: units
+  commits:
+    - [app.conf]
+exitStatus: 1
+standardOutput: ""

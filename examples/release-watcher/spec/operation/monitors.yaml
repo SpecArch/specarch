@@ -1,0 +1,9 @@
+monitors:
+  watcher-running:
+    description: Whether the release watcher's unit is active.
+    environment: production
+    objective: The unit is active at every check, each minute of the day.
+    verifies: [RW-2]
+    response:
+      - { name: Read why it stopped, action: Read the unit's journal from the last start., check: The error of its last run is known. }
+      - { name: Start it again, action: Fix what the error names and start the unit., check: The unit is active and the monitor clears. }

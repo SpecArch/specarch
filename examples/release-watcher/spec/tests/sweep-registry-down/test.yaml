@@ -1,0 +1,6 @@
+job: sweep
+level: system
+scenario: red
+given: "the registry does not answer"
+when: "the job sweep runs"
+then: "it installs nothing, logs the error, and asks again on its next run"

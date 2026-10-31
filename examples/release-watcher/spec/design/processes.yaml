@@ -1,0 +1,37 @@
+processes:
+  releaseWatcher:
+    description: Asks the registry for a new release of each service and installs it.
+    runs: always
+    jobs: [sweep]
+    configuration: [registryAddress, registryToken, logLevel]
+    signals:
+      SIGTERM: { description: "finishes the release it is installing, then exits 0", within: PT30S }
+      SIGHUP: { description: reads its settings again }
+    exitCodes:
+      "0": it was asked to stop
+      "78": a setting is missing or wrong
+    restart:
+      when: onFailure
+      delay: PT5S
+      limit: { times: 5, within: PT10M }
+      exceptExitCodes: ["78"]
+    health:
+      description: it has asked the registry within the last two minutes, and tells the service manager so
+      every: PT2M
+    monitors: [watcher-running]
+    satisfies: [RW-1, RW-2]
+    origin: stated
+    cites:
+      - { source: units, clause: release-watcher.service, says: "Restart=on-failure, RestartSec=5s, StartLimitBurst=5 within StartLimitIntervalSec=10min, RestartPreventExitStatus=78, TimeoutStopSec=30s, WatchdogSec=2min, ExecReload sends SIGHUP." }
+  releasePrune:
+    description: Removes old releases each night.
+    runs: scheduled
+    jobs: [prune]
+    exitCodes:
+      "0": it removed what was older than the last three releases
+      "1": a release could not be removed
+    restart: { when: never }
+    satisfies: [RW-3]
+    origin: stated
+    cites:
+      - { source: units, clause: release-prune.timer, says: "OnCalendar=*-*-* 03:00:00 on a host whose clock is UTC, which the job prune's schedule says." }

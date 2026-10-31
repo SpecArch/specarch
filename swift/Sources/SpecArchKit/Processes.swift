@@ -14,6 +14,10 @@ extension Checker {
         var runBy: [String: String] = [:]
         var jobsByName: [String: YNode] = [:]
         for j in pairs(d.root.child("jobs")) { jobsByName[j.key.value] = j.value }
+        // A key an open must question asks for is not an error while it
+        // waits for the answer, as a reader writes it (docs/principles.md).
+        let held = blockedPointers(d.root)
+        func waits(_ parent: String, _ key: String) -> Bool { held.under(parent) || (held.keys[parent] ?? []).contains(key) }
         for p in pairs(d.root.child("processes")) {
             let name = p.key.value
             func at(_ tokens: String...) -> String { pointer(["processes", name] + tokens) }
@@ -26,7 +30,7 @@ extension Checker {
                 }
             } else if runs == "scheduled" && schedule != nil && every != nil {
                 add(p.value.key("every"), at("every"), .process, "process \(name) writes both schedule and every; when it is started is said once, so keep one")
-            } else if runs == "scheduled" && schedule == nil && every == nil {
+            } else if runs == "scheduled" && schedule == nil && every == nil && !waits(at(), "schedule") && !waits(at(), "every") {
                 add(p.value.key("runs"), at("runs"), .process, "process \(name) runs scheduled and runs no job, but says neither schedule nor every; write when it is started")
             } else if runs != "scheduled" && !runs.isEmpty {
                 for k in ["schedule", "every"] where p.value.child(k) != nil {
@@ -60,6 +64,7 @@ extension Checker {
                 for k in ["delay", "limit", "exceptExitCodes"] where r?.child(k) != nil {
                     add(r?.key(k), at("restart", k), .process, "process \(name) is never restarted, so \(k) says nothing; remove it, or write when: onFailure or always")
                 }
+            } else if r?.child("limit") == nil && waits(at("restart"), "limit") {
             } else if r?.child("limit") == nil {
                 add(r?.key("when"), at("restart", "when"), .process, "process \(name) is restarted \(whenText(when)) with no limit; write limit with times and within, after which the service manager gives up, since a manager's own default differs from one manager to the next")
             } else if items(p.value.child("monitors")).isEmpty {

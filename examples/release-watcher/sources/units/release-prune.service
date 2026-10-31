@@ -1,0 +1,6 @@
+[Unit]
+Description=Removes releases older than the last three
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/release-watcher prune

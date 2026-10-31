@@ -1,0 +1,7 @@
+process: releaseWatcher
+level: system
+scenario: golden
+covers: [signal SIGTERM]
+given: "the process releaseWatcher is installing a release"
+when: "it receives SIGTERM"
+then: "it finishes that release, then exits 0, within PT30S"

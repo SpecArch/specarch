@@ -77,6 +77,7 @@ decisions:
       placeholder; its text boxes are paragraphs and its tables tables;
       the notes' body is the clause slide 3 notes. A slide's number or
       footer is not read, and a picture or a chart is a could question.
+      Of an alternate content only the choice is read, as in Word.
 
       Excel: every sheet is a heading; every rectangle of touching cells
       of two rows and two columns or more is a table under the clause of
@@ -98,7 +99,9 @@ decisions:
       its clauses after its name, lending-rules.docx: 2.1, up to three
       messages deep. A forwarded message, a message/rfc822 part sent
       with no file name, is named by its subject, message "Loan
-      limits"; a message with no Date header is said to be sent with
+      limits"; a second attachment of a name another already has is
+      numbered, message "Loan limits" 2, so that each keeps its own
+      clauses; a message with no Date header is said to be sent with
       no date. Lines quoted from an earlier message and the
       signature after "-- " are not read.
     consequences: |

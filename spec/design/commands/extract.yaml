@@ -132,7 +132,8 @@ commands:
         else its media type, is read with its clauses after its name
         (`lending-rules.docx: 2.1.1`), three messages deep at most, a
         forwarded message with no file name named by its subject
-        (`message "Loan limits": body`), and quoted lines, the signature and any other attachment
+        (`message "Loan limits": body`), a second attachment of the same
+        name numbered (`message "Loan limits" 2`), and quoted lines, the signature and any other attachment
         each print a line. Every line names its place and is a could
         question.
       - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as

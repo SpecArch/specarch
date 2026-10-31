@@ -774,6 +774,12 @@ func readSlide(files map[string]*zip.File, name string, notes bool) (slideText, 
 		switch t := tok.(type) {
 		case xml.StartElement:
 			switch {
+			case t.Name.Space == markupCompatibility && t.Name.Local == "Fallback":
+				// mc:Fallback repeats mc:Choice for older readers (math,
+				// SmartArt, media): read only the choice, as in Word.
+				if err := dec.Skip(); err != nil {
+					return out, fmt.Errorf("does not parse as XML: %v", err)
+				}
 			case t.Name.Space == presentationML && t.Name.Local == "sp":
 				inShape, phType, hasPh, shapeParas = true, "", false, nil
 			case t.Name.Space == presentationML && t.Name.Local == "ph":
@@ -1151,6 +1157,7 @@ const maxAttachmentDepth = 3
 type emailAttachment struct {
 	name, mediaType string
 	data            []byte
+	place           string // the name, numbered from 2 when another attachment has it
 }
 
 func readEML(_ string, data []byte, depth int) (*docInput, error) {
@@ -1243,7 +1250,24 @@ func readEML(_ string, data []byte, depth int) (*docInput, error) {
 			if name == "" {
 				name = "attachment " + strconv.Itoa(len(attachments)+1)
 			}
-			attachments = append(attachments, emailAttachment{name: name, mediaType: media, data: content})
+			// Two attachments of one name (a subject repeated in a thread,
+			// a file sent twice) would be one clause: the second is
+			// numbered, as "Loan limits" 2.
+			place := name
+			for k := 2; ; k++ {
+				taken := false
+				for _, a := range attachments {
+					if a.place == place {
+						taken = true
+						break
+					}
+				}
+				if !taken {
+					break
+				}
+				place = name + " " + strconv.Itoa(k)
+			}
+			attachments = append(attachments, emailAttachment{name: name, mediaType: media, data: content, place: place})
 			return nil
 		}
 		s, err := decodeCharset(content, params["charset"])
@@ -1311,35 +1335,35 @@ func readEML(_ string, data []byte, depth int) (*docInput, error) {
 		in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: "body", text: fmt.Sprintf("a part of the body of type %s: only text/plain and text/html are read", media)})
 	}
 	for _, a := range attachments {
-		place := a.name
-		in.blocks = append(in.blocks, docBlock{kind: blockSection, level: 1, id: a.name, title: a.name, place: place})
+		place := a.place
+		in.blocks = append(in.blocks, docBlock{kind: blockSection, level: 1, id: place, title: place, place: place})
 		f, ok := attachmentFormat(a.name, a.mediaType)
 		if !ok || depth+1 > maxAttachmentDepth {
 			why := fmt.Sprintf("this build reads attachments in %s", documentFormatList())
 			if ok {
 				why = fmt.Sprintf("it is nested %d messages deep, and attachments are read %d deep", depth+1, maxAttachmentDepth)
 			}
-			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("the attachment %s, of type %s: %s; it is not read", a.name, a.mediaType, why)})
+			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("the attachment %s, of type %s: %s; it is not read", place, a.mediaType, why)})
 			continue
 		}
 		inner, err := f.read(a.name, a.data, depth+1)
 		if err != nil {
-			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("the attachment %s cannot be read as %s: %v", a.name, f.name, err)})
+			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: place, text: fmt.Sprintf("the attachment %s cannot be read as %s: %v", place, f.name, err)})
 			continue
 		}
 		for _, s := range inner.says {
-			in.says = append(in.says, "attachment "+a.name+": "+s)
+			in.says = append(in.says, "attachment "+place+": "+s)
 		}
 		for _, b := range inner.blocks {
 			b.level++
-			b.prefix = a.name + ": " + b.prefix
+			b.prefix = place + ": " + b.prefix
 			if b.place == "" {
-				b.place = a.name
+				b.place = place
 			} else {
-				b.place = a.name + ", " + b.place
+				b.place = place + ", " + b.place
 			}
 			if b.kind == blockNotHeld {
-				b.text = a.name + ": " + b.text
+				b.text = place + ": " + b.text
 			}
 			in.blocks = append(in.blocks, b)
 		}

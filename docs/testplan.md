@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 868 design tests, 422 golden and 446 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 873 design tests, 426 golden and 447 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 868 design tests, 422 golden and 446 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 864 |
+| system | 869 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -485,6 +485,14 @@ Scenario: golden; level: system; verifies SA-28.
 - When: derive is run
 - Then: it writes the operation's drafts under operation-sign-in- and the page's success draft as page-sign-in-succeeds, lists them and exits 0
 
+#### derive-processes
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a specification with a process that runs always, reads a setting and a secret, honours SIGTERM and SIGHUP, has an exit status it is never restarted on, and is restarted on failure up to a limit watched by a monitor, with only its success test written
+- When: derive is run
+- Then: it writes a draft for SIGTERM, each setting, the exit status with expect exit, the restart and the crash loop, leaves SIGHUP out as an occasional case, derives no permission or caller case, and exits 0
+
 #### derive-root-tests
 
 Scenario: red; level: system; covers exit 2; verifies SA-28.
@@ -901,6 +909,14 @@ Scenario: golden; level: system; verifies SA-90.
 - When: document operations is run
 - Then: it writes operations.md all the same, each empty section one sentence naming the key that fills it, and exits 0
 
+#### document-operations-processes
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every
+- When: document operations is run
+- Then: the guide writes a daily checklist line per process, and a Processes section with how each runs, its jobs and restart, and per process its settings, signals, exit statuses with the one never restarted on, health and monitor, or a sentence naming the signals key it lacks, and exits 0
+
 #### document-pages-flowchart
 
 Scenario: golden; level: system.
@@ -1116,6 +1132,14 @@ Scenario: golden; level: system; verifies SA-47.
 - Given: the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation
 - When: document techspec is run
 - Then: the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0
+
+#### document-techspec-processes
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every
+- When: document techspec is run
+- Then: the runtime view writes a paragraph per process: how it runs, as no role, its jobs, settings, signals, exit statuses, when it is started again and never, its health and monitors, and exits 0
 
 #### document-techspec-requests
 
@@ -5849,6 +5873,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-5.
 - When: validate is run
 - Then: the missing description is covered by the question, and it still reports permission_ungranted and exits 1
 
+#### validate-processes-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-109.
+
+- Given: processes on the lean profile that name a job, a setting and a monitor that do not exist, run a job another process runs, write a time while they run always, while they run jobs or twice, write none while scheduled with no job, run a consumer while scheduled, are restarted with no limit, write restart keys while never restarted, never restart on a status they lack, and one given up after its limit with no monitor
+- When: validate is run
+- Then: it reports each as process at its key, the process with no monitor as a process warning, derives no permission or caller case for any process, and exits 1
+
+#### validate-processes-valid
+
+Scenario: golden; level: system; verifies SA-109.
+
+- Given: a process that runs always with a job, settings, signals, exit statuses, a restart limit and a monitor, a scheduled process started at its job's time and never restarted, and a scheduled process with its own every, each with the tests it implies, an exit status expected of a process included
+- When: validate is run
+- Then: it reports nothing and exits 0
+
 #### validate-profile-absent-missing-tests
 
 Scenario: red; level: system; covers exit 1; verifies SA-108.
@@ -7045,7 +7085,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-492 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+497 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7338,6 +7378,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-106 | acceptance 2 | golden | SA-106 names no harm |
 | requirement SA-106 | acceptance 3 | golden | SA-106 names no harm |
 | requirement SA-106 | acceptance 4 | golden | SA-106 names no harm |
+| requirement SA-109 | acceptance 1 | golden | SA-109 names no harm |
+| requirement SA-109 | acceptance 2 | golden | SA-109 names no harm |
+| requirement SA-109 | acceptance 3 | golden | SA-109 names no harm |
+| requirement SA-109 | acceptance 4 | golden | SA-109 names no harm |
+| requirement SA-109 | acceptance 5 | golden | SA-109 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

@@ -3655,10 +3655,11 @@ operationId; an operation's `via` names a client, and a role's
 `through` names a permission by each key and a client by each item,
 with `through` as the keyword of both; and `callers`, `token`,
 `handshake`, `middlewares`, and a test's `command`, `job`,
-`workflow`, `flow` and `requirement` name the element of their
-section. A reference that does not resolve is a
-problem of validate and is not listed; nor is a reference into
-another specification.
+`process`, `workflow`, `flow` and `requirement` name the element of
+their section; a process's `jobs` names a job, its `configuration` a
+setting under configuration and its `monitors` a monitor. A
+reference that does not resolve is a problem of validate and is not
+listed; nor is a reference into another specification.
 
 An implementation file has its `file`, its `stack`, its `document`,
 its `positions`, its `references`, the design pointers under

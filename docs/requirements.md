@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 108 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 109 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,7 +33,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
@@ -103,6 +103,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-104 | functional | should | proposed | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. |
 | SA-105 | functional | should | proposed | A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them. |
 | SA-106 | functional | should | proposed | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. |
+| SA-109 | functional | should | proposed | A specification shall be able to declare the long-running processes a service manager starts and watches, each with how it runs (always, scheduled or on demand), the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and the limit after which it is given up, its health and the monitors that watch it, with no permission; specarch validate shall check each against the design in both builds, a process shall be a subject of tests with the cases it implies, the operations guide shall write it, and specarch extract systemd shall read a systemd unit file into one. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -1064,6 +1065,22 @@ Acceptance criteria:
 - Both builds print the same lines for every case.
 
 **Insight:** A person checks a mapping faster on a case they recognise than on its expressions, and a mapping's decision taken on an example is checked forever after once the example is a test (ADR-207).
+
+### SA-109
+
+A specification shall be able to declare the long-running processes a service manager starts and watches, each with how it runs (always, scheduled or on demand), the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and the limit after which it is given up, its health and the monitors that watch it, with no permission; specarch validate shall check each against the design in both builds, a process shall be a subject of tests with the cases it implies, the operations guide shall write it, and specarch extract systemd shall read a systemd unit file into one.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-1.
+
+Acceptance criteria:
+
+- A process naming a job, a setting or a monitor the specification lacks, a job another process runs, a schedule or every on a process that is not scheduled or on a scheduled one that runs jobs, neither or both on a scheduled one that runs none, a job that consumes messages under a scheduled process, a restart without a limit, restart keys besides when on one that is never restarted, or an exit status under exceptExitCodes that exitCodes lacks is reported as process in both builds; a process given up after its limit and watched by no monitor is a process warning.
+- A test may name a process as its subject, and a process gets the cases each signal it honours, each setting it reads missing or invalid (a secret missing), each non-zero exit status, restarted after a crash and crash loop given up; the restart and crash-loop cases are critical, and no permission or caller case is derived.
+- The operations guide writes the processes with how each runs, its jobs, restart and limit, signals, exit statuses, health and monitors, and a daily checklist line, and the technical specification a paragraph per process; a specification without processes gets one sentence in the operations guide naming the key, as for every other empty section.
+- specarch extract systemd on a unit file writes a process with its runs, restart, delay, limit, statuses not restarted, stop signal and timeout, and the settings it reads, each stated with the file and line; a timer's OnCalendar, which is not cron, is a could question citing its line.
+- Both builds print the same lines for every case.
+
+**Insight:** A daemon, a scheduled loop or a system service had to be written as a job with commands, which demanded a permission and caller cases it cannot have, while its restart, crash loop, signals and bad configuration, what goes wrong with such a program, had no key and no test (ADR-211).
 
 ### SA-7
 

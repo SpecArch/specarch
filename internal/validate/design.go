@@ -194,6 +194,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkIntegrations(d)
 	c.checkChannels(d)
 	c.checkJobs(d)
+	c.checkProcesses(d)
 	c.checkWorkflows(d)
 	c.checkMenus(d)
 	c.checkViews(d)

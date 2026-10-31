@@ -1,0 +1,10 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [exit 78]
+given: "..."
+when: "the process releaseWatcher ends"
+then: "it exits 78: a setting is wrong; it is not started again"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."
+expect: { exit: 78 }

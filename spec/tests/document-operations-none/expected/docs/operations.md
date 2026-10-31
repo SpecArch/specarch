@@ -20,31 +20,35 @@ The specification has no monitors; what is watched on the live system, and the o
 
 The specification has no jobs; what the system runs on its own, on a schedule or for each message, is written under jobs.
 
-## 5. Channels
+## 5. Processes
+
+The specification has no processes; a program a service manager starts and watches, kept running, started on a schedule or on demand, is written under processes.
+
+## 6. Channels
 
 The specification has no channels; the messages the system publishes and consumes are written under channels.
 
-## 6. Dependencies
+## 7. Dependencies
 
 The specification has no dependencies; each system it calls or that carries its channels is written under dependencies.
 
-## 7. Endpoints
+## 8. Endpoints
 
 The specification has no endpoints; each operation the system serves is written under paths.
 
-## 8. Settings
+## 9. Settings
 
 The specification has no settings; each value the system reads at run time is written under configuration.
 
-## 9. Backing up
+## 10. Backing up
 
 The specification has no backup; how the data of the live system is saved is written under backup.
 
-## 10. Restoring
+## 11. Restoring
 
 The specification has no restore; how saved data is brought back is written under restore.
 
-## 11. Rolling back
+## 12. Rolling back
 
 The specification has no rollback; how a release is taken back is written under rollback.
 

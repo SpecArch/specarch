@@ -92,6 +92,9 @@ const (
 	toGateway     = "gateway"
 	toWorkflow    = "workflow"
 	toFlow        = "flow"
+	toProcess     = "process"
+	toSetting     = "setting"
+	toMonitor     = "monitor"
 )
 
 // referencePlaces are where a keyword names an element of the
@@ -163,7 +166,11 @@ var referencePlaces = []struct {
 	{[]string{"paths", "*", "*", "handshake"}, toHandshake},
 	{[]string{"paths", "*", "*", "middlewares"}, toMiddleware},
 	{[]string{"gateways", "*", "middlewares"}, toMiddleware},
+	{[]string{"processes", "*", "jobs"}, toJob},
+	{[]string{"processes", "*", "configuration"}, toSetting},
+	{[]string{"processes", "*", "monitors"}, toMonitor},
 	{[]string{"tests", "*", "job"}, toJob},
+	{[]string{"tests", "*", "process"}, toProcess},
 	{[]string{"tests", "*", "gateway"}, toGateway},
 	{[]string{"tests", "*", "workflow"}, toWorkflow},
 	{[]string{"tests", "*", "flow"}, toFlow},
@@ -264,6 +271,12 @@ func ModelReferences(root *yaml.Node) []ModelReference {
 			section = "workflows"
 		case toFlow:
 			section = "flows"
+		case toProcess:
+			section = "processes"
+		case toSetting:
+			section = "configuration"
+		case toMonitor:
+			section = "monitors"
 		}
 		if name == "" || source.Child(source.Child(root, section), name) == nil {
 			return ""

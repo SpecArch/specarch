@@ -19,7 +19,7 @@ func indefinite(_ word: String) -> String {
 
 /// The kind of subject a test names, and how a message names it.
 private func testKindOf(_ t: YNode) -> (kind: String, label: String) {
-    for k in ["operation", "command", "page", "job", "gateway", "workflow", "requirement"] {
+    for k in ["operation", "command", "page", "job", "gateway", "process", "workflow", "requirement"] {
         let v = str(t.child(k))
         if !v.isEmpty { return (k, k + " " + v) }
     }
@@ -257,7 +257,13 @@ extension Checker {
                 }
             }
         }
-        if let n = ex.child("exit"), only("exit", "command") {
+        if let n = ex.child("exit"), kind == "process" {
+            // A process ends with an exit status as a command does (ADR-211).
+            let pname = str(t.child("process"))
+            if let pr = d.root.child("processes")?.child(pname), pr.child("exitCodes")?.child(n.value) == nil {
+                add(n, pointer(base + ["exit"]), .testData, "process \(pname) has no exit code \(n.value)\(suggest(n.value, mapOf(pr.child("exitCodes"))))")
+            }
+        } else if let n = ex.child("exit"), only("exit", "command") {
             let cname = str(t.child("command"))
             if let cmd = d.commands[cname], cmd.child("exitCodes")?.child(n.value) == nil {
                 add(n, pointer(base + ["exit"]), .testData, "command \(cname) has no exit code \(n.value)\(suggest(n.value, mapOf(cmd.child("exitCodes"))))")

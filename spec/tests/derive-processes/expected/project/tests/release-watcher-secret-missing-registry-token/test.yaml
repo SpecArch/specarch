@@ -1,0 +1,9 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [secret missing registryToken]
+given: "the secret registryToken is missing"
+when: "the process releaseWatcher starts"
+then: "it exits with a status other than 0 before it does any work, naming registryToken"
+origin: inferred
+why: "Written by specarch derive: a setting missing or wrong is the commonest reason a process does not start, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

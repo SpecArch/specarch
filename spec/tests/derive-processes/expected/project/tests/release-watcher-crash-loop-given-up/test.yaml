@@ -1,0 +1,9 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [crash loop given up]
+given: "the process releaseWatcher fails each time it starts"
+when: "it has been started 5 times within PT10M"
+then: "the service manager does not start it again, and the monitor watcher-running alerts"
+origin: inferred
+why: "Written by specarch derive: a crash and a crash loop are cases nobody exercises by hand, so they are always written. A draft: complete the given, when and then, and remove what does not hold."

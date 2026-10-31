@@ -508,7 +508,8 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	jobs := pairs(root, "jobs")
 	workflows := pairs(root, "workflows")
 	gateways := pairs(root, "gateways")
-	if len(states)+len(ops)+len(cmds)+len(jobs)+len(workflows)+len(gateways) == 0 {
+	procs := pairs(root, "processes")
+	if len(states)+len(ops)+len(cmds)+len(jobs)+len(procs)+len(workflows)+len(gateways) == 0 {
 		return
 	}
 	d.heading(2, "6. Runtime view")
@@ -554,6 +555,12 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.para(str(j.Value, "description"))
 		d.explain(j.Value)
 		jobDetails(d, root, j.Value)
+	}
+	for _, p := range procs {
+		d.heading(3, "Process "+p.Key.Value)
+		d.para(str(p.Value, "description"))
+		d.explain(p.Value)
+		d.para(processText(p.Value))
 	}
 	for _, g := range gateways {
 		gatewaySection(d, root, g.Key.Value, g.Value)
@@ -1259,7 +1266,7 @@ func qualityTests(d *doc, root *yaml.Node) {
 }
 
 func testSubject(t *yaml.Node) string {
-	for _, k := range []string{"operation", "command", "page", "job", "gateway", "workflow"} {
+	for _, k := range []string{"operation", "command", "page", "job", "process", "gateway", "workflow"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}
@@ -1448,6 +1455,49 @@ func sensitiveFields(root *yaml.Node) [][3]string {
 
 // jobDetails writes what starts a job, what it acts as, reads, writes,
 // calls and publishes, and how it retries.
+// processText says how a process runs, the jobs it runs, the settings it
+// reads, the signals and exit statuses it honours, when it is restarted
+// and given up, its health and the monitors that watch it (ADR-211).
+func processText(p *yaml.Node) string {
+	text := "Runs " + runsText(p) + "; started and watched by the service manager, acting as no role."
+	if j := strs(p, "jobs"); len(j) > 0 {
+		text += " Runs the jobs " + joinAnd(j) + "."
+	}
+	if c := strs(p, "configuration"); len(c) > 0 {
+		text += " Reads the settings " + joinAnd(c) + " when it starts."
+	}
+	var sigs []string
+	for _, sg := range pairs(p, "signals") {
+		does := strings.TrimSuffix(strings.TrimSpace(str(sg.Value, "description")), ".")
+		if w := str(sg.Value, "within"); w != "" {
+			does += ", within " + w
+		}
+		sigs = append(sigs, sg.Key.Value+": "+does)
+	}
+	if len(sigs) > 0 {
+		text += " On " + strings.Join(sigs, "; on ") + "."
+	}
+	var codes []string
+	for _, c := range pairs(p, "exitCodes") {
+		codes = append(codes, c.Key.Value+" when "+strings.TrimSuffix(source.Str(c.Value), "."))
+	}
+	if len(codes) > 0 {
+		text += " Exits " + strings.Join(codes, "; ") + "."
+	}
+	r := get(p, "restart")
+	text += " Started again: " + restartText(r) + "."
+	if e := strs(r, "exceptExitCodes"); len(e) > 0 && str(r, "when") != "never" {
+		text += " Never started again after exit " + joinAnd(e) + "."
+	}
+	if h := get(p, "health"); h != nil {
+		text += " Healthy when " + strings.TrimSuffix(strings.TrimSpace(str(h, "description")), ".") + "."
+	}
+	if m := strs(p, "monitors"); len(m) > 0 {
+		text += " Watched by " + joinAnd(m) + "."
+	}
+	return text
+}
+
 func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
 	trigger := get(j, "trigger")
 	var start string

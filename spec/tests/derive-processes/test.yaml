@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification with a process that runs always, reads a setting and a secret, honours SIGTERM and SIGHUP, has an exit status it is never restarted on, and is restarted on failure up to a limit watched by a monitor, with only its success test written"
+when: "derive is run"
+then: "it writes a draft for SIGTERM, each setting, the exit status with expect exit, the restart and the crash loop, leaves SIGHUP out as an occasional case, derives no permission or caller case, and exits 0"
+verifies: [SA-109]

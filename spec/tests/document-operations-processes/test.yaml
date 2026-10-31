@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every"
+when: "document operations is run"
+then: "the guide writes a daily checklist line per process, and a Processes section with how each runs, its jobs and restart, and per process its settings, signals, exit statuses with the one never restarted on, health and monitor, or a sentence naming the signals key it lacks, and exits 0"
+verifies: [SA-109]

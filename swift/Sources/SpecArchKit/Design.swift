@@ -257,6 +257,7 @@ extension Checker {
         checkIntegrations(d)
         checkChannels(d)
         checkJobs(d)
+        checkProcesses(d)
         checkWorkflows(d)
         checkMenus(d)
         checkViews(d)

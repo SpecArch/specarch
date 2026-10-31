@@ -112,7 +112,7 @@
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, process, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -130,6 +130,10 @@
         },
         "job": {
           "description": "The job the test is about.",
+          "$ref": "#/$defs/memberName"
+        },
+        "process": {
+          "description": "The process the test is about (ADR-211).",
           "$ref": "#/$defs/memberName"
         },
         "gateway": {
@@ -288,7 +292,7 @@
               "minProperties": 1
             },
             "exit": {
-              "description": "One of the command's exit codes.",
+              "description": "One of the exit codes of the command or the process under test.",
               "type": "integer",
               "minimum": 0,
               "maximum": 255
@@ -382,6 +386,11 @@
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "process"
           ]
         },
         {

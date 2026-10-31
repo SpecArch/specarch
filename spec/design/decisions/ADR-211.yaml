@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-211:
+    title: A long-running process is a design element of its own under processes, with how it runs, the jobs it runs, the settings it reads, the signals and exit statuses it honours, how it is restarted and when it is given up, its health and the monitors that watch it, and no permission
+    status: proposed
+    date: "2026-10-31"
+    context: |
+      A deployment daemon run by a service manager was captured from its
+      code and unit file with SpecArch and with Spec Kit. Spec Kit's
+      free-form specification took the daemon as easily as a web
+      service. SpecArch had no element for it: the loop became a job
+      with every, and starting, stopping and reloading became commands.
+      A command is an interface a caller uses, so each demanded a
+      permission and derived the caller's red cases, a missing
+      permission, an expired session, which a loop that no person calls
+      cannot have, while what can go wrong with such a program had no
+      key: the service manager restarting it after a crash, giving up
+      after a crash loop, a SIGTERM that must end the current work
+      within the stop timeout, a setting or a secret missing at start,
+      and the exit statuses that tell the service manager not to try
+      again. Those were written in prose or left out, and no test was
+      derived for any of them.
+    decision: |
+      The design gains processes, a section keyed by camelCase name,
+      each an operating-system process that a service manager starts and
+      watches. runs says how it runs: always, started at boot and kept
+      running; scheduled, started by the service manager at a time and
+      exiting when its run is done; onDemand, started by a person or
+      another program, as its description says. jobs names the jobs the
+      process runs; each job keeps its own trigger, role and
+      permissions, and a job is run by one process. When work happens is
+      said in one place: a job's trigger. A scheduled process that runs
+      jobs is started at each job's schedule or every, and writes no time
+      of its own; a job of it that consumes messages is an error, since a
+      consumer waits for messages and its process runs always. A
+      scheduled process that runs no job says its own time, schedule (a
+      cron expression of five fields in UTC, as a job's) or every (a
+      duration), one of them; a process that is not scheduled writes
+      neither. configuration names the
+      settings under configuration that the process reads at start.
+      signals is keyed by the POSIX signal name (SIGTERM, SIGINT,
+      SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2), each with what the process
+      does and, when it stops, within what time. exitCodes is a
+      command's: every status keyed by number, 0 required. restart says
+      when the service manager starts it again (always, onFailure or
+      never), the delay before it does, the limit (times within a
+      duration) after which it gives up, and the exit statuses on which
+      it never does, each one of exitCodes. health says what healthy
+      means and how often it is looked at; monitors names the monitors
+      of the operation stage that watch the process.
+
+      A process names no permission and acts as no role. The validator
+      checks every name, demands a limit when the process is restarted,
+      refuses restart keys with when: never, and warns when a process
+      that is given up after its limit has no monitor. A test names it
+      with process:, and the validator derives its cases: it starts (the
+      success), each signal does what it says, each setting it reads is
+      missing or invalid (a secret missing), each non-zero exit status,
+      it is restarted after a crash, and the crash loop is given up.
+      The operations guide writes each process with its runs, restart
+      and limit, signals, exit statuses, health and monitors. specarch
+      extract systemd reads a systemd unit file into a process.
+    consequences: |
+      A daemon, a scheduled loop or a system service is written as what
+      it is, and its tests are the ones that fit it: no permission and
+      no caller cases, and the restart and crash-loop cases that nobody
+      exercises by hand are critical, as a failing dependency's are. A
+      job keeps its meaning: per-item work, retried and kept apart per
+      item; a process is the program around it. An HTTP service that is
+      also kept running by a service manager may be written as a process
+      too, with no jobs, for its restart, signals and health; its paths
+      keep their permissions. A Windows service, whose stop is a control
+      code and not a signal, is written with no signals and says in its
+      description how it is stopped. A specification without processes
+      reads, validates and renders as before.
+    why: |
+      A separate element and not more keys on a job, because their cases
+      differ: a job's are per item (runs twice, an item failing every
+      try, dead letter), a process's are the program's life (start,
+      signal, exit, restart, crash loop), and one element holding both
+      would make every key apply to half its entries. No permission,
+      after the gateway (ADR-141): permission is the right of a caller,
+      and a process has no caller. Fail-closed is not weakened: the work
+      a process does is a job, which still acts as its role, and the
+      paths it may serve still name their permission. Starting and
+      stopping a process is the service manager's, not an interface of
+      the system, so it is not a command.
+
+      The restart keys follow the systemd service manager, the one most
+      Linux hosts run: Restart=, RestartSec=, StartLimitBurst= within
+      StartLimitIntervalSec=, and RestartPreventExitStatus=, because a
+      unit file says them and a reader can then take them as written.
+      The limit is demanded, not left to a manager's default, because
+      the default differs from one manager to the next and decides
+      whether a broken program loops for ever; ambiguity is an error.
+      The signal names are POSIX's, the same on every Unix and every
+      language, so they are the program's contract with whatever starts
+      it, not a stack's choice; how a stack catches them is the
+      implementation's. The exit statuses take a command's shape, so
+      one way says one thing. The name processes, not services, because
+      service already names the HTTP service a specification describes;
+      a process here is the operating-system process, and a workflow's
+      business process keeps its own word, workflow.
+    cites:
+      - source: spec-kit
+        says: "A specification is written in free form, so a daemon is described as easily as a web service."
+      - source: systemd-service
+        clause: "Options"
+        says: "Restart= configures whether the service shall be restarted when the service process exits, is killed, or a timeout is reached; RestartPreventExitStatus= takes a list of exit status definitions that, when returned by the main service process, will prevent automatic service restarts."
+      - source: systemd-unit
+        clause: "[Unit] Section Options"
+        says: "Units which are started more than burst times within an interval time span are not permitted to start any more (StartLimitIntervalSec=, StartLimitBurst=)."
+      - source: posix-signal
+        says: "SIGTERM: termination signal; the default action terminates the process. SIGHUP: hangup."
+    satisfies: [SA-109]
+    restsOn: [ADR-141, ADR-166]

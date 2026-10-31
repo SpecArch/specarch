@@ -1,0 +1,9 @@
+process: releaseWatcher
+level: system
+scenario: red
+covers: [restarted after a crash]
+given: "the process releaseWatcher is running"
+when: "it ends with a status other than 0"
+then: "the service manager starts it again after PT5S"
+origin: inferred
+why: "Written by specarch derive: a crash and a crash loop are cases nobody exercises by hand, so they are always written. A draft: complete the given, when and then, and remove what does not hold."

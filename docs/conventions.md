@@ -619,7 +619,7 @@ folder and only the first four are in the root file.
 5. `permissions`, `roles`, `session`
 6. `paths`
 7. `commands`
-8. `channels`, `dependencies`, `jobs`, `gateways`, `workflows`, `errors`
+8. `channels`, `dependencies`, `jobs`, `processes`, `gateways`, `workflows`, `errors`
 9. `pages`, `menus`
 10. `algorithms`
 11. `tests`
@@ -823,6 +823,7 @@ redefined.
 | `handshakes`, `keyAgreement`, `signature`, `cipher`, `establishedBy`, `lifetime`, `uses`, `handshake` | SpecArch, after RFC 7748 (the key agreements), RFC 8032 (the signatures) and OpenSSL's cipher names | a key exchange a client performs once, after which the operations that name it travel in an encrypted, signed envelope; declared once, named by each operation that travels in it (ADR-145) |
 | `stream`, `direction` | SpecArch | an operation whose request body (`upload`) or success response (`download`) is a file passed through as it arrives, never read whole; the media type and the binary string stay in OpenAPI's `requestBody` and `responses` (ADR-146) |
 | `jobs`, `trigger`, `schedule`, `every`, `consumes`, `role`, `retries`, `limit`, `then` | SpecArch | work the system does on its own; a schedule is the five fields of cron, in UTC |
+| `processes`, `runs`, `signals`, `restart`, `when`, `delay`, `limit`, `times`, `within`, `exceptExitCodes`, `health` | SpecArch; the restart keys after systemd's `Restart=`, `RestartSec=`, `StartLimitBurst=`, `StartLimitIntervalSec=` and `RestartPreventExitStatus=`, the signal names POSIX's | a long-running process a service manager starts and watches: how it runs, the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and given up, its health and monitors (ADR-211) |
 | `gateways` | SpecArch, after RFC 9110's gateway (section 3.7) | an intermediary that forwards every request no operation answers, as received, to the service a claim of the verified token names; it names no permission (ADR-141) |
 | `claim`, `value` on a gateway | SpecArch, after RFC 7519's claim | the claim whose value selects the service, and one value of it; for `aud` an absolute URI (RFC 8707, section 2) |
 | `forwards` | SpecArch | a gateway's table of services, one row per value with the dependency it selects |
@@ -1870,6 +1871,65 @@ first three are checked once the specification has `menus`; the roles a
 job acts as or a service client holds are left out of the second, since no
 person signs in as them.
 
+### Processes
+
+A program a service manager starts and watches is a process, under
+`processes` (ADR-211): a daemon kept running, a loop started on a
+schedule, a program started on demand. It names no permission and acts as
+no role; nobody calls it, and the work it does is the jobs it runs, which
+keep their roles.
+
+    releaseWatcher:
+      description: Asks the registry for a new release of each service and installs it.
+      runs: always
+      jobs: [sweep]
+      configuration: [registryAddress, registryToken]
+      signals:
+        SIGTERM: { description: "finishes the release it is installing, then exits 0", within: PT30S }
+        SIGHUP: { description: reads its settings again }
+      exitCodes: { "0": it was asked to stop, "78": a setting is wrong }
+      restart:
+        when: onFailure
+        delay: PT5S
+        limit: { times: 5, within: PT10M }
+        exceptExitCodes: ["78"]
+      health: { description: it has asked the registry within the last two minutes, every: PT1M }
+      monitors: [watcher-running]
+
+`runs` is `always` (started when the host starts and kept running),
+`scheduled` (started at a time, exiting when its run is done) or
+`onDemand` (started by a person or another program). When work happens is
+said in one place, a job's trigger: a scheduled process that runs jobs is
+started at each job's `schedule` or `every` and writes no time of its
+own, and a job of it that `consumes` messages is an error, since a
+consumer waits for them. A scheduled process that runs no job writes its
+own `schedule` or `every`, one of them; a process that is not scheduled
+writes neither. A job is run by one process.
+
+`configuration` names the settings it reads at start, each under
+`configuration`; a secret is a setting marked `secret`. `signals` is keyed
+by the POSIX name (`SIGTERM`, `SIGINT`, `SIGHUP`, `SIGQUIT`, `SIGUSR1`,
+`SIGUSR2`), each with what the process does and, for the stop signal, the
+time `within` which it has done it; how a stack catches one is the
+implementation's. `exitCodes` is a command's. `restart.when` is `always`,
+`onFailure` or `never`; a restarted process writes its `limit`, `times`
+starts `within` a duration after which the service manager gives up,
+since a manager's own default differs from one to the next, and may write
+the `delay` before each start and `exceptExitCodes`, the statuses it is
+never started again on, each one of its `exitCodes`. `health` says what
+healthy means and how often it is looked at; `monitors` names the
+monitors of the operation stage that watch it.
+
+The validator reports as `process` a job, a setting or a monitor that does
+not exist, a job two processes run, a time written where it is not said
+or missing where it is, a consumer under a scheduled process, a restart
+with no limit, restart keys besides `when` on one never restarted, and an
+`exceptExitCodes` status that `exitCodes` lacks; a process given up after
+its limit that no monitor watches is a `process` warning. A test names a
+process with `process: <name>`, and may expect its `exit` as a command's.
+A process gets no permission or caller case; its cases are in the table
+under Tests.
+
 ### Gateways
 
 A service that registers routes only for its health and its metrics and
@@ -2902,6 +2962,10 @@ mistake:
 | a job | `runs twice` | golden | critical on its own |
 | a job that calls a dependency | `dependency fails <name>`, `dependency times out <name>` | red | critical on its own |
 | a job with `retries` | `an item fails every try` | red | occasional |
+| a process, for each signal it honours | `signal <name>` | golden | frequent for `SIGTERM`, which every stop and deploy sends; occasional otherwise |
+| a process, for each setting it reads | `setting invalid <name>`, or for a secret `secret missing <name>` | red | frequent |
+| a process | `exit <status>` for each non-zero exit code | red | frequent |
+| a process restarted `always` or `onFailure` | `restarted after a crash`, and with its limit `crash loop given up` | red | critical on its own |
 | an approval of a workflow | `refused at <step>`, `approval without <permission>` | red | frequent |
 | | `deadline passes at <step>` | red | critical on its own |
 | a workflow with an approval | `requester approves own request` | red | critical on its own |

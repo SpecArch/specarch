@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 108 requirements, 5 entities, 24 commands, 7 algorithms, 868 tests, 196 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 109 requirements, 5 entities, 24 commands, 7 algorithms, 873 tests, 197 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -422,6 +422,7 @@ Primary key: path.
 | Rule | decision_cycle | a decision's `restsOn` chain comes back to the decision itself, through any number of decisions; a decision rests on earlier decisions only, so the error is at every `restsOn` entry on the cycle, each naming the chain from its decision (ADR-188) |
 | Rule | decision_superseded | as a warning, a decision that is not itself superseded rests on a superseded decision, named with its successor; the decision rests on what no longer holds, and only a new decision that supersedes it, resting on the successor, clears the warning (ADR-188) |
 | Rule | profile | as a warning, once at `info.profile`, the specification is on the lean profile: a test `specarch derive` would write and nobody has (`test_golden_missing`, `test_case_missing`) is a warning there, not an error, and every other rule is as on full; writing `full`, or removing the key, makes them errors again (ADR-210) |
+| Rule | process | a process names a job, a setting or a monitor the specification does not have, or a job another process runs; writes schedule or every while it is not scheduled or while it is scheduled and runs jobs, whose triggers say when it starts, or neither or both while it is scheduled and runs none; runs a job that consumes messages while it is scheduled; is restarted with no limit, or never restarted with delay, limit or exceptExitCodes; or names under exceptExitCodes a status its exitCodes lacks; as a warning, a process given up after its limit that no monitor watches (ADR-211) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -4057,10 +4058,11 @@ operationId; an operation's `via` names a client, and a role's
 `through` names a permission by each key and a client by each item,
 with `through` as the keyword of both; and `callers`, `token`,
 `handshake`, `middlewares`, and a test's `command`, `job`,
-`workflow`, `flow` and `requirement` name the element of their
-section. A reference that does not resolve is a
-problem of validate and is not listed; nor is a reference into
-another specification.
+`process`, `workflow`, `flow` and `requirement` name the element of
+their section; a process's `jobs` names a job, its `configuration` a
+setting under configuration and its `monitors` a monitor. A
+reference that does not resolve is a problem of validate and is not
+listed; nor is a reference into another specification.
 
 An implementation file has its `file`, its `stack`, its `document`,
 its `positions`, its `references`, the design pointers under
@@ -15702,6 +15704,91 @@ as they are.
 
 **Note:** From OpenAPI Specification, 3.1.0: A Response Object's description is required: a description of the response. <https://spec.openapis.org/oas/v3.1.0>
 
+### ADR-211: A long-running process is a design element of its own under processes, with how it runs, the jobs it runs, the settings it reads, the signals and exit statuses it honours, how it is restarted and when it is given up, its health and the monitors that watch it, and no permission
+
+Status: proposed, 2026-10-31.
+
+Rests on: [ADR-141](#adr-141-a-gateway-that-forwards-by-a-token-claim-is-a-design-element-of-its-own-under-gateways-after-rfc-9110s-gateway-with-the-token-it-verifies-the-claim-it-reads-the-dependency-each-value-selects-its-own-refusals-and-no-permission-and-its-forwards-fix-the-tokens-audience), [ADR-166](#adr-166-a-job-that-keeps-an-item-apart-says-under-deadletter-the-role-that-handles-a-kept-item-where-it-is-kept-and-the-steps-to-look-at-it-try-it-again-or-discard-it-and-the-operations-guide-writes-them-under-the-job).
+
+Context: A deployment daemon run by a service manager was captured from its
+code and unit file with SpecArch and with Spec Kit. Spec Kit's
+free-form specification took the daemon as easily as a web
+service. SpecArch had no element for it: the loop became a job
+with every, and starting, stopping and reloading became commands.
+A command is an interface a caller uses, so each demanded a
+permission and derived the caller's red cases, a missing
+permission, an expired session, which a loop that no person calls
+cannot have, while what can go wrong with such a program had no
+key: the service manager restarting it after a crash, giving up
+after a crash loop, a SIGTERM that must end the current work
+within the stop timeout, a setting or a secret missing at start,
+and the exit statuses that tell the service manager not to try
+again. Those were written in prose or left out, and no test was
+derived for any of them.
+
+Decision: The design gains processes, a section keyed by camelCase name,
+each an operating-system process that a service manager starts and
+watches. runs says how it runs: always, started at boot and kept
+running; scheduled, started by the service manager at a time and
+exiting when its run is done; onDemand, started by a person or
+another program, as its description says. jobs names the jobs the
+process runs; each job keeps its own trigger, role and
+permissions, and a job is run by one process. When work happens is
+said in one place: a job's trigger. A scheduled process that runs
+jobs is started at each job's schedule or every, and writes no time
+of its own; a job of it that consumes messages is an error, since a
+consumer waits for messages and its process runs always. A
+scheduled process that runs no job says its own time, schedule (a
+cron expression of five fields in UTC, as a job's) or every (a
+duration), one of them; a process that is not scheduled writes
+neither. configuration names the
+settings under configuration that the process reads at start.
+signals is keyed by the POSIX signal name (SIGTERM, SIGINT,
+SIGHUP, SIGQUIT, SIGUSR1, SIGUSR2), each with what the process
+does and, when it stops, within what time. exitCodes is a
+command's: every status keyed by number, 0 required. restart says
+when the service manager starts it again (always, onFailure or
+never), the delay before it does, the limit (times within a
+duration) after which it gives up, and the exit statuses on which
+it never does, each one of exitCodes. health says what healthy
+means and how often it is looked at; monitors names the monitors
+of the operation stage that watch the process.
+
+A process names no permission and acts as no role. The validator
+checks every name, demands a limit when the process is restarted,
+refuses restart keys with when: never, and warns when a process
+that is given up after its limit has no monitor. A test names it
+with process:, and the validator derives its cases: it starts (the
+success), each signal does what it says, each setting it reads is
+missing or invalid (a secret missing), each non-zero exit status,
+it is restarted after a crash, and the crash loop is given up.
+The operations guide writes each process with its runs, restart
+and limit, signals, exit statuses, health and monitors. specarch
+extract systemd reads a systemd unit file into a process.
+
+Consequences: A daemon, a scheduled loop or a system service is written as what
+it is, and its tests are the ones that fit it: no permission and
+no caller cases, and the restart and crash-loop cases that nobody
+exercises by hand are critical, as a failing dependency's are. A
+job keeps its meaning: per-item work, retried and kept apart per
+item; a process is the program around it. An HTTP service that is
+also kept running by a service manager may be written as a process
+too, with no jobs, for its restart, signals and health; its paths
+keep their permissions. A Windows service, whose stop is a control
+code and not a signal, is written with no signals and says in its
+description how it is stopped. A specification without processes
+reads, validates and renders as before.
+
+**Insight:** A separate element and not more keys on a job, because their cases differ: a job's are per item (runs twice, an item failing every try, dead letter), a process's are the program's life (start, signal, exit, restart, crash loop), and one element holding both would make every key apply to half its entries. No permission, after the gateway (ADR-141): permission is the right of a caller, and a process has no caller. Fail-closed is not weakened: the work a process does is a job, which still acts as its role, and the paths it may serve still name their permission. Starting and stopping a process is the service manager's, not an interface of the system, so it is not a command. The restart keys follow the systemd service manager, the one most Linux hosts run: Restart=, RestartSec=, StartLimitBurst= within StartLimitIntervalSec=, and RestartPreventExitStatus=, because a unit file says them and a reader can then take them as written. The limit is demanded, not left to a manager's default, because the default differs from one manager to the next and decides whether a broken program loops for ever; ambiguity is an error. The signal names are POSIX's, the same on every Unix and every language, so they are the program's contract with whatever starts it, not a stack's choice; how a stack catches them is the implementation's. The exit statuses take a command's shape, so one way says one thing. The name processes, not services, because service already names the HTTP service a specification describes; a process here is the operating-system process, and a workflow's business process keeps its own word, workflow.
+
+**Note:** From Spec Kit: A specification is written in free form, so a daemon is described as easily as a web service. <https://github.com/github/spec-kit>
+
+**Note:** From systemd.service, Service unit configuration, clause Options: Restart= configures whether the service shall be restarted when the service process exits, is killed, or a timeout is reached; RestartPreventExitStatus= takes a list of exit status definitions that, when returned by the main service process, will prevent automatic service restarts. <https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html>
+
+**Note:** From systemd.unit, Unit configuration, clause [Unit] Section Options: Units which are started more than burst times within an interval time span are not permitted to start any more (StartLimitIntervalSec=, StartLimitBurst=). <https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html>
+
+**Note:** From The Open Group Base Specifications Issue 8, signal.h, 2024: SIGTERM: termination signal; the default action terminates the process. SIGHUP: hangup. <https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/signal.h.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -15761,6 +15848,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | derive-page-custom | command derive | system | golden | a specification with a session, a public custom page whose golden test is written, and a custom page that needs documents.edit on a route that takes the parameter id | derive is run | it writes for the second page a golden test that it opens to a caller with documents.edit and red tests denied without documents.edit and denied with expired session, no case for a record that is not found, since what the screen loads is the project's, writes nothing more for the public page, lists them and exits 0 |
 | derive-page-elements | command derive | system | golden | a specification whose form picks a member, checks a date against another and has a pin entered twice, and whose list offers Deactivate only to an active member with a reason, both pages satisfying a requirement with a harm | derive is run | it writes, among the operations' and the requirement's drafts, a test for the picker finding nothing, the check broken, the pin entered twice differently, Deactivate not offered and Deactivate without a reason, lists them and exits 0 |
 | derive-page-named-after-operation | command derive | system | golden | a specification whose form page sign-in submits to the operation signIn, both without a golden test | derive is run | it writes the operation's drafts under operation-sign-in- and the page's success draft as page-sign-in-succeeds, lists them and exits 0 |
+| derive-processes | command derive | system | golden | a specification with a process that runs always, reads a setting and a secret, honours SIGTERM and SIGHUP, has an exit status it is never restarted on, and is restarted on failure up to a limit watched by a monitor, with only its success test written | derive is run | it writes a draft for SIGTERM, each setting, the exit status with expect exit, the restart and the crash loop, leaves SIGHUP out as an occasional case, derives no permission or caller case, and exits 0 |
 | derive-root-tests | command derive | system | red | a specification that keeps its tests in specarch.yaml | derive is run | it says each derived test needs a folder under tests/, writes nothing and exits 2 |
 | derive-sign-in-oidc | command derive | system | golden | the specification of validate-sign-in-oidc with securityEvents declared, whose every test is written but the callback's refusals | derive is run | it writes six red drafts on the callback finishSignIn, state does not match, nonce replayed, issuer differs, identity token expired, signature invalid and code used twice, each refused with no session started and naming the security event it writes with its severity, lists them and exits 0 |
 | derive-skips-blocked | command derive | system | golden | the same specification with a must question that blocks the operation's path | derive is run | it writes only the requirement's acceptance draft, names the operation's drafts it left out and the question on standard error, and exits 0 |
@@ -15812,6 +15900,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-no-output-folder | command document | system | red | a design file, no implementation file and no --out | document techspec is run | it warns at the root file, asks for --out or an implementation file and exits 2 |
 | document-no-output-folder-any | command document | system | red | a specification whose implementation file names no output folder for techspec, and no --out | document techspec is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a techspec |
 | document-operations-none | command document | system | golden | a specification with no environment, monitor, job, channel, dependency, endpoint, setting or procedure, and an implementation file naming an output folder for operations | document operations is run | it writes operations.md all the same, each empty section one sentence naming the key that fills it, and exits 0 |
+| document-operations-processes | command document | system | golden | a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every | document operations is run | the guide writes a daily checklist line per process, and a Processes section with how each runs, its jobs and restart, and per process its settings, signals, exit statuses with the one never restarted on, health and monitor, or a sentence naming the signals key it lacks, and exits 0 |
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-problem-without-element | command document | system | red | a specification with an error under info, which the technical specification shows no element for, and an error at a relation | document techspec is run | it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1 |
@@ -15839,6 +15928,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-techspec-marks-implementation-problem | command document | system | red | the project of document-handover-links-without-infrastructure, whose implementation file's deployment of an environment the customer runs has no infrastructure, a handover error in the implementation file | document techspec is run | it prints the error and writes techspec.md with the error marked by a Problem paragraph on production in the implementation's deployments, and counted in the notice under the summary as concerning the document; it exits 1 |
 | document-techspec-middlewares | command document | system | golden | a specification that declares three middlewares, two with a refusal each, an operation that runs all three in order, one of them before and after the others, and one that runs none | document techspec is run | the table of HTTP operations names each operation's middlewares in order, or none, one run twice named twice, each operation's runtime view says what it runs before its handler, with the refusals, a section lists every middleware with what it does, its refusals and the operations that run it, each once, and it exits 0 |
 | document-techspec-open-workflow | command document | system | golden | the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation | document techspec is run | the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0 |
+| document-techspec-processes | command document | system | golden | a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every | document techspec is run | the runtime view writes a paragraph per process: how it runs, as no role, its jobs, settings, signals, exit statuses, when it is started again and never, its health and monitors, and exits 0 |
 | document-techspec-requests | command document | system | golden | a specification whose operations declare parameters on the path and on the operation, one of the operation's replacing the path's of the same name, a request body with a nested list of objects and references to a schema and an enum, responses with a body declared in place, a referenced body, a list body and problem documents, a GET with nothing to take, a POST with no request body that an open question blocks, a POST with a request body and no parameters that an open question blocks, a GET on a path whose parameters one question blocks while another blocks the operation itself, and a GET with everything declared on a path an open question blocks whole | document techspec is run | each operation's runtime view lists its parameters with where each goes, its type, whether it is required, its limits and its description, the operation's own replacing the path's; its request body's fields, a nested field by its path and a field of each list item after [], with a reference to a schema or an entity linked to its heading and one to an enum linked to the enums table; and each response with its status, meaning and body, a body declared in place listed field by field below; an operation that takes nothing says so, one with no request body or no parameters that an open question blocks, on the key or under it, on the operation or on its path, names the question and writes it there in full with who decides it, one with a request body and no parameters says it takes no parameters, and a question that blocks a fully declared operation's path is written in full after its responses, and it exits 0 |
 | document-techspec-role-names | command document | system | golden | a specification whose roles go on the wire in upper snake case, with two roles | document techspec is run | the Permissions section says how a role goes on the wire and lists each role with its wire name, and it exits 0 |
 | document-techspec-shared-name | command document | system | red | a schema and an entity of the same name, which the specification marks in error while they share it, and a response whose fields reference each of them | document techspec is run | it prints the one-namespace error, links the field that references the entity to the entity's heading and the field that references the schema to the schema's heading, which takes -1 after the entity's as a Markdown renderer gives it, and exits 1 |
@@ -16427,6 +16517,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-permission-undeclared | command validate | system | red | an operation whose permission is not declared | validate is run | it reports permission_undeclared and exits 1 |
 | validate-permission-ungranted | command validate | system | red | a declared permission that no role grants | validate is run | it reports permission_ungranted and exits 1 |
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
+| validate-processes-refused | command validate | system | red | processes on the lean profile that name a job, a setting and a monitor that do not exist, run a job another process runs, write a time while they run always, while they run jobs or twice, write none while scheduled with no job, run a consumer while scheduled, are restarted with no limit, write restart keys while never restarted, never restart on a status they lack, and one given up after its limit with no monitor | validate is run | it reports each as process at its key, the process with no monitor as a process warning, derives no permission or caller case for any process, and exits 1 |
+| validate-processes-valid | command validate | system | golden | a process that runs always with a job, settings, signals, exit statuses, a restart limit and a monitor, a scheduled process started at its job's time and never restarted, and a scheduled process with its own every, each with the tests it implies, an exit status expected of a process included | validate is run | it reports nothing and exits 0 |
 | validate-profile-absent-missing-tests | command validate | system | red | the same specification with no profile | validate is run | it reads it as full: the missing golden and derived tests are errors, and it exits 1 |
 | validate-profile-full-missing-tests | command validate | system | red | the same specification on the full profile | validate is run | it reports the missing golden and derived tests as errors, with no profile warning, and exits 1 |
 | validate-profile-lean-missing-tests | command validate | system | golden | a specification on the lean profile with one operation and none of its tests | validate is run | it reports the missing golden and derived tests as warnings, with one warning at info.profile naming what the lean profile relaxes, and exits 0 |
@@ -16668,6 +16760,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-104 | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. | functional | should | proposed | test | A table whose rules cover every input once, or in order under first, validates, and an algorithm with a table needs no examples; one that gives both formula and table is refused by the schema. Under unique, two rules that both match some inputs are reported as table_overlap at the later rule, naming the inputs; under first, a rule the earlier ones always match first is a table_overlap warning. Inputs no rule matches are reported as table_gap at the table, written as a when that can be added as a rule; an input's minimum and maximum bound the inputs asked about. A condition naming no input, a value or an operator that cannot be read, an input of a type a table does not test, and an output that cannot be read are reported as decision_table at the condition or the output. A worked example under examples is evaluated through the table, and one whose result differs, or that two rules match under unique or no rule matches, is reported as for a formula. specarch try evaluates each rule's example and each worked example, printing the rules tested and the rule that gives the output. Both builds print the same lines for every case. | NEED-1 |
 | SA-105 | A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them. | functional | should | proposed | test | A dependency with auth, a credential naming a secret setting, a rate and operations, and calls that map, send a key, retry, map errors and call async or fire and forget, validates in both builds. An auth other than none with no credential, a credential naming no setting or one not secret, operations beside a specification, an operation of neither or both kinds, and a call naming an operation not declared are reported as integration or setting at the key. A mapping that sends a field their request lacks, leaves out one it requires, sends a value of the wrong type or of an unknown or shared name, or keeps a value in a field the record lacks, and retries or errors naming an answer that succeeds or is not declared, are reported as integration, expression_type or expression_name at the key; a post or patch retried with no idempotency key is an integration warning, and a value sent or kept that may be null where the field takes none an expression_type warning. An operation gets a case for each call's retries used up and for an answer its errors does not map, named by the operation called, and for a dependency's rate exceeded, each always written as a failing dependency's is; a timeout errors maps is answered as it maps it, and a call made fire and forget, or a dependency called only so, ends with the operation succeeding all the same. The context diagram writes a dependency's auth and rate on its node, and the technical specification lists each call's contract under the operation. Both builds print the same lines for every case. | NEED-1 |
 | SA-106 | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. | functional | should | proposed | test | A mapping whose examples hold validates in both builds; an example whose sent or kept value differs from what send or receive gives is reported as example_mismatch at the value, one the mapping cannot compute as example_error, a value that does not read at its field or a name not read or not given as example_input or example_expected, and kept on a call that does not wait or has no receive, or sent with no send, as integration at the key. specarch try on an operation prints a summary line per call, named by the dependency and the operation called, then each example with its inputs, each field's steps and its value beside the expected one, and exits 0 when all hold and 1 when one fails; the validator's lines of the examples it evaluates are not printed; a name that is both an algorithm and an operation is refused, naming both; --inputs and --file with an operation are refused. The Go, Swift and Dart test generators write a test per mapping example through MappingHarness, only when the specification holds one. Both builds print the same lines for every case. | NEED-1, NEED-10 |
+| SA-109 | A specification shall be able to declare the long-running processes a service manager starts and watches, each with how it runs (always, scheduled or on demand), the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and the limit after which it is given up, its health and the monitors that watch it, with no permission; specarch validate shall check each against the design in both builds, a process shall be a subject of tests with the cases it implies, the operations guide shall write it, and specarch extract systemd shall read a systemd unit file into one. | functional | should | proposed | test | A process naming a job, a setting or a monitor the specification lacks, a job another process runs, a schedule or every on a process that is not scheduled or on a scheduled one that runs jobs, neither or both on a scheduled one that runs none, a job that consumes messages under a scheduled process, a restart without a limit, restart keys besides when on one that is never restarted, or an exit status under exceptExitCodes that exitCodes lacks is reported as process in both builds; a process given up after its limit and watched by no monitor is a process warning. A test may name a process as its subject, and a process gets the cases each signal it honours, each setting it reads missing or invalid (a secret missing), each non-zero exit status, restarted after a crash and crash loop given up; the restart and crash-loop cases are critical, and no permission or caller case is derived. The operations guide writes the processes with how each runs, its jobs, restart and limit, signals, exit statuses, health and monitors, and a daily checklist line, and the technical specification a paragraph per process; a specification without processes gets one sentence in the operations guide naming the key, as for every other empty section. specarch extract systemd on a unit file writes a process with its runs, restart, delay, limit, statuses not restarted, stop signal and timeout, and the settings it reads, each stated with the file and line; a timer's OnCalendar, which is not cron, is a could question citing its line. Both builds print the same lines for every case. | NEED-1 |
 | SA-7 | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. | functional | must | accepted | test | A run writes the target's files into its folder and nothing elsewhere. A run with --check on output edited by hand names the file and exits 1, writing nothing. | NEED-3 |
 | SA-8 | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. | functional | must | accepted | test | The first line of a generated document names the root file, its version and the meta-model. A marked region is rewritten and every other line of the document is unchanged. | NEED-3 |
 | SA-26 | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. | functional | should | accepted | test | The register lists open change requests and defects before the closed ones, each with its status, what it affects and its decision. The release notes list the releases newest first, each with its changes and fixes grouped as added, changed, removed and fixed. | NEED-3, NEED-5 |
@@ -16845,6 +16938,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-105:** An integration is where a system most often fails in production, and the decisions that make it fail are taken in nobody's specification today; how the other system is called, what is sent, what is tried again and what the caller is answered when it fails. Written beside the call they are checked against both sides and each gets a test (ADR-200).
 
 **Insight on SA-106:** A person checks a mapping faster on a case they recognise than on its expressions, and a mapping's decision taken on an example is checked forever after once the example is a test (ADR-207).
+
+**Insight on SA-109:** A daemon, a scheduled loop or a system service had to be written as a job with commands, which demanded a permission and caller cases it cannot have, while its restart, crash loop, signals and bad configuration, what goes wrong with such a program, had no key and no test (ADR-211).
 
 **Insight on SA-26:** Reviewers and operators read what changed and why in documents; kept apart from the specification, the history stays out of it and still reaches them.
 
@@ -17070,6 +17165,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-106 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
 | SA-107 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
 | SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
+| SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests validate-processes-refused; tests validate-processes-valid |
 
 ## Sources
 
@@ -17112,6 +17208,7 @@ Every source a Note in this document cites.
 | owasp-asvs | OWASP Application Security Verification Standard, chapter V16, Security Logging and Error Handling | 5.0.0 | OWASP | https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md |
 | owasp-authorization | OWASP Authorization Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html |
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
+| posix-signal | The Open Group Base Specifications Issue 8, signal.h | 2024 | IEEE and The Open Group | https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/signal.h.html |
 | postgresql-datetime | PostgreSQL 17 Documentation, 8.5 Date/Time Types | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/datatype-datetime.html |
 | postgresql-row-security | PostgreSQL documentation, Row Security Policies and CREATE POLICY | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/ddl-rowsecurity.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
@@ -17141,6 +17238,8 @@ Every source a Note in this document cites.
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 | spec-kit | Spec Kit |   | GitHub | https://github.com/github/spec-kit |
 | spiffe | The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT |   | The SPIFFE project, Cloud Native Computing Foundation | https://github.com/spiffe/spiffe/tree/main/standards |
+| systemd-service | systemd.service, Service unit configuration |   | The systemd project | https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html |
+| systemd-unit | systemd.unit, Unit configuration |   | The systemd project | https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html |
 | uml-2-5-1 | OMG Unified Modeling Language (OMG UML), Version 2.5.1, clause 14, StateMachines | formal/2017-12-05 | Object Management Group | https://www.omg.org/spec/UML/2.5.1/ |
 | wcag-2-2 | Web Content Accessibility Guidelines (WCAG) 2.2 | 2023 | W3C | https://www.w3.org/TR/WCAG22/ |
 | whatwg-html | HTML Living Standard |   | WHATWG | https://html.spec.whatwg.org/ |

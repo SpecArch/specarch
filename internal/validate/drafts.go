@@ -116,6 +116,12 @@ func (s *subject) chosenReason(dc derivedCase) string {
 		return "a failing dependency is always written"
 	case dc.name == "concurrent write":
 		return "two writers on one record is a case nobody exercises by hand, so it is always written"
+	case s.kind == "process" && (dc.name == "restarted after a crash" || dc.name == "crash loop given up"):
+		return "a crash and a crash loop are cases nobody exercises by hand, so they are always written"
+	case s.kind == "process" && dc.name == "signal SIGTERM":
+		return "every stop and every deploy sends SIGTERM, so the case is written"
+	case s.kind == "process" && (strings.HasPrefix(dc.name, "setting invalid ") || strings.HasPrefix(dc.name, "secret missing ")):
+		return "a setting missing or wrong is the commonest reason a process does not start, so the case is written"
 	case s.kind == "workflow" && workflowReason(dc.name) != "":
 		return workflowReason(dc.name)
 	case s.critical || dc.critical:
@@ -202,7 +208,7 @@ func (d *design) draftData(root *yaml.Node, s *subject, dc derivedCase) (caller,
 	switch {
 	case s.kind == "command" && dc.name == "":
 		return "", "exit: 0"
-	case s.kind == "command" && strings.HasPrefix(dc.name, "exit "):
+	case (s.kind == "command" || s.kind == "process") && strings.HasPrefix(dc.name, "exit "):
 		return "", "exit: " + strings.TrimPrefix(dc.name, "exit ")
 	case op == nil:
 		return "", ""

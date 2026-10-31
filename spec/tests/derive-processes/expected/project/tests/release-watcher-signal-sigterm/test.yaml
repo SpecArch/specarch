@@ -1,0 +1,9 @@
+process: releaseWatcher
+level: system
+scenario: golden
+covers: [signal SIGTERM]
+given: "the process releaseWatcher is running"
+when: "it receives SIGTERM"
+then: "finishes the release it is installing, then exits 0, within PT30S"
+origin: inferred
+why: "Written by specarch derive: every stop and every deploy sends SIGTERM, so the case is written. A draft: complete the given, when and then, and remove what does not hold."

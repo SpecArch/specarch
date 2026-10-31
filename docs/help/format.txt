@@ -8,8 +8,8 @@ life-cycle order:
   requirements/          stakeholders, needs, requirements, glossary,
                          assumptions, constraints
   design/                enums, entities, permissions, roles, endpoints,
-                         commands, channels, jobs, workflows, pages,
-                         algorithms, decisions
+                         commands, channels, jobs, processes, workflows,
+                         pages, algorithms, decisions
   implementation/<stack>/  one implementation file per stack
   tests/<name>/          one folder per test: test.yaml and its files
   deployment/            environments, configuration, release, handover

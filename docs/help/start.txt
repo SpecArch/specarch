@@ -79,6 +79,16 @@ be shown before its tests are written. Every other rule is as on full,
 and one warning at info.profile says the profile is lean and what it
 relaxes.
 
+A daemon or a scheduled program
+
+A program a service manager starts and watches, a daemon kept running or
+a loop started on a schedule, is a process under processes, not a
+command: it names no permission, since nobody calls it, and its tests
+are its start, its signals, a setting missing, its exit statuses, a
+restart after a crash and the crash loop it is given up after. The work
+it does is a job it runs, which keeps its role. specarch help format and
+docs/conventions.md (Processes) say how to write one.
+
 Writing the tests
 
 Each test is a folder of its own under tests/, so list the stage in

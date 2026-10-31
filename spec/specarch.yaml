@@ -412,6 +412,22 @@ sources:
     edition: "17"
     author: The PostgreSQL Global Development Group
     url: https://www.postgresql.org/docs/17/datatype-datetime.html
+  systemd-service:
+    kind: document
+    title: systemd.service, Service unit configuration
+    author: The systemd project
+    url: https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html
+  systemd-unit:
+    kind: document
+    title: systemd.unit, Unit configuration
+    author: The systemd project
+    url: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html
+  posix-signal:
+    kind: standard
+    title: The Open Group Base Specifications Issue 8, signal.h
+    edition: "2024"
+    author: IEEE and The Open Group
+    url: https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/signal.h.html
   spec-kit:
     kind: document
     title: Spec Kit

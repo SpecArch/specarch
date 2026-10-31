@@ -1,0 +1,52 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0, profile: lean }
+configuration:
+  logLevel: { description: How much is logged., secret: false, schema: { type: string } }
+environments:
+  production: { description: The host. }
+monitors:
+  watcher-running: { description: Whether the watcher runs., environment: production, objective: It runs at every hour of the day. }
+permissions:
+  releases.read: { description: See releases. }
+roles:
+  installer: { description: What installs releases., permissions: [releases.read] }
+channels:
+  releases.events:
+    description: Releases as they are published.
+    messages:
+      ReleasePublished: { summary: A release was published., payload: { type: object, properties: { tag: { type: string } } } }
+jobs:
+  sweep: { description: Looks for a new release., trigger: { every: PT1M }, role: installer }
+  nightly: { description: Prunes old releases., trigger: { schedule: "0 3 * * *" }, role: installer }
+  onPublish: { description: Installs a published release., trigger: { consumes: releases.events/ReleasePublished }, role: installer }
+processes:
+  watcher:
+    description: Watches for releases.
+    runs: always
+    every: PT1M
+    jobs: [sweep, sweeep]
+    configuration: [logLevel, logLevl]
+    monitors: [watcher-runing]
+    restart: { when: onFailure }
+  nightlyRun:
+    description: Runs at night.
+    runs: scheduled
+    schedule: "0 3 * * *"
+    jobs: [nightly, sweep, onPublish]
+  cleaner:
+    description: Cleans the disk.
+    runs: scheduled
+  rotator:
+    description: Rotates the logs.
+    runs: scheduled
+    schedule: "0 4 * * *"
+    every: P1D
+  oneShot:
+    description: Installs one release when a person starts it.
+    runs: onDemand
+    restart: { when: never, delay: PT5S, exceptExitCodes: ["3"] }
+  unwatched:
+    description: Serves the release list.
+    runs: always
+    exitCodes: { "0": it was asked to stop }
+    restart: { when: always, limit: { times: 3, within: PT1M }, exceptExitCodes: ["78"] }

@@ -1,0 +1,6 @@
+process: releaseWatcher
+level: system
+scenario: golden
+given: "its settings are valid"
+when: "the process releaseWatcher starts"
+then: "it is healthy: it has asked the registry within the last two minutes"

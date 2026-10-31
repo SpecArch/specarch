@@ -106,7 +106,11 @@ Handled by the librarian role: a person who holds it looks at each kept item, th
 | 2. Try it again | If the error is gone, such as the event bus answering again, try the loan again from the list. | The loan is marked overdue, its LoanOverdue is published, and it leaves the list. |
 | 3. Discard it | If the loan should not be overdue, such as one returned before its due date and recorded late, discard it from the list. | The list no longer holds it, and the loan is as it was. |
 
-## 5. Channels
+## 5. Processes
+
+The specification has no processes; a program a service manager starts and watches, kept running, started on a schedule or on demand, is written under processes.
+
+## 6. Channels
 
 Each message, what carries it and who publishes and consumes it. A channel no dependency carries is the system's own.
 
@@ -118,7 +122,7 @@ Each message, what carries it and who publishes and consumes it. A channel no de
 | loan.lifecycle | eventBus | LoanLost | operation reportLost |   |
 | loan.overdue | eventBus | LoanOverdue | job markOverdue |   |
 
-## 6. Dependencies
+## 7. Dependencies
 
 What fails or waits when a dependency is down: every operation, job, gateway and channel that uses it.
 
@@ -131,7 +135,7 @@ What fails or waits when a dependency is down: every operation, job, gateway and
 
 **Insight on feeLedger:** The desk waits for the answer, so a call that takes longer than a few seconds is given up and the return is refused rather than left half done.
 
-## 7. Endpoints
+## 8. Endpoints
 
 Every endpoint the system serves, with the permission a caller needs; public is open to everyone.
 
@@ -158,7 +162,7 @@ Every endpoint the system serves, with the permission a caller needs; public is 
 | POST | /fee-waivers/{waiverId}/approve | approveFeeWaiver | fees.approve | Approve a request to waive a late fee, at its approve step |
 | POST | /fee-waivers/{waiverId}/refuse | refuseFeeWaiver | fees.approve | Refuse a request to waive a late fee, at its approve step, saying why |
 
-## 8. Settings
+## 9. Settings
 
 Every setting the system reads at run time. A secret's value is never written here; its description says where the value comes from.
 
@@ -169,7 +173,7 @@ Every setting the system reads at run time. A secret's value is never written he
 | feeLedgerToken | string | yes | The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here. |
 | notificationChannelUrl | string |  | Where the notification service listens for loan events. |
 
-## 9. Backing up
+## 10. Backing up
 
 The database is the only state; a nightly dump of it, kept for ninety days, is the backup.
 
@@ -178,7 +182,7 @@ The database is the only state; a nightly dump of it, kept for ninety days, is t
 | 1. Dump the database | Every night after closing, dump the whole database to the backup store with the date in the file name. | The dump of the night is in the store and restores on a scratch server without error. |
 | 2. Keep ninety days | Remove dumps older than ninety days. | The store holds ninety dumps, the newest from last night. |
 
-## 10. Restoring
+## 11. Restoring
 
 A restore puts one night's dump back in place of the live database; the loans since that night are re-entered from the desk's paper slips.
 
@@ -188,7 +192,7 @@ A restore puts one night's dump back in place of the live database; the loans si
 | 2. Load the dump | Drop the live database and load the chosen night's dump into a new one of the same name. | The member and loan counts match the night's counts in the backup log. |
 | 3. Start and check | Start the service and run the smoke check. | The catalogue answers and the loans list shows the restored loans. |
 
-## 11. Rolling back
+## 12. Rolling back
 
 The previous build is kept installed beside the new one, so a rollback is a switch, and migrations are written to be reversible.
 

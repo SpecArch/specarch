@@ -1,0 +1,9 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/release-watcher-signal-sigterm/test.yaml
+  project/tests/release-watcher-setting-invalid-registry-address/test.yaml
+  project/tests/release-watcher-secret-missing-registry-token/test.yaml
+  project/tests/release-watcher-exit-78/test.yaml
+  project/tests/release-watcher-restarted-after-a-crash/test.yaml
+  project/tests/release-watcher-crash-loop-given-up/test.yaml

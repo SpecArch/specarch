@@ -1,0 +1,48 @@
+specarch: "1.0.0"
+
+info:
+  title: Release watcher
+  version: 0.1.0
+
+stages: [tests]
+
+configuration:
+  registryAddress:
+    description: The address of the registry the watcher asks for new releases.
+    secret: false
+    schema: { type: string, format: uri }
+  registryToken:
+    description: The token the watcher reads the registry with.
+    secret: true
+    schema: { type: string }
+
+monitors:
+  watcher-running:
+    description: Whether the release watcher is running.
+    environment: production
+    objective: The watcher runs at every hour of the day.
+
+environments:
+  production:
+    description: The host the watcher runs on.
+
+processes:
+  releaseWatcher:
+    description: Asks the registry for a new release of each service and installs it.
+    runs: always
+    configuration: [registryAddress, registryToken]
+    signals:
+      SIGTERM: { description: "finishes the release it is installing, then exits 0", within: PT30S }
+      SIGHUP: { description: reads its settings again }
+    exitCodes:
+      "0": it was asked to stop
+      "78": a setting is wrong
+    restart:
+      when: onFailure
+      delay: PT5S
+      limit: { times: 5, within: PT10M }
+      exceptExitCodes: ["78"]
+    health:
+      description: it has asked the registry within the last two minutes
+      every: PT1M
+    monitors: [watcher-running]

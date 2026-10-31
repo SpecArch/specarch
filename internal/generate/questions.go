@@ -25,13 +25,13 @@ var documentReads = map[string][]string{
 	"techspec":      {"*"},
 	"requirements":  {"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints"},
 	"testplan":      {"tests", "requirements"},
-	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
+	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "processes", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
 	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "handover", "monitors", "backup", "restore"},
 	"commissioning": {"checks", "signoff"},
 	"handover":      {"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore", "tests"},
 	"html":          {"*"},
 	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors", "commands"},
-	"operations":    {"environments", "monitors", "jobs", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
+	"operations":    {"environments", "monitors", "jobs", "processes", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
 }
 
 // RefinementDocuments are the documents about the refinement itself, read

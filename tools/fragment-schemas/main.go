@@ -41,6 +41,10 @@ import (
 // schema/.
 const designFile = "specarch-design-1.0.schema.json"
 
+// currentDesign is designFile under a name the functions that read an
+// earlier schema do not shadow: only an earlier schema may lack a section.
+const currentDesign = designFile
+
 // designFiles are every design schema under schema/, the earlier one read
 // beside the current one: each has its own fragment schemas, and a tree's
 // hint lines name those of the version its root file says.
@@ -266,13 +270,19 @@ func Schemas(design []byte) (map[string][]byte, error) {
 		}
 		sections := append(spec.SectionsOf(stage), spec.QuestionsSection)
 		p := &value{object: true}
+		var held []string
 		for _, s := range sections {
 			v := props.get(s)
-			if v == nil {
+			switch {
+			case v == nil && designFile != currentDesign && s != spec.QuestionsSection:
+				continue // a section added after this meta-model, such as processes on 0.3
+			case v == nil:
 				return nil, fmt.Errorf("%s has no section %s", designFile, s)
 			}
 			p.set(s, v)
+			held = append(held, s)
 		}
+		sections = held
 		err := add(stage, "SpecArch "+stage+" file",
 			"One file under the "+stage+"/ folder of a SpecArch specification: a mapping of that stage's sections ("+strings.Join(sections, ", ")+"). A file under a sub-folder named after a section holds only that section.",
 			[]member{{"type", str("object")}, {"properties", p}, {"additionalProperties", boolean(false)}})

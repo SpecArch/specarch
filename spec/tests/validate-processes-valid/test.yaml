@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a process that runs always with a job, settings, signals, exit statuses, a restart limit and a monitor, a scheduled process started at its job's time and never restarted, and a scheduled process with its own every, each with the tests it implies, an exit status expected of a process included"
+when: "validate is run"
+then: "it reports nothing and exits 0"
+verifies: [SA-109]

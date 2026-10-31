@@ -1,0 +1,60 @@
+specarch: "1.0.0"
+info: { title: Release watcher, version: 1.0.0 }
+configuration:
+  registryAddress: { description: The address of the registry., secret: false, schema: { type: string, format: uri } }
+  registryToken: { description: The token the registry is read with., secret: true, schema: { type: string } }
+environments:
+  production: { description: The host the watcher runs on. }
+monitors:
+  watcher-running: { description: Whether the watcher runs., environment: production, objective: It runs at every hour of the day. }
+permissions:
+  releases.read: { description: See releases. }
+roles:
+  installer: { description: What installs releases., permissions: [releases.read] }
+jobs:
+  sweep: { description: Looks for a new release and installs it., trigger: { every: PT1M }, role: installer }
+  prune: { description: Removes releases older than the last three., trigger: { schedule: "0 3 * * *" }, role: installer }
+processes:
+  releaseWatcher:
+    description: Asks the registry for a new release of each service and installs it.
+    runs: always
+    jobs: [sweep]
+    configuration: [registryAddress, registryToken]
+    signals:
+      SIGTERM: { description: "finishes the release it is installing, then exits 0", within: PT30S }
+      SIGHUP: { description: reads its settings again }
+    exitCodes: { "0": it was asked to stop, "78": a setting is wrong }
+    restart:
+      when: onFailure
+      delay: PT5S
+      limit: { times: 5, within: PT10M }
+      exceptExitCodes: ["78"]
+    health: { description: it has asked the registry within the last two minutes, every: PT1M }
+    monitors: [watcher-running]
+  pruner:
+    description: Prunes old releases at night.
+    runs: scheduled
+    jobs: [prune]
+    restart: { when: never }
+  diskReport:
+    description: Writes how much disk the releases take.
+    runs: scheduled
+    every: PT6H
+tests:
+  release-watcher-succeeds: { process: releaseWatcher, level: system, scenario: golden, given: "its settings are valid", when: "the process releaseWatcher starts", then: "it is healthy: it has asked the registry within the last two minutes" }
+  release-watcher-signal-sigterm: { process: releaseWatcher, level: system, scenario: golden, covers: [signal SIGTERM], given: "the process releaseWatcher is running", when: "it receives SIGTERM", then: "it finishes the release it is installing, then exits 0, within PT30S" }
+  release-watcher-setting-invalid-registry-address: { process: releaseWatcher, level: system, scenario: red, covers: [setting invalid registryAddress], given: "the setting registryAddress is not a URI", when: "the process releaseWatcher starts", then: "it exits 78 before it does any work, naming registryAddress", expect: { exit: 78 } }
+  release-watcher-secret-missing-registry-token: { process: releaseWatcher, level: system, scenario: red, covers: [secret missing registryToken], given: "the secret registryToken is missing", when: "the process releaseWatcher starts", then: "it exits 78 before it does any work, naming registryToken", expect: { exit: 78 } }
+  release-watcher-exit-78: { process: releaseWatcher, level: system, scenario: red, covers: [exit 78], given: "a setting is wrong", when: "the process releaseWatcher ends", then: "it exits 78 and is not started again", expect: { exit: 78 } }
+  release-watcher-restarted-after-a-crash: { process: releaseWatcher, level: system, scenario: red, covers: [restarted after a crash], given: "the process releaseWatcher is running", when: "it ends with a status other than 0", then: "the service manager starts it again after PT5S" }
+  release-watcher-crash-loop-given-up: { process: releaseWatcher, level: system, scenario: red, covers: [crash loop given up], given: "the process releaseWatcher fails each time it starts", when: "it has been started 5 times within PT10M", then: "the service manager does not start it again, and the monitor watcher-running alerts" }
+  pruner-succeeds: { process: pruner, level: system, scenario: golden, given: "...", when: "the process pruner is started when a job it runs is due", then: "it does its work and exits 0" }
+  disk-report-succeeds: { process: diskReport, level: system, scenario: golden, given: "...", when: "the process diskReport is started, every PT6H", then: "it does its work and exits 0" }
+  sweep-succeeds: { job: sweep, level: system, scenario: golden, given: "a new release is in the registry", when: "the job sweep runs", then: "it installs it" }
+  sweep-runs-twice: { job: sweep, level: system, scenario: golden, covers: [runs twice], given: "the job sweep has run", when: "it runs again over the same records", then: "nothing changes a second time" }
+  prune-succeeds: { job: prune, level: system, scenario: golden, given: "four releases are kept", when: "the job prune runs", then: "the oldest is removed" }
+  prune-runs-twice: { job: prune, level: system, scenario: golden, covers: [runs twice], given: "the job prune has run", when: "it runs again over the same records", then: "nothing changes a second time" }
+  sweep-registry-down: { job: sweep, level: system, scenario: red, given: "the registry does not answer", when: "the job sweep runs", then: "it installs nothing and tries again on its next run" }
+  prune-in-use: { job: prune, level: system, scenario: red, given: "the oldest release is still running", when: "the job prune runs", then: "it keeps that release" }
+  pruner-fails: { process: pruner, level: system, scenario: red, given: "the disk is read-only", when: "the process pruner is started when a job it runs is due", then: "it exits with a status other than 0 and is not started again" }
+  disk-report-fails: { process: diskReport, level: system, scenario: red, given: "the folder of releases is missing", when: "the process diskReport is started, every PT6H", then: "it exits with a status other than 0" }

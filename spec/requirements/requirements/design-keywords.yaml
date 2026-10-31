@@ -715,3 +715,17 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-10]
     why: A person checks a mapping faster on a case they recognise than on its expressions, and a mapping's decision taken on an example is checked forever after once the example is a test (ADR-207).
+  SA-109:
+    statement: A specification shall be able to declare the long-running processes a service manager starts and watches, each with how it runs (always, scheduled or on demand), the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and the limit after which it is given up, its health and the monitors that watch it, with no permission; specarch validate shall check each against the design in both builds, a process shall be a subject of tests with the cases it implies, the operations guide shall write it, and specarch extract systemd shall read a systemd unit file into one.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A process naming a job, a setting or a monitor the specification lacks, a job another process runs, a schedule or every on a process that is not scheduled or on a scheduled one that runs jobs, neither or both on a scheduled one that runs none, a job that consumes messages under a scheduled process, a restart without a limit, restart keys besides when on one that is never restarted, or an exit status under exceptExitCodes that exitCodes lacks is reported as process in both builds; a process given up after its limit and watched by no monitor is a process warning.
+      - A test may name a process as its subject, and a process gets the cases each signal it honours, each setting it reads missing or invalid (a secret missing), each non-zero exit status, restarted after a crash and crash loop given up; the restart and crash-loop cases are critical, and no permission or caller case is derived.
+      - The operations guide writes the processes with how each runs, its jobs, restart and limit, signals, exit statuses, health and monitors, and a daily checklist line, and the technical specification a paragraph per process; a specification without processes gets one sentence in the operations guide naming the key, as for every other empty section.
+      - specarch extract systemd on a unit file writes a process with its runs, restart, delay, limit, statuses not restarted, stop signal and timeout, and the settings it reads, each stated with the file and line; a timer's OnCalendar, which is not cron, is a could question citing its line.
+      - Both builds print the same lines for every case.
+    verification: test
+    needs: [NEED-1]
+    why: A daemon, a scheduled loop or a system service had to be written as a job with commands, which demanded a permission and caller cases it cannot have, while its restart, crash loop, signals and bad configuration, what goes wrong with such a program, had no key and no test (ADR-211).

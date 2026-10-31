@@ -107,7 +107,11 @@ Handled by the manager role: a person who holds it looks at each kept item, then
 
 The specification does not say what a person does with an item the job keeps apart; who handles it, where it is kept and the steps to try it again or discard it are written under the job's deadLetter.
 
-## 5. Channels
+## 5. Processes
+
+The specification has no processes; a program a service manager starts and watches, kept running, started on a schedule or on demand, is written under processes.
+
+## 6. Channels
 
 Each message, what carries it and who publishes and consumes it. A channel no dependency carries is the system's own.
 
@@ -117,7 +121,7 @@ Each message, what carries it and who publishes and consumes it. A channel no de
 | order.events | broker | OrderApproved | workflow large-order |   |
 | till.local | the system itself | ReceiptPrinted | job printReceipt |   |
 
-## 6. Dependencies
+## 7. Dependencies
 
 What fails or waits when a dependency is down: every operation, job, gateway and channel that uses it.
 
@@ -128,7 +132,7 @@ What fails or waits when a dependency is down: every operation, job, gateway and
 
 **Insight on payments:** A customer waits at the till, so a slow provider is given up after five seconds.
 
-## 7. Endpoints
+## 8. Endpoints
 
 Every endpoint the system serves, with the permission a caller needs; public is open to everyone.
 
@@ -159,7 +163,7 @@ Every endpoint the system serves, with the permission a caller needs; public is 
 
 **Problem on askApproval:** warning: test_golden_missing: operation askApproval has no golden scenario; add one under tests, for example ask-approval-succeeds: { operation: askApproval, scenario: golden, given: "a caller with orders.write", when: "askApproval is called with values inside every limit", then: "it answers 202: The order waits for the manager." } [test_golden_missing@specarch.yaml#/paths/~1orders~1{orderId}~1approval/post]
 
-## 8. Settings
+## 9. Settings
 
 Every setting the system reads at run time. A secret's value is never written here; its description says where the value comes from.
 
@@ -168,7 +172,7 @@ Every setting the system reads at run time. A secret's value is never written he
 | taxRate | decimal(4, 2) |  | The sales tax rate. |
 | databaseUrl | string | yes | Where the database is; it comes from the host's secret store. |
 
-## 9. Backing up
+## 10. Backing up
 
 The orders are dumped every night.
 
@@ -176,11 +180,11 @@ The orders are dumped every night.
 |---|---|---|
 | 1. Dump | Dump the database to the backup store. | The dump restores on a scratch host. |
 
-## 10. Restoring
+## 11. Restoring
 
 The specification has no restore; how saved data is brought back is written under restore.
 
-## 11. Rolling back
+## 12. Rolling back
 
 The specification has no rollback; how a release is taken back is written under rollback.
 

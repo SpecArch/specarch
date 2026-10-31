@@ -5,7 +5,7 @@ let designSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-1.0.schema.json",
   "title": "SpecArch specification, meta-model 1.0",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, signIn, endpoints, commands, channels, dependencies, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, signIn, endpoints, commands, channels, dependencies, jobs, processes, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -292,6 +292,16 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": {
         "$ref": "#/$defs/job"
+      }
+    },
+    "processes": {
+      "description": "SpecArch keyword. The long-running processes a service manager starts and watches, keyed by camelCase name: a daemon kept running, a loop started on a schedule, a program started on demand. Each says how it runs, the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and when it is given up, its health and the monitors that watch it. A process names no permission: nobody calls it, and the jobs it runs act as their roles (ADR-211).",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/memberName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/process"
       }
     },
     "gateways": {
@@ -6032,7 +6042,7 @@ let designSchemaJSON = #"""
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, process, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -6050,6 +6060,10 @@ let designSchemaJSON = #"""
         },
         "job": {
           "description": "The job the test is about.",
+          "$ref": "#/$defs/memberName"
+        },
+        "process": {
+          "description": "The process the test is about (ADR-211).",
           "$ref": "#/$defs/memberName"
         },
         "gateway": {
@@ -6208,7 +6222,7 @@ let designSchemaJSON = #"""
               "minProperties": 1
             },
             "exit": {
-              "description": "One of the command's exit codes.",
+              "description": "One of the exit codes of the command or the process under test.",
               "type": "integer",
               "minimum": 0,
               "maximum": 255
@@ -6302,6 +6316,11 @@ let designSchemaJSON = #"""
         {
           "required": [
             "job"
+          ]
+        },
+        {
+          "required": [
+            "process"
           ]
         },
         {
@@ -7444,6 +7463,204 @@ let designSchemaJSON = #"""
         "description",
         "trigger",
         "role"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "process": {
+      "description": "SpecArch keyword. One long-running process a service manager starts and watches (ADR-211). It names no permission and acts as no role; what it does is the jobs it runs, which keep their roles.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "runs": {
+          "description": "How the process runs. always: started when the host starts and kept running until it is stopped. scheduled: started by the service manager at a time, and exits when its run is done; the time is the trigger of each job it runs, or, when it runs none, its own schedule or every. onDemand: started by a person or another program, as the description says, and exits when its work is done.",
+          "type": "string",
+          "enum": [
+            "always",
+            "scheduled",
+            "onDemand"
+          ]
+        },
+        "schedule": {
+          "description": "On a scheduled process that runs no job only, instead of every: when it is started, a cron expression of five fields in UTC, as a job's trigger. A scheduled process that runs jobs is started at each job's schedule or every, so when it runs is said once.",
+          "type": "string",
+          "pattern": "^\\S+( \\S+){4}$"
+        },
+        "every": {
+          "description": "On a scheduled process that runs no job only, instead of schedule: the time from one start to the next.",
+          "$ref": "#/$defs/duration"
+        },
+        "jobs": {
+          "description": "The jobs the process runs, by name under jobs. Each keeps its trigger and its role; a job is run by one process. Under a scheduled process each job's schedule or every is when the process is started for it, so the process writes none of its own, and a job that consumes messages needs a process that runs always.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "configuration": {
+          "description": "The settings the process reads when it starts, by name under configuration; a setting marked secret is a secret it reads.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memberName"
+          },
+          "uniqueItems": true
+        },
+        "signals": {
+          "description": "The POSIX signals the process honours, keyed by name, each with what it does on receiving it and, when it stops, within what time. A signal not listed has its default action. How a stack catches a signal is the implementation's.",
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "SIGTERM",
+              "SIGINT",
+              "SIGHUP",
+              "SIGQUIT",
+              "SIGUSR1",
+              "SIGUSR2"
+            ]
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "description": "What the process does on receiving the signal, such as 'finishes the current item, then exits 0'.",
+                "$ref": "#/$defs/markdown"
+              },
+              "within": {
+                "description": "The time within which the process has done it; for the stop signal, the time after which the service manager kills it.",
+                "$ref": "#/$defs/duration"
+              }
+            },
+            "required": [
+              "description"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "exitCodes": {
+          "description": "Every exit status the process can end with, keyed by number, as a command's. Status 0 is required: the process ended as asked, such as after SIGTERM, or a scheduled run that did its work.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": [
+            "0"
+          ]
+        },
+        "restart": {
+          "description": "When the service manager starts the process again after it ends, after systemd's Restart=, RestartSec=, StartLimitBurst= within StartLimitIntervalSec= and RestartPreventExitStatus=.",
+          "type": "object",
+          "properties": {
+            "when": {
+              "description": "always: whenever it ends, whatever its status; onFailure: when it ends with a status other than 0 or is killed by a signal; never: it stays ended.",
+              "type": "string",
+              "enum": [
+                "always",
+                "onFailure",
+                "never"
+              ]
+            },
+            "delay": {
+              "description": "The time the service manager waits before it starts the process again.",
+              "$ref": "#/$defs/duration"
+            },
+            "limit": {
+              "description": "When the service manager gives up: started more than times within the duration, it is not started again until a person starts it. Required unless when is never: a manager's own default differs from one manager to the next.",
+              "type": "object",
+              "properties": {
+                "times": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000
+                },
+                "within": {
+                  "$ref": "#/$defs/duration"
+                }
+              },
+              "required": [
+                "times",
+                "within"
+              ],
+              "additionalProperties": false
+            },
+            "exceptExitCodes": {
+              "description": "The exit statuses on which the process is never started again, each one of its exitCodes, such as the status for a wrong setting, which a restart cannot mend.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$"
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "when"
+          ],
+          "additionalProperties": false
+        },
+        "health": {
+          "description": "What healthy means for the process, in plain words, and how often it is looked at; the probe a stack uses is the implementation's.",
+          "type": "object",
+          "properties": {
+            "description": {
+              "$ref": "#/$defs/markdown"
+            },
+            "every": {
+              "$ref": "#/$defs/duration"
+            }
+          },
+          "required": [
+            "description"
+          ],
+          "additionalProperties": false
+        },
+        "monitors": {
+          "description": "The monitors under monitors, in the operation stage, that watch the process; where their alert goes is the implementation's.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "uniqueItems": true
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "runs"
       ],
       "propertyNames": {
         "not": {

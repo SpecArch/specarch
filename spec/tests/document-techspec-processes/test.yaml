@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every"
+when: "document techspec is run"
+then: "the runtime view writes a paragraph per process: how it runs, as no role, its jobs, settings, signals, exit statuses, when it is started again and never, its health and monitors, and exits 0"
+verifies: [SA-109]

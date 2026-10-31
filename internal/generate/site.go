@@ -57,7 +57,7 @@ var siteGroups = []struct {
 	{"Requirements", []string{"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints", "sources"}},
 	{"Data", []string{"enums", "entities", "views", "schemas"}},
 	{"Roles and permissions", []string{"permissions", "roles", "separationOfDuties", "session", "middlewares"}},
-	{"Operations", []string{"paths", "commands", "channels", "dependencies", "jobs", "errors"}},
+	{"Operations", []string{"paths", "commands", "channels", "dependencies", "jobs", "processes", "errors"}},
 	{"Pages and menus", []string{"pages", "menus", "flows", "accessibility", "theme"}},
 	{"Workflows", []string{"workflows"}},
 	{"Algorithms and decisions", []string{"algorithms", "decisions"}},
@@ -88,7 +88,7 @@ var linkTo = map[string][]string{
 	"entity": {"entities", "views"}, "subject": {"entities", "operations"}, "target": {"entities", "pages", "operations"},
 	"page": {"pages"}, "navigate": {"pages"}, "pages": {"pages"},
 	"source": {"operations", "sources"}, "operation": {"operations"}, "trigger": {"operations"}, "operations": {"operations"}, "submit": {"operations"},
-	"decidedIn": {"decisions"}, "restsOn": {"decisions"}, "supersededBy": {"decisions"}, "algorithm": {"algorithms"}, "workflow": {"workflows"}, "job": {"jobs"}, "to": {"stakeholders"},
+	"decidedIn": {"decisions"}, "restsOn": {"decisions"}, "supersededBy": {"decisions"}, "algorithm": {"algorithms"}, "workflow": {"workflows"}, "job": {"jobs"}, "process": {"processes"}, "to": {"stakeholders"},
 	"environment": {"environments"}, "environments": {"environments"}, "problem": {"errors"},
 }
 

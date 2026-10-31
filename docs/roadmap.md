@@ -87,6 +87,19 @@ permission on every operation among them (ADR-210, SA-108,
 `spec/tests/init-*`, `spec/tests/validate-profile-*`): built on main, in
 no release yet. Setting a project up in one command follows Spec Kit.
 
+Long-running processes: `processes` in the design, a program a service
+manager starts and watches, with how it runs (`always`, `scheduled`,
+`onDemand`), the jobs it runs, the settings it reads, the POSIX signals
+and exit statuses it honours, when it is restarted and the limit after
+which it is given up, its health and its monitors, and no permission; the
+rule `process` in both validators, the cases a process implies (a signal,
+a setting missing, an exit status, a restart and the crash loop) with
+`process:` as a test's subject, and the process in the technical
+specification and the operations guide (ADR-211, SA-109,
+`spec/tests/validate-processes-*`, `spec/tests/derive-processes`): built
+on main, in no release yet. Spec Kit's free-form specification showed
+the gap.
+
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the

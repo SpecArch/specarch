@@ -5,13 +5,15 @@ import (
 	"strings"
 
 	"go.yaml.in/yaml/v3"
+
+	"github.com/SpecArch/specarch/internal/source"
 )
 
 // Operations writes the operations guide (ADR-160): for the people who
 // run the live system day to day, the environments and their hosts, a
 // checklist of what to look at, the monitors with what to do when one is
 // missed, the jobs with what a person does with an item a job keeps
-// apart, the channels, dependencies and endpoints, the settings, and the
+// apart, the processes the service manager runs (ADR-211), the channels, dependencies and endpoints, the settings, and the
 // backup, restore and rollback steps. A section the specification
 // has nothing for is one sentence naming the key that fills it.
 func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
@@ -20,6 +22,7 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 	envs := pairs(root, "environments")
 	mons := pairs(root, "monitors")
 	jobs := pairs(root, "jobs")
+	procs := pairs(root, "processes")
 	deps := pairs(root, "dependencies")
 	ops := operations(root)
 	d.line("# %s: operations guide", str(info, "title"))
@@ -68,7 +71,7 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 	}
 
 	d.section("Daily checklist")
-	if len(mons)+len(jobs)+len(deps) == 0 {
+	if len(mons)+len(jobs)+len(procs)+len(deps) == 0 {
 		d.para("The specification has no monitors, jobs or dependencies, so there is nothing to look at each day; they are written under monitors, jobs and dependencies.")
 	} else {
 		d.para("What to look at on the live system each day. Tick the last column as each is seen to be as expected.")
@@ -86,6 +89,16 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 				}
 			}
 			d.line("| Job %s | %s | %s | %s |", j.Key.Value, cell("Its last run, "+triggerText(get(j.Value, "trigger"))+"."), cell(expected), cell(""))
+		}
+		for _, p := range procs {
+			look, expected := "Its last run.", "It ran, and exited 0."
+			if str(p.Value, "runs") == "always" {
+				look, expected = "That it is running.", "It is running, and has not been started again since the last check."
+				if h := strings.TrimSpace(str(get(p.Value, "health"), "description")); h != "" {
+					expected = "It is running and healthy: " + strings.TrimSuffix(h, ".") + "."
+				}
+			}
+			d.line("| Process %s | %s | %s | %s |", p.Key.Value, cell(look), cell(expected), cell(""))
 		}
 		for _, dp := range deps {
 			look := "That it answers"
@@ -162,6 +175,72 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 			d.para(strings.TrimSpace(str(dl, "description")))
 			d.para("Handled by the " + str(dl, "role") + " role: a person who holds it looks at each kept item, then tries it again or discards it.")
 			stepsTable(d, get(dl, "steps"))
+		}
+	}
+
+	d.section("Processes")
+	if len(procs) == 0 {
+		d.para("The specification has no processes; a program a service manager starts and watches, kept running, started on a schedule or on demand, is written under processes.")
+	} else {
+		d.para("The programs the service manager starts and watches. A process acts as no role: the jobs it runs act as theirs.")
+		d.line("| Process | Runs | Jobs | Restarted | Description |")
+		d.line("|---|---|---|---|---|")
+		for _, p := range procs {
+			d.line("| %s | %s | %s | %s | %s |", p.Key.Value, cell(runsText(p.Value)), cell(strings.Join(strs(p.Value, "jobs"), ", ")), cell(restartText(get(p.Value, "restart"))), cell(str(p.Value, "description")))
+		}
+		d.blank()
+		d.explainRows(rowsOf(procs))
+		for _, p := range procs {
+			d.heading(3, p.Key.Value)
+			if c := strs(p.Value, "configuration"); len(c) > 0 {
+				d.para("Reads the settings " + strings.Join(c, ", ") + " when it starts; the section Settings says what each is.")
+			}
+			if sigs := pairs(p.Value, "signals"); len(sigs) > 0 {
+				d.line("| Signal | What it does |")
+				d.line("|---|---|")
+				for _, sg := range sigs {
+					does := strings.TrimSpace(str(sg.Value, "description"))
+					if w := str(sg.Value, "within"); w != "" {
+						does += ", within " + w
+					}
+					d.line("| %s | %s |", sg.Key.Value, cell(does))
+				}
+				d.blank()
+			} else {
+				d.para("The specification does not say which signals it honours; each is written under the process's signals.")
+			}
+			if codes := pairs(p.Value, "exitCodes"); len(codes) > 0 {
+				never := map[string]bool{}
+				for _, e := range strs(get(p.Value, "restart"), "exceptExitCodes") {
+					never[e] = true
+				}
+				d.line("| Exit status | Meaning | Started again |")
+				d.line("|---|---|---|")
+				for _, c := range codes {
+					again := "as Restarted says"
+					if never[c.Key.Value] {
+						again = "never"
+					}
+					d.line("| %s | %s | %s |", c.Key.Value, cell(source.Str(c.Value)), again)
+				}
+				d.blank()
+			}
+			if h := get(p.Value, "health"); h != nil {
+				line := "Healthy when " + strings.TrimSuffix(strings.TrimSpace(str(h, "description")), ".") + "."
+				if e := str(h, "every"); e != "" {
+					line += " Looked at every " + e + "."
+				}
+				d.para(line)
+			}
+			if m := strs(p.Value, "monitors"); len(m) > 0 {
+				which := "the monitor " + m[0]
+				if len(m) > 1 {
+					which = "the monitors " + strings.Join(m, ", ")
+				}
+				d.para("Watched by " + which + "; the section Monitors says what to do when one is missed.")
+			} else if get(get(p.Value, "restart"), "limit") != nil {
+				d.para("The specification names no monitor that watches it, so nobody is told when the service manager gives it up; the monitor is named under the process's monitors.")
+			}
 		}
 	}
 
@@ -295,6 +374,47 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 	}
 	d.sourcesIndex("Sources")
 	return d.String()
+}
+
+// runsText says in words how a process runs.
+func runsText(p *yaml.Node) string {
+	switch str(p, "runs") {
+	case "always":
+		return "always, from the host's start"
+	case "scheduled":
+		switch {
+		case str(p, "schedule") != "":
+			return "on the schedule `" + str(p, "schedule") + "` (UTC)"
+		case str(p, "every") != "":
+			return "every " + str(p, "every")
+		}
+		return "when a job it runs is due"
+	case "onDemand":
+		return "when started by a person or another program"
+	}
+	return ""
+}
+
+// restartText says when the service manager starts a process again and
+// when it gives up.
+func restartText(r *yaml.Node) string {
+	switch str(r, "when") {
+	case "":
+		return "not said"
+	case "never":
+		return "never"
+	}
+	text := "whenever it ends"
+	if str(r, "when") == "onFailure" {
+		text = "when it fails"
+	}
+	if delay := str(r, "delay"); delay != "" {
+		text += ", after " + delay
+	}
+	if l := get(r, "limit"); l != nil {
+		text += fmt.Sprintf("; given up after %s starts within %s", str(l, "times"), str(l, "within"))
+	}
+	return text
 }
 
 // triggerText says in words what starts a job.

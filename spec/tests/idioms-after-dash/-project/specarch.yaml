@@ -1,0 +1,15 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Note:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      body: { type: string, maxLength: 5000 }
+    primaryKey: [id]
+    satisfies: [CASE-1]

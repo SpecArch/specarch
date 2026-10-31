@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.4.0 of the specification: 0 tasks, 0 pages and 24 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.4.0 of the specification: 0 tasks, 0 pages and 26 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, merge, model, try, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, mcp, merge, model, skill, try, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -985,7 +985,7 @@ Anyone who has the program runs it.
 
 | Argument | What to give | Required |
 |---|---|---|
-| `<target>` |   | yes |
+| `<target>` | The document to write, one of DocumentTarget's values. | yes |
 | `<paths>` | Folders holding specifications, searched as validate searches them. One or more. | yes |
 
 | Option | What it does | Required |
@@ -3398,6 +3398,79 @@ On standard error: A usage message on a usage error; the file that is already th
 | 0 | the specification was written, or with --dry-run would be |   |
 | 2 | usage error, a folder that already holds specarch.yaml, or a path that could not be written | Read the reason on standard error: give a folder without specarch.yaml, or a profile of lean or full, or a path that can be written, and run it again. |
 
+### specarch mcp
+
+Serve every command as a tool of the Model Context Protocol, over standard input and output.
+
+Runs a server of the Model Context Protocol (MCP), revision
+2025-11-25, on the stdio transport: it reads JSON-RPC 2.0 messages
+from standard input, one per line, and writes each answer on
+standard output, one per line, and nothing else there. It runs until
+standard input ends, then exits 0. An agent's client starts it in
+the folder the paths are relative to (ADR-214).
+
+It answers `initialize` with the revision the client asked for when
+it is one of 2025-11-25, 2025-06-18, 2025-03-26 and 2024-11-05, and
+with 2025-11-25 otherwise; the tools capability; the server's name
+and version; and short instructions naming the guide tool. It
+answers `ping`, `tools/list` and `tools/call`; takes the
+notifications and answers none; and answers any other method,
+`server/discover` among them, with the JSON-RPC error -32601, so a
+client that tries the stateless 2026-07-28 revision first falls back
+to `initialize`.
+
+`tools/list` lists the tools `specarch capabilities --json` lists,
+this command's own entry left out, each with its `name`, `title`,
+`description`, `inputSchema` and `annotations`: the same entries,
+made from the same command definitions, so the server can offer no
+input the program does not take. The plug-ins on PATH are found once,
+when the server starts: a plug-in installed later is listed after
+the client starts the server again.
+
+`tools/call` runs the tool's command in this program, as `specarch
+<command> <inputs> --json` would run, and answers with the JSON
+object that run prints on standard output as `structuredContent`
+and as text, and, on exit status 2, the error object of standard
+error as a second text. Exit status 0 and 1 are results, 1 being a
+command that ran and found what it reports; exit status 2 sets
+`isError`. The inputs are given in the order of the command's
+synopsis: the arguments that are not repeated, each option as
+`--<name> <value>` (a boolean only when true, a list once per
+value), then the repeated arguments. An input the tool does not
+take, a required input left out, a value of the wrong type, or an
+argument that starts with `-` is answered with `isError` and the
+reason, before anything runs; a tool that is not listed is the
+JSON-RPC error -32602. A line that is not JSON is the error -32700,
+and a message that is not a JSON-RPC 2.0 request, a batch included,
+-32600.
+
+**Insight:** An agent's client finds a tool it is given far more readily than a command it has to be told about; the server makes every command one call away, with its inputs typed, and with no copy of the listing of its own, since each entry is the one capabilities --json prints. The command runs in this program, with the same code as on the command line, so a call and a command line give the same result.
+
+```
+specarch mcp
+```
+
+Anyone who has the program runs it.
+
+It reads:
+
+- `standard input`: The JSON-RPC 2.0 messages of the client, one per line.
+- `PATH`: The folders searched for specarch-gen-* plug-ins, for tools/list and for a generate tool; each is run with --capabilities.
+- `the paths of each call`: What the command called reads.
+
+It writes:
+
+- `the paths of each call`: What the command called writes; a command that writes is listed with destructiveHint, and takes --dry-run.
+
+On standard output: The JSON-RPC 2.0 answers, one per line, and nothing else.
+
+On standard error: A usage message on a usage error; otherwise nothing.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | standard input ended |   |
+| 2 | usage error, --json given, or standard input or output that could not be read or written | Run specarch mcp with no argument and without --json: it speaks JSON-RPC on standard output itself. Configure the agent's client to start it as a stdio server. |
+
 ### specarch merge
 
 Merge the partial specifications the readers wrote into one.
@@ -3818,6 +3891,67 @@ On standard error: A usage message on a usage error, and the reason on a path th
 |---|---|---|
 | 0 | printed |   |
 | 2 | usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch skill
+
+Write an agent skill for SpecArch, in the Agent Skills format, from the program's own command definitions.
+
+Writes the folder `{out}/specarch` in the Agent Skills format
+(agentskills.io), which agents read from their skills folder:
+`SKILL.md`, whose front matter names the skill and says when to use
+it and whose body is the agent guide (`specarch guide --agent` up to
+the plug-ins found) with a list of the references; and
+`references/<command>.md`, one file per command, with its synopsis,
+what it does, its arguments and options, what it reads, writes and
+prints, and each exit status with its meaning and remedy. Everything
+is made from the command definitions and the facts built into the
+program, so the skill names exactly the commands and options this
+release takes. The plug-ins found on PATH are left out, so the same
+release writes the same skill on every machine; the skill says that
+`specarch capabilities --json` lists them (ADR-214).
+
+Put it where the agent reads skills, such as `.agents/skills` in a
+repository or the skills folder the agent's own documentation names,
+and write it again after an upgrade. A reference in `{out}/specarch/references` the skill does
+not hold, a `.md` file, is removed, so a command a later release
+drops leaves no reference behind; no other file is removed. A
+folder `{out}/specarch` that holds files but no `SKILL.md` naming
+the skill specarch is not one this command wrote, and is refused
+with nothing written. With `--check` nothing is written: the skill
+is made in memory and compared with what is on disk.
+
+**Insight:** An agent learns a tool from the skills it is given before it reads a repository's instructions; a skill written by the program from its own definitions cannot name a command or an option the release does not have, and writing it again after an upgrade keeps it so. One format that many agents read stands in for a set of commands per agent, which would be one more copy per agent to keep in step.
+
+```
+specarch skill --out <out> [--check] [--dry-run]
+```
+
+Anyone who has the program runs it.
+
+| Option | What it does | Required |
+|---|---|---|
+| `--out <out>` | The folder the skill's folder, specarch, is written in, such as .agents/skills. | yes |
+| `--check` | Make the skill in memory and fail when the files on disk differ. Writes nothing. |  |
+| `--dry-run` | Write nothing; print would write <path> or would remove <path> for each file that would change. Not with --check. |  |
+
+It reads:
+
+- `{out}/specarch`: The skill on disk, to write only the files that change, to remove the files it no longer holds, and with --check to compare.
+
+It writes:
+
+- `{out}/specarch/SKILL.md`: The skill: its name and when to use it, then the agent guide and the list of references. Nothing is written with --check.
+- `{out}/specarch/references/<command>.md`: One command's reference, a command of two words joined by a hyphen. Nothing is written with --check.
+
+On standard output: The paths written, or with --dry-run would write <path> and would remove <path>, or with --check one line per file that differs, is missing or is not the skill's.
+
+On standard error: A usage message on a usage error, the reason a file could not be read or written, and a one-line count at the end.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | written, or with --check the skill on disk is current |   |
+| 1 | with --check, a file differs, is missing or is not the skill's | Run specarch skill --out with the same folder and without --check to write the current skill, then run the check again. |
+| 2 | usage error, a folder specarch under --out that this command did not write, or a file that could not be read or written | Read the usage message or the reason on standard error, give --out a folder whose specarch folder is the skill's or does not exist, correct the path it names, and run it again. |
 
 ### specarch try
 

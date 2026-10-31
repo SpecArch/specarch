@@ -126,8 +126,15 @@ func (c Command) UsageWords() []string {
 
 // LoadCommands reads every commands fragment of a folder of the
 // specification, such as the embedded spec/design/commands, in name order.
+// A schema that refers to an enum of the design, as #/enums/<Name>, is
+// given that enum's values from the enums folder beside it, so that a
+// program reading the schema needs nothing else to resolve it.
 func LoadCommands(fsys fs.FS, dir string) ([]Command, error) {
 	files, err := fs.Glob(fsys, path.Join(dir, "*.yaml"))
+	if err != nil {
+		return nil, err
+	}
+	enums, err := loadEnums(fsys, path.Join(path.Dir(dir), "enums"))
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +154,9 @@ func LoadCommands(fsys fs.FS, dir string) ([]Command, error) {
 		}
 		for i := 0; i+1 < len(commands.Content); i += 2 {
 			c, err := decodeCommand(commands.Content[i].Value, commands.Content[i+1])
+			if err == nil {
+				err = resolveEnums(&c, enums)
+			}
 			if err != nil {
 				return nil, fmt.Errorf("%s: commands.%s: %v", f, commands.Content[i].Value, err)
 			}
@@ -218,6 +228,78 @@ func decodeCommand(name string, n *yaml.Node) (Command, error) {
 	}
 	sort.Slice(c.ExitCodes, func(i, j int) bool { return c.ExitCodes[i].Status < c.ExitCodes[j].Status })
 	return c, nil
+}
+
+// enumRef is the prefix of a schema's reference to an enum of the design.
+const enumRef = "#/enums/"
+
+// loadEnums reads the enums of a folder of the design, by name, each with
+// its type and its values; none when the folder is not there.
+func loadEnums(fsys fs.FS, dir string) (map[string]map[string]any, error) {
+	files, err := fs.Glob(fsys, path.Join(dir, "*.yaml"))
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]map[string]any{}
+	for _, f := range files {
+		data, err := fs.ReadFile(fsys, f)
+		if err != nil {
+			return nil, err
+		}
+		var doc struct {
+			Enums map[string]struct {
+				Type string `yaml:"type"`
+				Enum []any  `yaml:"enum"`
+			} `yaml:"enums"`
+		}
+		if err := yaml.Unmarshal(data, &doc); err != nil {
+			return nil, fmt.Errorf("%s: %v", f, err)
+		}
+		for name, e := range doc.Enums {
+			out[name] = map[string]any{"type": e.Type, "enum": e.Enum}
+		}
+	}
+	return out, nil
+}
+
+// resolveEnums gives each argument and option whose schema refers to an
+// enum that enum's type and values in place of the reference.
+func resolveEnums(c *Command, enums map[string]map[string]any) error {
+	resolve := func(s map[string]any) (map[string]any, error) {
+		ref, ok := s["$ref"].(string)
+		if !ok {
+			return s, nil
+		}
+		name, ok := strings.CutPrefix(ref, enumRef)
+		e, found := enums[name]
+		if !ok || !found {
+			return nil, fmt.Errorf("the schema refers to %s, which is no enum of spec/design/enums", ref)
+		}
+		out := map[string]any{}
+		for k, v := range s {
+			if k != "$ref" {
+				out[k] = v
+			}
+		}
+		out["type"] = e["type"]
+		out["enum"] = e["enum"]
+		return out, nil
+	}
+	for i := range c.Arguments {
+		s, err := resolve(c.Arguments[i].Schema)
+		if err != nil {
+			return fmt.Errorf("argument %s: %v", c.Arguments[i].Name, err)
+		}
+		c.Arguments[i].Schema = s
+	}
+	for i := range c.Options {
+		s, err := resolve(c.Options[i].Schema)
+		if err != nil {
+			return fmt.Errorf("option --%s: %v", c.Options[i].Name, err)
+		}
+		c.Options[i].Schema = s
+	}
+	return nil
 }
 
 func decodeSchema(n *yaml.Node, into *map[string]any) error {

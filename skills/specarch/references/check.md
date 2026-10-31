@@ -1,0 +1,150 @@
+# specarch check
+
+```
+specarch check <specification> [--allowlist <allowlist>] [--since <since>] <dumps>...
+```
+
+Compare a specification with the dumps of the running code, for a CI gate.
+
+Reads one specification and the dumps of its code, each with the
+reader `specarch extract` reads it with, after the same checks of the
+commit it names, and prints every difference between the two as a
+problem at its entry: the gates of `docs/sync-gates.md` in one verb
+(ADR-124). The specification must pass validate; one with errors is
+refused, as generate refuses it.
+
+A dump is told by the key that names its format: `routeTable` for a
+route table, `permissionTable` for a permission table,
+`catalogue` for a catalogue dump, and `gatewayTable` for a gateway
+table. Each is compared by the merge's own
+matching:
+
+- A route table: an operation by its method and path. An operation
+  of the specification the router does not serve is
+  `operation_not_served` at the operation, and a route the
+  specification does not name is `route_not_specified` at the route
+  in the dump; the route table writes a path parameter `{name}`
+  whatever the router's own syntax, and no other normalisation is
+  made, so `{id}` and `{loanId}` are two paths. Where both
+  have the operation, a permission that differs, one of them naming
+  none among them, is `operation_permission_differs`; an operation
+  whose permission is `public` checks none, as the route table prints
+  a route open to everyone. Under
+  `bindings.http.listRoutes` each list served by GET is served by POST
+  at its twin's path as well, with its permission. An operation
+  another stakeholder owns is not compared.
+- A permission table: a grant by its role and permission, each
+  side's grants widened by the permissions they imply, through the
+  specification's `implies`, and a role's and a permission's name
+  read as the permissions reader reads them (a role in capitals
+  under `info.roleNames`, a privilege by the rule of ADR-076); a
+  grant of `public` is no grant, as the reader has it. A grant
+  of the specification the table does not hold is
+  `grant_not_in_code` at the role, and a grant of the table the
+  specification does not hold is `grant_not_specified` at the
+  grant in the dump. The table's gates are not compared: what a
+  caller of each kind may do is the caller context's to design.
+- A catalogue dump: a table by its name, a column by its table and
+  name, where the specification's tables and columns are the ones
+  `specarch generate sql` writes for PostgreSQL through the
+  implementation file, every entity's but the ones another
+  stakeholder owns. Exact, and so a failure: a table or a column
+  only one side has (`table_not_in_database`,
+  `table_not_specified`, `column_not_in_database`,
+  `column_not_specified`); a column's type, as PostgreSQL spells
+  it, so `VARCHAR(10)` is `character varying(10)` and
+  `character(10)` differs from it (`column_type_differs`); its
+  nullability (`column_nullability_differs`); whether the database
+  draws its value by an expression the type-rendering idiom names
+  for a generated default (`column_generated_default_differs`);
+  the primary key's columns in order (`primary_key_differs`); a
+  foreign key by its columns, with the table and the columns it
+  refers to and its action on delete (`foreign_key_not_in_database`,
+  `foreign_key_not_specified`, `foreign_key_differs`); a unique
+  constraint by its columns (`unique_not_in_database`,
+  `unique_not_specified`); a check constraint by its name
+  (`check_not_in_database`, `check_not_specified`); and a plain
+  index the mapping lists, by its name, with its columns in order
+  (`index_not_in_database`, `index_differs`). A report, printed as
+  a warning and never a failure, after the gates' rule that a gate
+  compares only what can be derived exactly: the text of a check
+  both sides name, where it differs, since the database rewrites
+  it (`check_expression_differs`), and an index the mapping does not
+  list, plain or not (`index_not_listed`). A partition is not
+  compared, neither as a table the specification does not hold nor
+  by its own constraints and indexes: its rows are its table's,
+  which is compared, and an index of a partitioned table, which the
+  catalogue prints with `ON ONLY`, is a plain index as any other
+  (ADR-128).
+- A gateway table: the specification's gateway of the table's
+  name, in camelCase as `specarch extract gateway` writes it, and
+  a forward by its value (ADR-142). A forward of the specification
+  the table does not hold is `forward_not_served` at the forward,
+  a row of the table the specification does not hold is
+  `forward_not_specified` at the row in the dump, every row when
+  the specification declares no gateway of that name, a forward
+  whose value the table holds and whose dependency differs from
+  the row's is `forward_differs` at the forward, and a claim that
+  differs is `claim_differs` at the gateway's claim. The row's
+  dependency is its name, as `specarch extract gateway` writes it;
+  a row with no name gives one made from its value, a guess, so a
+  forward that differs by it is a report, a warning that never
+  fails, as the extract asks a could question for that name.
+
+Each problem is printed in validate's form, the file, line and
+column of the entry, the severity, the pointer, the rule and the
+message, and ends with its id in brackets: the rule and what the
+difference is about, by the matching (`POST /loans/{loanId}/renew`,
+`members.phone_number`, `desk-staff loans.read`), so an id stays the
+same when the entry moves to another file. A difference in the dump
+only is at the dump file's line of the entry; one about the
+specification's entry is at that entry.
+
+The allowlist names the differences a team knows of and has not
+settled yet, one id per line, as check prints it between the
+brackets; a line that starts with `#` and an empty line are
+skipped. A difference the allowlist names is counted and not
+printed. A line about a format of dump the run compares that no
+failing difference matches, one naming a report among them, since a
+report never fails, is `allowlist_stale` at that line, and so is a
+line that repeats one above it and a line whose rule is none of
+check's; a line about a format the run does not compare is another
+run's and is skipped, so one allowlist serves a gate per dump. With
+`--since`, the allowlist as the given commit holds it is read from
+git, and a line it did not hold is `allowlist_added` at that line,
+so the list only shrinks; an allowlist the commit does not hold is
+the gate being turned on, which a line says, and no line is added.
+
+## Arguments
+
+- `<specification>` (required): The specification folder, with the implementation file the catalogue is compared through.
+- `<dumps>` (required; one or more): The dumps to compare it with, each a route table, a permission table, a catalogue dump or a gateway table, committed beside the code they were made from.
+
+## Options
+
+- `--allowlist <allowlist>`: The file of the differences the team knows of, one id per line.
+- `--since <since>`: A git revision, such as the commit a change is made on top of; the allowlist may hold no line the revision's allowlist did not. Only with --allowlist.
+
+## Reads
+
+- `{specification}`: The specification and its implementation files.
+- `{dumps}`: The dumps, read with their readers at the commit each names.
+- `{allowlist}`: The allowlist, and with --since the allowlist as that revision holds it.
+
+## Standard output
+
+One line counting the dumps compared, the differences that fail, the
+ones the allowlist names, the reports and the allowlist's lines that
+fail; a line when --since names a commit that holds no allowlist;
+then one problem line per difference, report and allowlist line, in
+the order of their files, lines and ids.
+
+## Standard error
+
+A usage message on a usage error, and the reason a dump, the specification or the allowlist could not be read.
+
+## Exit status
+
+- 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since.
+- 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in. Then: Change the specification or the code until the difference is gone, or name a difference that is meant in the allowlist, then run it again.
+- 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know. Then: Read the reason on standard error; remake a dump that cannot be read with specarch facts, or correct the command line or the path it names, and run it again.

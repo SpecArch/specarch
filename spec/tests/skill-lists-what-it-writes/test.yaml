@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: skill
+level: system
+scenario: golden
+given: "a skills folder holding the skill an earlier release wrote, with the reference of a command this release does not have and a text file beside the references"
+when: "skill is run on it with --out and --dry-run"
+then: "it lists SKILL.md and the reference of every command as files it would write, the reference no command has as one it would remove, and the text file not at all, writes nothing, and exits 0"
+verifies: [SA-112]

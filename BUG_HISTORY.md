@@ -950,3 +950,31 @@ Expected: decide's line for a blocked decision names a link validate accepts.
 To repeat: in a copy of `spec/tests/decide-blocks-decision/project`, built before this fix, run `specarch decide Q-1 --by owner --answer "PostgreSQL holds the loans." --source owner-answer project`, follow the line it prints, and run `specarch validate project`.
 
 Fix: ADR-208. decide writes `restsOn` with each blocked decision in the new record and prints that the blocked decision keeps its own origin, or is superseded by the new record when the answer replaces it; the consequences say the record rests on it. On a meta-model before 1.0, which has no `restsOn`, it writes none and says to add it after `specarch upgrade`. validate's rule is unchanged. Cases `decide-blocks-decision`, `decide-blocks-decision-earlier` and `validate-decision-rests-on-blocked`.
+
+## BUG-066 — idioms: `--` before a folder is refused as an option
+
+- Reported: 2026-11-01, found while building `specarch mcp` (ADR-214), against 1.4.0
+- Closed: 2026-11-01, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-066`
+
+`specarch idioms -- <folder>` exited 2 with `specarch idioms has no option --`, and `specarch idioms diff -- <idiom> <folder>` with `-- is not an idiom SpecArch ships`, although every command's conventions (`specarch help conventions`, the agent guide, `capabilities --json`) say that the arguments after `--` are paths, even when they start with `-`. Every other command that takes a path took `--`.
+
+Expected: `--` ends the options of both commands, and a folder after it is read as a folder.
+
+To repeat: built before this fix, run `specarch idioms -- examples/library-lending` from the repository root.
+
+Fix: both commands read their arguments through one function, `pathsAfterDash` (`cmd/specarch/idioms.go`), which takes every argument after `--` as given and refuses one before it that starts with `-`, naming `--` as the way to give such a path.
+
+## BUG-067 — capabilities --json: document's target is a $ref no program can resolve
+
+- Reported: 2026-11-01, found while building `specarch mcp` (ADR-214), against 1.4.0
+- Closed: 2026-11-01, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-067`
+
+The `document` tool of `specarch capabilities --json` gave its `target` input the schema `{"$ref": "#/enums/DocumentTarget", "description": ""}`: the reference, copied from the command's definition, points into SpecArch's own specification, which the listing does not hold, so a client checking the inputs against the schema, as an MCP client does, could not resolve it, and the input had no description.
+
+Expected: every inputSchema of the listing stands alone, an enum's values written in it, and every input described.
+
+To repeat: built before this fix, run `specarch capabilities --json` and read `tools[name=document].inputSchema.properties.target`.
+
+Fix: the program embeds `spec/design/enums` beside the command definitions, and reading the definitions gives a schema that refers to an enum of the design that enum's type and values in place of the reference (`internal/capability/command.go`); a reference to an enum the folder does not hold fails the read, so the tests fail. The target argument of `spec/design/commands/document.yaml` has its description. `TestMCPToolsAreTheListing` fails on any `$ref` left in a tool's schema.

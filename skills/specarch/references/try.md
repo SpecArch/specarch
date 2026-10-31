@@ -1,0 +1,118 @@
+# specarch try
+
+```
+specarch try <name> <folder> [--example <example>] [--inputs <inputs>] [--file <file>]
+```
+
+Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step.
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065); the
+example_mismatch and example_error lines of the examples evaluated
+are not printed, since their evaluations say the same with their
+steps; an example not evaluated, with --example or --inputs, keeps
+its line.
+Finds the algorithm by its name in the merged `algorithms` section;
+refuses when there is none of that name, naming the ones there are,
+when it has no formula or table, when the formula does not parse or
+check or the table cannot be read (the validator's lines above say
+why), and when it has no worked example and `--inputs` is not given.
+
+With `--file`, the algorithm of that name is read from the file, a
+design fragment holding `algorithms`, in place of the
+specification's: each key the file gives takes the place of the
+specification's key of that name and the others are kept, so a
+proposed formula is tried on the examples the specification holds.
+An algorithm only the file holds is tried as the file gives it. The
+specification is validated with the file's algorithm in it, so a
+problem of the proposal is a line at the file; the specification's
+own files are not changed.
+
+Evaluates the formula on each worked example, or on the one named by
+`--example`, or once on `--inputs`, a YAML mapping written as an
+example's `inputs` is. Each value is read as the validator reads an
+example's (ADR-004), and the evaluator is the validator's, the
+specification's `timeZone` read for date() of an instant (ADR-193).
+
+Prints a summary line, the algorithm's name and how many
+evaluations pass, fail, cannot be computed and cannot be read; then
+for each evaluation a line with its number and name, or `given
+inputs`, and its outcome, followed by indented lines: the inputs in
+the order the algorithm declares them; one line per operation and
+call of the formula, in the order they were computed, the
+sub-expression written in the subset's own form and the value it
+gave (ADR-195); and the result with the expected value. A literal or
+a name is not a step; the operand of && or || not read and the
+branch of ?: not taken are not printed. A value is written as a
+worked example writes it, so it can be copied into one: a decimal in
+quotes at the scale the type check gives the sub-expression, or with
+up to 20 places when its scale is not fixed; a date, an instant and a
+duration in quotes, the duration in ISO 8601 (ADR-195). The result is written at the
+output's type; when the formula's type does not fit the output (a
+decimal of no fixed scale for an output of scale 2), the evaluation
+fails, its result is written at the formula's own type, so the value
+compared shows, and the line after it says why. An evaluation that cannot be
+computed ends with the reason after the steps computed before it;
+one whose inputs cannot be read says which and why.
+
+An algorithm given as a decision table (ADR-199) is evaluated on
+each rule's example first, `rule N`, then on each worked example;
+`--example` and `--inputs` leave the rules out. The summary counts
+the rules and the examples. Each step is a rule tested, in order,
+with its conditions as written and whether it matches: under hit
+policy first up to the rule that matches, under unique every rule.
+An evaluation no rule or, under unique, more than one rule matches
+cannot be computed and says which; a rule no inputs reach, since
+the rules before it match all it matches, cannot be computed.
+
+The name may instead be an operation's operationId, and then the
+worked examples of the mappings of its calls are evaluated, or the
+one --example names (ADR-207). A name that is both an algorithm's
+and an operation's is refused, naming both; an operation whose calls
+have no mapping example is refused, and so is one whose examples are
+all on calls through another specification's paths, which are read
+and not evaluated; --inputs and --file, which read
+an algorithm, are refused with an operation. An algorithm not found
+is refused naming the algorithms there are and, when there are any,
+the operations whose calls have mapping examples. For each call
+whose mapping has examples it prints a summary line, the operation,
+the call as the derived cases name it (the dependency and the
+operation called) and how many examples pass, fail, cannot be
+computed and cannot be read; then each example's line and indented
+lines: its inputs in the order send reads them; for each field sent,
+the steps of its expression and a line with the value sent beside
+the expected one, followed by the outcome when it does not hold, or
+the reason it cannot be computed; then the answer in the order
+receive reads it and the same for each field kept. An example whose
+values cannot be read says which and why. The example_mismatch and
+example_error lines of the examples evaluated are not printed.
+
+## Arguments
+
+- `<name>` (required): The name of the algorithm, as the algorithms section has it, such as lateFee, or the operationId of an operation whose calls have mapping examples, such as returnLoan.
+- `<folder>` (required): The folder holding the specification.
+
+## Options
+
+- `--example <example>`: Evaluate only the worked example of this name.
+- `--inputs <inputs>`: Evaluate once on these inputs, a YAML mapping written as an example's inputs are, such as '{ daysLate: 7, dailyRate: "0.50", replacementCost: "25.00" }'; not with --example.
+- `--file <file>`: A design fragment holding algorithms, whose algorithm of this name is read in place of the specification's, key by key.
+
+## Reads
+
+- `{folder}`: The specification and its implementation files.
+- `{file}`: The proposed algorithm, with --file.
+
+## Standard output
+
+The errors of an invalid specification, then the summary line and, for each evaluation, its line, its inputs, its steps and its result; with --json the Go build adds the evaluations as data under try, or an operation's under tryOperation.
+
+## Standard error
+
+A usage message on a usage error, and the reason a refusal.
+
+## Exit status
+
+- 0: every evaluation is computed and every example evaluated holds.
+- 1: refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors. Then: Read the refusal on standard error or the failing evaluation's lines, and correct the formula, the example or the command line, or run specarch validate and settle the errors.
+- 2: usage error, or a folder or file that could not be read. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

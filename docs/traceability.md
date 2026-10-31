@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.4.0 of the specification: 10 needs, 111 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.4.0 of the specification: 10 needs, 112 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -20,7 +20,7 @@ Version 1.4.0 of the specification: 10 needs, 111 requirements, and 2 gaps. Each
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
 | NEED-6 | accepted | SA-15, SA-13, SA-97 |
-| NEED-7 | accepted | SA-14, SA-96, SA-108, SA-74, SA-95 |
+| NEED-7 | accepted | SA-14, SA-96, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-108, SA-57, SA-100 |
@@ -60,7 +60,7 @@ Version 1.4.0 of the specification: 10 needs, 111 requirements, and 2 gaps. Each
 | SA-29 | NEED-9 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111; decisions ADR-134; decisions ADR-145; decisions ADR-168 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-diagram-context; tests validate-diagram-context-valid; tests validate-guard; tests validate-guard-writes; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | NEED-8 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | NEED-9 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
-| SA-32 | NEED-2 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
+| SA-32 | NEED-2 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-after-dash; tests idioms-diff; tests idioms-diff-after-dash; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
 | SA-33 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | NEED-1, NEED-2 | decisions ADR-025; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144 | tests validate-handler-source; tests validate-interface-problems; tests validate-interface-response-key-empty; tests validate-interface-response-key-empty-only; tests validate-interface-response-key-empty-two-operations; tests validate-interface-unwritten; tests validate-interface-valid; tests validate-middlewares; tests validate-schema-field-name-entity-and-page-status; tests validate-schema-field-name-entity-and-schema |
 | SA-35 | NEED-1, NEED-5 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
@@ -124,7 +124,7 @@ Version 1.4.0 of the specification: 10 needs, 111 requirements, and 2 gaps. Each
 | SA-93 | NEED-2 | enums Rule; decisions ADR-182 | tests derive-sign-in-oidc; tests document-techspec-sign-in-oidc; tests generate-go-dxlib-sign-in-oidc; tests generate-ui-sign-in-oidc; tests generate-ui-sign-in-oidc-dxlib; tests generate-ui-swiftui-sign-in-oidc; tests generate-ui-typescript-sign-in-oidc; tests validate-sign-in-oidc; tests validate-sign-in-oidc-deployment; tests validate-sign-in-oidc-refused |
 | SA-94 | NEED-2 | decisions ADR-183 | tests document-manual-custom; tests document-techspec-custom; tests generate-ui-custom; tests generate-ui-custom-check; tests generate-ui-swiftui-custom; tests generate-ui-typescript-custom |
 | SA-95 | NEED-1, NEED-7 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-implementation-alone; tests upgrade-missing-version-line; tests upgrade-number-version-line; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unknown-version-line; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
-| SA-96 | NEED-7 | commands capabilities; commands guide; commands help; decisions ADR-187 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic |
+| SA-96 | NEED-7 | commands capabilities; commands guide; commands help; decisions ADR-187; decisions ADR-214 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic; tests idioms-after-dash; tests idioms-diff-after-dash |
 | SA-97 | NEED-6 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 | SA-98 | NEED-2 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | NEED-2 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
@@ -140,6 +140,7 @@ Version 1.4.0 of the specification: 10 needs, 111 requirements, and 2 gaps. Each
 | SA-109 | NEED-1 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | NEED-8 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
 | SA-111 | NEED-9 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
+| SA-112 | NEED-7 | commands mcp; commands skill; decisions ADR-214 | tests mcp-serves-tools; tests mcp-usage-error; tests skill-check-differs; tests skill-lists-what-it-writes; tests skill-refuses-another-folder; tests skill-usage-error |
 
 ## 3. Gaps
 

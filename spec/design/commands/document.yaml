@@ -273,6 +273,7 @@ commands:
     permission: public
     arguments:
       - name: target
+        description: The document to write, one of DocumentTarget's values.
         required: true
         schema: { $ref: "#/enums/DocumentTarget" }
       - name: paths

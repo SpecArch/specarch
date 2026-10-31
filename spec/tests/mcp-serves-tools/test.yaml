@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: mcp
+level: system
+scenario: golden
+given: "a specification that validates, and a client that sends initialize, the initialized notification, ping, a call of validate on the specification, a call with an input validate does not take, a call of a tool that is not listed, server/discover, and a line that is not JSON"
+when: "mcp reads them on standard input"
+then: "it answers each request on its own line of standard output and the notification not at all: initialize with revision 2025-11-25, the tools capability and its name and version; ping with an empty result; the call of validate with the object validate --json prints, as structured content and as text, not marked as an error; the call with an input validate does not take as an error naming it, with nothing run; the unknown tool with error -32602; server/discover with -32601; the line that is not JSON with -32700; and exits 0 when standard input ends"
+verifies: [SA-112]

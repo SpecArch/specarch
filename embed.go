@@ -11,9 +11,10 @@ import "embed"
 const Version = "1.4.0"
 
 // Commands holds the specification's command definitions, one fragment per
-// file, as spec/design/commands/<command>.yaml.
+// file, as spec/design/commands/<command>.yaml, and the enums of
+// spec/design/enums an argument's schema refers to.
 //
-//go:embed spec/design/commands/*.yaml
+//go:embed spec/design/commands/*.yaml spec/design/enums/*.yaml
 var Commands embed.FS
 
 // Help holds the help topics, as docs/help/<topic>.txt.

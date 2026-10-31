@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 111 requirements, 5 entities, 24 commands, 7 algorithms, 891 tests, 199 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 112 requirements, 5 entities, 26 commands, 7 algorithms, 899 tests, 200 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -77,8 +77,10 @@ The interfaces the system offers, as its clients see them.
 | idioms | List the idioms each implementation file uses, and how | public | 0: the idioms were listed; 2: usage error, a path that could not be read, or a specification with errors |
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | init | Write the smallest specification that validates into a new folder | public | 0: the specification was written, or with --dry-run would be; 2: usage error, a folder that already holds specarch.yaml, or a path that could not be written |
+| mcp | Serve every command as a tool of the Model Context Protocol, over standard input and output | public | 0: standard input ended; 2: usage error, --json given, or standard input or output that could not be read or written |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
+| skill | Write an agent skill for SpecArch, in the Agent Skills format, from the program's own command definitions | public | 0: written, or with --check the skill on disk is current; 1: with --check, a file differs, is missing or is not the skill's; 2: usage error, a folder specarch under --out that this command did not write, or a file that could not be read or written |
 | try | Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
 | upgrade | Move a specification and its files to the newest version of each format, or list what moving them changes | public | 0: every change the move names was made, or with --dry-run can be made, and no step is left to the author; 1: a step is left to the author; 2: usage error, a path that could not be read or written, or a version --to names that this program does not write |
 | validate | Check specifications and implementation files | public | 0: every input is valid; 1: at least one input has an error; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
@@ -1484,7 +1486,7 @@ and the html page in place of what satisfies and verifies it.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<target>` | DocumentTarget | yes |   |
+| `<target>` | DocumentTarget | yes | The document to write, one of DocumentTarget's values. |
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
 | `--out` | string |   | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |
 | `--check` | bool |   | Make the output in memory and fail when the files on disk differ. Writes nothing. |
@@ -3819,6 +3821,73 @@ sequenceDiagram
   P-->>U: exit status 0, 2
 ```
 
+### Command mcp
+
+Runs a server of the Model Context Protocol (MCP), revision
+2025-11-25, on the stdio transport: it reads JSON-RPC 2.0 messages
+from standard input, one per line, and writes each answer on
+standard output, one per line, and nothing else there. It runs until
+standard input ends, then exits 0. An agent's client starts it in
+the folder the paths are relative to (ADR-214).
+
+It answers `initialize` with the revision the client asked for when
+it is one of 2025-11-25, 2025-06-18, 2025-03-26 and 2024-11-05, and
+with 2025-11-25 otherwise; the tools capability; the server's name
+and version; and short instructions naming the guide tool. It
+answers `ping`, `tools/list` and `tools/call`; takes the
+notifications and answers none; and answers any other method,
+`server/discover` among them, with the JSON-RPC error -32601, so a
+client that tries the stateless 2026-07-28 revision first falls back
+to `initialize`.
+
+`tools/list` lists the tools `specarch capabilities --json` lists,
+this command's own entry left out, each with its `name`, `title`,
+`description`, `inputSchema` and `annotations`: the same entries,
+made from the same command definitions, so the server can offer no
+input the program does not take. The plug-ins on PATH are found once,
+when the server starts: a plug-in installed later is listed after
+the client starts the server again.
+
+`tools/call` runs the tool's command in this program, as `specarch
+<command> <inputs> --json` would run, and answers with the JSON
+object that run prints on standard output as `structuredContent`
+and as text, and, on exit status 2, the error object of standard
+error as a second text. Exit status 0 and 1 are results, 1 being a
+command that ran and found what it reports; exit status 2 sets
+`isError`. The inputs are given in the order of the command's
+synopsis: the arguments that are not repeated, each option as
+`--<name> <value>` (a boolean only when true, a list once per
+value), then the repeated arguments. An input the tool does not
+take, a required input left out, a value of the wrong type, or an
+argument that starts with `-` is answered with `isError` and the
+reason, before anything runs; a tool that is not listed is the
+JSON-RPC error -32602. A line that is not JSON is the error -32700,
+and a message that is not a JSON-RPC 2.0 request, a batch included,
+-32600.
+
+**Insight:** An agent's client finds a tool it is given far more readily than a command it has to be told about; the server makes every command one call away, with its inputs typed, and with no copy of the listing of its own, since each entry is the one capabilities --json prints. The command runs in this program, with the same code as on the command line, so a call and a command line give the same result.
+
+Reads `standard input`: The JSON-RPC 2.0 messages of the client, one per line; `PATH`: The folders searched for specarch-gen-* plug-ins, for tools/list and for a generate tool; each is run with --capabilities; `the paths of each call`: What the command called reads.
+
+Writes `the paths of each call`: What the command called writes; a command that writes is listed with destructiveHint, and takes --dry-run.
+
+Standard output: The JSON-RPC 2.0 answers, one per line, and nothing else.
+
+Standard error: A usage message on a usage error; otherwise nothing.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: mcp
+  P->>F: read standard input
+  P->>F: read PATH
+  P->>F: read the paths of each call
+  P->>F: write the paths of each call
+  P-->>U: exit status 0, 2
+```
+
 ### Command merge
 
 Reads two or more partial specification trees, each written by
@@ -4221,6 +4290,60 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read each estate's modules, at their location
   P-->>U: exit status 0, 2
+```
+
+### Command skill
+
+Writes the folder `{out}/specarch` in the Agent Skills format
+(agentskills.io), which agents read from their skills folder:
+`SKILL.md`, whose front matter names the skill and says when to use
+it and whose body is the agent guide (`specarch guide --agent` up to
+the plug-ins found) with a list of the references; and
+`references/<command>.md`, one file per command, with its synopsis,
+what it does, its arguments and options, what it reads, writes and
+prints, and each exit status with its meaning and remedy. Everything
+is made from the command definitions and the facts built into the
+program, so the skill names exactly the commands and options this
+release takes. The plug-ins found on PATH are left out, so the same
+release writes the same skill on every machine; the skill says that
+`specarch capabilities --json` lists them (ADR-214).
+
+Put it where the agent reads skills, such as `.agents/skills` in a
+repository or the skills folder the agent's own documentation names,
+and write it again after an upgrade. A reference in `{out}/specarch/references` the skill does
+not hold, a `.md` file, is removed, so a command a later release
+drops leaves no reference behind; no other file is removed. A
+folder `{out}/specarch` that holds files but no `SKILL.md` naming
+the skill specarch is not one this command wrote, and is refused
+with nothing written. With `--check` nothing is written: the skill
+is made in memory and compared with what is on disk.
+
+**Insight:** An agent learns a tool from the skills it is given before it reads a repository's instructions; a skill written by the program from its own definitions cannot name a command or an option the release does not have, and writing it again after an upgrade keeps it so. One format that many agents read stands in for a set of commands per agent, which would be one more copy per agent to keep in step.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `--out` | string | yes | The folder the skill's folder, specarch, is written in, such as .agents/skills. |
+| `--check` | bool |   | Make the skill in memory and fail when the files on disk differ. Writes nothing. |
+| `--dry-run` | bool |   | Write nothing; print would write <path> or would remove <path> for each file that would change. Not with --check. |
+
+Reads `{out}/specarch`: The skill on disk, to write only the files that change, to remove the files it no longer holds, and with --check to compare.
+
+Writes `{out}/specarch/SKILL.md`: The skill: its name and when to use it, then the agent guide and the list of references. Nothing is written with --check; `{out}/specarch/references/<command>.md`: One command's reference, a command of two words joined by a hyphen. Nothing is written with --check.
+
+Standard output: The paths written, or with --dry-run would write <path> and would remove <path>, or with --check one line per file that differs, is missing or is not the skill's.
+
+Standard error: A usage message on a usage error, the reason a file could not be read or written, and a one-line count at the end.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: skill
+  P->>F: read {out}/specarch
+  P->>F: write {out}/specarch/SKILL.md
+  P->>F: write {out}/specarch/references/<command>.md
+  P-->>U: exit status 0, 1, 2
 ```
 
 ### Command try
@@ -16149,6 +16272,95 @@ draft.
 
 **Note:** From Spec Kit, clause Spec-Driven Development: Define what to build and why, then turn the specification into a plan, tasks, and working code. <https://github.com/github/spec-kit>
 
+### ADR-214: specarch mcp serves the commands as MCP tools over stdio, and specarch skill writes an Agent Skills folder, both from the command definitions
+
+Status: proposed, 2026-11-01.
+
+Rests on: [ADR-187](#adr-187-the-program-describes-itself-from-its-own-command-definitions-built-in---json-and---dry-run-are-conventions-of-every-command-plug-ins-answer---capabilities).
+
+Context: SpecArch already describes itself to a program: capabilities --json
+is a tool listing shaped as the Model Context Protocol's (ADR-187),
+every command takes --json and --dry-run, and guide --agent prints
+the order of work. An agent still has to be told that the program
+exists before it uses any of that. A comparison with Spec Kit, which
+reaches many coding agents by installing its commands and skills
+into each agent's own folder, showed the gap: SpecArch was easy for
+an agent to use and hard for it to find.
+
+An agent's client finds tools in two ways: the MCP servers it is
+configured to start, whose tools it lists and calls, and the skills
+in its skills folder, whose descriptions it reads up front and whose
+bodies it loads when one applies. The Agent Skills format, a folder
+with SKILL.md and optional references/, is read by many agents; each
+agent's own command format differs from the next.
+
+MCP's revision 2025-11-25 starts a session with initialize; the
+revision 2026-07-28 drops it for a stateless server/discover, and
+tells a client that speaks both to try server/discover first and to
+fall back to initialize when the server does not know it.
+
+Decision: `specarch mcp` is a server of MCP revision 2025-11-25 on the stdio
+transport, written with the standard library alone: one JSON-RPC 2.0
+message per line in and out, nothing else on standard output, no
+batches. It answers initialize (also for 2025-06-18, 2025-03-26 and
+2024-11-05, the revision asked for when it is one of them), ping,
+tools/list and tools/call; every other method, server/discover among
+them, is the error -32601.
+
+tools/list is capabilities --json's tools, from the same listing
+function, the mcp entry left out, cut to MCP's keys (name, title,
+description, inputSchema, annotations); the program's own keys
+(command, positional, the options in the order of the definition)
+stay inside the server, which uses them to make the command line.
+tools/call checks the inputs against the tool's schema for what a
+command line cannot carry (an input the tool does not take, a
+required one missing, a value of the wrong JSON type, an argument
+starting with -), and answers such a call as a tool error with
+isError, so the model reads the reason and can correct it, as
+revision 2025-11-25 asks. The rest of the schema (a pattern, an enum,
+a date) is left to the command, whose usage error names it with its
+remedy. The command runs in the program, through the same --json
+path as on the command line, in the order of its synopsis, since
+generate, document and extract read their target before any
+option. Exit status 0 and 1 are results; 2 is isError.
+
+The input schemas name every enum's values: a command's argument
+that refers to an enum of the design, as document's target refers to
+DocumentTarget, is listed with the enum's values in place of the
+reference, which no client could resolve (BUG-067).
+
+`specarch skill --out <folder>` writes `<folder>/specarch` in the
+Agent Skills format: SKILL.md with the name specarch and a
+description of when to use it, the body the agent guide's text up to
+the plug-ins found, and references/<command>.md, each command's
+reference made from its definition. The repository holds the skill
+the program writes, in `skills/specarch`, and a test fails when it
+differs, as for AGENTS.md.
+
+Consequences: An agent's client configured with `specarch mcp` lists every command
+with its typed inputs, the plug-ins on PATH included, and calls them;
+an agent given the skill reads when to use SpecArch and how, and
+opens a command's reference only when it needs it. Neither needs a
+copy kept by hand: a command or an option added to a definition
+reaches both, and the tests fail when the repository's skill falls
+behind.
+
+A client that speaks only revision 2026-07-28 cannot use the server
+until server/discover is served; a client that speaks both falls
+back to initialize. No command format of a particular agent is
+written, and the skill does not name the plug-ins of the machine.
+Calls are answered one at a time, in the order they come.
+
+**Insight:** Two ways in, each the one an agent's client already reads, cover the finding without a format per agent; Spec Kit keeps one per agent, and every one is a copy to keep in step. The tool listing is the one capabilities --json prints, so the server adds no listing that could drift from the program; that is the rule ADR-187 protects. A server of the standard library adds no dependency to scan and pin, and JSON-RPC over lines is a few hundred lines of code. Revision 2025-11-25 is the one whose schema this server follows and whose clients are deployed; serving 2026-07-28's server/discover without its schema read would answer fields a client may refuse, and its fall-back rule keeps those clients working. Running the command in the program, rather than starting the binary again, gives the same result as the command line with no dependence on where the binary is, and a command never reads standard input, so it cannot take the server's messages. The inputs are checked only as far as a command line cannot carry them, since a second validator of the patterns and enums would be one more copy of the rules the commands hold; the schema the client sees still names them all. The skill's body is the agent guide itself, so the guide, AGENTS.md and the skill say one thing.
+
+**Note:** From Spec Kit, clause Supported AI agents: Spec Kit installs its commands for each supported coding agent, in the folder and format that agent reads. <https://github.com/github/spec-kit>
+
+**Note:** From Model Context Protocol, specification, 2025-11-25, clause Server Features: Tools; Base Protocol: Transports, stdio: Tools are listed with tools/list and invoked with tools/call; on stdio the server reads JSON-RPC messages from standard input and writes them to standard output, delimited by newlines, and must not write anything to standard output that is not a valid MCP message. Input validation errors are reported as tool execution errors, with isError, so the model can correct them. <https://modelcontextprotocol.io/specification/2025-11-25>
+
+**Note:** From JSON-RPC 2.0 Specification, 2013: Error codes -32700 parse error, -32600 invalid request, -32601 method not found and -32602 invalid params; a notification has no id and is not answered. <https://www.jsonrpc.org/specification>
+
+**Note:** From Agent Skills specification: A skill is a folder holding SKILL.md, with the front matter fields name and description, and optional references/ that the agent reads when it needs them. <https://agentskills.io/specification>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -16593,7 +16805,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | guide-usage-error | command guide | system | red | the program | guide is run with an option it does not take | it prints how to use it and exits 2 |
 | help-command-reference | command help | system | golden | the program | help is run with the topic version | it prints the version command's reference from its definition, and exits 0 |
 | help-unknown-topic | command help | system | red | the program | help is run with a topic that does not exist | it prints nothing on standard output, names the topics on standard error, and exits 2 |
+| idioms-after-dash | command idioms | system | golden | the specification of idioms-lists in a folder whose name starts with - | idioms is run with -- before the folder | it reads the folder after -- as a folder, prints its implementation file with type-rendering overridden, as idioms-lists does, and exits 0 |
 | idioms-diff | command idioms diff | system | golden | the same specification, whose override replaces the Oracle rows of type-rendering's types part | idioms diff type-rendering is run | it prints the override's file, the version it was copied from and the shipped version, then the shipped Oracle rendering and the override's, and exits 0 |
+| idioms-diff-after-dash | command idioms diff | system | golden | the specification of idioms-diff in a folder whose name starts with - | idioms diff is run with -- before the idiom's name and the folder | it reads the idiom's name and the folder after --, prints the shipped rendering beside the override's, as idioms-diff does, and exits 0 |
 | idioms-diff-unknown | command idioms diff | system | red | a specification, and an idiom name SpecArch does not ship | idioms diff paginated-lists is run | it says the idiom is not shipped and exits 2 |
 | idioms-diff-usage-error | command idioms diff | system | red | an idiom's name and no folder | idioms diff type-rendering is run | it prints how to use it and exits 2 |
 | idioms-lists | command idioms | system | golden | a specification with one implementation file in Go with an Oracle sql target, whose override of type-rendering replaces its types part, with the reason | idioms is run | it prints the file's path and type-rendering as overridden by the file, copied from 1.4.0, replacing types, with the reason, and exits 0 |
@@ -16604,6 +16818,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | init-refuses-existing | command init | system | red | a folder that already holds specarch.yaml | init is run on it | it names the file, writes nothing, leaves the file as it was and exits 2 |
 | init-usage-error | command init | system | red | the program | init is run with a profile that does not exist | it names the profiles there are, prints how to use it, writes nothing and exits 2 |
 | init-writes-specification | command init | system | golden | a folder that does not exist | init is run on it with no option | it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0 |
+| mcp-serves-tools | command mcp | system | golden | a specification that validates, and a client that sends initialize, the initialized notification, ping, a call of validate on the specification, a call with an input validate does not take, a call of a tool that is not listed, server/discover, and a line that is not JSON | mcp reads them on standard input | it answers each request on its own line of standard output and the notification not at all: initialize with revision 2025-11-25, the tools capability and its name and version; ping with an empty result; the call of validate with the object validate --json prints, as structured content and as text, not marked as an error; the call with an input validate does not take as an error naming it, with nothing run; the unknown tool with error -32602; server/discover with -32601; the line that is not JSON with -32700; and exits 0 when standard input ends |
+| mcp-usage-error | command mcp | system | red | the program | mcp is run with an argument | it reads nothing, prints how to use it and exits 2 |
 | merge-bypassed-check | command merge | system | golden | a tree extract permissions wrote, reading: printed, whose permission table says the check Require is skipped for every client and whose route table gives it three operations with a permission; and a tree extract go wrote, reading: parsed, whose implementation file says the same of Require, which it finds guarding two of those operations | merge is run on the two trees | it asks the question on the bypassed check once, blocking the permission of every operation either tree says the check guards, with both trees' citations, never leaves it out as answered by a tree that gives those permissions, prints a line for the join, and exits 0 |
 | merge-documents-and-code | command merge | system | golden | a tree read from code and a tree written from a manual and a published interface, the interface marked givenOutside: they give one entity's card number and one path parameter different lengths, require different fields and describe one permission differently; only the code has a plain entity and an operation, and only the documents have a personal field and an entity from the interface | merge is run on the two trees | it writes the elements of both with both citations, leaves out each key they disagree on with a must question citing both, writes the code's entity and operation inferred as undocumented, with a should question for the entity and a must question for the operation, keeps the documents' field and entity with a must Not built yet question for each in implementation/questions.yaml, and exits 0 |
 | merge-documents-days | command merge | system | golden | a code tree whose loans checks move a date by 14, 2 and 60 days, and a documents tree whose requirements say the loan period is 21 days, the reminder period two days and the period for a lost book 90 days | merge is run on the two trees | the check whose name holds the reminder period satisfies its requirement, the loan period's statement is left out with one must question citing both, the lost book period matches no check and is kept as it is, and it exits 0 |
@@ -16656,6 +16872,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
+| skill-check-differs | command skill | system | red | a skills folder holding an earlier release's SKILL.md and no references | skill is run on it with --out and --check | it names SKILL.md as differing and each reference as missing, writes nothing, and exits 1 |
+| skill-lists-what-it-writes | command skill | system | golden | a skills folder holding the skill an earlier release wrote, with the reference of a command this release does not have and a text file beside the references | skill is run on it with --out and --dry-run | it lists SKILL.md and the reference of every command as files it would write, the reference no command has as one it would remove, and the text file not at all, writes nothing, and exits 0 |
+| skill-refuses-another-folder | command skill | system | red | a skills folder whose specarch folder holds files but no SKILL.md | skill is run on it with --out | it writes nothing there, says the folder is not a skill skill wrote, and exits 2 |
+| skill-usage-error | command skill | system | red | the program | skill is run without --out | it writes nothing, says --out is needed, prints how to use it and exits 2 |
 | try-decision-table | command try | system | golden | an algorithm whose table under hit policy first refuses a member with a fee and then lends below the tier's limit, with a last rule with no when and one worked example | try is run for the algorithm | it prints the summary line counting rules and examples, then each rule's example, inputs the rule reaches first, and the worked example, each with the rules tested in order, whether each matches, and the output beside the expected value, the same in both builds, and exits 0 |
 | try-decision-table-unreached | command try | system | red | an algorithm whose table under hit policy first has a rule the rule before it always matches first, a rule whose weight condition no weight above 0 meets, and a worked example the earlier rule takes | try is run for the algorithm | it prints that no inputs reach the first rule and none match the second, and the example failing with the earlier rule's output, the same in both builds, and exits 1 |
 | try-example-fails | command try | system | red | an algorithm dividing a sum among people, with examples that hold, one whose expected value is wrong, and one the formula cannot compute since it divides by zero | try is run for the algorithm | it prints the failing example's result beside its expected value, the steps computed before the division by zero and the reason, a quotient of no fixed scale with 20 places, no example_mismatch or example_error line, and exits 1 |
@@ -17162,7 +17382,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-25 | The toolchain shall compare two versions of a specification, list what was added, changed and removed with the version step each needs, and check the release of the later version against that list. | functional | must | accepted | test | Two versions that differ in one operation, one entity and one requirement are listed as three lines, each with its impact. A release that steps less than the largest change, or that includes no change request or defect naming a changed element, is reported and the command exits 1. An invalid specification on either side is compared as far as it can be read, its errors are printed, and the command exits 1. | NEED-5 |
 | SA-13 | Every element of a specification, at every stage, may carry a rationale (why) and citations of declared sources (cites), and the validator shall check that every citation names a declared source. | functional | must | accepted | test | An element with why and cites validates, and a citation of a source that is not declared is reported as source. | NEED-6 |
 | SA-73 | A specification shall say who runs each environment, the team that builds the system or the customer, and for an environment the customer runs it shall hold a handover, what the customer receives to build, install and run it and what stays whose responsibility, which specarch document shall write for the customer's engineers. | functional | must | accepted | test | An environment marked runBy customer in a specification with no handover, no release or no rollback is reported as handover at the environment, a handover in a specification with no environment the customer runs is reported as handover, and a handover whose to names no stakeholder is reported as stakeholder, the same in both builds. An environment the customer runs with no commissioning check in it, no monitor in it, or no backup and restore procedure is a warning at the environment, held by a must question that blocks the section. An implementation's deployment of an environment the customer runs without build, method or infrastructure is reported as handover at the deployment, and a build naming a task the file does not have is reported as build_task. specarch document handover writes handover.md with what the customer receives, the responsibilities, each implementation's build with its toolchain, base images and the licences of its dependencies, what the hosts must provide, every setting, the migrations, the release, rollback, backup and restore steps, the monitors, the checks and acceptance tests in that environment and the sign-off sheet, in plain words a reader with no SpecArch knowledge follows; a specification with an output folder for it and no handover is passed over with a warning. A specification without runBy, handover, backup, restore, build, method or infrastructure gets the same deployment guide and technical specification as before. | NEED-5 |
-| SA-96 | An installed specarch, with no source checkout or docs folder, shall say what it can do and how to use it, from the definitions it was built with, for a person and for a program; every command shall take --json, printing one JSON object on standard output and on a failure one error object with a stable code on standard error; every command that writes shall take --dry-run, listing each file it would write and writing nothing; and no command shall ask anything. | interface | should | accepted | test | specarch help prints the usage and the topics; specarch help <topic> prints the area's guide or the command's reference made from its definition, with each option, what it prints and writes, and each exit status with its remedy; an unknown topic is exit status 2 naming the topics. specarch capabilities --json prints one object whose tools hold one entry per command, each with a name, a description, an inputSchema in JSON Schema draft 2020-12 whose properties are exactly the command's arguments and options, its outputs and its exit codes; and one entry per target the plug-ins on PATH write, each plug-in answering --capabilities with its target, what it writes and what it does not write. specarch guide --agent prints the workflow, how to read problems, when to ask the owner, the limits and the conventions, the facts capabilities --json lists under the same names, and the repository's AGENTS.md holds the same text up to the plug-ins found. A command or an option the program takes with no definition in the specification, or a definition the program does not take, fails the build's tests. Every command run with --json prints exactly one JSON object on standard output and nothing else, and on exit status 2 exactly one error object on standard error naming a code from the listing's errorCodes. Every command that writes, run with --dry-run, writes nothing and lists, as would write <path> or would remove <path>, each file the same run without it writes or removes. No command reads standard input, except a plug-in, which reads its request there. | NEED-7 |
+| SA-96 | An installed specarch, with no source checkout or docs folder, shall say what it can do and how to use it, from the definitions it was built with, for a person and for a program; every command shall take --json, printing one JSON object on standard output and on a failure one error object with a stable code on standard error; every command that writes shall take --dry-run, listing each file it would write and writing nothing; and no command shall ask anything. | interface | should | accepted | test | specarch help prints the usage and the topics; specarch help <topic> prints the area's guide or the command's reference made from its definition, with each option, what it prints and writes, and each exit status with its remedy; an unknown topic is exit status 2 naming the topics. specarch capabilities --json prints one object whose tools hold one entry per command, each with a name, a description, an inputSchema in JSON Schema draft 2020-12 whose properties are exactly the command's arguments and options, its outputs and its exit codes; and one entry per target the plug-ins on PATH write, each plug-in answering --capabilities with its target, what it writes and what it does not write. specarch guide --agent prints the workflow, how to read problems, when to ask the owner, the limits and the conventions, the facts capabilities --json lists under the same names, and the repository's AGENTS.md holds the same text up to the plug-ins found. A command or an option the program takes with no definition in the specification, or a definition the program does not take, fails the build's tests. Every command run with --json prints exactly one JSON object on standard output and nothing else, and on exit status 2 exactly one error object on standard error naming a code from the listing's errorCodes. Every command that writes, run with --dry-run, writes nothing and lists, as would write <path> or would remove <path>, each file the same run without it writes or removes. No command reads standard input, except a plug-in, which reads its request there, and specarch mcp, which reads the messages of its client there. | NEED-7 |
+| SA-112 | An installed specarch shall offer every command to an agent's client as a tool of the Model Context Protocol over standard input and output, and shall write an agent skill in the Agent Skills format, both made from the command definitions it was built with, with no network and no prompts. | interface | should | proposed | test | specarch mcp answers initialize, ping, tools/list and tools/call over the stdio transport, one JSON-RPC 2.0 message per line on standard output and nothing else there, and exits 0 when standard input ends. Its tools/list holds exactly the tools capabilities --json lists but its own, each with the same name, title, description, inputSchema and annotations. Its tools/call runs the command with --json and answers with the object that run prints, exit status 2 marked as an error; an input the tool does not take, a required one left out or one of the wrong type is answered as an error naming it, before anything runs. specarch skill --out <folder> writes <folder>/specarch/SKILL.md, whose body is the agent guide up to the plug-ins, and one reference per command made from its definition; --check fails when a file differs; the repository holds the skill the program writes, and the build's tests fail when it differs. | NEED-7 |
 | SA-101 | The validator shall check, in both builds, the ideas kept beside a specification, one record each in records/ideas/, holding a proposal for the specification from a conversation, a table, an example, a document, code, a recording or a review, the element it is about, the text it proposes and its status as a person set it, against the record schema and the specification; and decision why and decision rests shall name, on each decision's line, the ideas that became it. | functional | must | proposed | test | Ideas in every status, proposed, discussed, accepted, rejected and question, each naming only what the specification and its records have, validate with nothing printed and exit 0; an open idea may be about an element the specification does not have yet under one it has or under a section of the meta-model. An idea naming a role, a source, a requirement, a pointer, a decision, a question, a change or a defect that the specification or its records do not have is reported as record_ref at the key; an accepted or rejected idea's about is not checked; a question a decision answers is still a question an idea may name. An accepted idea without a decision whose outcome is accepted, or a rejected one without a decision whose outcome is rejected, is reported as idea_decision; an idea whose status is question naming no question under became is reported as idea_question. The Go build and the Swift build print the same lines on each case. decision why and decision rests print "from idea" and the IDs of the ideas whose became names the decision on that decision's line. | NEED-5, NEED-10 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
@@ -17375,6 +17596,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-96:** The installed program is often all a person, a CI job or an agent has; a description built from the same definitions as the program cannot name a flag it lacks, a JSON form lets a program drive it without parsing text, and a dry run shows each file before any is written.
 
+**Insight on SA-112:** An agent uses a tool it is handed and a skill it has loaded far more readily than a command a repository tells it about; made from the same definitions as help and capabilities, neither can name an input the program does not take (ADR-214).
+
 **Insight on SA-101:** A proposal that is not yet part of the specification is lost when it is only said, and once it is in the text nobody can tell what was proposed, by which way it came in, and what was turned down and why; kept as a record it is checked like the other records, the person's decision on it is written down, and the decision it became can be traced back to it (ADR-196).
 
 **Insight on SA-17:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
@@ -17472,7 +17695,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111; decisions ADR-134; decisions ADR-145; decisions ADR-168 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-diagram-context; tests validate-diagram-context-valid; tests validate-guard; tests validate-guard-writes; tests validate-idempotency-key; tests validate-session; tests validate-validity |
 | SA-30 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
-| SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-diff; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
+| SA-32 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-after-dash; tests idioms-diff; tests idioms-diff-after-dash; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
 | SA-33 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | decisions ADR-025; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144 | tests validate-handler-source; tests validate-interface-problems; tests validate-interface-response-key-empty; tests validate-interface-response-key-empty-only; tests validate-interface-response-key-empty-two-operations; tests validate-interface-unwritten; tests validate-interface-valid; tests validate-middlewares; tests validate-schema-field-name-entity-and-page-status; tests validate-schema-field-name-entity-and-schema |
 | SA-35 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
@@ -17536,7 +17759,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-93 | enums Rule; decisions ADR-182 | tests derive-sign-in-oidc; tests document-techspec-sign-in-oidc; tests generate-go-dxlib-sign-in-oidc; tests generate-ui-sign-in-oidc; tests generate-ui-sign-in-oidc-dxlib; tests generate-ui-swiftui-sign-in-oidc; tests generate-ui-typescript-sign-in-oidc; tests validate-sign-in-oidc; tests validate-sign-in-oidc-deployment; tests validate-sign-in-oidc-refused |
 | SA-94 | decisions ADR-183 | tests document-manual-custom; tests document-techspec-custom; tests generate-ui-custom; tests generate-ui-custom-check; tests generate-ui-swiftui-custom; tests generate-ui-typescript-custom |
 | SA-95 | decisions ADR-186 | tests upgrade-0-1-missing-tests; tests upgrade-0-2-caller; tests upgrade-both-keys; tests upgrade-dry-run; tests upgrade-estate; tests upgrade-implementation-alone; tests upgrade-missing-version-line; tests upgrade-number-version-line; tests upgrade-second-run; tests upgrade-to-older; tests upgrade-unknown-version-line; tests upgrade-unreadable-file; tests upgrade-usage-error; tests upgrade-writes-changes; tests validate-estate-1-0-0; tests validate-estate-version-unknown; tests validate-formats-1-0-0; tests validate-formats-version-unknown; tests validate-handover-source-deprecated; tests validate-handover-source-missing; tests validate-handover-source-twice; tests validate-meta-model-1-0-0; tests validate-meta-model-1-0-patch; tests validate-meta-model-deprecated; tests validate-meta-model-later; tests validate-meta-model-short; tests validate-record-1-0-0; tests validate-record-version-unknown; tests validate-row-policies; tests validate-row-policies-valid; tests validate-schema-conditionals; tests validate-schema-conditionals-0-3 |
-| SA-96 | commands capabilities; commands guide; commands help; decisions ADR-187 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic |
+| SA-96 | commands capabilities; commands guide; commands help; decisions ADR-187; decisions ADR-214 | tests capabilities-text; tests capabilities-usage-error; tests guide-order-of-work; tests guide-usage-error; tests help-command-reference; tests help-unknown-topic; tests idioms-after-dash; tests idioms-diff-after-dash |
 | SA-97 | commands decision why; commands decision rests; decisions ADR-188 | tests decision-rests-chain; tests decision-rests-chain-json; tests decision-rests-none; tests decision-rests-unknown; tests decision-rests-usage-error; tests decision-unknown; tests decision-usage-error; tests decision-why-chain; tests decision-why-chain-json; tests decision-why-no-links; tests validate-decision-chain; tests validate-decision-cycle; tests validate-decision-rests-on-missing; tests validate-decision-rests-on-superseded |
 | SA-98 | decisions ADR-189; decisions ADR-190; decisions ADR-191; decisions ADR-192; decisions ADR-193 |   |
 | SA-99 | decisions ADR-193; decisions ADR-194 | tests validate-time-zone; tests validate-time-zone-missing; tests validate-time-zone-unknown |
@@ -17552,6 +17775,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
 | SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
+| SA-112 | commands mcp; commands skill; decisions ADR-214 | tests mcp-serves-tools; tests mcp-usage-error; tests skill-check-differs; tests skill-lists-what-it-writes; tests skill-refuses-another-folder; tests skill-usage-error |
 
 ## Sources
 
@@ -17560,6 +17784,7 @@ Every source a Note in this document cites.
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
 | adr-nygard | Documenting architecture decisions | 2011 | Michael Nygard | https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions |
+| agent-skills | Agent Skills specification |   | Agent Skills project | https://agentskills.io/specification |
 | arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
 | bpmn-2-0 | Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas | 2011 | Object Management Group | https://www.omg.org/spec/BPMN/2.0/ |
 | cel | Common Expression Language, language definition | 2024 | The CEL project | https://github.com/google/cel-spec/blob/master/doc/langdef.md |
@@ -17583,11 +17808,13 @@ Every source a Note in this document cites.
 | iso-32000-2 | ISO 32000-2, Document management, Portable document format, Part 2, PDF 2.0 | 2020 | ISO/TC 171/SC 2 | https://www.iso.org/standard/75839.html |
 | iso-8601 | ISO 8601-1, Date and time, Representations for information interchange, Part 1, Basic rules | 2019 | ISO | https://www.iso.org/standard/70907.html |
 | iso-9075-2 | ISO/IEC 9075-2, Information technology, Database languages, SQL, Part 2, Foundation | 2016 | ISO and IEC |   |
+| json-rpc-2 | JSON-RPC 2.0 Specification | 2013 | JSON-RPC Working Group | https://www.jsonrpc.org/specification |
 | json-schema | JSON Schema, a media type for describing JSON documents | 2020-12 | The JSON Schema project | https://json-schema.org/specification |
 | json5 | The JSON5 Data Interchange Format | 1.0.0 | The JSON5 project | https://spec.json5.org/ |
 | mariadb-cast | MariaDB Server documentation, CAST |   | MariaDB | https://mariadb.com/kb/en/cast/ |
 | mariadb-compound-statements | MariaDB Server documentation, Using Compound Statements Outside of Stored Programs |   | MariaDB | https://mariadb.com/kb/en/using-compound-statements-outside-of-stored-programs/ |
 | mil-std-961 | MIL-STD-961E, Defense and program-unique specifications format and content | 2003, with change 3 of 2020 | United States Department of Defense |   |
+| model-context-protocol | Model Context Protocol, specification | 2025-11-25 | Model Context Protocol project | https://modelcontextprotocol.io/specification/2025-11-25 |
 | moscow | MoSCoW prioritisation, in the DSDM Agile Project Framework handbook | 2014 | Agile Business Consortium | https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html |
 | openapi | OpenAPI Specification | 3.1.0 | OpenAPI Initiative | https://spec.openapis.org/oas/v3.1.0 |
 | openid-connect-back-channel-logout | OpenID Connect Back-Channel Logout 1.0 | 2023 | OpenID Foundation | https://openid.net/specs/openid-connect-backchannel-1_0.html |

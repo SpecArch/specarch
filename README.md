@@ -143,6 +143,7 @@ a defect in the roadmap, not an accepted state.
 | `readers/` | the Swift and Dart readers of `specarch facts`, with the lock files that pin them, embedded into the program |
 | `history/` | what changed and why, one file per day |
 | `AGENTS.md` | instructions for agents working in this repository, with the guide `specarch guide --agent` prints |
+| `skills/specarch/` | the agent skill `specarch skill` writes, in the Agent Skills format, kept equal to the program's by a test |
 | `docs/help/` | the help topics built into the program, which `specarch help <topic>` prints |
 | `BUG_OUTSTANDING.md`, `BUG_HISTORY.md` | the bugs, one BUG-NNN entry each: the open ones, and the fixed ones with the commit that fixed them; the repository has no GitHub issues (`CONTRIBUTING.md`, Bugs) |
 | `docs/principles.md` | the three principles, a compiler for specifications, the Low IQ Tax and a change that carries its reason, and how SpecArch applies them |
@@ -329,9 +330,11 @@ the commands it was built with:
     specarch guide                 # the order of work
     specarch guide --agent         # the same for an agent, with when to ask the owner
     specarch capabilities --json   # everything, as JSON a program reads
+    specarch mcp                   # every command as a tool, for an agent's MCP client
+    specarch skill --out .agents/skills   # an agent skill, in the Agent Skills format
 
 The help topics are format, validate, gaps, generate, extract, upgrade,
-plugins, conventions and examples, and every command by name.
+plugins, conventions, agents and examples, and every command by name.
 `capabilities --json` is an MCP-compatible tool listing: one entry per
 command, and per target a plug-in on PATH writes, each with a `name`, a
 `description` and an `inputSchema` in JSON Schema draft 2020-12, beside
@@ -340,6 +343,16 @@ its outputs, exit codes and remedies; each plug-in answers
 made from `spec/design/commands`, and a test fails when a command or an
 option has no definition there. `AGENTS.md` holds the agent guide, kept
 equal to `guide --agent` by a test.
+
+For an agent to find SpecArch without being told, `specarch mcp` is a
+Model Context Protocol server on standard input and output whose tools are
+exactly the entries of `capabilities --json`, each call run with `--json`;
+`specarch skill --out <folder>` writes an agent skill, the agent guide and
+one reference per command, which `skills/specarch/` holds for this
+release. `specarch help agents` shows how to configure each. Shipping into
+the folders agents read follows Spec Kit, which installs its commands for
+each agent it supports; SpecArch writes one skill in the Agent Skills
+format and one server, both from the command definitions (ADR-214).
 
 Every command takes `--json`: one JSON object on standard output and, on
 exit status 2, one error object with a stable code on standard error.

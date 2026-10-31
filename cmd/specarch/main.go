@@ -18,6 +18,8 @@
 //	specarch help [<topic>]
 //	specarch guide [--agent]
 //	specarch capabilities [--json]
+//	specarch mcp
+//	specarch skill --out <folder> [--check | --dry-run]
 package main
 
 import (
@@ -93,6 +95,10 @@ const usage = `usage:
   specarch guide [--agent]                  print the order of work, for a person or, with --agent, an agent
   specarch capabilities [--json]            list what this program and the plug-ins on PATH can do;
                                             --json is a tool listing with each command's inputs as JSON Schema
+  specarch mcp                              serve every command as a tool of the Model Context Protocol,
+                                            JSON-RPC over standard input and output, for an agent's client
+  specarch skill --out <folder> [--check | --dry-run]
+                                            write <folder>/specarch, an agent skill in the Agent Skills format
 
 A specification is a folder holding specarch.yaml. A folder given here is
 searched for specifications, for *.specarch-implementation.yaml files
@@ -133,6 +139,8 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"help":         runHelp,
 	"capabilities": runCapabilities,
 	"guide":        runGuide,
+	"mcp":          runMCP,
+	"skill":        runSkill,
 }
 
 func run(args []string, stdout, stderr io.Writer) int {

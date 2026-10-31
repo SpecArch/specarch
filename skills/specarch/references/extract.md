@@ -1,0 +1,1750 @@
+# specarch extract
+
+```
+specarch extract <source> --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>] [--dry-run] <paths>...
+```
+
+Write a specification from existing code or documents.
+
+Reads one surface of an existing system and writes the as-built
+specification of it into a folder, following the method in
+`docs/extraction.md`. The source names the surface. The result is a
+partial specification tree, to be merged with the trees of the other
+surfaces (`specarch merge`), checked by regenerating and comparing,
+then reviewed by hand. The readers are built one at a time, in the
+steps of docs/extraction.md, Building extract; a source this build
+does not read is answered with status 2. Every source a tree declares
+lists as clauses what the tree cites of it: a clause only a question
+cites, such as a file the reader set aside, is titled as set aside, so
+the outline the validator and `specarch gaps` check against is
+complete.
+
+The sources this build reads:
+
+- `outline`: the files under the paths, each a clause of one code
+  source, and no elements. It records a surface no reader reads yet,
+  such as workflow definitions in a format of a project's own
+  before its printer of the workflow table is written, so
+  that `specarch gaps` lists every
+  file as producing nothing rather than losing it.
+- `database`: a PostgreSQL catalogue dump, written by
+  `tools/catalogue/dump-catalogue.sh` with the query
+  `tools/catalogue/catalogue.sql` against a database with every
+  migration applied. Each table becomes an entity of the same name in
+  PascalCase, each column a field in camelCase, with its type,
+  nullability, default, primary key, foreign keys as relations, and
+  unique and check constraints. A check the expression subset can say
+  is written as its expression. A json or jsonb column is a field of
+  type object, and a should question at the field asks which schema
+  it holds, since the catalogue does not say its shape (ADR-077). A
+  default the database computes is written as generatedDefault where
+  the catalogue's expression is the one the type-rendering idiom
+  names for PostgreSQL, on a field of the format it fits; any other
+  expression is a could question. A plain index, a btree of plain
+  columns with no condition, is physical design: with
+  `--implementation-out` it is written under the entity's mapping in
+  an implementation fragment, which holds every table's mapping
+  (ADR-121); without it, and for any other index, it is a could
+  question. A partition is read as the table it is a partition of,
+  following partitionOf to the table that is no partition: it gets
+  no entity, the table's entity cites it, and one could question at
+  the entity lists the partitions with their bounds, since
+  partitioning is physical design the meta-model cannot hold
+  (ADR-128). What a partition takes from its table, its inherited
+  constraints and indexes, is read once, at the table; a constraint
+  or an index a partition has of its own, and a column of it that
+  differs from the table's, are each a could question citing the
+  partition's entry, and a foreign key that references a partition
+  is a relation to its table with a could question saying so. An
+  index of a partitioned table, which the catalogue prints with
+  `ON ONLY`, is a plain index as any other.
+- `router`: a route table, written by `tools/routes/dump-routes.sh`
+  around the project's own route printer, which builds the router as
+  the server does and prints every route it registered: its method,
+  its path with each parameter written `{name}`, the one permission
+  it checks or null, and its handler. Each route becomes an operation
+  under its path, named after its handler, with the path's
+  parameters and the permission it checks; a handler that serves a
+  GET on a path and a POST on that path with one literal segment
+  added serves a list two ways, so the two operations are named
+  after it, the POST's with Post added, each cites both routes, one
+  must question asks what the two do, and no could question asks
+  about their names (ADR-121); every permission checked
+  is declared, and a must question asks which role grants it. A route that checks no permission is a must question,
+  never written as public.
+- `documents`: one document, as one document source under
+  `--source-key` (default the file's name in kebab-case, without its
+  extension), read by the reader its extension names: Markdown
+  (`.md`, `.markdown`), PDF (`.pdf`), Word (`.docx`), PowerPoint
+  (`.pptx`), Excel (`.xlsx`) or an email message (`.eml`), with no
+  conversion, no other program and no network (ADR-212); every
+  reader gives the clauses, paragraphs and tables the rules below
+  read. In Markdown, every ATX heading and every paragraph that starts with
+  a section number such as `3.1` is a clause, the number its name
+  and the heading its title; a heading with clauses under it is
+  listed only when it holds text of its own. A sentence that makes a
+  commitment (shall, must, will or should; a number followed by what
+  it counts; a time of day; once or twice; within, before, after,
+  until or no later than) becomes a requirement, stated, citing its
+  clause, numbered in the order read under the source key in
+  capitals: must, or should for should, accepted, and its kind a
+  must question. A commitment whose subject is only it, they, this
+  or the like is a must question, never a guess. A table whose first
+  column is Field, and whose others are Type, Required, Sensitivity
+  or Description, gives the fields of an entity named after its
+  section's heading in PascalCase, each in camelCase, with the type
+  when it is text, string, date, date-time, timestamp, boolean,
+  yes/no or email, and the sensitivity from its column or from the
+  one sentence that names the field and calls it personal or a
+  credential; the primary key is a must question, and a sensitivity
+  the document does not give a should question. A field of any other
+  type, any other table and fenced code each print a line. A leading
+  column headed with the row-number word (`#` or `No.`) is skipped in
+  every table. The words named here are the English vocabulary's
+  (`docs/vocabularies.md`): `--language` names a language SpecArch
+  ships a vocabulary for, `--vocabulary` a project's file, and the
+  reader then reads by its words and writes `language` on the source;
+  with neither, English is read and no `language` is written.
+  `--given-outside` writes `givenOutside: true` on the source. The
+  edition is the commit that last changed the file. In Word, a
+  heading is a paragraph its style or its own setting gives an
+  outline level, numbered as the document's numbering counts it, so
+  the clause is 2.1 or Annex A as the reader sees it; a numbered
+  paragraph whose number is a section number such as 2.1.3 is a
+  clause, the Title style or else the package's title is the
+  source's title, and a picture, tracked changes and a footnote
+  each print a line naming the paragraph; a text box's own text is
+  not read and prints a line, and the paragraph's text around it is
+  read. In a PDF, a line set
+  larger than the body text, or in bold starting with a section
+  number, is a heading, the text before the first heading is in the
+  clause of its page (page 1), a line on three pages or more is a
+  running header and a page with no text a scanned page, each a
+  line; a table is read as its lines. In PowerPoint, each slide is
+  the clause slide 3, titled by its title, and its notes slide 3
+  notes; a picture or a chart prints a line. In Excel, each sheet
+  is a heading, each rectangle of touching cells of two rows and two
+  columns or more a table in the clause of its range
+  (`Register!A1:D3`), its first row the header, and each cell of
+  text a paragraph in the clause of its cell (`Register!B2`),
+  listed only when cited; a chart sheet prints a line. In an email
+  message, From, To, Date and Subject are named in a line and the
+  source's description, the plain body (or else the HTML body) is
+  the clause body, and every attachment a clause of its name; an
+  attachment in one of these formats, by its name's extension or
+  else its media type, is read with its clauses after its name
+  (`lending-rules.docx: 2.1.1`), three messages deep at most, a
+  forwarded message with no file name named by its subject
+  (`message "Loan limits": body`), a second attachment of the same
+  name numbered (`message "Loan limits" 2`), and quoted lines, the signature and any other attachment
+  each print a line. Every line names its place and is a could
+  question.
+- `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as
+  one document source under `--source-key` (default as for
+  documents), whose clauses are the JSON pointers of its operations
+  and component schemas. Each operation under get, post, put, patch
+  or delete becomes an operation under its path, citing its pointer,
+  with its operationId, summary, description, parameters, request
+  body and responses; a path's own parameters stay on the path. A
+  schema is written in the field subset: OpenAPI 3.0's `nullable`
+  becomes a type that allows null, its `example` an `examples`
+  list, and its boolean `exclusiveMinimum` and `exclusiveMaximum`
+  the number form; a schema with properties and no type is an
+  object, and one with items an array, as JSON Schema reads those
+  keywords; additionalProperties on an object is kept, a schema of
+  the values as a field, `{}` as true, and values with no field the
+  meta-model holds as true with a line (ADR-125). A component schema of type object with at least one
+  property that can be held becomes an entity when an operation's
+  201 response answers it or a path with a parameter answers it as
+  it is, its primary key a must question, and a reference to it a
+  reference to the entity; any other becomes a schema under
+  `schemas`, with no question about a key, and a reference to it a
+  reference to the schema, inside an entity too, with storage json
+  and a line where the design would refuse it in columns (ADR-063,
+  ADR-077); one of type string with an enum of snake_case values
+  becomes an enum; a reference to any other component schema is
+  written in place, and so is a map, an object that names no
+  properties and allows other members, which a field holds and an
+  entity or a schema does not. A document whose property names are snake_case
+  (one has an underscore and none a capital) gives info.wireNames
+  snake_case, and each property is written by its camelCase name,
+  printed as one line.
+  What the meta-model cannot hold prints a line and is left out: the
+  methods head, options and trace; a cookie parameter or one given
+  by content; a response code range; response headers and links;
+  callbacks, servers, tags and external documents; a reference
+  outside the document; allOf, oneOf, anyOf, not and
+  discriminator; additionalProperties on an entity or a schema, and
+  on a type that is not an object; a property name that is
+  snake_case in a document whose other names are camelCase, or that
+  would not go back on the wire unchanged under info.wireNames; and an
+  operationId that is not camelCase, the operation then named by
+  its method and path. Every operation outside dxlib's dialect has
+  its permission as a must question naming the security the
+  document gives, since a security
+  scheme is not a permission, and so is an integer or number with no
+  width; a missing summary or responses is a must question too. An
+  operation that carries `x-dxlib-endpoint-type` is read in dxlib's
+  dialect (ADR-076): the one name its `x-dxlib-privileges` lists is
+  its permission, when it is lower-case words joined by dots and not
+  `public`, and every such permission is declared citing the first
+  operation that checks it, its description and the role that grants
+  it must questions. A name in dxlib_module's form, words in
+  capitals and digits joined by underscores in segments joined by
+  dots (`ORDER.CREATE`, `GLOBAL.SET_MAINTENANCE_MODE`, `EVERYTHING`),
+  is mapped by the fixed rule of ADR-076: the name in lower case,
+  with every underscore a dot; that permission is declared inferred,
+  the rule its why, citing the operation. None, more than one, a
+  name of another form or one the rule makes into no permission
+  name, two names that give one permission, `public` and a value
+  that is not a list of names are each a must question on the
+  operation's permission, never written as public; a name listed
+  twice counts once. The question on an operation with no privilege
+  names its middlewares when `x-dxlib-middlewares` lists them. The
+  functions `x-dxlib-middlewares` lists, by the names the Go runtime
+  gives them, are the operation's middlewares in order, each by its
+  function's name in kebab-case, none when the key is absent, since
+  dxlib leaves it out for an empty chain (ADR-131); each is declared
+  under middlewares citing the first operation that runs it, with one
+  must question on what each checks or does, which the Go reader's
+  tree answers in the merge. A closure, which the runtime names by
+  the function that makes it, or a value that is not a list, is a
+  must question on the operation's middlewares. An operation
+  without `x-dxlib-endpoint-type` in a document whose dxlib
+  operations run middlewares is a must question on its
+  middlewares. A
+  document every operation of which is in dxlib's dialect is what
+  the running service printed (ADR-076), so its source is a code
+  source with `reading: printed`, its clauses the operations' and
+  component schemas' pointers as for any document. The security such an operation is
+  given prints a line, since it is not its permission. Its other
+  `x-dxlib-` keys print a line as any extension does, and so does
+  `x-dxlib-privileges` on an operation without
+  `x-dxlib-endpoint-type`. The
+  edition is the commit that last changed the file.
+- `permissions`: a permission table, written by
+  `tools/permissions/dump-permissions.sh` around the project's own
+  permission printer, which reads the grants where the running
+  check reads them, such as the tables the seed scripts fill and not
+  a policy file the check never loads, and prints every role and
+  permission it grants, and every check that runs only when a
+  setting is present, by the check's name and the setting's. Each
+  role becomes a role granting its permissions in the order of
+  their names, citing the permission table, and every permission
+  granted is declared. A privilege in dxlib_module's capitals is
+  mapped to a permission by the rule of ADR-076, as extract openapi
+  maps it, and the permission declared inferred. A grant of
+  EVERYTHING, which is never expanded, a name the rule does not map
+  and two names that give one permission are each a must question
+  blocking the role's permissions, and the role is written with the
+  grants it can read. A table that names no role in kebab-case and
+  at least one in upper snake case writes its roles on the wire as
+  info.roleNames upper_snake says (ADR-099): the tree says so, and
+  each such role is read by its kebab-case name, citing the table's
+  own. A role whose name is not kebab-case and that the rule does
+  not read (an upper snake name beside kebab-case ones, or one that
+  would not go back on the wire unchanged) and a grant of public,
+  which is open to everyone and granted by no role, print a line
+  that says why and are left out, and so is a role left with
+  nothing to grant or ask about. Each such check prints a line and
+  is a must question blocking the roles, citing the table, since
+  while the setting is empty the check lets every request through
+  and nothing says so; extract go asks it in the same words, so
+  that merge joins the two. A gate may name, in place of the
+  setting, `bypassedFor`: the kind of caller the check lets through
+  whatever its roles grant, such as a check that returns early for a
+  machine-to-machine token, and client, a caller on its own account
+  rather than a person's, is the one kind (ADR-114). Each such check
+  prints a line and is one must question, asking whether every
+  client is meant to reach each operation the check guards, since a
+  check skipped for a kind of caller fails open for that kind,
+  citing the table's gate. With `--routes` it blocks the permission
+  of each operation the check guards, every route that names a
+  permission other than public, and every route where the check
+  reads rules, with a line counting them; without, it blocks the
+  roles. A gate with no check, with both a setting and a kind of
+  caller or neither, or with a kind other than client is refused,
+  naming the gate. A check that reads a policy of path
+  patterns rather than named grants is printed as the table's
+  rules (ADR-100), each a role, a pattern, the methods (a list, or
+  `*` for every one) and the path matcher that reads the pattern:
+  `colon`, where a segment `:name` is one segment, or `brace`, where
+  a segment `{name}` is, `*` as the last segment being the rest of
+  the path in both. The rules give one permission per distinct
+  pattern and method pair, inferred, named by the fixed rule: the
+  pattern's literal segments' words in lower case joined by dots,
+  then `all` for every method or the method in lower case
+  (`/v1/*` with `*` is `v1.all`); pairs that would share a name are
+  named with their parameters' words too, and a pair whose name
+  still meets another's, or has a word that does not start with a
+  letter, prints a line and is left out, as is a rule whose pattern
+  has `*` other than as its last segment. A permission implies each
+  one its pattern and methods cover with none between them, each
+  role is granted the permissions of its rows, and a could question
+  offers to rename the inferred names. A rule may name `through`,
+  the one client its row holds through, as a grant may (ADR-170):
+  the role's permission is written under its through and the client
+  declared, with the same questions a grant's through gives, and a
+  through that is not kebab-case is refused, naming the rule. Given the route table too,
+  with `--routes`, the routes are read as extract router reads them
+  and written in the same tree, under one code source read at the
+  later of the two tables' commits; each route that checks no
+  permission takes the matching permission every other matching one
+  implies. A route two permissions reach with neither implying the
+  other, and a route no rule reaches, are must questions on its
+  permission, and a permission no route reaches prints a line and is
+  a could question.
+- `pages`: one folder that is a file-system router's root, read
+  from its tracked files with no parser (ADR-057, ADR-084). The
+  folder's name tells the router: `server` is Nuxt's server
+  (Nitro); `pages` is the Pages Router of Next.js or the pages of
+  Nuxt, as the nearest tracked `package.json` at or above the
+  folder that holds it names `next` or `nuxt` among its
+  dependencies; any other name, such as `app`, is the App Router
+  of Next.js. When that package names neither or both, or there is
+  none, a `pages` folder with `.vue` files is read as Nuxt's and
+  any other as Next.js's, and a must question citing the package
+  asks which it is. A line names the router and why. In every
+  router a page is named after its route in kebab-case, a
+  parameter as `by-` and its name, the root's own page `root`, and
+  cites its file. In the App Router every folder that holds a page
+  file, `page.tsx`, `page.ts`, `page.jsx` or `page.js`, is one
+  page, its route the folders from the root down: a folder named
+  in parentheses is a route group and adds nothing to the route,
+  and a folder named `[name]` is the route parameter `{name}`. Two
+  folders that give one route are refused, as the router refuses
+  them. What the meta-model cannot hold prints a line and is left
+  out: a catch-all segment `[...name]` or `[[...name]]`, an
+  optional parameter `[[name]]`, a parallel route `@name`, an
+  intercepting route `(.)name`, a page in a private folder
+  `_name`, a parameter whose name is not an identifier, any other
+  page file such as `page.mdx`, and a route handler on a page's
+  route. In the Pages Router every file with the extension `.tsx`,
+  `.ts`, `.jsx` or `.js` is one page, `index` its folder's own
+  route; `_app` and `_document`, which wrap every page, and the
+  error pages `_error`, `404` and `500` print a line, and so does
+  a file with any other extension. In Nuxt's pages every file with
+  the extension `.vue`, `.tsx`, `.ts`, `.jsx`, `.js` or `.mjs` is
+  one page, `index` its folder's own route and a folder in
+  parentheses a group; a file beside a folder of the same name
+  that holds an index page wraps that folder's pages, a nested
+  route, and prints a line. In both, a second file on one route
+  prints a line and is left out. A route file serves operations:
+  `route.ts` and the like in the App Router, every file under
+  `pages/api` in the Pages Router, and in Nuxt's server every file
+  with the extension `.ts`, `.js` or `.mjs` under `server/api`,
+  served under `/api`, and under `server/routes`, served at the
+  root. Its path follows the same rules as a page's route. A file
+  whose name ends in a method, `index.get.ts` or
+  `[loanId].delete.ts`, is that operation, named by its method and
+  path as extract router names one, with its path parameters, and
+  what it does and answers, its parameters' values and its
+  permission are must questions, never written as public; HEAD,
+  OPTIONS, CONNECT and TRACE print a line. Any other route file's
+  methods are decided by the handlers it exports, so no operation
+  is written for it: a must question citing the file blocks the
+  paths and asks for its methods and, for each, what it does,
+  answers and checks, until the JavaScript reader reads them.
+  Middleware the router runs, found by its place, is a must
+  question citing its file on every page's permission and every
+  operation's, and on the paths when a route file's methods are
+  asked: `middleware.ts`, `middleware.js`, `proxy.ts` or
+  `proxy.js` beside an App Router or Pages Router folder, Nuxt's
+  global route middleware `middleware/*.global.ts` (or `.js`,
+  `.mjs`) beside a Nuxt pages folder, which covers its pages, and
+  every file under `server/middleware`, which covers the server's
+  operations. A second route file for one method and path prints a
+  line and is left out. The files read beside the folder are read at the
+  same commit, which names them all. A page whose folder holds
+  its schema file, the schema its component library
+  renders from, takes its content from it. The file is named
+  `page.schema.ts`, or what the implementation file given with
+  `--implementation` names under `bindings.ui.schemaFile`, with or
+  without `--facts` (ADR-115), and a line names it; a name that is
+  not a TypeScript or JavaScript file name, or is one the router
+  serves itself (`page`, `route`, `layout`, `loading`, `error`,
+  `not-found`, `template` or `default`), prints a line, a must
+  question blocking the pages asks for the name, and
+  `page.schema.ts` is read meanwhile: the file holds imports,
+  comments and one exported object literal, optionally followed by
+  `satisfies` and a type, written in the subset of TypeScript that
+  is also JSON5 (keys as names or quoted, strings, numbers, true,
+  false, null, arrays and objects, trailing commas). Of its keys,
+  `kind`, `title`, `entity`, `permission`, `columns`,
+  `compactColumns`, `fields`, `sections` and `filters` are read as
+  the page keywords of the same name. `source` and `submit` name an
+  operation the router's tree or the interface document's declares,
+  not this one, so the key is left out and a must question carries
+  the name under `names`; `specarch merge` writes it once a tree
+  declares that operation. Every other key, a value that is not
+  a literal, and a file outside the subset print a line, and what
+  they would have given is asked for. An entity a schema names is
+  written by name, of type object, with every field a page shows
+  as a field known only by name, citing the schemas; its primary key
+  and each field's type are a must question. Each page cites its
+  page file and its schema; its kind, title, entity and the
+  operations it reads or submits, where no schema gives or names
+  them, are a must question, and so is the permission it checks, never written
+  as public. Every permission a schema names is declared, its
+  description and the role that grants it must questions.
+
+  With `--facts`, a code-facts dump that specarch facts javascript
+  made of a committed folder that holds the router's folder, and
+  that is not stale (ADR-090), the App Router's and the Pages
+  Router's files are also read for what their code says, and
+  `--implementation` names the project's checks as for javascript.
+  A route file's operations are the methods its code serves: in
+  the App Router each function or const it exports by a method's
+  name, directly, as the handler a call wraps or by an export
+  specifier; in the Pages Router each method its default export
+  compares `req.method` with or switches on with a literal case,
+  where what follows a comparison and a default branch are a must
+  question asking for the other methods it serves; a route file
+  whose code names no method keeps its question, citing its
+  handler. Each cites its file and its export, and its permission
+  is the one literal permission a check names, wrapping the
+  handler, called in it in the branch of its method, or called in
+  a middleware whose matcher surely selects the route; none,
+  several and one that is not a literal are must questions. A body
+  the handler validates, `request.json()` or `req.body` given to a
+  zod, yup or joi schema of a module-level variable, is the
+  request body, written as a schema as javascript writes one. A
+  server action, a function with `'use server'` in its body or
+  exported by a file that starts with it, that a form of a page
+  file gives as its `action` is an operation at the page's route,
+  method POST, named after the function, with a must question on
+  its path, since Next.js posts an action to the page that shows
+  it; a second one on one page and a form outside a page file are
+  must questions. A middleware file's `config.matcher` of literal
+  patterns (`/loans/:path*`, `:name+`, `(.*)` at the end) says
+  which routes it covers; its function's call of a named check
+  with one literal permission is the permission of every page and
+  operation it surely covers that has none; anything else is the
+  must question on the pages and operations it may cover, asking
+  each one's permission in the place of its own question. A page
+  schema is read as the compiler reads it, its object exported by
+  default or by a const, a name a const of the files read gives,
+  imported or its own, read as that const's value; a value that is
+  no literal or const prints a line as before. A page's
+  `generateStaticParams` returning literal values prints a line,
+  since a page holds no values of its route's parameters, and a
+  route file's is named in the question on its parameters' values;
+  one built at run time is a should question.
+
+  With `--facts`, Nuxt's folders are read for their code too
+  (ADR-091). A page's `definePageMeta` gives its literal title; its
+  layout and every key no implementation file maps print a line; the
+  middleware it names, a file `middleware/<name>` beside the pages
+  folder whose default export calls a named check, and global route
+  middleware whose code does, give the page its permission when they
+  name one literal permission between them, and a must question
+  otherwise, naming each one the reader cannot read. Its template
+  gives its fields and columns as javascript reads a Vue template,
+  and its title from its one heading where definePageMeta gives none.
+  A Nitro route file's operation cites its default export, the
+  function `defineEventHandler` is given, with the permission a
+  named check called in it gives, the body `readValidatedBody` or a
+  validation schema of `readBody` gives, and a must question on a
+  parameter `getRouterParam` reads that its path lacks; server
+  middleware that calls a named check gives every operation its
+  permission, and otherwise asks on each operation no check gives
+  one.
+- `workflows`: one BPMN 2.0 XML file, read with the standard
+  library, whose processes are written as `workflows` in the
+  sequential subset of ADR-054, one workflow per process, named
+  after the process in kebab-case and ordered by name. The
+  process's documentation is the description. Its one start event
+  gives the trigger: the operation its message event's
+  `operationRef` names, through the file's interface. A user task
+  is an approval step, its roles the resources or expressions of
+  its potential owners in kebab-case, and an interrupting timer
+  with a duration on it the deadline: `refuse` when the timer's
+  flow ends the request, `escalate` when it reaches a later user
+  task. A reference is read as the child element the BPMN 2.0
+  schema writes (`operationRef` in a message event definition,
+  `resourceRef` in a potential owner) or as the attribute of that
+  name some tools write. An exclusive gateway right after a user
+  task, with one flow to an end event and no condition in the
+  language `urn:specarch:expression`, is that approval's refusal;
+  when both its flows end the request, the approval is the last
+  step and the gateway's default flow is the refusal. A user task
+  with no such gateway after it, and that no approval escalates
+  to, is a task step, its performers its potential owners, said in
+  a line unless generate bpmn wrote the file. Any other exclusive
+  gateway is a decision step (ADR-198): a branch per flow, its
+  `conditionExpression` the `when` when written in
+  `urn:specarch:expression` and a question otherwise, the default
+  flow `otherwise`, and its target a later step or an end, read as
+  refused or failed by the end event's name. The path goes on at
+  the branches' steps in the order of the file. A receive task or a
+  message catch event is a wait for the message it names, asked
+  for by name as an operation is; a timer catch event a wait
+  `after` its duration or `at` its date in that language. An error
+  boundary event on a service task is its `onFailure`, to a later
+  step or `end: failed`; a compensation boundary event associated
+  with a service task marked `isForCompensation` gives
+  `compensatedBy`, asked for by name. A service task is an
+  operation step, its operation the one its `operationRef` names.
+  Each step is named after its task in camelCase. An operation the
+  file names is not declared by it, so the trigger and a step's
+  operation are left out and a must question carries the name
+  under `names`; `specarch merge` writes it once a tree declares
+  that operation. The subject, each approval's permission and
+  description, and each role's grants and description are must
+  questions, since BPMN has none of them; each potential owner is
+  declared as a role by name, citing the task. What the subset
+  does not hold prints a line with its file and line and is left
+  out: another definition, such as a signal, an element outside
+  BPMN's semantic model, such as diagram layout, lanes, a
+  performer, a timer that does not interrupt or gives a date or a
+  cycle, a duration in weeks, months or years, and a task off the
+  path from the start event; an element the path meets that the
+  subset does not hold, such as a parallel gateway, a loop or a
+  second start event, also ends the steps there with a must
+  question on the workflow. Each line names the file's line, and
+  the lines come in the file's order.
+
+  With `--table`, the one file is a workflow table, for workflow
+  definitions in a format of the project's own (ADR-118), written
+  by `tools/workflows/dump-workflows.sh` around the project's own
+  printer, which loads the definitions as the engine does: the
+  version of the format, the folder the engine loads them from,
+  the commit that last changed it, and every workflow as its name,
+  the file it is defined in or null, its description or null, its
+  trigger (the operation's name or null, and the form's fields,
+  each a name and the engine's type), its steps in order (an
+  approval with its approvers, deadline, onDeadline and escalateTo,
+  an operation step with its operation, or a step of another kind
+  with a description) and the messages it emits when it ends.
+  Every key is written, null where the format allows it; a table
+  with another key or without one, a step of a kind other than
+  approval, operation or other, a workflow with no name or listed
+  twice, and a step or a form field with no name are refused. Each
+  workflow is written as the BPMN reader writes a process, with the
+  same questions at the same keys, so that `specarch merge` joins
+  the two readings of one workflow: named in kebab-case, a step in
+  camelCase, an approver in kebab-case, the trigger's and each
+  operation step's operation left out with a must question carrying
+  the name under `names`, the subject, each approval's permission
+  and each role's grants and description must questions, and an
+  escalation the later approval step it names. The workflow cites
+  its file, or the folder when the file is null, not under the
+  folder or not in the repository. What the subset does not hold
+  prints a line naming the clause cited and is asked for or left
+  out, in the order of the workflows and their steps: a name
+  another workflow or an earlier step takes, an operation name an
+  operationId cannot take, a duration in weeks, months or years or
+  of zero, an onDeadline that is neither refuse nor escalate, an
+  escalation to no later approval, an escalateTo on a step that
+  does not escalate, a step of another kind, which ends the steps
+  there with a must question on the workflow, the form's fields,
+  which are the request body of the trigger's operation that
+  another tree declares, and the messages emitted, which name
+  channels the table does not declare.
+
+- `gateway`: one gateway table (ADR-142), written by
+  `tools/gateways/dump-gateway.sh` around the project's own
+  printer, which loads the gateway's table of services as the
+  gateway does: the version of the format, the folder the table is
+  loaded from, the commit that last changed it, the gateway's name,
+  the claim it reads, the environment the addresses were resolved
+  in or null, and one row per forward, each the claim's value, the
+  project's name for the service or null, the setting its address
+  is read from or null, and the address as resolved or null. Every
+  key is written, null where the format allows it; a table with
+  another key or without one, a row with no value, a value written
+  twice, a gateway's name that gives no camelCase name and a claim
+  that is no claim's name are refused. The gateway is written
+  stated, named in camelCase, citing the table and each row, with
+  its claim and a forward per row; its description and its token
+  are must questions, the token's asking which token it verifies
+  with its format, algorithm and claims, since the table shows a
+  lookup and not a verifier, and its refusals a should question.
+  Each row's dependency is named by the row's name in camelCase,
+  else by the host's first label for a URI value and the value
+  itself otherwise, with a could question to rename it; it is of
+  kind system, its protocol is the address's scheme, or a should
+  question when the row gives no address, and its description and
+  timeout are a must question. Two rows naming one dependency are a
+  must question at the gateway's forwards, since the table does not
+  say whether one service answers both audiences. A row's setting
+  is written under configuration by the camelCase rule the Go
+  reader uses for an environment variable, no secret, its schema a
+  string of format uri and its description the service whose
+  address it holds, with a should question to confirm it is no
+  secret, must when its name says it may hold a credential. With
+  `--implementation-out` and an environment, the fragment holds
+  that deployment: a server per service with an address, named in
+  kebab-case, with its url and the dependency it is, and the value
+  of each setting; with no environment it is not written and a
+  line says so.
+
+- `systemd`: one or more systemd unit files in one repository,
+  each a `.service` or a `.timer` (ADR-211), read as
+  systemd.syntax(7) writes them. Each service unit is a process,
+  named after its file in camelCase, whose time is the timer that
+  starts it (its `Unit=`, or the timer of the same name). Only what
+  a unit states is written, each citing its line: `Description=`
+  the description; `runs` scheduled with a timer, onDemand for a
+  `Type=oneshot` with none, and always otherwise; `Restart=` (no,
+  always, on-failure) as `restart.when`, `RestartSec=` its delay,
+  and `StartLimitBurst=` with `StartLimitIntervalSec=` its limit;
+  `KillSignal=` and `TimeoutStopSec=` the stop signal and its
+  `within`; an `ExecReload=` that sends SIGHUP to `$MAINPID` the
+  signal SIGHUP; `WatchdogSec=` the health; a timer's
+  `OnUnitActiveSec=` its `every`; and each variable `Environment=`
+  sets a setting under configuration, in camelCase, never its
+  value, with a must question for what it is, whether it is a
+  secret and its type. A time span is read in days, hours, minutes
+  and seconds. What the unit leaves to the host is a question: a
+  restart with no limit (a must question, since system.conf's
+  defaults decide), a daemon with no `Restart=` (should), the exit
+  statuses `RestartPreventExitStatus=` and `SuccessExitStatus=` name
+  (must, for exitCodes and exceptExitCodes), an `OnCalendar=`,
+  which is a calendar expression in the host's time zone and not
+  cron (must, for schedule, naming it), and an `EnvironmentFile=`
+  (should, naming it, never read). Every other key prints a line
+  with its file and line and is a could question: the keys that say
+  how a host runs the program (`ExecStart=`, `User=`,
+  `WorkingDirectory=`, the ordering keys) belong to an
+  implementation file's deployment. A file not ending in `.service`
+  or `.timer` is refused.
+
+- `go`: the tracked Go files under the paths, in one repository,
+  each read by the standard library's parser by its syntax alone
+  (ADR-075), as one code source with `reading: parsed` whose clauses
+  are the files read. A test file, and a file in a folder below a
+  path read that is named `testdata` or `vendor` or whose name
+  starts with a dot or an underscore, is left out, as the go
+  command leaves it out of `./...`; a file that
+  does not parse is a must question, and the rest are read. The
+  module path in `go.mod` resolves a handler in another package of
+  the module. In a file that imports dxlib's `api` package
+  (ADR-076), each `NewEndPoint` call whose URI is a string literal,
+  or literals joined by `+`, and whose method is one or a `net/http`
+  constant, outside a loop and a condition of its function, is an
+  operation under its path, named as dxlib names it from its URI
+  (and its method, when the URI has several), or, when that is not
+  camelCase, by its method and path as extract openapi names it,
+  with a line; its title is the summary, its description the
+  description, the URI's parameters its path parameters, and its
+  privileges read as extract openapi reads `x-dxlib-privileges`,
+  mapping included. It cites its registration's `path:line`, saying
+  its handler, its middlewares and its privileges, and its
+  handler's first line, saying the parameters the handler reads and
+  the refusals it answers. The handler is read where it is a
+  function literal, a function of the same package, or a function
+  of another package of the module named through its import; any
+  other is a should question. What the call declares is read as
+  well (ADR-130): its parameter list, its content type and its
+  response possibilities, each a literal, a pointer to one, a name
+  assigned one once, or a call to a function of the module whose one
+  statement returns one. A parameter is a composite literal with
+  `NameId` and `Type`, whatever package declares its type, and a
+  response one with `StatusCode`. Each parameter's type is written
+  in JSON Schema as dxlib's emitter writes it, with its description,
+  bounds, enum, children, items and map values, and the whole goes
+  through extract openapi's field writer, so that the operation
+  reads as the document dxlib emits reads; the names are snake_case
+  on the wire, with info.wireNames, when the declared names are. A
+  POST or PUT whose content type is JSON, a form or multipart takes
+  the parameters as the fields of its body; one of an octet stream
+  or plain text takes that body, and with no content type it takes
+  none; the parameters of an upload stream, which dxlib reads from
+  the X-Var header, are written as stream.parameters (ADR-162), and
+  those of any other such endpoint print a line. A GET or DELETE takes them as query parameters,
+  as dxlib reads them; dxlib refuses any other method with 422
+  before the handler, so its parameters are not written and a must
+  question on the operation asks for them. A declared response is written under its
+  status with its description and the object its data template
+  gives, the problem the handler answers at that status beside it,
+  and its headers print a line. A list, a parameter or a response
+  the reader cannot follow is a must question naming the call and
+  why, and a parameter it cannot read inside a list is written by
+  its name alone with a must question on it. A body that declares
+  no parameter is any object, with a must question on its fields,
+  unless its handler gives them (ADR-140): a JSON body the
+  registration declares no parameter for, and that the handler
+  decodes with `json.Unmarshal` of the request's
+  `RequestBodyAsBytes` (or a `json.NewDecoder` over it) into a
+  variable whose type it declares, is written from that type by
+  encoding/json's rules with the field writer of a router's handler
+  body, and its fields without omitempty or omitzero are required;
+  a check of the variable's
+  field in the handler's body itself whose block refuses through
+  the request by a statement of its own (an `if` comparing it with
+  `""` or `nil`, its length or its value with a literal, or a chain
+  of `!=` against strings other than `""`, an `else if` of its chain
+  when each branch before it refuses, and a `switch` on it whose
+  default refuses) writes required, minLength and maxLength,
+  minItems and maxItems, the bounds or an enum; any other check of
+  a field that refuses, `!= ""` among them, is a should question at
+  its line, and so is a refusing check nested under another
+  condition, a case, a loop or a closure that names a field or
+  sits under a condition or in a loop over a field that does,
+  naming where it sits; a refusal assigned or declared from a
+  problem call and then returned refuses as a returned one does. A
+  decode into a
+  list, into a map that names no field, of `Request.Body`, which
+  dxlib has already read to its end, or into a variable of no
+  declared type is the must question on the fields, saying which;
+  a body decoded twice is a should question. Each
+  `WriteResponseAsJSON(status, header, body)` call on the request
+  is a response under its status when the registration's responses
+  are read: a literal map's keys are its properties, all required,
+  each of the type its value gives (a literal, a nested literal
+  map, a list of literal maps with one set of keys, a composite
+  literal's type, a name the handler declares with its type, or a
+  field of one), and dxlib's own status, status_code, reason and
+  reason_message keys are not written, as its emitter leaves them
+  out of a data template, each left out printing a line, and an
+  answer of those keys alone is no body of its own. A status that is not a literal, a body
+  that is not a literal map, a key that is not a literal, a value
+  of a type the handler does not declare and one status answered
+  with bodies of other fields are must questions; a header prints
+  a line. Where the registration declares a body or a response
+  too, the declaration is written, and a handler that names other
+  fields than it is a must question that says the two sources
+  disagree.
+  The middleware chain is followed as the parameter list is, and
+  through a call to a function of the module whose one statement
+  returns its variadic parameter, such as `mw(a, b)` (ADR-131): the
+  operation lists its middlewares in order by their functions' names
+  in kebab-case, an empty list when the chain is nil, and each
+  middleware is declared once under middlewares, its function's doc
+  comment its description, and each refusal its body answers through
+  its request, read as a handler's are, a refusal with its status and
+  problem, the problem declared under errors; it cites the function
+  and the first registration that runs it. A chain not followed, or
+  one with an expression that names no function, is a must question
+  on the operation's middlewares, and the operation has none
+  written; a middleware the chain runs twice is listed twice; a middleware that is not a function of the module
+  found by syntax, such as one outside the module or one a call
+  makes, is declared by name with a must question on what it checks
+  and refuses; one with no doc comment is a must question on its
+  description, a refusal whose status or reason is not a literal a
+  should question, and two functions that give one name a must
+  question. In the handler, each
+  `GetParameterValue...` call on the request with a literal name
+  is a parameter read, and one whose name the endpoint's literal
+  parameter list does not declare is a must question, since dxlib
+  fails it at run time; a name that is not a literal is a should
+  question. Each `WriteResponseAndNewErrorf`,
+  `WriteResponseAsErrorMessageNotLogged`, `WriteResponseAndLogAsError`
+  or `WriteResponseAsError` call with a literal status from 400 to
+  599, or a `net/http` constant, is a response of that status; its
+  literal reason, in kebab-case, names the problem it answers,
+  declared under `errors` with that status, citing the call, its
+  title and condition a must question. A reason that is not a
+  literal, an empty one, a call with no reason, two reasons at one
+  status and one reason at two statuses are each a must question on
+  the response's problem, and a status that is not a literal is a
+  should question. A registration in a loop or behind a condition,
+  one whose URI or method is not a literal, one with another number
+  of arguments than dxlib's, and the same method and URI a second
+  time are each a must question, and no operation. A WebSocket
+  endpoint (`NewWSEndPoint`, or `NewEndPoint` with
+  `EndPointTypeWS`), a `RegisterHandler` call, whose operation the
+  document the service loads declares, and a method the meta-model
+  does not hold print a line. The endpoint type decides the
+  operation's transport (ADR-145, ADR-146):
+  `EndPointTypeHTTPEndToEndEncryptionV2` names the handshake
+  `preKey` on the operation and declares it once under `handshakes`,
+  inferred, with X25519, Ed25519 and AES-256-CBC, which the type
+  fixes, established by the registration that declares exactly the
+  parameters `a0`, `a1` and `a2`, a must question when none or two
+  do, and a should question on its lifetime and uses;
+  `EndPointTypeHTTPUploadStream` with an octet-stream content type
+  is `stream: {direction: upload}`, and with another content type a
+  must question on the stream and the body;
+  `EndPointTypeHTTPDownloadStream` is `stream: {direction:
+  download}` with a 200 response of `application/octet-stream` and
+  a binary string, a data template declared for it a should
+  question; `EndPointTypeHTTPDownloadStreamV2` is both the
+  handshake and the download; the V1 type, which dxlib refuses as
+  not implemented, prints a line and is written plain; the V3 and V4
+  types travel in the handshake `session` when the module sets that
+  type's unpack and pack hooks to functions of the module that open
+  and seal dxlib's datablock, followed three calls deep: it is
+  declared like `preKey`, citing the hooks, with a could question
+  that the type is the implementation file's setting
+  `targets.openapi.settings.envelopes` (ADR-163); with any other
+  hooks, or none, the V3 and V4 types are must questions on the
+  operation's handshake naming what the reader found, as is a type
+  that is not one of dxlib's constants, the latter on its stream
+  too. Each operation carries a must
+  question on whether the running system registers it, which a
+  printed tree answers in the merge, and one on its success
+  response and what each response means, or on the descriptions
+  alone when it declares a success; an operation with no
+  privilege, several or one that does not map is asked as in
+  extract openapi. A file that imports dxlib's `api` package and
+  gives nothing read prints a line.
+
+  Every operation's handler is followed into the code and recorded
+  (ADR-144), for dxlib's endpoints and the routers' routes alike:
+  where it is a function literal, a function of the same package
+  or one of another package of the module, its body is read
+  statement by statement into steps, each one kind of thing the
+  code does, in plain words, with its lines: an input read from
+  the request, a branch with its then and otherwise, a choice with
+  its cases, a loop with its body, a database read or write with
+  its table (a dxlib table's methods, or database/sql's calls with
+  a literal statement), a transaction begun, committed or rolled
+  back, a call, an external call over HTTP, a response with its
+  status and the problem a refusal names, a return, and a defer, a
+  go statement, a panic, a break (of the innermost loop, switch
+  or select, or of the statement its label names), a continue, a
+  goto or a fallthrough. A call of a function of the module is
+  followed to three calls deep and at most forty functions a
+  record, a method when the receiver's type is known by syntax, a
+  function literal as a function of its own one call deeper, with
+  the names of the function it is written in, whether it is
+  called where it is written, passed to a call or defined for
+  later (`reached`); a call of a local name a literal was
+  assigned to is a call of that literal, and the definition
+  itself runs nothing; and each function reached is recorded once
+  with its name, file, lines, steps and source as it was at the
+  commit; a call not followed says why on its step (a function
+  value, an interface's method, a method of a value whose type
+  syntax does not give, a function outside the module, a fourth
+  call deep), any other call into the standard library is no step,
+  and a method of a value of a type outside the module is none. One line
+  counts the handlers followed, the functions and the calls not
+  followed. With --implementation-out, each operation's mapping goes
+  into the implementation fragment with the handler as its target
+  and the record under handler; a handler not followed gets its
+  mapping with the target and why. Given --implementation, the
+  file's handler records are compared with the ones read: one line
+  counts the handlers unchanged, changed, not recorded and recorded
+  for an operation the source does not register, and each changed
+  handler lists, per function, its lines now and before and the
+  step lines added and removed, marked + and -.
+
+  While a handler is read, its code is checked against the
+  operation, and each fault is a should question on the operation
+  with its certainty, certain or suspected: a parameter the
+  registration declares that no function followed reads; a response
+  declared that no function followed and no middleware of the chain
+  answers, dxlib's own 400 and 422 on a declared parameter
+  excepted; a status answered that the registration does not
+  declare; a path that returns, or reaches the end, with no
+  response written, a returned error in a dxlib handler counting as
+  answered; a result dropped with the blank identifier that is a
+  module function's error, or the last of several results of any
+  call, and a call statement that drops a module function's error;
+  a table written after the response in the same block; a handler
+  that writes a table and runs no middleware and checks no
+  permission while other operations do; two writes with no
+  transaction begun; code after a return or a panic in its block,
+  and a constant condition; a handler that does nothing, a TODO,
+  FIXME, XXX or HACK note, a panic that says the code is not built,
+  and a response of fixed values from a function that reads
+  nothing. A fault in a function several handlers reach is one
+  question naming every operation that reaches it. A suspicion
+  where a call not followed was given the request says so.
+
+  In a file that imports dxlib's `databases/models` package, each
+  `NewModelDBTable` call whose name is a literal and whose schema is
+  a `NewModelDBSchema` call with a literal name, written there or
+  assigned once to the name the call passes, outside a loop and a
+  condition, is an entity named as extract database names the
+  table, so that the two trees give one entity. Its fields are a
+  literal map of `ModelDBField`: each column is a property named in
+  camelCase, its type the column type dxlib's data type makes on
+  PostgreSQL, written as extract database writes that type, except
+  `DataTypeMapStringString`, an object whose additionalProperties is
+  a string, which the jsonb column alone does not say, nullable
+  unless `IsNotNull` or `IsPrimaryKey` says otherwise, read-only for
+  a serial type or `IsAutoIncrement`, and the `IsPrimaryKey` columns
+  the primary key. A field's other keys, such as `References`,
+  `IsUnique` and `DefaultValue`, are left to the catalogue, with a
+  line per table naming them. A data type the meta-model has no type
+  for, a type not named as one of dxlib's, and what extract database
+  prints a line for print a line; a field built by a function, or a
+  column named by something other than a literal, is a should
+  question. A call in a loop or behind a condition, one whose schema
+  or name is not read, one whose fields are not a literal map, and
+  a table with no key are must questions, and each entity carries a
+  must question whether the database holds it, which a catalogue
+  tree answers in the merge. In a file that imports dxlib's `tables`
+  package, `NewDXTableSimple`, `NewDXRawTableSimple`,
+  `NewDXTableAuditOnlySimple`, `NewDXTableWithEncryption`,
+  `NewDXTable` and `NewDXTableWithView` give the table assigned to a
+  name or a field, and their last three arguments its paging list's
+  search, order and filter whitelists. An endpoint whose handler is
+  that table's `RequestSearchPagingList` or
+  `RequestSearchPagingDownload` cites the constructor's line, saying
+  the table and its whitelists, in place of a handler's, and prints
+  a line, since the meta-model holds no whitelist on an operation;
+  whitelists that are not literal lists are a should question.
+
+  In a file that imports a package of dxlib_module, an insert into
+  its `Role` or `Privilege` table (`InsertReturningId`, `TxInsert`
+  and the other insert methods of a dxlib table) with a literal
+  `nameid` seeds a role or a privilege, with the literal
+  `description` beside it, and a `RolePrivilege...Insert` call
+  grants its last argument, a literal privilege, to its role id,
+  when that id is a name the same function assigns once from a role
+  insert. Each role a seed grants something is written with the
+  permissions it grants, citing the role's insert and every grant,
+  mapped by the rule of ADR-076 over every privilege name of the
+  source, the endpoints' with the seeds', and each permission is
+  declared with the seeded privilege's description. A grant of
+  EVERYTHING, a name the rule does not map and two names that give
+  one permission are must questions on the role's permissions, as
+  extract permissions asks them; a seed in a loop or behind a
+  condition, a role id the reader does not trace and a privilege
+  that is not a literal are must questions; roles the seeds name in
+  upper snake case are read as extract permissions reads them, under
+  info.roleNames upper_snake, and a role whose name is not
+  kebab-case and that the rule does not read prints a line. Each role carries a must question
+  whether the running system grants it what the seeds grant, which
+  a permission table answers in the merge, and a role with no
+  literal description a must question on it.
+
+  A setting is read where the environment is read by a literal name
+  (`os.Getenv`, `os.LookupEnv`, and dxlib's `GetEnvDefaultValue`,
+  `GetEnvDefaultValueAsInt` and `GetEnvDefaultValueAsBool`), and
+  where dxlib's `NewConfiguration` names, with literals, a tracked
+  JSON or YAML file of the paths read: the file is read as data,
+  each leaf a setting named after the configuration and the key's
+  path, with the call's literal defaults and its sensitive keys.
+  Each is written under `configuration`, in the deployment stage,
+  by its name in camelCase (`DESK_API_KEY` is `deskApiKey`,
+  `storage.page_size` is `storagePageSize`), with the type its
+  getter or its value gives and the default its literal or the
+  file gives, the file's over the code's, as dxlib merges them;
+  `secret: true` where the configuration names the key sensitive.
+  What each is for and whether it is a secret is a must question,
+  and so is whether a setting whose name says secret, token, key,
+  password or credential is a secret, whose default is then not
+  written; so are two names that give one camelCase name, two
+  types, and the width of a whole number. A name that is not a
+  literal, a file that is not tracked, more than one file of that
+  name and a file that does not parse are should questions.
+
+  A gate on a setting is found in each middleware an endpoint's
+  literal chain names that the reader finds by syntax, as it finds
+  a handler: an `if` among the function's own statements whose only
+  statement returns `nil`, so letting the request through, when a
+  setting read from the environment by a literal name, directly or
+  through a name the function assigns once, is empty, or a boolean
+  one is false. Each prints a line and is the must question extract
+  permissions asks on a gate, in the same words, saying true and
+  false in place of present and empty for a boolean setting, citing
+  the line, with the check named by the function's name; dxlib's middlewares
+  are named in the endpoint, so no implementation file names them.
+
+  Routes are read on net/http's `ServeMux`, chi, gin, echo and
+  gorilla/mux (ADR-081). A router is a value one of their calls
+  makes (`http.NewServeMux`, `chi.NewRouter`, `gin.New`,
+  `echo.New`, `mux.NewRouter`), a parameter or struct field of one
+  of their router types, net/http's default mux, or a value of a
+  type of the module that has `ServeMux`'s `Handle` or `HandleFunc`
+  method, which is read as a `ServeMux`. The walk starts at each
+  function no call in the module names or passes as a value,
+  follows every call of the module's functions found by syntax,
+  binding what it passes to the parameters as far as syntax shows
+  it (a router, a literal string, a function literal or a function
+  of the module), follows a call of a function literal held in a
+  local name or bound to a parameter the same way, in the scope the
+  literal is written in, even where a function it was passed to
+  calls it, a loop or a condition that function calls it behind
+  still holding, and a name declared in a block, a router, a
+  string or a literal, holding to the end of that block, so that a
+  helper taking a prefix and a function registering routes under
+  it is followed through both; takes the router such a call
+  returns, of a literal or of a function of the module, as the
+  call's value, a literal's return never standing for the return
+  of the function it is written in, so that a helper taking a
+  prefix and returning the group under it is followed as well;
+  walks a literal declared in a block that no call walked at the
+  end of that block, the last declared first; counts a
+  registration, and writes it or asks about it,
+  once for each call, router, arguments and whether it is behind a
+  loop or a condition, however often the walk reaches it;
+  walks a literal no call names, or passed to a call that never
+  calls it, once with nothing bound; and then walks each function
+  not reached, and each literal reached with nothing bound, with
+  the routers it is given as ones whose place is not known. A
+  group, a
+  `Route`, a `Mount`, a subrouter under `PathPrefix` and a
+  `ServeMux` pattern ending in a slash that hands a router its
+  subtree, through `StripPrefix` or not, join their literal prefix
+  to the routes under them, with no slash at the end of a joined
+  path; one registration reached through two callers gives one
+  route. Each route a call registers with a literal method and
+  path, outside a loop and a condition of its function, under a
+  prefix the reader knows, is an operation: a `ServeMux` pattern
+  `METHOD /path`, chi's `Get` and the other method calls and
+  `Method`, gin's and echo's `GET` and the others, `Handle`, `Add`
+  and `Match` with a literal list, and gorilla/mux's `HandleFunc`,
+  `Handle`, `Path` and `HandlerFunc` with `Methods`. A path, a
+  method or a prefix written as a package-level constant of a
+  string type is the literal it names, of the same package by its
+  name where no parameter or statement of the function declares
+  that name, or of another package of the module through its
+  import, and so is one of literals and constants joined by `+`;
+  a method list written as a package-level var is a literal list
+  when its value is a composite literal of string literals, string
+  constants or `net/http` method constants and no statement of the
+  module, in its own package or in another through the import,
+  assigns to the name, declares it again, appends to it or takes
+  its address, and the question for any other list says what
+  stopped the reader: the second assignment and its line, or the
+  value that is not a list (ADR-143). Its parameters,
+  written `{name}`, `:name` or `{name:pattern}`, are written
+  `{name}`, a pattern with a line. It is named as extract router
+  names a route, after its handler, and cites its registration and
+  its handler's first line. A route for every method, a path,
+  method or prefix that is neither a literal nor a constant the
+  reader reads, a router given from code
+  not followed, a handler handed a subtree that is not a router, a
+  registration in a loop or behind a condition and the same method
+  and path twice are must questions; a host in a pattern, a route
+  matched by more than its method and path, and a method the
+  meta-model does not hold print a line. A fallback handler, gin's
+  `NoRoute` and `NoMethod`, chi's `NotFound` and `MethodNotAllowed`,
+  gorilla/mux's `NotFoundHandler` and `MethodNotAllowedHandler`
+  fields, echo's `HTTPErrorHandler` field, on a router a name holds
+  or a struct of the module keeps in a field, and a `ServeMux`
+  pattern of `/` alone with no method given a handler that is no
+  router, is a must question citing the call or the assignment,
+  naming the handler and the requests it takes and asking what it
+  answers or forwards and by which claim of the token it picks the
+  service, counted as a registration, or, in a loop or behind a
+  condition, the question every registration there asks; a route
+  whose path ends in a rest wildcard or a catch-all, a gorilla/mux
+  variable whose pattern can match a slash (`{rest:.*}`) among
+  them, is the same must question, naming its prefix and its
+  methods, every method for `Any` and `Handle`, and so is
+  gorilla/mux's `PathPrefix` given a handler that is no router,
+  its other catch-all, naming the prefix and its `Methods`; both
+  block gateways, which the gateway table answers in the merge
+  (ADR-142), since a fallback is where a gateway lives and where a plain 404 lives
+  too, and syntax cannot tell which (ADR-143). A `ServeMux`
+  pattern of `/` with no method, or gorilla/mux's `PathPrefix`,
+  handing every request to a router of the module mounts that
+  router under no prefix, `http.StripPrefix`'s when it wraps the
+  router, since both hand the whole path on, and `Methods` or
+  another matcher on such a `PathPrefix` is a line, since the
+  meta-model holds no match on the mount; a gorilla/mux chain
+  that names no path or no handler the reader reads is a must
+  question. A file that imports chi, gin, echo or gorilla/mux and
+  gives nothing read prints a line. Each operation carries a must question on
+  whether the running system registers it, which a route table
+  answers in the merge, and one on what it does and answers.
+
+  A handler found by syntax, a function, a method of a value whose
+  type the reader knows or a function literal, is read for the path
+  parameters it reads with a literal name (`PathValue`,
+  `chi.URLParam`, gin's and echo's `Param`, gorilla/mux's `Vars`),
+  each one its path does not have a must question and a computed
+  name a should question; and for the body it decodes
+  (`json.NewDecoder(request.Body).Decode`, gin's `ShouldBindJSON`,
+  `BindJSON`, `ShouldBind` and `Bind`, echo's `Bind`) into a
+  variable of a struct the module declares or of a struct type
+  written in place at the variable, written as the request
+  body's object by encoding/json's rules: the `json` tag's name,
+  `-` left out, a pointer nullable, a slice an array, `time.Time` a
+  date-time, a struct of the module and a struct type written in
+  place both an object in place, with `info.wireNames: snake_case`
+  when the tagged names are snake_case. A field with no json tag goes on the wire by its Go
+  name, which is neither camelCase nor snake_case, and prints a
+  line; a map is an object whose additionalProperties is its values'
+  schema, whatever its key, since encoding/json writes every key as
+  text, and a map of an interface's values is additionalProperties
+  true with a should question blocking the values (ADR-125); an
+  interface, an embedded struct and a
+  type outside the module are should questions, and the width of
+  an `int` or a 64-bit integer a must question. The tags of
+  go-playground/validator (`validate`, read when the module imports
+  it) and of gin (`binding`) give `required`, lengths, items,
+  bounds, `oneof` as an enum, the formats `email`, `uuid`, `uri`,
+  `hostname`, `ipv4` and `ipv6`, and validator's own patterns for
+  `alpha`, `alphanum` and `numeric`; any other rule prints a line.
+
+  A permission is read through the checks the implementation file
+  given with `--implementation` names under
+  `bindings.http.permissionChecks`, a Go package named by its
+  import path, or by its folder from the repository's root where
+  no `go.mod` is read: a call of one with a literal
+  permission in the argument named wraps a handler (its last
+  argument the handler it runs), is among a route's or a group's
+  middleware, is applied with `Use` or `With`, or is made in the
+  handler. One permission is the operation's, declared citing the
+  check that reads it first; none, several, one that is not a
+  literal and a check named in part are must questions, and with no
+  implementation file each operation's permission is a must
+  question. A gate on a setting is found in each named check, in
+  its own statements or those of the function it returns: an `if`
+  that runs the handler it is given, calls `ServeHTTP` or `Next`,
+  or returns `nil`, `true` or that handler, while a setting is
+  empty or false, asked as above. A check the implementation file
+  names with `bypassedFor: client` lets a client through whatever
+  its roles grant, which syntax does not show, since the test of the
+  caller's token is written the project's way; it prints a line and
+  is the must question extract permissions asks on a bypassed gate,
+  in the same words, with the check named by its function's name
+  (the method's alone for Type.Method), blocking the permission of
+  each operation that calls it and citing the first call (ADR-114).
+  Another kind is a must question naming the item, and the check is
+  read as skipping no caller.
+
+  A gate that reads no permission is named under
+  `bindings.http.clientChecks`, a check that admits only a client,
+  and `bindings.http.signatureChecks`, a check that verifies a
+  request's signature, each by its package and function, and found
+  as a permission check is, and also as middleware named without a
+  call; a function named as two kinds of check is a must question and
+  read as the first. Each prints a line counting the operations it guards and is
+  one must question per check blocking the callers of each of them:
+  for a client check which clients call them and whether people do,
+  since callers names its clients one by one (ADR-110); for a
+  signature check which client signs, with which algorithm and over
+  which parts of the request, the client's proof. The reader writes
+  no callers and no client, and the permission is read as before. A
+  call of golang-jwt's `NewWithClaims` mints a token: one must
+  question blocking the tokens lists the keys of the `MapClaims`
+  literal it is given, or the one the same function assigns to the
+  name it is given, and asks which token it is; claims that are not
+  such a literal are named in the question as not read (ADR-154).
+  A handler that reads the Txn-Token header, in any case, through
+  net/http's `Header.Get` or `Values`, or a router's `GetHeader`,
+  in its body or a function it calls, is one must question at its
+  operation blocking its token and via, for the transaction token
+  it accepts and the services that call it on a person's behalf
+  (ADR-111, ADR-159).
+
+  A call of net/http's `Get`, `Head`, `Post`, `PostForm`,
+  `NewRequest` or `NewRequestWithContext` with a literal method and
+  an absolute URL declares a dependency named after the URL's host
+  in camelCase, citing the call, its description and time limit a
+  must question; one made in a handler's own body is under the
+  operation's `calls`, and one made elsewhere a should question on
+  the operations that call it. A URL or a method that is not a
+  literal, and a URL with no host, are should questions. A flag the
+  flag package declares by a literal name (`String`, `Bool`, `Int`,
+  `Int64`, `Uint`, `Uint64`, `Float64` and their `Var` forms) is a
+  setting as an environment variable read is, its default the
+  flag's.
+
+- `swift`: one code-facts dump of Swift source (ADR-087), written
+  by `specarch facts swift`, which runs the Swift reader
+  `readers/swift` on the tracked Swift files under a committed
+  folder. The reader parses each with SwiftSyntax, the parser the
+  Swift toolchain's own tools use, and writes facts, not elements:
+  its imports, its type declarations with what they inherit and
+  their attributes, their stored and computed properties, enum
+  cases with raw values, functions with their parameters, the calls
+  of the names its idiom table lists with their literal arguments
+  and closures, assignments to `httpMethod` and a JSON coder's
+  strategies, reads of `infoDictionary` and `environment` by key,
+  and reads of a value named `headers` by a subscript or by `first`
+  (ADR-173), each with its file, line and column. The dump names the
+  format (`codeFacts: 1`), the language, the parser's name and
+  version, the folder and the commit that last changed it; it is
+  refused when another SwiftSyntax version than the one this
+  release pins made it, when it lists a file that is not tracked
+  under the folder or leaves out one that is, and when it is
+  stale. The source is one code source with `reading: parsed`,
+  whose clauses are the Swift files and the files read as data;
+  every element cites `path:line`. SwiftSyntax has no type checker,
+  so a type the source does not write is a question.
+
+  A SwiftUI view, a type that conforms to `View` in a file that
+  imports SwiftUI, is a page when a navigation call opens it: the
+  view `WindowGroup` shows, a tab of a `TabView`, the destination
+  of a `NavigationLink`, `navigationDestination`, `sheet`,
+  `fullScreenCover` or `popover`, when the call makes one view of
+  the files read and nothing else; any other view is a part of a
+  page and no element, and a destination chosen at run time or a
+  view outside the files read is a should question at the call.
+  A page is named after its view in kebab-case, without the
+  suffix `View` or `Screen`, and cites its declaration and the call
+  that opens it. Its title is its one literal `navigationTitle`.
+  Each way a page opens another is one of its actions, of kind
+  `navigate`, its target that page and its label the link's
+  literal title or `Text` label, in the order of the source; a
+  label the source gives as no literal is a must question. A
+  `NavigationLink` with a value opens what the screen's
+  `navigationDestination` gives and is counted, not written. Its
+  fields are the properties a `TextField`, `SecureField`,
+  `TextEditor`, `Toggle`, `Picker`, `DatePicker`, `Stepper` or
+  `Slider` is bound to (`$book.title` is the field `title`), in
+  the order of the source; its entity is the SwiftData model those
+  bindings are properties of, when they are all of one, or, with
+  no binding, the one model the view queries with `@Query`. A
+  binding to a property of a property prints a line. Each page's
+  kind and route, and its title, entity, source, submit and
+  columns where the source does not give them, are one must
+  question, and its permission another, never written as public,
+  since an app's screen checks nothing for the server. Each tab of
+  a `TabView` is a menu entry for its page, its title the tab
+  item's literal `Label` or `Text`, or the `Tab`'s title; a tab
+  whose title is no literal is a must question.
+
+  A class with `@Model` in a file read is a SwiftData model and is
+  written as an entity of its name; a struct or class that conforms
+  to `Codable`, `Decodable`, `Encodable` or Vapor's `Content` is a
+  schema; an enum of `String` that conforms to one of them is an
+  enum, its values its raw values, each a snake_case word or
+  printed as a line. A type declared inside another prints a line.
+  Each stored property is a field by its name, `required` unless
+  its type is optional: `String`, `Bool`, `UUID`, `URL` and `Date`
+  (a date-time) as their JSON types, the integers of a width below
+  64 bits with their bounds, `Double` a double, `Data` a byte
+  string on the wire and a binary one stored, an array of one of
+  these an array, a dictionary keyed by `String` or an integer an
+  object whose additionalProperties is its values' field, as
+  `JSONEncoder` writes it, and a model of the files read a reference
+  to it.
+  An `Int`, `UInt`, `Int64` or `UInt64`, a `Float` and a `Decimal`
+  are must questions on their format or type, since the width of a
+  word, a 32-bit float and a decimal's precision and scale are not
+  the meta-model's types; a `CGFloat` is a double with a should
+  question; a `Date` of a schema is a should question unless the
+  files read set an ISO 8601 date strategy; a type that is not
+  declared as a model in the files read is a must question. A
+  property of an entity that holds another model is a relation to
+  it, its kind and its key a must question, since SwiftData keeps a
+  relation by the model; a schema held by an entity, a static or
+  computed property, `@Transient`, a dictionary keyed by another type
+  or of `Any`, and a set print a line or are counted. An entity's primary key is a must question,
+  naming the properties `@Attribute(.unique)` marks. A schema's
+  `CodingKeys` give its wire names: one that is the property's
+  snake_case form gives `info.wireNames: snake_case`, as a JSON
+  coder's `convertToSnakeCase` or `convertFromSnakeCase` strategy
+  does, and any other prints a line; a property its `CodingKeys`
+  leave out prints a line. A Core Data model, the current version's
+  `contents` of an `.xcdatamodeld` that `.xccurrentversion` names,
+  is read as data: each entity is an entity, each attribute a field
+  by the type its `attributeType` names, nullable when optional,
+  with its default, and each relationship a relation whose kind and
+  key are a must question; the primary key is a must question,
+  naming the uniqueness constraints; a transient attribute prints a
+  line, and an attribute type with no field type is a must
+  question.
+
+  Routes are read in a file that imports Vapor. A builder is a
+  parameter of type `Application`, at the root, a `RoutesBuilder`
+  given to a `RouteCollection`'s `boot`, under every path a
+  `register(collection:)` call of the files read registers that
+  collection, and the value `grouped` makes from a builder, or the
+  parameter of the closure `group` is given, under the literal
+  segments it adds, with the middleware values it is given. A call
+  of `get`, `post`, `put`, `patch`, `delete` or `on` with a handler
+  (`use:` or a closure) on a builder, with literal segments outside
+  a loop and a condition, is an operation; `:name` is the
+  parameter `{name}`, and `*` and `**` print a line. It is named
+  after its handler as extract router names a route, cites its
+  registration and its handler, and carries the must questions
+  extract go asks of a parsed route: what it does and answers, its
+  parameters' values, and whether the running system registers it.
+  A builder the reader does not follow, a segment that is not a
+  literal, and a registration in a loop or behind a condition are
+  must questions, and so is one method and path registered twice.
+  The handler's `req.parameters.get` with a name its path lacks is
+  a must question; its `req.content.decode` of a model of the files
+  read is the request body. A permission is read through the
+  checks the implementation file given with `--implementation`
+  names, as for go: a middleware value of a group, made by the
+  check's function, whose argument named is a literal permission
+  name, is the permission of the routes under the group, declared
+  citing them; Swift imports modules, not files, so the check is
+  matched by its function's name. None, several and one that is not
+  a literal are must questions. The gates the implementation file
+  names under `clientChecks`, `signatureChecks`, `applicationChecks`,
+  `callerChecks`, `audienceChecks` and `eventWriters` are middleware
+  of a group too, matched the same way, their names a string or an
+  array literal; a gate is never read as a permission check, and
+  each is written and asked as extract go does (ADR-154, ADR-159,
+  ADR-169). A handler function that reads the Txn-Token header, in
+  any case, by `req.headers.first(name:)` or `req.headers[...]` in
+  its own body is the must question extract go asks at its
+  operation, in its words (ADR-173).
+
+  Calls to another system are read from `URLRequest(url:)`, its
+  method the literal its `httpMethod` is given in the same function
+  or GET, Foundation's default, and from URLSession's `data`,
+  `dataTask`, `download` and `upload` methods given a URL: a
+  `URL(string:)` call with a literal, or a name the same function,
+  or a property of the same type, gives one. A string interpolating
+  one name into a whole path segment is the parameter `{name}`,
+  with a should question naming it. Each declares a dependency
+  named after the host in camelCase, as extract go names one, its
+  description and time limit a must question; a URL that is not
+  built from literal parts, has no host, or a method that is not a
+  literal is a should question.
+
+  A setting is read where the code reads Info.plist
+  (`Bundle.main.object(forInfoDictionaryKey:)` or
+  `infoDictionary[...]`) or the environment
+  (`ProcessInfo.processInfo.environment[...]`, Vapor's
+  `Environment.get`) by a literal key, and from every tracked
+  `Info.plist` under the folder, read as data, whose own keys are
+  settings too; a value `$(NAME)` takes the one value the folder's
+  `.xcconfig` files give `NAME`, and several values are a should
+  question. Each is written under `configuration` as extract go
+  writes one, with the type and the default Info.plist gives, and
+  the same must questions on what it is for, whether it is a
+  secret, its type when nothing read gives it, and an integer's
+  width; one Info.plist sets and no code reads by a literal name is
+  a should question. The keys the system reads to describe the
+  bundle (`CF`, `NS`, `UI`, `LS` and the like), an entitlements
+  file's keys and the build settings Info.plist does not take
+  print a line per file, and a property list that is not XML prints
+  a line.
+
+  A file that imports SwiftUI, SwiftData or Vapor and gives nothing
+  read prints a line, and so does each file with syntax SwiftSyntax
+  could not read, which is also a should question.
+
+- `javascript`: one code-facts dump of JavaScript and TypeScript
+  source (ADR-089, ADR-116), written by `specarch facts javascript`,
+  which runs the JavaScript reader inside the binary on the
+  tracked `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs` and
+  `.cjs` files under a committed folder and its `tsconfig.json` and
+  `jsconfig.json` files. The reader builds one program of them with
+  the TypeScript compiler 7.0.2, its own Go source copied into
+  third_party/typescript-go, over those files and
+  the library TypeScript ships and nothing else, so no
+  `node_modules` and no package's types are read. It writes facts,
+  not elements: imports with the file each resolves to, each
+  configuration file's `checkJs`, interfaces, type aliases, classes,
+  enums and JSDoc `@typedef`s with their members' types as the source
+  states them, functions with their parameters' types and whether
+  each comes from TypeScript's syntax or a JSDoc comment, variables,
+  the calls whose name the idiom table lists or whose callee an
+  import names, JSX elements of the libraries it knows and of a
+  heading, a form, its controls and a link, and reads of
+  `process.env`, `import.meta.env` and a handler's request, each
+  with its file, line and column, a name with the declaration among
+  the files read that the compiler's checker resolves it to. The
+  dump is refused when another compiler version made it, when it
+  lists a file that is not tracked under the folder or leaves out
+  one that is, and when it is stale. The source is one code source
+  with `reading: parsed`; every element cites `path:line`.
+
+  Routes are read on Express and Fastify. An application is the
+  value `express()` or Fastify's factory gives, at the root; an
+  Express router (`Router()`, `express.Router()`) is under every
+  `use` of the files read given it, after the literal prefix that
+  `use` gives, with the middleware between; a function `register`
+  is given is a Fastify plugin, its first parameter an instance under
+  the literal `prefix` of its options; `route('/path')` adds its
+  path. A call of `get`, `post`, `put`, `patch`, `delete`, `options`,
+  `head` or `all` with a literal path and a handler on one of these,
+  outside a loop and a condition, and Fastify's `route` with a
+  literal method and url, is an operation; `:name` is the parameter
+  `{name}`, and a wildcard, an optional parameter, a pattern and
+  `all` print a line. It is named after its handler's name as extract
+  router names a route, or by its method and path, and cites its
+  registration, every mount above it and its handler, with the must
+  questions extract go asks of a parsed route. A router the reader
+  does not follow, such as one a function is given, a path that is
+  not a literal, a registration in a loop or behind a condition, and
+  one method and path registered twice are must questions, and so is
+  a parameter the handler reads that its path lacks. The permission
+  is read through the checks the implementation file given with
+  `--implementation` names, by the function's name and its module:
+  the `package` is a package's name as an import names it, or the
+  path of the file that declares the check from the folder read,
+  without its extension. A check's call with a literal permission,
+  as middleware of the route, of a mount above it, of an earlier
+  `use` without a path on the same router or, before a mount above
+  it, on the router that mount is made on, or of Fastify's `onRequest`,
+  `preValidation` or `preHandler`, or called in the handler, is the
+  operation's; none, several and one that is not a literal are must
+  questions. The gates the implementation file names under
+  `clientChecks`, `signatureChecks`, `applicationChecks`,
+  `callerChecks`, `audienceChecks` and `eventWriters` are found in
+  the same places, called or, as middleware, named without a call,
+  their names a string, a const or an array literal, a gate passed
+  on a mount or an earlier `use` cited where it is made; a gate is never read as a permission
+  check, and each is written and asked as extract go does (ADR-154,
+  ADR-159, ADR-169). A handler that reads the Txn-Token header, in
+  any case, from the headers of its first parameter in its own
+  body (`req.headers['txn-token']`) is the must question extract go
+  asks at its operation, in its words (ADR-173).
+
+  A request body is, in this order: the validation schema the
+  handler applies to its body (`parse`, `safeParse`, `validate`,
+  `validateSync` or `cast` of `req.body`); the JSON Schema of
+  Fastify's `schema.body`, a literal object or a variable holding
+  one; the type the handler declares, Express's `Request`'s third
+  type argument or Fastify's generic `Body`, when it is a type of the
+  files read or a validation schema's inferred type; or, with none of
+  these, the fields the handler reads of `req.body`, written as a
+  schema named after the operation whose fields are known by name
+  only, their types and which are required a must question. A body
+  used whole is a must question. The reply type a handler declares,
+  `Request`'s second type argument, `Response`'s or Fastify's `Reply`,
+  is written as a schema and named in the question on the
+  responses, whose status codes the type does not give. A module
+  level variable holding an object schema of zod, yup or joi is a
+  schema, and one holding an enum of strings an enum, named after the
+  variable without `Schema`; each property's chain gives its type,
+  format, bounds, enum, default and whether it is required, by each
+  library's own rule (zod's properties are required unless optional,
+  yup's and joi's only when required); zod's record() keyed by
+  string() is a map, an object whose additionalProperties is the
+  values' field, of any() or unknown() additionalProperties true
+  with a should question on the values; a nested object, a union, a
+  record keyed otherwise and the like print a line, and a refinement, a pattern, a
+  coercion and a call the reader does not know are should questions.
+  A declared type is a schema with each member a field by its type:
+  `string`, `boolean`, a `Date` as a date-time, a union of string
+  literals as an enum, `T[]` as an array, a type of the files read
+  as a reference, `null` in a union as nullable and an optional
+  member or `undefined` as not required; `number` is a number whose
+  width is one must question for every number the reader writes, a
+  type from a package and `any` are must questions, and a record or
+  a map prints a line. A JSDoc type in a JavaScript file is read as
+  stated only where the nearest `tsconfig.json` or `jsconfig.json`
+  turns `checkJs` on, since only then does the compiler check the
+  code against it; otherwise the handler's comment is quoted in a
+  should question and the body falls to the fields read.
+
+  Screens are React Router's: the routes `createBrowserRouter`,
+  `createHashRouter`, `createMemoryRouter` or `useRoutes` is given
+  as a literal list, and `<Route>` elements, a child's path joined to
+  its parent's. A route with a path that shows a component of the
+  files read, as `element` or `Component`, is a page named after the
+  component in kebab-case without `Page`, `Screen`, `View` or
+  `Route`, and by its route too when the component shows several,
+  with the route as its route; a layout route is no page. Its title
+  is its one heading, a literal or `t()` with a literal key the
+  default locale's catalogue holds; its fields are the names
+  react-hook-form's `register`, Formik's `Field`, `getFieldProps` and
+  `useField` bind, in the order of the source; each `Link` or
+  `NavLink` with a literal `to`, or a template whose values fill
+  whole segments, that a route read matches, and each `navigate()`
+  of `useNavigate`, is a navigate action, its label the link's text
+  in the default locale. Its kind, its title where none is known,
+  entity, source, submit and columns are one must question, its
+  permission another, and a label that is not known one more. A
+  component outside the files read, a route declared twice and one
+  in a loop or behind a condition are must questions; a lazy route,
+  a field named by a value that is not a literal and a link to a
+  path no route serves are should questions. Message catalogues are
+  `messages/<locale>.json`, `locales/<locale>.json` and
+  `locales/<locale>/<namespace>.json` under the folder, read as data,
+  nested keys joined by dots; the default locale is the one a
+  literal `lng`, `fallbackLng` or `defaultLocale` names, or the only
+  one, and several with none named are a should question. Each
+  catalogue of another locale prints a line, since the meta-model
+  holds one language.
+
+  Calls to another system are `fetch` with a literal method in its
+  options or GET, axios and its methods, and the methods of an
+  instance `axios.create` makes with its `baseURL`, given a URL that
+  is a literal, a const of the files read, or a template whose
+  values are such consts or fill one whole path segment each, as the
+  parameter `{name}` with a should question naming it. Each declares
+  a dependency named after the host in camelCase, as extract go
+  names one, its description and time limit a must question; a URL
+  that is not built from such parts, a method that is not a literal
+  and a URL with no host are should questions, since a path of this
+  system's own is joined to its operation only once a question can
+  carry a method and a path. A setting is read where the code reads
+  `process.env` or `import.meta.env` by a literal name, by a member
+  or by destructuring: its type is a number or an integer when
+  `Number`, `parseFloat` or `parseInt` is given it, a boolean when it
+  is compared with `'true'` or `'false'`, and else the type of a
+  literal default `??` or `||` gives it, which is its default; it is
+  written under `configuration` with the questions extract go asks
+  of a setting, and a number's width is a must question. A read by
+  a computed name, a `require` or dynamic `import()` of a computed
+  module, and an export under a computed name are should questions.
+  A file that imports a library the reader knows and gives nothing
+  read prints a line, and so does each file with syntax the compiler
+  could not read, which is also a should question.
+
+  Vue single-file components (`.vue`) are read too (ADR-091): the
+  reader splits each as Vue 3's `@vue/compiler-sfc` does, with its
+  own Vue reader, gives the compiler its `<script>` and `<script setup>`
+  blocks as one file in which every other character is a space, so
+  every fact keeps the `.vue` file's own line and column, resolves an
+  import of a `.vue` file to that script, and writes each element of
+  its template that is a component, a heading, a form, a control or
+  a link, with its attributes, its directives' expressions by their
+  syntax, its literal text and the component it is in. The dump then
+  names the template parser and its version, and is refused when
+  another reader or another version of it split the files, or when
+  it lists a `.vue` file and names none. The routes vue-router's `createRouter` is given in a literal
+  list are pages when their component is a `.vue` file the dump read,
+  imported or loaded by `import()`, named after the file in
+  kebab-case without `Page`, `Screen` or `View`, with their route,
+  their template's one heading as their title, and their fields and
+  columns as below; the permission is the one literal permission the
+  checks the implementation file names give through `beforeEach` and
+  the route's `beforeEnter`, and none or several are a must question.
+  A template's fields are what `v-model` binds on an `input`,
+  `select` or `textarea`, and on a component the implementation
+  file maps under `bindings.ui.components` (`package`, `component`,
+  `binds` a field or a column, and `nameProperty` when a property
+  names the field instead of `v-model`); a mapped component is
+  matched by its tag and, when its file imports it, by the module,
+  and one used with no import by its name, since the framework or a
+  global registration gives it. A column is named by a column
+  component's name property. A component no mapping names that
+  `v-model` binds, and a name property given by a value, are should
+  questions. `$fetch` and `useFetch` are clients as `fetch` is.
+
+- `dart`: one code-facts dump of Dart source (ADR-092), written by
+  `specarch facts dart`, which runs the Dart reader
+  `readers/dart` on the tracked Dart files under a committed folder.
+  The reader parses each with the analyzer package 14.4.0, pinned
+  exactly with `pubspec.lock` committed, through `parseString`,
+  which gives syntax without resolving a package, so no pub cache is
+  read; it writes facts, not elements: imports, classes with their
+  annotations, fields, constructors and methods with their
+  parameters, enums, calls and instance creations with their
+  arguments written as values, comparisons of a request's method and
+  the branch a call is in, and reads of `Platform.environment` and
+  of a value named `headers` by an index (ADR-173). The
+  dump is refused when another analyzer version made it, when its
+  files are not the folder's tracked Dart files, and when it is
+  stale. The source is one code source with `reading: parsed`; a
+  file a code generator wrote (`.g.dart`, `.freezed.dart`) prints a
+  line and is not read, since its input is.
+
+  go_router's `GoRouter(routes:)` gives pages: each `GoRoute` with a
+  literal path, nested paths joined, whose `builder` or
+  `pageBuilder` returns one widget of the files read, named after
+  the widget in kebab-case without `Screen`, `Page` or `View`; a
+  `ShellRoute`'s routes are read through it, and each branch of a
+  `StatefulShellRoute` is a menu entry for its first page, its title
+  a must question. `MaterialApp`'s `home` and literal `routes` are
+  pages too, and a widget `Navigator.push` opens with a
+  `MaterialPageRoute` and no route is a page whose route is asked. A
+  page's title is its `AppBar`'s literal `Text`, read in the widget
+  and its `State`; its fields are what a `TextFormField` or another
+  form field saves in `onSaved` (`(v) => draft.title = v`) or names
+  with `name:`; a field with only a controller and a validator the
+  reader does not read are should questions, and an empty test or a
+  length check prints a line, since a page's field holds no rule.
+  Each `go`, `push` and `Navigator.push` that opens a page read is a
+  navigate action, its label a must question. A `redirect`, on the
+  router or a route, is code, and is named in the question on the
+  permission of every page it covers; a path that is not a literal,
+  a widget outside the files read and a route declared twice are
+  must questions, a wildcard and a parameter with a pattern a line.
+
+  A class with `@JsonSerializable` is a schema of its instance
+  fields, and one with `@freezed` a schema of its factory's
+  parameters; each is a field by its Dart type (`String`, `bool`,
+  `double`, `DateTime` as a date-time, `Uri`, `List<T>`, a model or
+  an enum of the files read), nullable for `T?`, required unless
+  nullable or given a default, with the default `@Default` or a
+  field's initial value gives; an `int`'s width is one must question
+  with every other number's, and a `num`, `dynamic` and a type
+  outside the files read are must questions; a `Map` keyed by
+  `String` or `int` is an object whose additionalProperties is its
+  values' field, one of `dynamic` or `Object` values or with no type
+  arguments additionalProperties true with a should question on the
+  values, and a map keyed otherwise and a set a line.
+  `FieldRename.snake` and a `@JsonKey(name:)` that is the field's
+  snake_case form give `info.wireNames: snake_case`, and any other
+  name prints a line; a field `@JsonKey` leaves out of JSON prints a
+  line. An enum a model holds is an enum, its values the
+  `@JsonValue` strings or its names, each a snake_case word or a
+  line.
+
+  Server routes are shelf_router's `get`, `post`, `put`, `patch`,
+  `delete`, `head`, `options` and `all` on a `Router` a variable
+  holds, through a cascade or not, under every `mount` of the files
+  read, with a literal path, `<name>` the parameter `{name}`; and
+  dart_frog's `routes/` folder, read as a file-system router, each
+  file's `onRequest` serving the methods it compares the request's
+  method with, `HttpMethod.get` and the like, what a default branch
+  serves a must question, and a file that compares none asked for its
+  methods. A route is named after its handler or by its method and
+  path, with the must questions extract go asks of a parsed route;
+  its permission is the one literal permission a check the
+  implementation file names gives, wrapping its handler, called in
+  it in the branch of its method, or called in a dart_frog
+  `_middleware.dart` above it; none, several and one that is not a
+  literal are must questions, naming a middleware that calls no
+  check. The gates the implementation file names under
+  `clientChecks`, `signatureChecks`, `applicationChecks`,
+  `callerChecks`, `audienceChecks` and `eventWriters` are found in
+  the same places, wrappers nested one in another followed to the
+  handler, their names a string or a list literal; a gate is never
+  read as a permission check, and each is written and asked as
+  extract go does (ADR-154, ADR-159, ADR-169). A handler that reads
+  the Txn-Token header, in any case, by `request.headers[...]` in a
+  shelf handler's own body, or in a dart_frog `onRequest` in the
+  branch of the method or outside every branch, is the must question
+  extract go asks at its operation, in its words (ADR-173). Calls to another system are retrofit's `@GET` and the like
+  under a `@RestApi` with its `baseUrl`, and dio's and http's `get`,
+  `post`, `put`, `patch` and `delete` given a literal URL,
+  `Uri.parse` of one, `Uri.https` or an interpolation of one value
+  per segment; each declares a dependency named after the host, and
+  a URL with no host or built from other parts is a should question.
+  A setting is read where `String`, `int` or `bool.fromEnvironment`
+  or `Platform.environment` names it by a literal, with its type and
+  its `defaultValue`, and written as extract javascript writes one.
+
+Every reader follows these rules:
+
+- The tree's root tracks origin. The code readers declare one code
+  source for the repository read, under `--source-key` (default
+  `code`), whose
+  `edition` is the full hash of the commit read and whose `url` is
+  the repository's folder relative to `--out`. Clauses are paths from
+  the repository's root. Its `reading` says how it was read:
+  `printed` for router, database and permissions, which read a list
+  the running system printed, and `parsed` for go, swift, javascript and dart,
+  which read the source itself (ADR-075).
+- Every element is `origin: stated` and cites where it was read.
+  What the surface does not say is a question, never a value: a
+  constraint's message, which no catalogue holds, a check the
+  expression subset cannot say, and an operation's summary and
+  responses, a path parameter's values and a permission's
+  description, which no route table holds, and a role's
+  description, which no permission table holds. A tree with a question also declares
+  the stakeholder `system-owner`, inferred, for the question to name.
+- A question's pointer resolves in the tree the reader writes: the
+  reader asks at the place an element would have had and may then
+  leave the element out, so as the tree is written each pointer
+  is cut to the deepest element the tree has and at most one
+  missing key under it, the one the question is about, or to its
+  section when the element itself is not written; two blocks of
+  one question cut to one pointer are one. The tree `merge`
+  writes is written the same way. A tree a reader writes passes
+  `validate` on its own, with no error, since `merge` checks each
+  tree before it merges it.
+- What a reader cannot hold, which it prints a line for, is also a
+  could question in the tree, so that it is a problem like any
+  other and reaches the problems file (ADR-065): a decision for
+  `system-owner`, its question the line's text, blocking the
+  element it is about, or the section it would be in when no such
+  element is written. It cites where the source says it: as
+  `path:line` when the reader knows the line, a BPMN file's element
+  or a page schema's key, so that the problems file places its note
+  on that line of the source; otherwise by the clause the reader
+  cites its elements by, a table, a route, a role, a section of a
+  document, an operation or a component schema. Where a must
+  question of the reader already asks for it ("asked for instead"),
+  no could question is written, since both would ask one thing. The
+  could questions are numbered after the reader's own, in the order
+  of the lines.
+- The commit read is the newest of the commits that last changed each
+  path read, so a commit elsewhere leaves the output as it was. Git
+  runs in the repository holding the path, a submodule's own when the
+  path is in one. Only tracked files are read. A path with changes
+  not committed, or with files that are neither tracked nor ignored,
+  is refused, and so is a shallow clone.
+- A dump made from code names the commit and the path it was made
+  from, and is itself committed. That commit is its edition; a dump
+  whose commit is not the last change to that path is refused as
+  stale.
+- A dump committed outside the code's repository names, as
+  `repository`, the folder of the code's repository from the root
+  of the repository holding the dump; that folder must be a gitlink
+  there, and the commit the gitlink records is the reference
+  (ADR-098). The path is then from the code's repository's root, and
+  the dump is stale unless its commit is the last change to the
+  path at the reference; the refusal names the dump's commit, that
+  last change and the reference. The code's checkout must be a full
+  clone with nothing uncommitted under the path and hold the
+  reference's files there. A folder that is no gitlink, one not
+  checked out and a reference the code's history does not hold are
+  refused. The edition and the `url` are the code's repository's,
+  so the output equals that of the dump committed beside the code,
+  byte for byte. A dump without `repository` is read as one
+  committed beside the code. Every dump script writes it by itself
+  when the dump file is in another repository than the code's.
+- The same sources at the same commit give byte-identical output:
+  objects are written in the order of their names, and nothing
+  depends on the date, the clock, the working folder or the user's
+  git configuration.
+- A file whose text says it is generated from another source and must
+  not be edited is reported, so that the other source is read too.
+- The tree says `specarch: "0.2"` and carries the tests `specarch
+  derive` writes for it: each draft whose subject no open must or
+  should question holds up and whose name is free goes under
+  `tests/<name>/test.yaml`, and `tests` is listed among the stages
+  when one is written. A draft is derived from what the reader read
+  and nothing else, so its given, when and then are the
+  derivation's words for a reviewer to complete; a subject a question
+  holds up gets none, and the validator warns for it until the
+  question is answered (ADR-055).
+
+## Arguments
+
+- `<source>` (required): The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`.
+- `<paths>` (required; one or more): What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump.
+
+## Options
+
+- `--out <out>` (required): The folder the specification is written into; it becomes the specification's root folder.
+- `--implementation <implementation>`: For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through, and whose `clientChecks`, `signatureChecks`, `applicationChecks`, `callerChecks`, `audienceChecks` and `eventWriters` name its gates; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from.
+- `--facts <facts>`: For pages, a code-facts dump of JavaScript and TypeScript, made by specarch facts javascript of a folder that holds the router's folder, through which the Next.js files' code is read.
+- `--routes <routes>`: For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each.
+- `--language <language>`: For documents, the language the document is written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one.
+- `--vocabulary <vocabulary>`: For documents, a vocabulary file (docs/vocabularies.md) whose words the document is read by, for a language SpecArch ships none for or a project's own words.
+- `--given-outside`: For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority.
+- `--implementation-out <implementation-out>`: For database, go and gateway, a new YAML file the reader writes what it knows of the implementation into, an implementation fragment that is not a whole implementation file. For gateway, the deployment of the environment the table's addresses were resolved in, with a server per forwarded service and the value of each setting (ADR-142). For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings.
+- `--table`: For workflows, read the file as a workflow table (ADR-118) that tools/workflows/dump-workflows.sh wrote around the project's printer, for definitions in a format of the project's own, in place of BPMN 2.0 XML.
+- `--source-key <source-key>`: The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given.
+- `--dry-run`: Read the source and write nothing; print each file of --out and the implementation fragment it would write, the derived tests and the problem marks included, as would write <path>.
+
+## Reads
+
+- `{paths}`: The surface being read.
+
+## Writes
+
+- `{implementation-out}`: For database and go with --implementation-out, the implementation fragment, its first lines a comment naming the dump or the paths and the commit read, and the source its mappings cite.
+- `{out}/`: The as-built specification tree, with the draft tests derive writes for it under tests/, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066).
+
+## Standard output
+
+One line naming the commit read and the paths it was the last change
+to; one line per count, saying what was counted and how; one line per
+object the specification could not hold, naming it, saying why and
+naming the question that asks about it; for documents with a
+vocabulary named, one line naming its language and file; one line naming a dialect
+the reader reads, or a document read as what the running system
+printed; one line per file that imports a library the reader knows
+and gives nothing it reads; one line per gate on a setting, naming
+the check and the setting, and per check skipped for a kind of
+caller, naming the check and the kind, with, given the routes, one
+counting the operations it guards; for permissions with rules, one line
+counting the permissions and implications the rules give, one per
+set of patterns whose names meet, and with --routes one naming the
+route table's commit and one per rule no route reaches; for
+database with --implementation-out, one line counting the mappings
+and indexes written into the fragment; for go, one line counting the
+handlers followed, the functions reached, the calls not followed
+and the questions the handler walk asked, which the line counting
+what was written leaves out since it comes before the walk,
+with --implementation-out one counting the handler records written,
+and with --implementation one counting the handlers unchanged,
+changed, not recorded and recorded for an operation the source does
+not register, then per changed handler its functions' lines and
+step lines added and removed and per record of a gone operation one
+line (ADR-144); for go, swift, javascript, dart and
+pages with --facts, one line naming the checks the implementation file
+names; for pages given an implementation file that names a page's
+schema file, one line naming it; for pages with --facts, one line naming the dump, one per
+middleware file saying what it covers and checks, and one counting
+the server actions; one line per file that says it is
+generated from another source; and the derivation's lines: one
+counting the draft tests written, one per subject whose drafts an
+open question holds up, naming the questions, and one per draft not
+written because its name is taken.
+
+## Standard error
+
+A usage message on a usage error, and the reason a source could not be read.
+
+## Exit status
+
+- 0: the specification was written.
+- 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML. Then: Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again.
+- 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

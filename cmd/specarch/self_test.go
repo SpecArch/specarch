@@ -77,6 +77,8 @@ var firstArguments = map[string][]string{
 	"decide":   {"Q-1"},
 	"check":    {"no-such-specification"},
 	"diff":     {"no-such-old", "no-such-new"},
+	// skill with --check reads its folder and writes nothing.
+	"skill": {"--check"},
 }
 
 // refusesOption says whether a command's standard error refuses an option
@@ -129,6 +131,8 @@ var commandFiles = map[string][]string{
 	"problems.go": {"document"},
 	"site.go":     {"document"},
 	"self.go":     {"help", "guide", "capabilities"},
+	"mcp.go":      {"mcp"},
+	"skill.go":    {"skill"},
 	"main.go":     {"validate", "version"},
 	"json.go":     {},
 }
@@ -457,6 +461,7 @@ func TestDryRunWritesNothing(t *testing.T) {
 		{name: "generate openapi", from: "../../spec/tests/generate-openapi", plugins: []string{"openapi"}, args: []string{"generate", "openapi", "--unapproved", "project"}},
 		{name: "generate sql", from: "../../spec/tests/generate-sql", plugins: []string{"sql"}, args: []string{"generate", "sql", "--unapproved", "project"}},
 		{name: "facts", from: "../../spec/tests/facts-javascript", git: true, args: []string{"facts", "javascript", "repo/app", "repo/facts.json"}},
+		{name: "skill", from: "../../spec/tests/init-writes-specification", args: []string{"skill", "--out", "skills"}},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

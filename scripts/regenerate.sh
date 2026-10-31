@@ -2,7 +2,7 @@
 # Writes every generated file landing-check.sh checks, from the repository
 # root: the fragment schemas and hint lines, the documents of SpecArch's own
 # specification, of examples/library-lending, of examples/lending-desk and
-# of examples/release-watcher,
+# of examples/release-watcher, the agent skill in skills/specarch,
 # the library lending example's generated code and data, and the reading
 # room's screens, generated across the estate in examples/estate. To settle a
 # conflict in one of these files, take either side, then run this script on
@@ -58,5 +58,6 @@ step "the fragment schemas and hint lines (go run ./tools/fragment-schemas)" go 
 step "build specarch and the specarch-gen-* plug-ins into .bin" build_tools
 step "the generated documents" documents
 step "the library lending example's generated code and data, and the reading room's screens" generated
+step "the agent skill in skills/specarch (specarch skill)" "$bin/specarch" skill --out skills
 
 echo "regenerate: done; run sh scripts/landing-check.sh next"

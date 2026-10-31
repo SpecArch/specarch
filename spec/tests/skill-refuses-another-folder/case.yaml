@@ -1,0 +1,5 @@
+arguments: [skill, --out, skills]
+exitStatus: 2
+standardOutput: ""
+standardError: |
+  specarch skill: skills/specarch holds files but no SKILL.md, so it is not a skill specarch skill wrote, and nothing is written there; give --out a folder whose specarch folder is the skill's or does not exist

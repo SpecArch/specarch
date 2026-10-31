@@ -1,0 +1,321 @@
+# specarch document
+
+```
+specarch document <target> [--out <out>] [--check] [--audience <audience>] [--dry-run] <paths>...
+```
+
+Write a document from a specification.
+
+Validates its input first and prints the errors of an invalid
+specification, then writes its documents all the same, from what
+could be read, and exits 1 (ADR-065). Writes the document into the folder the target
+owns, and nothing outside it, except the regions between
+`specarch:generate` markers in the hand-written `specarch.md` beside
+the root file. Every generated file starts with a header naming the
+root file, its `info.version`, each implementation file, and the
+meta-model version. With `--check` nothing is written: the output is
+made in memory and compared with what is on disk. A specification
+whose implementation files name no output folder for the target,
+with no `--out`, has no such document: it gets a warning at the
+targets of its first implementation file and is passed over, and the
+others are written or checked (ADR-073).
+
+The techspec target writes `techspec.md`: an arc42 technical
+specification of the whole specification, with chapters only for
+what it holds. Diagrams are Mermaid: an entity diagram, a state
+diagram for each entity with a state field, a sequence diagram for
+each operation and command, a flowchart of the pages, a flowchart
+of each workflow's steps with each deadline on the edge it takes,
+beside the pages that ask for it, its inbox and the messages it
+publishes when it ends, and a permissions table. Chapter 2 comes from the constraints and
+assumptions, chapter 6 gives each operation what it takes and what
+it answers: its parameters, the path's and its own, its own
+replacing one of the same name and place, each with where it goes,
+its type, whether it is required, its limits and its description;
+its request body field by field, a nested field by its path and a
+list item's field after []; and each response with its status, its
+meaning and its body, the problem document it answers with, and a
+body declared in place field by field. A reference to an entity, a
+view or a schema links to its heading and one to an enum to the
+enums table; when two headings share a name, the later one's link
+ends in -1, as a Markdown renderer numbers it. An operation that
+takes no parameters, no request body or no response says so, names
+the open questions that block what it leaves out, on the operation
+or on its path, and writes each below in full with who decides it;
+a question that blocks the whole operation or its whole path is
+named there too, and written after the responses of an operation
+that declares everything. When the design declares handshakes,
+chapter 6 lists them first, each with its key agreement, signature,
+cipher, establishing operation, lifetime and envelopes, and what a
+client does for it in five steps; an operation that names one says
+it travels in that envelope, its sequence diagram notes it and marks
+the request and the answer sealed, and one that streams a file says
+so with the media type and the bound in place of a field table, its
+success response reading the file, streamed (ADR-145, ADR-146). Chapter 7 comes from
+the deployment and commissioning stages and from each
+implementation file, chapter 12 from the glossary, and
+chapter 13 from the needs and requirements, with the traceability
+matrix of what satisfies and what verifies each requirement, and its
+harm once a requirement names one. A marker
+names what goes in its region: `erDiagram`, `stateDiagram <Entity>`,
+`sequenceDiagram <operationId or command>`, `flowchart pages` or
+`permissions`.
+
+Given an estate file, the techspec target also writes `estate.md`,
+the estate's module map, into `--out` or else the `docs` folder
+beside the estate file, since an estate has no implementation file
+to name one: the modules with the version the estate holds each at
+and where its specification is, the estate's problems at their
+entries, and the references between the modules through their
+dependencies as a Mermaid flowchart and a table, a specification a
+dependency names that the estate does not list drawn apart. The
+modules' own documents are written as when each is named (ADR-113).
+
+The requirements target writes `requirements.md`: the stakeholders,
+the needs with the requirements that refine them, and each
+requirement with its attributes and acceptance criteria. The
+testplan target writes `testplan.md`: when an implementation file
+declares the tests target, how many of the tests that apply that
+target writes with their bodies, a test of an
+operation, a command or a page that gives input or expect, and how
+many with a body written by hand, counted by kind of subject in its
+first section (ADR-213); the levels, how each
+implementation's suites run the tests, and every design test as a
+test case, grouped by subject, then each state machine with its
+state diagram and its paths from an initial to a terminal state, each
+with the tests that walk it, then the derived cases left out: each
+case of rank other that no test covers, with its subject and the
+reason. The traceability target writes `traceability.md`: needs to
+requirements, requirements to what satisfies and verifies them, with
+their harm once a requirement names one, and the gaps the validator
+warns about.
+The deployment target writes `deployment.md`: the environments and
+the path a release takes, the settings, each installation of each
+implementation with its servers and setting values (a secret only
+named), release, rollback and the migrations. The commissioning
+target writes `commissioning.md`: the checks by environment in the
+order a release reaches them, each step with a Result column, and
+the sign-off sheet.
+
+The handover target writes `handover.md` for the engineers of the
+customer who runs an environment (`runBy: customer`), who know
+nothing of SpecArch (ADR-129): what they receive and how the source
+reaches them, what stays whose responsibility, how each
+implementation that installs such an environment builds a release
+(its toolchain, the build's steps and task, its base images by
+digest, how a build is compared with the vendor's, and the task
+that writes the software bill of materials), the licences of its
+dependencies, what the hosts must provide (a deployment's
+infrastructure, and its links, ports and network diagram when it
+has links or listens, with or without an infrastructure), every
+setting with its type and where a secret's value comes from, and
+the values the vendor gives, the migrations in the order they are
+applied, how a release is installed (with the tool and files the
+vendor installs with) and rolled back, how data is backed up and
+restored, what is watched in that environment and how the vendor
+watches it, the checks to run after installing, each step with a
+Result column, the acceptance tests, and the sign-off sheet. A
+specification whose implementation files name an output folder for
+it but that has no handover is passed over with a warning of rule
+handover, as one with no output folder is.
+
+The questions target writes `questions.md`: the open questions by
+stage with what each blocks and who decides, the references into
+other specifications that are not resolved, and which outputs are
+ready, drafts or waiting; the same text `gaps` prints. Every
+specification given in one run is read before any is checked, so a
+reference into another one given with it resolves there. When the
+specification has errors, it lists them after its summary as
+problem lines; a document whose sections hold an error is a draft,
+and code generation waits on every error. Every other
+document shows an element's origin as an Origin line and the open
+questions about it as Open question paragraphs, and starts with a
+Draft notice when a must or should question blocks what it reads.
+It marks each error and warning with a Problem paragraph,
+`**Problem on <name>:** <severity>: <rule>: <message> [<id>]`, at the
+deepest element it shows that holds the problem's pointer, a
+problem in an implementation file at the deepest entry of that file
+it shows, such as a deployment in the technical specification, the
+deployment guide and the handover, and
+starts with a Problems notice when the specification has an error
+or the document a warning: that the specification is invalid, how
+many errors and warnings concern the document (those in the
+sections it reads, or at an element it shows), and after it the
+Problem paragraph of each one it shows no element for.
+In the technical specification, a workflow's trigger, subject, an
+approval's permission and deadline and a step's operation that a
+question holds open are written as what they are, the question that
+holds them, and the name it gives, in the text and in the
+flowchart.
+
+The comparison target writes `comparison.md`, the old documents
+against the refined specification (ADR-157): the elements stated
+by a source, under each source by clause with what it says, as
+kept; the inferred elements with what they were concluded from, as
+clarified; the decided elements with their decision and its reason,
+as corrected when the element cites a source other than an
+interview and added otherwise; for every source that lists its
+clauses, the clauses no element cites, as dropped, with those only
+a question cites named as asked about; then the elements without an
+origin. The decisions and the questions are not compared. It is a
+refinement document, like questions and problems: never a draft,
+not in the outputs table, and not among the documents an approval
+is of.
+
+The changes and releases targets are made from the records beside the
+specification, and their header names the records folder too. The
+changes target writes `changes.md`: the change requests and the
+defects, open ones first, each with its status, what it affects or
+violates and its decision. The releases target writes `releases.md`:
+the releases newest first, each with what it includes grouped as
+added, changed, removed and fixed. Neither is ever a draft.
+
+The problems target writes `problems.txt` and `problems.sarif`
+(ADR-065), for an invalid specification too. `problems.txt` starts
+with a line naming the specification, its version and the counts of
+errors, warnings and open questions by priority, and a line naming
+the root file it was made from; then one line per problem,
+`file:line:column: severity: pointer: rule: message [id]`, sorted by
+file, line, column, pointer, rule and id, each followed by its notes,
+`file:line:column: note: text`. The problems are validate's errors
+and warnings and the open questions; a question is at its entry in
+the questions file, its notes are each source it cites and each
+entry it blocks, with the keys missing there, and the diagnostics it
+covers are not problems of their own. An error's or a warning's
+note is each citation of the nearest element above its entry that
+cites. Paths are relative to the folder the files are written in.
+`problems.sarif` is one SARIF 2.1.0 run of the same problems, in the
+same order, with `columnKind` unicodeCodePoints, locations relative
+to the base id PROBLEMSDIR, the id as the partial fingerprint
+`specarchId/v1`, the pointer as a logical location, the notes as
+related locations, a question's fields as properties (the question
+as one paragraph, its priority, kind, certainty, decider, options,
+blocked entries and Insight), the specification's folder relative
+to the log, its title and its version as the run's properties, and
+the rules used listed under the tool; the property keys are the
+agent queue's interface and stay (ADR-156). A specification that cannot be read at
+all, such as one whose root file has no entry that parses, gets its
+problems too, and a file that does not parse is read as far as its
+entries parse (ADR-080).
+
+The problems target also marks each problem in the YAML files of the
+specification that it read, hand-written or not (ADR-066): a comment
+line `# specarch-problem: severity: rule: message [id]` above the
+line where the entry starts in block style (the key of its pair or
+the `-` of its item; for an entry inside a flow collection or a
+block scalar, the block-style entry that holds it), with the entry's
+indentation, the marks of one entry in the order of the problems
+file. A problem about a file as a whole is marked above its first
+line that is not blank or a comment. A run takes out every line
+that starts with `# specarch-problem:` after its indentation and
+writes the marks of the problems it finds, editing the text, so a
+fixed problem loses its mark and no other line changes. The
+problems files give the lines of the marked files; since a message
+can name a line, the marks are written and the specification read
+again until the two agree, so a second run writes the same bytes.
+With `--check` the marked files are compared like any output.
+
+The html target writes `index.html`: the whole specification as one
+page, with its styles, script and diagrams inside it and a
+Content-Security-Policy that allows no request, so it opens from the
+disk and works offline (ADR-088). It starts with an overview: the
+title, version and description, the draft and approval notices, the
+count of errors, warnings and open questions, and what each section
+holds. Then every section, in life-cycle order: each element of a
+section of named elements as a card with its name and its pointer,
+each table of named entries as a table with a row per entry, and
+every mapping and list item inside with an id. The id of an element
+is its pointer in the URI fragment form of RFC 6901, every byte a
+fragment cannot hold percent-encoded, so `/paths/~1loans~1{loanId}`
+is `/paths/~1loans~1%7BloanId%7D`; a reader links to it with `#` and
+the id, and names the element by its pointer, shown beside its name. An element shows its Origin, Insight
+and Notes, and a value that names an element links to it. The data
+section starts with an SVG diagram of the entities, their fields and
+relations; the roles and permissions with which role grants which
+permission and, for each separation of duties, the roles never to be
+given to one person; the operations with a table of every HTTP
+operation and its permission; each workflow with its diagram as
+specarch-gen-bpmn draws it; each page with its screen as
+specarch-gen-ui writes it, without its scripts, from the first
+implementation file whose ui target is for the web in plain
+JavaScript, or a line saying why it has none; each requirement with
+what satisfies and verifies it, and the traceability matrix after the
+tests. The page ends with the problems in the order of the problems
+file, each with its line and notes and a link to the deepest element
+the page shows that holds its pointer, where a mark links back; an
+element an open question blocks says so, with a link to the
+question. A search box hides the elements that do not hold the text,
+and the page follows the system's light or dark colours, with a
+button to switch.
+
+In every document an element's why is an Insight and each citation
+a Note (ADR-015), and a document that cites sources ends with them.
+
+An element whose audience is internal is marked in every document:
+an Audience paragraph at its own heading or after the table that
+holds it, `(internal)` after its name in a traceability row, and
+its `audience` key on its card in the html page. With `--audience
+external` a document is written for everyone (ADR-119): every
+internal element is left out with what is inside it, and so are the
+satisfies, verifies and needs entries that name an internal
+requirement or need, an implementation file's mapping of an internal
+element and its satisfies entries naming an internal requirement,
+the open questions whose every pointer is at or under an internal
+element, and the errors, warnings and references at one; the summary says how many elements were left out in each
+section. It needs `--out`, since the folder the implementation files
+name holds the documents with every element, writes no region of
+`specarch.md`, and is refused for the problems target, whose files
+are for the people who fix the specification.
+
+A requirement another stakeholder owns (`ownedBy`) is held
+elsewhere: the traceability target lists it under Requirements held
+elsewhere with the stakeholder and the requirement that fulfils it,
+and out of the matrix and the gaps; the techspec names it after its
+traceability table, the requirements target among its attributes,
+and the html page in place of what satisfies and verifies it.
+
+## Arguments
+
+- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
+- `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
+
+## Options
+
+- `--out <out>`: The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree.
+- `--check`: Make the output in memory and fail when the files on disk differ. Writes nothing.
+- `--audience <audience>` (one of `external`): external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target.
+- `--dry-run`: Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check.
+
+## Reads
+
+- `{paths}`: The specifications and their implementation files.
+- `specarch.md`: The hand-written document beside each root file, when there is one.
+- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets.
+- `{out}`: The current output, with `--check`.
+
+## Writes
+
+- `{out}/<target>.md`: The document. Nothing is written with `--check`.
+- `{out}/index.html`: The page, for the html target. Nothing is written with `--check`.
+- `specarch.md`: Only the regions between markers. Nothing is written with `--check`.
+- `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`.
+- `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.
+- `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
+
+## Standard output
+
+The errors of an invalid specification and the errors of a
+marker, one line each; a warning for each specification with no
+output folder for the target, or, for the handover target, with no
+handover. With `--check`, one line per file that differs or is
+missing.
+
+## Standard error
+
+A usage message on a usage error, the reason a file cannot be read or written, for html the reason a workflow diagram or screen preview could not be made, and a one-line count at the end.
+
+## Exit status
+
+- 0: written, or with `--check` the output is current.
+- 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs. Then: Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again.
+- 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

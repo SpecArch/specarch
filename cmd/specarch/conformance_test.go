@@ -25,6 +25,9 @@ type conformanceCase struct {
 	// StandardError, when the case has the key, is the exact standard
 	// error the run must print; a case without it does not check it.
 	StandardError *string `yaml:"standardError"`
+	// StandardInput, when the case has the key, is what the run reads on
+	// standard input, for specarch mcp; a case without it gives none.
+	StandardInput *string `yaml:"standardInput"`
 	// Plugins names the targets whose plug-in from this repository the
 	// case runs with, such as openapi for cmd/specarch-gen-openapi: each is
 	// built once and put on PATH.
@@ -229,7 +232,13 @@ func TestConformance(t *testing.T) {
 				t.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+gitDir)
 			}
 			var stdout, stderr bytes.Buffer
+			input := ""
+			if c.StandardInput != nil {
+				input = *c.StandardInput
+			}
+			standardInput = strings.NewReader(input)
 			status := run(c.Arguments, &stdout, &stderr)
+			standardInput = os.Stdin
 			t.Logf("standard error:\n%s", stderr.String())
 			if os.Getenv(recordVariable) != "" {
 				recordCase(t, caseDir, raw, status, stdout.String(), stderr.String(), inputs, readTree(t, work), c.Removed)

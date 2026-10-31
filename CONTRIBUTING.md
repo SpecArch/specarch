@@ -73,7 +73,9 @@ check stays the test before a change lands.
 own specification, `spec/tests/`: every test folder holds `test.yaml` (the
 design test), `case.yaml` with the arguments, the exit status and the exact
 output expected (standard error too, under `standardError`, in a case that
-records it; the Go build compares it), the input files of the case, and,
+records it; the Go build compares it), what the run reads on standard
+input under `standardInput`, for `specarch mcp` (a case without it gives
+none), the input files of the case, and,
 when the case writes files, an `expected/` folder with each file as it must be afterwards. A
 case that needs a generator plug-in carries it as an executable under
 `plugins/`, which the harness puts on PATH for that run; with no such

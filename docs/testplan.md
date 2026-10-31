@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 891 design tests, 440 golden and 451 red, about 26 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 899 design tests, 444 golden and 455 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 891 design tests, 440 golden and 451 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 887 |
+| system | 895 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3585,33 +3585,15 @@ Scenario: red; level: system; covers usage error, exit 2; verifies SA-96.
 - When: help is run with a topic that does not exist
 - Then: it prints nothing on standard output, names the topics on standard error, and exits 2
 
-### Command idioms diff
-
-#### idioms-diff
-
-Scenario: golden; level: system; verifies SA-32.
-
-- Given: the same specification, whose override replaces the Oracle rows of type-rendering's types part
-- When: idioms diff type-rendering is run
-- Then: it prints the override's file, the version it was copied from and the shipped version, then the shipped Oracle rendering and the override's, and exits 0
-
-#### idioms-diff-unknown
-
-Scenario: red; level: system; covers exit 2; verifies SA-32.
-
-- Given: a specification, and an idiom name SpecArch does not ship
-- When: idioms diff paginated-lists is run
-- Then: it says the idiom is not shipped and exits 2
-
-#### idioms-diff-usage-error
-
-Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
-
-- Given: an idiom's name and no folder
-- When: idioms diff type-rendering is run
-- Then: it prints how to use it and exits 2
-
 ### Command idioms
+
+#### idioms-after-dash
+
+Scenario: golden; level: system; verifies SA-32, SA-96.
+
+- Given: the specification of idioms-lists in a folder whose name starts with -
+- When: idioms is run with -- before the folder
+- Then: it reads the folder after -- as a folder, prints its implementation file with type-rendering overridden, as idioms-lists does, and exits 0
 
 #### idioms-lists
 
@@ -3636,6 +3618,40 @@ Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
 - Given: no folder
 - When: idioms is run without arguments
 - Then: it prints the usage and exits 2
+
+### Command idioms diff
+
+#### idioms-diff
+
+Scenario: golden; level: system; verifies SA-32.
+
+- Given: the same specification, whose override replaces the Oracle rows of type-rendering's types part
+- When: idioms diff type-rendering is run
+- Then: it prints the override's file, the version it was copied from and the shipped version, then the shipped Oracle rendering and the override's, and exits 0
+
+#### idioms-diff-after-dash
+
+Scenario: golden; level: system; verifies SA-32, SA-96.
+
+- Given: the specification of idioms-diff in a folder whose name starts with -
+- When: idioms diff is run with -- before the idiom's name and the folder
+- Then: it reads the idiom's name and the folder after --, prints the shipped rendering beside the override's, as idioms-diff does, and exits 0
+
+#### idioms-diff-unknown
+
+Scenario: red; level: system; covers exit 2; verifies SA-32.
+
+- Given: a specification, and an idiom name SpecArch does not ship
+- When: idioms diff paginated-lists is run
+- Then: it says the idiom is not shipped and exits 2
+
+#### idioms-diff-usage-error
+
+Scenario: red; level: system; covers exit 2, usage error; verifies SA-32.
+
+- Given: an idiom's name and no folder
+- When: idioms diff type-rendering is run
+- Then: it prints how to use it and exits 2
 
 ### Command init
 
@@ -3678,6 +3694,24 @@ Scenario: golden; level: system; verifies SA-108.
 - Given: a folder that does not exist
 - When: init is run on it with no option
 - Then: it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0
+
+### Command mcp
+
+#### mcp-serves-tools
+
+Scenario: golden; level: system; verifies SA-112.
+
+- Given: a specification that validates, and a client that sends initialize, the initialized notification, ping, a call of validate on the specification, a call with an input validate does not take, a call of a tool that is not listed, server/discover, and a line that is not JSON
+- When: mcp reads them on standard input
+- Then: it answers each request on its own line of standard output and the notification not at all: initialize with revision 2025-11-25, the tools capability and its name and version; ping with an empty result; the call of validate with the object validate --json prints, as structured content and as text, not marked as an error; the call with an input validate does not take as an error naming it, with nothing run; the unknown tool with error -32602; server/discover with -32601; the line that is not JSON with -32700; and exits 0 when standard input ends
+
+#### mcp-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-112.
+
+- Given: the program
+- When: mcp is run with an argument
+- Then: it reads nothing, prints how to use it and exits 2
 
 ### Command merge
 
@@ -4098,6 +4132,40 @@ Scenario: golden; level: system; verifies SA-74.
 - Given: a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage
 - When: model is run on it
 - Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0
+
+### Command skill
+
+#### skill-check-differs
+
+Scenario: red; level: system; covers exit 1; verifies SA-112.
+
+- Given: a skills folder holding an earlier release's SKILL.md and no references
+- When: skill is run on it with --out and --check
+- Then: it names SKILL.md as differing and each reference as missing, writes nothing, and exits 1
+
+#### skill-lists-what-it-writes
+
+Scenario: golden; level: system; verifies SA-112.
+
+- Given: a skills folder holding the skill an earlier release wrote, with the reference of a command this release does not have and a text file beside the references
+- When: skill is run on it with --out and --dry-run
+- Then: it lists SKILL.md and the reference of every command as files it would write, the reference no command has as one it would remove, and the text file not at all, writes nothing, and exits 0
+
+#### skill-refuses-another-folder
+
+Scenario: red; level: system; covers exit 2; verifies SA-112.
+
+- Given: a skills folder whose specarch folder holds files but no SKILL.md
+- When: skill is run on it with --out
+- Then: it writes nothing there, says the folder is not a skill skill wrote, and exits 2
+
+#### skill-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-112.
+
+- Given: the program
+- When: skill is run without --out
+- Then: it writes nothing, says --out is needed, prints how to use it and exits 2
 
 ### Command try
 
@@ -7229,7 +7297,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-506 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+510 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7616,6 +7684,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-96 | acceptance 5 | golden | SA-96 names no harm |
 | requirement SA-96 | acceptance 6 | golden | SA-96 names no harm |
 | requirement SA-96 | acceptance 7 | golden | SA-96 names no harm |
+| requirement SA-112 | acceptance 1 | golden | SA-112 names no harm |
+| requirement SA-112 | acceptance 2 | golden | SA-112 names no harm |
+| requirement SA-112 | acceptance 3 | golden | SA-112 names no harm |
+| requirement SA-112 | acceptance 4 | golden | SA-112 names no harm |
 | requirement SA-101 | acceptance 1 | golden | SA-101 names no harm |
 | requirement SA-101 | acceptance 2 | golden | SA-101 names no harm |
 | requirement SA-101 | acceptance 3 | golden | SA-101 names no harm |

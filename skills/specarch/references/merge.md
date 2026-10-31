@@ -1,0 +1,322 @@
+# specarch merge
+
+```
+specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run] <trees>...
+```
+
+Merge the partial specifications the readers wrote into one.
+
+Reads two or more partial specification trees, each written by
+`specarch extract` or by hand from documents, and writes one
+specification that holds every element of them, following
+`docs/from-sources.md`, section 3.2. Each tree is checked on its own
+first: a tree that does not track origin, that validate reports an
+error in, that holds implementation files or records, or that holds
+a test other than the drafts specarch derive writes for that tree is
+refused. A test is one of those drafts when its name and values are
+those of the draft derive writes for the tree without its tests; the
+problem marks above its entries do not count. The drafts are left
+out, since they are derived from one tree alone, and the derivation
+runs again into the merged specification, as extract runs it
+(ADR-055).
+
+- The same element in two trees (an entry of a section by its name,
+  an operation by its path and method, a field by its entity and
+  name) becomes one element with the citations of both. A key only
+  one tree writes is kept. A key the trees give different values is
+  left out, and a must question cites both and blocks it. A
+  field's `type` is kept instead, since a field is not read without
+  one (ADR-122): the union of the types where they differ only in
+  whether null is allowed, else the first tree's type, with the
+  other trees' keys that go with their types (a format, a width, a
+  pattern, the values, a default or an example, the items, the
+  properties) left out with them; the question says what was kept and names each key left
+  out, and a line names the type kept. A role's `permissions` are
+  joined grant by grant once every tree is in, on the permissions
+  the trees declare (ADR-127): a tree's list says nothing of a
+  permission the tree does not declare, so the merged list is the
+  first tree's, then what each later tree adds, with every tree's
+  citation, and a line names the trees whose grants add up. A
+  permission one tree grants that another tree, which has the
+  role, declares and does not grant is a disagreement: the list is
+  left out, and the must question names each such permission with
+  the trees that grant it and the trees that withhold it, and
+  blocks, as well, each permission the lists name that no merged
+  role grants, itself or through a permission it implies. A role a
+  printed and a parsed tree both give is compared below instead.
+  The merged specification always passes validate. An
+  entity's `required` is compared field by field: a field only one
+  tree has keeps what that tree says, and a field both have that
+  one requires and the other does not is left out of `required`,
+  with a must question on that field that blocks the entity's
+  `required`.
+- A position where one tree refers to a named schema, entity or
+  enum and another writes the shape in place is settled once every
+  tree is in (ADR-117). The named shape and the one written in place
+  are compared on what both say: the keys that say what a value is,
+  `required` and `enum` as sets, the items, and each property both
+  list, through a property that is a reference on one side. Where
+  nothing both say differs, the reference is kept and a line names
+  the trees that refer and the trees that write; where a key both
+  give differs, the key is left out and the must question above
+  names each difference; where only the properties listed differ,
+  the reference is kept and a should question at the position names
+  the properties each side lists and the other does not. A tree's
+  question at that position is answered by the trees that refer;
+  one below it follows the reference to the named entry, or moves
+  up to the position where the key is left out. An entity's field
+  left out so leaves the entity's `required` list too.
+- A name one tree gives to a schema and another to an entity or a
+  view, or one to a view and another to an entity, is kept in both
+  entries, each as its trees give it, since a schema, an entity and
+  a view are one namespace and the merge does not know whether the
+  shape is the record (ADR-132). One must question per such schema
+  or view asks whether the name is one element or two, with an
+  option that makes it the entity or the view it is named like,
+  where what refers to the one refers to the other, and an option
+  that gives it another name; its why names the trees that give the
+  name each way, it cites both entries, and it blocks the schema or
+  the view, where the validator reports the error it holds while
+  the question is open. A line names the question.
+- An entity's field holding a schema in columns is written out as
+  `specarch generate sql` writes it, every part's column and the
+  check that an optional value is wholly absent or has its required
+  parts, and compared with the code side's fields (ADR-077). Where
+  every part's column is there with the type, width and nullability
+  its part gives it, every check of the entity naming one of them is
+  such a presence check, and every presence check the field writes
+  is there, the columns, their place in `required` and those checks
+  are left out, the field is the code's too, and a line names them;
+  a key only the column gives is written into the part, and a part
+  that refers to an enum or a schema is compared on its nullability
+  only. A tree's question on a column or a check read back so, or on
+  a JSON column read as a schema, is left out with a line. Where only
+  some parts have a column, a column differs from its part, another
+  check names one, a presence check is missing, or the field is held
+  as json and has columns, nothing is joined and a must
+  question at the field names each difference. A field one tree
+  gives as a schema and another as an object is that schema with
+  storage json. Where no tree has a field holding a schema, and an
+  entity's code-side fields are every part's column of a schema
+  under one prefix, a should question at those fields asks whether
+  they are one value, a field named after the prefix, or fields of
+  their own.
+- An element is stated when a tree states it; it is inferred only
+  when every tree that has it infers it.
+- A tree whose sources are all code is on the code side; any other
+  tree is on the documents side. Where both sides are merged, an
+  element of a design section that only one side has is compared
+  with the other side when that side has elements in the same
+  section, or, for a field, the same entity. Only the code has it:
+  it is written inferred, with a why that starts "Undocumented, from
+  code." and names where, and a question asks the owner to confirm
+  it; a field, which holds no origin of its own, is written as the
+  code has it, and only the question says so. Only the documents have it: it is written as they state it,
+  and a question in `implementation/questions.yaml`, blocking
+  `implementation`, starts "Not built yet." and cites the documents
+  and the code that was read. Either question is must when the
+  element concerns security (a role, a permission, an operation, or
+  an entity or field that is personal or a credential) or when a
+  source it cites is marked `givenOutside`; otherwise it is should.
+- A requirement of the documents side whose statement gives one
+  number of days, such as "The loan period is 21 days.", is compared
+  with the check constraints of the code side that move a date by
+  exactly one number of whole days. When exactly one such check has
+  every word of the statement's subject in its name (the words
+  before is, are, shall, must, will or should, without the, a, an,
+  of, each and every), the check satisfies the requirement. The
+  words, the number words and the units of whole days, such as
+  days and weeks, are the vocabulary's of the language of the
+  source the requirement cites first (`docs/vocabularies.md`):
+  English when the source names none, the one SpecArch ships for
+  it, or the one given with `--vocabulary`; a language with none is
+  said once and its requirements are not compared. When the
+  numbers differ, the requirement's statement is left out and one
+  must question cites both and blocks it; the check keeps the
+  expression the code runs. No match, or more than one, changes
+  nothing (ADR-048).
+- A code source says how it was read: `reading: printed` for a list
+  the running system printed, such as a route table or the document
+  dxlib emits, `reading: parsed` for source read by a parser
+  (ADR-075). A tree whose code sources all say the same reading
+  has it. Where a printed and a parsed tree both have operations,
+  an operation only the parsed tree declares keeps what it states,
+  and a must question that starts "Declared, not
+  registered:" cites the line that declares it and names the
+  printed trees, since the running system does not list it: the
+  code is never reached, or only under a setting, or the printer
+  misses it. An operation only the printed trees have keeps its
+  citations, and a could question that starts "Registered by code
+  the reader does not follow:" cites them. Entities and roles are
+  compared the same way where a printed and a parsed tree both have
+  them: an entity only the source declares is a must question that
+  starts "Declared, not in the database:", one only the catalogue
+  holds a could question that starts "In the database, declared
+  nowhere the reader follows:"; a role only a seed grants is a must
+  question that starts "Seeded, not granted:", one only the
+  permission table holds a could question that starts "Granted,
+  seeded nowhere the reader follows:". A role both give grants what
+  the printed trees grant, since that is what the check reads, with
+  every tree's citation and no disagreement asked on its list; a
+  grant only a seed makes is a must question that starts "Seeded,
+  not granted:" blocking the role's permissions and the permission,
+  and one only the table holds a could question that starts
+  "Granted, seeded nowhere the reader follows:".
+- A tree whose roles grant permissions says how its roles go on the
+  wire: with info.roleNames when its reader found them in upper
+  snake case, and without it when it found them as named. Where two
+  such trees say different things, the merge leaves info.roleNames
+  out and asks one must question blocking roles, naming each way
+  and the trees that say it (ADR-112). A tree with no role that
+  grants a permission says nothing of it. info.wireNames is taken
+  from the tree that names it, as before: a tree whose reader saw
+  no wire leaves it out without saying the names go as written.
+- Every reader asks about a check that lets every request through
+  while a setting is empty in the same words, "The check <check>
+  runs only when the setting <setting> is present." (or "is true."
+  for a boolean setting). Where a printed
+  and a parsed tree both ask about one check, by its name, the merge
+  asks it once with every tree's citation, and names both settings
+  when they differ. One only the parsed tree asks, where a printed
+  tree holds roles, is a must question that adds that the
+  permission table does not declare the gate; one only the printed
+  tree asks, where a parsed tree holds operations, keeps its
+  question and adds a could question that starts "Declared, not
+  found:", since the check's code is outside the middlewares the
+  parser reads.
+- Every reader asks about a check skipped for one kind of caller in
+  the same words, "The check <check> is skipped for every
+  <kind>:" (ADR-114). The merge asks it once per check and kind,
+  blocking the permission of every operation any tree says the
+  check guards, with every tree's citation, and never leaves it out
+  as answered: a tree that gives an operation's permission does not
+  say whether that kind of caller is meant to reach it.
+- A parsed tree's must question that blocks one of its own
+  operations, entities or roles and nothing else asks whether the
+  running system registers it, holds it or grants it. A printed
+  tree that gives the element answers it, and it is left out with a
+  line naming that tree; where printed trees have elements of that
+  section and not this one, it is left out too, and the question of
+  the row above asks it with what they printed.
+- Sources of the same key are one source when they are the same in
+  everything but their clauses, which are joined, and their
+  reading: the merged source keeps a reading every tree gives it
+  and says none when one tree read it printed and another parsed. Code sources that
+  differ only in their edition are one repository read at different
+  commits: the merged edition is the newest of them, which each
+  other is an ancestor of, and every path a tree read must be
+  unchanged from the commit it was read at up to it. Sources of the
+  same key that differ otherwise are refused.
+- Where both sides have operations, a documents-side source none of
+  whose operations' paths the code side has, such as an OpenAPI file
+  left from a template, is reported as a placeholder, with the
+  number of its paths; its operations are compared as any other
+  (ADR-049).
+- A question of a tree whose every blocked key another tree gives
+  is left out, since that tree answers it and the element cites
+  both; a question that blocks a stage, an element or a key no tree
+  gives is kept (ADR-049). An element the asking tree writes only by
+  name, as an empty mapping, is one it does not give, so a tree that
+  gives it with content answers the question, such as a field a page
+  shows whose type the database gives (ADR-057).
+- A question whose every block is the section `gateways`, the
+  question a code reader asks at a fallback handler or a catch-all
+  route, is left out as answered when another tree declares a
+  gateway for it, as the tree `specarch extract gateway` writes
+  from a gateway table does: that tree says what the handler
+  forwards and by which claim, and the line names the trees and the
+  gateway (ADR-142, ADR-143). Each gateway answers one such question
+  over the whole merge, never one of its own tree, since one gateway
+  table describes one gateway in front of one tree: first the
+  questions at a fallback handler in every tree, then those at a
+  catch-all route, which may as well be a file server, in every
+  tree, each pass over the trees in the order given and in each
+  tree in the order it asks them, so a catch-all question never
+  takes a gateway from another tree's fallback question. A question no gateway is left for stays
+  open, with a line that says so, rather than being answered by a
+  gateway that has nothing to do with it.
+- A map one tree writes open, `additionalProperties: true`, with a
+  question of that tree blocking that key, and another tree writes
+  with a value type, takes the value type with no disagreement, in
+  whichever order the trees are given: the open map is unknown, not
+  a claim. The asking tree's question is left out as answered, with
+  a line naming the trees that give the type. A tree that writes
+  the map open and asks nothing says its values may be anything,
+  and two value types are two claims: either is a disagreement, as
+  `false` against `true` or a type is (ADR-126).
+- A question of a tree that names, under `names`, the operation a
+  key it blocks refers to, such as a workflow's trigger or a step's
+  operation, or a page's source or submit, is left out as joined
+  when another tree declares an operation of that name: the name is
+  written at the key, where the design schema puts it, and the line
+  names the trees that declare it. A name no tree declares keeps
+  its question.
+- A question of a tree whose every blocked key a question kept
+  before it blocks, with the same priority, is left out, since both
+  ask the same thing, such as a permission's description that the
+  router and the permissions reader each ask for (ADR-050). A
+  could question is never left out so: it holds nothing, and two
+  at one entry are two things a reader could not hold there.
+- Where the code side has operations, a permission a role grants
+  and no operation, command or page checks is reported with the
+  roles that grant it, since a grant nothing checks is either left
+  from code that was removed or guards something the routes do not
+  show (ADR-050).
+- The questions of the trees are numbered again, Q-1 upward, in the
+  order the trees are given, and the merge's own questions follow.
+  Every element keeps the file its first tree wrote it in.
+- The same trees in the same order give byte-identical output.
+
+## Arguments
+
+- `<trees>` (required; one or more): The partial specification trees to merge, each a folder holding specarch.yaml, in the order their questions are numbered.
+
+## Options
+
+- `--out <out>` (required): The folder the merged specification is written into; it becomes the specification's root folder.
+- `--vocabulary <vocabulary>` (given once per value): A vocabulary file (docs/vocabularies.md) for a language SpecArch ships none for, by which the requirements of the sources in that language are compared with the code's checks; repeated, one per language.
+- `--dry-run`: Merge and write nothing; print each file of --out it would write, the derived tests and the problem marks included, as would write <path>.
+
+## Reads
+
+- `{trees}`: The partial specification trees.
+
+## Writes
+
+- `{out}/`: The merged specification, each problem validate finds in it and each open question marked above its entry with a `# specarch-problem:` line, as document problems marks a fragment (ADR-066); the marks of the trees read are not carried over.
+
+## Standard output
+
+One line per tree naming its title, its side, its reading where it
+has one, and what it holds; one line per
+source joined from several trees, naming the edition taken; one line
+per role whose grants several trees add up, naming the trees; one line
+counting the elements written and those found in more than one
+tree; one line per position where a reference and a shape written
+in place meet, saying whether the reference is kept or the key left
+out; one line per source whose language has no vocabulary, saying
+its requirements' days are not compared; one line per field read back from its columns, and one per
+question that what was read back answers; one line per requirement joined to a check that gives the
+same number of days; one line per question of a tree that another
+tree answers or a question kept before it asks, and per parsed
+tree's question on whether the running system registers an
+operation, holds a table or grants a role that a printed tree
+answers or the merge asks again; one line per gate question joined
+or asked again, and per question on a bypassed check joined; one
+line per
+question whose name is joined to the operation another tree
+declares; one line per
+placeholder source; one line per permission granted and checked by
+nothing; one line per
+question the merge asked, naming what it blocks and why; and the
+lines of the derivation, as extract prints them.
+
+## Standard error
+
+A usage message on a usage error, and the reason a tree could not be merged.
+
+## Exit status
+
+- 0: the merged specification was written.
+- 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads. Then: Read the reason on standard error and settle the tree it names, running specarch validate on it, then run it again.
+- 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

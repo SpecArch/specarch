@@ -1,7 +1,8 @@
 Conventions of every command
 
---json, on any command, given anywhere before -- but as the value of an
-option that takes one (decide --answer --json answers "--json"), prints
+--json, on any command but mcp (whose standard output is JSON-RPC, so it
+refuses --json), given anywhere before -- but as the value of an option
+that takes one (decide --answer --json answers "--json"), prints
 one JSON object on standard output, key specarchOutput, with the command,
 the exit status and what it means, the problem lines as fields (file,
 line, column, severity, path, rule, message, id), the other lines, and the
@@ -12,9 +13,9 @@ with a stable code (usage, read, write, plugin, failed), the message and a
 remedy. Nothing else is printed on either.
 
 --dry-run, on every command that writes (approve, decide, derive,
-document, extract, facts, generate, merge, upgrade), lists each file it
-would write or remove, as would write <path> or would remove <path>
-(upgrade lists each edit), and writes nothing.
+document, extract, facts, generate, init, merge, skill, upgrade), lists
+each file it would write or remove, as would write <path> or would remove
+<path> (upgrade lists each edit), and writes nothing.
 
 Exit status: 0 done; 1 the command ran and found what it reports
 (errors, differences, open questions, a refusal); 2 a usage error, a path
@@ -26,6 +27,10 @@ needs a person is a command that person runs (decide, approve). No colour
 or terminal codes are printed, so NO_COLOR has nothing to turn off.
 
 Arguments after -- are paths, even when they start with -.
+
+For an agent's client: specarch mcp serves every command as a tool of the
+Model Context Protocol, and specarch skill writes an agent skill; specarch
+help agents says how to set up each.
 
 A generated file's first lines say which command made it and from which
 specification; change the specification, never the generated file. Each

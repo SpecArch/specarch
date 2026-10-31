@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"regexp"
 	"slices"
@@ -166,7 +167,12 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 	var triedOperation *validate.TriedOperation
 	var next []generate.Next
 	var status int
-	if len(args) > 0 && args[0] == "try" {
+	if commandName(args) == "mcp" {
+		// mcp's standard output is its JSON-RPC answers; one object around
+		// them would be no answer a client reads.
+		status = 2
+		fmt.Fprintf(&errText, "specarch mcp takes no --json: it writes JSON-RPC 2.0 on standard output itself; run specarch mcp alone\n\n%s", usage)
+	} else if len(args) > 0 && args[0] == "try" {
 		status = tryInto(args[1:], &out, &errText, &tried, &triedOperation)
 	} else if len(args) > 0 && args[0] == "gaps" {
 		status = gapsInto(args[1:], &out, &errText, &next)

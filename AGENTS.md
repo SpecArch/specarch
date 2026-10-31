@@ -151,8 +151,9 @@ in YAML, lists every problem in it, and writes documents and code from it.
 
 ## Conventions
 
-- --json, on any command, given anywhere before -- but as the value of an
-  option that takes one, prints one JSON object on standard output (key
+- --json, on any command but mcp, whose standard output is JSON-RPC and
+  which refuses it, given anywhere before -- but as the value of an option
+  that takes one, prints one JSON object on standard output (key
   specarchOutput; model and capabilities print their own, specarchModel and
   specarchCapabilities, on exit 0) and, on exit 2, one error object on
   standard error (key specarchError, a stable code), and nothing else on
@@ -166,6 +167,11 @@ in YAML, lists every problem in it, and writes documents and code from it.
   differences, open questions), 2 a usage or read error or a failed plug-in;
   each command's own exit codes and remedies are in its tool entry.
 - Arguments after -- are paths, even when they start with -.
+- For an agent's client: `specarch mcp` serves every command as a tool of
+  the Model Context Protocol over standard input and output, the tools
+  `capabilities --json` lists, each call run with --json; `specarch skill
+  --out <folder>` writes `<folder>/specarch`, an Agent Skills folder holding
+  this guide and each command's reference, to write again after an upgrade.
 
 Error codes of --json:
 
@@ -346,6 +352,12 @@ Error codes of --json:
   exit 0: the specification was written, or with --dry-run would be
   exit 2: usage error, a folder that already holds specarch.yaml, or a path
   that could not be written
+- `specarch mcp`
+  Serve every command as a tool of the Model Context Protocol, over standard
+  input and output.
+  exit 0: standard input ended
+  exit 2: usage error, --json given, or standard input or output that could
+  not be read or written
 - `specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run] <trees>...`
   Merge the partial specifications the readers wrote into one.
   exit 0: the merged specification was written
@@ -361,6 +373,13 @@ Error codes of --json:
   exit 0: printed
   exit 2: usage error, a path could not be read, or a folder holds no
   specification, no implementation file and no estate
+- `specarch skill --out <out> [--check] [--dry-run]`
+  Write an agent skill for SpecArch, in the Agent Skills format, from the
+  program's own command definitions.
+  exit 0: written, or with --check the skill on disk is current
+  exit 1: with --check, a file differs, is missing or is not the skill's
+  exit 2: usage error, a folder specarch under --out that this command did
+  not write, or a file that could not be read or written
 - `specarch try <name> <folder> [--example <example>] [--inputs <inputs>] [--file <file>]`
   Evaluate an algorithm, or the mappings of an operation's calls, on their
   worked examples and print each step.

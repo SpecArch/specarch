@@ -1,0 +1,113 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-214:
+    title: specarch mcp serves the commands as MCP tools over stdio, and specarch skill writes an Agent Skills folder, both from the command definitions
+    status: proposed
+    date: "2026-11-01"
+    context: |
+      SpecArch already describes itself to a program: capabilities --json
+      is a tool listing shaped as the Model Context Protocol's (ADR-187),
+      every command takes --json and --dry-run, and guide --agent prints
+      the order of work. An agent still has to be told that the program
+      exists before it uses any of that. A comparison with Spec Kit, which
+      reaches many coding agents by installing its commands and skills
+      into each agent's own folder, showed the gap: SpecArch was easy for
+      an agent to use and hard for it to find.
+
+      An agent's client finds tools in two ways: the MCP servers it is
+      configured to start, whose tools it lists and calls, and the skills
+      in its skills folder, whose descriptions it reads up front and whose
+      bodies it loads when one applies. The Agent Skills format, a folder
+      with SKILL.md and optional references/, is read by many agents; each
+      agent's own command format differs from the next.
+
+      MCP's revision 2025-11-25 starts a session with initialize; the
+      revision 2026-07-28 drops it for a stateless server/discover, and
+      tells a client that speaks both to try server/discover first and to
+      fall back to initialize when the server does not know it.
+    decision: |
+      `specarch mcp` is a server of MCP revision 2025-11-25 on the stdio
+      transport, written with the standard library alone: one JSON-RPC 2.0
+      message per line in and out, nothing else on standard output, no
+      batches. It answers initialize (also for 2025-06-18, 2025-03-26 and
+      2024-11-05, the revision asked for when it is one of them), ping,
+      tools/list and tools/call; every other method, server/discover among
+      them, is the error -32601.
+
+      tools/list is capabilities --json's tools, from the same listing
+      function, the mcp entry left out, cut to MCP's keys (name, title,
+      description, inputSchema, annotations); the program's own keys
+      (command, positional, the options in the order of the definition)
+      stay inside the server, which uses them to make the command line.
+      tools/call checks the inputs against the tool's schema for what a
+      command line cannot carry (an input the tool does not take, a
+      required one missing, a value of the wrong JSON type, an argument
+      starting with -), and answers such a call as a tool error with
+      isError, so the model reads the reason and can correct it, as
+      revision 2025-11-25 asks. The rest of the schema (a pattern, an enum,
+      a date) is left to the command, whose usage error names it with its
+      remedy. The command runs in the program, through the same --json
+      path as on the command line, in the order of its synopsis, since
+      generate, document and extract read their target before any
+      option. Exit status 0 and 1 are results; 2 is isError.
+
+      The input schemas name every enum's values: a command's argument
+      that refers to an enum of the design, as document's target refers to
+      DocumentTarget, is listed with the enum's values in place of the
+      reference, which no client could resolve (BUG-067).
+
+      `specarch skill --out <folder>` writes `<folder>/specarch` in the
+      Agent Skills format: SKILL.md with the name specarch and a
+      description of when to use it, the body the agent guide's text up to
+      the plug-ins found, and references/<command>.md, each command's
+      reference made from its definition. The repository holds the skill
+      the program writes, in `skills/specarch`, and a test fails when it
+      differs, as for AGENTS.md.
+    consequences: |
+      An agent's client configured with `specarch mcp` lists every command
+      with its typed inputs, the plug-ins on PATH included, and calls them;
+      an agent given the skill reads when to use SpecArch and how, and
+      opens a command's reference only when it needs it. Neither needs a
+      copy kept by hand: a command or an option added to a definition
+      reaches both, and the tests fail when the repository's skill falls
+      behind.
+
+      A client that speaks only revision 2026-07-28 cannot use the server
+      until server/discover is served; a client that speaks both falls
+      back to initialize. No command format of a particular agent is
+      written, and the skill does not name the plug-ins of the machine.
+      Calls are answered one at a time, in the order they come.
+    why: |
+      Two ways in, each the one an agent's client already reads, cover
+      the finding without a format per agent; Spec Kit keeps one per
+      agent, and every one is a copy to keep in step. The tool listing is
+      the one capabilities --json prints, so the server adds no listing
+      that could drift from the program; that is the rule ADR-187
+      protects. A server of the standard library adds no dependency to
+      scan and pin, and JSON-RPC over lines is a few hundred lines of
+      code. Revision 2025-11-25 is the one whose schema this server
+      follows and whose clients are deployed; serving 2026-07-28's
+      server/discover without its schema read would answer fields a
+      client may refuse, and its fall-back rule keeps those clients
+      working. Running the command in the program, rather than starting
+      the binary again, gives the same result as the command line with no
+      dependence on where the binary is, and a command never reads
+      standard input, so it cannot take the server's messages. The
+      inputs are checked only as far as a command line cannot carry them,
+      since a second validator of the patterns and enums would be one
+      more copy of the rules the commands hold; the schema the client
+      sees still names them all. The skill's body is the agent guide
+      itself, so the guide, AGENTS.md and the skill say one thing.
+    cites:
+      - source: spec-kit
+        clause: "Supported AI agents"
+        says: "Spec Kit installs its commands for each supported coding agent, in the folder and format that agent reads."
+      - source: model-context-protocol
+        clause: "Server Features: Tools; Base Protocol: Transports, stdio"
+        says: "Tools are listed with tools/list and invoked with tools/call; on stdio the server reads JSON-RPC messages from standard input and writes them to standard output, delimited by newlines, and must not write anything to standard output that is not a valid MCP message. Input validation errors are reported as tool execution errors, with isError, so the model can correct them."
+      - source: json-rpc-2
+        says: "Error codes -32700 parse error, -32600 invalid request, -32601 method not found and -32602 invalid params; a notification has no id and is not answered."
+      - source: agent-skills
+        says: "A skill is a folder holding SKILL.md, with the front matter fields name and description, and optional references/ that the agent reads when it needs them."
+    satisfies: [SA-112, SA-96]
+    restsOn: [ADR-187]

@@ -1,0 +1,137 @@
+# specarch derive
+
+```
+specarch derive [--fill] [--dry-run] <paths>...
+```
+
+Write a draft test for every derived case no test covers, and with --fill add the fixture, input and expect the design fixes to each test that has none.
+
+Validates its input first and writes nothing from an invalid
+specification. In a 0.2 file the errors for a test it would write
+(`test_case_missing`, `test_golden_missing`) are what it is run to
+settle, so they do not stop it; any other error does. Then, for every subject without a golden test, writes
+its success test, and for every chosen derived case no test covers,
+writes a test: a folder `tests/<name>/test.yaml` named as the
+validator suggests, with the subject, the scenario, the level,
+`covers`, `given`, `when` and `then` as the derivation words them,
+`verifies` from what the subject satisfies, `origin: inferred` and a
+`why` that says why the case was chosen, and the `fixture`, `input`
+and `expect` the design fixes, so that the tests target writes a
+test that runs rather than one whose body is written by hand
+(ADR-213). For an operation the design fixes the call when it
+declares the status the case answers: the success status, 403 for
+a denied case, 404 for a not-found case, 401 for a case denied when
+not signed in, and 400, or 422 when it has no 400, for a missing
+field or a value of the wrong form or outside a limit. The call is
+then a `caller` that holds the permission, or for a denied case the
+first role by name that does not; a value inside every limit of
+each required parameter and body field, its `example`, its
+`default`, its first `examples` item, its enum's first value or one
+made from its type and limits, a UUID made from the field's name
+for a `uuid`; the field the case is about left out, or set to the
+value on or past its limit or of the wrong form; and a record, by
+its one-field primary key, of each entity a body field's relation
+or a path parameter's name (`memberId` for `Member` keyed by `id`)
+names, but for the one a not-found case looks for. A value
+`test_data` would refuse, a malformed date or a value not of an
+enum, is not written, and neither is the call of a required field
+no value can be made for, an object, a list or a field with a
+`pattern`: such a case keeps the status and the caller alone, as
+do `response <status>`, `repeated with the same <key>` and `denied
+with expired session`, whose set-up the data cannot say. A command's
+success and `exit <code>` cases carry their exit. The cases read the identity module when it is given in the
+same run, in an estate or among the folders given (ADR-171): the
+through of its roles that names a permission of the specification,
+and the security events and trust domain it declares, so each
+refusal's `then` names its event and the event's identifier under
+the trust domain.
+
+A test is named after its subject, then its case: `create-loan-succeeds`.
+The subject's name is made a valid test name first, kebab-case with
+a letter first: a capital starts a word after a small letter or a
+digit, and in a run of capitals only the last starts one, when a
+small letter follows it, so operation `uploadJSON` gives
+`upload-json` and `listJSONUploads` gives `list-json-uploads`, as
+validate's suggested test names do in both builds; then small
+letters and digits, every run of other
+characters one hyphen, so requirement `AB-1.2` gives
+`ab-1-2-acceptance-1`, and a name that starts with no letter takes
+its subject key in front. The draft keeps the subject's own name in
+its keys and `verifies`. Where two subjects of one key have
+different names that give the same valid name, as `AB-1.2` and
+`AB-1_2` do, each after the first in document order takes a suffix,
+`-2`, `-3`, until its name is free; derive asks about it on standard
+error with `question:`, naming the subject that gave the name first,
+and the draft's `why` says it too. When subjects of different kinds give the same name, as page `sign-in`
+and operation `signIn` both give `sign-in`, each of them takes its
+subject key in front: `page-sign-in-succeeds` and
+`operation-sign-in-succeeds`. A draft whose name is still taken, by
+another draft or by a test of another subject in the folder of that
+name, is not written: derive names it, the subject that took the name
+and the reason on standard error, writes the other drafts and exits 1;
+a draft a question holds up is left out as before.
+
+What it writes is a draft the author completes, not a generated
+output: it has no header and no `--check`, and an existing test
+folder is never overwritten. A subject a must or should question
+holds up is left out and named on standard error, since a test of a
+half-defined element would be a placeholder. A question holds up a
+subject when it blocks its stage, its section, the element or a part
+of it; a block on an operation's method, or a part of one, holds up
+that operation alone, and a block on the path holds up every method
+of it. A specification that
+keeps its tests in the root file is refused: each derived test needs
+a folder of its own. Writing tests changes the specification, so an
+approval of it no longer holds.
+
+With `--fill` it also adds that data to each test that has none of
+`fixture`, `input` and `expect`, no `input/` or `expected/` folder
+and no `notApplicable`: the data of the case it covers, or of the
+success when a golden test covers none. A test of several cases is
+filled when one case's data holds what the others give, as `not
+found memberId` holds `response 404`. It is left as it is and named
+on standard error with the reason when its cases draft different
+data, when one of them drafts nothing, or when one keeps its status
+alone and another case's data differs: the data of the others would
+leave that case unchecked. The reason names why such a case keeps
+its status alone: the value it is about is not one its field takes,
+derive makes no such value (a text not matching a pattern, a list's
+number of items), derive can make no value for a required field,
+derive finds no record the field names, or no role holds the
+permission. A case that keeps its status alone is held only by the same data, so
+`missing code` and `code not matching its pattern`, both keeping
+400 alone, fill one test. The lines go at the
+end of the test's file, and nothing else in it changes: the author
+reads them against the test's `given`, `when` and `then`, which the
+data cannot read. Each test filled is printed as a draft is.
+
+## Arguments
+
+- `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
+
+## Options
+
+- `--fill`: Also add the fixture, input and expect the design fixes to each test that has none of them.
+- `--dry-run`: Write nothing; print each draft test it would write, as would write <path>.
+
+## Reads
+
+- `{paths}`: The specifications.
+
+## Writes
+
+- `tests/<name>/test.yaml under each specification's folder`: One draft test per derived case no test covers, each problem in it marked above its entry with a `# specarch-problem:` line (ADR-066); with --fill, the fixture, input and expect added at the end of each test that had none; no other file is touched.
+
+## Standard output
+
+The errors of an invalid specification, one line each; otherwise the path of each test written or filled, one per line.
+
+## Standard error
+
+A usage message on a usage error, the reason on an unreadable path, each test left out, kept, not written or not filled with the reason, a question for each test whose name took a suffix, and the count written and filled.
+
+## Exit status
+
+- 0: the tests were written, or there was nothing to write.
+- 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject. Then: Run specarch validate and settle the errors it prints, or rename the draft it names, then run it again.
+- 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file. Then: Read the reason on standard error; move tests kept in the root file into the tests stage's folder, or correct the command line or the path it names, and run it again.

@@ -457,4 +457,22 @@ sources:
     title: Spec Kit
     author: GitHub
     url: https://github.com/github/spec-kit
-    description: An open-source toolkit for specification-driven development (MIT licence); its init command sets up a project in one step, and its clarify command asks one question at a time, each with a few options and a recommended one, ranked by impact and uncertainty, at most five per run.
+    description: An open-source toolkit for specification-driven development (MIT licence); its init command sets up a project in one step, and its clarify command asks one question at a time, each with a few options and a recommended one, ranked by impact and uncertainty, at most five per run; and it installs its commands and skills into the folder each of many coding agents reads.
+  model-context-protocol:
+    kind: standard
+    title: Model Context Protocol, specification
+    edition: "2025-11-25"
+    author: Model Context Protocol project
+    url: https://modelcontextprotocol.io/specification/2025-11-25
+  json-rpc-2:
+    kind: standard
+    title: JSON-RPC 2.0 Specification
+    edition: "2013"
+    author: JSON-RPC Working Group
+    url: https://www.jsonrpc.org/specification
+  agent-skills:
+    kind: document
+    title: Agent Skills specification
+    author: Agent Skills project
+    url: https://agentskills.io/specification
+    description: The format of an agent skill, a folder holding SKILL.md, whose YAML front matter gives the skill's name, the folder's own name in lower case with hyphens, and a description of what it does and when to use it, and whose Markdown body an agent reads when the skill applies, with references/ for files it reads only when needed.

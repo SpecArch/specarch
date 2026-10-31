@@ -63,11 +63,17 @@ standardOutput: |
         Print a shipped idiom's parts beside each override's.
     specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
         Write the smallest specification that validates into a new folder.
+    specarch mcp
+        Serve every command as a tool of the Model Context Protocol, over
+        standard input and output.
     specarch merge --out <out> [--vocabulary <vocabulary>]... [--dry-run]
       <trees>...
         Merge the partial specifications the readers wrote into one.
     specarch model <paths>...
         Print the specifications as one JSON document, for a program.
+    specarch skill --out <out> [--check] [--dry-run]
+        Write an agent skill for SpecArch, in the Agent Skills format, from
+        the program's own command definitions.
     specarch try <name> <folder> [--example <example>] [--inputs <inputs>]
       [--file <file>]
         Evaluate an algorithm, or the mappings of an operation's calls, on

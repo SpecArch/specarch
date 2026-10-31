@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: skill
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: the program
+when: skill is run without --out
+then: "it writes nothing, says --out is needed, prints how to use it and exits 2"
+verifies: [SA-112]

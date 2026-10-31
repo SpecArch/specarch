@@ -1,0 +1,8 @@
+specarchImplementation: "0.1"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  sql: { output: ../../../sql, dialect: oracle }
+idioms:
+  type-rendering: { override: idioms/type-rendering.specarch-idiom.yaml, why: The database runs with MAX_STRING_SIZE = EXTENDED. }

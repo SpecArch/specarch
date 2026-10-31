@@ -1,0 +1,32 @@
+Agents: the MCP server and the skill
+
+Two ways in for an agent, both made from the command definitions built
+into this program, so neither names a command or an option it lacks.
+
+specarch mcp is a server of the Model Context Protocol, revision
+2025-11-25, on the stdio transport. An agent's client starts it and lists
+its tools: every command, and generate once per target a plug-in on PATH
+writes, the entries of specarch capabilities --json. Most clients take a
+server as a command and its arguments, in their own settings file:
+
+    { "mcpServers": { "specarch": { "command": "specarch", "args": ["mcp"] } } }
+
+The client starts it in the folder the paths are relative to, usually the
+repository. A call runs the command with --json and answers with the
+object it prints; exit status 2 is marked as an error, 1 is a result (the
+command ran and found what it reports). An input the tool does not take,
+or an argument that starts with -, is refused with the reason before
+anything runs. Nothing but JSON-RPC is written on standard output.
+
+specarch skill --out <folder> writes <folder>/specarch, an agent skill in
+the Agent Skills format: SKILL.md, which says when to use SpecArch and
+holds the agent guide (specarch guide --agent), and references/, one file
+per command. Write it where the agent reads skills, such as .agents/skills
+in a repository or the skills folder the agent's own documentation names:
+
+    specarch skill --out .agents/skills
+    specarch skill --out .agents/skills --check    # in CI: exit 1 when stale
+
+Write it again after an upgrade; a reference of a command the release no
+longer has is removed. A folder named specarch there that this command did
+not write is refused.

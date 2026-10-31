@@ -23,15 +23,14 @@ func runIdioms(args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "diff" {
 		return runIdiomsDiff(args[1:], stdout, stderr)
 	}
+	args, msg := pathsAfterDash(args, "idioms")
+	if msg != "" {
+		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+		return 2
+	}
 	if len(args) == 0 {
 		fmt.Fprintf(stderr, "specarch idioms needs at least one folder\n\n%s", usage)
 		return 2
-	}
-	for _, a := range args {
-		if len(a) > 1 && a[0] == '-' {
-			fmt.Fprintf(stderr, "specarch idioms has no option %s\n\n%s", a, usage)
-			return 2
-		}
 	}
 	specs, status := loadSpecs(args, "idioms", stdout, stderr)
 	if status != 0 {
@@ -68,6 +67,11 @@ func runIdioms(args []string, stdout, stderr io.Writer) int {
 // named idiom, each part it replaces, stack by stack: the shipped
 // rendering, then the override's.
 func runIdiomsDiff(args []string, stdout, stderr io.Writer) int {
+	args, msg := pathsAfterDash(args, "idioms diff")
+	if msg != "" {
+		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+		return 2
+	}
 	if len(args) < 2 {
 		fmt.Fprintf(stderr, "specarch idioms diff needs an idiom's name and at least one folder\n\n%s", usage)
 		return 2
@@ -133,3 +137,20 @@ func yamlText(n *yaml.Node) string {
 }
 
 func oneLine(s string) string { return strings.Join(strings.Fields(s), " ") }
+
+// pathsAfterDash takes the arguments of a command that has no option: an
+// argument after -- is a path even when it starts with -, and one before
+// it that starts with - is refused (BUG-066).
+func pathsAfterDash(args []string, verb string) ([]string, string) {
+	var rest []string
+	for i, a := range args {
+		if a == "--" {
+			return append(rest, args[i+1:]...), ""
+		}
+		if len(a) > 1 && a[0] == '-' {
+			return nil, fmt.Sprintf("specarch %s has no option %s; to give a path whose name starts with -, write -- before it", verb, a)
+		}
+		rest = append(rest, a)
+	}
+	return rest, ""
+}

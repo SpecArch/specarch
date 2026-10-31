@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+commands:
+  skill:
+    summary: Write an agent skill for SpecArch, in the Agent Skills format, from the program's own command definitions
+    description: |
+      Writes the folder `{out}/specarch` in the Agent Skills format
+      (agentskills.io), which agents read from their skills folder:
+      `SKILL.md`, whose front matter names the skill and says when to use
+      it and whose body is the agent guide (`specarch guide --agent` up to
+      the plug-ins found) with a list of the references; and
+      `references/<command>.md`, one file per command, with its synopsis,
+      what it does, its arguments and options, what it reads, writes and
+      prints, and each exit status with its meaning and remedy. Everything
+      is made from the command definitions and the facts built into the
+      program, so the skill names exactly the commands and options this
+      release takes. The plug-ins found on PATH are left out, so the same
+      release writes the same skill on every machine; the skill says that
+      `specarch capabilities --json` lists them (ADR-214).
+
+      Put it where the agent reads skills, such as `.agents/skills` in a
+      repository or the skills folder the agent's own documentation names,
+      and write it again after an upgrade. A reference in `{out}/specarch/references` the skill does
+      not hold, a `.md` file, is removed, so a command a later release
+      drops leaves no reference behind; no other file is removed. A
+      folder `{out}/specarch` that holds files but no `SKILL.md` naming
+      the skill specarch is not one this command wrote, and is refused
+      with nothing written. With `--check` nothing is written: the skill
+      is made in memory and compared with what is on disk.
+    permission: public
+    options:
+      out:
+        description: The folder the skill's folder, specarch, is written in, such as .agents/skills.
+        required: true
+        schema: { type: string, minLength: 1 }
+      check:
+        description: Make the skill in memory and fail when the files on disk differ. Writes nothing.
+        schema: { type: boolean, default: false }
+      dry-run:
+        description: Write nothing; print would write <path> or would remove <path> for each file that would change. Not with --check.
+        schema: { type: boolean, default: false }
+    reads:
+      - { path: "{out}/specarch", description: "The skill on disk, to write only the files that change, to remove the files it no longer holds, and with --check to compare." }
+    writes:
+      - { path: "{out}/specarch/SKILL.md", description: "The skill: its name and when to use it, then the agent guide and the list of references. Nothing is written with --check." }
+      - { path: "{out}/specarch/references/<command>.md", description: "One command's reference, a command of two words joined by a hyphen. Nothing is written with --check." }
+    standardOutput: The paths written, or with --dry-run would write <path> and would remove <path>, or with --check one line per file that differs, is missing or is not the skill's.
+    standardError: A usage message on a usage error, the reason a file could not be read or written, and a one-line count at the end.
+    exitCodes:
+      "0": written, or with --check the skill on disk is current
+      "1": with --check, a file differs, is missing or is not the skill's
+      "2": usage error, a folder specarch under --out that this command did not write, or a file that could not be read or written
+    remedies:
+      "1": "Run specarch skill --out with the same folder and without --check to write the current skill, then run the check again."
+      "2": "Read the usage message or the reason on standard error, give --out a folder whose specarch folder is the skill's or does not exist, correct the path it names, and run it again."
+    satisfies: [SA-112]
+    why: |
+      An agent learns a tool from the skills it is given before it reads a
+      repository's instructions; a skill written by the program from its
+      own definitions cannot name a command or an option the release does
+      not have, and writing it again after an upgrade keeps it so. One
+      format that many agents read stands in for a set of commands per
+      agent, which would be one more copy per agent to keep in step.

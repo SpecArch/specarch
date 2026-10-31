@@ -1,0 +1,31 @@
+arguments: [skill, --out, skills, --dry-run]
+exitStatus: 0
+standardOutput: |
+  would write skills/specarch/SKILL.md
+  would write skills/specarch/references/approve.md
+  would write skills/specarch/references/capabilities.md
+  would write skills/specarch/references/check.md
+  would write skills/specarch/references/decide.md
+  would write skills/specarch/references/decision-rests.md
+  would write skills/specarch/references/decision-why.md
+  would write skills/specarch/references/derive.md
+  would write skills/specarch/references/diff.md
+  would write skills/specarch/references/document.md
+  would write skills/specarch/references/extract.md
+  would write skills/specarch/references/facts.md
+  would write skills/specarch/references/gaps.md
+  would write skills/specarch/references/generate.md
+  would write skills/specarch/references/guide.md
+  would write skills/specarch/references/help.md
+  would write skills/specarch/references/idioms.md
+  would write skills/specarch/references/idioms-diff.md
+  would write skills/specarch/references/init.md
+  would write skills/specarch/references/mcp.md
+  would write skills/specarch/references/merge.md
+  would write skills/specarch/references/model.md
+  would write skills/specarch/references/skill.md
+  would write skills/specarch/references/try.md
+  would write skills/specarch/references/upgrade.md
+  would write skills/specarch/references/validate.md
+  would write skills/specarch/references/version.md
+  would remove skills/specarch/references/publish.md

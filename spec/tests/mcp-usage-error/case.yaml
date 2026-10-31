@@ -1,0 +1,5 @@
+arguments: [mcp, project]
+standardInput: |
+  {"jsonrpc":"2.0","id":1,"method":"ping"}
+exitStatus: 2
+standardOutput: ""

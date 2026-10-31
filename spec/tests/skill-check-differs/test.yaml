@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: skill
+level: system
+scenario: red
+covers: [exit 1]
+given: "a skills folder holding an earlier release's SKILL.md and no references"
+when: "skill is run on it with --out and --check"
+then: "it names SKILL.md as differing and each reference as missing, writes nothing, and exits 1"
+verifies: [SA-112]

@@ -1,0 +1,30 @@
+arguments: [skill, --out, skills, --check]
+exitStatus: 1
+standardOutput: |
+  skills/specarch/SKILL.md: differs from what skill writes; run specarch skill --out skills without --check
+  skills/specarch/references/approve.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/capabilities.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/check.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/decide.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/decision-rests.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/decision-why.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/derive.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/diff.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/document.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/extract.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/facts.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/gaps.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/generate.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/guide.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/help.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/idioms.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/idioms-diff.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/init.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/mcp.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/merge.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/model.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/skill.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/try.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/upgrade.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/validate.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/version.md: missing; run specarch skill --out skills without --check

@@ -128,6 +128,19 @@ example); then a call of the `tests` target for a constraint and a
 transition, then the other subjects, through optional harness methods in
 the Go, Swift and Dart plug-ins (39 tests of the example).
 
+Agents find SpecArch in the two places their clients look: `specarch mcp`
+serves every command as a tool of the Model Context Protocol, revision
+2025-11-25, over standard input and output, its tools the entries of
+`capabilities --json`, each call run with `--json`; `specarch skill --out
+<folder>` writes an agent skill in the Agent Skills format, the agent guide
+and one reference per command, held for this release in `skills/specarch/`
+and checked by a test (ADR-214, SA-112, `spec/tests/mcp-*`,
+`spec/tests/skill-*`, `specarch help agents`): built on main, in no
+release yet. Spec Kit, which installs its commands for each coding agent
+it supports, showed the gap. Next: the stateless revision 2026-07-28 of
+the protocol (`server/discover`), once its schema is read; a client that
+speaks both falls back to `initialize` now.
+
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the

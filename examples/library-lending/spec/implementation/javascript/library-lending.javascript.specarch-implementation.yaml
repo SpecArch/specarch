@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-implementation-1.0.schema.json
+specarchImplementation: "1.0.0"
+
+info:
+  title: Library Lending's web screens with no build step, on Vue and htm
+  version: 0.1.0
+  description: |
+    The librarians' and members' web screens as ES2020 modules the browser
+    loads as written: no Node.js, no package manager and no build step, on
+    Vue 3's runtime-only build and htm, under a content security policy
+    with neither unsafe-eval nor unsafe-inline. It is a deliverable of its
+    own beside the service, so it has its own implementation file; the
+    vendored libraries, the loan form's hook and the Indonesian texts in
+    examples/library-lending/web-vue are written by hand, and the rest is
+    generated.
+
+implements:
+  file: ../../specarch.yaml
+  version: 0.1.0
+
+stack:
+  language: { name: JavaScript, version: ES2020 }
+
+libraries:
+  vue:
+    version: 3.5.43
+    licence: MIT
+    purpose: The runtime-only build that draws the screens, with no template compiler, loaded as the global Vue.
+    files: { vendor/vue.runtime.global.prod.js: sha384-Ck8okeSaHVDjh93NRPQvRjw03+9zcOufrj79l1HuuU0tIOQhfMZ939nU2zyaDs5m }
+  htm:
+    version: 3.1.1
+    licence: Apache-2.0
+    purpose: The tagged templates the screens write their markup in, bound to Vue's h, loaded as the global htm.
+    files: { vendor/htm.umd.js: sha384-toVdrLSMaw7Y55MowcKqkmFL/Ek6Sky62NOk0b5sDDZBu2wcoPyyQUt9unDVjXhL }
+
+targets:
+  ui:
+    output: ../../../web-vue
+    platform: web
+    framework: vue-htm
+    description: |
+      The menus, pages and actions as data files under config/, one data
+      file per page under pages/, the components once under screens/,
+      every call through api.call, index.html loading the vendored files
+      with their integrity, every text in strings.js in English and in
+      Indonesian from strings.id.json, which the project writes, the theme
+      as custom properties in theme.css, and a vendor manifest. The
+      browser calls the service on the page's own origin; the folder is
+      served as it is, with hash routes.
+    settings:
+      language: en
+      translations: [id]
+      vendor: [vue, htm]
+      tokens: { text: color.text, background: color.background, accent: color.accent, danger: color.danger, border: color.border, space: space.small, font: font.body }
+      session: { operation: getSession, signedIn: signedIn, permissions: permissions, roles: roles, signIn: sign-in }
+      hooks: { loan-form: [lentOn] }

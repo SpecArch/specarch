@@ -389,6 +389,10 @@ jobs:
           node-version: "26.10.0"
       - name: Derived tests
         run: node --test examples/library-lending/web-vue/tests
+      - name: The screens run on the vendored Vue and htm
+        # The smoke test mounts the generated application on a stand-in for
+        # the browser with the service stubbed, and opens each page kind.
+        run: node --test examples/library-lending/web-vue/smoke
       - name: Every generated file parses
         run: for f in $(find examples/library-lending/web-vue -name '*.js'); do node --check "$f" || exit 1; done
       - name: The vendored files match their integrity

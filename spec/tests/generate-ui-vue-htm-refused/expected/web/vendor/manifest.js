@@ -10,7 +10,7 @@ export const manifest = [
   {
     library: "htm",
     version: "3.1.1",
-    licence: "MIT",
+    licence: "Apache-2.0",
     file: "vendor/htm.umd.js",
     integrity: "sha384-Ha/rZ1SM6j6GFVMjNonV3LKPW11co4wy3H4IgiMFL/XrLLE68h1euLps89na4wD1",
     loaded: true,

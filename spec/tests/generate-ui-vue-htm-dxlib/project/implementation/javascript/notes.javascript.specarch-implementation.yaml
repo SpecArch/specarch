@@ -10,7 +10,7 @@ libraries:
     files: { vendor/vue.runtime.global.prod.js: sha384-wRUdzBb9rjxUOB/BX0Nvm1rGocQW6KpyyN7zTekdE+cKxpb0MwSmxzn04ePFtC+O }
   htm:
     version: 3.1.1
-    licence: MIT
+    licence: Apache-2.0
     purpose: The tagged templates the screens write their markup in.
     files: { vendor/htm.umd.js: sha384-Ha/rZ1SM6j6GFVMjNonV3LKPW11co4wy3H4IgiMFL/XrLLE68h1euLps89na4wD1 }
 targets:

@@ -204,10 +204,18 @@ bus has no place: a page's events are navigation through the router.
 `examples/library-lending/web-vue/` is the library lending example's
 screens on this stack, generated from
 `spec/implementation/javascript/library-lending.javascript.specarch-implementation.yaml`:
-Vue 3.5.43 and htm 3.1.1, both MIT, committed under `vendor/` with their
-licences beside them and their hashes in the implementation file. CI runs
-the derived tests with `node --test`, parses every generated file, and
-checks each vendored file against the manifest's integrity. The screens
+Vue 3.5.43 (MIT) and htm 3.1.1 (Apache-2.0), committed under `vendor/`
+with their licences beside them and their hashes in the implementation
+file; the project's own files beside the generated ones are the loan
+form's hook under `hooks/` and the Indonesian texts. CI runs the derived
+tests with `node --test`, parses every generated file, checks each
+vendored file against the manifest's integrity, and runs
+`web-vue/smoke`, which mounts the generated application on the vendored
+Vue and htm over a stand-in for the browser with the service stubbed and
+opens each page kind: the list with its sort, a row action's confirmation
+and reason, the view with a value's parts, a form that refuses an empty
+required field and then sends, the loan form's hook, a task page, the
+guard's refusal, a route with no page, and the language choice. The screens
 the generator is for are a private project's, outside this repository;
 nothing of it is here.
 

@@ -130,6 +130,13 @@ layout:
   internal/gensql:
     description: The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator, the scripts generator and specarch check, and Condition writes an expression over an entity's fields, such as a guard's precondition, as a check constraint is written.
     dependsOn: [internal/expr, internal/mark, internal/ownership, internal/typerows, internal/xref]
+  cmd/specarch-gen-seed:
+    description: The plug-in behind generate seed. Reads the request on standard input, answers seed.sql on standard output, and never touches the disk or a database.
+    implements: ["#/commands/generate"]
+    dependsOn: [internal/genseed]
+  internal/genseed:
+    description: "The development seed of a specification: made-up rows for the tables gensql renders, drawn from the entities with a SplitMix64 generator of its own from a fixed seed, so the file is the same bytes on every run; values from each field's type, format, bounds, enum, pattern and examples, keys and unique constraints that never repeat, check constraints evaluated on each row as the validator evaluates a fixture's, foreign keys pointing at rows written before, the tables in dependency order, each in the dialect's literals; a required field encrypted at rest is an error at the field."
+    dependsOn: [internal/expr, internal/gensql, internal/mark]
   cmd/specarch-gen-sqlc:
     description: The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk.
     implements: ["#/commands/generate"]

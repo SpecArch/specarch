@@ -50,7 +50,7 @@ build_specarch() {
 
 build_tools() {
 	build_specarch || return 1
-	for generator in sql sqlc openapi ui ui-typescript ui-vue-htm ui-swiftui bpmn register; do
+	for generator in sql seed sqlc openapi ui ui-typescript ui-vue-htm ui-swiftui bpmn register; do
 		go build -o "$bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || return 1
 	done
 }
@@ -79,7 +79,7 @@ documents_current() {
 # its picker reads the catalogue service's list. Neither is approved, hence
 # --unapproved.
 generated_current() {
-	for target in sql sqlc openapi ui bpmn; do
+	for target in sql seed sqlc openapi ui bpmn; do
 		PATH="$bin:$PATH" "$bin/specarch" generate $target --check --unapproved examples/library-lending || return 1
 	done
 	PATH="$bin:$PATH" "$bin/specarch" generate ui --check --unapproved --estate examples/estate/specarch-estate.yaml examples/estate/reading-room || return 1

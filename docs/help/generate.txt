@@ -22,9 +22,11 @@ from the specification, marks each entry it could not write at its place,
 and names what it never writes; the rest is written by hand. Keep code
 written by hand in files the target does not write: generate writes every
 file the plug-in answers (sqlc and scripts never write over a file they
-did not write). generate --check reads a file without the generated
-header as built by hand and says whether it matches the output but for
-the header. An element an implementation file marks ownedBy a
+did not write). seed writes seed.sql, made-up development rows for the
+tables sql writes, the same bytes on every run from the seed target's
+settings.rows and settings.seed. generate --check reads a file without
+the generated header as built by hand and says whether it matches the
+output but for the header. An element an implementation file marks ownedBy a
 stakeholder is generated nowhere.
 
 Documents are written by specarch document <target>, built into the

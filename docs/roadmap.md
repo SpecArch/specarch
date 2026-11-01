@@ -213,7 +213,11 @@ implementation file uses and compares an override with the shipped idiom.
    target cannot express fails generation rather than being dropped. Built,
    0.7.0: `specarch-gen-sqlc` writes the sqlc queries the design derives
    against those migrations, in PostgreSQL (ADR-123,
-   `spec/tests/generate-sqlc-queries`).
+   `spec/tests/generate-sqlc-queries`). Built: `specarch-gen-seed` writes
+   `seed.sql`, the development rows for those tables, drawn from the
+   entities with a fixed seed so the file is the same bytes on every run,
+   in the four dialects, with a required encrypted field refused at the
+   field (ADR-219, `spec/tests/generate-seed` and the cases beside it).
 4. UI page definitions for the target component library: one generator
    per library, emitting the project's own component usage so generated
    screens look like the hand-built ones. The default for the iPhone is
@@ -468,8 +472,10 @@ security events, with the schemes `generate openapi` writes; and in
 `extract go` a question for the callers of a route a client check or a
 signature check guards and for the claims where golang-jwt mints a token.
 Not planned until a project asks: interfaces beyond HTTP, messaging and the
-command line; sets and lists in the expression language; seed data per
-profile; more than one deliverable per specification.
+command line; sets and lists in the expression language; more than one
+deliverable per specification. Seed data is built for development rows
+(`specarch-gen-seed`, ADR-219); a seed per profile, a different set of
+rows per environment, waits for a project that asks.
 
 Built: meta-model 1.0.0, the first stable version (ADR-186,
 `docs/meta-model-1.0.0.md`): what it freezes and what a 1.x may add, the

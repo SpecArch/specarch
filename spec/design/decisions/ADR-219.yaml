@@ -1,0 +1,126 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-219:
+    title: A seed target of its own, specarch-gen-seed, writes one development seed file of made-up rows drawn from the entities with a fixed generator of its own, against the tables specarch-gen-sql writes, with a required encrypted field refused and the dialect's literals written by the plug-in
+    status: proposed
+    date: "2026-11-02"
+    context: |
+      A project specified in SpecArch, a Go service on a PostgreSQL
+      database with a browser application, keeps the development seed of
+      its main entity as SQL written by hand: a few dozen made-up records
+      developers run the application against. Every change to a field, an
+      enum value or a relation in the specification left that file
+      behind until someone noticed at run time, and nothing checked it.
+      specarch-gen-sql already renders the tables from the entities
+      through the type-rendering idiom (ADR-086), specarch-gen-sqlc reads
+      them back through gensql.Schema so a query never names a column the
+      migrations do not create (ADR-123), and the validator already
+      evaluates an entity's check constraints on a fixture's records
+      (test_data). The design holds, per field, the type, format, bounds,
+      enum, pattern and examples a made-up value must satisfy, and per
+      entity the keys, unique and check constraints and relations the
+      rows must satisfy together.
+    decision: |
+      A target of its own, seed, with the plug-in specarch-gen-seed, run
+      as specarch generate seed. It reads the tables through
+      gensql.ModelOf, which gives each column the field it was rendered
+      from and the values of its enum, so every table and column name,
+      every type and every key is the migration's. It writes one file,
+      seed.sql, with one INSERT per row, the tables in an order the
+      foreign keys allow, the count of each entity from the target's
+      settings.rows and ten otherwise, and every number drawn from
+      settings.seed, one by default, through a SplitMix64 generator
+      written in the plug-in, so the file is the same bytes on every run
+      and every platform and generate --check compares it as it compares
+      a migration. The dialect is the seed target's, the sql target's of
+      the same implementation file when it names none, and PostgreSQL
+      otherwise; two that differ are an error at the target. A value
+      follows its field: an integer, a number and a decimal inside the
+      bounds, at the precision and scale, ten thousand wide where the
+      design gives no maximum; text as the field's words and the row's
+      number within minLength and maxLength; a pattern through Go's own
+      regexp/syntax tree, each value matched back against the pattern; an
+      enum one of its values; a date, an instant, a time of day and a
+      duration in 2026, each written in the dialect's literal; an email,
+      a URI, a host name and an IP address in the ranges RFC 2606, RFC
+      5737 and RFC 3849 reserve for documentation; a field's examples as
+      the first rows' values. A key and a unique constraint count up with
+      the row where they can and are checked as tuples otherwise, a row
+      that repeats one or breaks a check constraint is drawn again, up to
+      a hundred times, and an entity no row of which passes is an error
+      at the entity. A foreign key points at a row written before it, an
+      optional one at NULL in one row of four, a relation to the entity
+      itself at an earlier row, a one-to-one relation at the row of the
+      same rank; a required relation to an entity that gets no rows, a
+      required relation the entity holds to itself, a cycle of required
+      relations and a one-to-one relation with too few rows across are
+      errors at the entry, and the entity gets no rows, which the file
+      says in a comment. A required field encrypted at rest is an error
+      at the field. An optional field is NULL in one row of four; a value
+      object kept in columns is present or absent as a whole, its
+      required parts set when present, by the same rule as the migration's
+      presence check; one kept as JSON, a list of value objects and a map
+      are JSON text, a list of scalars PostgreSQL's array; the audit
+      columns hold the first instant of 2026 plus the row's hours and the
+      actor seed, the soft-delete flag false, and a generated default is
+      written out so a child's key can name it. The target joins the
+      ones that read the specifications an estate gives, so a field typed
+      by another module's element is drawn as for the sql target.
+    consequences: |
+      A project's seed follows its specification: a field added, an enum
+      value renamed or a relation moved changes seed.sql on the next run,
+      and generate --check fails a commit that changed one without the
+      other. The rows load into exactly the tables the migrations build,
+      on the four dialects, since both come from one model. A record
+      whose field is encrypted at rest is not seeded by the file: the
+      entity is an error until the project seeds it through its service
+      or sets its rows to 0, and the entities that need its rows go with
+      it. The dialect's literal forms live in the plug-in, so the
+      type-rendering idiom keeps its version and no snapshot of a
+      migration changes. Nothing of the project the need was read from is
+      in this repository.
+    why: |
+      A target of its own rather than a part of generate sql: the
+      migrations are new files only, written once and never regenerated,
+      with a snapshot beside them (ADR-086), while a seed is rewritten
+      whole on every run and compared byte for byte; one plug-in with two
+      rules for its files would have to say which rule each file is
+      under. The tables come through gensql rather than being read from
+      the design again, for the reason sqlc's queries do (ADR-123): two
+      readers of one design disagree at the first idiom or value object.
+      The generator is written in the plug-in rather than taken from the
+      standard library because the file's promise is byte-identical
+      output, and a library's generator may change the stream it draws
+      from a seed between releases while an algorithm of a dozen fixed
+      lines cannot; SplitMix64 is public and its stream is specified by
+      its constants. The check constraints are evaluated on each row
+      rather than translated into value rules because an expression may
+      relate two fields in any way the subset allows, and drawing a row
+      and asking the evaluator is the one method that holds for every
+      expression the validator accepts; a hundred draws make a constraint
+      a tenth of random rows satisfy all but certain to be met, and one
+      no draw meets is said at the entity with what to do. A required
+      encrypted field is refused rather than written in clear or left
+      out: the ciphertext needs the key the engine encrypts with and the
+      hash its salt, both the service's and in no specification, and a
+      row missing a required column does not load; an optional one is
+      NULL, which loads and reads as absent. Addresses in the reserved
+      ranges and text that names the field and the row are chosen over a
+      list of made-up names because the request was data that looks like
+      no real person's, and a value that says what it is cannot be
+      mistaken for one. The dialect's literals are written by the plug-in
+      rather than added to the type-rendering idiom because a change to
+      that idiom's version is read by the migration differ against every
+      snapshot (gensql, diff), and this plug-in is the only writer of
+      literals; when a second one needs them they move to the idiom.
+    cites:
+      - source: rfc-2606
+        says: "example.com, example.net, example.org: reserved second-level domain names for use in documentation and examples."
+      - source: rfc-5737
+        says: "The blocks 192.0.2.0/24 (TEST-NET-1), 198.51.100.0/24 (TEST-NET-2), and 203.0.113.0/24 (TEST-NET-3) are provided for use in documentation."
+      - source: rfc-3849
+        says: "The prefix allocated for documentation purposes is 2001:DB8::/32."
+      - source: splitmix
+        says: "SplitMix64: the state advances by the golden gamma 0x9e3779b97f4a7c15, and the output is a 64-bit mix of the state."
+    satisfies: [SA-116]
+    restsOn: [ADR-086, ADR-123, ADR-184]

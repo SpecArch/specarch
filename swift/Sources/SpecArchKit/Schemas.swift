@@ -16753,7 +16753,7 @@ let implementationSchemaJSON = #"""
           "type": "string"
         },
         "dialect": {
-          "description": "The dialect the target writes, which is also a stack of the implementation file for its idioms: for the sql target a database dialect, postgresql by default; for the sqlc target the database the queries run on, whose engine sqlc reads them with, postgresql the only one written; for the openapi target dxlib, the document dxlib binds, when the service runs on dxlib. Without it the openapi target writes standard OpenAPI.",
+          "description": "The dialect the target writes, which is also a stack of the implementation file for its idioms: for the sql target a database dialect, postgresql by default; for the seed target the dialect its rows are written in, the sql target's of the same file when it names none, and the two must agree; for the sqlc target the database the queries run on, whose engine sqlc reads them with, postgresql the only one written; for the openapi target dxlib, the document dxlib binds, when the service runs on dxlib. Without it the openapi target writes standard OpenAPI.",
           "type": "string",
           "enum": [
             "postgresql",

@@ -1,0 +1,4 @@
+arguments: [generate, seed, --unapproved, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [seed]

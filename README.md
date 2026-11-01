@@ -212,11 +212,14 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has fourteen:
+Code targets are plug-ins on PATH. This repository has fifteen:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
-Server, Oracle or MariaDB, `specarch-gen-sqlc`, which `specarch generate
+Server, Oracle or MariaDB, `specarch-gen-seed`, which `specarch generate
+seed` runs to write a development seed for those tables, made-up rows
+drawn from the entities with a fixed seed so the file is the same on
+every run, `specarch-gen-sqlc`, which `specarch generate
 sqlc` runs to write the sqlc queries the design derives against those
 migrations, `specarch-gen-scripts`, which `specarch generate scripts` runs
 to write a guarded script for each data change the design guards, for
@@ -246,6 +249,7 @@ diagram, and the diagram as SVG. Install them at the same tag as
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-seed@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.4.0
@@ -441,7 +445,7 @@ it. Release 1.4.0 is the latest. The schemas, the tree layout and the seven stag
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the fourteen code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
+and the fifteen code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

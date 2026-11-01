@@ -577,9 +577,9 @@ func (g *gen) table(entity string, e map[string]any) table {
 		t.columns = append(t.columns, fc.lines...)
 		from := g.fieldOf(entity, f)
 		readOnly := obj0(obj0(obj0(g.originalEntities()[entity])["properties"])[from])["readOnly"] == true
-		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != "", GeneratedDefault: text(field["generatedDefault"]), Format: text(field["format"])})
+		t.schema = append(t.schema, Column{Name: fc.name, Type: fc.typ, Nullable: fc.nullable, Field: from, Key: inPK[f], ReadOnly: readOnly, Generated: text(field["generatedDefault"]) != "", GeneratedDefault: text(field["generatedDefault"]), Format: text(field["format"]), Definition: field, Values: g.enumValues(field)})
 		if fc.hash != "" {
-			t.schema = append(t.schema, Column{Name: fc.hash, Type: names(g.rendering("encrypted-column", "column", g.dialect))["hash"], Nullable: fc.nullable, Field: from, ReadOnly: readOnly, Role: RoleHash})
+			t.schema = append(t.schema, Column{Name: fc.hash, Type: names(g.rendering("encrypted-column", "column", g.dialect))["hash"], Nullable: fc.nullable, Field: from, ReadOnly: readOnly, Role: RoleHash, Definition: field})
 		}
 		if fc.check != "" {
 			t.constraints = append(t.constraints, fc.check)
@@ -603,14 +603,15 @@ func (g *gen) table(entity string, e map[string]any) table {
 			if strings.HasPrefix(a.key, "lastModified") {
 				role = RoleModified
 			}
-			t.schema = append(t.schema, Column{Name: name, Type: typ, Format: a.format, Role: role})
+			t.schema = append(t.schema, Column{Name: name, Type: typ, Format: a.format, Role: role, Definition: field})
 		}
 	}
 	if text(e["deletion"]) == "soft" {
 		name := names(g.rendering("soft-delete", "column", "any"))["deleted"]
-		typ, check, _ := g.render(map[string]any{"type": "boolean"}, name)
+		field := map[string]any{"type": "boolean"}
+		typ, check, _ := g.render(field, name)
 		t.columns = append(t.columns, columnLine(name, typ, g.defaults["false"], false))
-		t.schema = append(t.schema, Column{Name: name, Type: typ, Role: RoleDeleted})
+		t.schema = append(t.schema, Column{Name: name, Type: typ, Role: RoleDeleted, Definition: field})
 		if check != "" {
 			t.constraints = append(t.constraints, fmt.Sprintf("CONSTRAINT ck_%s_%s CHECK (%s)", t.name, name, check))
 			t.keys.Checks = append(t.keys.Checks, Check{Name: "ck_" + t.name + "_" + name, Expression: check})

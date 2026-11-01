@@ -1,0 +1,5 @@
+arguments: [generate, seed, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: the seed target names the dialect mariadb and the sql target postgresql; the rows load into the tables the migrations build, so both are one dialect: name it on the sql target alone, or the same on both [generator@specarch.yaml#/]
+plugins: [seed]

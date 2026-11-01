@@ -49,6 +49,30 @@ sources:
     edition: "2011"
     author: Object Management Group
     url: https://www.omg.org/spec/BPMN/2.0/
+  rfc-2606:
+    kind: standard
+    title: "RFC 2606: Reserved Top Level DNS Names"
+    edition: "1999"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc2606
+  rfc-5737:
+    kind: standard
+    title: "RFC 5737: IPv4 Address Blocks Reserved for Documentation"
+    edition: "2010"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc5737
+  rfc-3849:
+    kind: standard
+    title: "RFC 3849: IPv6 Address Prefix Reserved for Documentation"
+    edition: "2004"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc3849
+  splitmix:
+    kind: document
+    title: Fast Splittable Pseudorandom Number Generators
+    edition: "2014"
+    author: Guy L. Steele Jr., Doug Lea and Christine H. Flood
+    url: https://doi.org/10.1145/2660193.2660195
   rfc-9110:
     kind: standard
     title: RFC 9110, HTTP Semantics

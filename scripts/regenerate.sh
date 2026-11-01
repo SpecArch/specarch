@@ -29,7 +29,7 @@ step() {
 build_tools() {
 	mkdir -p "$bin" || return 1
 	go build -o "$bin/specarch" ./cmd/specarch || return 1
-	for generator in sql sqlc openapi ui ui-typescript ui-vue-htm ui-swiftui bpmn register; do
+	for generator in sql seed sqlc openapi ui ui-typescript ui-vue-htm ui-swiftui bpmn register; do
 		go build -o "$bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || return 1
 	done
 }
@@ -48,7 +48,7 @@ documents() {
 }
 
 generated() {
-	for target in sql sqlc openapi ui bpmn; do
+	for target in sql seed sqlc openapi ui bpmn; do
 		PATH="$bin:$PATH" "$bin/specarch" generate $target --unapproved examples/library-lending || return 1
 	done
 	PATH="$bin:$PATH" "$bin/specarch" generate ui --unapproved --estate examples/estate/specarch-estate.yaml examples/estate/reading-room || return 1

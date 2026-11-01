@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 923 design tests, 462 golden and 461 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 930 design tests, 466 golden and 464 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 923 design tests, 462 golden and 461 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 919 |
+| system | 926 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3036,6 +3036,62 @@ Scenario: golden; level: system; verifies SA-87.
 - Given: the specification of generate-scripts, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH
 - When: generate scripts is run with --unapproved
 - Then: it writes the ten scripts of generate-scripts for the mariadb client, each a strict session and one compound statement: every value a user variable given in --init-command, refused by name when unset, and refused before anything is read when its text is not of its column's form (a uuid for a loan's key, a whole number of zero or more for the fine's uint64 key, so a fractional key names no fine, a whole number for renewals), each pattern ending in \z so a trailing newline does not pass; it reports a loan already changed as already applied, comparing text byte for byte so a change of case alone is a change, a literal string as well, counts with COUNT(*) FOR UPDATE and refuses unless the count is recordsChanged, makes the change under the same condition, writes the audit instant as UTC text with nine fractional digits, checks ROW_COUNT() and commits only with @apply true; it gives the warnings of generate-scripts, writes nothing for the shelves, and exits 0
+
+#### generate-seed
+
+Scenario: golden; level: system; verifies SA-116.
+
+- Given: a specification with an enum, a value object kept in columns and a list of value objects kept as JSON, an audited entity with soft deletion, a unique constraint, a check constraint, a pattern, examples, bounded numbers, a decimal, a list of text and relations, one of them to the entity itself, an implementation file in Go whose sql target is PostgreSQL and whose seed target sets the rows per entity and the seed, and specarch-gen-seed built from this repository on PATH
+- When: generate seed is run with --unapproved
+- Then: it writes seed.sql with the counts asked for, the tables in the order the foreign keys need, each row an INSERT whose values follow the fields' types, bounds, enum, pattern and examples, the keys and the unique constraint never repeating, the check constraint holding, the value object's required parts set whenever it is present, the audit columns and the soft-delete flag as the idioms mean them, and exits 0
+
+#### generate-seed-dialect-refused
+
+Scenario: red; level: system; verifies SA-116.
+
+- Given: the specification of generate-seed, whose implementation file names PostgreSQL on the sql target and MariaDB on the seed target
+- When: generate seed is run with --unapproved
+- Then: it reports an error at the target, since the rows load into the tables the migrations build and so both targets are one dialect, writes nothing, and exits 1
+
+#### generate-seed-encrypted-refused
+
+Scenario: red; level: system; verifies SA-116.
+
+- Given: a specification whose Author has a required field encrypted at rest and found by hash, and a Book with a required relation to Author, with a seed target
+- When: generate seed is run with --unapproved
+- Then: it reports an error at the encrypted field, since the key that encrypts it and the salt of its hash are the service's, and an error at Book, which needs an Author row for each of its rows, writes seed.sql with both entities named as getting no rows and the errors marked, and exits 1
+
+#### generate-seed-mariadb
+
+Scenario: golden; level: system; verifies SA-116.
+
+- Given: the specification of generate-seed, whose implementation file names mariadb as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH
+- When: generate seed is run with --unapproved
+- Then: it writes seed.sql in the sql target's dialect, MariaDB, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0
+
+#### generate-seed-oracle
+
+Scenario: golden; level: system; verifies SA-116.
+
+- Given: the specification of generate-seed, whose implementation file names oracle as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH
+- When: generate seed is run with --unapproved
+- Then: it writes seed.sql in the sql target's dialect, Oracle, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0
+
+#### generate-seed-rows-zero
+
+Scenario: red; level: system; verifies SA-116.
+
+- Given: the specification of generate-seed, whose seed target sets rows.Author to 0 and asks for Book and Review rows, each needing a row of the one before
+- When: generate seed is run with --unapproved
+- Then: it reports an error at Book, which needs an Author row for each of its rows and Author has none, and at Review, which needs a Book row, writes seed.sql naming the three entities as getting no rows with the reason, and exits 1
+
+#### generate-seed-sqlserver
+
+Scenario: golden; level: system; verifies SA-116.
+
+- Given: the specification of generate-seed, whose implementation file names sqlserver as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH
+- When: generate seed is run with --unapproved
+- Then: it writes seed.sql in the sql target's dialect, SQL Server, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0
 
 #### generate-skips-no-output-folder
 
@@ -7489,7 +7545,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-529 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+534 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7855,6 +7911,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-90 | acceptance 6 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 7 | golden | SA-90 names no harm |
 | requirement SA-90 | acceptance 8 | golden | SA-90 names no harm |
+| requirement SA-116 | acceptance 1 | golden | SA-116 names no harm |
+| requirement SA-116 | acceptance 2 | golden | SA-116 names no harm |
+| requirement SA-116 | acceptance 3 | golden | SA-116 names no harm |
+| requirement SA-116 | acceptance 4 | golden | SA-116 names no harm |
+| requirement SA-116 | acceptance 5 | golden | SA-116 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

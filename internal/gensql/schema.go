@@ -27,6 +27,17 @@ type Column struct {
 	// time column has date-time, whatever type the dialect renders it as.
 	Format string
 	Role   string
+	// Definition is the field the column was rendered from, as the table
+	// read it: the field itself, the part of a value object the column
+	// holds, written out with the part's own keywords, or the field an
+	// idiom's column stands for. A generator that writes rows reads the
+	// keywords from it: type, format, enum, minimum, maximum, maxLength,
+	// pattern, examples, items.
+	Definition map[string]any
+	// Values are the values of an enum column, by $ref or inline, resolved
+	// against the specification the table was rendered from; empty for
+	// any other column.
+	Values []string
 }
 
 // The roles of a column an idiom adds, or of an encrypted field's hash.
@@ -87,14 +98,37 @@ type Index struct {
 	Columns []string
 }
 
+// Model is the schema with what a generator that writes rows against it
+// needs beside the tables: the dialect, the type-rendering version and the
+// literals the dialect writes a boolean with.
+type Model struct {
+	Tables  []Table
+	Dialect string
+	// Version is the version of the type-rendering idiom the tables are
+	// rendered through.
+	Version string
+	// Literals are the names of the type-rendering idiom's defaults part
+	// for the dialect: true, false, identifier and currentTime.
+	Literals map[string]string
+}
+
 // Schema is the tables of the entities no other stakeholder owns, in name
 // order, as Generate writes them for the request's dialect, and the version
 // of the type-rendering idiom they are rendered through. When they cannot
 // be written, it answers the diagnostics that say why.
 func Schema(r *Request) ([]Table, string, []Diagnostic) {
+	m, diags := ModelOf(r)
+	if diags != nil {
+		return nil, "", diags
+	}
+	return m.Tables, m.Version, nil
+}
+
+// ModelOf is Schema with the dialect and its literals.
+func ModelOf(r *Request) (*Model, []Diagnostic) {
 	g, failed := prepare(r)
 	if failed != nil {
-		return nil, "", failed.Diagnostics
+		return nil, failed.Diagnostics
 	}
 	var out []Table
 	entities := obj0(g.spec["entities"])
@@ -106,9 +140,9 @@ func Schema(r *Request) ([]Table, string, []Diagnostic) {
 		out = append(out, Table{Entity: name, Name: t.name, Columns: t.schema, Keys: t.keys})
 	}
 	if len(g.diags) > 0 {
-		return nil, "", g.diags
+		return nil, g.diags
 	}
-	return out, g.version, nil
+	return &Model{Tables: out, Dialect: g.dialect, Version: g.version, Literals: g.defaults}, nil
 }
 
 // RelRoot is the root file's path as seen from the output folder, as the

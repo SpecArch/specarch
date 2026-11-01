@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification of generate-seed, whose implementation file names mariadb as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH"
+when: "generate seed is run with --unapproved"
+then: "it writes seed.sql in the sql target's dialect, MariaDB, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0"
+verifies: [SA-116]

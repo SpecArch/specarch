@@ -1,0 +1,75 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+enums:
+  Shelf:
+    type: string
+    enum: [fiction, reference, children]
+schemas:
+  Address:
+    type: object
+    properties:
+      street: { type: string, minLength: 1, maxLength: 120 }
+      city: { type: string, maxLength: 80 }
+      postcode: { type: string, pattern: "^[0-9]{5}$", maxLength: 5 }
+    required: [street, city]
+  Phone:
+    type: object
+    properties:
+      number: { type: string, pattern: "^\\+[1-9][0-9]{7,11}$", maxLength: 13 }
+      label: { type: string, maxLength: 20 }
+    required: [number]
+entities:
+  Author:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      name: { type: string, minLength: 1, maxLength: 120, sensitivity: personal }
+      email: { type: string, format: email, maxLength: 254, sensitivity: personal }
+      website: { type: [string, "null"], format: uri, maxLength: 200 }
+      bornOn: { type: string, format: date }
+      address: { $ref: "#/schemas/Address" }
+      phones: { type: array, items: { $ref: "#/schemas/Phone" }, maxItems: 2, storage: json }
+    required: [id, name, email, bornOn]
+    primaryKey: [id]
+    constraints:
+      author_email_unique: { kind: unique, fields: [email], message: The email is taken. }
+  Book:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      authorId: { type: string, format: uuid }
+      isbn: { type: string, pattern: "^97[89][0-9]{10}$", maxLength: 13 }
+      title: { type: string, maxLength: 300, examples: [A Tale of Two Rivers, The Quiet Orchard] }
+      shelf: { $ref: "#/enums/Shelf" }
+      pages: { type: integer, format: int32, minimum: 1, maximum: 2000 }
+      price: { type: string, format: decimal, precision: 23, scale: 4, minimum: 0 }
+      rating: { type: number, format: double, minimum: 0, maximum: 5 }
+      inStock: { type: boolean }
+      tags: { type: array, items: { type: string, maxLength: 20 }, maxItems: 3 }
+      withdrawnOn: { type: [string, "null"], format: date }
+    required: [id, authorId, isbn, title, shelf, pages, price, rating, inStock, tags]
+    primaryKey: [id]
+    audited: true
+    deletion: soft
+    relations:
+      author: { target: Author, kind: many-to-one, via: authorId, onDelete: restrict }
+    constraints:
+      book_isbn_unique: { kind: unique, fields: [isbn], message: The ISBN is in the catalogue. }
+      book_has_pages: { kind: check, expression: "pages >= 1 && (withdrawnOn == null || size(title) > 0)", message: A book has pages. }
+  Review:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      bookId: { type: string, format: uuid }
+      replyToId: { type: [string, "null"], format: uuid }
+      stars: { type: integer, format: int32, minimum: 1, maximum: 5 }
+      body: { type: string, minLength: 20, maxLength: 2000 }
+      postedAt: { type: string, format: date-time }
+    required: [id, bookId, stars, body, postedAt]
+    primaryKey: [id]
+    relations:
+      book: { target: Book, kind: many-to-one, via: bookId, onDelete: cascade }
+      replyTo: { target: Review, kind: many-to-one, via: replyToId, onDelete: set_null }

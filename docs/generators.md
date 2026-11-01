@@ -81,7 +81,7 @@ object:
 | `apiDialect` | `dxlib` when an implementation file's openapi target serves the API in the dxlib dialect, left out for the standard one, so a client target calls the operations as the service serves them although the service's file is not among its own |
 | `apiEnvelopes` | the `settings.envelopes` of that openapi target, the dxlib type each handshake is served in (ADR-163), left out when it has none, so a target that writes the service's hooks serves the types the document names |
 | `check` | true when the run is `--check`, which writes nothing, so a plug-in that refuses to write over a file built by hand answers its files for the comparison |
-| `dependencies` | for openapi, sql, go-dxlib and ui, the specifications of the run the specification's dependencies name, keyed by the dependency: the module's `specification` and `version`, its `content` as plain values, the `apiDialect` it is served in and the `idioms` of the implementation file that serves its API (the shipped ones when it has none), and the module's own `dependencies` that name a specification, by their key there, each with its `specification` and `version`; left out when the run gives none (Generating across the estate, below) |
+| `dependencies` | for openapi, sql, seed, go-dxlib and ui, the specifications of the run the specification's dependencies name, keyed by the dependency: the module's `specification` and `version`, its `content` as plain values, the `apiDialect` it is served in and the `idioms` of the implementation file that serves its API (the shipped ones when it has none), and the module's own `dependencies` that name a specification, by their key there, each with its `specification` and `version`; left out when the run gives none (Generating across the estate, below) |
 | `modules` | for the same targets, the specifications of the run a dependency reaches through its own dependencies, at any depth, that the specification's dependencies do not name, by their `info.name`: `specification`, `version`, `content` and `dependencies` (ADR-185) |
 
 The plug-in answers on its standard output with one JSON object: `files`,
@@ -157,7 +157,8 @@ chain and the dependency that names the module (ADR-185):
   whose reader takes a `$ref` into the components only, writes it as a
   component, marked.
 - `sql` writes the columns and checks of the schema or entity, and the
-  check of the enum, as for its own.
+  check of the enum, as for its own; `seed` draws the rows of those
+  columns as for its own.
 - `go-dxlib` writes a value object of it, commented with the module and
   the pointer.
 - `ui` draws the field as one holding a value, and writes a list page or
@@ -757,6 +758,82 @@ differs only at the phone number its members table does not have.
 (1.31.1, at a pinned digest) in a disposable container under Podman, which
 type-checks each query against the migrations; `sqlc compile` would pass a
 column that does not exist.
+
+## Development seed data
+
+`specarch-gen-seed` writes `seed.sql`, the made-up rows a developer runs
+the system against, for the tables `specarch-gen-sql` writes: it reads
+them through the same model, so every table, column, type and key is the
+migration's, in the dialect of the `seed` target, the `sql` target's of
+the same implementation file when it names none, and PostgreSQL otherwise;
+two that differ are an error at the target (ADR-219). The target's
+settings give the count of each entity and the seed:
+
+    targets:
+      sql: { output: ../../../migrations, dialect: postgresql }
+      seed:
+        output: ../../../seed
+        settings:
+          rows: { Book: 20, Member: 5 }
+          seed: 7
+
+An entity the settings do not name gets ten rows, one named with 0 none.
+Every number is drawn from the seed through a generator written in the
+plug-in, so the file is the same bytes on every run and on every
+platform, and `generate --check` compares it as it compares a migration;
+another seed gives other rows. The file is one `INSERT` per row, the
+tables in an order every foreign key can be satisfied in, each under a
+comment naming the entity and its count; its header names the dialect,
+the type-rendering version and the seed. It is loaded once, into a
+database the migrations have just built; it truncates nothing and the
+plug-in never touches a database.
+
+A value follows its field, as the type-rendering idiom renders the
+column: an integer, a number and a decimal lie inside the field's bounds
+(`minimum`, `maximum`, the exclusive forms and `multipleOf`), at its
+precision and scale, within ten thousand of the lower bound where the
+design gives no maximum; text is the field's words and the row's number,
+"Full name 3", within `minLength` and `maxLength`; a `pattern` gives a
+value drawn from its syntax tree and matched back against it; an enum one
+of its values; a date, an instant, a time of day and a duration in 2026,
+each in the dialect's own literal; a uuid a version 4 value; binary data
+in the dialect's hex form; an email, a URI, a host name and an IP address
+in the ranges RFC 2606, RFC 5737 and RFC 3849 reserve for documentation,
+so no value is about a real person; a field's `examples` are the first
+rows' values and a `const` every row's. An optional field is NULL in one
+row of four. A value object kept in columns is present or absent as a
+whole, its required parts set whenever it is present, as the migration's
+presence check asks; one kept as JSON, a list of value objects and a map
+are JSON text, a list of scalars PostgreSQL's array and JSON text
+elsewhere. The audit columns hold the first instant of 2026 plus the
+row's hours and the actor `seed`, the soft-delete flag is false, and a
+`generatedDefault` is written out, so a child's foreign key can name the
+value.
+
+A key and a unique constraint never repeat: a column of one counts up
+with the row where it can, and each tuple is checked against the rows
+before; a check constraint is evaluated on every row as the validator
+evaluates a fixture's record, and a row that repeats a tuple or breaks a
+check is drawn again, up to a hundred times. A foreign key points at a
+row written earlier in the file, an optional one at NULL in one row of
+four, a relation to the entity itself at an earlier row of it, and a
+one-to-one relation at the row of the same rank.
+
+What the file cannot hold is an error at the entry, the entity gets no
+rows, the file says so under the entity's comment, the rest is written
+and the run exits 1 (rule 4): a required field encrypted at rest, whose
+key and the salt of its hash are the service's, so such records are made
+through the service or the entity's rows set to 0; a required relation to
+an entity that gets no rows or that another stakeholder owns; a required
+relation the entity holds to itself; a cycle of required relations; a
+one-to-one relation with fewer rows across than the entity has; an
+entity no row of which satisfies its constraints in a hundred draws; a
+key or unique column whose values are fewer than the rows, such as a
+boolean or a small enum; a pattern using a word boundary, or giving no
+value within the field's length. An entity another stakeholder owns gets
+no rows. `settings.rows` naming something that is not an entity of the
+specification, a count below zero and a seed that is not a whole number
+are errors at the target.
 
 ## UI page definitions
 

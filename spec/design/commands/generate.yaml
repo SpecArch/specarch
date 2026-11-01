@@ -79,7 +79,7 @@ commands:
       (docs/diagnostics.md); and `check`, true when the run only compares,
       so a plug-in that refuses to write over a file built by hand answers
       its files for the comparison; and `dependencies`, for the targets
-      that read another module (openapi, sql, go-dxlib and ui), the
+      that read another module (openapi, sql, seed, go-dxlib and ui), the
       specifications of the run that the specification's dependencies
       name, keyed by the dependency, each with the module's
       `specification` and `version` (its info.name and info.version), its
@@ -122,7 +122,7 @@ commands:
       those it does (ADR-184). Before the plug-in runs, a reference the run
       does not give is refused as reference at its entry, with status 1
       and nothing written: a value typed by another specification's element
-      (for sql, a field of an entity or a view), and for ui a list page or
+      (for sql and seed, a field of an entity or a view), and for ui a list page or
       a picker reading another specification's list; every other target
       refuses those whatever the run gives. A relation to another
       specification's entity is not refused: its via field is this
@@ -133,7 +133,8 @@ commands:
       dialect, whose reader takes a $ref into the components only, writes
       it as a component, marked); sql takes the columns of a field typed
       by another module's schema or entity, and the check of one typed by
-      its enum, from that element, as from its own; go-dxlib writes a
+      its enum, from that element, as from its own, and seed draws the
+      rows of such a column as for one of its own; go-dxlib writes a
       field typed by another module's schema or entity as a value object
       of it, commented with the module and the pointer; ui draws such a
       field as its own, and writes a list page or a picker that reads
@@ -216,7 +217,7 @@ commands:
       "1": "Settle the errors, answer the questions that block the target, or approve the specification with specarch approve; with --check, run it once without --check to write the current output."
       "2": "Put the plug-in specarch-gen-<target> on PATH, name an output folder for the target in an implementation file, or correct the command line, and run it again."
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59, SA-61, SA-65, SA-66, SA-102]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-46, SA-58, SA-59, SA-61, SA-65, SA-66, SA-102, SA-116]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

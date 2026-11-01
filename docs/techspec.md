@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 115 requirements, 5 entities, 26 commands, 7 algorithms, 923 tests, 204 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 116 requirements, 5 entities, 26 commands, 7 algorithms, 930 tests, 205 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -452,6 +452,8 @@ flowchart LR
   package_internal_spec["internal/spec"]
   package_cmd_specarch_gen_sql["cmd/specarch-gen-sql, implements 1"]
   package_internal_gensql["internal/gensql"]
+  package_cmd_specarch_gen_seed["cmd/specarch-gen-seed, implements 1"]
+  package_internal_genseed["internal/genseed"]
   package_cmd_specarch_gen_sqlc["cmd/specarch-gen-sqlc, implements 1"]
   package_internal_gensqlc["internal/gensqlc"]
   package_cmd_specarch_gen_scripts["cmd/specarch-gen-scripts, implements 1"]
@@ -529,6 +531,10 @@ flowchart LR
   package_internal_gensql --> package_internal_ownership
   package_internal_gensql --> package_internal_typerows
   package_internal_gensql --> package_internal_xref
+  package_cmd_specarch_gen_seed --> package_internal_genseed
+  package_internal_genseed --> package_internal_expr
+  package_internal_genseed --> package_internal_gensql
+  package_internal_genseed --> package_internal_mark
   package_cmd_specarch_gen_sqlc --> package_internal_gensqlc
   package_internal_gensqlc --> package_internal_gensql
   package_internal_gensqlc --> package_internal_mark
@@ -3633,7 +3639,7 @@ as in an implementation file) and, for a question, what it
 (docs/diagnostics.md); and `check`, true when the run only compares,
 so a plug-in that refuses to write over a file built by hand answers
 its files for the comparison; and `dependencies`, for the targets
-that read another module (openapi, sql, go-dxlib and ui), the
+that read another module (openapi, sql, seed, go-dxlib and ui), the
 specifications of the run that the specification's dependencies
 name, keyed by the dependency, each with the module's
 `specification` and `version` (its info.name and info.version), its
@@ -3676,7 +3682,7 @@ checks with the estate and does not generate, the folders naming
 those it does (ADR-184). Before the plug-in runs, a reference the run
 does not give is refused as reference at its entry, with status 1
 and nothing written: a value typed by another specification's element
-(for sql, a field of an entity or a view), and for ui a list page or
+(for sql and seed, a field of an entity or a view), and for ui a list page or
 a picker reading another specification's list; every other target
 refuses those whatever the run gives. A relation to another
 specification's entity is not refused: its via field is this
@@ -3687,7 +3693,8 @@ module's name and the pointer, and no component for it (the dxlib
 dialect, whose reader takes a $ref into the components only, writes
 it as a component, marked); sql takes the columns of a field typed
 by another module's schema or entity, and the check of one typed by
-its enum, from that element, as from its own; go-dxlib writes a
+its enum, from that element, as from its own, and seed draws the
+rows of such a column as for one of its own; go-dxlib writes a
 field typed by another module's schema or entity as a value object
 of it, commented with the module and the pointer; ui draws such a
 field as its own, and writes a list page or a picker that reads
@@ -4880,6 +4887,8 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | internal/spec | Reads a specification from disk, the root file and the stage folders, and merges it into one document in which every node remembers its file; reports the layout problems; puts an entry read from a fragment file in place of the specification's, key by key, for specarch try --file. |   |
 | cmd/specarch-gen-sql | The plug-in behind generate sql. Reads the request on standard input, answers the migration and the snapshot on standard output, and never touches the disk. | #/commands/generate |
 | internal/gensql | The SQL migrations in four dialects, each column through the type-rendering idiom, with check expressions translated per dialect, the views after the tables, and a snapshot of the schema; an entity or view another stakeholder owns gets no statement, and the snapshot lists it as owned. Schema answers the tables and columns it writes, with their keys, constraints and listed indexes, for the queries generator, the scripts generator and specarch check, and Condition writes an expression over an entity's fields, such as a guard's precondition, as a check constraint is written. |   |
+| cmd/specarch-gen-seed | The plug-in behind generate seed. Reads the request on standard input, answers seed.sql on standard output, and never touches the disk or a database. | #/commands/generate |
+| internal/genseed | The development seed of a specification: made-up rows for the tables gensql renders, drawn from the entities with a SplitMix64 generator of its own from a fixed seed, so the file is the same bytes on every run; values from each field's type, format, bounds, enum, pattern and examples, keys and unique constraints that never repeat, check constraints evaluated on each row as the validator evaluates a fixture's, foreign keys pointing at rows written before, the tables in dependency order, each in the dialect's literals; a required field encrypted at rest is an error at the field. |   |
 | cmd/specarch-gen-sqlc | The plug-in behind generate sqlc. Reads the request on standard input, answers the query files on standard output, and never touches the disk. | #/commands/generate |
 | internal/gensqlc | The sqlc queries the design derives, in PostgreSQL, one file per table: an insert per operation that posts an entity, a read, a replacement or an amendment by a key of one field, and a page of a list with its filters, search and sorts and the list's total, against the tables internal/gensql writes; every other query is written by hand beside them, and a file written by hand is compared, never overwritten (ADR-123). |   |
 | cmd/specarch-gen-scripts | The plug-in behind generate scripts. Reads the request on standard input, answers the script files on standard output, and never touches the disk. | #/commands/generate |
@@ -16889,6 +16898,97 @@ design was read from is in this repository.
 
 **Note:** From HTML Living Standard: Module scripts ... are deferred by default and run in document order after the document has been parsed. <https://html.spec.whatwg.org/>
 
+### ADR-219: A seed target of its own, specarch-gen-seed, writes one development seed file of made-up rows drawn from the entities with a fixed generator of its own, against the tables specarch-gen-sql writes, with a required encrypted field refused and the dialect's literals written by the plug-in
+
+Status: proposed, 2026-11-02.
+
+Rests on: [ADR-086](#adr-086-generated-code-sql-openapi-tests-and-ui-carry-every-problem-at-its-entry-a-draft-is-written-while-questions-are-open-or-approval-is-missing-and-an-entry-a-target-cannot-express-is-marked-while-the-rest-is-written), [ADR-123](#adr-123-specarch-gen-sqlc-writes-the-sqlc-queries-the-design-derives-in-postgresql-one-file-per-table-against-the-tables-specarch-gen-sql-writes-and-leaves-every-other-query-to-be-written-by-hand-beside-them), [ADR-184](#adr-184-generate-reads-the-modules-of-the-estate-a-specifications-dependencies-name-imports-the-schema-entity-or-enum-a-field-is-typed-by-under-its-own-name-and-writes-a-page-or-picker-over-another-modules-list-at-the-address-the-ui-targets-settings-give-the-dependency).
+
+Context: A project specified in SpecArch, a Go service on a PostgreSQL
+database with a browser application, keeps the development seed of
+its main entity as SQL written by hand: a few dozen made-up records
+developers run the application against. Every change to a field, an
+enum value or a relation in the specification left that file
+behind until someone noticed at run time, and nothing checked it.
+specarch-gen-sql already renders the tables from the entities
+through the type-rendering idiom (ADR-086), specarch-gen-sqlc reads
+them back through gensql.Schema so a query never names a column the
+migrations do not create (ADR-123), and the validator already
+evaluates an entity's check constraints on a fixture's records
+(test_data). The design holds, per field, the type, format, bounds,
+enum, pattern and examples a made-up value must satisfy, and per
+entity the keys, unique and check constraints and relations the
+rows must satisfy together.
+
+Decision: A target of its own, seed, with the plug-in specarch-gen-seed, run
+as specarch generate seed. It reads the tables through
+gensql.ModelOf, which gives each column the field it was rendered
+from and the values of its enum, so every table and column name,
+every type and every key is the migration's. It writes one file,
+seed.sql, with one INSERT per row, the tables in an order the
+foreign keys allow, the count of each entity from the target's
+settings.rows and ten otherwise, and every number drawn from
+settings.seed, one by default, through a SplitMix64 generator
+written in the plug-in, so the file is the same bytes on every run
+and every platform and generate --check compares it as it compares
+a migration. The dialect is the seed target's, the sql target's of
+the same implementation file when it names none, and PostgreSQL
+otherwise; two that differ are an error at the target. A value
+follows its field: an integer, a number and a decimal inside the
+bounds, at the precision and scale, ten thousand wide where the
+design gives no maximum; text as the field's words and the row's
+number within minLength and maxLength; a pattern through Go's own
+regexp/syntax tree, each value matched back against the pattern; an
+enum one of its values; a date, an instant, a time of day and a
+duration in 2026, each written in the dialect's literal; an email,
+a URI, a host name and an IP address in the ranges RFC 2606, RFC
+5737 and RFC 3849 reserve for documentation; a field's examples as
+the first rows' values. A key and a unique constraint count up with
+the row where they can and are checked as tuples otherwise, a row
+that repeats one or breaks a check constraint is drawn again, up to
+a hundred times, and an entity no row of which passes is an error
+at the entity. A foreign key points at a row written before it, an
+optional one at NULL in one row of four, a relation to the entity
+itself at an earlier row, a one-to-one relation at the row of the
+same rank; a required relation to an entity that gets no rows, a
+required relation the entity holds to itself, a cycle of required
+relations and a one-to-one relation with too few rows across are
+errors at the entry, and the entity gets no rows, which the file
+says in a comment. A required field encrypted at rest is an error
+at the field. An optional field is NULL in one row of four; a value
+object kept in columns is present or absent as a whole, its
+required parts set when present, by the same rule as the migration's
+presence check; one kept as JSON, a list of value objects and a map
+are JSON text, a list of scalars PostgreSQL's array; the audit
+columns hold the first instant of 2026 plus the row's hours and the
+actor seed, the soft-delete flag false, and a generated default is
+written out so a child's key can name it. The target joins the
+ones that read the specifications an estate gives, so a field typed
+by another module's element is drawn as for the sql target.
+
+Consequences: A project's seed follows its specification: a field added, an enum
+value renamed or a relation moved changes seed.sql on the next run,
+and generate --check fails a commit that changed one without the
+other. The rows load into exactly the tables the migrations build,
+on the four dialects, since both come from one model. A record
+whose field is encrypted at rest is not seeded by the file: the
+entity is an error until the project seeds it through its service
+or sets its rows to 0, and the entities that need its rows go with
+it. The dialect's literal forms live in the plug-in, so the
+type-rendering idiom keeps its version and no snapshot of a
+migration changes. Nothing of the project the need was read from is
+in this repository.
+
+**Insight:** A target of its own rather than a part of generate sql: the migrations are new files only, written once and never regenerated, with a snapshot beside them (ADR-086), while a seed is rewritten whole on every run and compared byte for byte; one plug-in with two rules for its files would have to say which rule each file is under. The tables come through gensql rather than being read from the design again, for the reason sqlc's queries do (ADR-123): two readers of one design disagree at the first idiom or value object. The generator is written in the plug-in rather than taken from the standard library because the file's promise is byte-identical output, and a library's generator may change the stream it draws from a seed between releases while an algorithm of a dozen fixed lines cannot; SplitMix64 is public and its stream is specified by its constants. The check constraints are evaluated on each row rather than translated into value rules because an expression may relate two fields in any way the subset allows, and drawing a row and asking the evaluator is the one method that holds for every expression the validator accepts; a hundred draws make a constraint a tenth of random rows satisfy all but certain to be met, and one no draw meets is said at the entity with what to do. A required encrypted field is refused rather than written in clear or left out: the ciphertext needs the key the engine encrypts with and the hash its salt, both the service's and in no specification, and a row missing a required column does not load; an optional one is NULL, which loads and reads as absent. Addresses in the reserved ranges and text that names the field and the row are chosen over a list of made-up names because the request was data that looks like no real person's, and a value that says what it is cannot be mistaken for one. The dialect's literals are written by the plug-in rather than added to the type-rendering idiom because a change to that idiom's version is read by the migration differ against every snapshot (gensql, diff), and this plug-in is the only writer of literals; when a second one needs them they move to the idiom.
+
+**Note:** From RFC 2606: Reserved Top Level DNS Names, 1999: example.com, example.net, example.org: reserved second-level domain names for use in documentation and examples. <https://www.rfc-editor.org/rfc/rfc2606>
+
+**Note:** From RFC 5737: IPv4 Address Blocks Reserved for Documentation, 2010: The blocks 192.0.2.0/24 (TEST-NET-1), 198.51.100.0/24 (TEST-NET-2), and 203.0.113.0/24 (TEST-NET-3) are provided for use in documentation. <https://www.rfc-editor.org/rfc/rfc5737>
+
+**Note:** From RFC 3849: IPv6 Address Prefix Reserved for Documentation, 2004: The prefix allocated for documentation purposes is 2001:DB8::/32. <https://www.rfc-editor.org/rfc/rfc3849>
+
+**Note:** From Fast Splittable Pseudorandom Number Generators, 2014: SplitMix64: the state advances by the golden gamma 0x9e3779b97f4a7c15, and the output is a 64-bit mix of the state. <https://doi.org/10.1145/2660193.2660195>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -17265,6 +17365,13 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-scripts-dialect-refused | command generate | system | red | a specification with a guarded removal of a shelf by its key, whose implementation file names sqlserver as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it writes nothing, reports that it writes scripts for postgresql and mariadb only, and exits 1 |
 | generate-scripts-hand-written-refused | command generate | system | red | a specification with a guarded removal of a shelf by its key, and remove-shelf.sql written by hand in the scripts target's folder; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it leaves remove-shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-scripts, and exits 1 |
 | generate-scripts-mariadb | command generate | system | golden | the specification of generate-scripts, whose implementation file names mariadb as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it writes the ten scripts of generate-scripts for the mariadb client, each a strict session and one compound statement: every value a user variable given in --init-command, refused by name when unset, and refused before anything is read when its text is not of its column's form (a uuid for a loan's key, a whole number of zero or more for the fine's uint64 key, so a fractional key names no fine, a whole number for renewals), each pattern ending in \z so a trailing newline does not pass; it reports a loan already changed as already applied, comparing text byte for byte so a change of case alone is a change, a literal string as well, counts with COUNT(*) FOR UPDATE and refuses unless the count is recordsChanged, makes the change under the same condition, writes the audit instant as UTC text with nine fractional digits, checks ROW_COUNT() and commits only with @apply true; it gives the warnings of generate-scripts, writes nothing for the shelves, and exits 0 |
+| generate-seed | command generate | system | golden | a specification with an enum, a value object kept in columns and a list of value objects kept as JSON, an audited entity with soft deletion, a unique constraint, a check constraint, a pattern, examples, bounded numbers, a decimal, a list of text and relations, one of them to the entity itself, an implementation file in Go whose sql target is PostgreSQL and whose seed target sets the rows per entity and the seed, and specarch-gen-seed built from this repository on PATH | generate seed is run with --unapproved | it writes seed.sql with the counts asked for, the tables in the order the foreign keys need, each row an INSERT whose values follow the fields' types, bounds, enum, pattern and examples, the keys and the unique constraint never repeating, the check constraint holding, the value object's required parts set whenever it is present, the audit columns and the soft-delete flag as the idioms mean them, and exits 0 |
+| generate-seed-dialect-refused | command generate | system | red | the specification of generate-seed, whose implementation file names PostgreSQL on the sql target and MariaDB on the seed target | generate seed is run with --unapproved | it reports an error at the target, since the rows load into the tables the migrations build and so both targets are one dialect, writes nothing, and exits 1 |
+| generate-seed-encrypted-refused | command generate | system | red | a specification whose Author has a required field encrypted at rest and found by hash, and a Book with a required relation to Author, with a seed target | generate seed is run with --unapproved | it reports an error at the encrypted field, since the key that encrypts it and the salt of its hash are the service's, and an error at Book, which needs an Author row for each of its rows, writes seed.sql with both entities named as getting no rows and the errors marked, and exits 1 |
+| generate-seed-mariadb | command generate | system | golden | the specification of generate-seed, whose implementation file names mariadb as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH | generate seed is run with --unapproved | it writes seed.sql in the sql target's dialect, MariaDB, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0 |
+| generate-seed-oracle | command generate | system | golden | the specification of generate-seed, whose implementation file names oracle as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH | generate seed is run with --unapproved | it writes seed.sql in the sql target's dialect, Oracle, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0 |
+| generate-seed-rows-zero | command generate | system | red | the specification of generate-seed, whose seed target sets rows.Author to 0 and asks for Book and Review rows, each needing a row of the one before | generate seed is run with --unapproved | it reports an error at Book, which needs an Author row for each of its rows and Author has none, and at Review, which needs a Book row, writes seed.sql naming the three entities as getting no rows with the reason, and exits 1 |
+| generate-seed-sqlserver | command generate | system | golden | the specification of generate-seed, whose implementation file names sqlserver as the sql target's dialect and no dialect on the seed target, and specarch-gen-seed built from this repository on PATH | generate seed is run with --unapproved | it writes seed.sql in the sql target's dialect, SQL Server, the same rows as for PostgreSQL with each date, instant, time, duration, boolean, binary value and list written as that dialect takes it, and exits 0 |
 | generate-skips-no-output-folder | command generate | system | golden | two specifications, one whose implementation file names an output folder for openapi and one with no implementation file, and specarch-gen-openapi on PATH | generate openapi --unapproved is run on both | it warns with output_folder that the second has no openapi output, writes the first one's document, and exits 0 |
 | generate-sql | command generate | system | golden | a specification with an enum, an audited entity with soft deletion, a unique and a check constraint, an encrypted field found by hash, and a relation, an implementation file in Go whose sql target is PostgreSQL, and specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql, each column through the type-rendering rows with the enum's check, the audit and deleted columns, the hash column the unique constraint is on, the translated check and the foreign key, and snapshot.yaml beside it, and exits 0 |
 | generate-sql-0-3-rows | command generate | system | golden | a specification on 0.3 with a caller of two properties, two roles whose rows rules limit Loan, one by the member's identifier and one by the organisation and a boolean field, and a third role holding loans.read with no rule; an implementation file in Go with a PostgreSQL sql target that maps one caller property to its own expression and one role to its own database role; specarch-gen-sql built from this repository on PATH | generate sql is run with --unapproved | it writes 0001_expand.sql with the loans table, row security enabled and not forced, so that the owner reaches every row, and one policy per role: the rules with the mapped property read as mapped and the other from the setting named after it, an empty setting read as NULL, and the role with no rule under a policy holding for every row, so that it reaches the table whole; the mapped role under its database role and the other under its own name with underscores; writes the snapshot with the policies, and exits 0 |
@@ -17928,6 +18035,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-71 | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. | functional | should | accepted | test | An operation that posts an entity is an insert of every column but the ones the database draws and the soft-delete flag, answering the record; a read, a replacement or an amendment by one path parameter, of an entity whose key is one field, reads or changes the record by its key, a softly deleted record left out, an amendment keeping a column the request leaves out. An operation with listOf on an entity is a page of it and its total, filtered by each filterable field and each query parameter that names a field, searched case-insensitively over the searchable fields, and sorted by the wire name of each sortable field either way, then by the key. A list of a view, a list under a path parameter, a list with a query parameter that names no field held in one column, and a read or change of an entity whose key is not one field are warnings at the operation, and their queries are left to be written by hand; an entity another stakeholder owns gets no query. A dialect other than PostgreSQL or MariaDB is an error at the target. A query file in the output folder that the plug-in did not write is never overwritten; generate --check compares it, and it matches when it equals what the target writes but for its header. The queries compile under sqlc against the migrations, and the lending desk's query file written by hand differs from the generated one only where the specification and its database disagree. | NEED-2, NEED-8 |
 | SA-87 | specarch generate scripts shall write, for each guarded operation or command whose change the design says, by a keyword or by the guard's writes, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand. | functional | should | accepted | test | A guarded entry that triggers transitions of the guard's entity with one to state, none of their from states, sets the state field to it, on the record by its key when the operation's path has one parameter, and otherwise on every record in a from state for which the precondition holds; a guarded PUT of the entity by one path parameter sets every column a caller may set; a guarded DELETE by one path parameter deletes the record, or sets its soft-delete flag; any other guarded entry whose guard has writes sets the fields it names, each to the value the operator gives or to a literal, beside a transition it triggers when there is one, or deletes the records, on the record by its key when the path has one parameter, and otherwise on every record for which the precondition holds that does not already hold every value set. The script counts the records the change would write, with the key, the from states, the precondition and the soft-delete flag in its condition, and refuses unless the count is recordsChanged; the change carries the same condition, and the script refuses unless it wrote recordsChanged records and a record changed by its key holds what was written. A variable the change needs that is not set is refused by name before anything is read, unless its column may be null, when leaving it out sets the column to NULL. Without the variable apply set to true, the script runs every check and rolls back, saying how many records would change; a record by its key that already holds what the change writes is reported as already applied and left as it is. A guarded POST, a guarded PATCH and a guarded command that triggers no transition, each with no writes, a writes that sets a field stored encrypted, transitions of one trigger with two to states, a transition back to the state it leaves, a keyed change whose recordsChanged is not 1, an entity whose key is not one field, a PUT that sets a field stored encrypted and a PUT that sets no column a caller may set are warnings at the guard, and their scripts are left to be written by hand. A dialect other than PostgreSQL or MariaDB is an error at the target, and a script in the output folder that the plug-in did not write is never overwritten. | NEED-2 |
 | SA-90 | specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, a monitor what the operator does when its objective is missed, and a job that keeps an item apart who handles a kept item, where it is kept and what they do with it. | functional | should | accepted | test | specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy. The manual has a section per command with its usage line from the program's name and the command's words, who runs it, its arguments and options, what it reads, writes and prints, and each exit status with what it means and its remedy. specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps. The operations guide writes, under the jobs, for each job that keeps an item apart, where a kept item is, the role that handles it and the steps to look at it, try it again or discard it, or one sentence naming deadLetter when the job has none. A specification with no pages, flows, commands, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document. A problem type without remedy, a command without remedies or a program name, and a monitor without response are read as before, with no error or warning, the same in both builds. A job's deadLetter whose role is not a role, or on a job whose retries do not keep an item apart, is refused as job, the same in both builds. A command's remedy keyed by status 0, or by a status its exitCodes does not list, is refused as exit_code, the same in both builds. | NEED-3, NEED-5 |
+| SA-116 | specarch generate seed shall write, through specarch-gen-seed, a development seed for the tables generate sql writes, made-up rows drawn from the entities with a fixed seed, so that the file is the same bytes on every run, loads into a database the migrations have just built, and holds nothing about a real person. | functional | should | proposed | test | seed.sql holds one INSERT per row, the tables in an order every foreign key can be satisfied in, the count of each entity from settings.rows (ten where it names none), a header naming the dialect, the type-rendering version and the seed, and the same bytes on every run with the same specification and settings; another seed gives other rows. Every value follows its field, as the type-rendering idiom renders the column; an integer, a number and a decimal lie within the field's minimum, maximum, exclusive bounds and multipleOf, at its precision and scale; text has its minLength and maxLength and names the field and the row; a pattern gives a value matching it; an enum one of its values; a date, an instant, a time, a duration, a uuid and binary data each in the dialect's literal; an email, a URI, a host name and an address lie in the ranges reserved for documentation; a field's examples are the first rows' values. A key and a unique constraint never repeat across the rows; a check constraint holds for every row, evaluated as a fixture's record is; an optional field is NULL in some rows and given in others; a value object kept in columns is present or absent as a whole with its required parts set; one kept as JSON, a list and a map are JSON text, a list of scalars PostgreSQL's array; a foreign key points at a row of the file, an optional one at NULL in some rows, a relation to the entity itself at an earlier row, and a one-to-one relation at the row of the same rank; the audit columns hold a fixed instant and the actor seed, and the soft-delete flag is false; a generated default is written out, so a child's key names it. The dialect is the seed target's, the sql target's when it names none, PostgreSQL otherwise, and two that differ are an error at the target; a required field encrypted at rest, a required relation to an entity that gets no rows or that another stakeholder owns, a cycle of required relations, a one-to-one relation with too few rows on the other side, and an entity no row of which satisfies its constraints in a hundred draws are errors at the entry, the entity gets no rows and the file says so, the rest is written, and the run exits 1; a field that is a key or unique whose values are fewer than the rows is an error at the field naming the count. An entity another stakeholder owns gets no rows; settings.rows naming an entity that is not one, or one another stakeholder owns, a count below zero or a seed that is not a whole number is an error at the target. The plug-in never truncates, deletes or runs against a database. | NEED-2, NEED-10 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -18128,6 +18236,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-90:** The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
 
 **Note on SA-90:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.12: The operation process uses the system in its intended environment and supports its users. <https://www.iso.org/standard/63712.html>
+
+**Insight on SA-116:** A project writes the fake records its developers work against by hand, in SQL, and they drift from the specification at every change of a field, an enum or a relation; drawing them from the entities with a fixed seed keeps them in step and byte-identical, so generate --check reads a stale seed as it reads a stale migration.
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -18340,6 +18450,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-113 | commands extract; decisions ADR-215 | tests check-register; tests extract-tables-header-questions; tests extract-tables-instructions; tests extract-tables-mixed-column; tests extract-tables-no-header; tests extract-tables-quote-not-closed; tests extract-tables-register; tests extract-tables-round-trip; tests extract-tables-template; tests extract-tables-two-periods; tests generate-register |
 | SA-114 | enums Rule; decisions ADR-216 | tests derive-routes; tests document-techspec-routes; tests generate-go-dxlib-routes; tests generate-tests-routes; tests validate-routes-refused; tests validate-routes-valid |
 | SA-115 | decisions ADR-218 | tests generate-ui-vue-htm; tests generate-ui-vue-htm-dxlib; tests generate-ui-vue-htm-hand-built; tests generate-ui-vue-htm-refused; tests generate-ui-vue-htm-table-override |
+| SA-116 | commands generate; decisions ADR-219 | tests generate-seed; tests generate-seed-dialect-refused; tests generate-seed-encrypted-refused; tests generate-seed-mariadb; tests generate-seed-oracle; tests generate-seed-rows-zero; tests generate-seed-sqlserver |
 
 ## Sources
 
@@ -18392,10 +18503,13 @@ Every source a Note in this document cites.
 | postgresql-row-security | PostgreSQL documentation, Row Security Policies and CREATE POLICY | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/ddl-rowsecurity.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |
 | rfc-2045 | RFC 2045, Multipurpose Internet Mail Extensions (MIME) Part One, Format of Internet Message Bodies | 1996 | IETF | https://www.rfc-editor.org/rfc/rfc2045 |
+| rfc-2606 | RFC 2606: Reserved Top Level DNS Names | 1999 | IETF | https://www.rfc-editor.org/rfc/rfc2606 |
 | rfc-3339 | RFC 3339, Date and Time on the Internet: Timestamps | 2002 | IETF | https://www.rfc-editor.org/rfc/rfc3339 |
+| rfc-3849 | RFC 3849: IPv6 Address Prefix Reserved for Documentation | 2004 | IETF | https://www.rfc-editor.org/rfc/rfc3849 |
 | rfc-3986 | RFC 3986, Uniform Resource Identifier (URI): Generic Syntax | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc3986 |
 | rfc-4180 | RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc4180 |
 | rfc-5322 | RFC 5322, Internet Message Format | 2008 | IETF | https://www.rfc-editor.org/rfc/rfc5322 |
+| rfc-5737 | RFC 5737: IPv4 Address Blocks Reserved for Documentation | 2010 | IETF | https://www.rfc-editor.org/rfc/rfc5737 |
 | rfc-6557 | RFC 6557, Procedures for Maintaining the Time Zone Database | 2012 | IETF | https://www.rfc-editor.org/rfc/rfc6557 |
 | rfc-6749 | RFC 6749, The OAuth 2.0 Authorization Framework | 2012 | IETF | https://www.rfc-editor.org/rfc/rfc6749 |
 | rfc-6901 | RFC 6901, JavaScript Object Notation (JSON) Pointer | 2013 | IETF | https://www.rfc-editor.org/rfc/rfc6901 |
@@ -18422,6 +18536,7 @@ Every source a Note in this document cites.
 | semver | Semantic Versioning | 2.0.0 | The Semantic Versioning project | https://semver.org/spec/v2.0.0.html |
 | spec-kit | Spec Kit |   | GitHub | https://github.com/github/spec-kit |
 | spiffe | The SPIFFE Standards, the SPIFFE ID and the SPIFFE Verifiable Identity Document (SVID) as an X.509 certificate or a JWT |   | The SPIFFE project, Cloud Native Computing Foundation | https://github.com/spiffe/spiffe/tree/main/standards |
+| splitmix | Fast Splittable Pseudorandom Number Generators | 2014 | Guy L. Steele Jr., Doug Lea and Christine H. Flood | https://doi.org/10.1145/2660193.2660195 |
 | sri | Subresource Integrity | 2016 | W3C | https://www.w3.org/TR/SRI/ |
 | systemd-service | systemd.service, Service unit configuration |   | The systemd project | https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html |
 | systemd-unit | systemd.unit, Unit configuration |   | The systemd project | https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html |

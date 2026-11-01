@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 115 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 116 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
@@ -42,7 +42,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
-| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-108, SA-57, SA-100 |
+| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-116, SA-101, SA-108, SA-57, SA-100 |
 
 ## 4. Requirements
 
@@ -121,6 +121,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-71 | functional | should | accepted | specarch generate sqlc shall write the sqlc queries the design derives against the tables generate sql writes, and leave every other query to be written by hand beside them. |
 | SA-87 | functional | should | accepted | specarch generate scripts shall write, for each guarded operation or command whose change the design says, by a keyword or by the guard's writes, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand. |
 | SA-90 | functional | should | accepted | specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, a monitor what the operator does when its objective is missed, and a job that keeps an item apart who handles a kept item, where it is kept and what they do with it. |
+| SA-116 | functional | should | proposed | specarch generate seed shall write, through specarch-gen-seed, a development seed for the tables generate sql writes, made-up rows drawn from the entities with a fixed seed, so that the file is the same bytes on every run, loads into a database the migrations have just built, and holds nothing about a real person. |
 | SA-32 | functional | must | accepted | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. |
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
@@ -1340,6 +1341,22 @@ Acceptance criteria:
 **Insight:** The people who use a system and the people who run it read a manual and an operations guide, not a technical specification; written by hand both drift from the pages and the procedures, and written from the specification they show early what a page asks of a person, which is where a change request starts.
 
 **Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.12: The operation process uses the system in its intended environment and supports its users. <https://www.iso.org/standard/63712.html>
+
+### SA-116
+
+specarch generate seed shall write, through specarch-gen-seed, a development seed for the tables generate sql writes, made-up rows drawn from the entities with a fixed seed, so that the file is the same bytes on every run, loads into a database the migrations have just built, and holds nothing about a real person.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-2, NEED-10.
+
+Acceptance criteria:
+
+- seed.sql holds one INSERT per row, the tables in an order every foreign key can be satisfied in, the count of each entity from settings.rows (ten where it names none), a header naming the dialect, the type-rendering version and the seed, and the same bytes on every run with the same specification and settings; another seed gives other rows.
+- Every value follows its field, as the type-rendering idiom renders the column; an integer, a number and a decimal lie within the field's minimum, maximum, exclusive bounds and multipleOf, at its precision and scale; text has its minLength and maxLength and names the field and the row; a pattern gives a value matching it; an enum one of its values; a date, an instant, a time, a duration, a uuid and binary data each in the dialect's literal; an email, a URI, a host name and an address lie in the ranges reserved for documentation; a field's examples are the first rows' values.
+- A key and a unique constraint never repeat across the rows; a check constraint holds for every row, evaluated as a fixture's record is; an optional field is NULL in some rows and given in others; a value object kept in columns is present or absent as a whole with its required parts set; one kept as JSON, a list and a map are JSON text, a list of scalars PostgreSQL's array; a foreign key points at a row of the file, an optional one at NULL in some rows, a relation to the entity itself at an earlier row, and a one-to-one relation at the row of the same rank; the audit columns hold a fixed instant and the actor seed, and the soft-delete flag is false; a generated default is written out, so a child's key names it.
+- The dialect is the seed target's, the sql target's when it names none, PostgreSQL otherwise, and two that differ are an error at the target; a required field encrypted at rest, a required relation to an entity that gets no rows or that another stakeholder owns, a cycle of required relations, a one-to-one relation with too few rows on the other side, and an entity no row of which satisfies its constraints in a hundred draws are errors at the entry, the entity gets no rows and the file says so, the rest is written, and the run exits 1; a field that is a key or unique whose values are fewer than the rows is an error at the field naming the count.
+- An entity another stakeholder owns gets no rows; settings.rows naming an entity that is not one, or one another stakeholder owns, a count below zero or a seed that is not a whole number is an error at the target. The plug-in never truncates, deletes or runs against a database.
+
+**Insight:** A project writes the fake records its developers work against by hand, in SQL, and they drift from the specification at every change of a field, an enum or a relation; drawing them from the entities with a fixed seed keeps them in step and byte-identical, so generate --check reads a stale seed as it reads a stale migration.
 
 ### SA-32
 

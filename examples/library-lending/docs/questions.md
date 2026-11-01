@@ -22,6 +22,7 @@ What can be made from the specification now. A document is a draft while a must 
 | operations document | ready | |
 | code target bpmn | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target openapi | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
+| code target seed | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sql | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target sqlc | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 | code target tests | waits | not approved: there is no records/approvals/0.1.0.yaml beside the specification |

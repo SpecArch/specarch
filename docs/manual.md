@@ -3154,7 +3154,7 @@ as in an implementation file) and, for a question, what it
 (docs/diagnostics.md); and `check`, true when the run only compares,
 so a plug-in that refuses to write over a file built by hand answers
 its files for the comparison; and `dependencies`, for the targets
-that read another module (openapi, sql, go-dxlib and ui), the
+that read another module (openapi, sql, seed, go-dxlib and ui), the
 specifications of the run that the specification's dependencies
 name, keyed by the dependency, each with the module's
 `specification` and `version` (its info.name and info.version), its
@@ -3197,7 +3197,7 @@ checks with the estate and does not generate, the folders naming
 those it does (ADR-184). Before the plug-in runs, a reference the run
 does not give is refused as reference at its entry, with status 1
 and nothing written: a value typed by another specification's element
-(for sql, a field of an entity or a view), and for ui a list page or
+(for sql and seed, a field of an entity or a view), and for ui a list page or
 a picker reading another specification's list; every other target
 refuses those whatever the run gives. A relation to another
 specification's entity is not refused: its via field is this
@@ -3208,7 +3208,8 @@ module's name and the pointer, and no component for it (the dxlib
 dialect, whose reader takes a $ref into the components only, writes
 it as a component, marked); sql takes the columns of a field typed
 by another module's schema or entity, and the check of one typed by
-its enum, from that element, as from its own; go-dxlib writes a
+its enum, from that element, as from its own, and seed draws the
+rows of such a column as for one of its own; go-dxlib writes a
 field typed by another module's schema or entity as a value object
 of it, commented with the module and the pointer; ui draws such a
 field as its own, and writes a list page or a picker that reads

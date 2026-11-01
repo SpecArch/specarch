@@ -1,0 +1,6 @@
+arguments: [generate, seed, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:15:14: error: /entities/Author/properties/email: generator: Author.email is encrypted at rest, and the key that encrypts it and the salt of its hash are the service's, so no seed can write a value the service reads back; make such a record through the service, or set rows.Author: 0 in the seed target's settings and seed Author by hand [generator@specarch.yaml#/entities/Author/properties/email]
+  project/specarch.yaml:20:3: error: /entities/Book: generator: Book needs a row of Author for each of its rows through author, and Author has none (email is encrypted at rest); set rows.Book: 0 as well, or give Author rows [generator@specarch.yaml#/entities/Book]
+plugins: [seed]

@@ -1,0 +1,6 @@
+arguments: [generate, seed, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:39:3: error: /entities/Book: generator: Book needs a row of Author for each of its rows through author, and Author has none (rows.Author is 0); set rows.Book: 0 as well, or give Author rows [generator@specarch.yaml#/entities/Book]
+  project/specarch.yaml:62:3: error: /entities/Review: generator: Review needs a row of Book for each of its rows through book, and Book has none (it needs a row of Author, and Author has none); set rows.Review: 0 as well, or give Book rows [generator@specarch.yaml#/entities/Review]
+plugins: [seed]

@@ -116,6 +116,12 @@ targets:
     output: ../../../migrations
     dialect: postgresql
     description: Forward migrations, new files only, with the snapshot of the schema they built beside them.
+  seed:
+    output: ../../../seed
+    description: "The rows a developer runs the service against, drawn from the entities with a fixed seed into the tables the migrations build: the catalogue alone, since a member's email is encrypted at rest and members, their loans and the waivers of their fees are made through the service."
+    settings:
+      rows: { Book: 12, Member: 0, Loan: 0, FeeWaiverRequest: 0 }
+      seed: 2026
   sqlc:
     output: ../../../queries
     dialect: postgresql

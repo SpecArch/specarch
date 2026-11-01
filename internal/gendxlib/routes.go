@@ -46,7 +46,7 @@ func (g *gen) fixedRoutes() {
 			return
 		}
 	}
-	for _, i := range []string{"context", "crypto/rand", "encoding/base64", "fmt", "io", "io/fs", "net/http", "strconv", "strings"} {
+	for _, i := range []string{"context", "crypto/rand", "encoding/base64", "errors", "fmt", "io", "io/fs", "net/http", "strconv", "strings"} {
 		g.imports[i] = true
 	}
 	g.imports["github.com/donnyhardyanto/dxlib/api"] = true
@@ -70,7 +70,10 @@ func (g *gen) fixedRoutes() {
 			g.line("\t%s func(ctx context.Context) error", r.field)
 		}
 	}
-	g.line("\t// Allowed reports whether the request's caller holds the permission; an error is answered 403 with its text.")
+	g.line("\t// Allowed reports whether the request's caller holds the permission. An error")
+	g.line("\t// is answered with its text: 401 when it is or wraps ErrNotSignedIn, the caller")
+	g.line("\t// not signed in or the session expired, and 403 otherwise; a route whose")
+	g.line("\t// permission is signedIn answers 401 for every error.")
 	g.line("\tAllowed func(r *http.Request, permission string) error")
 	g.line("}")
 	g.line("")
@@ -140,8 +143,14 @@ func policyLiteral(node map[string]any) string {
 
 // routeHelpers are the handlers of the three kinds of route and the guard
 // they share, written once when the design has a route.
-const routeHelpers = `// routeGuard answers what every fixed route refuses: a method other than
-// GET or HEAD, and a caller without the route's permission.
+const routeHelpers = `// ErrNotSignedIn is what Routes.Allowed returns, or wraps, for a caller
+// who is not signed in or whose session expired: the route answers 401,
+// where any other error is 403.
+var ErrNotSignedIn = errors.New("not signed in")
+
+// routeGuard answers what every fixed route refuses: a method other than
+// GET or HEAD, 405; a caller not signed in, 401; a caller without the
+// route's permission, 403.
 func routeGuard(r Routes, name, permission string, w http.ResponseWriter, req *http.Request) bool {
 	if req.Method != http.MethodGet && req.Method != http.MethodHead {
 		w.Header().Set("Allow", "GET, HEAD")
@@ -156,7 +165,11 @@ func routeGuard(r Routes, name, permission string, w http.ResponseWriter, req *h
 		return false
 	}
 	if err := r.Allowed(req, permission); err != nil {
-		http.Error(w, fmt.Sprintf("route %s needs permission %s: %v", name, permission, err), http.StatusForbidden)
+		status := http.StatusForbidden
+		if permission == "signedIn" || errors.Is(err, ErrNotSignedIn) {
+			status = http.StatusUnauthorized
+		}
+		http.Error(w, fmt.Sprintf("route %s needs permission %s: %v", name, permission, err), status)
 		return false
 	}
 	return true

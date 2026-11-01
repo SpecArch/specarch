@@ -2015,9 +2015,13 @@ A route is a subject of tests, `route: <name>`, with the cases its kind
 implies: its success, the callers it refuses, a method it does not take,
 a file that is not there and a path that climbs out of the folder, and
 the service unhealthy; a test's `expect.status` is one the route answers.
-The technical specification lists the routes with each policy as its
-header reads, and the go-dxlib target writes them as raw handlers the
-service fills with its document, its folders and its health check.
+A files route's test names the file it requests, `input: { file:
+2026/march.pdf }`, what follows the prefix, since the prefix itself is a
+folder the route answers 404; the other routes take no input. The
+technical specification lists the routes with each policy as its header
+reads and its `Cache-Control` as the server sends it, and the go-dxlib
+target writes them as raw handlers the service fills with its document,
+its folders and its health check.
 
 ### Gateways
 

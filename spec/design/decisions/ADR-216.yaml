@@ -65,14 +65,24 @@ decisions:
       permission, method not allowed, for files not found file and path
       outside the folder, for health unhealthy, the last two critical on
       their own; a test's expect.status is one the route answers, and
-      derive writes the status of each case. The technical specification
-      lists the routes with each policy as its header reads. The go-dxlib
-      target writes a Routes type, one field per route for what only the
-      service has, the document builder, the file system, the health
-      check, and Allowed for the permission, and RegisterRoutes, which
-      mounts each as a raw handler on dxlib's mux with the method check,
-      the permission, the caching, the policy with a fresh nonce, the
-      files with no listing and the health answer.
+      derive writes the status of each case. A files route's test names
+      the file it requests as input.file, what follows the prefix, since
+      the prefix itself is a folder the route answers 404; the other
+      routes take no input, and a generated test for a files route that
+      names no file is a body to write by hand, saying so. The technical
+      specification lists the routes with each policy as its header
+      reads and its Cache-Control as the server sends it, public or
+      private by the permission. The go-dxlib target writes a Routes
+      type, one field per route for what only the service has, the
+      document builder, the file system, the health check, and Allowed
+      for the permission, and RegisterRoutes, which mounts each as a raw
+      handler on dxlib's mux with the method check, the permission, the
+      caching, the policy with a fresh nonce, the files with no listing
+      and the health answer. Allowed says which refusal it is: an error
+      that is or wraps ErrNotSignedIn is answered 401, the caller not
+      signed in or the session expired, any other 403, and a route whose
+      permission is signedIn answers 401 for every refusal, the statuses
+      the validator gives the route.
     consequences: |
       The GETs a browser application needs are in the design, with their
       permission and their tests, and the technical specification shows

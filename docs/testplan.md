@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 917 design tests, 457 golden and 460 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 918 design tests, 458 golden and 460 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 917 design tests, 457 golden and 460 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 913 |
+| system | 914 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3284,6 +3284,14 @@ Scenario: golden; level: system; verifies SA-31.
 - Given: a specification with an operation, a command, a page, a check constraint and an algorithm, and design tests of each with fixtures, inputs and expected outcomes where the design gives a call; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH
 - When: generate tests is run with --unapproved
 - Then: it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0
+
+#### generate-tests-routes
+
+Scenario: golden; level: system; verifies SA-114.
+
+- Given: a specification with a files route and its tests, three naming the file under the prefix as input.file, one for a file that is there, one for a file that is not and one for a path that climbs out of the folder, and one naming no file; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: it writes one Go test file: a GET at the prefix followed by the file for each test that names one, with its expected status, and a body to write by hand for the test that names none, saying that a files route needs a file under the prefix, and exits 0
 
 #### generate-tests-swift
 
@@ -6577,7 +6585,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-62.
 
 Scenario: red; level: system; covers exit 1; verifies SA-114.
 
-- Given: routes with a parameter in a path, an application and a health path of the wrong shape, files at the root, two routes on one path and a route on an operation's path, a policy on a files route, an unknown directive, a nonce value written, a keyword without quotes, nonce where none is read and beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, a page outside every application route, a test expecting a status the route never answers, a policy governing no script and an application route whose policy a must question asks for
+- Given: routes with a parameter in a path, an application and a health path of the wrong shape, files at the root, two routes on one path and a route on an operation's path, a policy on a files route, an unknown directive, a nonce value written, a keyword without quotes, nonce where none is read and beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, a page outside every application route, a test expecting a status the route never answers, a file named on a health route's test, a files route's test naming another key and a file with a leading slash, a policy governing no script and an application route whose policy a must question asks for
 - When: validate is run
 - Then: it reports each under route, permission_undeclared or test_data, warns on the policy that governs no script, holds the asked policy, and exits 1
 
@@ -6585,7 +6593,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-114.
 
 Scenario: golden; level: system; verifies SA-114.
 
-- Given: a specification with an application route whose policy names nonce and is never stored, a public files route stored for a year and immutable, a files route readers may load, a health route, a content page under the application route, and the tests each route implies
+- Given: a specification with an application route whose policy names nonce and is never stored, a public files route stored for a year and immutable, a files route readers may load, a health route, a content page under the application route, and the tests each route implies, the files routes' tests naming their file under the prefix
 - When: validate is run
 - Then: it reports nothing and exits 0
 

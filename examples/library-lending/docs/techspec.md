@@ -1636,7 +1636,7 @@ The entity fields that are not public, and the ones encrypted at rest. A persona
 
 ### Permissions
 
-Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
+Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one.
 
 | Permission | librarian | head-librarian | member | scheduler | desk-supervisor | auditor | fee-ledger-batch (service) | public |
 |---|---|---|---|---|---|---|---|---|

@@ -269,7 +269,7 @@ sequenceDiagram
 
 ### Permissions
 
-Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
+Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one.
 
 | Permission | member | public |
 |---|---|---|

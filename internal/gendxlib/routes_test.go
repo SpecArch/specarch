@@ -10,8 +10,9 @@ import (
 // TestRouteHelpersServe compiles the handlers go-dxlib writes for the
 // fixed routes (ADR-216), with a Routes type as the generator writes it,
 // and drives them: the document with a fresh nonce in its policy and never
-// stored, 405 with Allow on another method, 403 when the permission is
-// refused and 500 when nothing can check it, the files with their caching
+// stored, 405 with Allow on another method, 401 when the caller is not
+// signed in and 403 when the permission is refused, 500 when nothing can
+// check it, the files with their caching
 // and no listing, and the health check 200 or 503 with the reason.
 func TestRouteHelpersServe(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
@@ -30,6 +31,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -51,6 +53,7 @@ type Routes struct {
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -121,6 +124,21 @@ func TestFiles(t *testing.T) {
 	h = routeFiles(refused, "reports", "reports.read", "private, max-age=600", "/reports/", refused.Assets)
 	if res := serve(h, http.MethodGet, "/reports/a.js"); res.StatusCode != 403 || !strings.Contains(body(res), "no role grants it") {
 		t.Fatalf("refused: %d %q", res.StatusCode, body(res))
+	}
+	notSignedIn := Routes{Assets: files, Allowed: func(*http.Request, string) error { return ErrNotSignedIn }}
+	h = routeFiles(notSignedIn, "reports", "reports.read", "private, max-age=600", "/reports/", notSignedIn.Assets)
+	if res := serve(h, http.MethodGet, "/reports/a.js"); res.StatusCode != 401 || !strings.Contains(body(res), "not signed in") {
+		t.Fatalf("not signed in: %d %q", res.StatusCode, body(res))
+	}
+	expired := Routes{Assets: files, Allowed: func(*http.Request, string) error { return fmt.Errorf("the session expired at 10:00: %w", ErrNotSignedIn) }}
+	h = routeFiles(expired, "reports", "reports.read", "private, max-age=600", "/reports/", expired.Assets)
+	if res := serve(h, http.MethodGet, "/reports/a.js"); res.StatusCode != 401 || !strings.Contains(body(res), "the session expired at 10:00") {
+		t.Fatalf("expired: %d %q", res.StatusCode, body(res))
+	}
+	anyone := Routes{Assets: files, Allowed: func(*http.Request, string) error { return errors.New("no session cookie") }}
+	h = routeFiles(anyone, "reports", "signedIn", "private, max-age=600", "/reports/", anyone.Assets)
+	if res := serve(h, http.MethodGet, "/reports/a.js"); res.StatusCode != 401 || !strings.Contains(body(res), "no session cookie") {
+		t.Fatalf("signedIn: %d %q", res.StatusCode, body(res))
 	}
 	unchecked := Routes{Assets: files}
 	h = routeFiles(unchecked, "reports", "reports.read", "private, max-age=600", "/reports/", unchecked.Assets)

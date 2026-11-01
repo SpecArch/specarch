@@ -6315,7 +6315,7 @@ let designSchemaJSON = #"""
           }
         },
         "input": {
-          "description": "SpecArch keyword. What the call carries, for a generator: an operation's parameters and body fields by name; a command's arguments and options; a page's route parameters and action, the label of one of its actions.",
+          "description": "SpecArch keyword. What the call carries, for a generator: an operation's parameters and body fields by name; a command's arguments and options; a page's route parameters and action, the label of one of its actions; a files route's file, the path of the file under the route's prefix.",
           "type": "object",
           "minProperties": 1
         },

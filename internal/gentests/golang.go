@@ -76,7 +76,7 @@ func goTest(w *writer, t Test) {
 	}
 	c := t.Call
 	if c == nil {
-		w.line("	body%s(t, h) // written by hand beside this file: the design gives no call to make", pascal(t.Name))
+		w.line("	body%s(t, h) // written by hand beside this file: %s", pascal(t.Name), t.NoCall)
 		w.line("}")
 		w.line("")
 		return

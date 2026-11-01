@@ -67,7 +67,7 @@ in the design's own vocabulary, for the generator:
 | Key | Holds |
 |---|---|
 | `fixture` | the state before: records that exist, as entity name to a list of records with their fields; and `caller`, the role making the call, or `public` |
-| `input` | what the call carries: for an operation, its parameters and body fields by name; for a command, its `arguments` and `options`; for a page, its route parameters and the action taken |
+| `input` | what the call carries: for an operation, its parameters and body fields by name; for a command, its `arguments` and `options`; for a page, its route parameters and the action taken; for a files route, `file`, the path of the file under the prefix |
 | `expect` | the outcome: for an operation, the `status` and the fields of the `body` that matter; for a command, the `exit` status and lines of `standardOutput`; for a constraint or transition, the `state` after, as entity name to records; and `emits`, the messages published, or `emitsNothing` |
 
 A value has the type the design gives the field, written as worked
@@ -112,7 +112,9 @@ it gives, and a constraint that names a field it leaves out is not
 evaluated. A command's `arguments` are its arguments by name, a list of
 values for a repeatable one, and its `options` its options by name. A
 page's input is its route parameters and `action`, the label of one of
-its actions. `status` and `exit` are whole numbers; `body` holds fields of
+its actions. A files route's input is `file` alone, what follows the
+prefix, since the prefix itself is a folder the route answers 404; the
+other routes take no input. `status` and `exit` are whole numbers; `body` holds fields of
 the entity the response with that status returns, when it returns one.
 `emits` and `emitsNothing` are not both given. Every one of these checks
 reports as `test_data`.
@@ -403,7 +405,9 @@ example into the folder the target owns:
   mapping (a table, a repository, a constructor), the caller signed in as
   the role; `input` becomes the call through the operation's mapping (an
   HTTP request to the handler under test, a command run with its
-  arguments, a page opened, a route requested with GET at its path);
+  arguments, a page opened, a route requested with GET at its path, a
+  files route at the prefix followed by `input.file`; a files route test
+  that names no file gets a body to write by hand, saying so);
   `expect` becomes the assertions, each named
   by the key it checks. `given`, `when` and `then` go in as comments, so
   the generated test reads as the specification does.

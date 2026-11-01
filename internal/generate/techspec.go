@@ -552,11 +552,11 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	}
 	if routes := pairs(root, "routes"); len(routes) > 0 {
 		d.heading(3, "Fixed routes")
-		d.para("The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held.")
+		d.para("The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held, and Caching is its Cache-Control header: a stored response is public when the route is public and private otherwise.")
 		d.line("| Route | Path | Serves | Permission | Caching |")
 		d.line("|---|---|---|---|---|")
 		for _, r := range routes {
-			d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "path"), str(r.Value, "serves"), str(r.Value, "permission"), cachingText(get(r.Value, "caching")))
+			d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "path"), str(r.Value, "serves"), str(r.Value, "permission"), cachingText(str(r.Value, "permission"), get(r.Value, "caching")))
 		}
 		d.blank()
 		for _, r := range routes {
@@ -765,7 +765,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 	}
 	if perms != "" {
 		d.heading(3, "Permissions")
-		d.para("Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.")
+		d.para("Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one.")
 		if len(pairs(root, "permissions")) == 0 {
 			d.para("The roles grant the permissions of the modules that enforce them, each named with its module: this is the estate's one matrix, and each module's technical specification shows the roles that reach its own permissions.")
 		} else if len(held) > 0 {
@@ -1469,12 +1469,18 @@ func sensitiveFields(root *yaml.Node) [][3]string {
 	return out
 }
 
-// cachingText says what a route's caching sends as Cache-Control.
-func cachingText(c *yaml.Node) string {
+// cachingText says what a route's caching sends as Cache-Control: no-store,
+// or max-age with public or private by the permission and immutable when
+// the design says so, as the go-dxlib generator sends it (ADR-216).
+func cachingText(permission string, c *yaml.Node) string {
 	if str(c, "store") != "true" {
 		return "no-store"
 	}
-	text := "max-age=" + str(c, "maxAgeSeconds")
+	scope := "private"
+	if permission == "public" {
+		scope = "public"
+	}
+	text := scope + ", max-age=" + str(c, "maxAgeSeconds")
 	if str(c, "immutable") == "true" {
 		text += ", immutable"
 	}

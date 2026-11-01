@@ -562,9 +562,12 @@ the application's document from the nonce of the response, the file system
 of a files route, the check of a health route, and `Allowed`, which says
 whether the request's caller holds a permission. `RegisterRoutes` mounts
 each route on the API's mux with dxlib's `RegisterRawHandler`, outside the
-operation pipeline: GET and HEAD alone, 405 with `Allow` otherwise; 403
-with the reason when `Allowed` refuses, and 500 naming the nil field when
-the service left one unset; the application's document with a nonce of
+operation pipeline: GET and HEAD alone, 405 with `Allow` otherwise; when
+`Allowed` refuses, 401 with the reason for a caller not signed in or
+whose session expired, which `Allowed` says by returning or wrapping
+`ErrNotSignedIn`, and for every refusal on a `signedIn` route, 403 with
+the reason otherwise, the statuses the validator says the route answers;
+500 naming the nil field when the service left one unset; the application's document with a nonce of
 128 random bits written into the policy header and handed to the
 document, `Content-Type: text/html` and the route's `Cache-Control`; the
 files through `http.FileServer` under the prefix, a folder answered 404

@@ -174,6 +174,15 @@ func routeStatuses(_ root: YNode, _ rt: YNode) -> [String] {
     return out
 }
 
+/// Whether a content security policy names the nonce made for each
+/// response in any of its directives.
+func policyNamesNonce(_ csp: YNode?) -> Bool {
+    for dir in pairs(csp) {
+        for v in items(dir.value) where v.value == cspNonce { return true }
+    }
+    return false
+}
+
 extension Design {
     /// A route's tests: the request it answers, the callers it refuses, a
     /// method it does not take, and by its kind a file that is not there, a
@@ -190,7 +199,8 @@ extension Design {
         var then = "it answers 200"
         switch serves {
         case "application":
-            then = "it answers 200 with the document, its policy naming a nonce made for this response"
+            then = "it answers 200 with the document"
+            if policyNamesNonce(v.child("contentSecurityPolicy")) { then += ", its policy naming a nonce made for this response" }
             if str(v.child("caching")?.child("store")) == "false" { then += ", and Cache-Control: no-store" }
         case "files":
             get = "a file under " + path + " is requested"

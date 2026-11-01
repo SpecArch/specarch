@@ -3,7 +3,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: "routes with a parameter in a path, an application and a health path of the wrong shape, files at the root, two routes on one path and a route on an operation's path, a policy on a files route, an unknown directive, a nonce value written, a keyword without quotes, nonce where none is read and beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, a page outside every application route, a test expecting a status the route never answers, a policy governing no script and an application route whose policy a must question asks for"
+given: "routes with a parameter in a path, an application and a health path of the wrong shape, files at the root, two routes on one path and a route on an operation's path, a policy on a files route, an unknown directive, a nonce value written, a keyword without quotes, nonce where none is read and beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, a page outside every application route, a test expecting a status the route never answers, a file named on a health route's test, a files route's test naming another key and a file with a leading slash, a policy governing no script and an application route whose policy a must question asks for"
 when: "validate is run"
 then: "it reports each under route, permission_undeclared or test_data, warns on the policy that governs no script, holds the asked policy, and exits 1"
 verifies: [SA-114]

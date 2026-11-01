@@ -34,6 +34,7 @@ type Test struct {
 	When          string
 	Then          string
 	NotApplicable string // the reason, when the test does not apply
+	NoCall        string // why the design gives no call to make, when Call is nil
 	Caller        string // the role signed in, or "" for none or public
 	// CallerProperties are the caller's properties the fixture gives, by
 	// name, for a harness that fills the caller (meta-model 0.3).
@@ -304,9 +305,12 @@ func (g *walker) test(name string, t map[string]any) Test {
 	input, hasInput := t["input"].(map[string]any)
 	expect, hasExpect := t["expect"].(map[string]any)
 	if hasInput || hasExpect {
-		out.Call = g.call(t, input)
+		out.Call, out.NoCall = g.call(t, input)
 	}
 	if out.Call == nil {
+		if out.NoCall == "" {
+			out.NoCall = "the design gives no call to make"
+		}
 		return out
 	}
 	e := &out.Expect
@@ -343,20 +347,21 @@ func (g *walker) test(name string, t map[string]any) Test {
 	return out
 }
 
-// call is the call a test makes, or nil when its subject is not an
-// operation, a command or a page.
-func (g *walker) call(t map[string]any, input map[string]any) *Call {
+// call is the call a test makes, or nil and why when the design gives
+// none: a subject that is not an operation, a command, a page or a route,
+// or a files route whose test names no file.
+func (g *walker) call(t map[string]any, input map[string]any) (*Call, string) {
 	switch {
 	case str(t, "operation") != "":
 		id := str(t, "operation")
 		p, method, pointer, fields := g.operation(id)
 		if p == "" {
-			return nil
+			return nil, ""
 		}
 		op, _ := mapAt(g.spec, "paths", p, method).(map[string]any)
 		stream, _ := op["stream"].(map[string]any)
 		return &Call{Kind: "request", Mapping: g.mapping(pointer, id), Method: strings.ToUpper(method), Path: p, Input: g.record(input, fields),
-			Handshake: str(op, "handshake"), Stream: text(stream["direction"])}
+			Handshake: str(op, "handshake"), Stream: text(stream["direction"])}, ""
 	case str(t, "command") != "":
 		name := str(t, "command")
 		cmd, _ := mapAt(g.spec, "commands", name).(map[string]any)
@@ -391,19 +396,29 @@ func (g *walker) call(t map[string]any, input map[string]any) *Call {
 		}
 		opts, _ := input["options"].(map[string]any)
 		c.Options = g.record(opts, optFields)
-		return c
+		return c, ""
 	case str(t, "page") != "":
 		name := str(t, "page")
 		page, _ := mapAt(g.spec, "pages", name).(map[string]any)
-		return &Call{Kind: "open", Mapping: g.mapping("#/pages/"+name, name), Page: name, Route: str(page, "route"), Input: g.record(input, nil)}
+		return &Call{Kind: "open", Mapping: g.mapping("#/pages/"+name, name), Page: name, Route: str(page, "route"), Input: g.record(input, nil)}, ""
 	case str(t, "route") != "":
 		// A fixed route is requested as an operation is, with GET at its
-		// path and no input (ADR-216).
+		// path and no input; a files route is requested at the file the
+		// test names under the prefix, input.file, since the prefix alone
+		// is a folder, which the route answers 404 (ADR-216).
 		name := str(t, "route")
 		route, _ := mapAt(g.spec, "routes", name).(map[string]any)
-		return &Call{Kind: "request", Mapping: g.mapping("#/routes/"+name, name), Method: "GET", Path: str(route, "path"), Input: g.record(input, nil)}
+		path := str(route, "path")
+		if str(route, "serves") == "files" {
+			file := str(input, "file")
+			if file == "" {
+				return nil, fmt.Sprintf("route %s serves the files of a folder, and the test names no file under %s; write input: { file: <path under the prefix> } for the request to make", name, path)
+			}
+			path += file
+		}
+		return &Call{Kind: "request", Mapping: g.mapping("#/routes/"+name, name), Method: "GET", Path: path}, ""
 	}
-	return nil
+	return nil, ""
 }
 
 // operation finds an operation by its operationId: its path, method,

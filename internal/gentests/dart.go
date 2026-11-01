@@ -113,7 +113,7 @@ func dartTest(w *writer, t Test) {
 	}
 	c := t.Call
 	if c == nil {
-		w.line("    await body%s(h); // written by hand in %s: the design gives no call to make", pascal(t.Name), DartHarnessFile)
+		w.line("    await body%s(h); // written by hand in %s: %s", pascal(t.Name), DartHarnessFile, t.NoCall)
 		w.line("  });")
 		return
 	}

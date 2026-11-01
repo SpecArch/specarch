@@ -142,7 +142,7 @@ Version 1.4.0 of the specification: 10 needs, 114 requirements, and 2 gaps. Each
 | SA-111 | NEED-9 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
 | SA-112 | NEED-7 | commands mcp; commands skill; decisions ADR-214 | tests mcp-serves-tools; tests mcp-usage-error; tests skill-check-differs; tests skill-lists-what-it-writes; tests skill-refuses-another-folder; tests skill-usage-error |
 | SA-113 | NEED-8 | commands extract; decisions ADR-215 | tests check-register; tests extract-tables-header-questions; tests extract-tables-instructions; tests extract-tables-mixed-column; tests extract-tables-no-header; tests extract-tables-quote-not-closed; tests extract-tables-register; tests extract-tables-round-trip; tests extract-tables-template; tests extract-tables-two-periods; tests generate-register |
-| SA-114 | NEED-1 | enums Rule; decisions ADR-216 | tests derive-routes; tests document-techspec-routes; tests generate-go-dxlib-routes; tests validate-routes-refused; tests validate-routes-valid |
+| SA-114 | NEED-1 | enums Rule; decisions ADR-216 | tests derive-routes; tests document-techspec-routes; tests generate-go-dxlib-routes; tests generate-tests-routes; tests validate-routes-refused; tests validate-routes-valid |
 
 ## 3. Gaps
 

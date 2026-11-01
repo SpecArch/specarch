@@ -65,6 +65,8 @@ pages:
       - text: The notices of the week.
 tests:
   other-succeeds: { route: other, level: system, scenario: golden, given: any caller, when: GET /other/ is requested, then: it answers the document, expect: { status: 404 } }
+  health-succeeds: { route: health, level: system, scenario: golden, given: any caller, when: GET /health/ is requested, then: "it answers 200: the service is healthy", input: { file: status.txt }, expect: { status: 200 } }
+  assets-succeeds: { route: assets, level: system, scenario: golden, given: a caller with assets.read, when: "a file under /assets/{name} is requested", then: it answers 200 with the file, input: { name: app.js, file: /app.js }, expect: { status: 200 } }
 questions:
   Q-1:
     question: Which content security policy does the asked route answer with?

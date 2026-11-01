@@ -1,0 +1,4 @@
+arguments: [generate, tests, --unapproved, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [tests-go]

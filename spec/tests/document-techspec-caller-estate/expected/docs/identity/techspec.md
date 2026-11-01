@@ -68,7 +68,7 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 
 ### Permissions
 
-Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
+Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one.
 
 The roles grant the permissions of the modules that enforce them, each named with its module: this is the estate's one matrix, and each module's technical specification shows the roles that reach its own permissions.
 

@@ -259,6 +259,19 @@ func routeCaseStatus(name string) string {
 	return ""
 }
 
+// policyNamesNonce reports whether a content security policy names the
+// nonce made for each response in any of its directives.
+func policyNamesNonce(csp *yaml.Node) bool {
+	for _, dir := range source.Pairs(csp) {
+		for _, v := range source.Items(dir.Value) {
+			if v.Value == cspNonce {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // routeSubject is a route's tests: the request it answers, the callers it
 // refuses, a method it does not take, and by its kind a file that is not
 // there, a path that climbs out of the folder, and a service that is not
@@ -275,7 +288,10 @@ func (d *design) routeSubject(p source.Pair) *subject {
 	then := "it answers 200"
 	switch serves {
 	case "application":
-		then = "it answers 200 with the document, its policy naming a nonce made for this response"
+		then = "it answers 200 with the document"
+		if policyNamesNonce(source.Child(v, "contentSecurityPolicy")) {
+			then += ", its policy naming a nonce made for this response"
+		}
 		if source.Str(source.Child(source.Child(v, "caching"), "store")) == "false" {
 			then += ", and Cache-Control: no-store"
 		}

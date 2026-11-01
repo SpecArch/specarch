@@ -1,0 +1,52 @@
+specarch: "1.0.0"
+info: { title: Notice board, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  public: { description: Open to everyone. }
+routes:
+  reports:
+    description: The reports the board publishes.
+    path: /reports/
+    serves: files
+    permission: public
+    caching: { store: true, maxAgeSeconds: 600 }
+tests:
+  reports-succeeds:
+    route: reports
+    level: system
+    scenario: golden
+    given: the report of March is under the folder
+    when: /reports/2026/march.pdf is requested
+    then: it answers 200 with the file, its content type and its caching
+    input: { file: 2026/march.pdf }
+    expect: { status: 200 }
+  reports-not-found-file:
+    route: reports
+    level: system
+    scenario: red
+    covers: [not found file]
+    given: no report of April is under the folder
+    when: /reports/2026/april.pdf is requested
+    then: it answers 404
+    input: { file: 2026/april.pdf }
+    expect: { status: 404 }
+  reports-path-outside-the-folder:
+    route: reports
+    level: system
+    scenario: red
+    covers: [path outside the folder]
+    given: a request whose path climbs out of the folder with ..
+    when: /reports/../specarch.yaml is requested
+    then: it is refused, and no file outside the folder is read
+    input: { file: ../specarch.yaml }
+    expect: { status: 404 }
+  reports-folder-not-listed:
+    route: reports
+    level: system
+    scenario: red
+    given: reports under the folder
+    when: /reports/ itself is requested
+    then: it answers 404 and lists nothing
+    expect: { status: 404 }

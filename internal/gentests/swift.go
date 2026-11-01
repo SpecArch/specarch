@@ -90,7 +90,7 @@ func swiftTest(w *writer, t Test) {
 	}
 	c := t.Call
 	if c == nil {
-		w.line(in+"    try await body%s(h) // written by hand beside this file: the design gives no call to make", pascal(t.Name))
+		w.line(in+"    try await body%s(h) // written by hand beside this file: %s", pascal(t.Name), t.NoCall)
 		w.line(in + "}")
 		return
 	}

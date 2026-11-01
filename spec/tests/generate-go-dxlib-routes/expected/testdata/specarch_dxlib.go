@@ -11,6 +11,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -252,7 +253,10 @@ type Routes struct {
 	Health func(ctx context.Context) error
 	// ShelfReports is the folder of route shelf-reports, GET /reports/.
 	ShelfReports http.FileSystem
-	// Allowed reports whether the request's caller holds the permission; an error is answered 403 with its text.
+	// Allowed reports whether the request's caller holds the permission. An error
+	// is answered with its text: 401 when it is or wraps ErrNotSignedIn, the caller
+	// not signed in or the session expired, and 403 otherwise; a route whose
+	// permission is signedIn answers 401 for every error.
 	Allowed func(r *http.Request, permission string) error
 }
 
@@ -267,8 +271,14 @@ func RegisterRoutes(a *api.DXAPI, r Routes) {
 	a.RegisterRawHandler("/reports/", routeFiles(r, "shelf-reports", "books.read", "private, max-age=600", "/reports/", r.ShelfReports))
 }
 
+// ErrNotSignedIn is what Routes.Allowed returns, or wraps, for a caller
+// who is not signed in or whose session expired: the route answers 401,
+// where any other error is 403.
+var ErrNotSignedIn = errors.New("not signed in")
+
 // routeGuard answers what every fixed route refuses: a method other than
-// GET or HEAD, and a caller without the route's permission.
+// GET or HEAD, 405; a caller not signed in, 401; a caller without the
+// route's permission, 403.
 func routeGuard(r Routes, name, permission string, w http.ResponseWriter, req *http.Request) bool {
 	if req.Method != http.MethodGet && req.Method != http.MethodHead {
 		w.Header().Set("Allow", "GET, HEAD")
@@ -283,7 +293,11 @@ func routeGuard(r Routes, name, permission string, w http.ResponseWriter, req *h
 		return false
 	}
 	if err := r.Allowed(req, permission); err != nil {
-		http.Error(w, fmt.Sprintf("route %s needs permission %s: %v", name, permission, err), http.StatusForbidden)
+		status := http.StatusForbidden
+		if permission == "signedIn" || errors.Is(err, ErrNotSignedIn) {
+			status = http.StatusUnauthorized
+		}
+		http.Error(w, fmt.Sprintf("route %s needs permission %s: %v", name, permission, err), status)
 		return false
 	}
 	return true

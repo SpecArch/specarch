@@ -16,12 +16,12 @@ Version 1.0.0 of the specification: 8 tests. The chapters follow arc42, and a ch
 
 ### Fixed routes
 
-The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held.
+The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held, and Caching is its Cache-Control header: a stored response is public when the route is public and private otherwise.
 
 | Route | Path | Serves | Permission | Caching |
 |---|---|---|---|---|
 | app | / | application | public | no-store |
-| reports | /reports/ | files | notices.read | max-age=600 |
+| reports | /reports/ | files | notices.read | private, max-age=600 |
 | health | /health | health | public | no-store |
 
 Route app answers with Content-Security-Policy: default-src 'self'; script-src 'self' nonce; nonce stands for the value made for each response.
@@ -30,7 +30,7 @@ Route app answers with Content-Security-Policy: default-src 'self'; script-src '
 
 ### Permissions
 
-Access is fail-closed: every operation, command and page names the one permission it needs, and only the roles below grant one.
+Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one.
 
 | Permission | reader | public |
 |---|---|---|

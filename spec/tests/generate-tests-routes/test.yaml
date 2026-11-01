@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with a files route and its tests, three naming the file under the prefix as input.file, one for a file that is there, one for a file that is not and one for a path that climbs out of the folder, and one naming no file; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH"
+when: "generate tests is run with --unapproved"
+then: "it writes one Go test file: a GET at the prefix followed by the file for each test that names one, with its expected status, and a body to write by hand for the test that names none, saying that a files route needs a file under the prefix, and exits 0"
+verifies: [SA-114]

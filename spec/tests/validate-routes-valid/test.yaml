@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: golden
-given: "a specification with an application route whose policy names nonce and is never stored, a public files route stored for a year and immutable, a files route readers may load, a health route, a content page under the application route, and the tests each route implies"
+given: "a specification with an application route whose policy names nonce and is never stored, a public files route stored for a year and immutable, a files route readers may load, a health route, a content page under the application route, and the tests each route implies, the files routes' tests naming their file under the prefix"
 when: "validate is run"
 then: "it reports nothing and exits 0"
 verifies: [SA-114]

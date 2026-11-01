@@ -222,8 +222,30 @@ extension Checker {
                     add(kv.key, kptr, .testData, "\(kv.key.value) is not a route parameter of page \(pname); a page's input is its route parameters and action")
                 }
             }
+        case "route":
+            // A files route is requested at a file under its prefix, which the
+            // test names as input.file; the other routes take no input (ADR-216).
+            let name = str(t.child("route"))
+            guard let rt = d.root.child("routes")?.child(name) else { return } // reported as test_subject
+            let path = str(rt.child("path"))
+            let serves = str(rt.child("serves"))
+            if serves != "files" {
+                add(t.key("input"), ptr, .testData, "input is for a files route, which is requested at a file the test names, and route \(name) serves \(serves) at \(path) alone; remove input")
+                return
+            }
+            for kv in pairs(input) {
+                let kptr = ptr + "/" + escapeToken(kv.key.value)
+                if kv.key.value != "file" {
+                    add(kv.key, kptr, .testData, "\(kv.key.value) is not part of a files route's input, which is file alone, the path of the file under \(path)")
+                    continue
+                }
+                let v = str(kv.value)
+                if v.isEmpty || v.hasPrefix("/") {
+                    add(kv.value, kptr, .testData, "file of route \(name) is the path of the file under \(path), without the prefix and not empty; write what follows \(path)")
+                }
+            }
         default:
-            add(t.key("input"), ptr, .testData, "input is for an operation, a command or a page, and this test is about \(label)")
+            add(t.key("input"), ptr, .testData, "input is for an operation, a command, a page or a files route, and this test is about \(label)")
         }
     }
 

@@ -253,8 +253,31 @@ func (c *checker) checkInput(d *design, t *yaml.Node, kind, label string, in *ya
 				c.add(kv.Key, kptr, RuleTestData, "%s is not a route parameter of page %s; a page's input is its route parameters and action", kv.Key.Value, source.Str(source.Child(t, "page")))
 			}
 		}
+	case "route":
+		// A files route is requested at a file under its prefix, which the
+		// test names as input.file; the other routes take no input (ADR-216).
+		name := source.Str(source.Child(t, "route"))
+		rt := source.Child(source.Child(d.root, "routes"), name)
+		if rt == nil {
+			return // reported as test_subject
+		}
+		path := source.Str(source.Child(rt, "path"))
+		if serves := source.Str(source.Child(rt, "serves")); serves != "files" {
+			c.add(source.Key(t, "input"), ptr, RuleTestData, "input is for a files route, which is requested at a file the test names, and route %s serves %s at %s alone; remove input", name, serves, path)
+			return
+		}
+		for _, kv := range source.Pairs(in) {
+			kptr := ptr + "/" + source.EscapeToken(kv.Key.Value)
+			if kv.Key.Value != "file" {
+				c.add(kv.Key, kptr, RuleTestData, "%s is not part of a files route's input, which is file alone, the path of the file under %s", kv.Key.Value, path)
+				continue
+			}
+			if v := source.Str(kv.Value); v == "" || strings.HasPrefix(v, "/") {
+				c.add(kv.Value, kptr, RuleTestData, "file of route %s is the path of the file under %s, without the prefix and not empty; write what follows %s", name, path, path)
+			}
+		}
 	default:
-		c.add(source.Key(t, "input"), ptr, RuleTestData, "input is for an operation, a command or a page, and this test is about %s", label)
+		c.add(source.Key(t, "input"), ptr, RuleTestData, "input is for an operation, a command, a page or a files route, and this test is about %s", label)
 	}
 }
 

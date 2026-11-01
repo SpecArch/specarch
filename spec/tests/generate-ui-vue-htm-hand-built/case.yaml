@@ -1,0 +1,63 @@
+arguments: [generate, ui, --check, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:375:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
+  project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for members-list.retired, which no screen uses; it is left out [generator@specarch.yaml#/]
+  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and this version of specarch-gen-ui-vue-htm writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+  web/api.js: built by hand, and matches what generate writes but for its header
+  web/app.js: built by hand, and matches what generate writes but for its header
+  web/config/actions.js: built by hand, and matches what generate writes but for its header
+  web/config/application.js: built by hand, and matches what generate writes but for its header
+  web/config/menus.js: built by hand, and matches what generate writes but for its header
+  web/config/pages.js: built by hand, and matches what generate writes but for its header
+  web/index.html: built by hand, and matches what generate writes but for its header
+  web/pages/directory.js: built by hand, and matches what generate writes as data
+  web/pages/invitation.js: built by hand, and matches what generate writes as data
+  web/pages/member-edit.js: built by hand, and matches what generate writes as data
+  web/pages/member-form.js: built by hand, and matches what generate writes as data
+  web/pages/member-view.js: built by hand, and matches what generate writes as data
+  web/pages/members-list.js: built by hand, and matches what generate writes as data
+  web/pages/removal-form.js: built by hand, and matches what generate writes as data
+  web/pages/removals-inbox.js: built by hand, and matches what generate writes as data
+  web/pages/sign-in.js: built by hand, and matches what generate writes as data
+  web/pages/visits-form.js: built by hand, and matches what generate writes as data
+  web/screens/ChildRows.js: built by hand, and matches what generate writes but for its header
+  web/screens/Confirm.js: built by hand, and matches what generate writes but for its header
+  web/screens/ContentPage.js: built by hand, and matches what generate writes but for its header
+  web/screens/DataTable.js: built by hand, and matches what generate writes but for its header
+  web/screens/Field.js: built by hand, and matches what generate writes but for its header
+  web/screens/FormPage.js: built by hand, and matches what generate writes but for its header
+  web/screens/Guard.js: built by hand, and matches what generate writes but for its header
+  web/screens/Home.js: built by hand, and matches what generate writes but for its header
+  web/screens/LanguageChoice.js: built by hand, and matches what generate writes but for its header
+  web/screens/ListPage.js: built by hand, and matches what generate writes but for its header
+  web/screens/Lookup.js: built by hand, and matches what generate writes but for its header
+  web/screens/Menu.js: built by hand, and matches what generate writes but for its header
+  web/screens/Notice.js: built by hand, and matches what generate writes but for its header
+  web/screens/TaskPage.js: built by hand, and matches what generate writes but for its header
+  web/screens/ValueField.js: built by hand, and matches what generate writes but for its header
+  web/screens/ViewPage.js: built by hand, and matches what generate writes but for its header
+  web/screens/access.js: built by hand, and matches what generate writes but for its header
+  web/screens/app.js: built by hand, and matches what generate writes but for its header
+  web/screens/language.js: built by hand, and matches what generate writes but for its header
+  web/screens/router.js: built by hand, and matches what generate writes but for its header
+  web/screens/rules.js: built by hand, and matches what generate writes but for its header
+  web/screens/screens.css: built by hand, and matches what generate writes but for its header
+  web/screens/session.js: built by hand, and matches what generate writes but for its header
+  web/screens/table.js: built by hand, and matches what generate writes but for its header
+  web/screens/texts.js: built by hand, and matches what generate writes but for its header
+  web/screens/values.js: built by hand, and matches what generate writes but for its header
+  web/screens/vue.js: built by hand, and matches what generate writes but for its header
+  web/strings.js: built by hand, and matches what generate writes but for its header
+  web/tests/member-edit.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/member-form.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/member-view.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/members-list.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/menu.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/removal-form.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/removals-inbox.test.js: built by hand, and matches what generate writes but for its header
+  web/tests/visits-form.test.js: built by hand, and matches what generate writes but for its header
+  web/theme.css: built by hand, and matches what generate writes but for its header
+  web/transport.js: built by hand, and matches what generate writes but for its header
+  web/vendor/manifest.js: built by hand, and matches what generate writes but for its header
+plugins: [ui-vue-htm]

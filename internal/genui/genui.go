@@ -72,6 +72,13 @@ var transportRuntime string
 // for a test that runs it.
 func TransportFile() string { return transportRuntime }
 
+// IdentityProviderFile is identity-provider.js, the redirect to the
+// identity provider's sign-in, with the callback's path filled in: for the
+// Vue generator, whose pages leave for the provider the same way (ADR-182).
+func IdentityProviderFile(callback string) string {
+	return strings.Replace(signInRuntime, "{{CALLBACK}}", callback, 1)
+}
+
 // Request is what specarch writes on a plug-in's standard input.
 type Request struct {
 	Specarch        string           `json:"specarch"`
@@ -986,20 +993,30 @@ func quoted(s string) string {
 // the rules every screen shares, from the tokens the target's settings
 // give each part.
 func (g *gen) themeCSS() string {
+	return ThemeCSS(g.spec, g.settings, "specarch-gen-ui", g.problem)
+}
+
+// ThemeCSS is theme.css for a web generator with no component library: the
+// theme's tokens as custom properties, the dark mode under
+// prefers-color-scheme, and the rules every screen shares, which use the
+// tokens the target's settings.tokens name for each part. generator is the
+// plug-in a message names, and problem reports one at a path of the
+// specification. The Vue generator writes the same file.
+func ThemeCSS(spec, settings map[string]any, generator string, problem func(severity, path, format string, args ...any)) string {
 	var b strings.Builder
 	b.WriteString("/* The theme's design tokens as custom properties, then the rules every\n   screen shares. */\n\n")
-	theme := obj0(g.spec["theme"])
+	theme := obj0(spec["theme"])
 	var toks []token
 	walkTokens(obj0(theme["tokens"]), "", &toks)
 	names := map[string]string{}
 	for _, t := range toks {
 		at := "/theme/tokens/" + strings.ReplaceAll(t.path, ".", "/")
 		if !cssIdent.MatchString(strings.ReplaceAll(t.path, ".", "-")) {
-			g.problem("error", at, "%s cannot name a CSS custom property; use letters, digits, - and _ in a token's name", t.path)
+			problem("error", at, "%s cannot name a CSS custom property; use letters, digits, - and _ in a token's name", t.path)
 			continue
 		}
 		if other, ok := names[cssName(t.path)]; ok {
-			g.problem("error", at, "%s and %s are both the custom property --%s; rename one", other, t.path, cssName(t.path))
+			problem("error", at, "%s and %s are both the custom property --%s; rename one", other, t.path, cssName(t.path))
 		}
 		names[cssName(t.path)] = t.path
 	}
@@ -1013,7 +1030,7 @@ func (g *gen) themeCSS() string {
 	modes := obj0(theme["modes"])
 	for _, m := range sortedKeys(modes) {
 		if m != "dark" {
-			g.problem("warning", "/theme/modes/"+m, "the mode %s has no media query of its own on the web, and this version of specarch-gen-ui writes the dark mode only; it is left out", m)
+			problem("warning", "/theme/modes/"+m, "the mode %s has no media query of its own on the web, and this version of %s writes the dark mode only; it is left out", m, generator)
 			continue
 		}
 		b.WriteString("@media (prefers-color-scheme: dark) {\n  :root {\n")
@@ -1026,7 +1043,7 @@ func (g *gen) themeCSS() string {
 		b.WriteString("  }\n}\n\n")
 	}
 	role := func(name string) string {
-		if p := text(obj0(g.settings["tokens"])[name]); p != "" {
+		if p := text(obj0(settings["tokens"])[name]); p != "" {
 			return "var(--" + cssName(p) + ")"
 		}
 		return ""

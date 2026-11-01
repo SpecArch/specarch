@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the generate-ui-vue-htm case, with every file the generator writes already in the output folder as the project wrote it by hand: without the header line, the members list's data file laid out another way with its keys in another order and a comment of the project's own, and the vendored files beside them"
+when: "generate ui is run with --check and --unapproved"
+then: "it says of each page's data file that it is built by hand and matches what generate writes as data, and of every other file that it matches but for its header, writes nothing, and exits 0"
+verifies: [SA-115]

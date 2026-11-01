@@ -743,3 +743,19 @@ requirements:
     verification: test
     needs: [NEED-1]
     why: A service that serves a browser application answers its document, its files and a health probe by hand, outside the permission and test checks, because none is an operation; a route holds what the design fixes about each, and the stack writes what only it has (ADR-216).
+  SA-115:
+    statement: specarch generate ui shall write, through specarch-gen-ui-vue-htm, the screens of a specification for the web with no build step, on Vue's runtime-only build with htm, from an implementation file in JavaScript whose ui target is platform web and framework vue-htm, so that the menus, pages and actions a project kept as data files, its pages and its vendor manifest follow the specification, are compared by generate --check, and load under a content security policy with neither unsafe-eval nor unsafe-inline.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - index.html loads theme.css, the screens' stylesheet, the files of the libraries settings.vendor names in that order, each with the integrity libraries.<name>.files gives it, and app.js as a module, and holds no inline script, no inline style and no event attribute; no generated file calls eval or the Function constructor.
+      - config/menus.js, config/pages.js and config/actions.js hold the menus with each entry's page, route and permission, the pages with each one's kind, title, route, permission and data file, and every operation the pages call by its operationId with its method, path, permission and how it travels, as plain data; pages/<page>.js holds one page's name, kind, route, permission, schema in the idiom's names and routes, in one shape for every page, and generate --check compares it by value.
+      - Every call goes through api.call(action, payload) with the operation's name, which in the dxlib dialect posts to /<operationId> with the parameters in one body and in the standard dialect sends the operation's method to its path, through the transport the plain JavaScript screens call through, handshakes and streams included.
+      - vendor/manifest.js holds a row per vendored file with the library's name, version and licence, the file and its integrity; an integrity not in the form sha256-, sha384- or sha512- and base64, one that differs from the file in the output folder, a library settings.vendor names without files, and vue or htm missing from it are errors at the entry, and a file not in the output folder yet is a warning naming it.
+      - The list page draws its rows through the table component the ui-components idiom's list-page part names for vue-htm, imported from the module it names, so an override of that part alone replaces the table; the shipped table is a plain HTML table.
+      - A task page, a list, a form and a view take the same design keywords, settings, hooks, checks as rules in the data, refusals and events, and report the same errors, as the TypeScript generator does, but for settings.server, which is refused; the routes are paths under the design's application route when it declares one and fragments otherwise.
+      - Each list, form and view that needs a permission gets a derived test under tests/ that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a test that no entry shows without the permission of the page it opens, run with node --test on the data files and the screens' decision alone.
+    verification: test
+    needs: [NEED-2]
+    why: A project that avoids a JavaScript build chain wrote its pages and the data files that mirror the specification's menus, pages and operations by hand, so every change was made twice, and no generator wrote for that stack (ADR-218).

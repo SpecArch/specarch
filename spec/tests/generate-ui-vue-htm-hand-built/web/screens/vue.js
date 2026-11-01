@@ -1,0 +1,21 @@
+// Vue's runtime-only build and htm, as index.html loaded them before app.js:
+// the globals Vue and htm, from the files the implementation file vendors
+// under libraries.vue.files and libraries.htm.files, each with its
+// integrity. The runtime-only build has no template compiler, so nothing
+// here is compiled or evaluated at run time, and the screens load under a
+// content security policy with neither unsafe-eval nor unsafe-inline. Every
+// other module of the screens imports Vue through this one.
+
+const Vue = globalThis.Vue;
+const htm = globalThis.htm;
+
+if (Vue === undefined || htm === undefined) {
+  throw new Error(
+    "the screens need Vue's runtime-only build and htm loaded before app.js, as the globals Vue and htm; index.html loads them from the files settings.vendor names, so check that those files are in the output folder and that their integrity matches",
+  );
+}
+
+export const { createApp, computed, defineComponent, h, nextTick, onMounted, onUnmounted, reactive, ref, watch, watchEffect } = Vue;
+
+/** The tagged template that draws markup: htm bound to Vue's h. */
+export const html = htm.bind(h);

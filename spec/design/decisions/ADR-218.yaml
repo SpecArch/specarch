@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-218:
+    title: A fourth UI generator for the web with no build step, Vue's runtime-only build with htm, writing the menus, pages and actions as data files, one data file per page, the calls through one api.call, and a vendor manifest from the libraries' files
+    status: proposed
+    date: "2026-11-02"
+    context: |
+      Three generators write the screens of a specification: plain
+      JavaScript, one HTML page and one module per page with no framework
+      (ADR-040, ADR-152, ADR-153); TypeScript on Next.js and Carbon
+      (ADR-067 to ADR-074); and SwiftUI for the iPhone, which reads the
+      pages through the one analysis the TypeScript generator reads them
+      through, internal/genscreens, and is found by the target's
+      framework (ADR-147). A browser application in production was built
+      another way: ES2020 modules loaded as written, no Node.js, no
+      package manager and no build step, Vue 3's runtime-only build, so
+      no template compiler and no eval under a strict content security
+      policy with neither unsafe-eval nor unsafe-inline, htm's tagged
+      templates for its markup, every third-party library a pinned file
+      committed beside the code and loaded with its integrity, a
+      component library's virtual table for its lists, and the
+      application's menus, pages and actions as plain JavaScript data
+      files that its pages read. Its pages and those data files were
+      written by hand and mirror the specification's operations, menus
+      and pages, so each change was made twice.
+    decision: |
+      specarch-gen-ui-vue-htm writes, for a ui target of platform web and
+      framework vue-htm in an implementation file in JavaScript, into the
+      target's output: index.html, the one document, which loads
+      theme.css, the screens' stylesheet, the vendored files the target's
+      settings.vendor names in that order, each with its integrity, and
+      app.js, with no inline script and no inline style; config/menus.js,
+      config/pages.js and config/actions.js, the menus with each entry's
+      page, route and permission, the pages with each one's kind, title,
+      route, permission and data file, and the actions, every operation
+      the pages call by its operationId with its method, path, permission
+      and how it travels; pages/<page>.js per page, one data file in one
+      fixed shape, the page's name, kind, route, permission, its schema
+      in the ui-components idiom's names for vue-htm and the routes its
+      events lead to, which generate --check compares by value as it
+      compares a TypeScript schema (ADR-093); app.js, which mounts the
+      shell and draws each page's data by the component of its kind;
+      api.js, one api.call(action, payload) over the transport the plain
+      JavaScript screens call through (ADR-164), which in the dxlib
+      dialect posts every call to /<operationId> with its parameters in
+      one body, the action-style pipeline, and in the standard dialect
+      sends the operation's method to its path; the components once under
+      screens/, on Vue's runtime build and htm alone, the table among
+      them imported from the module the idiom's list-page part names, so
+      a project's table replaces it by an override of that part;
+      strings.js in every language the settings name, the chosen one read by
+      screens/language.js from the browser's local storage;
+      theme.css from the theme's tokens as the plain JavaScript generator
+      writes it; vendor/manifest.js, a row per vendored file with the
+      library's name, version and licence, the file and its integrity;
+      and a derived test per guarded page and for the menu under tests/,
+      run with node --test on the pages' data and the screens' decision
+      alone. The pages are read through internal/genscreens with the
+      profile of a web generator that seals dxlib's envelope and streams
+      files, and the schema the generator prints keeps only the operation
+      of each call, its method, path, handshake, wire names and stream
+      going to config/actions.js, so a call is said once.
+
+      The files a library ships are declared under libraries.<name>.files
+      in the implementation file, each by its path under the target's
+      output with its subresource integrity, sha256-, sha384- or sha512-
+      and base64; settings.vendor names the libraries index.html loads,
+      in order, vue and htm among them, each with files; the generator
+      refuses an integrity that is not in that form or that differs from
+      the file in the output folder, warns of a file not there yet, and
+      never fetches anything. The routes are paths under the design's
+      application route when it declares one (ADR-216), the document the
+      server answers at every page route, and fragments after # otherwise,
+      so a folder served as it is still works. A page's hooks are named
+      exports of hooks/<page>.js and a custom page's screen the default
+      export of custom/<page>.js, modules the project writes and app.js
+      imports when the page opens, so one that is missing is said on the
+      page. settings.server, the server routes of the TypeScript
+      generator, is refused: these screens are files, and the service
+      answers directly. The idiom gains the stack vue-htm, with the table
+      contract written at the list-page part.
+    consequences: |
+      A project on this stack generates what it mirrored by hand: the
+      data files, the pages and the manifest follow the specification,
+      and generate --check fails a commit that changed one without the
+      other. One analysis now serves three generators that write pages as
+      data; a rule it gains reaches all three. The vendored files stay
+      the project's, with their hashes in the implementation file where
+      the licence and version already are, and the browser refuses a
+      file whose bytes differ from the integrity it was loaded with. A list drawn by a virtual table of a
+      component library takes one override and one module the project
+      writes, not another generator. Nothing of the application the
+      design was read from is in this repository.
+    why: |
+      The owner named the stack as a real project built it, and the
+      plain JavaScript generator does not fit it: its pages are HTML files
+      with no framework, and a project on Vue would mirror them by hand
+      again. Vue's runtime-only build and htm were chosen by that project
+      because a strict content security policy forbids the template
+      compiler's eval and the inline scripts a bundled build injects; a
+      generator that wrote templates or styles inline would break under
+      the policy the design declares at its application route. The
+      alternative of extending the ui-components override alone was
+      weighed and lost: an override names components, and this stack
+      differs in how the application is assembled, loaded and routed,
+      which is a generator's. The data files are plain data, not loader
+      functions, because the project's own were, and because data is what
+      generate --check compares and a test imports under node. One
+      api.call rather than two call styles keeps the pages the same in
+      either dialect, the transport deciding, as ADR-164 settled for the
+      plain JavaScript screens; the action-style pipeline is the dxlib
+      dialect by another name. The files and their integrity live on the
+      library because the library already carries the version and the
+      licence a manifest row needs, and because a page that loads a file
+      without integrity trusts whatever is at the path (W3C Subresource
+      Integrity); a map of files rather than one file lets a library
+      ship its script and its stylesheet. The vendored files are read
+      from the output folder, never fetched, because the generator never
+      touches the network and the project pins what it ships. Hash
+      routes where no application route exists keep the plain
+      JavaScript generator's promise that the folder is served as it is;
+      under a declared application route the server already answers the
+      document at every page route, so the real paths the design names
+      are used.
+    cites:
+      - source: csp-3
+        says: "unsafe-eval ... unsafe-inline: policies that disallow eval and inline script are the baseline of a strict policy."
+      - source: sri
+        says: "The integrity attribute ... a cryptographic hash the fetched resource must match before the user agent executes or applies it."
+      - source: whatwg-html
+        says: "Module scripts ... are deferred by default and run in document order after the document has been parsed."
+    satisfies: [SA-115]
+    restsOn: [ADR-040, ADR-093, ADR-147, ADR-164, ADR-216]

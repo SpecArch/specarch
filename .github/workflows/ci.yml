@@ -376,6 +376,30 @@ jobs:
       - name: Build
         run: pnpm build
 
+  web-vue:
+    # The library lending example's web screens with no build step, on
+    # Vue's runtime-only build and htm: the derived tests run on the data
+    # files and the screens' decision alone, and the vendored files match
+    # the integrity the implementation file names.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26.10.0"
+      - name: Derived tests
+        run: node --test examples/library-lending/web-vue/tests
+      - name: Every generated file parses
+        run: for f in $(find examples/library-lending/web-vue -name '*.js'); do node --check "$f" || exit 1; done
+      - name: The vendored files match their integrity
+        run: |
+          cd examples/library-lending/web-vue
+          for pair in $(node -e 'import("./vendor/manifest.js").then((m) => m.manifest.forEach((row) => console.log(row.file + ":" + row.integrity)))'); do
+            file="${pair%%:*}"; integrity="${pair#*:}"; algorithm="${integrity%%-*}"; want="${integrity#*-}"
+            got="$(openssl dgst "-${algorithm}" -binary "$file" | openssl base64 -A)"
+            test "$got" = "$want" || { echo "$file: $algorithm-$got, and the manifest says $integrity"; exit 1; }
+          done
+
   swift:
     runs-on: macos-latest
     steps:

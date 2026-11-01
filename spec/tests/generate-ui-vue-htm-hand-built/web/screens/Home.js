@@ -1,0 +1,37 @@
+// The application's start: once the session is read, it opens the home of
+// the first of the person's roles that has one, sends someone signed out to
+// sign in, and leaves anyone else at the menu.
+
+import { application } from "../config/application.js";
+import { homeOf } from "./access.js";
+import { replace } from "./router.js";
+import { useSession } from "./session.js";
+import { say } from "./texts.js";
+import { html, watchEffect } from "./vue.js";
+
+export const Home = {
+  name: "Home",
+  props: { texts: { type: Object, required: true } },
+  setup(props) {
+    const session = useSession();
+    const home = () => (session.value ? homeOf(application.homes ?? {}, session.value) : undefined);
+    const signIn = () => session.value !== undefined && session.value !== null && !session.value.signedIn && application.signIn !== null;
+    watchEffect(() => {
+      const route = home();
+      if (route !== undefined) {
+        replace(route);
+      } else if (signIn()) {
+        replace(application.signIn + "?returnTo=" + encodeURIComponent("/"));
+      }
+    });
+    return () => {
+      if (session.value === null) {
+        return html`<p role="alert" class="screens-refused">${say(props.texts, "screens.failed")}</p>`;
+      }
+      if (session.value === undefined || home() !== undefined || signIn()) {
+        return html`<p role="status" class="screens-loading">${say(props.texts, "screens.loading")}</p>`;
+      }
+      return null;
+    };
+  },
+};

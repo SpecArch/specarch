@@ -1,0 +1,140 @@
+// Where the person is in the application and how they move: the route in
+// the address bar as config/application.js says it is written, a path under
+// the design's application route, which the server answers the document
+// at, or a fragment after #, so a folder served as it is still works.
+
+import { application } from "../config/application.js";
+import { h, ref } from "./vue.js";
+
+const mode = application.routing.mode;
+const base = application.routing.base ?? "";
+
+/** The route and the query the address bar holds now. */
+function current() {
+  if (mode === "hash") {
+    const hash = window.location.hash.replace(/^#/, "");
+    const url = new URL(hash.startsWith("/") ? hash : "/" + hash, window.location.origin);
+    return { path: url.pathname, search: url.search };
+  }
+  const path = window.location.pathname;
+  const within = path === base || path.startsWith(base + "/") ? path.slice(base.length) : path;
+  return { path: within === "" ? "/" : within, search: window.location.search };
+}
+
+/** The current route and query, a ref that changes as the person moves. */
+export const location = ref(current());
+
+window.addEventListener(mode === "hash" ? "hashchange" : "popstate", () => {
+  location.value = current();
+});
+
+/** A route as the address bar writes it, for a link's href. */
+export function hrefOf(route) {
+  return mode === "hash" ? "#" + route : base + route;
+}
+
+/** Opens a route, leaving the current one in the history. */
+export function go(route) {
+  if (mode === "hash") {
+    window.location.hash = route;
+    return;
+  }
+  history.pushState(null, "", base + route);
+  location.value = current();
+}
+
+/** Opens a route in place of the current one. */
+export function replace(route) {
+  if (mode === "hash") {
+    window.location.replace("#" + route);
+    location.value = current();
+    return;
+  }
+  history.replaceState(null, "", base + route);
+  location.value = current();
+}
+
+/** The query of the current route, by name. */
+export function query() {
+  return Object.fromEntries(new URLSearchParams(location.value.search));
+}
+
+/** A value as one path segment; "." and ".." would otherwise move up the path. */
+export function segment(value) {
+  const encoded = encodeURIComponent(value);
+  return encoded === "." || encoded === ".." ? encoded.replaceAll(".", "%2E") : encoded;
+}
+
+/** A route with its {parameters} filled from values, each by its name or by the name parameters gives it. */
+export function fillRoute(route, values, parameters = {}) {
+  return route.replace(/\{([^}]+)\}/g, (_, name) => segment(String(values[parameters[name] ?? name] ?? "")));
+}
+
+/** The route pattern as a regular expression, its {parameters} named. */
+function patternOf(route) {
+  const names = [];
+  const source = route
+    .split(/\{([^}]+)\}/)
+    .map((part, index) => {
+      if (index % 2 === 1) {
+        names.push(part);
+        return "([^/]+)";
+      }
+      return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    })
+    .join("");
+  return { expression: new RegExp("^" + source + "/?$"), names };
+}
+
+/**
+ * The page a path opens and the parameters its route takes from it, or
+ * undefined when no page is there; a route without parameters wins over
+ * one with them, and a longer one over a shorter.
+ */
+export function match(pages, path) {
+  const ordered = Object.values(pages).sort((a, b) => {
+    const parametersOf = (page) => (page.route.match(/\{/g) ?? []).length;
+    return parametersOf(a) - parametersOf(b) || b.route.length - a.route.length;
+  });
+  for (const page of ordered) {
+    const { expression, names } = patternOf(page.route);
+    const found = expression.exec(path);
+    if (found === null) {
+      continue;
+    }
+    const parameters = {};
+    names.forEach((name, index) => {
+      try {
+        parameters[name] = decodeURIComponent(found[index + 1]);
+      } catch {
+        parameters[name] = found[index + 1];
+      }
+    });
+    return { page, parameters };
+  }
+  return undefined;
+}
+
+/** A link to a route: an anchor the router follows without loading the document again. */
+export const Link = {
+  name: "Link",
+  inheritAttrs: false,
+  props: { to: { type: String, required: true } },
+  setup(props, { slots, attrs }) {
+    return () =>
+      h(
+        "a",
+        {
+          ...attrs,
+          href: hrefOf(props.to),
+          onClick: (event) => {
+            if (mode === "path" && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && !event.defaultPrevented) {
+              event.preventDefault();
+              go(props.to);
+            }
+          },
+        },
+        slots.default?.(),
+      );
+  },
+};

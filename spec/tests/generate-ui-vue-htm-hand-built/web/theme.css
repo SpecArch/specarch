@@ -1,0 +1,65 @@
+/* The theme's design tokens as custom properties, then the rules every
+   screen shares. */
+
+:root {
+  --color-accent: #004d99;
+  --color-background: #ffffff;
+  --color-link: var(--color-accent);
+  --color-text: #1a1a1a;
+  --space-small: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-accent: #66b3ff;
+    --color-background: #1a1a1a;
+    --color-text: #e6e6e6;
+  }
+}
+
+body {
+  margin: 0;
+  padding: var(--space-small);
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--space-small);
+  text-align: start;
+}
+
+button,
+input,
+select {
+  min-width: 24px;
+  min-height: 24px;
+  font: inherit;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-small);
+  align-items: end;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 599px) {
+  .wide {
+    display: none;
+  }
+}

@@ -1,0 +1,64 @@
+// A field holding a value of a schema, as a fieldset of its parts under
+// its label, or a list of them, as a repeating group: an item per value
+// with its parts and a button that removes it, and a button that adds one
+// while there are fewer than the maximum.
+
+import { Field } from "./Field.js";
+import { say } from "./texts.js";
+import { addItem, countOf, holdsValue, removeItem } from "./values.js";
+import { html } from "./vue.js";
+
+/** One part of a value: a field drawn by its part, or a value or a list nested in its turn. */
+function part(field, path, props, emit) {
+  if (holdsValue(field)) {
+    return html`<${ValueField} key=${path} field=${field} path=${path} values=${props.values} problems=${props.problems} texts=${props.texts} readOnly=${props.readOnly} onValues=${(change) => emit("values", change)} />`;
+  }
+  return html`<${Field}
+    key=${path}
+    id=${path}
+    field=${field}
+    value=${props.values[path] ?? ""}
+    problem=${props.problems[path]}
+    texts=${props.texts}
+    readOnly=${props.readOnly || field.readOnly === true}
+    onChange=${(value) => emit("values", (current) => ({ ...current, [path]: value }))}
+  />`;
+}
+
+export const ValueField = {
+  name: "ValueField",
+  props: {
+    field: { type: Object, required: true },
+    /** The path the form holds the value under: the field's name, or the path to a part. */
+    path: { type: String, required: true },
+    values: { type: Object, required: true },
+    problems: { type: Object, required: true },
+    texts: { type: Object, required: true },
+    readOnly: { type: Boolean, default: false },
+  },
+  /** values: a function of the values the form holds that answers the next ones, as typing in a part or adding or removing an item does. */
+  emits: ["values"],
+  setup(props, { emit }) {
+    return () => {
+      const { field, path, values, problems, texts, readOnly } = props;
+      const parts = (at) => field.parts.map((p) => part(p, at + "." + p.name, props, emit));
+      if (field.type === "value") {
+        return html`<fieldset id=${path} class="screens-value"><legend>${say(texts, field.label)}</legend>${parts(path)}</fieldset>`;
+      }
+      const count = countOf(values, path);
+      const full = field.maximum !== undefined && count >= field.maximum;
+      return html`<fieldset id=${path} class="screens-value-list">
+        <legend>${say(texts, field.label)}</legend>
+        ${problems[path] !== undefined ? html`<p role="alert" class="screens-problem">${problems[path]}</p>` : null}
+        ${Array.from(
+          { length: count },
+          (_, index) => html`<div key=${index} class="screens-item">
+            ${parts(path + "." + index)}
+            ${readOnly ? null : html`<button type="button" class="screens-secondary" onClick=${() => emit("values", (current) => removeItem(current, path, index))}>${say(texts, "screens.removeItem")}</button>`}
+          </div>`,
+        )}
+        ${readOnly ? null : html`<div><button type="button" class="screens-secondary" disabled=${full} onClick=${() => emit("values", (current) => addItem(field, current, path))}>${say(texts, "screens.addItem")}</button></div>`}
+      </fieldset>`;
+    };
+  },
+};

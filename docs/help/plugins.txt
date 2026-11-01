@@ -15,7 +15,8 @@ its version, what it writes and what it does not write. specarch
 capabilities and this topic ask every plug-in found; one built before
 --capabilities existed is listed with the reason, and still generates.
 
-This release has twelve: openapi, sql, sqlc, scripts, go-dxlib, bpmn,
-tests-go, tests-swift, tests-dart (the tests target for each stack), ui
-(web, plain JavaScript), ui-typescript and ui-swiftui (the ui target on
-Next.js with Carbon, and SwiftUI for the iPhone).
+This release has fourteen: openapi, sql, sqlc, scripts, register,
+go-dxlib, bpmn, tests-go, tests-swift, tests-dart (the tests target for
+each stack), ui (web, plain JavaScript), ui-typescript, ui-vue-htm and
+ui-swiftui (the ui target on Next.js with Carbon, on Vue's runtime-only
+build with htm and no build step, and SwiftUI for the iPhone).

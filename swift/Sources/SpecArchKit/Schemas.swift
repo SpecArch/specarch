@@ -16092,6 +16092,18 @@ let implementationSchemaJSON = #"""
           ],
           "default": "runtime"
         },
+        "files": {
+          "description": "SpecArch keyword. The library's files the project commits beside the generated code, for a stack that loads a library as a file rather than through a package manager (the ui target's vue-htm framework): each by its path under the target's output folder, with the subresource integrity of the file as the page loads it, sha256-, sha384- or sha512- and the hash in base64 (W3C Subresource Integrity). specarch-gen-ui-vue-htm writes each into vendor/manifest.js with the library's version and licence, loads the files the target's settings.vendor names in index.html with their integrity, and refuses an integrity that is not in that form or that differs from the file in the output folder.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[^/\\\\][^\\\\]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^sha(256|384|512)-[A-Za-z0-9+/]+={0,2}$"
+          },
+          "minProperties": 1
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
@@ -16761,7 +16773,7 @@ let implementationSchemaJSON = #"""
           ]
         },
         "framework": {
-          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written, and swiftui, where a page's events are navigation through the app's router. A plug-in named for the framework, specarch-gen-<target>-<framework>, is found before one named for the language.",
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written, and swiftui, where a page's events are navigation through the app's router. vue-htm is a second web framework with no build step: Vue 3's runtime-only build and htm, both vendored under the libraries' files and loaded by index.html with their integrity, the menus, pages and actions as plain data files under config/, one data file per page under pages/, the calls through one api.call, and a vendor manifest; its table component is the ui-components idiom's list-page part, which a project overrides. A plug-in named for the framework, specarch-gen-<target>-<framework>, is found before one named for the language.",
           "type": "string",
           "minLength": 1
         },
@@ -23591,13 +23603,14 @@ parts:
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-idiom-1.0.schema.json
 specarchIdiom: "1.0.0"
 name: ui-components
-version: 1.11.0
+version: 1.12.0
 concern: ui-components
-stacks: [nextjs-carbon, swiftui]
+stacks: [nextjs-carbon, swiftui, vue-htm]
 reads: [pages]
 description: |
   What draws each page kind and each field type of a front end: on the
-  web, Next.js's app router and IBM's Carbon design system; on the iPhone,
+  web, Next.js's app router and IBM's Carbon design system, or Vue's
+  runtime-only build with htm and no build step; on the iPhone,
   SwiftUI. The design says what a page holds and how it behaves (pages,
   menus); this idiom names, per thing drawn, the component, where it is
   imported from, the schema type it takes and the keys of that schema, so
@@ -23661,6 +23674,17 @@ parts:
           takes no dependency; components is the module the pages import
           nothing from, since they are in it, and the name a project's own
           library replaces in an override.
+      vue-htm:
+        names: { components: ./screens, vue: Vue, htm: htm }
+        code: |
+          The generator writes the components that read the pages once per
+          application, under screens/ in the target's output, as ES modules on
+          Vue's runtime-only build and htm alone, which index.html loads as the
+          globals Vue and htm from the files the implementation file vendors under
+          libraries.vue.files and libraries.htm.files, each with its integrity.
+          components is the folder the pages' data is drawn by, and the name a
+          project's own library replaces part by part in an override; a part that
+          names a module under import is drawn from that module instead.
   list-page:
     description: A page of kind list.
     stack:
@@ -23699,6 +23723,33 @@ parts:
           confirmationDialog that asks for the reason it sends, and one
           that opens a page whose route takes a parameter as a
           NavigationLink, its route filled from the row's fields its with
+          names.
+      vue-htm:
+        names: { component: ListPage, table: DataTable, tableModule: ./DataTable.js, title: title, permission: permission, source: source, columns: columns, filters: filters, search: search, actions: actions, rowActions: rowActions, select: select, pageSize: pageSize, pageSizes: pageSizes, empty: empty, filteredEmpty: filteredEmpty, failed: failed, wire: wire }
+        code: |
+          The rows of source in the table component table, imported from
+          tableModule by screens/table.js, which the generator writes so that the
+          project's table replaces the shipped one by this part alone: DataTable, a
+          plain HTML table, unless the override names another. The table takes the
+          props columns (each its field, its title as text, whether it sorts and
+          whether it stays on a compact screen), rows, sort (the field and whether
+          it descends, or null), rowKey (a function of the row and its index),
+          label and actionsLabel, emits sort with a column's field when its heading
+          is chosen, and draws each cell through its cell slot (the row, the column
+          and the index) and each row's actions through its actions slot (the row
+          and the index) when the page gives one; a
+          table that honours this contract, such as a virtual table of a component
+          library wrapped in a module the project writes, replaces the shipped one
+          with no other change. Above it the search, the column picker, a refresh
+          that keeps the page and the actions that open a page whose route takes
+          no parameter; the filters in a form above those; the page and the page
+          size under it. The service pages, sorts, searches and filters, through
+          the paginated-list idiom's names on the wire, every call through
+          api.call with the operation's name. Each row's actions are offered while
+          their rule holds for the row and their permission is held: one that runs
+          an operation after its confirmation in the confirm dialog, which asks for
+          the reason it sends, and one that opens a page whose route takes a
+          parameter as a link, its route filled from the row's fields its with
           names.
   form-page:
     description: A page of kind form, which creates a record or, with source, loads one and changes it.
@@ -23756,6 +23807,31 @@ parts:
           added row is checked by its fields' keywords, and the rows are
           sent as the array of the body named for the relation, each with
           the fields its items take; a loaded row is never sent.
+      vue-htm:
+        names: { component: FormPage, title: title, permission: permission, source: source, submit: submit, layout: layout, sections: sections, rows: rows, checks: checks, failed: failed, events: events }
+        code: |
+          The sections in a form element, each a fieldset under its title as its
+          legend, laid out as the ui target's settings.layouts say: on one page, as
+          tabs, or as steps, each step checked before the next. A form with source
+          loads its record first, through api.call with its operation and the
+          route's parameters. Each field is drawn by its field part, read-only or
+          hidden while its rule holds, and checked by its keywords, its second
+          entry and the page's checks before the request is sent with the fields
+          its body takes, an idempotency key in the header the operation names,
+          kept while a request goes unanswered and chosen anew after an answer. A
+          refusal shows under the field it names or above the form, and a success
+          leads where onSubmitted says. A field the settings name under hooks
+          starts with the value of the hook of its name, a named export of
+          hooks/<page>.js beside the pages, a module the project writes and app.js
+          imports when the form opens, so a missing hook is said on the page.
+
+          Child rows follow the sections, each set in a fieldset under its title:
+          the loaded rows read-only in a table, and the rows added on the form
+          drawn inline by their field parts, each with a button that removes it,
+          up to the maximum, loaded and added together. Each added row is checked
+          by its fields' keywords, and the rows are sent as the array of the body
+          named for the relation, each with the fields its items take; a loaded
+          row is never sent.
   view-page:
     description: A page of kind view, one record's sections read-only.
     stack:
@@ -23788,6 +23864,19 @@ parts:
           TextField for the reason it requires and sends; a success says
           its message and reads the record again, and a refusal shows
           above the sections.
+      vue-htm:
+        names: { component: ViewPage, title: title, permission: permission, source: source, sections: sections, actions: actions, operations: operations }
+        code: |
+          The record source answers, through api.call with its operation and the
+          route's parameters, each section a description list of label and value
+          under its title, a field hidden while its rule holds for the record. The
+          actions that open a page are links, offered to whoever holds their
+          permission, their route's parameters taken from the record's fields of
+          their names or the view's route. The actions that run an operation on
+          the record are buttons, offered while their rule holds for the record,
+          each asking its confirmation in the confirm dialog, with a text area for
+          the reason it requires and sends; a success says its message and reads
+          the record again, and a refusal shows above the sections.
   task-page:
     description: A form that submits to an operation without loading a record, such as sign-in.
     stack:
@@ -23810,6 +23899,15 @@ parts:
           success the operation answers leads where its event says, through
           the router. An event to another task page keeps the page sign-in
           was asked for from; an event to any other page gives way to it.
+      vue-htm:
+        names: { component: TaskPage, title: title, submit: submit, fields: fields, checks: checks, failed: failed, events: events }
+        code: |
+          The fields in a form element, each drawn by its field part, checked by
+          their keywords and the page's checks before the request is sent through
+          api.call; a refusal under the field it names or above the form; each
+          success the operation answers leads where its event says, through the
+          router. An event to another task page hands on returnTo, the page
+          sign-in was asked for from; an event to any other page gives way to it.
   content-page:
     description: A page of kind content, its headings, paragraphs, images and links under its title.
     stack:
@@ -23822,6 +23920,14 @@ parts:
           route of the page it opens or to its address outside the
           specification. A page that needs a permission is drawn inside
           the Guard, as a list is.
+      vue-htm:
+        names: { component: ContentPage, title: title, permission: permission, blocks: blocks }
+        code: |
+          The blocks in order under the title, the page's h1: a heading as the
+          HTML heading of its level, a paragraph, an image with its alternative
+          text as alt, and a link to the route of the page it opens or to its
+          address outside the specification. A page that needs a permission is
+          drawn inside the Guard, as a list is.
   custom-page:
     description: A page of kind custom, a screen the project builds by hand, drawn inside the route the generator writes.
     stack:
@@ -23840,6 +23946,14 @@ parts:
           in the screens module beside Pages/, inside the Guard, with the schema, the route's
           parameters and the routes of the page's actions; a missing view
           fails the build.
+      vue-htm:
+        names: { module: custom, title: title, permission: permission, actions: actions }
+        code: |
+          app.js draws the default export of custom/<page>.js, a Vue component
+          the project writes beside the pages, inside the Guard, with the schema,
+          the texts, the route's parameters and the routes of the page's actions
+          as its props; the module is imported when the page opens, and one that
+          is missing or fails is said on the page, which is never blank.
   text-field:
     description: A field of type string with no format the other field parts take.
     stack:
@@ -23847,6 +23961,8 @@ parts:
         names: { type: text, schemaType: TextFieldSchema, carbon: TextInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: text, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: text, element: input, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   text-area-field:
     description: A field of type string wider than one line holds, a maxLength above 255 or none.
     stack:
@@ -23854,6 +23970,8 @@ parts:
         names: { type: textArea, schemaType: TextAreaFieldSchema, carbon: TextArea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: textArea, schemaType: FieldSchema, swiftui: TextEditor, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: textArea, element: textarea, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   email-field:
     description: A field of format email.
     stack:
@@ -23861,6 +23979,8 @@ parts:
         names: { type: email, schemaType: EmailFieldSchema, carbon: TextInput, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: email, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: email, element: input, name: name, label: label, required: required, maxLength: maxLength, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   password-field:
     description: A field of format password, its rules shown under it.
     stack:
@@ -23868,6 +23988,8 @@ parts:
         names: { type: password, schemaType: PasswordFieldSchema, carbon: PasswordInput, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: password, schemaType: FieldSchema, swiftui: SecureField, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: password, element: input, name: name, label: label, required: required, minLength: minLength, maxLength: maxLength, pattern: pattern, rules: rules, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   number-field:
     description: A field of type integer or number.
     stack:
@@ -23875,6 +23997,8 @@ parts:
         names: { type: number, schemaType: NumberFieldSchema, carbon: NumberInput, name: name, label: label, required: required, minimum: min, maximum: max, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: number, schemaType: FieldSchema, swiftui: TextField, name: name, label: label, required: required, minimum: minimum, maximum: maximum, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: number, element: input, name: name, label: label, required: required, minimum: min, maximum: max, step: step, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   date-field:
     description: A field of format date.
     stack:
@@ -23882,6 +24006,8 @@ parts:
         names: { type: date, schemaType: DateFieldSchema, carbon: DatePicker, carbonInput: DatePickerInput, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: date, schemaType: FieldSchema, swiftui: DatePicker, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: date, element: input, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   select-field:
     description: A field whose values are an enum.
     stack:
@@ -23889,6 +24015,8 @@ parts:
         names: { type: select, schemaType: SelectFieldSchema, carbon: Select, carbonItem: SelectItem, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: select, schemaType: FieldSchema, swiftui: Picker, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: select, element: select, name: name, label: label, required: required, options: options, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   checkbox-field:
     description: A field of type boolean.
     stack:
@@ -23896,6 +24024,8 @@ parts:
         names: { type: checkbox, schemaType: CheckboxFieldSchema, carbon: Checkbox, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
       swiftui:
         names: { type: checkbox, schemaType: FieldSchema, swiftui: Toggle, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+      vue-htm:
+        names: { type: checkbox, element: input, name: name, label: label, required: required, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
   lookup-field:
     description: A field that holds the key of another entity's record, picked from a list an operation reads.
     stack:
@@ -23918,6 +24048,15 @@ parts:
           record the key is, text the fields shown to choose by, and fills
           the fields of the form the chosen record fills, each from one of
           its own.
+      vue-htm:
+        names: { type: lookup, element: input, name: name, label: label, required: required, source: source, value: value, text: text, fills: fills, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen, readOnlyUnless: readOnlyUnless, hiddenUnless: hiddenUnless, hook: hook, twice: twice }
+        code: |
+          A text input with a datalist of the records source lists, a page at a
+          time through the paginated-list idiom's names and api.call: searched by
+          the service as the person types when source names search, and otherwise
+          among the one page read. value is the field of the record the key is,
+          text the fields shown to choose by, and fills the fields of the form
+          the chosen record fills, each from one of its own.
   value-field:
     description: A field holding a value of a schema, its parts drawn in a section of their own.
     stack:
@@ -23937,6 +24076,14 @@ parts:
           value or a list nested in its turn. An optional value is left out
           of the request while none of its parts is given, and has its
           required parts required once one is.
+      vue-htm:
+        names: { type: value, element: fieldset, name: name, label: label, required: required, parts: parts, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
+        code: |
+          A fieldset under the field's label holding a field for each part of
+          the schema, each drawn by its own field part, a part holding a value or
+          a list nested in its turn. An optional value is left out of the request
+          while none of its parts is given, and has its required parts required
+          once one is.
   value-list-field:
     description: A field holding a list of values of a schema, drawn as a repeating group.
     stack:
@@ -23956,6 +24103,14 @@ parts:
           removes it, and a Button that adds an item while there are fewer
           than maximum; it starts with minimum items. The list is sent as
           an array of its items, each with the parts given.
+      vue-htm:
+        names: { type: valueList, element: fieldset, name: name, label: label, required: required, parts: parts, minimum: minimum, maximum: maximum, readOnly: readOnly, readOnlyWhen: readOnlyWhen, hiddenWhen: hiddenWhen }
+        code: |
+          A fieldset under the field's label with an item per value, each the
+          schema's parts drawn by their field parts and a button that removes it,
+          and a button that adds an item while there are fewer than maximum; it
+          starts with minimum items. The list is sent as an array of its items,
+          each with the parts given.
   confirm-dialog:
     description: The confirmation an action asks for before it runs.
     stack:
@@ -23963,6 +24118,8 @@ parts:
         names: { component: ConfirmDialog, schemaType: ConfirmDialogSchema, carbon: Modal, title: title, body: body, confirm: confirm, cancel: cancel, danger: danger }
       swiftui:
         names: { component: ConfirmDialog, schemaType: ConfirmDialogSchema, swiftui: confirmationDialog, title: title, body: body, confirm: confirm, cancel: cancel, danger: danger }
+      vue-htm:
+        names: { component: Confirm, element: dialog, title: title, body: body, confirm: confirm, cancel: cancel, danger: danger }
   notification:
     description: The message an event shows.
     stack:
@@ -23970,6 +24127,8 @@ parts:
         names: { component: Notice, schemaType: NoticeSchema, carbon: ToastNotification, kind: kind, title: title }
       swiftui:
         names: { component: Notice, schemaType: NoticeSchema, swiftui: Text, kind: kind, title: title }
+      vue-htm:
+        names: { component: Notice, element: output, kind: kind, title: title }
   language-choice:
     description: The choice of the language the screens are shown in, kept across sessions.
     stack:
@@ -23989,6 +24148,14 @@ parts:
           (AppStorage) and draws the screens again in it; the pages read
           it through Language.chosen, the specification's language when
           the defaults hold none. The app's settings place it.
+      vue-htm:
+        names: { component: LanguageChoice, element: select, key: screens.language }
+        code: |
+          A select of the languages strings.js holds, each by its own name, which
+          keeps the one chosen under the key in the browser's local storage and
+          draws the screens again in it; the pages read it through language.js,
+          the specification's language when the storage holds none. The shell
+          places it beside the menu.
   menu:
     description: The application's menu, from menus.
     stack:
@@ -23996,6 +24163,8 @@ parts:
         names: { component: Menu, schemaType: MenuSchema, carbonNav: SideNav, carbonGroup: SideNavMenu, carbonLink: SideNavLink, items: items, title: title, route: route, permission: permission }
       swiftui:
         names: { component: MainMenu, schemaType: MenuSchema, swiftuiList: List, swiftuiSection: Section, swiftuiLink: NavigationLink, items: items, title: title, route: route, permission: permission }
+      vue-htm:
+        names: { component: Menu, element: nav, items: items, title: title, route: route, permission: permission }
 
 tests:
   - { case: page opened without its permission, scenario: red, then: "the page's failed state, and no call to its operation" }

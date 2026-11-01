@@ -1,0 +1,35 @@
+// Opens a page only to someone who holds its permission. Anyone else sees
+// the page's refusal, or is sent to sign in first, and the page is never
+// made, so it calls no operation.
+
+import { application } from "../config/application.js";
+import { decide } from "./access.js";
+import { location, replace } from "./router.js";
+import { useSession } from "./session.js";
+import { say } from "./texts.js";
+import { html, watchEffect } from "./vue.js";
+
+export const Guard = {
+  name: "Guard",
+  props: { permission: { type: String, required: true }, texts: { type: Object, required: true } },
+  setup(props, { slots }) {
+    const session = useSession();
+    const decision = () => (session.value ? decide(props.permission, session.value) : undefined);
+    watchEffect(() => {
+      if (decision() === "sign-in" && application.signIn !== null) {
+        replace(application.signIn + "?returnTo=" + encodeURIComponent(location.value.path + location.value.search));
+      }
+    });
+    return () => {
+      const now = decision();
+      if (props.permission === "public" || now === "allowed") {
+        return slots.default?.();
+      }
+      if (session.value === undefined || (now === "sign-in" && application.signIn !== null)) {
+        return html`<p role="status" class="screens-loading">${say(props.texts, "screens.loading")}</p>`;
+      }
+      const text = session.value === null ? "screens.failed" : "screens.refused";
+      return html`<p role="alert" class="screens-refused">${say(props.texts, text)}</p>`;
+    };
+  },
+};

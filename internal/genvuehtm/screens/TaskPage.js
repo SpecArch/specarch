@@ -1,0 +1,170 @@
+// A form that sends its fields to an operation through api.call without
+// loading a record, or streams the file picked to an upload with its
+// fields beside it, and goes where the answer leads.
+
+import { api } from "../api.js";
+import { application } from "../config/application.js";
+import { homeOf } from "./access.js";
+import { Field } from "./Field.js";
+import { leave } from "./Notice.js";
+import { fillRoute, go, location, query } from "./router.js";
+import { problemsOf, refusalOf } from "./rules.js";
+import { forgetSession, readSession } from "./session.js";
+import { say } from "./texts.js";
+import { html, reactive } from "./vue.js";
+
+/** The route returnTo names when it is one of this application's, a path with its query and fragment; anything else is ignored. */
+function local(returnTo) {
+  if (returnTo === undefined || !returnTo.startsWith("/") || returnTo.startsWith("//") || /[\t\n\r\\]/.test(returnTo)) {
+    return undefined;
+  }
+  return returnTo;
+}
+
+function destination(event, routes, body, returnTo) {
+  if (event.navigate === undefined) {
+    return undefined;
+  }
+  const back = local(returnTo);
+  if (!event.keepsReturnTo && back !== undefined) {
+    return back;
+  }
+  const answer = typeof body === "object" && body !== null ? body : {};
+  let route = fillRoute(routes[event.navigate] ?? "/", answer, event.with ?? {});
+  if (event.keepsReturnTo && back !== undefined) {
+    route += "?returnTo=" + encodeURIComponent(back);
+  }
+  return route;
+}
+
+export const TaskPage = {
+  name: "TaskPage",
+  props: { schema: { type: Object, required: true }, texts: { type: Object, required: true }, routes: { type: Object, required: true } },
+  setup(props) {
+    const empty = () => Object.fromEntries(props.schema.fields.map((field) => [field.name, ""]));
+    const state = reactive({ values: empty(), problems: {}, busy: false, file: undefined });
+    const picks = props.schema.submit.file;
+
+    async function submit(event) {
+      event.preventDefault();
+      const { schema, texts, routes } = props;
+      const returnTo = query().returnTo;
+      const found = problemsOf(schema, state.values, texts);
+      if (picks !== undefined && state.file === undefined) {
+        found.file = say(texts, "screens.required");
+      } else if (picks?.maxBytes !== undefined && state.file !== undefined && state.file.size > picks.maxBytes) {
+        found.file = say(texts, picks.tooLarge ?? "screens.failed");
+      }
+      state.problems = found;
+      const first = schema.fields.find((field) => found[field.name] !== undefined);
+      if (first !== undefined) {
+        document.getElementById(first.name)?.focus();
+      }
+      if (Object.keys(found).length > 0) {
+        return;
+      }
+      state.busy = true;
+      const body = Object.fromEntries(Object.entries(state.values).filter(([, value]) => value !== ""));
+      let response;
+      try {
+        response = picks !== undefined && state.file !== undefined ? await api.upload(schema.submit.operation, state.file, { body }) : await api.call(schema.submit.operation, { body });
+      } catch {
+        state.busy = false;
+        state.problems = { "": say(texts, "screens.failed") };
+        return;
+      }
+      if (response.ok) {
+        forgetSession();
+        const success = schema.events.find((candidate) => candidate.status === response.status) ?? { status: response.status };
+        if (success.signIn !== undefined) {
+          try {
+            const { signIn } = await import("../identity-provider.js");
+            await signIn();
+          } catch (error) {
+            state.busy = false;
+            state.problems = { "": error instanceof Error ? error.message : String(error) };
+          }
+          return;
+        }
+        if (success.home === true) {
+          // The person's home, from the session the answer may have changed;
+          // a returnTo leads back first, and the start serves a person whose
+          // roles have none.
+          const back = local(returnTo);
+          const person = back === undefined ? await readSession() : null;
+          const route = back ?? (person ? homeOf(application.homes ?? {}, person) : undefined) ?? "/";
+          if (success.message !== undefined) {
+            leave(say(texts, success.message), route.split(/[?#]/)[0]);
+          }
+          go(route);
+          return;
+        }
+        const answer = success.with === undefined ? null : await api.body(response);
+        if (answer === undefined) {
+          state.busy = false;
+          state.problems = { "": say(texts, "screens.failed") };
+          return;
+        }
+        const route = destination(success, routes, answer, returnTo);
+        if (success.message !== undefined) {
+          leave(say(texts, success.message), (route ?? location.value.path).split(/[?#]/)[0]);
+        }
+        if (route !== undefined) {
+          go(route);
+          return;
+        }
+        state.busy = false;
+        state.values = empty();
+        return;
+      }
+      state.busy = false;
+      const failure = refusalOf(schema.failed, response.status);
+      if (failure === undefined) {
+        state.problems = { "": say(texts, "screens.failed") };
+      } else {
+        state.problems = { [failure.field ?? ""]: say(texts, failure.message) };
+        if (failure.field !== undefined) {
+          document.getElementById(failure.field)?.focus();
+        }
+      }
+    }
+
+    return () => {
+      const { schema, texts } = props;
+      const mediaType = picks === undefined ? undefined : api.mediaTypeOf(schema.submit.operation);
+      return html`<section class="screens-task">
+        <h1>${say(texts, schema.title)}</h1>
+        <form novalidate class="screens-form" onSubmit=${submit}>
+          ${state.problems[""] !== undefined ? html`<p role="alert" class="screens-problem">${state.problems[""]}</p>` : null}
+          ${picks !== undefined
+            ? html`<div class="screens-field" id="file">
+                <label for="file-input">${say(texts, picks.label)}</label>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept=${mediaType === undefined || mediaType === "application/octet-stream" ? undefined : mediaType}
+                  aria-required="true"
+                  aria-invalid=${state.problems.file !== undefined ? "true" : undefined}
+                  aria-describedby=${state.problems.file !== undefined ? "file-problem" : undefined}
+                  onChange=${(event) => (state.file = event.target.files?.[0] ?? undefined)}
+                />
+                ${state.file !== undefined ? html`<p class="screens-hint">${say(texts, "screens.file")}: ${state.file.name} <button type="button" class="screens-link" onClick=${() => (state.file = undefined)}>${say(texts, "screens.remove")}</button></p>` : null}
+                ${state.problems.file !== undefined ? html`<p id="file-problem" role="alert" class="screens-problem">${state.problems.file}</p>` : null}
+              </div>`
+            : null}
+          ${schema.fields.map(
+            (field) => html`<${Field}
+              key=${field.name}
+              field=${field}
+              value=${state.values[field.name] ?? ""}
+              problem=${state.problems[field.name]}
+              texts=${texts}
+              onChange=${(value) => (state.values = { ...state.values, [field.name]: value })}
+            />`,
+          )}
+          <div class="screens-buttons"><button type="submit" disabled=${state.busy}>${say(texts, schema.title)}</button></div>
+        </form>
+      </section>`;
+    };
+  },
+};

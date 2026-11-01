@@ -55,6 +55,11 @@ The roadmap names two UI generators, SwiftUI for the iPhone and plain
 JavaScript for the web, and `docs/generators.md` sets the rule for them:
 an emitter is written against one hand-built screen in a real project and
 has to reproduce it before it is accepted. Which one comes first is D9.
+Four are built: plain JavaScript, TypeScript on Next.js and Carbon
+(`docs/ui-nextjs-carbon.md`), SwiftUI (`docs/ui-swiftui.md`) and the web
+with no build step on Vue's runtime-only build and htm
+(`docs/ui-vue-htm.md`), the last three reading the pages through one
+analysis.
 
 ## Where the standards and the platforms stand
 

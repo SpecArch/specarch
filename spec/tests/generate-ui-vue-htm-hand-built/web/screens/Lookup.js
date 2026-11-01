@@ -1,0 +1,102 @@
+// A field that holds another record's key, picked from the records its
+// source lists in a datalist: searched by the service as the person types
+// when the source searches, and otherwise among the one page read.
+
+import { api } from "../api.js";
+import { say } from "./texts.js";
+import { html, reactive, watch } from "./vue.js";
+
+/** The text a record is shown by: the fields the lookup names, or its key. */
+export function words(field, record) {
+  const shown = field.text.map((name) => record[name]).filter((part) => part !== null && part !== undefined && part !== "");
+  return shown.length > 0 ? shown.map(String).join(" · ") : String(record[field.value] ?? "");
+}
+
+export const Lookup = {
+  name: "Lookup",
+  props: {
+    field: { type: Object, required: true },
+    id: { type: String, required: true },
+    label: { type: String, required: true },
+    value: { type: String, required: true },
+    problem: { type: String, default: undefined },
+    texts: { type: Object, required: true },
+    readOnly: { type: Boolean, default: false },
+    required: { type: Boolean, default: false },
+  },
+  emits: ["pick"],
+  setup(props, { emit }) {
+    const state = reactive({ typed: "", items: [], failed: false, key: "" });
+    const source = props.field.source;
+    const asked = () => (source.search === undefined ? "" : state.typed);
+    watch(
+      asked,
+      (search) => {
+        const query = { [source.pageSize.name]: String(source.pageSize.value) };
+        if (source.search !== undefined && search !== "") {
+          query[source.search] = search;
+        }
+        const key = JSON.stringify(query);
+        state.key = key;
+        api
+          .call(source.operation, { query, list: { page: source.page, pageSize: source.pageSize.name } })
+          .then(async (response) => {
+            const answer = response.ok ? await api.body(response) : undefined;
+            if (state.key !== key) {
+              return;
+            }
+            const found = api.property(answer, source.items);
+            state.failed = !Array.isArray(found);
+            state.items = Array.isArray(found) ? found.filter((item) => typeof item === "object" && item !== null) : [];
+          })
+          .catch(() => {
+            if (state.key === key) {
+              state.failed = true;
+              state.items = [];
+            }
+          });
+      },
+      { immediate: true },
+    );
+    function typed(event) {
+      const text = event.target.value;
+      state.typed = text;
+      if (text === "") {
+        emit("pick", undefined);
+        return;
+      }
+      const picked = state.items.find((item) => words(props.field, item) === text);
+      if (picked !== undefined) {
+        emit("pick", picked);
+      }
+    }
+    return () => {
+      const { field, id, label, value, problem, texts, readOnly, required } = props;
+      const selected = value === "" ? null : (state.items.find((item) => String(item[field.value] ?? "") === value) ?? { [field.value]: value });
+      const offered = selected !== null && !state.items.includes(selected) ? [selected, ...state.items] : state.items;
+      const shownText = selected !== null && state.typed === "" ? words(field, selected) : state.typed;
+      const nothing = !state.failed && state.typed !== "" && offered.every((item) => !words(field, item).toLowerCase().includes(state.typed.toLowerCase()));
+      const trouble = problem ?? (state.failed ? say(texts, "screens.failed") : undefined);
+      const listId = id + "-options";
+      return html`<div class="screens-field">
+        <label for=${id}>${label}</label>
+        <input
+          id=${id}
+          name=${id}
+          type="text"
+          list=${listId}
+          autocomplete="off"
+          value=${shownText}
+          readonly=${readOnly}
+          aria-required=${String(required)}
+          aria-invalid=${trouble !== undefined ? "true" : undefined}
+          aria-describedby=${trouble !== undefined ? id + "-problem" : nothing ? id + "-hint" : undefined}
+          onInput=${typed}
+        />
+        <datalist id=${listId}>${offered.map((item, index) => html`<option key=${index} value=${words(field, item)}></option>`)}</datalist>
+        ${trouble !== undefined ? html`<p id=${id + "-problem"} role="alert" class="screens-problem">${trouble}</p>` : null}
+        ${trouble === undefined && nothing ? html`<p id=${id + "-hint"} class="screens-hint">${say(texts, "screens.nothingMatches")}</p>` : null}
+      </div>`;
+    };
+  },
+};

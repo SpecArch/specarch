@@ -270,6 +270,19 @@ implementation file uses and compares an override with the shipped idiom.
      (ADR-147, `docs/ui-swiftui.md`, `spec/tests/generate-ui-swiftui`,
      `spec/tests/generate-ui-swiftui-refused`,
      `examples/library-lending/ios/`).
+   - Built for the web with no build step, on Vue's runtime-only build and
+     htm, for a project that loads its files as written under a strict
+     content security policy: `specarch-gen-ui-vue-htm` writes the menus,
+     pages and actions as plain data files, one data file per page
+     compared by value, one `api.call` over the plain JavaScript transport
+     in both dialects, the components once with the table named by the
+     idiom's `list-page` part so a project's virtual table replaces it,
+     `index.html` loading the vendored files with the integrity the
+     implementation file's `libraries.<name>.files` gives each, and a
+     vendor manifest; the pages read by the same analysis as the
+     TypeScript and SwiftUI screens (ADR-218, `docs/ui-vue-htm.md`,
+     `spec/tests/generate-ui-vue-htm` and the cases beside it,
+     `examples/library-lending/web-vue/`).
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
    Built, 0.6.0: `specarch-gen-bpmn` writes each workflow as a BPMN 2.0

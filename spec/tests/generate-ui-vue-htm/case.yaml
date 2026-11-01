@@ -1,0 +1,7 @@
+arguments: [generate, ui, --unapproved, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:375:44: warning: /pages/invitation/fields/3: generator: nickname has no title, so its label is its name; give the property a title [generator@specarch.yaml#/pages/invitation/fields/3]
+  project/specarch.yaml:1:1: warning: /: generator: strings.en-GB.json has an entry for members-list.retired, which no screen uses; it is left out [generator@specarch.yaml#/]
+  project/specarch.yaml:541:5: warning: /theme/modes/print: generator: the mode print has no media query of its own on the web, and this version of specarch-gen-ui-vue-htm writes the dark mode only; it is left out [generator@specarch.yaml#/theme/modes/print]
+plugins: [ui-vue-htm]

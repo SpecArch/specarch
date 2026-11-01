@@ -1,0 +1,63 @@
+// The message an event leaves for a page, kept in the session's storage and
+// announced once that page opens, without moving focus, until it is closed
+// or another page opens.
+
+import { location } from "./router.js";
+import { html, ref, watch } from "./vue.js";
+
+const key = "screens.notice";
+const notice = ref(stored());
+
+function stored() {
+  try {
+    const item = sessionStorage.getItem(key);
+    const value = item === null ? null : JSON.parse(item);
+    if (typeof value === "object" && value !== null && typeof value.text === "string" && typeof value.path === "string") {
+      return { text: value.text, path: value.path };
+    }
+  } catch {
+    // a notice that cannot be read is not shown
+  }
+  return null;
+}
+
+function forget() {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // nothing kept
+  }
+  notice.value = null;
+}
+
+/** Keeps a message for the page at path, announced there once it opens. */
+export function leave(text, path) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ text, path }));
+  } catch {
+    // the message holds for this page alone when the storage refuses it
+  }
+  notice.value = { text, path };
+}
+
+/** The message left for the current page, as an output the screen reader announces. */
+export const Notice = {
+  name: "Notice",
+  setup() {
+    watch(
+      () => location.value.path,
+      (path) => {
+        if (notice.value !== null && notice.value.path !== path) {
+          forget();
+        }
+      },
+    );
+    return () => {
+      const left = notice.value;
+      if (left === null || left.path !== location.value.path) {
+        return null;
+      }
+      return html`<output role="status" class="screens-notice">${left.text} <button type="button" class="screens-close" aria-label="×" onClick=${forget}>×</button></output>`;
+    };
+  },
+};

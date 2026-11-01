@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the generate-ui-vue-htm case, with the implementation file naming an override of the ui-components idiom whose list-page part, for vue-htm, names the table VirtualTable from the module ../tables/virtual-table.js, a module the project writes"
+when: "generate ui is run with --unapproved"
+then: "screens/table.js re-exports VirtualTable from that module as Table, so the list page draws its rows through the project's table and no other file changes; the rest is as the generate-ui-vue-htm case writes it, and it exits 0"
+verifies: [SA-115]

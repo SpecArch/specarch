@@ -1,0 +1,16 @@
+specarchIdiom: "1.0.0"
+name: ui-components
+version: 1.0.0
+description: Lists drawn through the project's own table, a virtual table wrapped in a module it writes.
+why: The project's lists scroll through thousands of rows, so a generated one draws through the same virtual table as those built by hand.
+overrides: { idiom: ui-components, version: 1.12.0, parts: [list-page] }
+parts:
+  list-page:
+    description: A list whose rows a virtual table draws.
+    stack:
+      vue-htm:
+        names: { table: VirtualTable, tableModule: ../tables/virtual-table.js }
+        code: |
+          The rows in VirtualTable, the project's module beside the screens
+          wrapping a component library's virtual table in the table contract
+          the shipped list-page part states.

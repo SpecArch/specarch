@@ -1,0 +1,55 @@
+/** The pages, by name: each one's kind, the key of its title, its route with its {parameters}, its permission and the data file app.js draws it from. */
+export const pages = {
+  directory: { kind: "list", title: "directory.title", route: "/directory", permission: "public", file: "pages/directory.js" },
+  invitation: { kind: "task", title: "invitation.title", route: "/invitations", permission: "public", file: "pages/invitation.js" },
+  "member-edit": {
+    kind: "form",
+    title: "member-edit.title",
+    route: "/members/{memberId}/edit",
+    permission: "members.write",
+    file: "pages/member-edit.js",
+  },
+  "member-form": {
+    kind: "form",
+    title: "member-form.title",
+    route: "/members/new",
+    permission: "members.write",
+    file: "pages/member-form.js",
+  },
+  "member-view": {
+    kind: "view",
+    title: "member-view.title",
+    route: "/members/{memberId}",
+    permission: "members.read",
+    file: "pages/member-view.js",
+  },
+  "members-list": {
+    kind: "list",
+    title: "members-list.title",
+    route: "/members",
+    permission: "members.read",
+    file: "pages/members-list.js",
+  },
+  "removal-form": {
+    kind: "form",
+    title: "removal-form.title",
+    route: "/members/{memberId}/removal",
+    permission: "members.write",
+    file: "pages/removal-form.js",
+  },
+  "removals-inbox": {
+    kind: "list",
+    title: "removals-inbox.title",
+    route: "/removals",
+    permission: "members.approve",
+    file: "pages/removals-inbox.js",
+  },
+  "sign-in": { kind: "task", title: "sign-in.title", route: "/sign-in", permission: "public", file: "pages/sign-in.js" },
+  "visits-form": {
+    kind: "form",
+    title: "visits-form.title",
+    route: "/members/{memberId}/visits",
+    permission: "members.write",
+    file: "pages/visits-form.js",
+  },
+};

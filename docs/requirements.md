@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 114 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 115 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -34,7 +34,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
 | NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
-| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
+| NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
@@ -106,6 +106,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-106 | functional | should | proposed | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. |
 | SA-109 | functional | should | proposed | A specification shall be able to declare the long-running processes a service manager starts and watches, each with how it runs (always, scheduled or on demand), the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and the limit after which it is given up, its health and the monitors that watch it, with no permission; specarch validate shall check each against the design in both builds, a process shall be a subject of tests with the cases it implies, the operations guide shall write it, and specarch extract systemd shall read a systemd unit file into one. |
 | SA-114 | functional | should | proposed | A specification shall be able to declare the fixed routes a server answers beside its operations, each with its path, what it serves (the browser application's document with its content security policy, the files of a folder, or the health of the service), its permission and its caching; specarch validate shall check each in both builds, a route shall be a subject of tests with the cases it implies, the technical specification shall list them, and the go-dxlib target shall write them as handlers the service fills. |
+| SA-115 | functional | should | proposed | specarch generate ui shall write, through specarch-gen-ui-vue-htm, the screens of a specification for the web with no build step, on Vue's runtime-only build with htm, from an implementation file in JavaScript whose ui target is platform web and framework vue-htm, so that the menus, pages and actions a project kept as data files, its pages and its vendor manifest follow the specification, are compared by generate --check, and load under a content security policy with neither unsafe-eval nor unsafe-inline. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -1116,6 +1117,24 @@ Acceptance criteria:
 - Both builds print the same lines for every case.
 
 **Insight:** A service that serves a browser application answers its document, its files and a health probe by hand, outside the permission and test checks, because none is an operation; a route holds what the design fixes about each, and the stack writes what only it has (ADR-216).
+
+### SA-115
+
+specarch generate ui shall write, through specarch-gen-ui-vue-htm, the screens of a specification for the web with no build step, on Vue's runtime-only build with htm, from an implementation file in JavaScript whose ui target is platform web and framework vue-htm, so that the menus, pages and actions a project kept as data files, its pages and its vendor manifest follow the specification, are compared by generate --check, and load under a content security policy with neither unsafe-eval nor unsafe-inline.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-2.
+
+Acceptance criteria:
+
+- index.html loads theme.css, the screens' stylesheet, the files of the libraries settings.vendor names in that order, each with the integrity libraries.<name>.files gives it, and app.js as a module, and holds no inline script, no inline style and no event attribute; no generated file calls eval or the Function constructor.
+- config/menus.js, config/pages.js and config/actions.js hold the menus with each entry's page, route and permission, the pages with each one's kind, title, route, permission and data file, and every operation the pages call by its operationId with its method, path, permission and how it travels, as plain data; pages/<page>.js holds one page's name, kind, route, permission, schema in the idiom's names and routes, in one shape for every page, and generate --check compares it by value.
+- Every call goes through api.call(action, payload) with the operation's name, which in the dxlib dialect posts to /<operationId> with the parameters in one body and in the standard dialect sends the operation's method to its path, through the transport the plain JavaScript screens call through, handshakes and streams included.
+- vendor/manifest.js holds a row per vendored file with the library's name, version and licence, the file and its integrity; an integrity not in the form sha256-, sha384- or sha512- and base64, one that differs from the file in the output folder, a library settings.vendor names without files, and vue or htm missing from it are errors at the entry, and a file not in the output folder yet is a warning naming it.
+- The list page draws its rows through the table component the ui-components idiom's list-page part names for vue-htm, imported from the module it names, so an override of that part alone replaces the table; the shipped table is a plain HTML table.
+- A task page, a list, a form and a view take the same design keywords, settings, hooks, checks as rules in the data, refusals and events, and report the same errors, as the TypeScript generator does, but for settings.server, which is refused; the routes are paths under the design's application route when it declares one and fragments otherwise.
+- Each list, form and view that needs a permission gets a derived test under tests/ that it is refused to someone signed in without it, sends someone signed out to sign in and opens to someone who holds it, and the menu a test that no entry shows without the permission of the page it opens, run with node --test on the data files and the screens' decision alone.
+
+**Insight:** A project that avoids a JavaScript build chain wrote its pages and the data files that mirror the specification's menus, pages and operations by hand, so every change was made twice, and no generator wrote for that stack (ADR-218).
 
 ### SA-7
 

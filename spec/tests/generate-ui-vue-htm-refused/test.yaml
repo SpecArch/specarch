@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: red
+given: "the specification of the generate-ui-vue-htm case; an implementation file in JavaScript whose ui target is vue-htm with settings.server, whose settings.vendor names htm, a table library and a library with no files but not vue, whose vue file carries an integrity of the wrong length, and whose table library's file is in the output folder with other bytes than its integrity; and an implementation file in TypeScript whose ui target asks for vue-htm"
+when: "generate ui is run with --unapproved"
+then: "it reports, for the JavaScript file, settings.server, vue missing from settings.vendor, the library with no files, the vue file's integrity of another length at the file and the table file's integrity differing from the file in the output folder at the file, each an error under the settings or at the entry, and for the TypeScript file that it is written in TypeScript and the plug-in writes JavaScript, writes what it could make with each problem marked at its place, and exits 1"
+verifies: [SA-115]

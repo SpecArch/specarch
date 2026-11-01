@@ -1,0 +1,35 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in JavaScript on Vue and htm through a table of its own, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: JavaScript, version: ES2020 } }
+libraries:
+  vue:
+    version: 3.5.43
+    licence: MIT
+    purpose: The runtime-only build that draws the screens, with no template compiler.
+    files: { vendor/vue.runtime.global.prod.js: sha384-wRUdzBb9rjxUOB/BX0Nvm1rGocQW6KpyyN7zTekdE+cKxpb0MwSmxzn04ePFtC+O }
+  htm:
+    version: 3.1.1
+    licence: MIT
+    purpose: The tagged templates the screens write their markup in.
+    files: { vendor/htm.umd.js: sha384-Ha/rZ1SM6j6GFVMjNonV3LKPW11co4wy3H4IgiMFL/XrLLE68h1euLps89na4wD1 }
+mappings:
+  "#/menus/admin": { target: the administration's own menu, ownedBy: administration }
+  "#/paths/~1sessions/post": { target: the administration's own sign-in route, ownedBy: administration }
+  "#/pages/branch-list": { target: the branches page another team writes, ownedBy: administration }
+targets:
+  ui:
+    output: ../../../web
+    platform: web
+    framework: vue-htm
+    settings:
+      language: en
+      session: { operation: getSession, signedIn: open, permissions: granted, signIn: sign-in }
+      hooks: { member-form: [joinedOn] }
+      layouts: { member-form: tabs }
+      translations: [en-GB]
+      vendor: [vue, htm]
+      tokens: { text: color.text, background: color.background, accent: color.accent, link: color.link, space: space.small }
+idioms:
+  ui-components:
+    override: idioms/ui-components.specarch-idiom.yaml

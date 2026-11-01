@@ -1,0 +1,75 @@
+// What the screens know of the person, read once through api.call from
+// the operation config/application.js names and shared by every part of
+// the screens: whether they are signed in, the permissions they hold and,
+// when the session names them, their roles.
+
+import { api } from "../api.js";
+import { application } from "../config/application.js";
+import { ref } from "./vue.js";
+
+/** The session: undefined while it is read, null when it cannot be. */
+export const session = ref(undefined);
+let reading = false;
+/** Counts forgetSession calls, so a read begun before one is not kept. */
+let generation = 0;
+
+async function ask() {
+  if (application.session === null) {
+    return { signedIn: false, permissions: [] };
+  }
+  const { operation, signedIn, permissions, roles } = application.session;
+  try {
+    const response = await api.call(operation);
+    const answer = response.ok ? await api.body(response) : undefined;
+    if (answer === undefined) {
+      return null;
+    }
+    const held = api.property(answer, permissions);
+    const named = roles === undefined ? undefined : api.property(answer, roles);
+    return {
+      signedIn: api.property(answer, signedIn) === true,
+      permissions: Array.isArray(held) ? held.filter((p) => typeof p === "string") : [],
+      ...(Array.isArray(named) ? { roles: named.filter((r) => typeof r === "string") } : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function read() {
+  if (reading || session.value !== undefined) {
+    return;
+  }
+  reading = true;
+  const begun = generation;
+  const answer = await ask();
+  reading = false;
+  if (begun !== generation) {
+    void read();
+    return;
+  }
+  session.value = answer;
+}
+
+/** Reads the session again, as after signing in. */
+export function forgetSession() {
+  generation += 1;
+  session.value = undefined;
+  void read();
+}
+
+/** Reads the session now and answers it, as a page does that leads to the person's home after signing in. */
+export async function readSession() {
+  const begun = generation;
+  const answer = await ask();
+  if (begun === generation && session.value === undefined) {
+    session.value = answer;
+  }
+  return answer;
+}
+
+/** The person's session, read on the first use. */
+export function useSession() {
+  void read();
+  return session;
+}

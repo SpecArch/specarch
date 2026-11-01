@@ -296,9 +296,10 @@ table, and the document marks them as what they are.
 `ui-components` says what draws each page kind and field type of a
 front end: on the web, Next.js's app router and IBM's Carbon design
 system, the stack `nextjs-carbon`, which `docs/ui-nextjs-carbon.md`
-reads; on the iPhone, SwiftUI, the stack `swiftui`, which
-`docs/ui-swiftui.md` reads. It applies to a file with one of those
-frameworks whose specification has `pages`. Its parts are one per thing drawn: `application` (the
+reads, or Vue's runtime-only build with htm and no build step, the stack
+`vue-htm`, which `docs/ui-vue-htm.md` reads; on the iPhone, SwiftUI, the
+stack `swiftui`, which `docs/ui-swiftui.md` reads. It applies to a file
+with one of those frameworks whose specification has `pages`. Its parts are one per thing drawn: `application` (the
 packages every screen imports, and where the components that read the
 schemas live), `list-page`, `form-page`, `view-page`, `task-page`, a part
 per field type (`text-field`, `text-area-field`, `email-field`, `password-field`,
@@ -309,16 +310,20 @@ holding a value object or a list of them), `confirm-dialog`, `notification`, `la
 under `names`, the component, the schema type it takes, the Carbon or
 SwiftUI components it is built on and the keys of its schema; `names`
 stays a flat map of strings, a key per role. The shipped renderings draw
-with plain Carbon and with plain SwiftUI, so an example builds with
-public packages only, and the SwiftUI one with none. A project that
+with plain Carbon, with plain SwiftUI and, for `vue-htm`, with HTML
+elements on Vue and htm alone, so an example builds with public packages
+only, and the SwiftUI one with none; on `vue-htm` the `list-page` part
+names the table component and its module (`table`, `tableModule`), the
+contract its `code` states, so a project's virtual table replaces the
+shipped plain table by an override of that part alone. A project that
 draws through a library of its own overrides the parts it changes, naming
 its package under `import`, its component, schema type and keys, and
 records that library with SPDX's `LicenseRef-<name>` when its own
 organisation writes it; a name the override leaves out is the shipped
 part's, so an override is as small as the keys that differ. A project whose
 schema shape `names` cannot say installs its own
-`specarch-gen-ui-typescript` or `specarch-gen-ui-swiftui` ahead of the
-shipped one.
+`specarch-gen-ui-typescript`, `specarch-gen-ui-vue-htm` or
+`specarch-gen-ui-swiftui` ahead of the shipped one.
 
 | Contract, checked | Contract, guidance |
 |---|---|

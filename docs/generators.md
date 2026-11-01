@@ -1267,6 +1267,97 @@ first (`examples/library-lending/ios`), which `generate --check` reports
 as matching but for the header; its lists, forms and views build and
 pass their derived tests there.
 
+### Vue with htm, the web with no build step
+
+`specarch-gen-ui-vue-htm` writes, for a `ui` target of platform `web`
+and framework `vue-htm` in an implementation file in JavaScript, the
+same pages as data for a browser application that has no Node.js, no
+package manager and no build step: ES2020 modules loaded as written, on
+Vue 3's runtime-only build, so no template compiler and nothing
+evaluated at run time, and htm's tagged templates for the markup, so the
+screens load under a content security policy with neither `unsafe-eval`
+nor `unsafe-inline`; `docs/ui-vue-htm.md` is its design, ADR-218 the
+decision, and the pages are read through `internal/genscreens`, as the
+TypeScript and SwiftUI generators read them, so the three accept and
+refuse the same design. It writes into the target's output:
+
+- `index.html`, the one document, which loads `theme.css`, the screens'
+  stylesheet, the vendored files `settings.vendor` names in that order,
+  each with its integrity, and `app.js` as a module, with no inline
+  script, no inline style and no event attribute; under a declared
+  application route (ADR-216) it names its files from that route through
+  `base`, since the server answers the document at every page route.
+- `config/menus.js`, `config/pages.js`, `config/actions.js` and
+  `config/application.js`: the menu with each entry's title key, route
+  and permission; the pages by name with each one's kind, title key,
+  route, permission and data file; every operation the pages call by its
+  operationId with its method, path, permission and how it travels (the
+  handshake, the stream and its media type, the path parameters' names in
+  the dxlib dialect's body); and where the service is, its dialect and
+  handshakes, how the session is read, the sign-in route, each role's
+  home, how a route is written in the address bar and the languages.
+- `pages/<page>.js` per page, one data file in one shape for every kind:
+  `export const page = { name, kind, route, permission, schema, routes }`,
+  the schema in the `ui-components` idiom's names for `vue-htm` with
+  each call reduced to its operation's name, and the routes its events
+  lead to. `generate --check` compares it by value, as a TypeScript
+  schema (ADR-093), so a project that wrote its data files by hand keeps
+  them laid out its way.
+- `app.js`, which imports the pages' data once and mounts the shell;
+  the project's custom screens (`custom/<page>.js`, the default export a
+  Vue component) and a form's hooks (`hooks/<page>.js`, a named export
+  per field, keyed by the field's name on the wire) are imported when
+  their page opens, so a module that is missing or fails is said on that
+  page alone and the application is never blank.
+- `api.js`, one `api.call(action, payload)` over `transport.js`, the
+  plain JavaScript screens' transport (ADR-164): in the dxlib dialect
+  every call is a POST at `/<operationId>` with its parameters in one
+  body, the action-style pipeline, and in the standard dialect the
+  operation's method at its path; `api.upload` streams a file,
+  `api.pathOf` gives an action's path for a page that fills it from a
+  record.
+- the components once under `screens/`, on Vue's runtime build and htm
+  alone: the shell with the menu, the language choice and the notice,
+  the router (paths under the application route, or fragments after `#`
+  when the design declares none, so a folder served as it is still
+  works), the session, the guard, the task, list, form, view and content
+  pages, the fields, the lookup as an input with a datalist, the value
+  and value-list fields, the child rows and the confirm dialog, a
+  `<dialog>`; `screens/table.js` re-exports the table component the
+  idiom's `list-page` part names from the module it names, so a project's
+  own table, a component library's virtual table wrapped in a module it
+  writes to the contract the part states, replaces the shipped plain
+  table by an override of that part alone.
+- `strings.js` in the specification's language and every translation,
+  the chosen one kept under a key in the browser's local storage and
+  read by `screens/language.js`; `theme.css` as the plain JavaScript
+  generator writes it; `vendor/manifest.js`, a row per vendored file with
+  the library's name, version and licence, the file and its integrity;
+  and a derived test per guarded page and for the menu under `tests/`,
+  run with `node --test` on the data files and the screens' decision
+  alone.
+
+The libraries' files are declared in the implementation file under
+`libraries.<name>.files`, each by its path under the output folder with
+its subresource integrity, `sha256-`, `sha384-` or `sha512-` and the
+digest in base64; `settings.vendor` names the libraries `index.html`
+loads, in order, `vue` and `htm` among them. The generator never fetches
+anything: an integrity not in that form or of another length is an error
+at the file, one that differs from the file in the output folder is an
+error naming both hashes, since the browser would refuse the file, a
+library `settings.vendor` names without files and `vue` or `htm` missing
+from it are errors under the settings, and a file not in the output
+folder yet is a warning naming it. `settings.server` is refused: these
+screens are files a server hands out as they are, and they call the
+service directly. The lists, forms and views take the same design
+keywords, settings, hooks, checks, refusals and events as the TypeScript
+generator, with the same refusals (`generate-ui-vue-htm-refused`); the
+list keeps `compactColumns` through the theme's `wide` class, and its
+table is replaced through the idiom (`generate-ui-vue-htm-table-override`).
+The example is the library lending example's screens in
+`examples/library-lending/web-vue/`, whose vendored files are committed
+beside the generated code with their hashes in the implementation file.
+
 ## Tests from the specification
 
 The specification says what is tested; the implementation file says with

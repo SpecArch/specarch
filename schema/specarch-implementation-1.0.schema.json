@@ -365,6 +365,18 @@
           ],
           "default": "runtime"
         },
+        "files": {
+          "description": "SpecArch keyword. The library's files the project commits beside the generated code, for a stack that loads a library as a file rather than through a package manager (the ui target's vue-htm framework): each by its path under the target's output folder, with the subresource integrity of the file as the page loads it, sha256-, sha384- or sha512- and the hash in base64 (W3C Subresource Integrity). specarch-gen-ui-vue-htm writes each into vendor/manifest.js with the library's version and licence, loads the files the target's settings.vendor names in index.html with their integrity, and refuses an integrity that is not in that form or that differs from the file in the output folder.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[^/\\\\][^\\\\]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^sha(256|384|512)-[A-Za-z0-9+/]+={0,2}$"
+          },
+          "minProperties": 1
+        },
         "why": {
           "$ref": "#/$defs/why"
         },
@@ -1034,7 +1046,7 @@
           ]
         },
         "framework": {
-          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written, and swiftui, where a page's events are navigation through the app's router. A plug-in named for the framework, specarch-gen-<target>-<framework>, is found before one named for the language.",
+          "description": "For the ui target: the component library or UI framework. The default for platform web is plain-javascript: native ES modules in the browser, no package install, no bundler or build step, every third-party library a pinned file committed beside the generated code, and pages and components that talk through one small generated event bus (event names declared once as UPPERCASE constants with their payload shape, subscriptions registered where a component is created, no wildcard or computed names, an optional debug log of every event). For platform iphone the default is swiftui. The framework, given or by default, is also a stack of the implementation file for its idioms, as a dialect is: the ui-components idiom renders nextjs-carbon, Next.js's app router drawn with IBM's Carbon, where a page's events are navigation in its page.tsx and no event bus is written, and swiftui, where a page's events are navigation through the app's router. vue-htm is a second web framework with no build step: Vue 3's runtime-only build and htm, both vendored under the libraries' files and loaded by index.html with their integrity, the menus, pages and actions as plain data files under config/, one data file per page under pages/, the calls through one api.call, and a vendor manifest; its table component is the ui-components idiom's list-page part, which a project overrides. A plug-in named for the framework, specarch-gen-<target>-<framework>, is found before one named for the language.",
           "type": "string",
           "minLength": 1
         },

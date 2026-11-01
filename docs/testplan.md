@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 918 design tests, 458 golden and 460 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 923 design tests, 462 golden and 461 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 918 design tests, 458 golden and 460 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 914 |
+| system | 919 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3644,6 +3644,46 @@ Scenario: red; level: system; verifies SA-80.
 - Given: the specification of generate-ui-view, whose list asks a confirmation before it opens the form, offers its operation while an expression that calls int holds, runs the operation with no reason although it takes a body, and opens a view whose source takes a parameter its route does not have; whose view hides a field by ordering a decimal and opens that view while nothing gives its route's parameter; an implementation file whose ui target is platform web in plain-javascript; and specarch-gen-ui built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: it reports as errors the confirmation at the action's confirm, the call at its when, the source at the view's source, the decimal at the condition and the parameter nothing gives at the view's action, and as warnings the action that sends no reason, the list's link to the view it does not write and the menu entry for the view whose route takes a parameter; writes the list and the view without what it reports, each marked at its page; and exits 1
+
+#### generate-ui-vue-htm
+
+Scenario: golden; level: system; verifies SA-115.
+
+- Given: the specification of the generate-ui-typescript case, with two task pages, a list that filters, searches, sorts, keeps a column on a compact screen, opens pages from its toolbar and its rows and runs an operation on a row after a confirmation with a reason, a public list, a form that registers a member in two sections with every field type, a picker, a field entered twice, conditions and a check, a form that loads and changes a member, a view that hides a field by a rule and runs an operation with a reason, a form with child rows locked when loaded, a form that starts an approval, its inbox, two menus and a theme with a dark mode, a print mode and a dimension; one implementation file in JavaScript with a ui target of platform web and framework vue-htm, the libraries vue and htm each with its vendored file under files with its integrity, settings.vendor naming both in order, the session's operation in its settings, a hook for the registration's date and its sections as tabs, a translation into en-GB whose file in the output folder keeps an entry no screen uses, its theme's parts mapped to tokens, and the administration menu, the sign-in operation and the branch list, which reads an operation that does not page, owned by another stakeholder; the two vendored files committed in the output folder; and specarch-gen-ui-vue-htm built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: it runs the plug-in once; it writes index.html, which loads theme.css, the screens' stylesheet, the two vendored files in the order settings.vendor gives them, each with its integrity, and app.js as a module, with no inline script, style or event attribute; config/menus.js with the menu without the owned one, each entry's route and permission, config/pages.js with each page's kind, title key, route, permission and data file, config/actions.js with every operation the pages call by its operationId, its method, path and permission, and config/application.js with the standard dialect, the session's operation, the sign-in route, hash routing and the languages; one data file per page under pages/ in one shape, its schema in the idiom's names with each call reduced to its operation's name and the routes its events lead to; app.js, which imports the pages' data and the registration form's hooks from hooks/member-form.js when it opens; api.js over transport.js; the components under screens/, the table imported through screens/table.js from the idiom's module; strings.js with the en-GB translation; theme.css; vendor/manifest.js with a row per vendored file; and a derived test per guarded page and for the menu under tests/; it warns that the field with no title is labelled by its name and that the translation's unused entry and the print mode are left out, and exits 0
+
+#### generate-ui-vue-htm-dxlib
+
+Scenario: golden; level: system; verifies SA-115.
+
+- Given: the specification of the generate-ui-typescript-dxlib case: a pre-key handshake established by issuePreKey, a task page that submits to addNote, a list page that reads listNotes with a filter, a search, a sort and a row action that runs finishNote on the row's note, a second row action that runs exportNote, a download stream in the handshake's envelope, a view that loads getNote by the route's note, each of those operations but the download's answer travelling in the handshake's envelope, and a task page attach that submits to uploadAttachment, an upload stream of application/pdf; an implementation file in JavaScript whose ui target is vue-htm with vue and htm vendored, and one in Go whose openapi target serves the dxlib dialect; and specarch-gen-ui-vue-htm built from this repository on PATH
+- When: generate ui is run with --unapproved
+- Then: config/application.js names the dxlib dialect and the handshake preKey with the operation that establishes it; config/actions.js names, per operation, the handshake it travels in, for a path with a parameter the parameter's snake-case name in the body, the export's download stream and the upload's stream and media type, so every call goes through api.call with the operation's name alone and the transport posts each to /<operationId> with its parameters in one body; the list's data reads the paginated-list idiom's dxlib names and its records under list.rows; the attach page's data names its file with its label, button, largest size and message; transport.js, which seals and opens dxlib's envelope, is written beside api.js; it reports nothing and exits 0
+
+#### generate-ui-vue-htm-hand-built
+
+Scenario: golden; level: system; verifies SA-115.
+
+- Given: the generate-ui-vue-htm case, with every file the generator writes already in the output folder as the project wrote it by hand: without the header line, the members list's data file laid out another way with its keys in another order and a comment of the project's own, and the vendored files beside them
+- When: generate ui is run with --check and --unapproved
+- Then: it says of each page's data file that it is built by hand and matches what generate writes as data, and of every other file that it matches but for its header, writes nothing, and exits 0
+
+#### generate-ui-vue-htm-refused
+
+Scenario: red; level: system; verifies SA-115.
+
+- Given: the specification of the generate-ui-vue-htm case; an implementation file in JavaScript whose ui target is vue-htm with settings.server, whose settings.vendor names htm, a table library and a library with no files but not vue, whose vue file carries an integrity of the wrong length, and whose table library's file is in the output folder with other bytes than its integrity; and an implementation file in TypeScript whose ui target asks for vue-htm
+- When: generate ui is run with --unapproved
+- Then: it reports, for the JavaScript file, settings.server, vue missing from settings.vendor, the library with no files, the vue file's integrity of another length at the file and the table file's integrity differing from the file in the output folder at the file, each an error under the settings or at the entry, and for the TypeScript file that it is written in TypeScript and the plug-in writes JavaScript, writes what it could make with each problem marked at its place, and exits 1
+
+#### generate-ui-vue-htm-table-override
+
+Scenario: golden; level: system; verifies SA-115.
+
+- Given: the generate-ui-vue-htm case, with the implementation file naming an override of the ui-components idiom whose list-page part, for vue-htm, names the table VirtualTable from the module ../tables/virtual-table.js, a module the project writes
+- When: generate ui is run with --unapproved
+- Then: screens/table.js re-exports VirtualTable from that module as Table, so the list page draws its rows through the project's table and no other file changes; the rest is as the generate-ui-vue-htm case writes it, and it exits 0
 
 #### generate-ui-wire-names
 
@@ -7449,7 +7489,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-522 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+529 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7755,6 +7795,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-114 | acceptance 3 | golden | SA-114 names no harm |
 | requirement SA-114 | acceptance 4 | golden | SA-114 names no harm |
 | requirement SA-114 | acceptance 5 | golden | SA-114 names no harm |
+| requirement SA-115 | acceptance 1 | golden | SA-115 names no harm |
+| requirement SA-115 | acceptance 2 | golden | SA-115 names no harm |
+| requirement SA-115 | acceptance 3 | golden | SA-115 names no harm |
+| requirement SA-115 | acceptance 4 | golden | SA-115 names no harm |
+| requirement SA-115 | acceptance 5 | golden | SA-115 names no harm |
+| requirement SA-115 | acceptance 6 | golden | SA-115 names no harm |
+| requirement SA-115 | acceptance 7 | golden | SA-115 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

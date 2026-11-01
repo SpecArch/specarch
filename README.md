@@ -158,6 +158,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/ui-design.md` | what an analyst writes about a user interface: page states, events and screen flows, sections, compact screens, accessibility to WCAG 2.2 and a theme of design tokens, and the first UI generator |
 | `docs/ui-nextjs-carbon.md` | the second web generator, TypeScript on Next.js and Carbon, with a project's own components as an idiom override: its design, the libraries checked, and the steps that build it |
 | `docs/ui-swiftui.md` | the third UI generator, SwiftUI for the iPhone: the same pages as data in a Swift package, read by the one analysis both generators share |
+| `docs/ui-vue-htm.md` | the fourth UI generator, the web with no build step on Vue's runtime-only build and htm: the menus, pages and actions as data files, one api.call, a vendor manifest with each file's integrity, and a table a project replaces through the idiom |
 | `docs/authoring-layer-evaluation.md` | TypeSpec, CUE and Pkl as an optional authoring layer |
 | `docs/generators.md` | the rules every document and code target follows, and the plug-in protocol |
 | `docs/sync-gates.md` | the CI checks that keep a spec and its code equal |
@@ -211,7 +212,7 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has thirteen:
+Code targets are plug-ins on PATH. This repository has fourteen:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
@@ -232,7 +233,11 @@ view, form, task and content pages for the web in plain JavaScript,
 the route of each custom page around a screen the project writes,
 with the redirect to an identity provider's sign-in,
 `specarch-gen-ui-typescript`, which it runs instead for an implementation
-file in TypeScript to write the screens on Next.js and Carbon, `specarch-gen-ui-swiftui`, which it runs
+file in TypeScript to write the screens on Next.js and Carbon,
+`specarch-gen-ui-vue-htm`, which it runs for a `ui` target of framework
+vue-htm to write the same screens for the web with no build step, on
+Vue's runtime-only build and htm, with the menus, pages and actions as
+data files and a vendor manifest, `specarch-gen-ui-swiftui`, which it runs
 for a `ui` target of platform iphone to write the same screens in SwiftUI
 into a Swift package, and `specarch-gen-bpmn`, which `specarch
 generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
@@ -248,6 +253,7 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-vue-htm@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.4.0
@@ -435,7 +441,7 @@ it. Release 1.4.0 is the latest. The schemas, the tree layout and the seven stag
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the twelve code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
+and the fourteen code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

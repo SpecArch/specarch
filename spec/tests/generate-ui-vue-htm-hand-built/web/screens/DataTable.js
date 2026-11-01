@@ -1,0 +1,50 @@
+// The table the list page draws its rows through, a plain HTML table: the
+// contract the ui-components idiom's list-page part states, which a
+// project's own table honours to replace it by an override of that part.
+// Props: columns (each its field, its title as text, whether it sorts and
+// whether it stays on a compact screen), rows, sort (the field and whether
+// it descends, or null), rowKey (a function of the row and its index),
+// label and actionsLabel; it emits sort with a column's field when its
+// heading is chosen; slots: cell (row, column, index) and actions (row,
+// index), the actions column drawn when the slot is given.
+
+import { h } from "./vue.js";
+
+export const DataTable = {
+  name: "DataTable",
+  props: {
+    columns: { type: Array, required: true },
+    rows: { type: Array, required: true },
+    sort: { type: Object, default: null },
+    rowKey: { type: Function, required: true },
+    label: { type: String, required: true },
+    actionsLabel: { type: String, default: "" },
+  },
+  emits: ["sort"],
+  setup(props, { emit, slots }) {
+    return () => {
+      const { columns, rows, sort, rowKey, label, actionsLabel } = props;
+      const width = (column) => (column.compact === false ? "wide" : undefined);
+      const heading = (column) => {
+        const sorted = sort !== null && sort.field === column.field;
+        const attrs = { key: column.field, scope: "col", class: width(column), "aria-sort": sorted ? (sort.descending ? "descending" : "ascending") : column.sortable ? "none" : undefined };
+        if (!column.sortable) {
+          return h("th", attrs, column.title);
+        }
+        return h("th", attrs, h("button", { type: "button", class: "screens-sort", onClick: () => emit("sort", column.field) }, column.title));
+      };
+      const head = h("thead", null, h("tr", null, [...columns.map(heading), slots.actions ? h("th", { scope: "col", key: "#actions" }, actionsLabel) : null]));
+      const body = h(
+        "tbody",
+        null,
+        rows.map((row, index) =>
+          h("tr", { key: rowKey(row, index) }, [
+            ...columns.map((column) => h("td", { key: column.field, class: width(column) }, slots.cell ? slots.cell({ row, column, index }) : String(row[column.field] ?? ""))),
+            slots.actions ? h("td", { key: "#actions" }, slots.actions({ row, index })) : null,
+          ]),
+        ),
+      );
+      return h("table", { class: "screens-table", "aria-label": label }, [head, body]);
+    };
+  },
+};

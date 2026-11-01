@@ -1,0 +1,4 @@
+# A register sample is read byte for byte: its line ends are part of the dialect the reader names.
+*.csv -text
+*.tsv -text
+*.tab -text

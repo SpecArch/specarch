@@ -916,8 +916,10 @@ func (t *tabReader) readColumn(reg *tabRegister, col *tabColumn) (*yaml.Node, bo
 	}
 	// The allowed values the instructions give, and the values against them.
 	if rule != nil && len(rule.values) > 0 {
+		enumWritten := false
 		if nodes, wrong := enumValues(rule.values, f); len(wrong) == 0 {
 			set(f, "enum", flow(&yaml.Node{Kind: yaml.SequenceNode, Content: nodes}))
+			enumWritten = true
 		} else {
 			t.question(reg, fmt.Sprintf("The instructions allow %s for %s of %s, whose type is %s, and %s %s read as it: %s. Is the list wrong, or the type? The allowed values are left out until decided.", joinAnd(quoteAll(rule.values)), col.name, reg.name, words, plural(len(wrong), "value"), doesNot(len(wrong)), joinAnd(quoteAll(wrong))), "must", []string{at + "/enum"},
 				"An allowed value is written as a value of the field's type, and one that does not read as it is either a wrong value or a wrong type, which the reader does not choose.", citeRule())
@@ -936,7 +938,7 @@ func (t *tabReader) readColumn(reg *tabRegister, col *tabColumn) (*yaml.Node, bo
 			t.question(reg, fmt.Sprintf("The instructions allow %s for %s of %s, and %s %s outside them: %s. Is the list incomplete, or are the values wrong?", joinAnd(quoteAll(rule.values)), col.name, reg.name, plural(len(outside), "value"), isAre(len(outside)), t.cellsOf(reg, outside, 5)), "must", []string{at + "/enum"},
 				"A value outside the allowed values is either a wrong value or an incomplete list, and the reader does not choose.", citeRule())
 		}
-		if stated == "" {
+		if stated == "" && enumWritten {
 			words = "one of " + joinAnd(quoteAll(rule.values))
 		}
 	}

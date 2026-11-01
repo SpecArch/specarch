@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-216:
+    title: The fixed routes a server answers beside its operations are a section of their own, routes, each serving the application's document, the files of a folder or the health of the service, with its path, permission, content security policy and caching, checked, tested and written by the go-dxlib target
+    status: proposed
+    date: "2026-11-01"
+    context: |
+      A service that serves a browser application answers a few GETs
+      that are no operation: the document the application loads, with a
+      content security policy whose nonce is made for each response; the
+      scripts, styles and images under a folder; a health probe for the
+      service manager or the load balancer. A project specified in
+      SpecArch wrote them by hand beside the generated code, outside the
+      permission checks and the derived tests, since the meta-model had
+      no place for them: an operation needs an operationId, a summary and
+      responses a client program reads, a folder is not one operation,
+      and a document whose header changes per response has no schema. The
+      sign-in callback and a health check can be written as operations;
+      the callback is one already, by ADR-182, and the go-dxlib target
+      names the GET surface dxlib lacks for it as the project's to write.
+      OpenAPI has no keyword for a route that serves a document or a
+      folder (the rule for new keywords in docs/conventions.md), so the
+      keywords are SpecArch's, and the words inside them are the
+      standards': CSP Level 3's directives and sources, RFC 9111's
+      caching and RFC 8246's immutable.
+    decision: |
+      A design section routes, keyed by kebab-case name, after paths in
+      the layout. A route has a path, what it serves, its permission and
+      its caching, and an application route its content security policy.
+      serves is application, files or health: the application's document
+      is answered at its path and at every path under it that no other
+      route or operation answers, which is where the browser
+      application's own routes live; the files are answered at every path
+      under the prefix, a folder never listed; health is 200 while the
+      service is healthy and 503 with the reason while it is not. An
+      application route and a files route are a prefix and end with a
+      slash, a health route is one path, and a path with a parameter is
+      an operation. A route answers GET and HEAD alone, so no method is
+      written: a route of another method would be an operation. The line
+      between the two is the contract: an operation has parameters, a
+      body or a response a client program reads; a route answers a
+      document, a file or a status alone. The sign-in callback takes
+      parameters, calls the provider and answers a redirect, so it stays
+      the operation signIn.callback names.
+
+      contentSecurityPolicy is a mapping of CSP Level 3 directives to
+      their source expressions as the standard writes them, keywords in
+      single quotes; the word nonce stands for the nonce the server makes
+      for each response and is read where CSP reads a nonce. caching is
+      store, false for no-store, true with maxAgeSeconds for max-age,
+      public or private by the permission, and immutable when the file
+      never changes while fresh.
+
+      The rule route, in both validators: the path of the shape its kind
+      needs, one route per path and none on an operation's path, a policy
+      on an application route alone, each directive one CSP defines, a
+      keyword quoted, no nonce value written, nonce only where it is
+      read and never beside 'unsafe-inline', a document with a nonce
+      never stored, caching keys that agree with store, and every page's
+      route under an application route once one is declared; an
+      application route with no policy is a warning, held by a must
+      question that blocks the key, and a policy naming neither
+      default-src nor script-src a warning. A route is a subject of
+      tests, route: <name>, with its success, the denied cases of its
+      permission, method not allowed, for files not found file and path
+      outside the folder, for health unhealthy, the last two critical on
+      their own; a test's expect.status is one the route answers, and
+      derive writes the status of each case. The technical specification
+      lists the routes with each policy as its header reads. The go-dxlib
+      target writes a Routes type, one field per route for what only the
+      service has, the document builder, the file system, the health
+      check, and Allowed for the permission, and RegisterRoutes, which
+      mounts each as a raw handler on dxlib's mux with the method check,
+      the permission, the caching, the policy with a fresh nonce, the
+      files with no listing and the health answer.
+    consequences: |
+      The GETs a browser application needs are in the design, with their
+      permission and their tests, and the technical specification shows
+      them; a project on dxlib fills three fields and mounts the routes
+      instead of writing the handlers. A policy mistake CSP would accept
+      silently, a keyword without quotes, a nonce beside 'unsafe-inline',
+      a stored document with a nonce, is an error at the key. The other
+      server stacks get no handlers yet, specarch check does not yet
+      compare the routes with the code, and the sign-in callback's GET
+      surface on dxlib is still the project's: each is in the roadmap.
+      A page whose route falls under no application route is an error
+      only once an application route is declared, so a specification
+      without routes reads as before.
+    why: |
+      A section of its own, not a kind of operation under paths: every
+      key of an operation, operationId, summary, responses, parameters,
+      is about a contract a client program reads, and none fits a folder
+      or a document whose header changes per response; making them
+      optional for one kind would weaken the fail-closed operation for
+      all. Health as a route, not an operation: a probe has no caller, no
+      body and no response a program reads beyond the status, and
+      processes already keeps what healthy means as design and the probe
+      as the stack's. The callback stays an operation because it has what
+      a route does not, parameters and a call, and ADR-182 settled it.
+      No method key: a fixed value is a placeholder the Low IQ Tax rules
+      out, and a POST route is an operation. The word routes beside a
+      page's route: both are a path and what answers it, the server's
+      document answering the page's path, one meaning in two places, as
+      via is on an operation and a relation (docs/meta-model-1.0.0.md).
+      The nonce as a word, not a value: a value written in the design
+      would be the same for every response, which is no nonce. Quotes on
+      keywords: CSP reads an unquoted self as a host named self, so the
+      typo passes the browser and opens the policy. nonce never stored: a
+      stored document carries a nonce the next response's policy does
+      not name, and its scripts are refused, a failure that appears only
+      behind a cache. The section goes into the 1.0 schema as processes
+      did (ADR-211): a key a file is free to leave out is an addition a
+      1.x may make, and a file without routes reads as before.
+    cites:
+      - source: csp-3
+        says: "A nonce-source expression matches a script or style element whose nonce attribute equals the nonce; when a nonce or hash source is present, 'unsafe-inline' is ignored by browsers that support them."
+      - source: rfc-9111
+        says: "The no-store response directive indicates that a cache must not store any part of the response; max-age indicates how long a response is fresh."
+      - source: rfc-8246
+        says: "The immutable response directive indicates that the response will not be updated while it is fresh."
+      - source: rfc-9110
+        says: "The HEAD method is identical to GET except that the server must not send content in the response; a 405 response must include an Allow header field."
+    satisfies: [SA-114]
+    restsOn: [ADR-096, ADR-182, ADR-211]

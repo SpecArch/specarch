@@ -1,0 +1,10 @@
+route: health
+level: system
+scenario: red
+covers: [unhealthy]
+given: "what the service needs is not reachable"
+when: "GET /health is requested"
+then: "it answers 503, naming what is not healthy"
+origin: inferred
+why: "Written by specarch derive: a health check that never says unhealthy checks nothing, so the case is written. A draft: complete the given, when and then, and remove what does not hold."
+expect: { status: 503 }

@@ -112,7 +112,7 @@
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, process, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, process, route, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -135,6 +135,11 @@
         "process": {
           "description": "The process the test is about (ADR-211).",
           "$ref": "#/$defs/memberName"
+        },
+        "route": {
+          "description": "The fixed route the test is about (ADR-216).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
         "gateway": {
           "description": "The gateway the test is about (ADR-141).",
@@ -391,6 +396,11 @@
         {
           "required": [
             "process"
+          ]
+        },
+        {
+          "required": [
+            "route"
           ]
         },
         {

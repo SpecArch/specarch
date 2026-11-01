@@ -371,7 +371,7 @@ func bodyShare(tests []sourcePair) share {
 			continue
 		}
 		kind := "other"
-		for _, k := range []string{"operation", "command", "page", "job", "process", "gateway", "workflow", "flow", "requirement", "constraint", "transition", "entity"} {
+		for _, k := range []string{"operation", "command", "page", "job", "process", "route", "gateway", "workflow", "flow", "requirement", "constraint", "transition", "entity"} {
 			if get(t.Value, k) != nil {
 				kind = k
 				break

@@ -729,3 +729,17 @@ requirements:
     verification: test
     needs: [NEED-1]
     why: A daemon, a scheduled loop or a system service had to be written as a job with commands, which demanded a permission and caller cases it cannot have, while its restart, crash loop, signals and bad configuration, what goes wrong with such a program, had no key and no test (ADR-211).
+  SA-114:
+    statement: A specification shall be able to declare the fixed routes a server answers beside its operations, each with its path, what it serves (the browser application's document with its content security policy, the files of a folder, or the health of the service), its permission and its caching; specarch validate shall check each in both builds, a route shall be a subject of tests with the cases it implies, the technical specification shall list them, and the go-dxlib target shall write them as handlers the service fills.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - A route with a parameter in its path, an application or files route not ending with a slash, files at the root, a health route ending with a slash, two routes on one path or a route on an operation's path, a policy on a files route, an unknown directive, a keyword without quotes, a nonce value written, nonce where none is read or beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, and a page under no application route are reported as route in both builds; an application route with no policy is a warning held by a must question, and a policy governing no script a warning.
+      - A test may name a route as its subject, with expect.status among the statuses the route answers, and a route gets its success, the denied cases of its permission, method not allowed, and for files not found file and path outside the folder, for health unhealthy; the last two are critical on their own, and specarch derive writes each with its status.
+      - The technical specification writes a Fixed routes table with each route's path, kind, permission and caching, and each application route's policy as its header reads.
+      - specarch-gen-go-dxlib writes a Routes type with a field per route and Allowed, and RegisterRoutes mounting each as a raw handler that answers GET and HEAD alone, checks the permission, sends the caching, makes a nonce per response for the document and writes it into the policy, serves files with no listing, and answers 200 or 503 with the reason for health.
+      - Both builds print the same lines for every case.
+    verification: test
+    needs: [NEED-1]
+    why: A service that serves a browser application answers its document, its files and a health probe by hand, outside the permission and test checks, because none is an operation; a route holds what the design fixes about each, and the stack writes what only it has (ADR-216).

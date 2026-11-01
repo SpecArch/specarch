@@ -18,7 +18,7 @@ extension Checker {
                 if let names = q.child("names"), blocks.count == 1 {
                     checkNames(d, id, names, b)
                 }
-                if !stageList.contains(b.stage) { stageList.append(b.stage) }
+                if !b.stage.isEmpty && !stageList.contains(b.stage) { stageList.append(b.stage) }
             }
             if let names = q.child("names"), blocks.count != 1 {
                 add(names, ptr + "/names", .questionBlock, "question \(id) names \(names.value) for one key, and blocks \(blocks.count) entries; block only the key the name is for, such as #/workflows/<name>/trigger")
@@ -80,7 +80,7 @@ extension Checker {
         let text = item.value
         guard let b = parseBlock(text) else {
             if text.hasPrefix("#/") {
-                add(item, ptr, .questionBlock, "\(text) does not point into a section; a pointer is #/<section>/<name>, such as #/entities/Loan, with at most one key after them")
+                add(item, ptr, .questionBlock, "\(text) does not point into a section or a root x- block; a pointer is #/<section>/<name>, such as #/entities/Loan, or #/x-<block>/<key>, with the keys below as far as the one that is missing")
             } else {
                 add(item, ptr, .questionBlock, "\(text) is neither a stage, a section nor a #/ pointer to an element; name the stage (\(stages.joined(separator: ", "))), a section, or #/<section>/<name>")
             }
@@ -92,7 +92,12 @@ extension Checker {
             var valid: [String: YNode] = [:]
             for p in pairs(section) { valid[p.key.value] = p.value }
             var fix = suggest(b.tokens[1], valid)
-            if !fix.hasPrefix("; did you mean") {
+            if fix.hasPrefix("; did you mean") {
+            } else if section == nil && isExtensionKey(b.tokens[0]) {
+                fix = "; the root file has no \(b.tokens[0]) block, so write it with that key, or name the element the values belong to"
+            } else if isExtensionKey(b.tokens[0]) {
+                fix = "; write the key in the \(b.tokens[0]) block, down to an empty mapping when only its name is known"
+            } else {
                 fix = "; write the element, down to an empty mapping when only its name is known, or block the section \(b.tokens[0])"
             }
             add(item, ptr, .questionBlock, "\(text) does not point at anything in the specification\(fix)")

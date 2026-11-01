@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 910 design tests, 452 golden and 458 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 917 design tests, 457 golden and 460 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 910 design tests, 452 golden and 458 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 906 |
+| system | 913 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -532,6 +532,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-28.
 - Given: a specification that keeps its tests in specarch.yaml
 - When: derive is run
 - Then: it says each derived test needs a folder under tests/, writes nothing and exits 2
+
+#### derive-routes
+
+Scenario: golden; level: system; verifies SA-114.
+
+- Given: a specification with an application route open to everyone, a files route readers may load and a health route, and no test
+- When: derive is run
+- Then: it writes the success of each route with its status, the denied case of the files route with 403, a file that is not there with 404, the path that climbs out of the folder, and the health route's unhealthy case with 503, leaves the method case out as occasional, and exits 0
 
 #### derive-sign-in-oidc
 
@@ -1188,6 +1196,14 @@ Scenario: golden; level: system; verifies SA-62.
 - Given: a specification whose roles go on the wire in upper snake case, with two roles
 - When: document techspec is run
 - Then: the Permissions section says how a role goes on the wire and lists each role with its wire name, and it exits 0
+
+#### document-techspec-routes
+
+Scenario: golden; level: system; verifies SA-114.
+
+- Given: a specification with an application route with a content security policy, a files route readers may load and a health route
+- When: document techspec is run
+- Then: the runtime view writes a Fixed routes table with each route's path, kind, permission and caching, and the application route's policy as its header reads, and exits 0
 
 #### document-techspec-shared-name
 
@@ -2515,6 +2531,14 @@ Scenario: red; level: system; verifies SA-66.
 - When: gaps is run on the estate file
 - Then: it prints the estate's problem first, then each module's open questions document with the references between them resolved, and exits 1
 
+#### gaps-extension-block
+
+Scenario: golden; level: system; verifies SA-17.
+
+- Given: a specification whose one question blocks a key inside a root x- block and nothing else
+- When: gaps is run
+- Then: it lists the question under Extension blocks, after the stages, counts it in the summary as in extension blocks, and exits 1 since a must question is open
+
 #### gaps-invalid-spec
 
 Scenario: red; level: system; covers exit 1.
@@ -2740,6 +2764,14 @@ Scenario: golden; level: system; verifies SA-77, SA-44.
 - Given: the tree extract go writes from the vault written by hand on dxlib (extract-go-dxlib-vault), with each of its sixteen questions answered by a decision record specarch decide wrote, the entries the answers block written and marked decided (issuePreKey public, the size an int64 within 2^53, the permissions described and granted by the role member, the handshake's lifetime of five minutes and one use, the problem's title and condition), its draft tests derived, and an implementation file whose go-dxlib target names the package vault; and specarch-gen-go-dxlib built from this repository on PATH
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes the service and the client with the same operations, request types, stream helpers, handshake and limits as the vault written as a specification, which TestExtractedRoundTrip runs against a real dxlib API with the vault's round-trip test, and exits 0
+
+#### generate-go-dxlib-routes
+
+Scenario: golden; level: system; verifies SA-114.
+
+- Given: the specification of generate-go-dxlib plus an application route with a content security policy naming nonce, a public files route stored for a year and immutable, a files route the desk may load, and a health route; specarch-gen-go-dxlib built from this repository on PATH
+- When: generate go-dxlib is run with --unapproved
+- Then: the Go file gains a Routes type with a field per route and Allowed, RegisterRoutes mounting each as a raw handler with its permission and Cache-Control, the document handler making a nonce per response and writing it into the policy, the files handler serving no listing, and the health handler answering 200 or 503 with the reason, and exits 0
 
 #### generate-go-dxlib-rows
 
@@ -6237,6 +6269,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - When: validate is run
 - Then: it reports each with question_block or stakeholder and exits 1
 
+#### validate-question-block-extension
+
+Scenario: red; level: system; covers exit 1; verifies SA-17.
+
+- Given: a question that blocks a missing key and a present key of a root x- block and a key below an entity's own x- block, and one whose pointers go below a key the block lacks, into a root x- block the file does not have, and to a misspelt key of the block
+- When: validate is run
+- Then: it accepts the first three pointers and reports each of the others with question_block, naming the block to write or the key it suggests, and exits 1
+
 #### validate-question-covers-element-with-content
 
 Scenario: golden; level: system; verifies SA-17.
@@ -6532,6 +6572,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-62.
 - Given: a specification whose roles go on the wire in upper snake case, with a role desk_staff, whose name is not kebab-case, written before desk-staff, both going on the wire as DESK_STAFF, and a third role whose wire name no other takes
 - When: validate is run
 - Then: it reports the name that is not kebab-case as schema and the second role taking DESK_STAFF as wire_name, naming both roles and the wire name, and exits 1
+
+#### validate-routes-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-114.
+
+- Given: routes with a parameter in a path, an application and a health path of the wrong shape, files at the root, two routes on one path and a route on an operation's path, a policy on a files route, an unknown directive, a nonce value written, a keyword without quotes, nonce where none is read and beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, a page outside every application route, a test expecting a status the route never answers, a policy governing no script and an application route whose policy a must question asks for
+- When: validate is run
+- Then: it reports each under route, permission_undeclared or test_data, warns on the policy that governs no script, holds the asked policy, and exits 1
+
+#### validate-routes-valid
+
+Scenario: golden; level: system; verifies SA-114.
+
+- Given: a specification with an application route whose policy names nonce and is never stored, a public files route stored for a year and immutable, a files route readers may load, a health route, a content page under the application route, and the tests each route implies
+- When: validate is run
+- Then: it reports nothing and exits 0
 
 #### validate-row-policies
 
@@ -7385,7 +7441,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-516 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+522 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7686,6 +7742,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-109 | acceptance 3 | golden | SA-109 names no harm |
 | requirement SA-109 | acceptance 4 | golden | SA-109 names no harm |
 | requirement SA-109 | acceptance 5 | golden | SA-109 names no harm |
+| requirement SA-114 | acceptance 1 | golden | SA-114 names no harm |
+| requirement SA-114 | acceptance 2 | golden | SA-114 names no harm |
+| requirement SA-114 | acceptance 3 | golden | SA-114 names no harm |
+| requirement SA-114 | acceptance 4 | golden | SA-114 names no harm |
+| requirement SA-114 | acceptance 5 | golden | SA-114 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |
@@ -7785,6 +7846,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 4 | golden | SA-17 names no harm |
+| requirement SA-17 | acceptance 5 | golden | SA-17 names no harm |
 | requirement SA-18 | acceptance 1 | golden | SA-18 names no harm |
 | requirement SA-18 | acceptance 2 | golden | SA-18 names no harm |
 | requirement SA-19 | acceptance 1 | golden | SA-19 names no harm |

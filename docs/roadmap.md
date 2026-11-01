@@ -604,6 +604,20 @@ encrypted operation's envelope and a streamed file in place of a body table
 (`document-techspec-envelope-stream`). Section 5a lists the four parts
 built after it.
 
+The fixed routes a server answers beside its operations, `routes`
+(ADR-216; `validate-routes-valid`, `validate-routes-refused`,
+`derive-routes`, `generate-go-dxlib-routes`, `document-techspec-routes`):
+the browser application's document with its content security policy and a
+nonce per response, a folder of files, a health check, each with its
+permission and caching, checked by both validators, a subject of derived
+tests, listed in the technical specification and written by the go-dxlib
+target as raw handlers. Left for later: `specarch check` comparing the
+routes with the code, where `extract go` today asks about a file server or
+a catch-all it cannot tell from a gateway; a dxlib GET surface for the
+sign-in callback, which the generator still names as the project's to
+write; and the same handlers for the other server stacks. A question may
+block a key inside a root `x-` block (ADR-217).
+
 ## 5a. The handshake and the streams, end to end
 
 Built, 0.7.2 unless named, each with its proof:

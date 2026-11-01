@@ -554,6 +554,22 @@ not found, and a create for it is refused with no row stored.
 
 The file holds no data model besides those structs, since `specarch-gen-sql`
 writes the schema.
+
+A design with `routes` (ADR-216) adds a `Routes` type and `RegisterRoutes`
+(`spec/tests/generate-go-dxlib-routes`): one field per route, named after
+it, that the service fills with what only it has, the function that builds
+the application's document from the nonce of the response, the file system
+of a files route, the check of a health route, and `Allowed`, which says
+whether the request's caller holds a permission. `RegisterRoutes` mounts
+each route on the API's mux with dxlib's `RegisterRawHandler`, outside the
+operation pipeline: GET and HEAD alone, 405 with `Allow` otherwise; 403
+with the reason when `Allowed` refuses, and 500 naming the nil field when
+the service left one unset; the application's document with a nonce of
+128 random bits written into the policy header and handed to the
+document, `Content-Type: text/html` and the route's `Cache-Control`; the
+files through `http.FileServer` under the prefix, a folder answered 404
+rather than listed; the health check 200 with `healthy` or 503 with the
+error's text, never stored.
 Scheduled and consuming jobs, and the seeding stay the service's, and the
 generator warns where a design asks for them.
 

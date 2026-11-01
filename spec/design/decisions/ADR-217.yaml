@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-217:
+    title: A question may block a key inside an extension block, an element's own or a root x- block, and a root block is about no stage
+    status: proposed
+    date: "2026-11-01"
+    context: |
+      An extension key, x- and a name, is allowed in every object and
+      SpecArch gives it no meaning (ADR-186). A project kept the values
+      its forms propose, which no keyword of the meta-model holds, in a
+      root x- block, and could not ask about one of them: a blocks entry
+      had to start with a section, so the question pointed at other keys
+      instead, and the problems file said something other than what was
+      unknown. A pointer into an element's own x- block already resolved,
+      since the validator walks a pointer down as far as its keys exist
+      and lets the last one be missing; the message said "at most one key
+      after them", which the code never held to, and the schema's text
+      said the same.
+    decision: |
+      A blocks entry may point into a root extension block, #/x-<block>/
+      <key>..., resolved as a pointer into a section is: the block and
+      every key on the way must be present, down to an empty mapping
+      when only a name is known, and at most the last key may be
+      missing. Such a pointer is about no stage, so the question_stage
+      rule takes nothing from it, the question may sit in any file, and
+      specarch gaps lists a question whose every block is such a pointer
+      after the stages, under Extension blocks. A pointer into an
+      element's own x- block is unchanged and now written down, in the
+      schema's text and in docs/conventions.md. The message for a pointer
+      that enters no section names the x- form too, and a block the root
+      file does not have is named as the thing to write.
+
+      Nothing else changes: no x- key gains a meaning, the schema still
+      refuses an unknown key that does not start with x-, and a must
+      question covers the keys missing under what it blocks as before.
+    consequences: |
+      A project that keeps data of its own in an x- block can say which
+      of it is not yet known, at the key itself, and the questions
+      document, the problems file and gaps carry it with the others. A
+      question about such a block has no stage: the validator cannot say
+      which folder it belongs in, and the document groups it apart,
+      which is the truth about it. The checks for unknown keys are as
+      they were.
+    why: |
+      The question is the one licence for an incomplete element (ADR-017);
+      refusing it for a key the meta-model does not know left the project
+      with a placeholder or a question pointed at the wrong place, both
+      of which docs/principles.md rules out. The alternative, a new
+      keyword for form values, would give one project's data a meaning in
+      the meta-model; the x- block is the standard's own way to carry
+      what the format does not define (OpenAPI's specification
+      extensions), and a pointer into it is RFC 6901's own form. The
+      block must exist because a pointer that invents its path would hide
+      a misspelt block name, as the misspelt key the message suggests
+      shows.
+    cites:
+      - source: openapi
+        says: "Specification Extensions: the properties are implemented as patterned fields that are always prefixed by x-."
+      - source: rfc-6901
+        says: "A JSON Pointer is a Unicode string containing a sequence of zero or more reference tokens, each prefixed by a '/' character."
+    satisfies: [SA-17]
+    restsOn: [ADR-017, ADR-186]

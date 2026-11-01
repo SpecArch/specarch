@@ -157,7 +157,7 @@
           ]
         },
         "blocks": {
-          "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
+          "description": "What cannot be final until the question is answered: a stage name, a section name, a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to a key of it (#/requirements/BR-3/priority, #/entities/Loan/x-form/defaults/amount), every key on the way there present and at most the last one missing, or a pointer into a root extension block, #/x-<block>/<key>, which is about no stage (ADR-217). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
           "type": "array",
           "items": {
             "type": "string",

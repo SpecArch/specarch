@@ -89,6 +89,17 @@ restart after a crash and the crash loop it is given up after. The work
 it does is a job it runs, which keeps its role. specarch help format and
 docs/conventions.md (Processes) say how to write one.
 
+The application's document, its files and a health check
+
+A server that also serves a browser application answers a few GETs that
+are no operation: the application's document, the files under a folder
+and a health probe. Each is a route under routes: its path, what it
+serves (application, files or health), its permission and its caching;
+an application route carries the content security policy, with the word
+nonce where the nonce made for each response goes. Each route is a
+subject of tests. docs/conventions.md (Fixed routes) says how to write
+one.
+
 Writing the tests
 
 Each test is a folder of its own under tests/, so list the stage in

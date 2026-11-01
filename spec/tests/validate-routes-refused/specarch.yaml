@@ -1,0 +1,74 @@
+specarch: "1.0.0"
+info: { title: Notice board, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  public: { description: Open to everyone. }
+paths:
+  /health:
+    get:
+      operationId: probe
+      summary: The probe
+      permission: public
+      responses:
+        "200": { description: Healthy. }
+routes:
+  app:
+    path: /app
+    serves: application
+    permission: public
+    contentSecurityPolicy:
+      script-source: ["'self'"]
+      script-src: ["'self'", nonce, "'unsafe-inline'", "'nonce-abc123'"]
+      img-src: [self, nonce]
+    caching: { store: true, maxAgeSeconds: 60 }
+  files-at-root:
+    path: /
+    serves: files
+    permission: public
+    caching: { store: false, maxAgeSeconds: 60 }
+  assets:
+    path: /assets/{name}
+    serves: files
+    permission: assets.read
+    contentSecurityPolicy: { default-src: ["'self'"] }
+    caching: { store: true }
+  health:
+    path: /health/
+    serves: health
+    permission: public
+    caching: { store: false, immutable: true }
+  probe:
+    path: /health
+    serves: health
+    permission: public
+    caching: { store: true, maxAgeSeconds: 0, immutable: true }
+  other:
+    path: /other/
+    serves: application
+    permission: public
+    contentSecurityPolicy:
+      img-src: ["'self'"]
+    caching: { store: false }
+  asked:
+    path: /asked/
+    serves: application
+    permission: public
+    caching: { store: false }
+pages:
+  home:
+    kind: content
+    title: Notices
+    route: /notices
+    permission: public
+    blocks:
+      - text: The notices of the week.
+tests:
+  other-succeeds: { route: other, level: system, scenario: golden, given: any caller, when: GET /other/ is requested, then: it answers the document, expect: { status: 404 } }
+questions:
+  Q-1:
+    question: Which content security policy does the asked route answer with?
+    kind: decision
+    priority: must
+    blocks: ["#/routes/asked/contentSecurityPolicy"]
+    decidedBy: owner

@@ -117,6 +117,7 @@ private let referencePlaces: [(path: [String], kind: String)] = [
     (["processes", "*", "monitors"], "monitor"),
     (["tests", "*", "job"], "job"),
     (["tests", "*", "process"], "process"),
+    (["tests", "*", "route"], "route"),
     (["tests", "*", "gateway"], "gateway"),
     (["tests", "*", "workflow"], "workflow"),
     (["tests", "*", "flow"], "flow"),
@@ -141,7 +142,7 @@ private let sectionOfKind = [
     "requirement": "requirements", "decision": "decisions", "permission": "permissions", "role": "roles",
     "page": "pages", "command": "commands", "client": "clients", "token": "tokens", "handshake": "handshakes",
     "middleware": "middlewares", "job": "jobs", "gateway": "gateways", "workflow": "workflows", "flow": "flows",
-    "process": "processes", "setting": "configuration", "monitor": "monitors",
+    "process": "processes", "route": "routes", "setting": "configuration", "monitor": "monitors",
 ]
 
 private func placeMatches(_ pattern: [String], _ path: [String]) -> Bool {

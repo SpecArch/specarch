@@ -387,6 +387,7 @@ implementation file.
 | Specification (design) | Implementation file (one stack) |
 |---|---|
 | the kind of interface: HTTP (`paths`), messaging (`channels`), command line (`commands`) | the framework binding: router, middleware, how handlers implement the generated interface; the CLI library |
+| the fixed routes beside the operations (`routes`): the application's document with its content security policy, a folder of files, a health check, each with its path, permission and caching | the HTML template, the folder on disk, how the nonce is put on the elements, the health probe's checks |
 | operations with operationId, method and path; parameters, request bodies, responses with schemas, status codes and error shapes | code-generator configuration: package names, strict-server mode, `x-oapi-codegen-*` extensions, protoc plugins |
 | channels and messages | the messaging client and its settings |
 | commands, arguments, options and exit codes | |
@@ -576,7 +577,14 @@ by name, such as an entity or one of its fields, is written as an empty
 mapping and blocked by pointer. A pointer to one key that is not there,
 such as `#/workflows/<name>/trigger`, covers that key alone; when the key's
 value decides what else the element needs, such as a field's `type` or a
-constraint's `kind`, block the element. Covered too are a permission no
+constraint's `kind`, block the element. A pointer may go as deep as the
+keys exist, with at most the last one missing, into an element's own
+`x-` block too (`#/pages/<name>/x-form/defaults/amount`), and a root `x-`
+block is pointed into as an element is (`#/x-form/values/amount`,
+ADR-217): such a block is about no stage, so its question may sit in any
+file and `specarch gaps` lists it after the stages, under Extension
+blocks. SpecArch still gives no `x-` key a meaning: the question holds
+the key as unknown, and nothing else reads it. Covered too are a permission no
 role grants when the question blocks that permission, a response that
 names no problem while problem types are declared when the question
 blocks its problem, and a schema or a view named like an entity, or a
@@ -617,7 +625,7 @@ folder and only the first four are in the root file.
 3. `enums`
 4. `entities`
 5. `permissions`, `roles`, `session`
-6. `paths`
+6. `paths`, `routes`
 7. `commands`
 8. `channels`, `dependencies`, `jobs`, `processes`, `gateways`, `workflows`, `errors`
 9. `pages`, `menus`
@@ -829,6 +837,7 @@ redefined.
 | `forwards` | SpecArch | a gateway's table of services, one row per value with the dependency it selects |
 | `token`, `calls`, `middlewares`, `refusals`, `dependency` on a gateway | SpecArch | as on an operation, a middleware and a server: the token verified, the dependencies called besides the forwards, the middlewares run first, the answers given in place of the service's, the dependency a row forwards to |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
+| `routes`, `serves`, `contentSecurityPolicy`, `caching`, `store`, `maxAgeSeconds`, `immutable` | SpecArch; the directives and sources CSP Level 3's, `nonce` for its per-response nonce, the caching words RFC 9111's and RFC 8246's | the fixed routes a server answers beside its operations: the application's document, the files of a folder, a health check, each with its path, permission, policy and caching (ADR-216) |
 | `workflows`, `trigger`, `subject`, `steps`, `approvers`, `performers`, `deadline`, `onDeadline`, `escalateTo`, `branches`, `onFailure`, `compensatedBy`, `after`, `at`, `message` | BPMN 2.0, a subset with no loops and no parallel paths | a request that finishes after people approve it or work on it: an approval or a task is a user task with its potential owners and a timer, an operation step a service task, a decision an exclusive gateway, a wait an intermediate catch event, a failure an error boundary event, `compensatedBy` a compensation handler |
 | `views`, `from`, `path`, `count`, `rows` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations, counts and the rows of a one-to-many relation added, never written |
 | `schemas` | OpenAPI 3, `components.schemas` | value objects: named object schemas with no key and no table, data passed around but not stored |
@@ -1935,6 +1944,81 @@ process with `process: <name>`, and may expect its `exit` as a command's.
 A process gets no permission or caller case; its cases are in the table
 under Tests.
 
+### Fixed routes
+
+A server answers a few requests that are no operation: the browser
+application's document, the files under a folder, a probe of its health.
+Each is a route under `routes` (ADR-216), GET and HEAD alone, with a
+`path`, what it `serves`, its `permission`, fail-closed as an operation's,
+and its `caching`. None has an operationId, a body or a response a client
+program reads, which is the line between a route and an operation: the
+sign-in callback takes parameters and calls the provider, so it stays the
+operation `signIn.callback` names.
+
+    routes:
+      app:
+        description: The browser application's document, served at every page route.
+        path: /
+        serves: application
+        permission: public
+        contentSecurityPolicy:
+          default-src: ["'self'"]
+          script-src: ["'self'", nonce]
+          style-src: ["'self'", nonce]
+          img-src: ["'self'", "data:"]
+          frame-ancestors: ["'none'"]
+        caching: { store: false }
+      assets:
+        description: The application's scripts, styles, fonts and images, each named by a hash of its content.
+        path: /assets/
+        serves: files
+        permission: public
+        caching: { store: true, maxAgeSeconds: 31536000, immutable: true }
+      health:
+        description: Whether the service can answer, for the load balancer.
+        path: /health
+        serves: health
+        permission: public
+        caching: { store: false }
+
+An `application` route and a `files` route are a prefix and end with a
+slash: the application's document is answered at every path under it that
+no other route or operation answers, which is where the browser
+application's own routes live, so every page's `route` falls under an
+application route once one is declared (an error, `route`, otherwise); the
+files are answered at every path under the prefix, a folder never listed.
+A `health` route is one path, 200 while the service is healthy and 503
+with the reason while it is not. A path with a parameter is an operation.
+One route per path, and no route on a path an operation answers.
+
+`contentSecurityPolicy` belongs to an application route alone (a warning
+when it is missing there, held by a must question that blocks the key): a
+mapping of CSP Level 3 directives, each with its source expressions as the
+standard writes them, `'self'` in single quotes, since without them a
+keyword names a host. The word `nonce`, unquoted, stands for the nonce the
+server makes for each response, sent as `'nonce-<value>'` and set on every
+script and style element of the document; it is read in `script-src`,
+`script-src-elem`, `style-src`, `style-src-elem` and `default-src`, never
+beside `'unsafe-inline'`, which a browser that reads the nonce ignores, and
+never written as a value. A document with a nonce is never stored
+(`store: false`), since a stored copy would carry a nonce a later
+response's policy does not name. A policy naming neither `default-src` nor
+`script-src` governs no script, a warning.
+
+`caching` is the Cache-Control the route answers with (RFC 9111): `store:
+false` is `no-store`; `store: true` with `maxAgeSeconds` is `max-age`,
+`public` on a public route and `private` on any other, with `immutable`
+(RFC 8246) when the file never changes while it is fresh, as one named by
+a hash of its content. A key that contradicts `store` is an error.
+
+A route is a subject of tests, `route: <name>`, with the cases its kind
+implies: its success, the callers it refuses, a method it does not take,
+a file that is not there and a path that climbs out of the folder, and
+the service unhealthy; a test's `expect.status` is one the route answers.
+The technical specification lists the routes with each policy as its
+header reads, and the go-dxlib target writes them as raw handlers the
+service fills with its document, its folders and its health check.
+
 ### Gateways
 
 A service that registers routes only for its health and its metrics and
@@ -2870,7 +2954,7 @@ the tests of its own code (unit and integration suites, fixtures, mocks,
 performance targets, platforms).
 
 A design test is about one subject: an `operation`, a `command`, a `page`,
-a `job`, a `gateway`, a `flow`, a `workflow`, a `requirement`, or an `entity`, with one of its `constraint`s or
+a `route`, a `job`, a `gateway`, a `flow`, a `workflow`, a `requirement`, or an `entity`, with one of its `constraint`s or
 `transition`s or alone for its state machine. It has a
 `level`, `system` (the test exercises the system through its interfaces as a
 client would) or `acceptance` (it shows a stakeholder that a requirement is
@@ -2947,9 +3031,13 @@ mistake:
 | `pattern` | `<field> not matching its pattern` | red | frequent |
 | an enum | `<field> not one of its values` | red | frequent |
 | a format that values can break (email, uuid, date, decimal...) | `<field> not a valid <format>` | red | frequent |
-| a permission other than `public` on an operation, command or page | `denied without <permission>` | red | frequent |
-| `signedIn` on an operation, command or page, in place of the case above | `denied when not signed in` | red | frequent |
+| a permission other than `public` on an operation, command, page or route | `denied without <permission>` | red | frequent |
+| `signedIn` on an operation, command, page or route, in place of the case above | `denied when not signed in` | red | frequent |
 | a path parameter, or a route parameter of a page | `not found <parameter>` | red | frequent |
+| a route | `method not allowed` | red | occasional |
+| a route serving files | `not found file` | red | frequent |
+| | `path outside the folder` | red | critical on its own |
+| a route serving health | `unhealthy` | red | critical on its own |
 | a body field that is the `via` of a relation of the entity the operation returns | `not found <field>` | red | frequent |
 | a unique constraint of the entity a POST with a 201 response creates | `duplicate <constraint>` | red | occasional |
 | a channel the operation `emits` on | `dependency fails <channel>` | red | rare |

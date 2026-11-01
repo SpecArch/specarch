@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 113 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 114 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -33,7 +33,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
@@ -105,6 +105,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-105 | functional | should | proposed | A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them. |
 | SA-106 | functional | should | proposed | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. |
 | SA-109 | functional | should | proposed | A specification shall be able to declare the long-running processes a service manager starts and watches, each with how it runs (always, scheduled or on demand), the jobs it runs, the settings it reads, the signals and exit statuses it honours, when it is restarted and the limit after which it is given up, its health and the monitors that watch it, with no permission; specarch validate shall check each against the design in both builds, a process shall be a subject of tests with the cases it implies, the operations guide shall write it, and specarch extract systemd shall read a systemd unit file into one. |
+| SA-114 | functional | should | proposed | A specification shall be able to declare the fixed routes a server answers beside its operations, each with its path, what it serves (the browser application's document with its content security policy, the files of a folder, or the health of the service), its permission and its caching; specarch validate shall check each in both builds, a route shall be a subject of tests with the cases it implies, the technical specification shall list them, and the go-dxlib target shall write them as handlers the service fills. |
 | SA-7 | functional | must | accepted | specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs. |
 | SA-8 | functional | must | accepted | Every generated file shall name its source specification, version and meta-model, and a hand-written Markdown document shall change only between its markers. |
 | SA-26 | functional | should | accepted | specarch document shall write the change and defect register and the release notes from the records beside a specification, kept current with --check like the other documents. |
@@ -1100,6 +1101,22 @@ Acceptance criteria:
 
 **Insight:** A daemon, a scheduled loop or a system service had to be written as a job with commands, which demanded a permission and caller cases it cannot have, while its restart, crash loop, signals and bad configuration, what goes wrong with such a program, had no key and no test (ADR-211).
 
+### SA-114
+
+A specification shall be able to declare the fixed routes a server answers beside its operations, each with its path, what it serves (the browser application's document with its content security policy, the files of a folder, or the health of the service), its permission and its caching; specarch validate shall check each in both builds, a route shall be a subject of tests with the cases it implies, the technical specification shall list them, and the go-dxlib target shall write them as handlers the service fills.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-1.
+
+Acceptance criteria:
+
+- A route with a parameter in its path, an application or files route not ending with a slash, files at the root, a health route ending with a slash, two routes on one path or a route on an operation's path, a policy on a files route, an unknown directive, a keyword without quotes, a nonce value written, nonce where none is read or beside 'unsafe-inline', a stored document with a nonce, caching keys that contradict store, and a page under no application route are reported as route in both builds; an application route with no policy is a warning held by a must question, and a policy governing no script a warning.
+- A test may name a route as its subject, with expect.status among the statuses the route answers, and a route gets its success, the denied cases of its permission, method not allowed, and for files not found file and path outside the folder, for health unhealthy; the last two are critical on their own, and specarch derive writes each with its status.
+- The technical specification writes a Fixed routes table with each route's path, kind, permission and caching, and each application route's policy as its header reads.
+- specarch-gen-go-dxlib writes a Routes type with a field per route and Allowed, and RegisterRoutes mounting each as a raw handler that answers GET and HEAD alone, checks the permission, sends the caching, makes a nonce per response for the document and writes it into the policy, serves files with no listing, and answers 200 or 503 with the reason for health.
+- Both builds print the same lines for every case.
+
+**Insight:** A service that serves a browser application answers its document, its files and a health probe by hand, outside the permission and test checks, because none is an operation; a route holds what the design fixes about each, and the stack writes what only it has (ADR-216).
+
 ### SA-7
 
 specarch document and specarch generate shall write only into the folder the target owns, and with --check shall fail when the committed output differs.
@@ -1487,6 +1504,7 @@ Acceptance criteria:
 - An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps.
 - The same entity without the question is reported with the missing keys.
 - A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported.
+- A question may block a key inside an element's x- block or a root x- block, the block and the keys on the way present and at most the last one missing; a pointer into a root x- block the file lacks, or below a key the block lacks, is reported, and the question is about no stage.
 - An accepted decision that answers a question still present is reported.
 
 **Insight:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.

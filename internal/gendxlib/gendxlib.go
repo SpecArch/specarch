@@ -28,7 +28,7 @@ import (
 
 // sections are the sections of the specification the file shows as a
 // whole: a question that blocks one is marked under the header.
-var sections = []string{"/entities", "/paths", "/roles", "/permissions", "/jobs", "/menus"}
+var sections = []string{"/entities", "/paths", "/routes", "/roles", "/permissions", "/jobs", "/menus"}
 
 // FileName is the file the plug-in writes in the target's folder.
 const FileName = "specarch_dxlib.go"
@@ -83,6 +83,7 @@ func Generate(r *genopenapi.Request) genopenapi.Response {
 	g.tables()
 	g.rowsSection()
 	g.handlers()
+	g.fixedRoutes()
 	g.transport()
 	g.seeds()
 	g.tasks()

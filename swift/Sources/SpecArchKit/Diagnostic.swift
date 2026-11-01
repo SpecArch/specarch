@@ -162,6 +162,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case decisionSuperseded = "decision_superseded"
     case profile = "profile"
     case process = "process"
+    case route = "route"
 }
 
 /// Whether a diagnostic makes the file invalid.

@@ -254,6 +254,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/pathItem"
       }
     },
+    "routes": {
+      "description": "SpecArch keyword. The fixed routes a server answers beside its operations, keyed by kebab-case name: GET and HEAD alone, each answering a document, a file or a status rather than a response a client program reads, so none is an operation. An application route serves the browser application's document at its path and at every path under it that no other route or operation answers, with its content security policy and a nonce made for each response; a files route serves the files under a folder at every path under its prefix, never a listing; a health route answers 200 while the service is healthy and 503 with the reason while it is not. Each names its permission, fail-closed as an operation, and whether a cache may store what it answers (ADR-216).",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/route"
+      }
+    },
     "commands": {
       "description": "SpecArch keyword. Command-line commands, keyed by the words a user types after the program name, such as 'validate' or 'generate techspec'. A command is an interface like an HTTP operation: it names a permission (fail-closed) and lists its arguments, options, files and exit codes.",
       "type": "object",
@@ -3035,6 +3045,104 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "route": {
+      "description": "SpecArch keyword. One fixed route (ADR-216): GET and HEAD at one path or under one prefix, answering the application's document, a file or the health of the service.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "path": {
+          "description": "The path the route answers, as a request writes it, with no parameter. An application route and a files route are a prefix and end with a slash: every path under it is answered, the application's at every page route of the specification, the files' at every file of the folder. A health route is one path and does not end with a slash.",
+          "type": "string",
+          "pattern": "^/"
+        },
+        "serves": {
+          "description": "What the route answers. application: the browser application's document, HTML built for each response with the nonce its content security policy names on every script and style element; which screens the application shows is the pages section. files: the files under one folder of the implementation, each with its content type, no listing. health: 200 while the service is healthy and 503 with the reason while it is not, for the service manager or the load balancer that probes it.",
+          "type": "string",
+          "enum": [
+            "application",
+            "files",
+            "health"
+          ]
+        },
+        "permission": {
+          "description": "Fail-closed, like an operation. public for a route every browser may load, such as the application's document before sign-in and the health check a load balancer probes.",
+          "$ref": "#/$defs/permissionName"
+        },
+        "contentSecurityPolicy": {
+          "$ref": "#/$defs/contentSecurityPolicy"
+        },
+        "caching": {
+          "$ref": "#/$defs/caching"
+        },
+        "satisfies": {
+          "$ref": "#/$defs/satisfies"
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "path",
+        "serves",
+        "permission",
+        "caching"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {}
+      }
+    },
+    "contentSecurityPolicy": {
+      "description": "SpecArch keyword, after Content Security Policy Level 3. The Content-Security-Policy header an application route answers with: each directive by its name, with its source expressions as the standard writes them, keywords such as 'self' and 'none' in single quotes. The word nonce, unquoted, stands for the nonce the server makes for each response, sent as 'nonce-<value>' in the header and set on every script and style element of the document; it is read in script-src, script-src-elem, style-src, style-src-elem and default-src. A directive that takes no value, such as upgrade-insecure-requests, is an empty list.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z]+(-[a-z]+)*$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "caching": {
+      "description": "SpecArch keyword, after HTTP Caching (RFC 9111). Whether a cache may store what the route answers, sent as Cache-Control. store false is no-store, for a document whose nonce is made per response and for a health check. store true is max-age=maxAgeSeconds, public on a public route and private on any other, and immutable (RFC 8246) when the file never changes while it is fresh, as one named by a hash of its content.",
+      "type": "object",
+      "properties": {
+        "store": {
+          "description": "Whether a cache may store the response at all.",
+          "type": "boolean"
+        },
+        "maxAgeSeconds": {
+          "description": "How long a stored response is fresh, in seconds; with store true.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "immutable": {
+          "description": "The response never changes while it is fresh, so a cache need not revalidate it; with store true and maxAgeSeconds above 0.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "store"
+      ],
+      "additionalProperties": false
+    },
     "requestBody": {
       "type": "object",
       "properties": {
@@ -5749,7 +5857,7 @@ let designSchemaJSON = #"""
           ]
         },
         "blocks": {
-          "description": "What cannot be final until the question is answered: a stage name, a section name, or a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to one key of it (#/requirements/BR-3/priority). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
+          "description": "What cannot be final until the question is answered: a stage name, a section name, a pointer to an element (#/entities/Loan, #/paths/~1loans/post) or to a key of it (#/requirements/BR-3/priority, #/entities/Loan/x-form/defaults/amount), every key on the way there present and at most the last one missing, or a pointer into a root extension block, #/x-<block>/<key>, which is about no stage (ADR-217). A must question covers the required keys missing at or under an element pointer, and the one key of a key pointer.",
           "type": "array",
           "items": {
             "type": "string",
@@ -6042,7 +6150,7 @@ let designSchemaJSON = #"""
       "pattern": "^x-(oapi-codegen|ogen|openapi-generator|codegen|protoc|grpc|go|java|kotlin|python|typescript|javascript|rust|swift|dotnet|csharp|php|ruby|framework|router|middleware|cli-library|server|servers|host|port|deploy|deployment|environment)(-|$)"
     },
     "test": {
-      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, process, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
+      "description": "SpecArch keyword. One test scenario. Exactly one subject: operation, command, page, job, process, route, flow, workflow, requirement, or entity, alone for its state machine or with one constraint or transition. In a folder tree it is the content of tests/<name>/test.yaml.",
       "type": "object",
       "properties": {
         "operation": {
@@ -6065,6 +6173,11 @@ let designSchemaJSON = #"""
         "process": {
           "description": "The process the test is about (ADR-211).",
           "$ref": "#/$defs/memberName"
+        },
+        "route": {
+          "description": "The fixed route the test is about (ADR-216).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
         "gateway": {
           "description": "The gateway the test is about (ADR-141).",
@@ -6321,6 +6434,11 @@ let designSchemaJSON = #"""
         {
           "required": [
             "process"
+          ]
+        },
+        {
+          "required": [
+            "route"
           ]
         },
         {

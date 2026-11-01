@@ -122,6 +122,10 @@ func (s *subject) chosenReason(dc derivedCase) string {
 		return "every stop and every deploy sends SIGTERM, so the case is written"
 	case s.kind == "process" && (strings.HasPrefix(dc.name, "setting invalid ") || strings.HasPrefix(dc.name, "secret missing ")):
 		return "a setting missing or wrong is the commonest reason a process does not start, so the case is written"
+	case s.kind == "route" && dc.name == "path outside the folder":
+		return "a path that climbs out of the folder is a case nobody exercises by hand, so it is written"
+	case s.kind == "route" && dc.name == "unhealthy":
+		return "a health check that never says unhealthy checks nothing, so the case is written"
 	case s.kind == "workflow" && workflowReason(dc.name) != "":
 		return workflowReason(dc.name)
 	case s.critical || dc.critical:
@@ -203,6 +207,11 @@ func (d *design) draftData(s *subject, dc derivedCase) draftCall {
 		return exit("0")
 	case (s.kind == "command" || s.kind == "process") && strings.HasPrefix(dc.name, "exit "):
 		return exit(strings.TrimPrefix(dc.name, "exit "))
+	case s.kind == "route":
+		if status := routeCaseStatus(dc.name); status != "" {
+			return draftCall{expect: []keyText{{"status", status}}}
+		}
+		return draftCall{}
 	case s.kind != "operation":
 		return draftCall{}
 	}

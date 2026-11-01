@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.4.0 of the specification: 10 needs, 113 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.4.0 of the specification: 10 needs, 114 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -14,7 +14,7 @@ Version 1.4.0 of the specification: 10 needs, 113 requirements, and 2 gaps. Each
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-46, SA-61, SA-71, SA-87, SA-32, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
@@ -45,7 +45,7 @@ Version 1.4.0 of the specification: 10 needs, 113 requirements, and 2 gaps. Each
 | SA-14 | NEED-7 | enums GeneratorTarget; commands generate; decisions ADR-013; decisions ADR-051 | tests generate-no-plugin; tests generate-plugin-path-outside; tests generate-with-plugin |
 | SA-15 | NEED-6 | commands document; decisions ADR-015 | tests document-writes-requirements |
 | SA-16 | NEED-3, NEED-5 | enums DocumentTarget; commands document; decisions ADR-016; decisions ADR-129; decisions ADR-133; decisions ADR-134; decisions ADR-135; decisions ADR-136; decisions ADR-137; decisions ADR-172 | tests document-techspec-context; tests document-testplan-by-release; tests document-testplan-state-machine; tests document-writes-commissioning; tests document-writes-deployment; tests document-writes-requirements; tests document-writes-testplan; tests document-writes-traceability |
-| SA-17 | NEED-8 | enums Rule; commands validate; decisions ADR-017; decisions ADR-132 | tests validate-question-answered; tests validate-question-block; tests validate-question-covers-element-with-content; tests validate-question-covers-field-by-name; tests validate-question-covers-idiom-field; tests validate-question-covers-missing; tests validate-question-covers-namespace; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
+| SA-17 | NEED-8 | enums Rule; commands validate; decisions ADR-017; decisions ADR-132; decisions ADR-217 | tests gaps-extension-block; tests validate-question-answered; tests validate-question-block; tests validate-question-block-extension; tests validate-question-covers-element-with-content; tests validate-question-covers-field-by-name; tests validate-question-covers-idiom-field; tests validate-question-covers-missing; tests validate-question-covers-namespace; tests validate-question-covers-problem; tests validate-question-covers-ungranted; tests validate-question-names; tests validate-question-should-not-covering; tests validate-question-stage |
 | SA-18 | NEED-8 | enums Rule; commands validate; decisions ADR-018 | tests document-draft-notice; tests validate-origin; tests validate-origin-tracked |
 | SA-19 | NEED-8, NEED-3 | enums DocumentTarget; commands document; commands gaps | tests document-draft-notice; tests document-writes-questions; tests gaps-link-missing-held; tests gaps-lists-questions; tests gaps-names-question; tests gaps-none |
 | SA-20 | NEED-8 | commands approve; commands generate; decisions ADR-019; decisions ADR-086 | tests approve-after-document-records-and-site; tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
@@ -142,6 +142,7 @@ Version 1.4.0 of the specification: 10 needs, 113 requirements, and 2 gaps. Each
 | SA-111 | NEED-9 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
 | SA-112 | NEED-7 | commands mcp; commands skill; decisions ADR-214 | tests mcp-serves-tools; tests mcp-usage-error; tests skill-check-differs; tests skill-lists-what-it-writes; tests skill-refuses-another-folder; tests skill-usage-error |
 | SA-113 | NEED-8 | commands extract; decisions ADR-215 | tests check-register; tests extract-tables-header-questions; tests extract-tables-instructions; tests extract-tables-mixed-column; tests extract-tables-no-header; tests extract-tables-quote-not-closed; tests extract-tables-register; tests extract-tables-round-trip; tests extract-tables-template; tests extract-tables-two-periods; tests generate-register |
+| SA-114 | NEED-1 | enums Rule; decisions ADR-216 | tests derive-routes; tests document-techspec-routes; tests generate-go-dxlib-routes; tests validate-routes-refused; tests validate-routes-valid |
 
 ## 3. Gaps
 

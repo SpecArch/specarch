@@ -60,7 +60,7 @@ func (c *checker) checkTestData(d *design) {
 // testKindOf is the kind of subject a test names, and how a message names
 // it.
 func testKindOf(t *yaml.Node) (kind, label string) {
-	for _, k := range []string{"operation", "command", "page", "job", "gateway", "process", "workflow", "requirement"} {
+	for _, k := range []string{"operation", "command", "page", "job", "gateway", "process", "route", "workflow", "requirement"} {
 		if v := source.Str(source.Child(t, k)); v != "" {
 			return k, k + " " + v
 		}
@@ -272,7 +272,15 @@ func (c *checker) checkExpect(d *design, t *yaml.Node, kind, label string, ex *y
 		}
 		return true
 	}
-	if n := source.Child(ex, "status"); n != nil && only("status", "operation") && isOp {
+	if n := source.Child(ex, "status"); n != nil && kind == "route" {
+		// A route answers the statuses its kind and its permission give (ADR-216).
+		name := source.Str(source.Child(t, "route"))
+		if rt := source.Child(source.Child(d.root, "routes"), name); rt != nil {
+			if allowed := routeStatuses(d.root, rt); !contains(allowed, n.Value) {
+				c.add(n, source.Pointer(append(base, "status")...), RuleTestData, "route %s answers %s, not %s", name, routeOr(allowed), n.Value)
+			}
+		}
+	} else if n != nil && only("status", "operation") && isOp {
 		if source.Child(source.Child(o.node, "responses"), n.Value) == nil {
 			c.add(n, source.Pointer(append(base, "status")...), RuleTestData, "operation %s has no response %s%s", o.id, n.Value, suggest(n.Value, topMap(o.node, "responses")))
 		}

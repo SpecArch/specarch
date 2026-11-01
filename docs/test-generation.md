@@ -403,7 +403,8 @@ example into the folder the target owns:
   mapping (a table, a repository, a constructor), the caller signed in as
   the role; `input` becomes the call through the operation's mapping (an
   HTTP request to the handler under test, a command run with its
-  arguments, a page opened); `expect` becomes the assertions, each named
+  arguments, a page opened, a route requested with GET at its path);
+  `expect` becomes the assertions, each named
   by the key it checks. `given`, `when` and `then` go in as comments, so
   the generated test reads as the specification does.
 - A test without structured keys becomes a test with the three marked

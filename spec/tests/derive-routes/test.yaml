@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: derive
+level: system
+scenario: golden
+given: "a specification with an application route open to everyone, a files route readers may load and a health route, and no test"
+when: "derive is run"
+then: "it writes the success of each route with its status, the denied case of the files route with 403, a file that is not there with 404, the path that climbs out of the folder, and the health route's unhealthy case with 503, leaves the method case out as occasional, and exits 0"
+verifies: [SA-114]

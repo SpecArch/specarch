@@ -9,6 +9,7 @@ requirements:
       - An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps.
       - The same entity without the question is reported with the missing keys.
       - A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported.
+      - A question may block a key inside an element's x- block or a root x- block, the block and the keys on the way present and at most the last one missing; a pointer into a root x- block the file lacks, or below a key the block lacks, is reported, and the question is about no stage.
       - An accepted decision that answers a question still present is reported.
     verification: test
     needs: [NEED-8]

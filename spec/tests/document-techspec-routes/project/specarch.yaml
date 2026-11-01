@@ -1,0 +1,41 @@
+specarch: "1.0.0"
+info: { title: Notice board, version: 1.0.0 }
+
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  public: { description: Open to everyone. }
+  notices.read: { description: Read the notices. }
+roles:
+  reader: { description: A person who reads notices., permissions: [notices.read] }
+routes:
+  app:
+    description: The browser application's document, served at every page route.
+    path: /
+    serves: application
+    permission: public
+    contentSecurityPolicy:
+      default-src: ["'self'"]
+      script-src: ["'self'", nonce]
+    caching: { store: false }
+  reports:
+    description: The reports the board publishes, for readers.
+    path: /reports/
+    serves: files
+    permission: notices.read
+    caching: { store: true, maxAgeSeconds: 600 }
+  health:
+    description: Whether the service can answer, for the load balancer.
+    path: /health
+    serves: health
+    permission: public
+    caching: { store: false }
+tests:
+  app-succeeds: { route: app, level: system, scenario: golden, given: any caller, when: GET / is requested, then: it answers 200 with the document and a nonce in its policy, expect: { status: 200 } }
+  app-method-not-allowed: { route: app, level: system, scenario: red, covers: [method not allowed], given: any caller, when: / is requested with POST, then: "it answers 405 with Allow: GET, HEAD", expect: { status: 405 } }
+  reports-succeeds: { route: reports, level: system, scenario: golden, given: a caller with notices.read, when: a file under /reports/ is requested, then: it answers 200 with the file, expect: { status: 200 } }
+  reports-denied-without-notices-read: { route: reports, level: system, scenario: red, covers: [denied without notices.read], given: a caller without notices.read, when: a file under /reports/ is requested, then: it is refused as not allowed, expect: { status: 403 } }
+  reports-not-found-file: { route: reports, level: system, scenario: red, covers: [not found file], given: no file of that name is under the folder, when: a file that is not there is requested under /reports/, then: it answers 404, expect: { status: 404 } }
+  reports-path-outside-the-folder: { route: reports, level: system, scenario: red, covers: [path outside the folder], given: a request whose path climbs out of the folder with .., when: it is requested under /reports/, then: it is refused and no file outside the folder is read }
+  health-succeeds: { route: health, level: system, scenario: golden, given: any caller, when: GET /health is requested, then: "it answers 200: the service is healthy", expect: { status: 200 } }
+  health-unhealthy: { route: health, level: system, scenario: red, covers: [unhealthy], given: what the service needs is not reachable, when: GET /health is requested, then: it answers 503 naming what is not healthy, expect: { status: 503 } }

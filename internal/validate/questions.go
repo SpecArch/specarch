@@ -31,7 +31,7 @@ func (c *checker) checkQuestions(d *design) {
 			if names := source.Child(q, "names"); names != nil && len(blocks) == 1 {
 				c.checkNames(d, id, names, b)
 			}
-			if !stages[b.Stage] {
+			if b.Stage != "" && !stages[b.Stage] {
 				stages[b.Stage] = true
 				stageList = append(stageList, b.Stage)
 			}
@@ -98,7 +98,7 @@ func (c *checker) checkBlock(d *design, item *yaml.Node, ptr string) (spec.Block
 	if !ok {
 		switch {
 		case strings.HasPrefix(text, "#/"):
-			c.add(item, ptr, RuleQuestionBlock, "%s does not point into a section; a pointer is #/<section>/<name>, such as #/entities/Loan, with at most one key after them", text)
+			c.add(item, ptr, RuleQuestionBlock, "%s does not point into a section or a root x- block; a pointer is #/<section>/<name>, such as #/entities/Loan, or #/x-<block>/<key>, with the keys below as far as the one that is missing", text)
 		default:
 			c.add(item, ptr, RuleQuestionBlock, "%s is neither a stage, a section nor a #/ pointer to an element; name the stage (%s), a section, or #/<section>/<name>", text, strings.Join(spec.Stages, ", "))
 		}
@@ -111,7 +111,13 @@ func (c *checker) checkBlock(d *design, item *yaml.Node, ptr string) (spec.Block
 	element := source.Child(section, b.Tokens[1])
 	if element == nil {
 		fix := suggest(b.Tokens[1], topMap(d.root, b.Tokens[0]))
-		if !strings.HasPrefix(fix, "; did you mean") {
+		switch {
+		case strings.HasPrefix(fix, "; did you mean"):
+		case section == nil && spec.IsExtensionKey(b.Tokens[0]):
+			fix = fmt.Sprintf("; the root file has no %s block, so write it with that key, or name the element the values belong to", b.Tokens[0])
+		case spec.IsExtensionKey(b.Tokens[0]):
+			fix = fmt.Sprintf("; write the key in the %s block, down to an empty mapping when only its name is known", b.Tokens[0])
+		default:
 			fix = fmt.Sprintf("; write the element, down to an empty mapping when only its name is known, or block the section %s", b.Tokens[0])
 		}
 		c.add(item, ptr, RuleQuestionBlock, "%s does not point at anything in the specification%s", text, fix)

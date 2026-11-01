@@ -165,6 +165,7 @@ enums:
       - decision_superseded
       - profile
       - process
+      - route
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -254,7 +255,7 @@ enums:
       acceptance_missing: a requirement has no acceptance criteria (a warning)
       requirement_unsatisfied: the specification has a design and no element of it satisfies a requirement that no other stakeholder owns (`ownedBy`) (a warning)
       requirement_unverified: the specification has tests, checks or monitors and none verifies a requirement that no other stakeholder owns (`ownedBy`) (a warning)
-      question_block: a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification or to one missing key of it, or a question with `names` does not block exactly one key the specification leaves out
+      question_block: a question's `blocks` entry is neither a stage, a section, nor a pointer to an element of the specification, to a key of it or into a root `x-` block, with every key on the way present and at most the last one missing (ADR-217), or a question with `names` does not block exactly one key the specification leaves out
       question_stage: a question blocks more than one stage, or sits in a file of another stage than the one it blocks
       question_answered: an accepted decision answers a question that is still in the specification
       origin_citation: an element whose origin is stated cites nothing
@@ -325,4 +326,5 @@ enums:
       decision_superseded: "as a warning, a decision that is not itself superseded rests on a superseded decision, named with its successor; the decision rests on what no longer holds, and only a new decision that supersedes it, resting on the successor, clears the warning (ADR-188)"
       profile: "as a warning, once at `info.profile`, the specification is on the lean profile: a test `specarch derive` would write and nobody has (`test_golden_missing`, `test_case_missing`) is a warning there, not an error, and every other rule is as on full; writing `full`, or removing the key, makes them errors again (ADR-210)"
       process: "a process names a job, a setting or a monitor the specification does not have, or a job another process runs; writes schedule or every while it is not scheduled or while it is scheduled and runs jobs, whose triggers say when it starts, or neither or both while it is scheduled and runs none; runs a job that consumes messages while it is scheduled or on demand; is restarted with no limit, or never restarted with delay, limit or exceptExitCodes; or names under exceptExitCodes a status its exitCodes lacks; as a warning, a process given up after its limit that no monitor watches (ADR-211)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93, SA-109]
+      route: "a route's path holds a parameter, an application or files route's path does not end with a slash, a files route is at the root, a health route's path ends with a slash, two routes answer one path or a route answers a path an operation answers; a content security policy is on a route that serves no document, names a directive CSP Level 3 does not define, a keyword without its single quotes, a nonce value, or nonce where no nonce is read or beside 'unsafe-inline'; caching writes maxAgeSeconds or immutable with store false, store true with no maxAgeSeconds, or immutable with no freshness; a document with a nonce may be stored; or a page's route is under no application route while one is declared; as a warning, an application route with no content security policy, held by a must question that blocks the key, and a policy naming neither default-src nor script-src (ADR-216)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93, SA-109, SA-114]

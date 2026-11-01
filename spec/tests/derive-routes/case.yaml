@@ -1,0 +1,9 @@
+arguments: [derive, project]
+exitStatus: 0
+standardOutput: |
+  project/tests/app-succeeds/test.yaml
+  project/tests/reports-succeeds/test.yaml
+  project/tests/reports-denied-without-notices-read/test.yaml
+  project/tests/reports-not-found-file/test.yaml
+  project/tests/reports-path-outside-the-folder/test.yaml
+  project/tests/health-unhealthy/test.yaml

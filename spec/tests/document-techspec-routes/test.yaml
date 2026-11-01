@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with an application route with a content security policy, a files route readers may load and a health route"
+when: "document techspec is run"
+then: "the runtime view writes a Fixed routes table with each route's path, kind, permission and caching, and the application route's policy as its header reads, and exits 0"
+verifies: [SA-114]

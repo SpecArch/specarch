@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a question that blocks a missing key and a present key of a root x- block and a key below an entity's own x- block, and one whose pointers go below a key the block lacks, into a root x- block the file does not have, and to a misspelt key of the block"
+when: "validate is run"
+then: "it accepts the first three pointers and reports each of the others with question_block, naming the block to write or the key it suggests, and exits 1"
+verifies: [SA-17]

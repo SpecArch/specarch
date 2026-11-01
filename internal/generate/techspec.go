@@ -509,7 +509,7 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	workflows := pairs(root, "workflows")
 	gateways := pairs(root, "gateways")
 	procs := pairs(root, "processes")
-	if len(states)+len(ops)+len(cmds)+len(jobs)+len(procs)+len(workflows)+len(gateways) == 0 {
+	if len(states)+len(ops)+len(cmds)+len(jobs)+len(procs)+len(workflows)+len(gateways)+len(pairs(root, "routes")) == 0 {
 		return
 	}
 	d.heading(2, "6. Runtime view")
@@ -549,6 +549,22 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.openOperation(o, told)
 		d.block(operationSequence(root, o))
 		handlerLogic(d, o, impls)
+	}
+	if routes := pairs(root, "routes"); len(routes) > 0 {
+		d.heading(3, "Fixed routes")
+		d.para("The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held.")
+		d.line("| Route | Path | Serves | Permission | Caching |")
+		d.line("|---|---|---|---|---|")
+		for _, r := range routes {
+			d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "path"), str(r.Value, "serves"), str(r.Value, "permission"), cachingText(get(r.Value, "caching")))
+		}
+		d.blank()
+		for _, r := range routes {
+			if policy := policyText(get(r.Value, "contentSecurityPolicy")); policy != "" {
+				d.para(fmt.Sprintf("Route %s answers with Content-Security-Policy: %s; nonce stands for the value made for each response.", r.Key.Value, policy))
+			}
+		}
+		d.explainRows(rowsOf(routes))
 	}
 	for _, j := range jobs {
 		d.heading(3, "Job "+j.Key.Value)
@@ -1266,7 +1282,7 @@ func qualityTests(d *doc, root *yaml.Node) {
 }
 
 func testSubject(t *yaml.Node) string {
-	for _, k := range []string{"operation", "command", "page", "job", "process", "gateway", "workflow"} {
+	for _, k := range []string{"operation", "command", "page", "job", "process", "route", "gateway", "workflow"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}
@@ -1451,6 +1467,32 @@ func sensitiveFields(root *yaml.Node) [][3]string {
 		}
 	}
 	return out
+}
+
+// cachingText says what a route's caching sends as Cache-Control.
+func cachingText(c *yaml.Node) string {
+	if str(c, "store") != "true" {
+		return "no-store"
+	}
+	text := "max-age=" + str(c, "maxAgeSeconds")
+	if str(c, "immutable") == "true" {
+		text += ", immutable"
+	}
+	return text
+}
+
+// policyText writes a content security policy as its header reads, nonce
+// left as the word.
+func policyText(csp *yaml.Node) string {
+	var parts []string
+	for _, dir := range source.Pairs(csp) {
+		var values []string
+		for _, v := range source.Items(dir.Value) {
+			values = append(values, v.Value)
+		}
+		parts = append(parts, strings.TrimSpace(dir.Key.Value+" "+strings.Join(values, " ")))
+	}
+	return strings.Join(parts, "; ")
 }
 
 // processText says how a process runs, the jobs it runs, the settings it

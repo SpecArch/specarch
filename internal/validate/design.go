@@ -195,6 +195,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkChannels(d)
 	c.checkJobs(d)
 	c.checkProcesses(d)
+	c.checkRoutes(d)
 	c.checkWorkflows(d)
 	c.checkMenus(d)
 	c.checkViews(d)
@@ -824,6 +825,9 @@ func (c *checker) checkAccess(d *design) {
 	}
 	for name, cmd := range d.commands {
 		use(source.Child(cmd, "permission"), source.Pointer("commands", name, "permission"), "command "+name)
+	}
+	for _, r := range source.Pairs(source.Child(d.root, "routes")) {
+		use(source.Child(r.Value, "permission"), source.Pointer("routes", r.Key.Value, "permission"), "route "+r.Key.Value)
 	}
 	for name, pg := range d.pages {
 		use(source.Child(pg, "permission"), source.Pointer("pages", name, "permission"), "page "+name)

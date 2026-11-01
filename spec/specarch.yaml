@@ -55,6 +55,18 @@ sources:
     edition: "2022"
     author: IETF
     url: https://www.rfc-editor.org/rfc/rfc9110
+  rfc-9111:
+    kind: standard
+    title: RFC 9111, HTTP Caching
+    edition: "2022"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc9111
+  rfc-8246:
+    kind: standard
+    title: RFC 8246, HTTP Immutable Responses
+    edition: "2017"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc8246
   rfc-6901:
     kind: standard
     title: RFC 6901, JavaScript Object Notation (JSON) Pointer

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "the specification of generate-go-dxlib plus an application route with a content security policy naming nonce, a public files route stored for a year and immutable, a files route the desk may load, and a health route; specarch-gen-go-dxlib built from this repository on PATH"
+when: "generate go-dxlib is run with --unapproved"
+then: "the Go file gains a Routes type with a field per route and Allowed, RegisterRoutes mounting each as a raw handler with its permission and Cache-Control, the document handler making a nonce per response and writing it into the policy, the files handler serving no listing, and the health handler answering 200 or 503 with the reason, and exits 0"
+verifies: [SA-114]

@@ -173,6 +173,7 @@ const (
 	RuleDecisionSuperseded     Rule = "decision_superseded"
 	RuleProfile                Rule = "profile"
 	RuleProcess                Rule = "process"
+	RuleRoute                  Rule = "route"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -336,6 +337,7 @@ var Rules = []Rule{
 	RuleDecisionSuperseded,
 	RuleProfile,
 	RuleProcess,
+	RuleRoute,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

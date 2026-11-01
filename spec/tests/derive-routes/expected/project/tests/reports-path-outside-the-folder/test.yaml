@@ -1,0 +1,9 @@
+route: reports
+level: system
+scenario: red
+covers: [path outside the folder]
+given: "a request whose path climbs out of the folder with .."
+when: "it is requested under /reports/"
+then: "it is refused, and no file outside the folder is read"
+origin: inferred
+why: "Written by specarch derive: a path that climbs out of the folder is a case nobody exercises by hand, so it is written. A draft: complete the given, when and then, and remove what does not hold."

@@ -19,7 +19,7 @@ func indefinite(_ word: String) -> String {
 
 /// The kind of subject a test names, and how a message names it.
 private func testKindOf(_ t: YNode) -> (kind: String, label: String) {
-    for k in ["operation", "command", "page", "job", "gateway", "process", "workflow", "requirement"] {
+    for k in ["operation", "command", "page", "job", "gateway", "process", "route", "workflow", "requirement"] {
         let v = str(t.child(k))
         if !v.isEmpty { return (k, k + " " + v) }
     }
@@ -237,7 +237,16 @@ extension Checker {
             }
             return true
         }
-        if let n = ex.child("status"), only("status", "operation"), let o {
+        if let n = ex.child("status"), kind == "route" {
+            // A route answers the statuses its kind and its permission give (ADR-216).
+            let rname = str(t.child("route"))
+            if let rt = d.root.child("routes")?.child(rname) {
+                let allowed = routeStatuses(d.root, rt)
+                if !allowed.contains(n.value) {
+                    add(n, pointer(base + ["status"]), .testData, "route \(rname) answers \(orList(allowed)), not \(n.value)")
+                }
+            }
+        } else if let n = ex.child("status"), only("status", "operation"), let o {
             if o.node.child("responses")?.child(n.value) == nil {
                 add(n, pointer(base + ["status"]), .testData, "operation \(o.id) has no response \(n.value)\(suggest(n.value, mapOf(o.node.child("responses"))))")
             }

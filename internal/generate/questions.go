@@ -413,6 +413,21 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			write(q)
 		}
 	}
+	// A question whose blocks are all inside root extension blocks is
+	// about no stage (ADR-217).
+	var outside []question
+	for _, q := range qs {
+		if q.stage == "" && len(q.blocks) > 0 && !q.material() {
+			outside = append(outside, q)
+		}
+	}
+	if len(outside) > 0 {
+		sortQuestions(outside)
+		d.section("Extension blocks")
+		for _, q := range outside {
+			write(q)
+		}
+	}
 	var material []question
 	for _, q := range qs {
 		if q.material() {
@@ -551,7 +566,9 @@ func byStage(qs []question, ids []string) string {
 		holds[id] = true
 	}
 	var parts []string
-	for _, stage := range spec.Stages {
+	// The stages, then the questions about no stage, whose blocks are all
+	// inside root extension blocks (ADR-217).
+	for _, stage := range append(append([]string{}, spec.Stages...), "") {
 		var in []question
 		for _, q := range qs {
 			if holds[q.id] && q.stage == stage {
@@ -570,7 +587,11 @@ func byStage(qs []question, ids []string) string {
 			}
 			shown = append(shown, q.id)
 		}
-		parts = append(parts, fmt.Sprintf("%d in %s (%s)", len(in), stage, joinAnd(shown)))
+		where := "in " + stage
+		if stage == "" {
+			where = "in extension blocks"
+		}
+		parts = append(parts, fmt.Sprintf("%d %s (%s)", len(in), where, joinAnd(shown)))
 	}
 	return strings.Join(parts, ", ")
 }

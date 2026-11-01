@@ -137,7 +137,7 @@ private func characters(_ n: String, _ off: Int) -> String {
 private let validatingFormats: Set<String> = ["date", "date-time", "time", "duration", "email", "uuid", "uri", "hostname", "ipv4", "ipv6", "decimal"]
 
 /// Who may do something that needs a permission.
-private func caller(_ perm: String) -> String {
+func caller(_ perm: String) -> String {
     if perm.isEmpty || perm == permissionPublic { return "any caller" }
     if perm == permissionNobody { return "no caller" }
     if perm == permissionSignedIn { return "a signed-in caller" }
@@ -358,6 +358,7 @@ extension Design {
         for p in gatewayList { out.append(withHarm(gatewaySubject(p), p.value)) }
         for p in pairs(root.child("workflows")) { out.append(withHarm(workflowSubject(p), p.value)) }
         for p in pairs(root.child("pages")) { out.append(withHarm(pageSubject(p), p.value)) }
+        for p in pairs(root.child("routes")) { out.append(withHarm(routeSubject(p), p.value)) }
         for p in pairs(root.child("flows")) { out.append(withHarm(screenFlowSubject(p), p.value)) }
         for e in pairs(root.child("entities")) {
             for c in pairs(e.value.child("constraints")) { out.append(withHarm(constraintSubject(e.key.value, c), c.value)) }
@@ -999,6 +1000,7 @@ func testSubjectKey(_ t: YNode) -> String {
     if let v = t.child("job"), !v.str.isEmpty { return "job: " + v.str }
     if let v = t.child("gateway"), !v.str.isEmpty { return "gateway: " + v.str }
     if let v = t.child("process"), !v.str.isEmpty { return "process: " + v.str }
+    if let v = t.child("route"), !v.str.isEmpty { return "route: " + v.str }
     if let v = t.child("flow"), !v.str.isEmpty { return "flow: " + v.str }
     if let v = t.child("workflow"), !v.str.isEmpty { return "workflow: " + v.str }
     if let v = t.child("requirement"), !v.str.isEmpty { return "requirement: " + v.str }
@@ -1127,7 +1129,7 @@ extension Checker {
             }
             guard let s = byKey[key] else {
                 add(p.key, pointer(base), .testSubject,
-                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, gateway, process, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
+                    "test \(name) is about \(key.replacingOccurrences(of: ": ", with: " ")), which is not in the specification; name an operationId, command, page, job, gateway, process, route, flow, workflow, requirement with acceptance criteria, entity with a state machine, or an entity's constraint or transition that exists")
                 continue
             }
             let id = ObjectIdentifier(s)

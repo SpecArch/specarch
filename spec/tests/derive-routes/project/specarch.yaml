@@ -1,0 +1,32 @@
+specarch: "1.0.0"
+info: { title: Notice board, version: 1.0.0 }
+stages: [tests]
+stakeholders:
+  owner: { description: The product owner. }
+permissions:
+  public: { description: Open to everyone. }
+  notices.read: { description: Read the notices. }
+roles:
+  reader: { description: A person who reads notices., permissions: [notices.read] }
+routes:
+  app:
+    description: The browser application's document, served at every page route.
+    path: /
+    serves: application
+    permission: public
+    contentSecurityPolicy:
+      default-src: ["'self'"]
+      script-src: ["'self'", nonce]
+    caching: { store: false }
+  reports:
+    description: The reports the board publishes, for readers.
+    path: /reports/
+    serves: files
+    permission: notices.read
+    caching: { store: true, maxAgeSeconds: 600 }
+  health:
+    description: Whether the service can answer, for the load balancer.
+    path: /health
+    serves: health
+    permission: public
+    caching: { store: false }

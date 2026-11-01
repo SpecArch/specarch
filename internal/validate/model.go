@@ -93,6 +93,7 @@ const (
 	toWorkflow    = "workflow"
 	toFlow        = "flow"
 	toProcess     = "process"
+	toRoute       = "route"
 	toSetting     = "setting"
 	toMonitor     = "monitor"
 )
@@ -171,6 +172,7 @@ var referencePlaces = []struct {
 	{[]string{"processes", "*", "monitors"}, toMonitor},
 	{[]string{"tests", "*", "job"}, toJob},
 	{[]string{"tests", "*", "process"}, toProcess},
+	{[]string{"tests", "*", "route"}, toRoute},
 	{[]string{"tests", "*", "gateway"}, toGateway},
 	{[]string{"tests", "*", "workflow"}, toWorkflow},
 	{[]string{"tests", "*", "flow"}, toFlow},
@@ -273,6 +275,8 @@ func ModelReferences(root *yaml.Node) []ModelReference {
 			section = "flows"
 		case toProcess:
 			section = "processes"
+		case toRoute:
+			section = "routes"
 		case toSetting:
 			section = "configuration"
 		case toMonitor:

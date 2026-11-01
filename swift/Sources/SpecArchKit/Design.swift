@@ -258,6 +258,7 @@ extension Checker {
         checkChannels(d)
         checkJobs(d)
         checkProcesses(d)
+        checkRoutes(d)
         checkWorkflows(d)
         checkMenus(d)
         checkViews(d)
@@ -886,6 +887,7 @@ extension Checker {
         }
         for o in d.opList { use(o.node.child("permission"), o.pointer("permission"), "operation " + o.id) }
         for (name, cmd) in d.commands { use(cmd.child("permission"), pointer("commands", name, "permission"), "command " + name) }
+        for r in pairs(d.root.child("routes")) { use(r.value.child("permission"), pointer("routes", r.key.value, "permission"), "route " + r.key.value) }
         for (name, pg) in d.pages {
             use(pg.child("permission"), pointer("pages", name, "permission"), "page " + name)
             for f in pairs(pg.child("fieldConditions")) {

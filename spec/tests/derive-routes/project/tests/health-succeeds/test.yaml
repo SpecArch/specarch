@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-test-1.0.schema.json
+route: health
+level: system
+scenario: golden
+given: any caller
+when: GET /health is requested
+then: "it answers 200: the service is healthy"
+expect: { status: 200 }

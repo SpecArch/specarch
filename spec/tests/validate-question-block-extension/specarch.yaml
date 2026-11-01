@@ -1,0 +1,31 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string }
+    primaryKey: [id]
+    x-form:
+      defaults: { }
+
+x-form:
+  values:
+    currency: EUR
+
+questions:
+  Q-1:
+    question: Which amount does the form propose, and in which currency?
+    kind: decision
+    priority: must
+    blocks: ["#/x-form/values/amount", "#/x-form/values", "#/entities/Loan/x-form/defaults/amount"]
+    decidedBy: owner
+  Q-2:
+    question: Pointers into extension blocks that do not resolve.
+    kind: decision
+    priority: must
+    blocks: ["#/x-form/nothing/deeper", "#/x-other/values", "#/x-form/valeus"]
+    decidedBy: owner

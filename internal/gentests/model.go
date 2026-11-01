@@ -396,6 +396,12 @@ func (g *walker) call(t map[string]any, input map[string]any) *Call {
 		name := str(t, "page")
 		page, _ := mapAt(g.spec, "pages", name).(map[string]any)
 		return &Call{Kind: "open", Mapping: g.mapping("#/pages/"+name, name), Page: name, Route: str(page, "route"), Input: g.record(input, nil)}
+	case str(t, "route") != "":
+		// A fixed route is requested as an operation is, with GET at its
+		// path and no input (ADR-216).
+		name := str(t, "route")
+		route, _ := mapAt(g.spec, "routes", name).(map[string]any)
+		return &Call{Kind: "request", Mapping: g.mapping("#/routes/"+name, name), Method: "GET", Path: str(route, "path"), Input: g.record(input, nil)}
 	}
 	return nil
 }
@@ -731,7 +737,7 @@ func kind(field map[string]any, v any) string {
 }
 
 func subjectOf(t map[string]any) string {
-	for _, k := range []string{"operation", "command", "page", "job", "process", "flow", "workflow", "requirement"} {
+	for _, k := range []string{"operation", "command", "page", "job", "process", "route", "flow", "workflow", "requirement"} {
 		if v := str(t, k); v != "" {
 			return k + " " + v
 		}

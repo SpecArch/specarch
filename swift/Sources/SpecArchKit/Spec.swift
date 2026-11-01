@@ -24,7 +24,7 @@ public let sections: [String: String] = [
     "stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
     "glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
     "enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "signIn": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
-    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "processes": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
+    "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "processes": "design", "routes": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
     "tests": "tests",
     "environments": "deployment", "configuration": "deployment", "release": "deployment",
     "rollback": "deployment", "migrations": "deployment", "handover": "deployment",
@@ -36,7 +36,7 @@ public let sections: [String: String] = [
 /// questions last.
 let sectionOrder = [
     "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-    "enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+    "enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "routes", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
     "tests", "decisions",
     "environments", "configuration", "release", "rollback", "migrations", "handover",
     "checks", "signoff",
@@ -658,15 +658,22 @@ struct Block {
     var sectionsHeld: [String] { section.isEmpty ? sectionsOf(stage) : [section] }
 }
 
+/// Reports whether a key is an extension key, x- and a name, which is
+/// allowed in every object and never given a meaning.
+func isExtensionKey(_ key: String) -> Bool { key.count > 2 && key.hasPrefix("x-") }
+
 /// Reads one entry of a question's blocks; nil when the text is neither a
-/// stage, a section, nor a pointer whose first token is a section. Whether
-/// the pointer resolves is the validator's check.
+/// stage, a section, nor a pointer whose first token is a section or a root
+/// extension block. Whether the pointer resolves is the validator's check.
 func parseBlock(_ s: String) -> Block? {
     if stages.contains(s) { return Block(stage: s) }
     if let stage = sections[s] { return Block(stage: stage, section: s) }
     guard s.hasPrefix("#/") else { return nil }
     let tokens = s.dropFirst(2).split(separator: "/", omittingEmptySubsequences: false).map { unescapeToken(String($0)) }
-    guard tokens.count >= 2, let stage = sections[tokens[0]] else { return nil }
+    guard tokens.count >= 2 else { return nil }
+    // A root extension block, a key starting with x-, holds values SpecArch
+    // gives no meaning; a pointer into it has no stage (ADR-217).
+    guard let stage = sections[tokens[0]] ?? (isExtensionKey(tokens[0]) ? "" : nil) else { return nil }
     return Block(stage: stage, section: tokens[0], tokens: tokens)
 }
 

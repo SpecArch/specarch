@@ -159,6 +159,9 @@ func (d *design) subjects() []*subject {
 	for _, p := range source.Pairs(source.Child(d.root, "pages")) {
 		out = append(out, d.withHarm(d.pageSubject(p), p.Value))
 	}
+	for _, p := range source.Pairs(source.Child(d.root, "routes")) {
+		out = append(out, d.withHarm(d.routeSubject(p), p.Value))
+	}
 	for _, p := range source.Pairs(source.Child(d.root, "flows")) {
 		out = append(out, d.withHarm(d.screenFlowSubject(p), p.Value))
 	}

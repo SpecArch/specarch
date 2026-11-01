@@ -48,7 +48,7 @@ const QuestionsSection = "questions"
 var Sections = map[string]string{
 	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
-	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "signIn": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
+	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "signIn": "design", "middlewares": "design", "handshakes": "design", "paths": "design", "routes": "design",
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "processes": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
 	"tests":        "tests",
 	"environments": "deployment", "configuration": "deployment", "release": "deployment",
@@ -61,7 +61,7 @@ var Sections = map[string]string{
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
 	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
-	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
+	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "routes", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations", "handover",
 	"checks", "signoff",
@@ -80,7 +80,7 @@ var rootOnly = map[string]bool{"specarch": true, "info": true, "trustDomain": tr
 // may carry audience (ADR-119).
 var keyedElements = map[string]bool{
 	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true, "constraints": true,
-	"enums": true, "entities": true, "views": true, "schemas": true, "permissions": true, "roles": true, "clients": true, "tokens": true, "separationOfDuties": true, "middlewares": true, "handshakes": true,
+	"enums": true, "entities": true, "views": true, "schemas": true, "permissions": true, "roles": true, "clients": true, "tokens": true, "separationOfDuties": true, "middlewares": true, "handshakes": true, "routes": true,
 	"commands": true, "channels": true, "dependencies": true, "jobs": true, "processes": true, "gateways": true, "workflows": true, "errors": true, "pages": true, "flows": true,
 	"algorithms": true, "tests": true, "decisions": true,
 	"environments": true, "configuration": true, "migrations": true, "checks": true, "monitors": true,
@@ -757,6 +757,10 @@ type Block struct {
 // IsPointer reports whether the block names an element or a key of one.
 func (b Block) IsPointer() bool { return len(b.Tokens) > 0 }
 
+// IsExtensionKey reports whether a key is an extension key, x- and a
+// name, which is allowed in every object and never given a meaning.
+func IsExtensionKey(key string) bool { return len(key) > 2 && strings.HasPrefix(key, "x-") }
+
 // Element is the pointer of the element the block is about, such as
 // /entities/Loan, or "" for a stage or a section.
 func (b Block) Element() string {
@@ -799,7 +803,10 @@ func (b Block) Sections() []string {
 
 // ParseBlock reads one entry of a question's blocks. ok is false when the
 // text is neither a stage, a section, nor a pointer whose first token is a
-// section; whether the pointer resolves is the validator's check.
+// section or a root extension block, a key starting with x- that SpecArch
+// gives no meaning (ADR-217); whether the pointer resolves is the
+// validator's check. A pointer into an extension block has no stage and
+// its block as its section.
 func ParseBlock(s string) (b Block, ok bool) {
 	if isStage(s) {
 		return Block{Stage: s}, true
@@ -814,7 +821,7 @@ func ParseBlock(s string) (b Block, ok bool) {
 		b.Tokens = append(b.Tokens, source.UnescapeToken(t))
 	}
 	stage, isSection := Sections[b.Tokens[0]]
-	if !isSection || len(b.Tokens) < 2 {
+	if len(b.Tokens) < 2 || !isSection && !IsExtensionKey(b.Tokens[0]) {
 		return Block{}, false
 	}
 	b.Stage, b.Section = stage, b.Tokens[0]

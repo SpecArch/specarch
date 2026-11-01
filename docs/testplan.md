@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 907 design tests, 450 golden and 457 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 908 design tests, 451 golden and 457 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 907 design tests, 450 golden and 457 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 903 |
+| system | 904 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2310,6 +2310,14 @@ Scenario: golden; level: system; verifies SA-113.
 - Given: a repository holding a CSV register with an empty header cell, two headers that give one field name, and a row with one value more than the header has columns
 - When: extract tables is run on the file
 - Then: it writes the entity with the columns that name a field, leaves out the column with no header and the second of the two of one name, each under a must question, asks about the value beyond the header at the entity, and exits 0
+
+#### extract-tables-instructions
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding a TSV register and, as a CSV file of its own, the instructions: a table of fields naming each column's type, whether it is required, its allowed values and its description, one of them a column the register lacks
+- When: extract tables is run on the register with --instructions
+- Then: it reads the tab as the delimiter, writes the entity stated by the instructions, required as they say it, with the descriptions and the allowed values, a must question for the column the register lacks and one for the value outside the allowed values, and exits 0
 
 #### extract-tables-mixed-column
 

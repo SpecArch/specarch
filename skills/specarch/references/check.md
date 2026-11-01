@@ -16,7 +16,8 @@ refused, as generate refuses it.
 A dump is told by the key that names its format: `routeTable` for a
 route table, `permissionTable` for a permission table,
 `catalogue` for a catalogue dump, and `gatewayTable` for a gateway
-table. Each is compared by the merge's own
+table; a register file is told by its extension, `.csv`, `.tsv`,
+`.tab` or `.xlsx`. Each is compared by the merge's own
 matching:
 
 - A route table: an operation by its method and path. An operation
@@ -90,6 +91,26 @@ matching:
   a row with no name gives one made from its value, a guess, so a
   forward that differs by it is a report, a warning that never
   fails, as the extract asks a could question for that name.
+- A register file: the entity named by the sheet, or for a CSV or
+  TSV file by the file's name, in PascalCase, as `specarch extract
+  tables` names it (ADR-215), read as that reader reads the file,
+  without a commit, since a data file names none. A register whose
+  entity the specification does not declare is
+  `register_not_specified` at the file's first cell. A column is
+  matched to a field by its header in camelCase or by a field's
+  title; a column no field has is `register_column_not_specified`
+  at its header cell, a field the file has no column for is
+  `register_column_missing` at the field, a report when the field
+  is not required, a blank in a required field's column is
+  `register_blank_required`, a value outside the field's enum, its
+  own or the one it refers to, is `register_value_not_in_enum`, and
+  a value that does not read as the field's type (an integer, of 32
+  bits for `int32`, a number, a boolean, a decimal, a date, a
+  date-time, an email address or a UUID) is
+  `register_value_not_of_type`, each at the cell, which in a CSV
+  or TSV file is its line and column and in a workbook its row and
+  column. An id names the entity, the field and the cell
+  (`Loan.status C5`), so it stays the same while the row stays.
 
 Each problem is printed in validate's form, the file, line and
 column of the entry, the severity, the pointer, the rule and the
@@ -118,7 +139,7 @@ the gate being turned on, which a line says, and no line is added.
 ## Arguments
 
 - `<specification>` (required): The specification folder, with the implementation file the catalogue is compared through.
-- `<dumps>` (required; one or more): The dumps to compare it with, each a route table, a permission table, a catalogue dump or a gateway table, committed beside the code they were made from.
+- `<dumps>` (required; one or more): The dumps to compare it with, each a route table, a permission table, a catalogue dump or a gateway table, committed beside the code they were made from, or a register file (CSV, TSV or Excel) compared with the entity of its name.
 
 ## Options
 

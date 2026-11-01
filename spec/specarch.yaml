@@ -446,6 +446,12 @@ sources:
     edition: "2008"
     author: IETF
     url: https://www.rfc-editor.org/rfc/rfc5322
+  rfc-4180:
+    kind: standard
+    title: RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files
+    edition: "2005"
+    author: IETF
+    url: https://www.rfc-editor.org/rfc/rfc4180
   rfc-2045:
     kind: standard
     title: RFC 2045, Multipurpose Internet Mail Extensions (MIME) Part One, Format of Internet Message Bodies

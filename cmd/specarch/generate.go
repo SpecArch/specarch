@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -127,6 +128,10 @@ type pluginFile struct {
 	// Comparison is "object-literal" for a file that is one object literal
 	// of data, which --check compares by value (ADR-093).
 	Comparison string `json:"comparison"`
+	// Encoding is "base64" for a file that is not text, such as a
+	// workbook, whose content is then the file's bytes in base64; "" for
+	// a text file, whose content is the text itself.
+	Encoding string `json:"encoding"`
 }
 
 type pluginDiagnostic struct {
@@ -290,7 +295,21 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 					fmt.Fprintf(stderr, "specarch generate: %s answered with the path %q, which is not inside the output folder; a plug-in writes only there\n", g.name, f.Path)
 					return 2
 				}
-				plan = append(plan, planned{path: filepath.Join(folder, filepath.FromSlash(clean)), content: f.Content, comparison: f.Comparison})
+				content, binary := f.Content, false
+				switch f.Encoding {
+				case "":
+				case "base64":
+					raw, err := base64.StdEncoding.DecodeString(f.Content)
+					if err != nil {
+						fmt.Fprintf(stderr, "specarch generate: %s answered with the file %s encoded in base64, and its content does not decode (%v); a plug-in answers a file that is not text as its bytes in base64\n", g.name, f.Path, err)
+						return 2
+					}
+					content, binary = string(raw), true
+				default:
+					fmt.Fprintf(stderr, "specarch generate: %s answered with the file %s in the encoding %q, which is none a plug-in may answer: text has no encoding key, and a file that is not text is base64\n", g.name, f.Path, f.Encoding)
+					return 2
+				}
+				plan = append(plan, planned{path: filepath.Join(folder, filepath.FromSlash(clean)), content: content, comparison: f.Comparison, binary: binary})
 			}
 		}
 	}
@@ -838,6 +857,10 @@ func placePlugin(s *spec.Spec, ds []pluginDiagnostic) []validate.Diagnostic {
 // its value differences are printed below the line that says it differs
 // (ADR-093).
 func compareGenerated(p planned, old []byte, stdout io.Writer) bool {
+	if p.binary {
+		fmt.Fprintf(stdout, "%s: differs from what generate writes; run specarch generate without --check\n", p.path)
+		return false
+	}
 	handBuilt := !hasHeader(string(old))
 	differs := fmt.Sprintf("%s: differs from what generate writes; run specarch generate without --check", p.path)
 	if handBuilt {

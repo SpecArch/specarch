@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 112 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 113 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -40,7 +40,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-97 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-101, SA-108, SA-57, SA-100 |
 
@@ -142,6 +142,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-57 | functional | should | proposed | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. |
 | SA-64 | functional | must | accepted | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. |
 | SA-110 | functional | should | proposed | specarch extract documents shall read a PDF, a Word document, a PowerPoint presentation, an Excel workbook and an email message as it reads a Markdown document, with no conversion, no other program and no network, and cite every requirement, entity and question at the clause, page, slide, cell or range, or attachment of the file read, naming what it does not read. |
+| SA-113 | functional | should | proposed | specarch extract tables shall read CSV, TSV and Excel registers into entities whose fields are the columns, with each type, whether it is required and its values inferred from every value of every file of the register and cited at the file, sheet and column, shall ask a typed question wherever the values do not settle a thing or the files disagree, shall read a register's template and instructions as the fields' statement and check a filled file against them, and specarch check shall compare a register file with its entity. |
 | SA-72 | functional | should | accepted | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. |
 | SA-76 | functional | should | proposed | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it. |
 | SA-79 | functional | should | accepted | specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line. |
@@ -1667,6 +1668,23 @@ Acceptance criteria:
 - extract documents on a Markdown document writes the tree it wrote before, byte for byte, and any other file is refused with status 1 naming the formats read.
 
 **Insight:** Most requirement documents are PDF or Word, and a records repository also holds decks, registers and correspondence; converting each to Markdown by hand is a step nobody reviews, and the converters drop Word's computed clause numbers, so the citation would no longer name the clause a reader of the file finds (ADR-212).
+
+### SA-113
+
+specarch extract tables shall read CSV, TSV and Excel registers into entities whose fields are the columns, with each type, whether it is required and its values inferred from every value of every file of the register and cited at the file, sheet and column, shall ask a typed question wherever the values do not settle a thing or the files disagree, shall read a register's template and instructions as the fields' statement and check a filled file against them, and specarch check shall compare a register file with its entity.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- extract tables on a CSV register written with a byte order mark, CRLF line ends and semicolons names the dialect read and writes one entity whose fields have the types the values give (integer, email, date, enum of the few distinct values, decimal with precision and scale), every column with no blank required, a must question for the primary key naming the candidate columns and a should question asking whether the enum is closed, each citing the column.
+- extract tables on a workbook types a field by its date or boolean cells, keeps a column whose values read as two kinds as a string with a must question at its type citing the cells of the rarer kind, and writes a could question for the cells outside the sheet's table.
+- extract tables on two period files of one register, named with --entity, writes one entity citing both files, keeps a column only one file has under a must question, leaves a column one file leaves blank out of required under a should question, and keeps a value of the enum only one file holds under a should question.
+- extract tables on a filled file with --template, a workbook holding the header row and an instructions sheet, writes the fields the template and the instructions state, with their descriptions, sensitivities, required list and allowed values, and a must question citing the cells for each difference of the filled file, a column the template lacks, a blank in a required column, a value outside the allowed values and a value not of the stated type.
+- extract tables on a CSV file that is not UTF-8, with two delimiters that fit equally or with a quote not closed refuses it with status 1 and the reason, and writes nothing.
+- specarch check on a register file reports a column the entity does not have, a required field the file lacks, a blank in a required column, a value outside the field's enum and a value not of the field's type, each at the cell.
+
+**Insight:** Registers and spreadsheets are the data model of many real systems, kept in a records repository beside the controlled documents, and a reader that typed a column by its first value or dropped a column two files disagree on would write a guess into the design (ADR-215).
 
 ### SA-72
 

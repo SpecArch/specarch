@@ -1,0 +1,9 @@
+arguments: [extract, tables, --out, spec, docs/loans.csv]
+repository:
+  folder: docs
+  commits:
+    - [loans.csv]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch extract tables: docs/loans.csv cannot be read as CSV: record on line 2; parse error on line 3, column 7: extraneous or missing " in quoted-field; a field that holds the delimiter, a quote or a line break is quoted with " and a quote inside it doubled (RFC 4180)

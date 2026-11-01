@@ -1,0 +1,8 @@
+Field,Type,Required,Sensitivity,Values,Description
+Loan ID,integer,yes,,,The number the desk gives each loan.
+Copies,integer,yes,,,
+Due date,date,yes,,,
+Fee,decimal,no,,,"5 digits, 2 after the point. The late fee charged."
+Member,uuid,yes,,,"The Member it names, by its memberId."
+Renewed,boolean,no,,,
+Status,text,yes,,open | closed,Whether the loan is still out.

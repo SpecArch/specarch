@@ -1,0 +1,56 @@
+entities:
+  Loans:
+    type: object
+    properties:
+      loanId: {title: Loan ID, type: integer, format: int32}
+      member: {title: Member, type: string}
+      dueDate: {title: Due date, type: string, format: date}
+      renewed: {title: Renewed, type: boolean}
+      fee: {title: Fee, type: string}
+      status: {title: Status, type: string, enum: [closed, open, overdue]}
+    required: [loanId, member, dueDate, renewed, fee, status]
+    origin: inferred
+    why: 'Inferred from the values of loans.xlsx (sheet Loans): loanId integer, 7 values, no blank, all distinct, column A; member text, 7 values, no blank, column B; dueDate date, 7 values, no blank, all distinct, column C; renewed boolean, 7 values, no blank, column D; fee text, since the values are mixed, 7 values, no blank, column E; status one of "closed", "open" and "overdue", 7 values, no blank, column F.'
+    cites:
+      - {source: loans, clause: 'Loans!A1:F8', says: 'A register of 7 rows with the columns Loan ID, Member, Due date, Renewed, Fee, Status.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Column Fee of Loans reads 5 values as decimals and 2 values as text ("n/a" at Loans!E4, "waived" at Loans!E7); which type is the field fee? It is kept as a string until decided. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Column Fee of Loans reads 5 values as decimals and 2 values as text ("n/a" at Loans!E4, "waived" at Loans!E7); which type is the field fee? It is kept as a string until decided.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/fee/type']
+    decidedBy: system-owner
+    why: The values do not read as one type, and the reader does not choose between them; a string holds every value, so the field is read.
+    cites:
+      - {source: loans, clause: 'Loans!E1:E8', says: 'The column Fee: 7 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (should, decision) Are "closed", "open" and "overdue" the only values of status in Loans? The file loans.xlsx (sheet Loans) holds these 3 in 7 values. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Are "closed", "open" and "overdue" the only values of status in Loans? The file loans.xlsx (sheet Loans) holds these 3 in 7 values.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loans/properties/status/enum']
+    decidedBy: system-owner
+    why: A column of few distinct values is read as an enum of them, which the values suggest and do not settle.
+    cites:
+      - {source: loans, clause: 'Loans!F1:F8', says: 'The column Status: 7 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId, dueDate. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId, dueDate.'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/primaryKey']
+    decidedBy: system-owner
+    why: A register does not say which of its columns identify a record; the candidates are the required columns whose values are all distinct.
+    cites:
+      - {source: loans, clause: 'Loans!A1:F8', says: 'A register of 7 rows with the columns Loan ID, Member, Due date, Renewed, Fee, Status.'}
+  # specarch-problem: question: open_question: (could, decision) Not held: the cells at Loans!A10 of loans.xlsx are outside the sheet's table at Loans!A1:F8; they are not read. Does the specification need it, written another way or described by hand? It blocks entities. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Not held: the cells at Loans!A10 of loans.xlsx are outside the sheet''s table at Loans!A1:F8; they are not read. Does the specification need it, written another way or described by hand?'
+    kind: decision
+    priority: could
+    blocks: [entities]
+    decidedBy: system-owner
+    why: The source says it, and the meta-model cannot hold it as the source writes it, so the reader left it out or wrote it as the question says. Nothing waits for the answer.
+    cites:
+      - {source: loans, clause: Loans!A10, says: 'Not held: the cells at Loans!A10 of loans.xlsx are outside the sheet''s table at Loans!A1:F8; they are not read.'}

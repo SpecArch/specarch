@@ -1,0 +1,98 @@
+entities:
+  Loan:
+    type: object
+    properties:
+      loanId: {title: Loan ID, type: integer, format: int32}
+      member: {title: Member, type: string, format: email}
+      copies: {title: Copies, type: integer, format: int32}
+      dueDate: {title: Due date, type: string, format: date}
+      status: {title: Status, type: string, enum: [archived, closed, open, overdue]}
+      fee:
+        title: Fee
+        type: string
+        format: decimal
+        precision: 3
+        scale: 2
+      reviewer: {title: Reviewer, type: string, enum: [Kim, 'Lee, Pat']}
+    required: [loanId, member, copies, status, fee]
+    origin: inferred
+    why: 'Inferred from the values of loans-2026-q1.csv (12 rows) and loans-2026-q2.csv (10 rows): loanId integer, 22 values, no blank, all distinct, column A; member email, 22 values, no blank, column B; copies integer, 22 values, no blank, column C; dueDate date, 20 values, 2 blanks, all distinct, column D; status one of "archived", "closed", "open" and "overdue", 22 values, no blank, column E; fee decimal of precision 3 and scale 2, 22 values, no blank, column F; reviewer one of "Kim" and "Lee, Pat", 5 values, 5 blanks, column G.'
+    cites:
+      - {source: loans-2026-q1, clause: 'A1:F13', says: 'A register of 12 rows with the columns Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-2026-q2, clause: 'A1:G11', says: 'A register of 10 rows with the columns Loan ID, Member, Copies, Due date, Status, Fee, Reviewer.'}
+questions:
+  # specarch-problem: question: open_question: (should, decision) Is dueDate of Loan required? loans-2026-q1.csv has no blank in 12 rows, and loans-2026-q2.csv has 2 blanks (D3, D6). Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Is dueDate of Loan required? loans-2026-q1.csv has no blank in 12 rows, and loans-2026-q2.csv has 2 blanks (D3, D6).
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loan/required']
+    decidedBy: system-owner
+    why: The files disagree on whether the column is filled, so the field is left out of required and asked about.
+    cites:
+      - {source: loans-2026-q1, clause: 'D1:D13', says: 'The column Due date: 12 values and 0 blanks.'}
+      - {source: loans-2026-q2, clause: 'D1:D11', says: 'The column Due date: 8 values and 2 blanks.'}
+  # specarch-problem: question: open_question: (should, decision) Are "archived", "closed", "open" and "overdue" the only values of status in Loan? The files hold these 4 in 22 values. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Are "archived", "closed", "open" and "overdue" the only values of status in Loan? The files hold these 4 in 22 values.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loan/properties/status/enum']
+    decidedBy: system-owner
+    why: A column of few distinct values is read as an enum of them, which the values suggest and do not settle.
+    cites:
+      - {source: loans-2026-q1, clause: 'E1:E13', says: 'The column Status: 12 values and 0 blanks.'}
+      - {source: loans-2026-q2, clause: 'E1:E11', says: 'The column Status: 10 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (should, decision) Is "archived" a value of status in Loan? Only loans-2026-q2.csv (3 of 10 rows) holds it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Is "archived" a value of status in Loan? Only loans-2026-q2.csv (3 of 10 rows) holds it.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loan/properties/status/enum']
+    decidedBy: system-owner
+    why: A value only some files hold is either new in a period or a mistake, and the reader keeps it in the enum and asks.
+    cites:
+      - {source: loans-2026-q1, clause: 'E1:E13', says: 'The column Status: 12 values and 0 blanks.'}
+      - {source: loans-2026-q2, clause: 'E1:E11', says: 'The column Status: 10 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (should, decision) Is "overdue" a value of status in Loan? Only loans-2026-q1.csv (2 of 12 rows) holds it. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Is "overdue" a value of status in Loan? Only loans-2026-q1.csv (2 of 12 rows) holds it.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loan/properties/status/enum']
+    decidedBy: system-owner
+    why: A value only some files hold is either new in a period or a mistake, and the reader keeps it in the enum and asks.
+    cites:
+      - {source: loans-2026-q1, clause: 'E1:E13', says: 'The column Status: 12 values and 0 blanks.'}
+      - {source: loans-2026-q2, clause: 'E1:E11', says: 'The column Status: 10 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (should, decision) Are "Kim" and "Lee, Pat" the only values of reviewer in Loan? The files hold these 2 in 5 values. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Are "Kim" and "Lee, Pat" the only values of reviewer in Loan? The files hold these 2 in 5 values.
+    kind: decision
+    priority: should
+    blocks: ['#/entities/Loan/properties/reviewer/enum']
+    decidedBy: system-owner
+    why: A column of few distinct values is read as an enum of them, which the values suggest and do not settle.
+    cites:
+      - {source: loans-2026-q2, clause: 'G1:G11', says: 'The column Reviewer: 5 values and 5 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Is reviewer a field of Loan? loans-2026-q2.csv (column G) has the column, and loans-2026-q1.csv lacks it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Is reviewer a field of Loan? loans-2026-q2.csv (column G) has the column, and loans-2026-q1.csv lacks it.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loan/properties/reviewer']
+    decidedBy: system-owner
+    why: The files disagree on the columns, and the reader keeps the column and asks rather than drop it.
+    cites:
+      - {source: loans-2026-q2, clause: 'G1:G11', says: 'The column Reviewer: 5 values and 5 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loan record, its primary key? Candidates, required and distinct in every row of every file: loanId. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: 'Which fields identify one Loan record, its primary key? Candidates, required and distinct in every row of every file: loanId.'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loan/primaryKey']
+    decidedBy: system-owner
+    why: A register does not say which of its columns identify a record; the candidates are the required columns whose values are all distinct.
+    cites:
+      - {source: loans-2026-q1, clause: 'A1:F13', says: 'A register of 12 rows with the columns Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-2026-q2, clause: 'A1:G11', says: 'A register of 10 rows with the columns Loan ID, Member, Copies, Due date, Status, Fee, Reviewer.'}

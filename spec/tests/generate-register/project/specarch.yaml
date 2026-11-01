@@ -1,0 +1,25 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+enums:
+  LoanStatus: { type: string, enum: [open, closed], description: Whether the loan is still out. }
+entities:
+  Member:
+    type: object
+    properties:
+      memberId: { title: Member ID, type: string, format: uuid }
+      email: { title: Email, type: string, format: email, sensitivity: personal, description: Where the desk writes to the member. }
+    required: [memberId, email]
+    primaryKey: [memberId]
+  Loan:
+    type: object
+    properties:
+      loanId: { title: Loan ID, type: integer, format: int32, description: The number the desk gives each loan. }
+      member: { title: Member, $ref: "#/entities/Member" }
+      copies: { title: Copies, type: integer, format: int32 }
+      dueDate: { title: Due date, type: string, format: date }
+      status: { title: Status, $ref: "#/enums/LoanStatus" }
+      fee: { title: Fee, type: string, format: decimal, precision: 5, scale: 2, description: The late fee charged. }
+      renewed: { title: Renewed, type: boolean }
+      tags: { title: Tags, type: array, items: { type: string } }
+    required: [loanId, member, copies, dueDate, status]
+    primaryKey: [loanId]

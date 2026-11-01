@@ -11,5 +11,5 @@ standardOutput: |
   wrote 4 requirements, 2 entities and 8 questions: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
   not held: a code block at line 40: code in a document is not read as a commitment; could question Q-6
   not held: field Gebuehr of Ausleihen, at line 21, of type "Geld": the meta-model holds no type for it; left out; could question Q-7
-  not held: the table at line 36, headed Tag | Stunden: only a table whose first column is Feld, and whose others are Typ, Pflicht, Schutzbedarf or Beschreibung, is read; could question Q-8
+  not held: the table at line 36, headed Tag | Stunden: only a table whose first column is Feld, and whose others are Typ, Pflicht, Schutzbedarf, Beschreibung or values, is read; a register, a table of records under a header row, is read by extract tables; could question Q-8
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

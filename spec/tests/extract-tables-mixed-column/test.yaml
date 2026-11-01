@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a workbook whose register sheet has a fee column of numbers and two words, a column of date cells, a column of boolean cells, and a note below the table"
+when: "extract tables is run on the workbook"
+then: "it writes the entity with the date and boolean fields typed by their cells, keeps the fee as a string with a must question at its type citing the two cells that read as text, writes a could question for the note outside the table, and exits 0"
+verifies: [SA-113]

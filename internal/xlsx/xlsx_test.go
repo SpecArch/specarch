@@ -65,7 +65,7 @@ func TestRegions(t *testing.T) {
 	for _, r := range s.Regions() {
 		got = append(got, r.Range())
 	}
-	want := []string{"S!A1:B2", "S!D1:D2", "S!A4:A4"}
+	want := []string{"S!A1:B2", "S!D1:D2", "S!A4"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Regions = %v, want %v", got, want)
 	}

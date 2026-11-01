@@ -1,0 +1,14 @@
+arguments: [extract, tables, --out, spec, docs/loans.xlsx]
+repository:
+  folder: docs
+  commits:
+    - [loans.xlsx]
+exitStatus: 0
+standardOutput: |
+  commit ee0d427e499078de4d80a755a852de8dd7fa9515: the last change to loans.xlsx
+  workbook loans.xlsx: Loans a register of 7 rows
+  counted 1 file, 1 table, 7 rows and 6 columns: every file given, every register sheet or file as a table, its first row the header and every other row a record, and every header that names a field as a column, once per register
+  entity Loans: 6 fields from 7 rows in loans.xlsx (sheet Loans); candidate keys loanId, dueDate
+  wrote 1 entity and 4 questions: one per entity's primary key, one per column whose values do not settle its type, whether it is required or its values, or that some files or the template lack, one per header that names no field, and one per thing the files hold that is not read
+  not held: the cells at Loans!A10 of loans.xlsx are outside the sheet's table at Loans!A1:F8; they are not read; could question Q-4
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

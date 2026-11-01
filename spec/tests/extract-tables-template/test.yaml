@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a register template, a workbook with the header row and an instructions sheet giving each column its type, whether it is required, its sensitivity, its allowed values and its description, and a filled CSV copy with a column the template lacks, a blank in a required column, a status outside the allowed values and a count that is not an integer"
+when: "extract tables is run on the filled file with --template"
+then: "it writes the entity stated by the template and the instructions, with the descriptions, sensitivities, required list and allowed values they give, and a must question for each difference of the filled file: the extra column, the blank, the value outside the list and the value not of the type, each citing the cells, and exits 0"
+verifies: [SA-113]

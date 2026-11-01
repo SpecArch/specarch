@@ -38,7 +38,12 @@ through `implies`, as `grant_not_in_code` and `grant_not_specified`.
 With a gateway table it matches the gateway by its name and each forward by
 its value, as `forward_not_served` and `forward_not_specified`, the
 dependency each forward goes to, as `forward_differs`, and the claim the
-gateway reads, as `claim_differs` (ADR-142).
+gateway reads, as `claim_differs` (ADR-142). With a register file (CSV,
+TSV or Excel) it matches the entity of the file's or the sheet's name and
+each column by its header, as `register_not_specified`,
+`register_column_not_specified`, `register_column_missing`,
+`register_blank_required`, `register_value_not_in_enum` and
+`register_value_not_of_type`, each at the cell (ADR-215).
 
 ## 2. Spec against the database
 

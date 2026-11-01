@@ -32,6 +32,9 @@ type planned struct {
 	// comparison is "object-literal" for a file a plug-in marks as one
 	// object literal of data, which --check compares by value (ADR-093).
 	comparison string
+	// binary marks a file that is not text, which a plug-in answered in
+	// base64; --check compares it byte for byte and reads no header in it.
+	binary bool
 }
 
 // loaded is one validated specification with its implementation files

@@ -184,7 +184,7 @@ question with a decision record and takes the question out, `approve`
 records that the documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
 existing code or documents to a specification (its outline, database,
-router, documents (Markdown, PDF, Word, PowerPoint, Excel and email), OpenAPI, permissions, pages, workflows, Go,
+router, documents (Markdown, PDF, Word, PowerPoint, Excel and email), tables (CSV, TSV and Excel registers), OpenAPI, permissions, pages, workflows, Go,
 Swift, JavaScript and Dart readers, as `docs/extraction.md` lists), `merge` joins the
 trees extract writes into one, `check` compares a specification with the
 dumps of its code and fails on a difference its allowlist does not name,
@@ -211,7 +211,7 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has twelve:
+Code targets are plug-ins on PATH. This repository has thirteen:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
@@ -251,6 +251,7 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.4.0
 
 The Swift build, for macOS, has the validate, model, upgrade, try and
 version verbs and gives the same output. With Swift 6:

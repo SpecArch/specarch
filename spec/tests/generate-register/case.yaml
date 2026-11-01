@@ -1,0 +1,5 @@
+arguments: [generate, register, --unapproved, --out, out, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:23:13: warning: /entities/Loan/properties/tags: register_column: field tags of Loan holds a list or an object, which a column of a register cannot; the template leaves it out [register_column@specarch.yaml#/entities/Loan/properties/tags]
+plugins: [register]

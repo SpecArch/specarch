@@ -1,6 +1,6 @@
 specarchVocabulary: "1.0.0"
 language: en
-description: The English words extract documents finds a commitment and reads a table of fields by, and merge reads a number of days by.
+description: The English words extract documents finds a commitment and reads a table of fields by, extract tables reads a register's instructions by, and merge reads a number of days by.
 commitments:
   must: [shall, must, will]
   should: [should]
@@ -47,6 +47,7 @@ headers:
   sensitivity: [sensitivity]
   description: [description]
   rowNumber: ["#", "no."]
+  values: [values, allowed values, options]
 yes: ["yes", "true", required]
 sensitivities:
   public: [public]
@@ -59,3 +60,5 @@ types:
   dateTime: [date-time, timestamp]
   boolean: [boolean, yes/no]
   email: [email]
+  integer: [integer, whole number]
+  decimal: [decimal, number, amount]

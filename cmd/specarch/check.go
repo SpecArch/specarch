@@ -85,6 +85,8 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 			found, err = extract.CheckGrants(dump, l.spec.Root)
 		case extract.GatewayTableDump:
 			found, err = extract.CheckGateway(dump, l.spec.Root)
+		case extract.RegisterDump:
+			found, err = extract.CheckRegister(dump, l.spec.Root)
 		case extract.CatalogueDump:
 			tables, why := checkTables(l)
 			if why != "" {

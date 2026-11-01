@@ -258,7 +258,7 @@ Error codes of --json:
   output folder in any specification given (or, for the handover target, no
   handover in any), the implementation files of one naming different output
   folders, or a file that could not be read or written
-- `specarch extract <source> --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>] [--dry-run] <paths>...`
+- `specarch extract <source> --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--entity <entity>] [--template <template>] [--instructions <instructions>] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>] [--dry-run] <paths>...`
   Write a specification from existing code or documents.
   exit 0: the specification was written
   exit 1: the surface could not be read as the source expects: a dump that
@@ -281,26 +281,35 @@ Error codes of --json:
   files, a shallow clone, a path outside a git repository, a document that
   is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its
   extension, or that does not parse as its format or is a PDF encrypted with
-  a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that
-  is not BPMN 2.0 XML or holds no process, a workflow table that does not
-  parse, is stale, lacks a key of the format or holds another, names a step
-  kind other than approval, operation or other, lists a workflow twice or
-  gives a workflow, a step or a form field no name, a gateway table that
-  does not parse, is stale, lacks a key of the format or holds another,
-  gives a row no value or a value twice, or names a gateway or a claim that
-  is no name, a file given to systemd that is not a unit ending in .service
-  or .timer, or an implementation file that does not parse as YAML
+  a password, a data file given to tables that is not CSV, TSV or Excel by
+  its extension, is not UTF-8, has lone CR line ends, two delimiters that
+  fit equally or a quote not closed, does not parse as a workbook or holds
+  no row, a register that gives no entity name, a template or instructions
+  with no such table, two tables of fields, a template with two register
+  sheets, or a template or instructions given to a run of several registers,
+  a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN
+  2.0 XML or holds no process, a workflow table that does not parse, is
+  stale, lacks a key of the format or holds another, names a step kind other
+  than approval, operation or other, lists a workflow twice or gives a
+  workflow, a step or a form field no name, a gateway table that does not
+  parse, is stale, lacks a key of the format or holds another, gives a row
+  no value or a value twice, or names a gateway or a claim that is no name,
+  a file given to systemd that is not a unit ending in .service or .timer,
+  or an implementation file that does not parse as YAML
   exit 2: usage error, a source this build does not offer, --implementation
   given to a source other than go, swift, javascript, dart or pages, --facts
   given to a source other than pages, --routes given to a source other than
-  permissions, --language, --vocabulary or --given-outside given to a source
-  other than documents, --table given to a source other than workflows,
-  --implementation-out given to a source other than database, go or gateway,
-  or naming a file that exists or whose name does not end in .yaml, a
-  language that is not a BCP 47 tag, a language SpecArch ships no vocabulary
-  for given without --vocabulary, a --language other than the vocabulary's
-  own, more than one permission table, or a path that could not be read or
-  written
+  permissions, --given-outside given to a source other than documents,
+  --language or --vocabulary given to a source other than documents or
+  tables, --entity, --template or --instructions given to a source other
+  than tables, an --entity that is no PascalCase name, --source-key given to
+  tables with more than one file, two files of one name given to tables,
+  --table given to a source other than workflows, --implementation-out given
+  to a source other than database, go or gateway, or naming a file that
+  exists or whose name does not end in .yaml, a language that is not a BCP
+  47 tag, a language SpecArch ships no vocabulary for given without
+  --vocabulary, a --language other than the vocabulary's own, more than one
+  permission table, or a path that could not be read or written
 - `specarch facts <language> <folder> <dump> [--dry-run]`
   Write the code-facts dump extract reads of a committed folder.
   exit 0: the dump was written

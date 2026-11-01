@@ -113,6 +113,20 @@ Kit, which starts from whatever its agent is given to read, showed the
 gap. Not built: tables in a PDF, which the file does not mark, and the
 text of a scanned page.
 
+`specarch extract tables` reads CSV, TSV and Excel registers into entities,
+each column's type inferred from every value of every file of the register
+and every doubt a question at the field, a template and its instructions
+read as the fields' statement and a filled file checked against them;
+`specarch check` compares a register file with its entity and `specarch
+generate register` writes the template `extract tables` reads back
+(ADR-215, SA-113, `spec/tests/extract-tables-register`, `-mixed-column`,
+`-two-periods`, `-template`, `check-register`, `generate-register`):
+built on main, in no release yet. Registers and spreadsheets are the data
+model of many real systems, kept in a records repository beside the
+controlled documents, and SpecArch could not read them. Not built: a
+register whose header is not its first row, and a column of a form the
+rules do not name, read as text.
+
 `specarch derive` drafts the fixture, input and expect the design fixes
 for an operation's case, `derive --fill` adds them to the tests that have
 none, and the test plan counts the tests the `tests` target writes with

@@ -1,0 +1,14 @@
+arguments: [extract, tables, --out, spec, docs/loans.csv]
+repository:
+  folder: docs
+  commits:
+    - [loans.csv]
+exitStatus: 0
+standardOutput: |
+  commit 3081c6a05174e9e01aadae1f04b0e4805c6d5d99: the last change to loans.csv
+  dialect loans.csv: UTF-8, LF line ends, delimiter ',', no quoted field
+  counted 1 file, 1 table, 3 rows and 3 columns: every file given, every register sheet or file as a table, its first row the header and every other row a record, and every header that names a field as a column, once per register
+  entity Loans: 3 fields from 3 rows in loans.csv; candidate keys loanId, member
+  wrote 1 entity and 4 questions: one per entity's primary key, one per column whose values do not settle its type, whether it is required or its values, or that some files or the template lack, one per header that names no field, and one per thing the files hold that is not read
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers
+standardError: ""

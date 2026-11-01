@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 899 design tests, 444 golden and 455 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 907 design tests, 450 golden and 457 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 899 design tests, 444 golden and 455 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 895 |
+| system | 903 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -140,6 +140,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-76.
 - Given: a specification whose gateway api forwards to loans and to reports, and a committed gateway table forwarding to loans and to catalogue
 - When: check is run with the table
 - Then: it reports forward_not_served at the specification's forward to reports and forward_not_specified at the table's row for catalogue, and exits 1
+
+#### check-register
+
+Scenario: red; level: system; verifies SA-113.
+
+- Given: a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, a blank in a required column, a status outside the enum and a fee that is not a decimal
+- When: specarch check is run on the specification and the register
+- Then: it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum and the value not of the type each at its cell, and exits 1
 
 #### check-skips-a-partition
 
@@ -2295,6 +2303,54 @@ Scenario: golden; level: system; verifies SA-109.
 - When: extract systemd is run on it
 - Then: it writes no stop signal and no stop time, and a not-held line and a could question for KillSignal= and for TimeoutStopSec= each, so neither is dropped without a line, and exits 0
 
+#### extract-tables-header-questions
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding a CSV register with an empty header cell, two headers that give one field name, and a row with one value more than the header has columns
+- When: extract tables is run on the file
+- Then: it writes the entity with the columns that name a field, leaves out the column with no header and the second of the two of one name, each under a must question, asks about the value beyond the header at the entity, and exits 0
+
+#### extract-tables-mixed-column
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding a workbook whose register sheet has a fee column of numbers and two words, a column of date cells, a column of boolean cells, and a note below the table
+- When: extract tables is run on the workbook
+- Then: it writes the entity with the date and boolean fields typed by their cells, keeps the fee as a string with a must question at its type citing the two cells that read as text, writes a could question for the note outside the table, and exits 0
+
+#### extract-tables-quote-not-closed
+
+Scenario: red; level: system; verifies SA-113.
+
+- Given: a repository holding a CSV file with a quote that is not closed
+- When: extract tables is run on it
+- Then: it refuses the file with status 1, naming the line and what RFC 4180 asks of a quoted field, and writes nothing
+
+#### extract-tables-register
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding a CSV register written with a byte order mark, CRLF line ends and semicolons: twelve loans with a number, a member's email, a count, a due date, a status of three values and a fee
+- When: extract tables is run on the file
+- Then: it names the dialect, writes one entity whose fields are the columns with their types inferred (integer, email, date, enum, decimal), every column required, a must question for the primary key naming the one candidate and a should question asking whether the enum is closed, each citing the column, and exits 0
+
+#### extract-tables-template
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding a register template, a workbook with the header row and an instructions sheet giving each column its type, whether it is required, its sensitivity, its allowed values and its description, and a filled CSV copy with a column the template lacks, a blank in a required column, a status outside the allowed values and a count that is not an integer
+- When: extract tables is run on the filled file with --template
+- Then: it writes the entity stated by the template and the instructions, with the descriptions, sensitivities, required list and allowed values they give, and a must question for each difference of the filled file: the extra column, the blank, the value outside the list and the value not of the type, each citing the cells, and exits 0
+
+#### extract-tables-two-periods
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding two period files of one register, the second with a column the first lacks, blanks in a column the first fills, and a status value the first does not hold
+- When: extract tables is run on both with --entity Loan
+- Then: it writes one entity citing both files, with the column only the second has kept under a must question, the column with blanks left out of required under a should question, the new status value kept in the enum under a should question, and exits 0
+
 #### extract-usage-error
 
 Scenario: red; level: system; covers usage error, exit 2.
@@ -2884,6 +2940,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 - Given: a specification without open questions and without an approval record, and specarch-gen-echo on PATH
 - When: generate echo is run
 - Then: it refuses because the specification is not approved, writes nothing and exits 1
+
+#### generate-register
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a specification with no approval record, a Member entity and a Loan entity whose fields include a reference to Member, a reference to an enum, a decimal, a boolean and a list; specarch-gen-register built from this repository on PATH
+- When: generate register is run with --unapproved
+- Then: it writes, per entity, the CSV header row of its fields' titles, the instructions CSV with each column's type word, whether it is required, its sensitivity, its allowed values and its description, and a workbook with both sheets whose title carries the draft notice, warns that the list field is no column, and exits 0
 
 #### generate-scripts
 
@@ -7297,7 +7361,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-510 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+516 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7752,6 +7816,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-110 | acceptance 4 | golden | SA-110 names no harm |
 | requirement SA-110 | acceptance 5 | golden | SA-110 names no harm |
 | requirement SA-110 | acceptance 6 | golden | SA-110 names no harm |
+| requirement SA-113 | acceptance 1 | golden | SA-113 names no harm |
+| requirement SA-113 | acceptance 2 | golden | SA-113 names no harm |
+| requirement SA-113 | acceptance 3 | golden | SA-113 names no harm |
+| requirement SA-113 | acceptance 4 | golden | SA-113 names no harm |
+| requirement SA-113 | acceptance 5 | golden | SA-113 names no harm |
+| requirement SA-113 | acceptance 6 | golden | SA-113 names no harm |
 | requirement SA-72 | acceptance 1 | golden | SA-72 names no harm |
 | requirement SA-72 | acceptance 2 | golden | SA-72 names no harm |
 | requirement SA-72 | acceptance 3 | golden | SA-72 names no harm |

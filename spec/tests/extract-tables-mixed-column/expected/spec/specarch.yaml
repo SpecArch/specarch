@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Loans
+  version: 0.1.0
+  description: |
+    The registers in loans.xlsx, read at commit ee0d427e499078de4d80a755a852de8dd7fa9515: each file is a document source cited as a spreadsheet program shows it (C17, or Register!C17 in a workbook), each register an entity whose fields are its columns, their types inferred from every value of every file unless a template or the instructions state them, and what the values do not settle a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  loans:
+    kind: document
+    title: Loans register
+    edition: ee0d427e499078de4d80a755a852de8dd7fa9515
+    url: ../docs/loans.xlsx
+    clauses:
+      - {clause: 'Loans!A1:F8', title: Loans}
+      - {clause: Loans!A10, title: Set aside; the question that cites it says why}
+      - {clause: 'Loans!A1:A8', title: Loan ID}
+      - {clause: 'Loans!B1:B8', title: Member}
+      - {clause: 'Loans!C1:C8', title: Due date}
+      - {clause: 'Loans!D1:D8', title: Renewed}
+      - {clause: 'Loans!E1:E8', title: Fee}
+      - {clause: 'Loans!F1:F8', title: Status}

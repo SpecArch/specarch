@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 112 requirements, 5 entities, 26 commands, 7 algorithms, 899 tests, 200 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 113 requirements, 5 entities, 26 commands, 7 algorithms, 907 tests, 201 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -68,7 +68,7 @@ The interfaces the system offers, as its clients see them.
 | derive | Write a draft test for every derived case no test covers, and with --fill add the fixture, input and expect the design fixes to each test that has none | public | 0: the tests were written, or there was nothing to write; 1: a specification has errors other than the missing tests it writes, or a draft's name is taken by another draft or by a test of another subject; 2: usage error, a path that could not be read or written, or a specification that keeps its tests in the root file |
 | diff | Compare two versions of a specification and check the release between them | public | 0: every check passes; 1: a check fails, there is no release record for the new version, or a specification has errors; 2: usage error, or a path that could not be read |
 | document | Write a document from a specification | public | 0: written, or with `--check` the output is current; 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs; 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written |
-| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
+| extract | Write a specification from existing code or documents | public | 0: the specification was written; 1: the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a data file given to tables that is not CSV, TSV or Excel by its extension, is not UTF-8, has lone CR line ends, two delimiters that fit equally or a quote not closed, does not parse as a workbook or holds no row, a register that gives no entity name, a template or instructions with no such table, two tables of fields, a template with two register sheets, or a template or instructions given to a run of several registers, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML; 2: usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --given-outside given to a source other than documents, --language or --vocabulary given to a source other than documents or tables, --entity, --template or --instructions given to a source other than tables, an --entity that is no PascalCase name, --source-key given to tables with more than one file, two files of one name given to tables, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written |
 | facts | Write the code-facts dump extract reads of a committed folder | public | 0: the dump was written; 1: the folder could not be read as committed code: it is in no git repository, it has changes not committed or files not tracked, no commit has changed it, the dump file is in a repository that does not hold the code's, or the reader's toolchain failed to build or to run it; 2: usage error, a language this build does not read, a folder that does not exist, a dump file whose folder does not exist or that could not be written, or a submodule folder with a quote or a backslash |
 | gaps | List the open questions and what they hold up | public | 0: no must or should question is open and no specification has an error; 1: at least one must or should question is open, or a specification or an estate has an error; 2: usage error, or a path that could not be read |
 | generate | Write code or data from a specification | public | 0: written, a draft included, or with `--check` the output is current; 1: a specification has an error, an open question blocks what the target reads or the specification is not approved and `--unapproved` was not given, the plug-in reported an error (what it answered is written or checked), or with `--check` the output differs; 2: usage error, no generator for the target (not built in and no plug-in on PATH), the plug-in failed or answered badly, no output folder in any specification given, or a file that could not be read or written |
@@ -463,6 +463,8 @@ flowchart LR
   package_internal_genopenapi["internal/genopenapi"]
   package_cmd_specarch_gen_go_dxlib["cmd/specarch-gen-go-dxlib, implements 1"]
   package_cmd_specarch_gen_bpmn["cmd/specarch-gen-bpmn, implements 1"]
+  package_cmd_specarch_gen_register["cmd/specarch-gen-register, implements 1"]
+  package_internal_genregister["internal/genregister"]
   package_internal_genbpmn["internal/genbpmn"]
   package_cmd_specarch_gen_ui["cmd/specarch-gen-ui, implements 1"]
   package_internal_genui["internal/genui"]
@@ -539,6 +541,9 @@ flowchart LR
   package_cmd_specarch_gen_go_dxlib --> package_internal_gendxlib
   package_cmd_specarch_gen_go_dxlib --> package_internal_genopenapi
   package_cmd_specarch_gen_bpmn --> package_internal_genbpmn
+  package_cmd_specarch_gen_register --> package_internal_genregister
+  package_internal_genregister --> package_internal_ownership
+  package_internal_genregister --> package_internal_xlsx
   package_internal_genbpmn --> package_internal_mark
   package_internal_genbpmn --> package_internal_ownership
   package_cmd_specarch_gen_ui --> package_internal_genui
@@ -736,7 +741,8 @@ refused, as generate refuses it.
 A dump is told by the key that names its format: `routeTable` for a
 route table, `permissionTable` for a permission table,
 `catalogue` for a catalogue dump, and `gatewayTable` for a gateway
-table. Each is compared by the merge's own
+table; a register file is told by its extension, `.csv`, `.tsv`,
+`.tab` or `.xlsx`. Each is compared by the merge's own
 matching:
 
 - A route table: an operation by its method and path. An operation
@@ -810,6 +816,26 @@ matching:
   a row with no name gives one made from its value, a guess, so a
   forward that differs by it is a report, a warning that never
   fails, as the extract asks a could question for that name.
+- A register file: the entity named by the sheet, or for a CSV or
+  TSV file by the file's name, in PascalCase, as `specarch extract
+  tables` names it (ADR-215), read as that reader reads the file,
+  without a commit, since a data file names none. A register whose
+  entity the specification does not declare is
+  `register_not_specified` at the file's first cell. A column is
+  matched to a field by its header in camelCase or by a field's
+  title; a column no field has is `register_column_not_specified`
+  at its header cell, a field the file has no column for is
+  `register_column_missing` at the field, a report when the field
+  is not required, a blank in a required field's column is
+  `register_blank_required`, a value outside the field's enum, its
+  own or the one it refers to, is `register_value_not_in_enum`, and
+  a value that does not read as the field's type (an integer, of 32
+  bits for `int32`, a number, a boolean, a decimal, a date, a
+  date-time, an email address or a UUID) is
+  `register_value_not_of_type`, each at the cell, which in a CSV
+  or TSV file is its line and column and in a workbook its row and
+  column. An id names the entity, the field and the cell
+  (`Loan.status C5`), so it stays the same while the row stays.
 
 Each problem is printed in validate's form, the file, line and
 column of the entry, the severity, the pointer, the rule and the
@@ -840,7 +866,7 @@ the gate being turned on, which a line says, and no line is added.
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
 | `<specification>` | string | yes | The specification folder, with the implementation file the catalogue is compared through. |
-| `<dumps>` | string, one or more | yes | The dumps to compare it with, each a route table, a permission table, a catalogue dump or a gateway table, committed beside the code they were made from. |
+| `<dumps>` | string, one or more | yes | The dumps to compare it with, each a route table, a permission table, a catalogue dump or a gateway table, committed beside the code they were made from, or a register file (CSV, TSV or Excel) compared with the entity of its name. |
 | `--allowlist` | string |   | The file of the differences the team knows of, one id per line. |
 | `--since` | string |   | A git revision, such as the commit a change is made on top of; the allowlist may hold no line the revision's allowlist did not. Only with --allowlist. |
 
@@ -1611,15 +1637,17 @@ The sources this build reads:
   capitals: must, or should for should, accepted, and its kind a
   must question. A commitment whose subject is only it, they, this
   or the like is a must question, never a guess. A table whose first
-  column is Field, and whose others are Type, Required, Sensitivity
-  or Description, gives the fields of an entity named after its
+  column is Field, and whose others are Type, Required, Sensitivity,
+  Description or Values, gives the fields of an entity named after its
   section's heading in PascalCase, each in camelCase, with the type
   when it is text, string, date, date-time, timestamp, boolean,
-  yes/no or email, and the sensitivity from its column or from the
+  yes/no, email or integer (int32), a decimal as a string with a
+  must question for its precision and scale, the allowed values of
+  a Values cell as its enum, and the sensitivity from its column or from the
   one sentence that names the field and calls it personal or a
   credential; the primary key is a must question, and a sensitivity
   the document does not give a should question. A field of any other
-  type, any other table and fenced code each print a line. A leading
+  type, any other table (a register is read by `tables`) and fenced code each print a line. A leading
   column headed with the row-number word (`#` or `No.`) is skipped in
   every table. The words named here are the English vocabulary's
   (`docs/vocabularies.md`): `--language` names a language SpecArch
@@ -1660,6 +1688,89 @@ The sources this build reads:
   name numbered (`message "Loan limits" 2`), and quoted lines, the signature and any other attachment
   each print a line. Every line names its place and is a could
   question.
+- `tables`: one or more data files, CSV (`.csv`), TSV (`.tsv`,
+  `.tab`) or Excel (`.xlsx`, through the workbook reader of
+  `documents`), each a register: a header row and a record per row,
+  as a records repository keeps one (ADR-215). Each file is a
+  document source under its key (its name in kebab-case without
+  the extension; `--source-key` names a single file's), cited as a
+  spreadsheet program shows the file: its table's range and each
+  column a question cites as clauses (`A1:F13`, `C1:C13`; in a
+  workbook `Loans!A1:F13`), a cell as `C17` or `Loans!C17`. A
+  worksheet's table is its first rectangle of touching cells, its
+  first row the header; a worksheet whose first cell is the
+  vocabulary's Field word is a table of fields, the instructions,
+  and every other worksheet with a table is a register. A chart
+  sheet, a sheet with no cell, a hidden sheet and the cells outside
+  a sheet's table each print a line. A register is named by its
+  sheet, or for a CSV or TSV file by its file's name, in PascalCase;
+  `--entity` names the one register every file given belongs to,
+  and a template's sheet names it when no `--entity` is given. The
+  files of one register, one per period or per source, give one
+  entity with the union of their columns, citing each file's table.
+  A column is a field named by its header in camelCase, titled by
+  the header as written, its type inferred from every value of
+  every file and said column by column in the entity's `why`:
+  whole numbers are `integer` of format `int32` when every value
+  fits, else a string of format `int64`; numbers with a decimal
+  point, alone or with whole numbers, a string of format `decimal`
+  with the widest value's precision and scale; `YYYY-MM-DD` a date
+  and an ISO 8601 date-time a date-time, as is a workbook cell under
+  a date format; `true` and `false` in any case, and a workbook's
+  boolean cells, `boolean`; a value with one @ and a dot after it
+  `email`, and one in the form of a UUID `uuid`; a text column of at
+  most ten distinct values, fewer than half as many as its values,
+  an `enum` of them sorted, with a should question asking whether
+  the list is closed; any other column a string. A number with a
+  leading zero is text, a code. A column whose values do not all
+  read as one kind (mixed), one whose dates read as day-month or as
+  month-day, and one with no value, is a string with a must
+  question at its `type` citing the cells of the rarer kinds, five
+  at most, since a field is not read without a type (ADR-122). A
+  column with no blank in any file is required; one some files fill
+  and others leave blank is left out of `required` with a should
+  question naming them. A column some files lack is kept with a must
+  question naming the files that have it and those that lack it; a
+  value of an inferred enum only some files hold stays in the enum
+  with a should question. The primary key is a must question listing
+  the candidates, the required columns whose values are all distinct
+  across the files. A header that is empty, or that gives a name
+  another column of the table has, leaves its column out with a must
+  question; a row with more values than the header has columns is a
+  must question at the entity, and a shorter row is read with
+  blanks. With `--template` (a file holding the header row alone, or
+  a workbook with that sheet and the instructions sheet beside it)
+  or `--instructions` (a table of fields: Field, Type, Required,
+  Sensitivity, Description and Values, the allowed values separated
+  by `|`, `;`, `,` or a line break, each row naming a column by its
+  header), the fields are stated, citing the template and the
+  instructions, each with the description, the sensitivity, whether
+  it is required and the allowed values the instructions give and
+  the type their word gives (`text`, `date`, `date-time`, `boolean`,
+  `email`, `integer`, which is `int32`, or `decimal`, whose
+  precision and scale the values give, else a must question); a
+  type the instructions do not give is inferred as above. The
+  filled files are then checked against them: a column the template
+  lacks, a template or instructions column the file lacks, a blank
+  in a required column, a value outside the allowed values and a
+  value that does not read as the stated type are must questions
+  citing the cells, five at most. A template and instructions
+  apply to one register, so a run of several registers takes
+  neither. A CSV or TSV file is read as RFC 4180 writes it, in UTF-8
+  with or without a byte order mark, with LF or CRLF line ends; the
+  delimiter, a tab for `.tsv` and `.tab`, else the one of comma,
+  semicolon, tab and bar that the most records hold the same number
+  of times, outside quotes, as the header record does, and then the
+  most often, is detected, and a line names the dialect read. A
+  file that is not UTF-8, one with lone CR line ends, two
+  delimiters that fit equally, a quote not closed and a workbook
+  that does not parse are refused. A table of fields
+  found in a data workbook is the instructions as one given with
+  `--instructions` is; two such tables, two register sheets in a
+  template, and a template or instructions with no such table are
+  refused. The edition is the newest commit that last changed the
+  files, which must be in one repository. `--language` and
+  `--vocabulary` name the words as for documents.
 - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as
   one document source under `--source-key` (default as for
   documents), whose clauses are the JSON pointers of its operations
@@ -3199,15 +3310,18 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--implementation` | string |   | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through, and whose `clientChecks`, `signatureChecks`, `applicationChecks`, `callerChecks`, `audienceChecks` and `eventWriters` name its gates; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from. |
 | `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by specarch facts javascript of a folder that holds the router's folder, through which the Next.js files' code is read. |
 | `--routes` | string |   | For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each. |
-| `--language` | string |   | For documents, the language the document is written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one. |
-| `--vocabulary` | string |   | For documents, a vocabulary file (docs/vocabularies.md) whose words the document is read by, for a language SpecArch ships none for or a project's own words. |
+| `--language` | string |   | For documents and tables, the language the document or the registers are written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one. |
+| `--vocabulary` | string |   | For documents and tables, a vocabulary file (docs/vocabularies.md) whose words the document or the registers' instructions are read by, for a language SpecArch ships none for or a project's own words. |
 | `--given-outside` | bool |   | For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority. |
+| `--entity` | string |   | For tables, the entity every file given is a register of, in PascalCase, in place of the name each file's sheet or file name gives. |
+| `--template` | string |   | For tables, the register's template: a CSV, TSV or Excel file holding the header row alone, or a workbook holding that sheet and, beside it, the instructions as a table of fields; its columns are the fields, stated, and its sheet names the register when --entity is not given. |
+| `--instructions` | string |   | For tables, the register's instructions: a CSV, TSV or Excel file holding a table of fields (Field, Type, Required, Sensitivity, Description and Values) whose rows state each column's type, whether it is required, its sensitivity, its description and its allowed values. |
 | `--implementation-out` | string |   | For database, go and gateway, a new YAML file the reader writes what it knows of the implementation into, an implementation fragment that is not a whole implementation file. For gateway, the deployment of the environment the table's addresses were resolved in, with a server per forwarded service and the value of each setting (ADR-142). For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings. |
 | `--table` | bool |   | For workflows, read the file as a workflow table (ADR-118) that tools/workflows/dump-workflows.sh wrote around the project's printer, for definitions in a format of the project's own, in place of BPMN 2.0 XML. |
 | `--source-key` | string |   | The key of the source in the written tree; code for the code readers, and the file's name in kebab-case for documents and openapi, when it is not given. |
@@ -3220,8 +3334,13 @@ Writes `{implementation-out}`: For database and go with --implementation-out, th
 Standard output: One line naming the commit read and the paths it was the last change
 to; one line per count, saying what was counted and how; one line per
 object the specification could not hold, naming it, saying why and
-naming the question that asks about it; for documents with a
-vocabulary named, one line naming its language and file; one line naming a dialect
+naming the question that asks about it; for documents and tables with a
+vocabulary named, one line naming its language and file; for tables, one line per CSV or TSV
+file naming the dialect read (the encoding, the line ends, the
+delimiter and whether fields are quoted), one per workbook naming
+its sheets, one per template and per table of fields naming its
+range, and one per entity naming its fields, rows, files and
+candidate keys; one line naming a dialect
 the reader reads, or a document read as what the running system
 printed; one line per file that imports a library the reader knows
 and gives nothing it reads; one line per gate on a setting, naming
@@ -4731,7 +4850,7 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/try, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the documents reader taking Markdown, PDF, Word, PowerPoint, Excel and email messages, each format read into the same blocks (ADR-212), the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table and a catalogue dump with a specification, each difference with its rule and subject (ADR-124). |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the documents reader taking Markdown, PDF, Word, PowerPoint, Excel and email messages, each format read into the same blocks (ADR-212), the tables reader of CSV, TSV and Excel registers with the dialect detected, the types inferred from every value, the template and the instructions read as the fields' statement and the questions where the files disagree (ADR-215), the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table, a catalogue dump and a register file with a specification, each difference with its rule and subject (ADR-124). |   |
 | internal/ooxml | The parts of an Office Open XML package (ISO/IEC 29500): its parts by name, an XML part decoded, a part's relationships with their targets resolved, and the package's title; shared by the Word, PowerPoint and Excel readers. |   |
 | internal/xlsx | An Excel workbook's cells (.xlsx): every worksheet in the workbook's order with its cells' references, values and kinds (text, number, boolean, a date as ISO 8601, an error), a formula's last value, and a sheet's rectangles of touching cells; for the documents reader and any reader of a workbook. It reads values, never computes a formula, and writes nothing. |   |
 | internal/facts | specarch facts: the git checks of a committed folder, its tracked files and the repository key of a dump in another repository; the JavaScript and TypeScript reader on the TypeScript compiler of third_party/typescript-go, which builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089, ADR-116); the Vue reader, which splits a single-file component into its blocks and parses its template as Vue 3's compiler-sfc does; and the Swift and Dart readers written from the binary into the user's cache, built there and run. |   |
@@ -4755,6 +4874,8 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | internal/genopenapi | The OpenAPI 3.1 document in the standard dialect, the design field for field, with the problem catalogue and lists paged through the paginated-list idiom; and in the dxlib dialect, what dxlib's reader binds. |   |
 | cmd/specarch-gen-go-dxlib | The plug-in behind generate go-dxlib. Reads the request on standard input, answers the Go file on standard output, and never touches the disk. | #/commands/generate |
 | cmd/specarch-gen-bpmn | The plug-in behind generate bpmn. Reads the request on standard input, answers each workflow's BPMN file and SVG on standard output, and never touches the disk. | #/commands/generate |
+| cmd/specarch-gen-register | The plug-in behind generate register. Reads the request on standard input, answers each entity's register template on standard output, the workbook in base64, and never touches the disk. | #/commands/generate |
+| internal/genregister | Each entity's register template: the header row as CSV, the instructions as a table of fields in the English vocabulary's words, and a workbook holding both, written as the smallest Office Open XML package a spreadsheet program opens and internal/xlsx reads back (ADR-215). |   |
 | internal/genbpmn | Each workflow as a BPMN 2.0 process in the subset extract workflows reads, with BPMN DI laid out by a fixed rule, the same diagram as SVG, and the problems marked as XML comments before their elements. |   |
 | cmd/specarch-gen-ui | The plug-in behind generate ui. Reads the request on standard input, answers the screens on standard output, and never touches the disk. | #/commands/generate |
 | internal/genui | The list, view, form and task pages for the web in plain JavaScript, the navigation between them in pages.js with the menu on every page, the confirmation that asks for a reason in ask.js, the events they raise, and the theme as CSS custom properties; a form's fields are native controls in its HTML and form.js adds the checks, conditions, pickers, values, rows and what follows a success; view.js, form.js, ask.js and the functions of pages.js are files under runtime/, written as they are. |   |
@@ -16361,6 +16482,130 @@ Calls are answered one at a time, in the order they come.
 
 **Note:** From Agent Skills specification: A skill is a folder holding SKILL.md, with the front matter fields name and description, and optional references/ that the agent reads when it needs them. <https://agentskills.io/specification>
 
+### ADR-215: extract tables reads CSV, TSV and Excel registers into entities whose fields are inferred from every value of every file and stated by a template and its instructions, asks where the values do not settle a thing, and check and generate register close the loop on a filled file
+
+Status: proposed, 2026-11-01.
+
+Rests on: [ADR-212](#adr-212-extract-documents-reads-pdf-word-powerpoint-excel-and-email-messages-with-readers-of-its-own-not-through-a-conversion-to-markdown-and-every-reader-gives-the-markdown-readers-blocks-so-a-citation-names-the-clause-page-slide-cell-range-or-attachment-of-the-file-people-hold), [ADR-122](#adr-122-every-tree-a-command-writes-passes-validate-merge-keeps-a-type-where-the-trees-give-a-field-different-types-and-blocks-the-permissions-a-roles-disputed-grants-leave-ungranted-and-derive-names-a-draft-from-its-subject-made-a-valid-name), [ADR-105](#adr-105-the-words-a-document-is-read-by-are-a-vocabulary-a-data-file-per-language-english-shipped-a-source-names-its-language-and-the-small-points-of-the-documents-reader-go-with-it).
+
+Context: Many systems keep their data model in registers, spreadsheets with
+a header row and a record per row, long before any database holds
+it: a compliance records repository keeps its registers beside the
+controlled documents and the evidence, one file per period or per
+source, each filled from a template whose instructions sheet says
+what every column holds. extract documents read a workbook (ADR-212)
+for its text and its tables of fields, and SpecArch could read a
+register only as a could question naming its header.
+
+A register says more than its header: the values give each
+column's type, whether it is ever blank, which columns identify a
+row and which hold a closed set of values. They also disagree,
+between files of one register and between a filled file and its
+template, and a reader that chose one side by itself would write
+a guess into the design (docs/principles.md).
+
+Decision: A new source of extract, tables, beside documents: one or more
+CSV, TSV or Excel files, each file a document source cited as a
+spreadsheet program shows it (C17, Loans!C17, a column as C1:C13),
+and each register an entity. A worksheet's table is its first
+rectangle of touching cells; a CSV or TSV file is one table. A
+register is named by its sheet or its file's name in PascalCase,
+--entity names the one register every file belongs to, and a
+template's sheet names it; the files of one register give one
+entity with the union of their columns, citing each file.
+
+The types are inferred from every value of every file, by rules
+the design of extract states: whole numbers integer, int32 when
+every value fits and else carried as text in int64; numbers with
+a point decimal with the widest value's precision and scale; ISO
+8601 dates and date-times, a workbook's date cells, true and
+false and a workbook's boolean cells, email addresses and UUIDs by
+their form; a text column of at most ten distinct values, fewer
+than half as many as its values, an enum of them; everything else
+text, a leading zero included. The field has no origin of its own
+in the meta-model, so the entity carries origin inferred, its why
+says what each column's values gave, column by column, and its
+cites name each file's table. A column whose values read as two
+kinds is kept as a string with a must question at its type citing
+the cells of the rarer kinds, as merge keeps a type the trees
+disagree on (ADR-122), since a field is not read without one; a
+column of dates that read two ways, and one with no value, are
+the same. Required is a column with no blank; a column some files
+leave blank is left out of required with a should question, a
+column some files lack is kept with a must question, a value of an
+enum only some files hold stays with a should question, and the
+primary key is a must question listing the candidates, the
+required columns whose values are all distinct.
+
+A template, --template, is a file holding the header row alone, or
+a workbook holding that sheet and an instructions sheet: a table
+of fields, as extract documents reads one, with a Values column
+for the allowed values. The instructions may also come as a file,
+--instructions, or as a sheet of a data workbook, known by the
+vocabulary's Field word in its first cell. With either, the
+entity's fields are stated, citing the template and the
+instructions, with the type word, whether it is required, the
+sensitivity, the description and the allowed values each row
+gives, and the filled files are checked against them: a column the
+template lacks, a column the file lacks, a blank in a required
+column, a value outside the allowed values and a value not of the
+stated type are must questions citing the cells. The vocabulary
+gains the header key values and the type keys integer and
+decimal, each optional, so a vocabulary written before them reads
+as it did; extract documents reads them in a table of fields too,
+integer as int32 and decimal as a must question for its precision
+and scale.
+
+A CSV or TSV file is read as RFC 4180 writes it (encoding/csv),
+in UTF-8 with or without a byte order mark and with LF or CRLF
+line ends; the delimiter is detected, the one of comma, semicolon,
+tab and bar that the most records hold the same number of times,
+outside quotes, as the header record does, and then the most often,
+so a ragged row does not hide it, a tab for .tsv and .tab; a line
+names the dialect read. A file that is not UTF-8, one with lone CR
+line ends, two delimiters that fit equally and a quote not closed
+are refused with the reason. Excel is read by internal/xlsx, the
+workbook reader of ADR-212.
+
+specarch check takes a register file, known by its extension, and
+compares it with the entity of its name: a column no field has, a
+field the file lacks (a report when it is not required), a blank in
+a required column, a value outside the field's enum and a value
+not of its type, each at the cell, under the rules register_*.
+specarch generate register, the plug-in specarch-gen-register,
+writes each entity's template: the header row as CSV, the
+instructions as CSV in the English vocabulary's words, and a
+workbook holding both as the sheets <Entity> and Instructions,
+the primary key's fields first and the others by name; a field
+that holds a list or an object is no column and is named in a
+warning. A plug-in answers a file that is not text with its bytes
+in base64 under encoding, which generate decodes and --check
+compares byte for byte.
+
+Consequences: A register enters the specification as an entity a reviewer
+corrects rather than writes: the types, the required list and the
+candidate keys come from the data, every doubt is a question at the
+field it concerns, and every citation names a cell or a column a
+person finds in the file. A register template written by generate
+register is read back by extract tables, so a project that starts
+from entities and one that starts from registers meet in the same
+files. The inference rules are fixed numbers (ten distinct values,
+fewer than half; int32's range) stated in the design, so the same
+files give the same tree, and a rule that fits a project badly is
+changed in the design, not guessed around. A column read as an
+enum from few values asks whether the list is closed, so a small
+register never fixes a set by accident. No dependency is added:
+encoding/csv and the workbook reader the program already holds.
+A register with a column of a type the rules do not name (a
+duration, a time of day) is read as text, with no question, since
+text holds it; naming more forms is a later change to the rules.
+
+**Insight:** Every value, not the first: a column typed by its first row is a guess the next row breaks, and a reader that reads them all can say which rows disagree. The thresholds for an enum are fixed and written down because any inference needs a line somewhere, and a line in the design is reviewed where one in the code is not; the should question on every inferred enum is what keeps the line from becoming a decision. A mixed column keeps the field as a string, rather than leaving it out as the documents reader leaves out a field of an unknown type, because the column exists for certain and only its type is in doubt, and a template or a check written without the column would be wrong; ADR-122 took the same way for merge. The entity carries the origin and the evidence because the meta-model gives a field none, and adding one would change both validators and every schema for a reader's convenience. Several files are one entity because a register kept per period is one register, and a reader that wrote one entity per file would leave the merge to the reviewer with no help from the data. A template names its register because the template is the stated thing and a period file's name is not. The vocabulary's new keys are optional because a project's vocabulary file is data the project owns, and a required key would refuse every file written before this item. The generator is a plug-in like every code target (ADR-013), with the workbook in base64 since the answer is JSON text and a zip is not. check reads the register without a commit because a data file names none and a filled register is compared as it is on disk.
+
+**Note:** From RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files, 2005, clause 2: Definition of the CSV format: records separated by CRLF, fields by commas, fields holding line breaks, double quotes or commas enclosed in double quotes with a double quote inside doubled. <https://www.rfc-editor.org/rfc/rfc4180>
+
+**Note:** From ISO/IEC 29500-1, Office Open XML File Formats, Fundamentals and Markup Language Reference, 2016, clause Part 1, 18.3: Worksheets: the cells of a sheet with their references, types and styles, from which a date is a number under a date format. <https://www.iso.org/standard/71691.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -16378,6 +16623,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | check-fails-on-a-difference | command check | system | red | the branches and copies of the golden case, where the route table's GET /copies/{copyId} checks no permission, the permission table grants nothing to the visitor and grants a role the specification does not declare, and the allowlist repeats a line and holds a line for a difference there is not, a line for a report and a line that is no id | check is run with the allowlist on the three dumps | it prints the CHAR column the allowlist no longer names, the permission that differs, the visitor's grant the code does not hold and the undeclared role's grant at its line of the dump as errors, the two reports as warnings, and each of the five lines of the allowlist that allow nothing as allowlist_stale at its line, and exits 1 |
 | check-gateway-forward-moved | command check | system | red | a specification whose gateway api forwards the loans audience to loans and the archive audience to reports, and a committed gateway table whose row for the loans audience names the service reports and whose row for the archive audience names none | check is run with the table | it reports forward_differs at the forward of the loans audience as an error and at the forward of the archive audience as a report, the name made from the value being a guess, and exits 1 |
 | check-gateway-forward-removed | command check | system | red | a specification whose gateway api forwards to loans and to reports, and a committed gateway table forwarding to loans and to catalogue | check is run with the table | it reports forward_not_served at the specification's forward to reports and forward_not_specified at the table's row for catalogue, and exits 1 |
+| check-register | command check | system | red | a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, a blank in a required column, a status outside the enum and a fee that is not a decimal | specarch check is run on the specification and the register | it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum and the value not of the type each at its cell, and exits 1 |
 | check-skips-a-partition | command check | system | golden | a specification of an events entity with a check whose implementation file maps it to the events table and lists its index idx_at, and a repository whose first commit holds the migration of a table partitioned by range with that check and that index, a partition partitioned again by list, and a default partition with a check and an index of its own, and whose second commit holds the catalogue dump made from it | check is run on the catalogue dump | it compares the events table alone, finds no difference since the partitions are not compared, neither as tables nor by the check and index of their own, and the index, which the catalogue prints with ON ONLY, is the plain index the mapping lists, reports the check's text the database rewrote, and exits 0 |
 | check-succeeds | command check | system | golden | a specification of branches and copies with its implementation file, and a repository whose first commit holds the migrations, the router and the permission check and whose second holds the catalogue dump, the route table and the permission table made from them, naming the first, and an allowlist of three lines; the router serves a route the specification does not name, the database has a table it does not hold and a CHAR column where it has a string of that width, a check whose text the database rewrote and an index on an expression, an operation the specification makes public is a route that checks no permission, a clerk is granted a permission the specification's clerk holds through implies, and the foreign key's no action is the reader's restrict | check is run with the allowlist and --since HEAD on the three dumps | it counts the three differences the allowlist names and does not print them, prints the check's text and the index the mapping does not list as warnings, finds no other difference, and exits 0 |
 | check-usage-error | command check | system | red | a specification and no dump | check is run with the specification alone | it prints how to use it and exits 2 |
@@ -16645,6 +16891,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-systemd-not-a-unit | command extract | system | red | a committed file holding unit settings whose name ends in neither .service nor .timer | extract systemd is run on it | it says the file is not a unit ending in .service or .timer, writes nothing and exits 1 |
 | extract-systemd-reads-units | command extract | system | golden | a committed daemon unit restarted on failure with a limit, a delay, a stop timeout, a reload by SIGHUP, a watchdog, three variables, one a token, an environment file and a status it is never restarted on, and a oneshot unit with a timer on a calendar expression | extract systemd is run on the three units | it writes a process per service, always for the daemon and scheduled for the timer's, each value it states citing its line, a setting per variable with no value anywhere in the tree, the token API_TOKEN carries included, must questions for the settings, the exit statuses and the calendar expression, a should question for the environment file, a line and a could question for each key a process does not hold, and exits 0 |
 | extract-systemd-stop-signal-not-held | command extract | system | golden | a committed daemon unit whose KillSignal= is SIGKILL, a signal a process cannot honour, and whose TimeoutStopSec= is 30s | extract systemd is run on it | it writes no stop signal and no stop time, and a not-held line and a could question for KillSignal= and for TimeoutStopSec= each, so neither is dropped without a line, and exits 0 |
+| extract-tables-header-questions | command extract | system | golden | a repository holding a CSV register with an empty header cell, two headers that give one field name, and a row with one value more than the header has columns | extract tables is run on the file | it writes the entity with the columns that name a field, leaves out the column with no header and the second of the two of one name, each under a must question, asks about the value beyond the header at the entity, and exits 0 |
+| extract-tables-mixed-column | command extract | system | golden | a repository holding a workbook whose register sheet has a fee column of numbers and two words, a column of date cells, a column of boolean cells, and a note below the table | extract tables is run on the workbook | it writes the entity with the date and boolean fields typed by their cells, keeps the fee as a string with a must question at its type citing the two cells that read as text, writes a could question for the note outside the table, and exits 0 |
+| extract-tables-quote-not-closed | command extract | system | red | a repository holding a CSV file with a quote that is not closed | extract tables is run on it | it refuses the file with status 1, naming the line and what RFC 4180 asks of a quoted field, and writes nothing |
+| extract-tables-register | command extract | system | golden | a repository holding a CSV register written with a byte order mark, CRLF line ends and semicolons: twelve loans with a number, a member's email, a count, a due date, a status of three values and a fee | extract tables is run on the file | it names the dialect, writes one entity whose fields are the columns with their types inferred (integer, email, date, enum, decimal), every column required, a must question for the primary key naming the one candidate and a should question asking whether the enum is closed, each citing the column, and exits 0 |
+| extract-tables-template | command extract | system | golden | a repository holding a register template, a workbook with the header row and an instructions sheet giving each column its type, whether it is required, its sensitivity, its allowed values and its description, and a filled CSV copy with a column the template lacks, a blank in a required column, a status outside the allowed values and a count that is not an integer | extract tables is run on the filled file with --template | it writes the entity stated by the template and the instructions, with the descriptions, sensitivities, required list and allowed values they give, and a must question for each difference of the filled file: the extra column, the blank, the value outside the list and the value not of the type, each citing the cells, and exits 0 |
+| extract-tables-two-periods | command extract | system | golden | a repository holding two period files of one register, the second with a column the first lacks, blanks in a column the first fills, and a status value the first does not hold | extract tables is run on both with --entity Loan | it writes one entity citing both files, with the column only the second has kept under a must question, the column with blanks left out of required under a should question, the new status value kept in the enum under a should question, and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | extract-workflows-asks-unread-end | command extract | system | red | a repository holding a hand-written loan.bpmn whose wait returned has a timer that goes to an end event named Approved, and whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at the one named Approved | extract workflows is run on the file | it reads the otherwise branch as ending approved, writes the Rejected branch with no end and the wait with no onDeadline, asks how a request ends at end-rejected in a question that blocks that branch and what happens at the wait's deadline in one that blocks its onDeadline, says each in a not-held line naming the end event, and exits 0 |
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |
@@ -16718,6 +16970,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-plugin-reports-error | command generate | system | red | a plug-in that answers an error diagnostic | generate strict is run | it prints the diagnostic, runs the plug-in again with it among the problems, writes nothing since the plug-in answers no file, and exits 1 |
 | generate-refuses-open-question | command generate | system | red | a specification with a must question that blocks an entity, and specarch-gen-echo on PATH | generate echo is run | it refuses because the question blocks what the target reads, writes nothing and exits 1 |
 | generate-refuses-unapproved | command generate | system | red | a specification without open questions and without an approval record, and specarch-gen-echo on PATH | generate echo is run | it refuses because the specification is not approved, writes nothing and exits 1 |
+| generate-register | command generate | system | golden | a specification with no approval record, a Member entity and a Loan entity whose fields include a reference to Member, a reference to an enum, a decimal, a boolean and a list; specarch-gen-register built from this repository on PATH | generate register is run with --unapproved | it writes, per entity, the CSV header row of its fields' titles, the instructions CSV with each column's type word, whether it is required, its sensitivity, its allowed values and its description, and a workbook with both sheets whose title carries the draft notice, warns that the list field is no column, and exits 0 |
 | generate-scripts | command generate | system | golden | a specification whose loans, audited and deleted softly, move from open or overdue to returned by returnLoan, from open to overdue by the command mark overdue, whose guard's writes also sets the note to a literal, and from overdue or open to open by renewLoan, each guarded; a guarded replacement and removal of a loan by its key, a guarded insert, a guarded amendment whose writes sets the note to a given value and the renewals to 0, a guarded command whose writes deletes the returned loans, one whose writes sets their note to null and one whose writes sets it to a string, a guarded replacement of a hold by its key with recordsChanged 2, a guarded settlement of a reservation whose transitions end in confirmed or cancelled, a guarded removal of a copy whose key is two fields, a guarded replacement of a member whose email is stored encrypted, a guarded replacement of a tag whose every field is read-only, a guarded removal of a fine whose key is a uint64, and a guarded removal of a shelf another team owns; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it writes return-loan.sql, which changes the loan by its key from open or overdue to returned, mark-overdue.sql, which changes exactly the two open loans renewed three times and sets their note, replace-loan.sql, amend-loan.sql, which sets the note from its variable and the renewals to 0 by the key, purge-returned.sql, which sets the soft-delete flag of the four returned loans, clear-notes.sql and label-returned.sql, which leave out the loans that already hold the value they write, comparing a null note as not holding a string, remove-loan.sql, which sets the soft-delete flag, cancel-hold.sql, which deletes the hold, and waive-fine.sql, which deletes the fine by its key compared as NUMERIC without precision or scale, so a fractional key matches no fine; each refuses an unset variable by name, reports a loan already changed as already applied, counts and locks the loans its condition names and refuses unless their number is recordsChanged, makes the change under the same condition, checks the count it wrote and commits only with apply true; it warns that the insert, the renewal from open to open, the hold replaced with recordsChanged 2, the settlement with two to states, the copy keyed by two fields, the member with an encrypted email and the tag with nothing to set are left to be written by hand, writes nothing for the shelves, and exits 0 |
 | generate-scripts-dialect-refused | command generate | system | red | a specification with a guarded removal of a shelf by its key, whose implementation file names sqlserver as the scripts target's dialect; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it writes nothing, reports that it writes scripts for postgresql and mariadb only, and exits 1 |
 | generate-scripts-hand-written-refused | command generate | system | red | a specification with a guarded removal of a shelf by its key, and remove-shelf.sql written by hand in the scripts target's folder; specarch-gen-scripts built from this repository on PATH | generate scripts is run with --unapproved | it leaves remove-shelf.sql as it is, writes nothing, reports that the file was not written by specarch-gen-scripts, and exits 1 |
@@ -17397,6 +17650,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-57 | Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes. | functional | should | proposed | test | A web page generated from a page of the specification carries the page's pointer and the pointer of each field and action it draws, and a build for an environment that shows the trace shows the pointer, the version and the digest on screen. A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause. A decision that answers a change request whose decision is not approved is reported. The changes document lists, under each open change request, the tests, outputs, documents and approval its pointers reach. | NEED-10 |
 | SA-64 | specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language. | functional | must | accepted | test | extract documents with --vocabulary on a document written in a second language gives the counts, the requirements' priorities, the entities' types, required fields and sensitivities, and the questions the same document in English gives, and writes language on the source. extract documents with no vocabulary named reads the document by the English vocabulary and writes the tree it wrote before vocabularies were data, byte for byte. A vocabulary that lists one word in two lists of one group, such as two sensitivities, is refused with the file, the line and the two lists; a language tag SpecArch ships no vocabulary for, given with no file, is refused with the keys a vocabulary holds. A leading table column headed with the vocabulary's row-number word is skipped in every table, and --given-outside writes givenOutside on the source. merge reads a requirement's number of days in the units and number words of its source's language, from the shipped vocabulary or the one given with --vocabulary, and says once per source that its requirements are not compared when there is neither. | NEED-8 |
 | SA-110 | specarch extract documents shall read a PDF, a Word document, a PowerPoint presentation, an Excel workbook and an email message as it reads a Markdown document, with no conversion, no other program and no network, and cite every requirement, entity and question at the clause, page, slide, cell or range, or attachment of the file read, naming what it does not read. | functional | should | proposed | test | extract documents on a Word document whose headings and clauses are numbered by the document's numbering writes those numbers as the clauses, 2.1.1 and Annex A, and the Title style or the package's title as the source's title; a picture, tracked changes, a footnote and a text box each print a line naming the paragraph and are could questions, and the paragraph's own text around a text box is read once. extract documents on a PDF reads the headings by their size, a paragraph that starts with a section number as its clause, the text before the first heading as the clause of its page, and a page with no text as a line and a could question; a file that does not parse or is encrypted with a password is refused with status 1 and the reader's error. extract documents on a PowerPoint presentation writes every slide as a clause, slide 1, titled by its title, and its speaker notes as slide 1 notes; a picture and a chart are lines and could questions. extract documents on an Excel workbook writes every table of touching cells as the clause of its range and every cell of text a requirement cites as the clause of its cell, a table headed Field as an entity; a chart sheet is a line and a could question. extract documents on an email message writes its From, To, Date and Subject in the source's description and a line, its body as the clause body, and every attachment as a clause of its name; an attachment in a format it reads, by its name's extension or else its media type, is read with its clauses after its name, lending-rules.docx: 2.1.1, a forwarded message with no file name is named by its subject, message "Loan limits", a second attachment of the same name is numbered, message "Loan limits" 2, a message with no Date is sent with no date, and quoted lines, the signature and any other attachment are lines and could questions. extract documents on a Markdown document writes the tree it wrote before, byte for byte, and any other file is refused with status 1 naming the formats read. | NEED-8 |
+| SA-113 | specarch extract tables shall read CSV, TSV and Excel registers into entities whose fields are the columns, with each type, whether it is required and its values inferred from every value of every file of the register and cited at the file, sheet and column, shall ask a typed question wherever the values do not settle a thing or the files disagree, shall read a register's template and instructions as the fields' statement and check a filled file against them, and specarch check shall compare a register file with its entity. | functional | should | proposed | test | extract tables on a CSV register written with a byte order mark, CRLF line ends and semicolons names the dialect read and writes one entity whose fields have the types the values give (integer, email, date, enum of the few distinct values, decimal with precision and scale), every column with no blank required, a must question for the primary key naming the candidate columns and a should question asking whether the enum is closed, each citing the column. extract tables on a workbook types a field by its date or boolean cells, keeps a column whose values read as two kinds as a string with a must question at its type citing the cells of the rarer kind, and writes a could question for the cells outside the sheet's table. extract tables on two period files of one register, named with --entity, writes one entity citing both files, keeps a column only one file has under a must question, leaves a column one file leaves blank out of required under a should question, and keeps a value of the enum only one file holds under a should question. extract tables on a filled file with --template, a workbook holding the header row and an instructions sheet, writes the fields the template and the instructions state, with their descriptions, sensitivities, required list and allowed values, and a must question citing the cells for each difference of the filled file, a column the template lacks, a blank in a required column, a value outside the allowed values and a value not of the stated type. extract tables on a CSV file that is not UTF-8, with two delimiters that fit equally or with a quote not closed refuses it with status 1 and the reason, and writes nothing. specarch check on a register file reports a column the entity does not have, a required field the file lacks, a blank in a required column, a value outside the field's enum and a value not of the field's type, each at the cell. | NEED-8 |
 | SA-72 | specarch check shall compare a specification with the route tables, permission tables and catalogue dumps of its code, read by the readers of specarch extract, print every difference as a problem at its entry, and exit 1 on a difference the allowlist does not name or a line of the allowlist that names none. | functional | should | accepted | test | An operation the router does not serve, a route the specification does not name and a permission that differs between them are each an error, at the operation or at the route's line in the dump. A grant only one of the specification and the permission table holds, after each side's grants are widened by the permissions they imply, is an error at the role or at the grant's line in the dump. A table, a column, a type as PostgreSQL spells it, a nullability, a generated default, a primary key, a foreign key, a unique constraint, a check constraint's name or a listed plain index that differs between the tables generate sql writes and the catalogue is an error; the text of a check and an index the mapping does not list are reports that never fail. A partition of the catalogue is never compared and never a table the specification does not hold; a partitioned table's index, which the catalogue prints with ON ONLY, is compared as any plain index. Each problem ends with an id that names the rule and what the difference is about, the same wherever the entry is written; a difference whose id the allowlist holds is counted and not printed, and the run exits 0 when every difference is allowed or a report. A line of the allowlist that no failing difference matches or that repeats one is an error at that line; with --since, so is a line the allowlist did not hold at that revision. | NEED-1, NEED-8 |
 | SA-76 | specarch extract gateway shall read a gateway table the project's printer wrote from what the gateway loads into a gateway with its forwards, dependencies and settings, asking for what the table does not say; and specarch check shall compare a specification's gateways with it. | functional | should | proposed | test | extract gateway on a table with two rows writes the gateway with its claim and two forwards, two dependencies of kind system with their protocol from the addresses, two settings, and must questions for the gateway's description and token and for each dependency's description and timeout, byte-identical twice; a table with a repeated value or a key the format lacks is refused with the reason; with --implementation-out and an environment it writes that deployment's servers with name, url and dependency. check reports a forward only the specification holds as forward_not_served, one only the table holds as forward_not_specified, one the table sends to another dependency as forward_differs and a claim that differs as claim_differs, each an error the allowlist may name, forward_differs a report when the row names no service. merge leaves the fallback question of SA-79 out when a gateway table's tree answers it, one gateway to one question over the whole merge, every tree's fallback handler's question before any tree's catch-all route's, each pass over the trees in the order given, and keeps a question no gateway is left for open with a line. | NEED-8 |
 | SA-79 | specarch extract go shall read a route whose path is a package-level constant of the module or whose method list is a package-level list no statement of the module changes as it reads a literal one, and shall ask a must question at every fallback handler and catch-all route, in place of silence or a line. | functional | should | accepted | test | extract go writes a route registered with Match on a package-level list of method constants and a path from a package-level constant, in the same package or another of the module, as it writes one with a literal list and path, and asks the must question naming the line for a list assigned, appended to or declared again in a second place, in its own package or in another package of the module through the import. extract go asks a must question at a NoRoute, NoMethod, NotFound or MethodNotAllowed registration, at a NotFoundHandler, MethodNotAllowedHandler or HTTPErrorHandler field set on a router a name holds or a struct of the module keeps in a field, at a ServeMux pattern of / with no method given a handler that is no router, at a route whose path ends in a catch-all, a gorilla/mux variable whose pattern can match a slash among them, and at gorilla/mux's PathPrefix given a handler that is no router, each counted as a registration and blocking the design stage until the gateways section exists and gateways after; a fallback in a loop or behind a condition asks the question every registration there asks. | NEED-8 |
@@ -17626,6 +17880,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-110:** Most requirement documents are PDF or Word, and a records repository also holds decks, registers and correspondence; converting each to Markdown by hand is a step nobody reviews, and the converters drop Word's computed clause numbers, so the citation would no longer name the clause a reader of the file finds (ADR-212).
 
+**Insight on SA-113:** Registers and spreadsheets are the data model of many real systems, kept in a records repository beside the controlled documents, and a reader that typed a column by its first value or dropped a column two files disagree on would write a guess into the design (ADR-215).
+
 **Insight on SA-72:** A specification nobody compares with its code drifts and is then read by nobody; a gate that fails on every old difference is switched off, and one whose allowlist may grow lets the drift back in.
 
 **Insight on SA-76:** The table a gateway forwards by was readable by nothing, and a gateway no check compares with its table drifts as every other part of a specification nobody compares with its code does.
@@ -17773,9 +18029,10 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-107 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
 | SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
-| SA-110 | decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
+| SA-110 | commands extract; decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
 | SA-111 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
 | SA-112 | commands mcp; commands skill; decisions ADR-214 | tests mcp-serves-tools; tests mcp-usage-error; tests skill-check-differs; tests skill-lists-what-it-writes; tests skill-refuses-another-folder; tests skill-usage-error |
+| SA-113 | commands extract; decisions ADR-215 | tests check-register; tests extract-tables-header-questions; tests extract-tables-mixed-column; tests extract-tables-quote-not-closed; tests extract-tables-register; tests extract-tables-template; tests extract-tables-two-periods; tests generate-register |
 
 ## Sources
 
@@ -17830,6 +18087,7 @@ Every source a Note in this document cites.
 | rfc-2045 | RFC 2045, Multipurpose Internet Mail Extensions (MIME) Part One, Format of Internet Message Bodies | 1996 | IETF | https://www.rfc-editor.org/rfc/rfc2045 |
 | rfc-3339 | RFC 3339, Date and Time on the Internet: Timestamps | 2002 | IETF | https://www.rfc-editor.org/rfc/rfc3339 |
 | rfc-3986 | RFC 3986, Uniform Resource Identifier (URI): Generic Syntax | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc3986 |
+| rfc-4180 | RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files | 2005 | IETF | https://www.rfc-editor.org/rfc/rfc4180 |
 | rfc-5322 | RFC 5322, Internet Message Format | 2008 | IETF | https://www.rfc-editor.org/rfc/rfc5322 |
 | rfc-6557 | RFC 6557, Procedures for Maintaining the Time Zone Database | 2012 | IETF | https://www.rfc-editor.org/rfc/rfc6557 |
 | rfc-6749 | RFC 6749, The OAuth 2.0 Authorization Framework | 2012 | IETF | https://www.rfc-editor.org/rfc/rfc6749 |

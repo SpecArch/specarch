@@ -1,0 +1,11 @@
+Loan ID,Member,Copies,Due date,Status,Fee,Reviewer
+13,alice@example.org,1,2026-04-02,open,0,"Lee, Pat"
+14,bob@example.org,2,,archived,0,
+15,carol@example.org,1,2026-04-10,closed,0.50,"Lee, Pat"
+16,dan@example.org,3,2026-04-12,open,0,
+17,erin@example.org,1,,archived,1.00,Kim
+18,frank@example.org,2,2026-04-20,open,0,
+19,grace@example.org,1,2026-04-22,closed,0,Kim
+20,heidi@example.org,1,2026-04-25,open,0.25,
+21,ivan@example.org,2,2026-05-01,archived,0,
+22,judy@example.org,1,2026-05-03,open,0,Kim

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with no approval record, a Member entity and a Loan entity whose fields include a reference to Member, a reference to an enum, a decimal, a boolean and a list; specarch-gen-register built from this repository on PATH"
+when: "generate register is run with --unapproved"
+then: "it writes, per entity, the CSV header row of its fields' titles, the instructions CSV with each column's type word, whether it is required, its sensitivity, its allowed values and its description, and a workbook with both sheets whose title carries the draft notice, warns that the list field is no column, and exits 0"
+verifies: [SA-113]

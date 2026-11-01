@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: red
+given: "a repository holding a CSV file with a quote that is not closed"
+when: "extract tables is run on it"
+then: "it refuses the file with status 1, naming the line and what RFC 4180 asks of a quoted field, and writes nothing"
+verifies: [SA-113]

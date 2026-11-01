@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a CSV register with an empty header cell, two headers that give one field name, and a row with one value more than the header has columns"
+when: "extract tables is run on the file"
+then: "it writes the entity with the columns that name a field, leaves out the column with no header and the second of the two of one name, each under a must question, asks about the value beyond the header at the entity, and exits 0"
+verifies: [SA-113]

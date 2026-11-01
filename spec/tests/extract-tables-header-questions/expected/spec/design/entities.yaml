@@ -1,0 +1,53 @@
+entities:
+  Loans:
+    type: object
+    properties:
+      loanId: {title: Loan ID, type: integer, format: int32}
+      member: {title: Member, type: string}
+      copies: {title: Copies, type: integer, format: int32}
+    required: [loanId, member, copies]
+    origin: inferred
+    why: 'Inferred from the values of loans.csv: loanId integer, 3 values, no blank, all distinct, column A; member text, 3 values, no blank, all distinct, column C; copies integer, 3 values, no blank, column E.'
+    cites:
+      - {source: loans, clause: 'A1:E4', says: 'A register of 3 rows with the columns Loan ID, , Member, member, Copies.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Column B of loans.csv has no header; what is the field? Its 3 values are left out. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Column B of loans.csv has no header; what is the field? Its 3 values are left out.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties']
+    decidedBy: system-owner
+    why: A field is named by its header, in camelCase, and a header with no letter in it names none.
+    cites:
+      - {source: loans, clause: 'B1:B4', says: 'The column : 3 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Columns C and D of loans.csv are headed "Member" and "member", which both give the field name member; the second is left out. What is it? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Columns C and D of loans.csv are headed "Member" and "member", which both give the field name member; the second is left out. What is it?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/member']
+    decidedBy: system-owner
+    why: Two columns of one name would be one field, so the reader keeps the first and asks about the second.
+    cites:
+      - {source: loans, clause: 'D1:D4', says: 'The column member: 3 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Row 2 of loans.csv holds 1 value beyond the 5 columns of the header ("extra" at F2); what is it? It is left out. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: Row 2 of loans.csv holds 1 value beyond the 5 columns of the header ("extra" at F2); what is it? It is left out.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans']
+    decidedBy: system-owner
+    why: A value under no header names no field, and the reader does not guess which it belongs to.
+    cites:
+      - {source: loans, clause: 'A1:E4', says: 'A register of 3 rows with the columns Loan ID, , Member, member, Copies.'}
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId, member. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: 'Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId, member.'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/primaryKey']
+    decidedBy: system-owner
+    why: A register does not say which of its columns identify a record; the candidates are the required columns whose values are all distinct.
+    cites:
+      - {source: loans, clause: 'A1:E4', says: 'A register of 3 rows with the columns Loan ID, , Member, member, Copies.'}

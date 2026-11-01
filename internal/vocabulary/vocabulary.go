@@ -37,15 +37,20 @@ const (
 	Sensitivity = "sensitivity"
 	Description = "description"
 	RowNumber   = "rowNumber"
+	Values      = "values"
 )
 
 // The closed sets a vocabulary maps its words to.
 var (
 	commitmentKeys  = []string{"must", "should"}
-	headerKeys      = []string{Field, Type, Required, Sensitivity, Description, RowNumber}
+	headerKeys      = []string{Field, Type, Required, Sensitivity, Description, RowNumber, Values}
 	sensitivityKeys = []string{"public", "internal", "personal", "credential"}
-	typeKeys        = []string{"string", "date", "dateTime", "boolean", "email"}
-	topKeys         = []string{"specarchVocabulary", "language", "description", "commitments", "frequencies", "timeLimits", "pronouns",
+	typeKeys        = []string{"string", "date", "dateTime", "boolean", "email", "integer", "decimal"}
+	// optionalKeys are the keys a group may leave out, read as an empty
+	// list: those added after the format's first version, so that a
+	// vocabulary written before them reads as it did.
+	optionalKeys = map[string]bool{Values: true, "integer": true, "decimal": true}
+	topKeys      = []string{"specarchVocabulary", "language", "description", "commitments", "frequencies", "timeLimits", "pronouns",
 		"linkingVerbs", "leadingWords", "numbers", "units", "timeSeparators", "headers", "yes", "sensitivities", "types"}
 )
 
@@ -121,7 +126,7 @@ func Read(path string) (*Vocabulary, error) {
 
 // Format is the keys a vocabulary file holds, for the message that
 // refuses a language with no vocabulary.
-const Format = `specarchVocabulary: "1.0.0", language (the tag), description, commitments (must and should), frequencies, timeLimits, pronouns, linkingVerbs, leadingWords, numbers (word: value), units (word: ISO 8601 duration), timeSeparators, headers (field, type, required, sensitivity, description and rowNumber), yes, sensitivities (public, internal, personal and credential) and types (string, date, dateTime, boolean and email); docs/vocabularies.md has the English file as the example`
+const Format = `specarchVocabulary: "1.0.0", language (the tag), description, commitments (must and should), frequencies, timeLimits, pronouns, linkingVerbs, leadingWords, numbers (word: value), units (word: ISO 8601 duration), timeSeparators, headers (field, type, required, sensitivity, description, rowNumber and values), yes, sensitivities (public, internal, personal and credential) and types (string, date, dateTime, boolean, email, integer and decimal); docs/vocabularies.md has the English file as the example`
 
 // Parse checks a vocabulary: every key present and no other, every word
 // given once, and no word in two lists of one group, since that word
@@ -201,7 +206,7 @@ func (p *parser) fail(n *yaml.Node, format string, args ...any) {
 }
 
 // mapping is a mapping's values by key: every one of keys must be there,
-// and no other.
+// but the optional ones, and no other.
 func (p *parser) mapping(n *yaml.Node, what string, keys []string) map[string]*yaml.Node {
 	out := map[string]*yaml.Node{}
 	if n == nil {
@@ -225,7 +230,7 @@ func (p *parser) mapping(n *yaml.Node, what string, keys []string) map[string]*y
 	}
 	var missing []string
 	for _, k := range keys {
-		if out[k] == nil {
+		if out[k] == nil && !optionalKeys[k] {
 			missing = append(missing, k)
 		}
 	}

@@ -1,0 +1,153 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-215:
+    title: extract tables reads CSV, TSV and Excel registers into entities whose fields are inferred from every value of every file and stated by a template and its instructions, asks where the values do not settle a thing, and check and generate register close the loop on a filled file
+    status: proposed
+    date: "2026-11-01"
+    context: |
+      Many systems keep their data model in registers, spreadsheets with
+      a header row and a record per row, long before any database holds
+      it: a compliance records repository keeps its registers beside the
+      controlled documents and the evidence, one file per period or per
+      source, each filled from a template whose instructions sheet says
+      what every column holds. extract documents read a workbook (ADR-212)
+      for its text and its tables of fields, and SpecArch could read a
+      register only as a could question naming its header.
+
+      A register says more than its header: the values give each
+      column's type, whether it is ever blank, which columns identify a
+      row and which hold a closed set of values. They also disagree,
+      between files of one register and between a filled file and its
+      template, and a reader that chose one side by itself would write
+      a guess into the design (docs/principles.md).
+    decision: |
+      A new source of extract, tables, beside documents: one or more
+      CSV, TSV or Excel files, each file a document source cited as a
+      spreadsheet program shows it (C17, Loans!C17, a column as C1:C13),
+      and each register an entity. A worksheet's table is its first
+      rectangle of touching cells; a CSV or TSV file is one table. A
+      register is named by its sheet or its file's name in PascalCase,
+      --entity names the one register every file belongs to, and a
+      template's sheet names it; the files of one register give one
+      entity with the union of their columns, citing each file.
+
+      The types are inferred from every value of every file, by rules
+      the design of extract states: whole numbers integer, int32 when
+      every value fits and else carried as text in int64; numbers with
+      a point decimal with the widest value's precision and scale; ISO
+      8601 dates and date-times, a workbook's date cells, true and
+      false and a workbook's boolean cells, email addresses and UUIDs by
+      their form; a text column of at most ten distinct values, fewer
+      than half as many as its values, an enum of them; everything else
+      text, a leading zero included. The field has no origin of its own
+      in the meta-model, so the entity carries origin inferred, its why
+      says what each column's values gave, column by column, and its
+      cites name each file's table. A column whose values read as two
+      kinds is kept as a string with a must question at its type citing
+      the cells of the rarer kinds, as merge keeps a type the trees
+      disagree on (ADR-122), since a field is not read without one; a
+      column of dates that read two ways, and one with no value, are
+      the same. Required is a column with no blank; a column some files
+      leave blank is left out of required with a should question, a
+      column some files lack is kept with a must question, a value of an
+      enum only some files hold stays with a should question, and the
+      primary key is a must question listing the candidates, the
+      required columns whose values are all distinct.
+
+      A template, --template, is a file holding the header row alone, or
+      a workbook holding that sheet and an instructions sheet: a table
+      of fields, as extract documents reads one, with a Values column
+      for the allowed values. The instructions may also come as a file,
+      --instructions, or as a sheet of a data workbook, known by the
+      vocabulary's Field word in its first cell. With either, the
+      entity's fields are stated, citing the template and the
+      instructions, with the type word, whether it is required, the
+      sensitivity, the description and the allowed values each row
+      gives, and the filled files are checked against them: a column the
+      template lacks, a column the file lacks, a blank in a required
+      column, a value outside the allowed values and a value not of the
+      stated type are must questions citing the cells. The vocabulary
+      gains the header key values and the type keys integer and
+      decimal, each optional, so a vocabulary written before them reads
+      as it did; extract documents reads them in a table of fields too,
+      integer as int32 and decimal as a must question for its precision
+      and scale.
+
+      A CSV or TSV file is read as RFC 4180 writes it (encoding/csv),
+      in UTF-8 with or without a byte order mark and with LF or CRLF
+      line ends; the delimiter is detected, the one of comma, semicolon,
+      tab and bar that the most records hold the same number of times,
+      outside quotes, as the header record does, and then the most often,
+      so a ragged row does not hide it, a tab for .tsv and .tab; a line
+      names the dialect read. A file that is not UTF-8, one with lone CR
+      line ends, two delimiters that fit equally and a quote not closed
+      are refused with the reason. Excel is read by internal/xlsx, the
+      workbook reader of ADR-212.
+
+      specarch check takes a register file, known by its extension, and
+      compares it with the entity of its name: a column no field has, a
+      field the file lacks (a report when it is not required), a blank in
+      a required column, a value outside the field's enum and a value
+      not of its type, each at the cell, under the rules register_*.
+      specarch generate register, the plug-in specarch-gen-register,
+      writes each entity's template: the header row as CSV, the
+      instructions as CSV in the English vocabulary's words, and a
+      workbook holding both as the sheets <Entity> and Instructions,
+      the primary key's fields first and the others by name; a field
+      that holds a list or an object is no column and is named in a
+      warning. A plug-in answers a file that is not text with its bytes
+      in base64 under encoding, which generate decodes and --check
+      compares byte for byte.
+    consequences: |
+      A register enters the specification as an entity a reviewer
+      corrects rather than writes: the types, the required list and the
+      candidate keys come from the data, every doubt is a question at the
+      field it concerns, and every citation names a cell or a column a
+      person finds in the file. A register template written by generate
+      register is read back by extract tables, so a project that starts
+      from entities and one that starts from registers meet in the same
+      files. The inference rules are fixed numbers (ten distinct values,
+      fewer than half; int32's range) stated in the design, so the same
+      files give the same tree, and a rule that fits a project badly is
+      changed in the design, not guessed around. A column read as an
+      enum from few values asks whether the list is closed, so a small
+      register never fixes a set by accident. No dependency is added:
+      encoding/csv and the workbook reader the program already holds.
+      A register with a column of a type the rules do not name (a
+      duration, a time of day) is read as text, with no question, since
+      text holds it; naming more forms is a later change to the rules.
+    why: |
+      Every value, not the first: a column typed by its first row is a
+      guess the next row breaks, and a reader that reads them all can
+      say which rows disagree. The thresholds for an enum are fixed and
+      written down because any inference needs a line somewhere, and a
+      line in the design is reviewed where one in the code is not; the
+      should question on every inferred enum is what keeps the line from
+      becoming a decision. A mixed column keeps the field as a string,
+      rather than leaving it out as the documents reader leaves out a
+      field of an unknown type, because the column exists for certain
+      and only its type is in doubt, and a template or a check written
+      without the column would be wrong; ADR-122 took the same way for
+      merge. The entity carries the origin and the evidence because the
+      meta-model gives a field none, and adding one would change both
+      validators and every schema for a reader's convenience. Several
+      files are one entity because a register kept per period is one
+      register, and a reader that wrote one entity per file would leave
+      the merge to the reviewer with no help from the data. A template
+      names its register because the template is the stated thing and a
+      period file's name is not. The vocabulary's new keys are optional
+      because a project's vocabulary file is data the project owns, and
+      a required key would refuse every file written before this item.
+      The generator is a plug-in like every code target (ADR-013), with
+      the workbook in base64 since the answer is JSON text and a zip is
+      not. check reads the register without a commit because a data file
+      names none and a filled register is compared as it is on disk.
+    cites:
+      - source: rfc-4180
+        clause: "2"
+        says: "Definition of the CSV format: records separated by CRLF, fields by commas, fields holding line breaks, double quotes or commas enclosed in double quotes with a double quote inside doubled."
+      - source: iso-29500
+        clause: "Part 1, 18.3"
+        says: "Worksheets: the cells of a sheet with their references, types and styles, from which a date is a number under a date format."
+    satisfies: [SA-113]
+    restsOn: [ADR-212, ADR-122, ADR-105]

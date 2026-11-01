@@ -66,10 +66,13 @@ type Region struct {
 	Rows                                       [][]string
 }
 
-// Range is the region's reference as a formula names it, Sheet!A1:C4, with
-// the sheet's name quoted when it holds anything but letters, digits and
-// underscores.
+// Range is the region's reference as a formula names it, Sheet!A1:C4, or
+// Sheet!B2 for one cell, with the sheet's name quoted when it holds
+// anything but letters, digits and underscores.
 func (r Region) Range() string {
+	if r.FirstRow == r.LastRow && r.FirstColumn == r.LastColumn {
+		return SheetRef(r.Sheet) + "!" + Ref(r.FirstRow, r.FirstColumn)
+	}
 	return SheetRef(r.Sheet) + "!" + Ref(r.FirstRow, r.FirstColumn) + ":" + Ref(r.LastRow, r.LastColumn)
 }
 

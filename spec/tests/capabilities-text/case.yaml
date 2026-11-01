@@ -41,7 +41,8 @@ standardOutput: |
         Write a document from a specification.
     specarch extract <source> --out <out> [--implementation <implementation>]
       [--facts <facts>] [--routes <routes>] [--language <language>]
-      [--vocabulary <vocabulary>] [--given-outside]
+      [--vocabulary <vocabulary>] [--given-outside] [--entity <entity>]
+      [--template <template>] [--instructions <instructions>]
       [--implementation-out <implementation-out>] [--table]
       [--source-key <source-key>] [--dry-run] <paths>...
         Write a specification from existing code or documents.
@@ -89,8 +90,9 @@ standardOutput: |
   Document targets: techspec, requirements, testplan, traceability,
     deployment, commissioning, handover, questions, problems, comparison,
     changes, releases, html, manual, operations
-  Extract sources: outline, database, router, documents, openapi, permissions,
-    pages, workflows, gateway, systemd, go, swift, javascript, dart
+  Extract sources: outline, database, router, documents, tables, openapi,
+    permissions, pages, workflows, gateway, systemd, go, swift, javascript,
+    dart
 
   Plug-ins found on PATH
     none: put the specarch-gen-<target> executables on PATH to generate code.

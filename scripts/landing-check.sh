@@ -50,7 +50,7 @@ build_specarch() {
 
 build_tools() {
 	build_specarch || return 1
-	for generator in sql sqlc openapi ui ui-typescript ui-swiftui bpmn; do
+	for generator in sql sqlc openapi ui ui-typescript ui-swiftui bpmn register; do
 		go build -o "$bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || return 1
 	done
 }

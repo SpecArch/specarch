@@ -70,6 +70,7 @@ var tableTypes = map[string][]any{
 	"dateTime": {"type", "string", "format", "date-time"},
 	"boolean":  {"type", "boolean"},
 	"email":    {"type", "string", "format", "email"},
+	"integer":  {"type", "integer", "format", "int32"},
 }
 
 // docClause is one clause of the document's outline: a heading, or a
@@ -557,8 +558,8 @@ func (d *docReader) readTables() {
 			known = known && header[i] != "" && header[i] != vocabulary.RowNumber
 		}
 		if !known || t.clause == nil {
-			d.gap(t.clause, t.place, "entities", "the table at %s, headed %s: only a table whose first column is %s, and whose others are %s, %s, %s or %s, is read", t.place, strings.Join(t.header, " | "),
-				v.HeaderWord(vocabulary.Field), v.HeaderWord(vocabulary.Type), v.HeaderWord(vocabulary.Required), v.HeaderWord(vocabulary.Sensitivity), v.HeaderWord(vocabulary.Description))
+			d.gap(t.clause, t.place, "entities", "the table at %s, headed %s: only a table whose first column is %s, and whose others are %s, %s, %s, %s or %s, is read; a register, a table of records under a header row, is read by extract tables", t.place, strings.Join(t.header, " | "),
+				v.HeaderWord(vocabulary.Field), v.HeaderWord(vocabulary.Type), v.HeaderWord(vocabulary.Required), v.HeaderWord(vocabulary.Sensitivity), v.HeaderWord(vocabulary.Description), v.HeaderWord(vocabulary.Values))
 			continue
 		}
 		d.counts.known++
@@ -569,7 +570,7 @@ func (d *docReader) readTables() {
 			continue
 		}
 		props := &yaml.Node{Kind: yaml.MappingNode}
-		var required, unknown []string
+		var required, unknown, decimals []string
 		for _, row := range t.rows {
 			col := map[string]string{}
 			for i, h := range header {
@@ -582,10 +583,17 @@ func (d *docReader) readTables() {
 				continue
 			}
 			f := &yaml.Node{Kind: yaml.MappingNode}
-			if tt, ok := tableTypes[vocabulary.Key(v.Types, col["type"])]; ok {
+			typeKey := vocabulary.Key(v.Types, col["type"])
+			if tt, ok := tableTypes[typeKey]; ok {
 				for i := 0; i < len(tt); i += 2 {
 					set(f, tt[i].(string), tt[i+1])
 				}
+			} else if typeKey == "decimal" {
+				// A decimal is written with its precision and scale, which
+				// the table does not give: the field is kept as a string
+				// and asked about.
+				set(f, "type", "string")
+				decimals = append(decimals, field)
 			} else {
 				d.gap(t.clause, t.place, "#/entities/"+name, "field %s of %s, at %s, of type %q: the meta-model holds no type for it; left out", col["field"], name, t.place, col["type"])
 				continue
@@ -599,6 +607,9 @@ func (d *docReader) readTables() {
 			}
 			if desc := col["description"]; desc != "" {
 				set(f, "description", desc)
+			}
+			if vals := col[vocabulary.Values]; vals != "" {
+				set(f, "enum", splitValues(vals))
 			}
 			set(props, field, flow(f))
 			if vocabulary.Has(v.Yes, col["required"]) {
@@ -619,6 +630,10 @@ func (d *docReader) readTables() {
 		set(d.entities, name, e)
 		d.question(fmt.Sprintf("Which fields identify one %s, its primary key?", name), "must", []string{"#/entities/" + name + "/primaryKey"},
 			"A table of fields does not say which of them identify a record.", nil)
+		for _, f := range decimals {
+			d.question(fmt.Sprintf("The table gives %s of %s the type decimal; which precision and scale? The field is kept as a string until decided.", f, name), "must", []string{"#/entities/" + name + "/properties/" + f + "/type"},
+				"A decimal is written with its precision and scale, which a type word alone does not give.", nil)
+		}
 		if len(unknown) > 0 {
 			var blocks []string
 			for _, f := range unknown {

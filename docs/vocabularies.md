@@ -39,13 +39,15 @@ longer one is not found.
 | `numbers` | each number word and its whole value | a commitment; merge's number of days |
 | `units` | each unit word and the ISO 8601 duration it stands for | merge: a unit of whole days, such as P1D or P7D, gives a number of days |
 | `timeSeparators` | the characters between hour and minute | a time of day, such as 9:00 or 9.00, is a commitment |
-| `headers` | `field`, `type`, `required`, `sensitivity`, `description` and `rowNumber`, each a list | a table whose first column is a field word and whose others are the other four is a table of fields; a leading row-number column is skipped in every table |
+| `headers` | `field`, `type`, `required`, `sensitivity`, `description`, `rowNumber` and `values`, each a list | a table whose first column is a field word and whose others are the other four, or the values word, is a table of fields; a leading row-number column is skipped in every table; the values column holds a field's allowed values, which `extract tables` reads from a register's instructions |
 | `yes` | the words of a Required column that mean required | the field is required |
 | `sensitivities` | `public`, `internal`, `personal` and `credential`, each a list | a Sensitivity column; a sentence that names a field and holds a personal or credential word gives its sensitivity |
-| `types` | `string`, `date`, `dateTime`, `boolean` and `email`, each a list | a Type column; a type with no word is left for a question |
+| `types` | `string`, `date`, `dateTime`, `boolean`, `email`, `integer` and `decimal`, each a list | a Type column; a type with no word is left for a question |
 
-The file is checked when it is read, and refused with its line when a key
-is missing or unknown, a number is not a whole number, a unit is not an
+`headers.values`, `types.integer` and `types.decimal` came after the
+format's first version and may be left out, which reads as an empty list.
+The file is checked when it is read, and refused with its line when any
+other key is missing or a key is unknown, a number is not a whole number, a unit is not an
 ISO 8601 duration, the tag is not a language tag, a word is twice in one
 list, or a word is in two lists of one group: two priorities, two
 headers, two sensitivities or two types. A word may be in two groups:

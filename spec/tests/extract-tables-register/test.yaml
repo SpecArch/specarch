@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a CSV register written with a byte order mark, CRLF line ends and semicolons: twelve loans with a number, a member's email, a count, a due date, a status of three values and a fee"
+when: "extract tables is run on the file"
+then: "it names the dialect, writes one entity whose fields are the columns with their types inferred (integer, email, date, enum, decimal), every column required, a must question for the primary key naming the one candidate and a should question asking whether the enum is closed, each citing the column, and exits 0"
+verifies: [SA-113]

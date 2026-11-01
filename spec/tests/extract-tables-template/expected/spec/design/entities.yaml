@@ -1,0 +1,83 @@
+entities:
+  Loans:
+    type: object
+    properties:
+      loanId:
+        title: Loan ID
+        type: integer
+        format: int32
+        description: The number the desk gives each loan.
+        sensitivity: internal
+      member: {title: Member, type: string, description: 'The member''s number, as on the card.', sensitivity: personal}
+      copies: {title: Copies, type: integer, format: int32, description: How many copies were lent.}
+      dueDate: {title: Due date, type: string, format: date, description: The day the copies are due back.}
+      status: {title: Status, type: string, enum: [open, closed], description: Whether the loan is still out.}
+      fee:
+        title: Fee
+        type: string
+        format: decimal
+        precision: 3
+        scale: 2
+        description: The late fee charged, in euros.
+      notes: {title: Notes, type: string}
+    required: [loanId, member, copies, dueDate, status]
+    origin: stated
+    why: 'The fields are the columns of the template loans-template.xlsx and the rules of the instructions at Instructions!A1:F7 of loans-template.xlsx; what they do not give is inferred from the values of loans-2026-q3.csv: loanId integer as the instructions say, 6 values, no blank, all distinct, column A; member text as the instructions say, 6 values, no blank, column B; copies integer as the instructions say, 6 values, no blank, column C; dueDate date as the instructions say, 5 values, 1 blank, all distinct, column D; status text as the instructions say, 6 values, no blank, column E; fee decimal of precision 3 and scale 2 as the instructions say, 6 values, no blank, column F; notes text, 1 value, 5 blanks, column G.'
+    cites:
+      - {source: loans-template, clause: 'Instructions!A1:F7', says: 'A table of the fields: Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-template, clause: 'Loans!A1:F1', says: 'The header row: Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-2026-q3, clause: 'A1:G7', says: 'A register of 6 rows with the columns Loan ID, Member, Copies, Due date, Status, Fee, Notes.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) The instructions give copies of Loans the type integer, and 1 value does not read as it: "two" at C5. Is the type wrong, or the values? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'The instructions give copies of Loans the type integer, and 1 value does not read as it: "two" at C5. Is the type wrong, or the values?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/copies/type']
+    decidedBy: system-owner
+    why: A value that does not read as the stated type is either a wrong value or a wrong rule, and the reader does not choose.
+    cites:
+      - {source: loans-template, clause: 'Instructions!A1:F7', says: 'A table of the fields: Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-2026-q3, clause: 'C1:C7', says: 'The column Copies: 6 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) The instructions require dueDate of Loans, and the file loans-2026-q3.csv leaves it blank at D4; are those records incomplete, or is the field optional? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: The instructions require dueDate of Loans, and the file loans-2026-q3.csv leaves it blank at D4; are those records incomplete, or is the field optional?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/required']
+    decidedBy: system-owner
+    why: A blank in a required column is either an incomplete record or a rule to take out, and the reader does not choose.
+    cites:
+      - {source: loans-template, clause: 'Instructions!A1:F7', says: 'A table of the fields: Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-2026-q3, clause: 'D1:D7', says: 'The column Due date: 5 values and 1 blank.'}
+  # specarch-problem: question: open_question: (must, decision) The instructions allow "open" and "closed" for status of Loans, and 1 value is outside them: "overdue" at E5. Is the list incomplete, or are the values wrong? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'The instructions allow "open" and "closed" for status of Loans, and 1 value is outside them: "overdue" at E5. Is the list incomplete, or are the values wrong?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/status/enum']
+    decidedBy: system-owner
+    why: A value outside the allowed values is either a wrong value or an incomplete list, and the reader does not choose.
+    cites:
+      - {source: loans-template, clause: 'Instructions!A1:F7', says: 'A table of the fields: Loan ID, Member, Copies, Due date, Status, Fee.'}
+      - {source: loans-2026-q3, clause: 'E1:E7', says: 'The column Status: 6 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Is notes a column of Loans? loans-2026-q3.csv (column G) has it, and the template loans-template.xlsx does not. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Is notes a column of Loans? loans-2026-q3.csv (column G) has it, and the template loans-template.xlsx does not.
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/notes']
+    decidedBy: system-owner
+    why: A column the template lacks is either a column added since or a mistake, and the reader keeps it and asks.
+    cites:
+      - {source: loans-2026-q3, clause: 'G1:G7', says: 'The column Notes: 1 value and 5 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: 'Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId.'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/primaryKey']
+    decidedBy: system-owner
+    why: A register does not say which of its columns identify a record; the candidates are the required columns whose values are all distinct.
+    cites:
+      - {source: loans-2026-q3, clause: 'A1:G7', says: 'A register of 6 rows with the columns Loan ID, Member, Copies, Due date, Status, Fee, Notes.'}

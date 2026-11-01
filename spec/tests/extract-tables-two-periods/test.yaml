@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding two period files of one register, the second with a column the first lacks, blanks in a column the first fills, and a status value the first does not hold"
+when: "extract tables is run on both with --entity Loan"
+then: "it writes one entity citing both files, with the column only the second has kept under a must question, the column with blanks left out of required under a should question, the new status value kept in the enum under a should question, and exits 0"
+verifies: [SA-113]

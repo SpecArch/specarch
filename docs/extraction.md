@@ -42,6 +42,7 @@ spec first.
 | pages | the schema objects the component library renders from | read them as data |
 | algorithms | the code, with the numbers from an existing test or a real record | the record becomes the first worked example |
 | processes | the unit file the service manager runs, such as a systemd `.service` and its `.timer` | `specarch extract systemd`; what the unit leaves to the host's defaults is asked |
+| registers | the CSV, TSV or Excel files people fill in, one per period or per source, and the template with its instructions sheet | `specarch extract tables`; the types come from every value of every file, the fields from the template and the instructions, and what they do not settle is asked |
 | decisions | commit history, review threads, chat | the only surface that is written by hand |
 
 Where a surface has no reader yet, extraction is a manual method with this
@@ -50,7 +51,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` and `dart`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` and `dart`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -688,6 +689,31 @@ changes `extract.yaml` first.
     `extract-go-handlers-changed`, `validate-handler-source` and
     `document-techspec-handler`. Left out: a nil or empty value used
     without a check, which needs types the reader does not have.
+
+23. Built. Registers, `extract tables` (ADR-215, SA-113): CSV, TSV and
+    Excel files, each a header row and a record per row, read into one
+    entity per register with the files of one register joined, one per
+    period or per source. Each column's type is inferred from every value
+    of every file (integer, decimal with its precision and scale, date,
+    date-time, boolean, email, UUID, an enum of few distinct values, else
+    text), a column with no blank is required, and the candidate keys are
+    listed in the primary key question; a column whose values read as two
+    kinds, one some files lack, one some files leave blank and a value of
+    an enum only some files hold are questions citing the cells, as a
+    spreadsheet program names them. A template (`--template`, the header
+    row, with an instructions sheet) or the instructions alone
+    (`--instructions`, a table of fields with the allowed values) state
+    the fields, and the filled files are checked against them, each
+    difference a must question. The CSV dialect (byte order mark, line
+    ends, delimiter, quoting) is detected and named. `specarch check`
+    compares a register file with its entity, and `specarch generate
+    register` writes an entity's template, CSV and workbook, that
+    `extract tables` reads back. Cases `spec/tests/extract-tables-register`,
+    `-mixed-column`, `-two-periods`, `-template`, `-quote-not-closed`,
+    `check-register` and `generate-register`. Left out: a register whose
+    header is not its first row, a column of a form the rules do not name
+    (a duration, a time of day), which is read as text, and the words of
+    the instructions in another language, which a vocabulary file gives.
 
 An estate of many modules, read from an umbrella repository by a team
 that may not commit to the code, asked for dumps committed outside the

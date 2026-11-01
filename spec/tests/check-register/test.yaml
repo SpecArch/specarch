@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: check
+level: system
+scenario: red
+given: "a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, a blank in a required column, a status outside the enum and a fee that is not a decimal"
+when: "specarch check is run on the specification and the register"
+then: "it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum and the value not of the type each at its cell, and exits 1"
+verifies: [SA-113]

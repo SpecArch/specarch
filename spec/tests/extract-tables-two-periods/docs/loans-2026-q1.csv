@@ -1,0 +1,13 @@
+﻿Loan ID;Member;Copies;Due date;Status;Fee
+1;alice@example.org;2;2026-01-15;open;0.50
+2;bob@example.org;1;2026-01-20;closed;0
+3;carol@example.org;3;2026-02-01;open;1.25
+4;dan@example.org;1;2026-02-03;overdue;2.00
+5;erin@example.org;2;2026-02-10;open;0
+6;frank@example.org;1;2026-02-12;closed;0
+7;alice@example.org;1;2026-02-20;open;0.75
+8;grace@example.org;2;2026-02-25;closed;0
+9;heidi@example.org;1;2026-03-01;open;0
+10;ivan@example.org;4;2026-03-05;overdue;3.50
+11;judy@example.org;1;2026-03-10;open;0
+12;bob@example.org;2;2026-03-15;closed;0

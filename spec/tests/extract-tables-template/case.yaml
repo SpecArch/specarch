@@ -1,0 +1,16 @@
+arguments: [extract, tables, --template, docs/loans-template.xlsx, --out, spec, docs/loans-2026-q3.csv]
+repository:
+  folder: docs
+  commits:
+    - [loans-template.xlsx, loans-2026-q3.csv]
+exitStatus: 0
+standardOutput: |
+  commit 366556749d0f86e581ee76f9afd383e295303702: the last change to loans-2026-q3.csv, loans-template.xlsx
+  dialect loans-2026-q3.csv: UTF-8, LF line ends, delimiter ',', no quoted field
+  workbook loans-template.xlsx: Loans a register of 0 rows, Instructions a table of fields of 6 rows
+  counted 1 file, 1 table, 6 rows and 7 columns: every file given, every register sheet or file as a table, its first row the header and every other row a record, and every header that names a field as a column, once per register
+  template loans-template.xlsx: the header row at Loans!A1:F1, 6 columns
+  instructions loans-template.xlsx: the table of fields at Instructions!A1:F7, 6 fields
+  entity Loans: 7 fields from 6 rows in loans-2026-q3.csv; candidate keys loanId
+  wrote 1 entity and 5 questions: one per entity's primary key, one per column whose values do not settle its type, whether it is required or its values, or that some files or the template lack, one per header that names no field, and one per thing the files hold that is not read
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

@@ -21,6 +21,9 @@ type notHeld struct {
 	// question, and no could question is written. When no question blocks
 	// the pointer, a could question is written as for any other.
 	asked string
+	// source is the key of the source the citation names, for a reader
+	// that writes more than one source; "" for the reader's own key.
+	source string
 }
 
 // notHeldWhy is the why of every could question a reader asks for what it
@@ -47,6 +50,10 @@ func askNotHeld(res *Result, into questionsFor, next *int, key string, items []n
 		}
 		*next++
 		id := fmt.Sprintf("Q-%d", *next)
+		source := key
+		if h.source != "" {
+			source = h.source
+		}
 		set(questions, id, mapping(
 			"question", notHeldQuestion(h.text),
 			"kind", "decision",
@@ -54,7 +61,7 @@ func askNotHeld(res *Result, into questionsFor, next *int, key string, items []n
 			"blocks", h.blocks,
 			"decidedBy", owner,
 			"why", notHeldWhy,
-			"cites", []*yaml.Node{citation(key, h.clause, notHeldSays(strings.TrimPrefix(h.text, h.clause+": ")))},
+			"cites", []*yaml.Node{citation(source, h.clause, notHeldSays(strings.TrimPrefix(h.text, h.clause+": ")))},
 		))
 		res.say("not held: %s; could question %s", h.text, id)
 	}

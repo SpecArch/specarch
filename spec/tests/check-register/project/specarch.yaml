@@ -1,0 +1,16 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+enums:
+  LoanStatus: { type: string, enum: [open, closed] }
+entities:
+  Loan:
+    type: object
+    properties:
+      loanId: { title: Loan ID, type: integer, format: int32 }
+      member: { title: Member, type: string, format: email }
+      dueDate: { title: Due date, type: string, format: date }
+      status: { title: Status, $ref: "#/enums/LoanStatus" }
+      fee: { title: Fee, type: string, format: decimal, precision: 5, scale: 2 }
+      note: { title: Note, type: string }
+    required: [loanId, member, dueDate, status]
+    primaryKey: [loanId]

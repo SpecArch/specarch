@@ -87,15 +87,17 @@ commands:
         capitals: must, or should for should, accepted, and its kind a
         must question. A commitment whose subject is only it, they, this
         or the like is a must question, never a guess. A table whose first
-        column is Field, and whose others are Type, Required, Sensitivity
-        or Description, gives the fields of an entity named after its
+        column is Field, and whose others are Type, Required, Sensitivity,
+        Description or Values, gives the fields of an entity named after its
         section's heading in PascalCase, each in camelCase, with the type
         when it is text, string, date, date-time, timestamp, boolean,
-        yes/no or email, and the sensitivity from its column or from the
+        yes/no, email or integer (int32), a decimal as a string with a
+        must question for its precision and scale, the allowed values of
+        a Values cell as its enum, and the sensitivity from its column or from the
         one sentence that names the field and calls it personal or a
         credential; the primary key is a must question, and a sensitivity
         the document does not give a should question. A field of any other
-        type, any other table and fenced code each print a line. A leading
+        type, any other table (a register is read by `tables`) and fenced code each print a line. A leading
         column headed with the row-number word (`#` or `No.`) is skipped in
         every table. The words named here are the English vocabulary's
         (`docs/vocabularies.md`): `--language` names a language SpecArch
@@ -136,6 +138,89 @@ commands:
         name numbered (`message "Loan limits" 2`), and quoted lines, the signature and any other attachment
         each print a line. Every line names its place and is a could
         question.
+      - `tables`: one or more data files, CSV (`.csv`), TSV (`.tsv`,
+        `.tab`) or Excel (`.xlsx`, through the workbook reader of
+        `documents`), each a register: a header row and a record per row,
+        as a records repository keeps one (ADR-215). Each file is a
+        document source under its key (its name in kebab-case without
+        the extension; `--source-key` names a single file's), cited as a
+        spreadsheet program shows the file: its table's range and each
+        column a question cites as clauses (`A1:F13`, `C1:C13`; in a
+        workbook `Loans!A1:F13`), a cell as `C17` or `Loans!C17`. A
+        worksheet's table is its first rectangle of touching cells, its
+        first row the header; a worksheet whose first cell is the
+        vocabulary's Field word is a table of fields, the instructions,
+        and every other worksheet with a table is a register. A chart
+        sheet, a sheet with no cell, a hidden sheet and the cells outside
+        a sheet's table each print a line. A register is named by its
+        sheet, or for a CSV or TSV file by its file's name, in PascalCase;
+        `--entity` names the one register every file given belongs to,
+        and a template's sheet names it when no `--entity` is given. The
+        files of one register, one per period or per source, give one
+        entity with the union of their columns, citing each file's table.
+        A column is a field named by its header in camelCase, titled by
+        the header as written, its type inferred from every value of
+        every file and said column by column in the entity's `why`:
+        whole numbers are `integer` of format `int32` when every value
+        fits, else a string of format `int64`; numbers with a decimal
+        point, alone or with whole numbers, a string of format `decimal`
+        with the widest value's precision and scale; `YYYY-MM-DD` a date
+        and an ISO 8601 date-time a date-time, as is a workbook cell under
+        a date format; `true` and `false` in any case, and a workbook's
+        boolean cells, `boolean`; a value with one @ and a dot after it
+        `email`, and one in the form of a UUID `uuid`; a text column of at
+        most ten distinct values, fewer than half as many as its values,
+        an `enum` of them sorted, with a should question asking whether
+        the list is closed; any other column a string. A number with a
+        leading zero is text, a code. A column whose values do not all
+        read as one kind (mixed), one whose dates read as day-month or as
+        month-day, and one with no value, is a string with a must
+        question at its `type` citing the cells of the rarer kinds, five
+        at most, since a field is not read without a type (ADR-122). A
+        column with no blank in any file is required; one some files fill
+        and others leave blank is left out of `required` with a should
+        question naming them. A column some files lack is kept with a must
+        question naming the files that have it and those that lack it; a
+        value of an inferred enum only some files hold stays in the enum
+        with a should question. The primary key is a must question listing
+        the candidates, the required columns whose values are all distinct
+        across the files. A header that is empty, or that gives a name
+        another column of the table has, leaves its column out with a must
+        question; a row with more values than the header has columns is a
+        must question at the entity, and a shorter row is read with
+        blanks. With `--template` (a file holding the header row alone, or
+        a workbook with that sheet and the instructions sheet beside it)
+        or `--instructions` (a table of fields: Field, Type, Required,
+        Sensitivity, Description and Values, the allowed values separated
+        by `|`, `;`, `,` or a line break, each row naming a column by its
+        header), the fields are stated, citing the template and the
+        instructions, each with the description, the sensitivity, whether
+        it is required and the allowed values the instructions give and
+        the type their word gives (`text`, `date`, `date-time`, `boolean`,
+        `email`, `integer`, which is `int32`, or `decimal`, whose
+        precision and scale the values give, else a must question); a
+        type the instructions do not give is inferred as above. The
+        filled files are then checked against them: a column the template
+        lacks, a template or instructions column the file lacks, a blank
+        in a required column, a value outside the allowed values and a
+        value that does not read as the stated type are must questions
+        citing the cells, five at most. A template and instructions
+        apply to one register, so a run of several registers takes
+        neither. A CSV or TSV file is read as RFC 4180 writes it, in UTF-8
+        with or without a byte order mark, with LF or CRLF line ends; the
+        delimiter, a tab for `.tsv` and `.tab`, else the one of comma,
+        semicolon, tab and bar that the most records hold the same number
+        of times, outside quotes, as the header record does, and then the
+        most often, is detected, and a line names the dialect read. A
+        file that is not UTF-8, one with lone CR line ends, two
+        delimiters that fit equally, a quote not closed and a workbook
+        that does not parse are refused. A table of fields
+        found in a data workbook is the instructions as one given with
+        `--instructions` is; two such tables, two register sheets in a
+        template, and a template or instructions with no such table are
+        refused. The edition is the newest commit that last changed the
+        files, which must be in one repository. `--language` and
+        `--vocabulary` name the words as for documents.
       - `openapi`: one OpenAPI 3.0 or 3.1 document, in YAML or JSON, as
         one document source under `--source-key` (default as for
         documents), whose clauses are the JSON pointers of its operations
@@ -1673,11 +1758,11 @@ commands:
     permission: public
     arguments:
       - name: source
-        description: "The surface to read: `outline`, `database`, `router`, `documents`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`."
+        description: "The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`."
         required: true
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       - name: paths
-        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump."
+        description: "What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump."
         required: true
         repeatable: true
         schema: { type: string }
@@ -1696,14 +1781,23 @@ commands:
         description: For permissions, a route table of the same repository, made by tools/routes/dump-routes.sh, whose routes are written with the permission the permission table's rules give each.
         schema: { type: string }
       language:
-        description: For documents, the language the document is written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one.
+        description: For documents and tables, the language the document or the registers are written in, as a BCP 47 tag; the vocabulary SpecArch ships for it is read, or with --vocabulary the file's language must be this one.
         schema: { type: string, pattern: "^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$" }
       vocabulary:
-        description: For documents, a vocabulary file (docs/vocabularies.md) whose words the document is read by, for a language SpecArch ships none for or a project's own words.
+        description: For documents and tables, a vocabulary file (docs/vocabularies.md) whose words the document or the registers' instructions are read by, for a language SpecArch ships none for or a project's own words.
         schema: { type: string }
       given-outside:
         description: For documents, marks the source givenOutside, a document the system's owners gave to parties outside, so that merge gives its promises their priority.
         schema: { type: boolean, default: false }
+      entity:
+        description: For tables, the entity every file given is a register of, in PascalCase, in place of the name each file's sheet or file name gives.
+        schema: { type: string, pattern: "^[A-Z][A-Za-z0-9]*$" }
+      template:
+        description: "For tables, the register's template: a CSV, TSV or Excel file holding the header row alone, or a workbook holding that sheet and, beside it, the instructions as a table of fields; its columns are the fields, stated, and its sheet names the register when --entity is not given."
+        schema: { type: string }
+      instructions:
+        description: "For tables, the register's instructions: a CSV, TSV or Excel file holding a table of fields (Field, Type, Required, Sensitivity, Description and Values) whose rows state each column's type, whether it is required, its sensitivity, its description and its allowed values."
+        schema: { type: string }
       implementation-out:
         description: For database, go and gateway, a new YAML file the reader writes what it knows of the implementation into, an implementation fragment that is not a whole implementation file. For gateway, the deployment of the environment the table's addresses were resolved in, with a server per forwarded service and the value of each setting (ADR-142). For database, each entity's table as its target and its plain indexes, each citing the catalogue (ADR-121). For go, each operation's handler as its target and, under handler, the record of what it does, function by function with its steps and its source at the commit read (ADR-144). The mappings go into an implementation file of the specification under mappings.
         schema: { type: string }
@@ -1725,8 +1819,13 @@ commands:
       One line naming the commit read and the paths it was the last change
       to; one line per count, saying what was counted and how; one line per
       object the specification could not hold, naming it, saying why and
-      naming the question that asks about it; for documents with a
-      vocabulary named, one line naming its language and file; one line naming a dialect
+      naming the question that asks about it; for documents and tables with a
+      vocabulary named, one line naming its language and file; for tables, one line per CSV or TSV
+      file naming the dialect read (the encoding, the line ends, the
+      delimiter and whether fields are quoted), one per workbook naming
+      its sheets, one per template and per table of fields naming its
+      range, and one per entity naming its fields, rows, files and
+      candidate keys; one line naming a dialect
       the reader reads, or a document read as what the running system
       printed; one line per file that imports a library the reader knows
       and gives nothing it reads; one line per gate on a setting, naming
@@ -1759,10 +1858,10 @@ commands:
     standardError: A usage message on a usage error, and the reason a source could not be read.
     exitCodes:
       "0": the specification was written
-      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML"
-      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --language, --vocabulary or --given-outside given to a source other than documents, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
+      "1": "the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a data file given to tables that is not CSV, TSV or Excel by its extension, is not UTF-8, has lone CR line ends, two delimiters that fit equally or a quote not closed, does not parse as a workbook or holds no row, a register that gives no entity name, a template or instructions with no such table, two tables of fields, a template with two register sheets, or a template or instructions given to a run of several registers, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML"
+      "2": usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --given-outside given to a source other than documents, --language or --vocabulary given to a source other than documents or tables, --entity, --template or --instructions given to a source other than tables, an --entity that is no PascalCase name, --source-key given to tables with more than one file, two files of one name given to tables, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written
     remedies:
       "1": "Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-11, SA-44, SA-63, SA-64, SA-70, SA-76]
+    satisfies: [SA-11, SA-44, SA-63, SA-64, SA-70, SA-76, SA-110, SA-113]
     why: Existing systems enter SpecArch by extraction, so the verb exists from the start; it is built one reader at a time for the first real project that needs it, and every reader keeps the same rules so that the merge can trust their trees.

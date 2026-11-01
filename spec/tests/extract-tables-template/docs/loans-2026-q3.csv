@@ -1,0 +1,7 @@
+Loan ID,Member,Copies,Due date,Status,Fee,Notes
+31,m-104,1,2026-07-02,open,0,
+32,m-233,2,2026-07-05,closed,0.50,returned late
+33,m-310,1,,open,0,
+34,m-415,two,2026-07-12,overdue,1.00,
+35,m-104,1,2026-07-15,open,0,
+36,m-233,3,2026-07-20,closed,0,

@@ -56,6 +56,12 @@ var RuleFormats = map[string]string{
 	"forward_not_served":               GatewayTableDump,
 	"forward_not_specified":            GatewayTableDump,
 	"claim_differs":                    GatewayTableDump,
+	"register_not_specified":           RegisterDump,
+	"register_column_not_specified":    RegisterDump,
+	"register_column_missing":          RegisterDump,
+	"register_blank_required":          RegisterDump,
+	"register_value_not_in_enum":       RegisterDump,
+	"register_value_not_of_type":       RegisterDump,
 }
 
 // Difference is one thing a dump and the specification disagree on.
@@ -76,8 +82,12 @@ type Difference struct {
 // wherever the entry is written.
 func (d Difference) ID() string { return d.Rule + " " + d.Subject }
 
-// DumpFormat is the format of a dump, by the key that names it.
+// DumpFormat is the format of a dump, by the key that names it; a register
+// file is known by its extension.
 func DumpFormat(path string) (string, error) {
+	if _, _, ok := tabFormat(path); ok {
+		return RegisterDump, nil
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -96,7 +106,7 @@ func DumpFormat(path string) (string, error) {
 	case keys["gatewayTable"] != nil:
 		return GatewayTableDump, nil
 	}
-	return "", refuse("%s is no dump check reads: it has none of the keys routeTable (a route table), permissionTable (a permission table), catalogue (a catalogue dump) and gatewayTable (a gateway table)", path)
+	return "", refuse("%s is no dump check reads: it has none of the keys routeTable (a route table), permissionTable (a permission table), catalogue (a catalogue dump) and gatewayTable (a gateway table), and is no register file (.csv, .tsv, .tab or .xlsx)", path)
 }
 
 // CheckGateway compares a gateway table with the specification's gateway

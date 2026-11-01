@@ -85,8 +85,11 @@ object:
 | `modules` | for the same targets, the specifications of the run a dependency reaches through its own dependencies, at any depth, that the specification's dependencies do not name, by their `info.name`: `specification`, `version`, `content` and `dependencies` (ADR-185) |
 
 The plug-in answers on its standard output with one JSON object: `files`,
-each a `path` relative to the output folder, its `content` and, for a file
-that is one object literal of data, `comparison: "object-literal"`, and
+each a `path` relative to the output folder, its `content`, for a file
+that is one object literal of data, `comparison: "object-literal"`, and,
+for a file that is not text, such as a workbook, `encoding: "base64"`
+with the file's bytes in base64 as its content, which `--check` compares
+byte for byte, and
 `diagnostics`, each with the validator's fields (`file`, `line`,
 `severity`, `path`, `rule`, `message`), and exits 0. `specarch` prints the
 diagnostics, refuses a path outside the output folder, and writes or
@@ -1480,6 +1483,24 @@ fractional digits, the form the audit instant is written in as well. The
 count is `SELECT COUNT(*) ... FOR UPDATE`, the count written
 `ROW_COUNT()`, and a refusal a `SIGNAL` whose message the client prints
 before it stops with exit status 1.
+
+## Register templates
+
+`specarch generate register` writes, per entity, the register people fill
+in and `specarch extract tables` reads back (ADR-215): `<Entity>.csv`, the
+header row of the fields' titles, the primary key's fields first and the
+others by name; `<Entity>-instructions.csv`, the table of fields in the
+English vocabulary's words (Field, Type, Required, Sensitivity, Values,
+Description), each row a column with its type word, whether the entity
+requires it, its sensitivity, its allowed values (its enum's, or those of
+the enum it refers to, separated by `|`) and its description, a decimal's
+precision and scale and a reference's entity and key said in the
+description; and `<Entity>.xlsx`, both as the sheets `<Entity>` and
+`Instructions`, so the workbook is a template `extract tables` takes with
+`--template`. A field that holds a list or an object is no column and is
+named in a warning. A CSV file has no comment, so the draft notice is in
+the workbook's title alone, and no problem is marked in these files. An
+entity another stakeholder owns is left out.
 
 ## Other formats
 

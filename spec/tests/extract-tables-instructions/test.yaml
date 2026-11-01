@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a TSV register and, as a CSV file of its own, the instructions: a table of fields naming each column's type, whether it is required, its allowed values and its description, one of them a column the register lacks"
+when: "extract tables is run on the register with --instructions"
+then: "it reads the tab as the delimiter, writes the entity stated by the instructions, required as they say it, with the descriptions and the allowed values, a must question for the column the register lacks and one for the value outside the allowed values, and exits 0"
+verifies: [SA-113]

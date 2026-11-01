@@ -1,0 +1,47 @@
+entities:
+  Loans:
+    type: object
+    properties:
+      loanId: {title: Loan ID, type: integer, format: int32, description: The number the desk gives each loan.}
+      member: {title: Member, type: string, description: The member's number.}
+      copies: {title: Copies, type: integer, format: int32, description: How many copies were lent.}
+      status: {title: Status, type: string, enum: [open, closed], description: Whether the loan is still out.}
+      dueDate: {title: Due date, type: string, format: date, description: The day the copies are due back.}
+    required: [loanId, member, status, dueDate]
+    origin: stated
+    why: 'The fields are the rules of the instructions at A1:E6 of rules.csv; what they do not give is inferred from the values of loans.tsv: loanId integer as the instructions say, 4 values, no blank, all distinct, column A; member text as the instructions say, 4 values, no blank, all distinct, column B; copies integer as the instructions say, 3 values, 1 blank, column C; status text as the instructions say, 4 values, no blank, column D; dueDate date as the instructions say, 0 values, no blank, no column.'
+    cites:
+      - {source: rules, clause: 'A1:E6', says: 'A table of the fields: Loan ID, Member, Copies, Status, Due date.'}
+      - {source: loans, clause: 'A1:D5', says: 'A register of 4 rows with the columns Loan ID, Member, Copies, Status.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) The instructions allow "open" and "closed" for status of Loans, and 1 value is outside them: "lost" at D5. Is the list incomplete, or are the values wrong? Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'The instructions allow "open" and "closed" for status of Loans, and 1 value is outside them: "lost" at D5. Is the list incomplete, or are the values wrong?'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/status/enum']
+    decidedBy: system-owner
+    why: A value outside the allowed values is either a wrong value or an incomplete list, and the reader does not choose.
+    cites:
+      - {source: rules, clause: 'A1:E6', says: 'A table of the fields: Loan ID, Member, Copies, Status, Due date.'}
+      - {source: loans, clause: 'D1:D5', says: 'The column Status: 4 values and 0 blanks.'}
+  # specarch-problem: question: open_question: (must, decision) The instructions name the column Due date of Loans, and loans.tsv lacks it; is the file incomplete, or is the column optional? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: The instructions name the column Due date of Loans, and loans.tsv lacks it; is the file incomplete, or is the column optional?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/properties/dueDate']
+    decidedBy: system-owner
+    why: A column the template or the instructions name and the file lacks is either a missing column or a rule to take out, and the reader does not choose.
+    cites:
+      - {source: rules, clause: 'A1:E6', says: 'A table of the fields: Loan ID, Member, Copies, Status, Due date.'}
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId, member. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'Which fields identify one Loans record, its primary key? Candidates, required and distinct in every row of every file: loanId, member.'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Loans/primaryKey']
+    decidedBy: system-owner
+    why: A register does not say which of its columns identify a record; the candidates are the required columns whose values are all distinct.
+    cites:
+      - {source: loans, clause: 'A1:D5', says: 'A register of 4 rows with the columns Loan ID, Member, Copies, Status.'}

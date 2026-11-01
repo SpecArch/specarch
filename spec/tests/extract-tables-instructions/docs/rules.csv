@@ -1,0 +1,6 @@
+Field,Type,Required,Values,Description
+Loan ID,integer,yes,,The number the desk gives each loan.
+Member,text,yes,,The member's number.
+Copies,integer,no,,How many copies were lent.
+Status,text,yes,open | closed,Whether the loan is still out.
+Due date,date,yes,,The day the copies are due back.

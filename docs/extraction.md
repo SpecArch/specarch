@@ -709,8 +709,9 @@ changes `extract.yaml` first.
     compares a register file with its entity, and `specarch generate
     register` writes an entity's template, CSV and workbook, that
     `extract tables` reads back. Cases `spec/tests/extract-tables-register`,
-    `-mixed-column`, `-two-periods`, `-template`, `-quote-not-closed`,
-    `check-register` and `generate-register`. Left out: a register whose
+    `-mixed-column`, `-two-periods`, `-template`, `-instructions`,
+    `-header-questions`, `-quote-not-closed`, `check-register` and
+    `generate-register`. Left out: a register whose
     header is not its first row, a column of a form the rules do not name
     (a duration, a time of day), which is read as text, and the words of
     the instructions in another language, which a vocabulary file gives.

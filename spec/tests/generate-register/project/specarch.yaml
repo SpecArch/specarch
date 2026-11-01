@@ -8,6 +8,7 @@ entities:
     properties:
       memberId: { title: Member ID, type: string, format: uuid }
       email: { title: Email, type: string, format: email, sensitivity: personal, description: Where the desk writes to the member. }
+      legacyNumber: { title: Legacy number, type: string, format: int64, description: The number of the member in the card index. }
     required: [memberId, email]
     primaryKey: [memberId]
   Loan:

@@ -2,7 +2,7 @@
 command: check
 level: system
 scenario: red
-given: "a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, a blank in a required column, a status outside the enum and a fee that is not a decimal"
+given: "a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, an empty line under the first record, a blank in a required column, a status outside the enum, a fee that is not a decimal and a value beyond the header's columns"
 when: "specarch check is run on the specification and the register"
-then: "it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum and the value not of the type each at its cell, and exits 1"
+then: "it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum, the value not of the type and the value beyond the header each at its cell, numbered as a spreadsheet program shows the row, the empty line counted, and exits 1"
 verifies: [SA-113]

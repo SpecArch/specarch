@@ -141,7 +141,7 @@ Version 1.4.0 of the specification: 10 needs, 113 requirements, and 2 gaps. Each
 | SA-110 | NEED-8 | commands extract; decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-powerpoint; tests extract-documents-word |
 | SA-111 | NEED-9 | commands derive; commands document; decisions ADR-213 | tests derive-drafts-calls; tests derive-drafts-status-alone; tests derive-fill; tests document-testplan-bodies |
 | SA-112 | NEED-7 | commands mcp; commands skill; decisions ADR-214 | tests mcp-serves-tools; tests mcp-usage-error; tests skill-check-differs; tests skill-lists-what-it-writes; tests skill-refuses-another-folder; tests skill-usage-error |
-| SA-113 | NEED-8 | commands extract; decisions ADR-215 | tests check-register; tests extract-tables-header-questions; tests extract-tables-instructions; tests extract-tables-mixed-column; tests extract-tables-quote-not-closed; tests extract-tables-register; tests extract-tables-template; tests extract-tables-two-periods; tests generate-register |
+| SA-113 | NEED-8 | commands extract; decisions ADR-215 | tests check-register; tests extract-tables-header-questions; tests extract-tables-instructions; tests extract-tables-mixed-column; tests extract-tables-no-header; tests extract-tables-quote-not-closed; tests extract-tables-register; tests extract-tables-round-trip; tests extract-tables-template; tests extract-tables-two-periods; tests generate-register |
 
 ## 3. Gaps
 

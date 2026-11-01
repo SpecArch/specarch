@@ -473,6 +473,14 @@ func joinAnd(items []string) string {
 	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
 }
 
+// joinOr joins items as a choice: a, b or c.
+func joinOr(items []string) string {
+	if len(items) < 2 {
+		return strings.Join(items, "")
+	}
+	return strings.Join(items[:len(items)-1], ", ") + " or " + items[len(items)-1]
+}
+
 func checkOrChecks(n int) string {
 	if n == 1 {
 		return "checks"

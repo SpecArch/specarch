@@ -62,6 +62,7 @@ var RuleFormats = map[string]string{
 	"register_blank_required":          RegisterDump,
 	"register_value_not_in_enum":       RegisterDump,
 	"register_value_not_of_type":       RegisterDump,
+	"register_value_beyond_header":     RegisterDump,
 }
 
 // Difference is one thing a dump and the specification disagree on.

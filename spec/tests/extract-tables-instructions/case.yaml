@@ -5,11 +5,12 @@ repository:
     - [loans.tsv, rules.csv]
 exitStatus: 0
 standardOutput: |
-  commit 6e483013efd1b011cf391adb9b152a20eb8a1bbc: the last change to loans.tsv, rules.csv
+  commit d90f919e408ee0a12a132d6bc6a2e30c8d21537e: the last change to loans.tsv, rules.csv
   dialect loans.tsv: UTF-8, LF line ends, delimiter tab, no quoted field
   dialect rules.csv: UTF-8, LF line ends, delimiter ',', no quoted field
-  counted 1 file, 1 table, 4 rows and 5 columns: every file given, every register sheet or file as a table, its first row the header and every other row a record, and every header that names a field as a column, once per register
-  instructions rules.csv: the table of fields at A1:E6, 5 fields
-  entity Loans: 5 fields from 4 rows in loans.tsv; candidate keys loanId, member
-  wrote 1 entity and 3 questions: one per entity's primary key, one per column whose values do not settle its type, whether it is required or its values, or that some files or the template lack, one per header that names no field, and one per thing the files hold that is not read
+  counted 1 file, 1 table, 4 rows and 6 columns: every file given, every register sheet or file as a table, its first row the header and every other row a record, and every header that names a field as a column, once per register
+  instructions rules.csv: the table of fields at A1:F7, 6 fields
+  entity Loans: 6 fields from 4 rows in loans.tsv; candidate keys loanId, member
+  wrote 1 entity and 6 questions: one per entity's primary key, one per column whose values do not settle its type, whether it is required or its values, or that some files or the template lack, one per header that names no field, and one per thing the files hold that is not read
+  not held: the column D of the table of fields at A1:F7 of rules.csv is headed "Owner", which is none of Field, Type, Required, Sensitivity, Description and Values; it is not read; could question Q-6
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

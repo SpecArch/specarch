@@ -230,7 +230,7 @@ func columnOf(spec map[string]any, field string, f map[string]any) (column, bool
 	case format == "uuid":
 		c.typ = "uuid"
 	case format == "int64" || format == "uint64":
-		c.typ = "integer"
+		c.typ = "64-bit integer"
 	default:
 		c.typ = "text"
 	}

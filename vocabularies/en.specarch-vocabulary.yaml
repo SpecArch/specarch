@@ -62,3 +62,5 @@ types:
   email: [email]
   integer: [integer, whole number]
   decimal: [decimal, number, amount]
+  uuid: [uuid]
+  integer64: [64-bit integer, big integer]

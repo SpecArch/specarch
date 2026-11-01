@@ -1,11 +1,12 @@
 arguments: [check, project, registers/loan.csv]
 exitStatus: 1
 standardOutput: |
-  specarch check: 1 dump compared: 6 differences, 0 allowed by the allowlist, 1 report, 0 allowlist lines that fail
+  specarch check: 1 dump compared: 7 differences, 0 allowed by the allowlist, 1 report, 0 allowlist lines that fail
   project/specarch.yaml:10:7: error: /entities/Loan/properties/member: register_column_missing: entity Loan of the specification has the field member, and loan.csv has no column for it [register_column_missing Loan.member]
   project/specarch.yaml:14:7: warning: /entities/Loan/properties/note: register_column_missing: entity Loan of the specification has the field note, and loan.csv has no column for it, which is not required [register_column_missing Loan.note]
   registers/loan.csv:1:29: error: /E1: register_column_not_specified: column E of loan.csv is headed "Reviewer", and entity Loan of the specification has no field reviewer; specify the field, or take the column out [register_column_not_specified Loan E]
-  registers/loan.csv:3:14: error: /C3: register_blank_required: cell C3 of loan.csv is blank, and status of Loan is required [register_blank_required Loan.status C3]
-  registers/loan.csv:4:3: error: /B4: register_blank_required: cell B4 of loan.csv is blank, and dueDate of Loan is required [register_blank_required Loan.dueDate B4]
-  registers/loan.csv:4:9: error: /D4: register_value_not_of_type: cell D4 of loan.csv holds "abc", and fee of Loan is a decimal [register_value_not_of_type Loan.fee D4]
-  registers/loan.csv:5:14: error: /C5: register_value_not_in_enum: cell C5 of loan.csv holds "overdue", and status of Loan allows "open" and "closed" [register_value_not_in_enum Loan.status C5]
+  registers/loan.csv:4:14: error: /C4: register_blank_required: cell C4 of loan.csv is blank, and status of Loan is required [register_blank_required Loan.status C4]
+  registers/loan.csv:5:3: error: /B5: register_blank_required: cell B5 of loan.csv is blank, and dueDate of Loan is required [register_blank_required Loan.dueDate B5]
+  registers/loan.csv:5:9: error: /D5: register_value_not_of_type: cell D5 of loan.csv holds "abc", and fee of Loan is a decimal [register_value_not_of_type Loan.fee D5]
+  registers/loan.csv:5:14: error: /F5: register_value_beyond_header: cell F5 of loan.csv holds "late" beyond the 5 columns of the header, and no field takes it; take the value out, or head its column [register_value_beyond_header Loan F5]
+  registers/loan.csv:6:14: error: /C6: register_value_not_in_enum: cell C6 of loan.csv holds "overdue", and status of Loan allows "open" and "closed" [register_value_not_in_enum Loan.status C6]

@@ -45,11 +45,11 @@ var (
 	commitmentKeys  = []string{"must", "should"}
 	headerKeys      = []string{Field, Type, Required, Sensitivity, Description, RowNumber, Values}
 	sensitivityKeys = []string{"public", "internal", "personal", "credential"}
-	typeKeys        = []string{"string", "date", "dateTime", "boolean", "email", "integer", "decimal"}
+	typeKeys        = []string{"string", "date", "dateTime", "boolean", "email", "integer", "decimal", "uuid", "integer64"}
 	// optionalKeys are the keys a group may leave out, read as an empty
 	// list: those added after the format's first version, so that a
 	// vocabulary written before them reads as it did.
-	optionalKeys = map[string]bool{Values: true, "integer": true, "decimal": true}
+	optionalKeys = map[string]bool{Values: true, "integer": true, "decimal": true, "uuid": true, "integer64": true}
 	topKeys      = []string{"specarchVocabulary", "language", "description", "commitments", "frequencies", "timeLimits", "pronouns",
 		"linkingVerbs", "leadingWords", "numbers", "units", "timeSeparators", "headers", "yes", "sensitivities", "types"}
 )
@@ -313,14 +313,28 @@ func (p *parser) group(n *yaml.Node, what string, keys []string) map[string][]st
 }
 
 // HeaderWord is the first word a vocabulary gives a column, as a table's
-// header writes it, for the messages that name the columns read.
+// header writes it, for the messages that name the columns read; "" when
+// the vocabulary has no word for the key, so that a message leaves the
+// column out instead of naming it by the English key.
 func (v *Vocabulary) HeaderWord(key string) string {
 	ws := v.Headers[key]
 	if len(ws) == 0 {
-		return key
+		return ""
 	}
 	r := []rune(ws[0])
 	return strings.ToUpper(string(r[:1])) + string(r[1:])
+}
+
+// HeaderWords is the header word of each key the vocabulary has a word
+// for, in the keys' order, for a message that lists the columns read.
+func (v *Vocabulary) HeaderWords(keys ...string) []string {
+	var out []string
+	for _, k := range keys {
+		if w := v.HeaderWord(k); w != "" {
+			out = append(out, w)
+		}
+	}
+	return out
 }
 
 // CommitmentWords is every commitment word, of every priority.

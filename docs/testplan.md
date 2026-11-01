@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 908 design tests, 451 golden and 457 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 910 design tests, 452 golden and 458 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 908 design tests, 451 golden and 457 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 904 |
+| system | 906 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -145,9 +145,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-76.
 
 Scenario: red; level: system; verifies SA-113.
 
-- Given: a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, a blank in a required column, a status outside the enum and a fee that is not a decimal
+- Given: a specification with a Loan entity, and a register file named after it with a column the entity lacks, no column for a required field and for an optional one, an empty line under the first record, a blank in a required column, a status outside the enum, a fee that is not a decimal and a value beyond the header's columns
 - When: specarch check is run on the specification and the register
-- Then: it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum and the value not of the type each at its cell, and exits 1
+- Then: it reports the extra column at its header cell, the missing required column at the field, the missing optional column as a report, the blank, the value outside the enum, the value not of the type and the value beyond the header each at its cell, numbered as a spreadsheet program shows the row, the empty line counted, and exits 1
 
 #### check-skips-a-partition
 
@@ -2315,9 +2315,9 @@ Scenario: golden; level: system; verifies SA-113.
 
 Scenario: golden; level: system; verifies SA-113.
 
-- Given: a repository holding a TSV register and, as a CSV file of its own, the instructions: a table of fields naming each column's type, whether it is required, its allowed values and its description, one of them a column the register lacks
+- Given: a repository holding a TSV register and, as a CSV file of its own, the instructions: a table of fields naming each column's type, whether it is required, its allowed values and its description, with a column the vocabulary does not name, two fields the register lacks, allowed values under an integer type and allowed values that do not read as a boolean
 - When: extract tables is run on the register with --instructions
-- Then: it reads the tab as the delimiter, writes the entity stated by the instructions, required as they say it, with the descriptions and the allowed values, a must question for the column the register lacks and one for the value outside the allowed values, and exits 0
+- Then: it reads the tab as the delimiter, writes the entity stated by the instructions, required as they say it, with the descriptions and the allowed values written as values of each type, a must question per column the register lacks, one for the value outside the allowed values and one for the values that do not read as the boolean, whose enum is left out, a could question for the column not read citing the instructions file, and exits 0
 
 #### extract-tables-mixed-column
 
@@ -2326,6 +2326,14 @@ Scenario: golden; level: system; verifies SA-113.
 - Given: a repository holding a workbook whose register sheet has a fee column of numbers and two words, a column of date cells, a column of boolean cells, and a note below the table
 - When: extract tables is run on the workbook
 - Then: it writes the entity with the date and boolean fields typed by their cells, keeps the fee as a string with a must question at its type citing the two cells that read as text, writes a could question for the note outside the table, and exits 0
+
+#### extract-tables-no-header
+
+Scenario: red; level: system; verifies SA-113.
+
+- Given: a repository holding a CSV file whose first line holds empty fields alone, with a record under it
+- When: extract tables is run on it
+- Then: it refuses the file with status 1, naming the line that holds no cell with a value and that a register starts with its header row, and writes nothing
 
 #### extract-tables-quote-not-closed
 
@@ -2342,6 +2350,14 @@ Scenario: golden; level: system; verifies SA-113.
 - Given: a repository holding a CSV register written with a byte order mark, CRLF line ends and semicolons: twelve loans with a number, a member's email, a count, a due date, a status of three values and a fee
 - When: extract tables is run on the file
 - Then: it names the dialect, writes one entity whose fields are the columns with their types inferred (integer, email, date, enum, decimal), every column required, a must question for the primary key naming the one candidate and a should question asking whether the enum is closed, each citing the column, and exits 0
+
+#### extract-tables-round-trip
+
+Scenario: golden; level: system; verifies SA-113.
+
+- Given: a repository holding the register template and the instructions specarch generate register wrote for an entity with a UUID key, an email and a 64-bit integer, the template filled with two members
+- When: extract tables is run on the filled file with the instructions
+- Then: it writes the entity back with the stated types (uuid, email, a string of format int64), the required list and the description the instructions give, a must question for the primary key alone, and no question about a type word, and exits 0
 
 #### extract-tables-template
 

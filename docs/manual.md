@@ -263,11 +263,13 @@ matching:
   `register_column_missing` at the field, a report when the field
   is not required, a blank in a required field's column is
   `register_blank_required`, a value outside the field's enum, its
-  own or the one it refers to, is `register_value_not_in_enum`, and
-  a value that does not read as the field's type (an integer, of 32
+  own or the one it refers to, is `register_value_not_in_enum`, a
+  value that does not read as the field's type (an integer, of 32
   bits for `int32`, a number, a boolean, a decimal, a date, a
   date-time, an email address or a UUID) is
-  `register_value_not_of_type`, each at the cell, which in a CSV
+  `register_value_not_of_type`, and a value in a row beyond the
+  header's columns, which no field takes, is
+  `register_value_beyond_header`, each at the cell, which in a CSV
   or TSV file is its line and column and in a workbook its row and
   column. An id names the entity, the field and the cell
   (`Loan.status C5`), so it stays the same while the row stays.
@@ -1244,24 +1246,33 @@ The sources this build reads:
   instructions, each with the description, the sensitivity, whether
   it is required and the allowed values the instructions give and
   the type their word gives (`text`, `date`, `date-time`, `boolean`,
-  `email`, `integer`, which is `int32`, or `decimal`, whose
+  `email`, `uuid`, `integer`, which is `int32`, `64-bit integer`,
+  which is a string of format `int64`, or `decimal`, whose
   precision and scale the values give, else a must question); a
   type the instructions do not give is inferred as above. The
-  filled files are then checked against them: a column the template
-  lacks, a template or instructions column the file lacks, a blank
-  in a required column, a value outside the allowed values and a
-  value that does not read as the stated type are must questions
-  citing the cells, five at most. A template and instructions
-  apply to one register, so a run of several registers takes
-  neither. A CSV or TSV file is read as RFC 4180 writes it, in UTF-8
-  with or without a byte order mark, with LF or CRLF line ends; the
-  delimiter, a tab for `.tsv` and `.tab`, else the one of comma,
-  semicolon, tab and bar that the most records hold the same number
-  of times, outside quotes, as the header record does, and then the
-  most often, is detected, and a line names the dialect read. A
-  file that is not UTF-8, one with lone CR line ends, two
-  delimiters that fit equally, a quote not closed and a workbook
-  that does not parse are refused. A table of fields
+  allowed values are written as values of the field's type (`1`,
+  not `"1"`, under `integer`; `true` under `boolean`); one that does
+  not read as the type leaves the `enum` out with a must question
+  at it. The filled files are then checked against them: a column
+  the template lacks, a template or instructions column the file
+  lacks, a blank in a required column, a value outside the allowed
+  values and a value that does not read as the stated type are must
+  questions citing the cells, five at most. A template and
+  instructions apply to one register, so a run of several registers
+  takes neither. A CSV or TSV file is read as RFC 4180 writes it,
+  in UTF-8 with or without a byte order mark, with LF or CRLF line
+  ends; the delimiter, a tab for `.tsv` and `.tab`, else the one of
+  comma, semicolon, tab and bar that the most records hold the same
+  number of times, outside quotes, as the header record does, and
+  then the most often, is detected, and a line names the dialect
+  read. An empty line is no record and holds no cell, and it counts
+  as a row, so every cell is cited as a spreadsheet program shows
+  the file; a quoted field that holds line breaks is one cell of
+  one row. A file that is not UTF-8, one with lone CR line ends,
+  two delimiters that fit equally, a quote not closed, a workbook
+  that does not parse, and a CSV or TSV file whose header row holds
+  no cell with a value are refused; a worksheet whose table's first
+  row holds none prints a line and is not read. A table of fields
   found in a data workbook is the instructions as one given with
   `--instructions` is; two such tables, two register sheets in a
   template, and a template or instructions with no such table are
@@ -2887,7 +2898,7 @@ On standard error: A usage message on a usage error, and the reason a source cou
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | the specification was written |   |
-| 1 | the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a data file given to tables that is not CSV, TSV or Excel by its extension, is not UTF-8, has lone CR line ends, two delimiters that fit equally or a quote not closed, does not parse as a workbook or holds no row, a register that gives no entity name, a template or instructions with no such table, two tables of fields, a template with two register sheets, or a template or instructions given to a run of several registers, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML | Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again. |
+| 1 | the surface could not be read as the source expects: a dump that does not parse or is stale, a dump whose repository is no gitlink of the repository holding it, is not checked out, pins a commit its history does not hold or whose checkout under the path is not the pinned commit's, a code-facts dump another parser version made, whose files are not the tracked files of its folder the reader reads, or, for pages, whose folder does not hold the router's folder, a route table that lists a method and path pair twice, a permission table that lists a grant, a rule or a gate twice, holds a gate with no check, with both a setting and a kind of caller or neither, or skipped for a kind other than client, names a matcher the reader does not know, or holds a rule without one of its four keys, a vocabulary that does not parse, lacks a key, holds one it does not have, gives a number, a duration or a language tag in another form, or lists one word twice in a list or in two lists of one group, a route table given with --routes from another repository or from a commit on another line of history than the permission table's, a router root that gives one route twice or holds no page, a path with changes not committed, untracked files, a shallow clone, a path outside a git repository, a document that is not Markdown, PDF, Word, PowerPoint, Excel or an email message by its extension, or that does not parse as its format or is a PDF encrypted with a password, a data file given to tables that is not CSV, TSV or Excel by its extension, is not UTF-8, has lone CR line ends, two delimiters that fit equally or a quote not closed, does not parse as a workbook, holds no row or whose header row holds no cell with a value, a register that gives no entity name, a template or instructions with no such table, two tables of fields, a template with two register sheets, or a template or instructions given to a run of several registers, a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no process, a workflow table that does not parse, is stale, lacks a key of the format or holds another, names a step kind other than approval, operation or other, lists a workflow twice or gives a workflow, a step or a form field no name, a gateway table that does not parse, is stale, lacks a key of the format or holds another, gives a row no value or a value twice, or names a gateway or a claim that is no name, a file given to systemd that is not a unit ending in .service or .timer, or an implementation file that does not parse as YAML | Read the reason on standard error; commit or remove the changes, remake a stale dump with specarch facts, or correct the source it names, then run it again. |
 | 2 | usage error, a source this build does not offer, --implementation given to a source other than go, swift, javascript, dart or pages, --facts given to a source other than pages, --routes given to a source other than permissions, --given-outside given to a source other than documents, --language or --vocabulary given to a source other than documents or tables, --entity, --template or --instructions given to a source other than tables, an --entity that is no PascalCase name, --source-key given to tables with more than one file, two files of one name given to tables, --table given to a source other than workflows, --implementation-out given to a source other than database, go or gateway, or naming a file that exists or whose name does not end in .yaml, a language that is not a BCP 47 tag, a language SpecArch ships no vocabulary for given without --vocabulary, a --language other than the vocabulary's own, more than one permission table, or a path that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch facts

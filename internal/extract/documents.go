@@ -65,12 +65,14 @@ func newDocWords(v *vocabulary.Vocabulary) *docWords {
 // words under, and the field each becomes. A type with no word in the
 // vocabulary is left for a question.
 var tableTypes = map[string][]any{
-	"string":   {"type", "string"},
-	"date":     {"type", "string", "format", "date"},
-	"dateTime": {"type", "string", "format", "date-time"},
-	"boolean":  {"type", "boolean"},
-	"email":    {"type", "string", "format", "email"},
-	"integer":  {"type", "integer", "format", "int32"},
+	"string":    {"type", "string"},
+	"date":      {"type", "string", "format", "date"},
+	"dateTime":  {"type", "string", "format", "date-time"},
+	"boolean":   {"type", "boolean"},
+	"email":     {"type", "string", "format", "email"},
+	"integer":   {"type", "integer", "format", "int32"},
+	"uuid":      {"type", "string", "format", "uuid"},
+	"integer64": {"type", "string", "format", "int64"},
 }
 
 // docClause is one clause of the document's outline: a heading, or a
@@ -558,8 +560,8 @@ func (d *docReader) readTables() {
 			known = known && header[i] != "" && header[i] != vocabulary.RowNumber
 		}
 		if !known || t.clause == nil {
-			d.gap(t.clause, t.place, "entities", "the table at %s, headed %s: only a table whose first column is %s, and whose others are %s, %s, %s, %s or %s, is read; a register, a table of records under a header row, is read by extract tables", t.place, strings.Join(t.header, " | "),
-				v.HeaderWord(vocabulary.Field), v.HeaderWord(vocabulary.Type), v.HeaderWord(vocabulary.Required), v.HeaderWord(vocabulary.Sensitivity), v.HeaderWord(vocabulary.Description), v.HeaderWord(vocabulary.Values))
+			d.gap(t.clause, t.place, "entities", "the table at %s, headed %s: only a table whose first column is %s, and whose others are %s, is read; a register, a table of records under a header row, is read by extract tables", t.place, strings.Join(t.header, " | "),
+				v.HeaderWord(vocabulary.Field), joinOr(v.HeaderWords(vocabulary.Type, vocabulary.Required, vocabulary.Sensitivity, vocabulary.Description, vocabulary.Values)))
 			continue
 		}
 		d.counts.known++

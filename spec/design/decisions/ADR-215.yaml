@@ -67,11 +67,16 @@ decisions:
       template lacks, a column the file lacks, a blank in a required
       column, a value outside the allowed values and a value not of the
       stated type are must questions citing the cells. The vocabulary
-      gains the header key values and the type keys integer and
-      decimal, each optional, so a vocabulary written before them reads
-      as it did; extract documents reads them in a table of fields too,
-      integer as int32 and decimal as a must question for its precision
-      and scale.
+      gains the header key values and the type keys integer, decimal,
+      uuid and integer64, each optional, so a vocabulary written before
+      them reads as it did; extract documents reads them in a table of
+      fields too, integer as int32, integer64 as a string of format
+      int64, and decimal as a must question for its precision and
+      scale. The words cover every type generate register writes, so a
+      template's instructions read back as the entity they were written
+      from. The allowed values are written as values of the type, and a
+      row beyond the header's columns is a question in extract and a
+      difference in check, so nothing a file holds passes unread.
 
       A CSV or TSV file is read as RFC 4180 writes it (encoding/csv),
       in UTF-8 with or without a byte order mark and with LF or CRLF

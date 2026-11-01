@@ -4,14 +4,14 @@ info:
   title: Loans
   version: 0.1.0
   description: |
-    The registers in loans.tsv and rules.csv, read at commit 6e483013efd1b011cf391adb9b152a20eb8a1bbc: each file is a document source cited as a spreadsheet program shows it (C17, or Register!C17 in a workbook), each register an entity whose fields are its columns, their types inferred from every value of every file unless a template or the instructions state them, and what the values do not settle a question.
+    The registers in loans.tsv and rules.csv, read at commit d90f919e408ee0a12a132d6bc6a2e30c8d21537e: each file is a document source cited as a spreadsheet program shows it (C17, or Register!C17 in a workbook), each register an entity whose fields are its columns, their types inferred from every value of every file unless a template or the instructions state them, and what the values do not settle a question.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   loans:
     kind: document
     title: loans.tsv
-    edition: 6e483013efd1b011cf391adb9b152a20eb8a1bbc
+    edition: d90f919e408ee0a12a132d6bc6a2e30c8d21537e
     url: ../docs/loans.tsv
     clauses:
       - {clause: 'A1:D5', title: loans}
@@ -22,7 +22,8 @@ sources:
   rules:
     kind: document
     title: rules.csv
-    edition: 6e483013efd1b011cf391adb9b152a20eb8a1bbc
+    edition: d90f919e408ee0a12a132d6bc6a2e30c8d21537e
     url: ../docs/rules.csv
     clauses:
-      - {clause: 'A1:E6', title: rules}
+      - {clause: 'A1:F7', title: rules}
+      - {clause: 'D1:D7', title: Set aside; the question that cites it says why}

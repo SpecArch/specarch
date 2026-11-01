@@ -1,5 +1,6 @@
 Loan ID,Due date,Status,Fee,Reviewer
 1,2026-07-02,open,0,Kim
+
 2,2026-07-05,,0.50,
-3,,open,abc,
+3,,open,abc,,late
 4,2026-07-12,overdue,1.00,

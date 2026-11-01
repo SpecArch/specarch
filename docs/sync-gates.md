@@ -42,8 +42,9 @@ gateway reads, as `claim_differs` (ADR-142). With a register file (CSV,
 TSV or Excel) it matches the entity of the file's or the sheet's name and
 each column by its header, as `register_not_specified`,
 `register_column_not_specified`, `register_column_missing`,
-`register_blank_required`, `register_value_not_in_enum` and
-`register_value_not_of_type`, each at the cell (ADR-215).
+`register_blank_required`, `register_value_not_in_enum`,
+`register_value_not_of_type` and `register_value_beyond_header`, each at
+the cell (ADR-215).
 
 ## 2. Spec against the database
 

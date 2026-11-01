@@ -253,19 +253,20 @@ Error codes of --json:
   extension, or that does not parse as its format or is a PDF encrypted with
   a password, a data file given to tables that is not CSV, TSV or Excel by
   its extension, is not UTF-8, has lone CR line ends, two delimiters that
-  fit equally or a quote not closed, does not parse as a workbook or holds
-  no row, a register that gives no entity name, a template or instructions
-  with no such table, two tables of fields, a template with two register
-  sheets, or a template or instructions given to a run of several registers,
-  a file that is not an OpenAPI 3.0 or 3.1 document, a file that is not BPMN
-  2.0 XML or holds no process, a workflow table that does not parse, is
-  stale, lacks a key of the format or holds another, names a step kind other
-  than approval, operation or other, lists a workflow twice or gives a
-  workflow, a step or a form field no name, a gateway table that does not
-  parse, is stale, lacks a key of the format or holds another, gives a row
-  no value or a value twice, or names a gateway or a claim that is no name,
-  a file given to systemd that is not a unit ending in .service or .timer,
-  or an implementation file that does not parse as YAML
+  fit equally or a quote not closed, does not parse as a workbook, holds no
+  row or whose header row holds no cell with a value, a register that gives
+  no entity name, a template or instructions with no such table, two tables
+  of fields, a template with two register sheets, or a template or
+  instructions given to a run of several registers, a file that is not an
+  OpenAPI 3.0 or 3.1 document, a file that is not BPMN 2.0 XML or holds no
+  process, a workflow table that does not parse, is stale, lacks a key of
+  the format or holds another, names a step kind other than approval,
+  operation or other, lists a workflow twice or gives a workflow, a step or
+  a form field no name, a gateway table that does not parse, is stale, lacks
+  a key of the format or holds another, gives a row no value or a value
+  twice, or names a gateway or a claim that is no name, a file given to
+  systemd that is not a unit ending in .service or .timer, or an
+  implementation file that does not parse as YAML
   exit 2: usage error, a source this build does not offer, --implementation
   given to a source other than go, swift, javascript, dart or pages, --facts
   given to a source other than pages, --routes given to a source other than

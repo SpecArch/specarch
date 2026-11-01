@@ -100,11 +100,13 @@ commands:
         `register_column_missing` at the field, a report when the field
         is not required, a blank in a required field's column is
         `register_blank_required`, a value outside the field's enum, its
-        own or the one it refers to, is `register_value_not_in_enum`, and
-        a value that does not read as the field's type (an integer, of 32
+        own or the one it refers to, is `register_value_not_in_enum`, a
+        value that does not read as the field's type (an integer, of 32
         bits for `int32`, a number, a boolean, a decimal, a date, a
         date-time, an email address or a UUID) is
-        `register_value_not_of_type`, each at the cell, which in a CSV
+        `register_value_not_of_type`, and a value in a row beyond the
+        header's columns, which no field takes, is
+        `register_value_beyond_header`, each at the cell, which in a CSV
         or TSV file is its line and column and in a workbook its row and
         column. An id names the entity, the field and the cell
         (`Loan.status C5`), so it stays the same while the row stays.

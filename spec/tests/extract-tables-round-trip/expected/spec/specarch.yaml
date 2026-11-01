@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Member
+  version: 0.1.0
+  description: |
+    The registers in Member.csv and Member-instructions.csv, read at commit 49f3bd55f233f0a1f2536488e8f7635a26dc9274: each file is a document source cited as a spreadsheet program shows it (C17, or Register!C17 in a workbook), each register an entity whose fields are its columns, their types inferred from every value of every file unless a template or the instructions state them, and what the values do not settle a question.
+  tracksOrigin: true
+stages: [requirements, design]
+sources:
+  member:
+    kind: document
+    title: Member.csv
+    edition: 49f3bd55f233f0a1f2536488e8f7635a26dc9274
+    url: ../docs/Member.csv
+    clauses:
+      - {clause: 'A1:C3', title: Member}
+      - {clause: 'A1:A3', title: Member ID}
+      - {clause: 'B1:B3', title: Email}
+      - {clause: 'C1:C3', title: Legacy number}
+  member-instructions:
+    kind: document
+    title: Member-instructions.csv
+    edition: 49f3bd55f233f0a1f2536488e8f7635a26dc9274
+    url: ../docs/Member-instructions.csv
+    clauses:
+      - {clause: 'A1:F4', title: Member-instructions}

@@ -134,6 +134,11 @@ func readTabFile(path, rel string, data []byte, v *vocabulary.Vocabulary) (*tabF
 	r.FieldsPerRecord = -1
 	r.ReuseRecord = false
 	var grid [][]tabCell
+	// A record's row is the one a spreadsheet program shows it on: the
+	// reader skips an empty line, which is no record, so the lines it
+	// skips between two records count as rows; a quoted field that holds
+	// line breaks spans lines but is one row.
+	nextRow, lineAfter := 1, 1
 	for {
 		rec, err := r.Read()
 		if err == io.EOF {
@@ -142,17 +147,25 @@ func readTabFile(path, rel string, data []byte, v *vocabulary.Vocabulary) (*tabF
 		if err != nil {
 			return nil, refuse("%s cannot be read as %s: %v; a field that holds the delimiter, a quote or a line break is quoted with \" and a quote inside it doubled (RFC 4180)", path, strings.ToUpper(format), err)
 		}
+		first, _ := r.FieldPos(0)
+		rowNumber := nextRow + max(first-lineAfter, 0)
 		row := make([]tabCell, len(rec))
 		for i, s := range rec {
 			line, col := r.FieldPos(i)
-			row[i] = tabCell{Value: s, Kind: xlsx.Text, Row: len(grid) + 1, Col: i + 1, Line: line, Column: col}
+			row[i] = tabCell{Value: s, Kind: xlsx.Text, Row: rowNumber, Col: i + 1, Line: line, Column: col}
 		}
+		last, _ := r.FieldPos(len(rec) - 1)
+		lineAfter = last + strings.Count(rec[len(rec)-1], "\n") + 1
+		nextRow = rowNumber + 1
 		grid = append(grid, row)
 	}
 	if len(grid) == 0 {
 		return nil, refuse("%s holds no row; a register starts with its header row", path)
 	}
 	t := tableOf(grid, "", stem, v)
+	if len(t.Header) == 0 {
+		return nil, refuse("%s: its first row, line %d, holds no cell with a value, and a register starts with its header row; put the header row first and read that file", path, grid[0][0].Line)
+	}
 	t.File = f
 	f.Tables = []*tabTable{t}
 	return f, nil
@@ -183,7 +196,7 @@ func (f *tabFile) readWorkbook(data []byte, v *vocabulary.Vocabulary) error {
 			continue
 		}
 		if s.Hidden {
-			f.Aside = append(f.Aside, notHeld{text: fmt.Sprintf("the sheet %s of %s is hidden in the workbook; it is read as the others are", s.Name, f.Name), clause: "sheet " + s.Name, blocks: []string{"entities"}})
+			f.Says = append(f.Says, fmt.Sprintf("sheet %s of %s is hidden in the workbook; it is read as the others are", s.Name, f.Name))
 		}
 		first := regions[0]
 		grid := make([][]tabCell, len(first.Rows))
@@ -199,6 +212,10 @@ func (f *tabFile) readWorkbook(data []byte, v *vocabulary.Vocabulary) error {
 			}
 		}
 		t := tableOf(grid, s.Name, s.Name, v)
+		if len(t.Header) == 0 {
+			f.Aside = append(f.Aside, notHeld{text: fmt.Sprintf("the sheet %s of %s holds no value in the first row of its table at %s, which a register's header row is; it is not read", s.Name, f.Name, first.Range()), clause: "sheet " + s.Name, blocks: []string{"entities"}})
+			continue
+		}
 		t.File = f
 		f.Tables = append(f.Tables, t)
 		kind := "a register"
@@ -218,8 +235,10 @@ func (f *tabFile) readWorkbook(data []byte, v *vocabulary.Vocabulary) error {
 }
 
 // tableOf makes a table of a grid whose first row is the header. The
-// header is cut to its last cell that holds text; a row's cells beyond
-// that go to Extra, and a shorter row is filled with blanks.
+// header is cut to its last cell that holds text, and a table whose
+// header is cut to nothing is the caller's to refuse or set aside; a
+// row's cells beyond the header go to Extra, and a shorter row is filled
+// with blanks.
 func tableOf(grid [][]tabCell, sheet, name string, v *vocabulary.Vocabulary) *tabTable {
 	header := grid[0]
 	width := len(header)
@@ -227,7 +246,7 @@ func tableOf(grid [][]tabCell, sheet, name string, v *vocabulary.Vocabulary) *ta
 		width--
 	}
 	t := &tabTable{Sheet: sheet, Name: name, Header: header[:width], FirstRow: header[0].Row, FirstCol: header[0].Col}
-	t.LastRow, t.LastCol = t.FirstRow+len(grid)-1, t.FirstCol+width-1
+	t.LastRow, t.LastCol = grid[len(grid)-1][0].Row, t.FirstCol+width-1
 	if width > 0 {
 		t.Instructions = vocabulary.Key(v.Headers, header[0].Value) == vocabulary.Field
 	}

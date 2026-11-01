@@ -23,7 +23,8 @@ const RegisterDump = "register"
 // of its name, the sheet's or the file's in PascalCase (ADR-215): a column
 // no field has, a required field the file lacks (an optional one is a
 // report), a blank in a required column, a value outside the field's enum
-// and a value that does not read as the field's type, each at the cell.
+// a value that does not read as the field's type and a value in a row
+// beyond the header's columns, each at the cell.
 func CheckRegister(path string, root *yaml.Node) ([]Difference, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -100,7 +101,13 @@ func CheckRegister(path string, root *yaml.Node) ([]Difference, error) {
 			}
 			out = append(out, d)
 		}
-		for _, row := range tb.Rows {
+		for r, row := range tb.Rows {
+			for _, c := range tb.Extra[r] {
+				d := Difference{Rule: "register_value_beyond_header", Subject: name + " " + tb.Ref(c.Row, c.Col),
+					Message: fmt.Sprintf("cell %s of %s holds %q beyond the %d columns of the header, and no field takes it; take the value out, or head its column", tb.Ref(c.Row, c.Col), tb.Where(), strings.TrimSpace(c.Value), len(tb.Header))}
+				placeCell(&d, path, tb, c)
+				out = append(out, d)
+			}
 			for _, col := range columns {
 				field := col.field
 				c := row[col.index]

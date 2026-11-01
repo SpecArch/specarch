@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding the register template and the instructions specarch generate register wrote for an entity with a UUID key, an email and a 64-bit integer, the template filled with two members"
+when: "extract tables is run on the filled file with the instructions"
+then: "it writes the entity back with the stated types (uuid, email, a string of format int64), the required list and the description the instructions give, a must question for the primary key alone, and no question about a type word, and exits 0"
+verifies: [SA-113]

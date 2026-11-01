@@ -1,3 +1,4 @@
 Field,Type,Required,Sensitivity,Values,Description
 Member ID,uuid,yes,,,
 Email,email,yes,personal,,Where the desk writes to the member.
+Legacy number,64-bit integer,no,,,The number of the member in the card index.

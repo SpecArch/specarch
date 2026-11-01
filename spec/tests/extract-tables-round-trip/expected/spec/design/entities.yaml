@@ -1,0 +1,29 @@
+entities:
+  Member:
+    type: object
+    properties:
+      memberId: {title: Member ID, type: string, format: uuid}
+      email:
+        title: Email
+        type: string
+        format: email
+        description: Where the desk writes to the member.
+        sensitivity: personal
+      legacyNumber: {title: Legacy number, type: string, format: int64, description: The number of the member in the card index.}
+    required: [memberId, email]
+    origin: stated
+    why: 'The fields are the rules of the instructions at A1:F4 of Member-instructions.csv; what they do not give is inferred from the values of Member.csv: memberId uuid as the instructions say, 2 values, no blank, all distinct, column A; email email as the instructions say, 2 values, no blank, all distinct, column B; legacyNumber integer of 64 bits, carried as text as the instructions say, 2 values, no blank, all distinct, column C.'
+    cites:
+      - {source: member-instructions, clause: 'A1:F4', says: 'A table of the fields: Member ID, Email, Legacy number.'}
+      - {source: member, clause: 'A1:C3', says: 'A register of 2 rows with the columns Member ID, Email, Legacy number.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one Member record, its primary key? Candidates, required and distinct in every row of every file: memberId, email. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which fields identify one Member record, its primary key? Candidates, required and distinct in every row of every file: memberId, email.'
+    kind: decision
+    priority: must
+    blocks: ['#/entities/Member/primaryKey']
+    decidedBy: system-owner
+    why: A register does not say which of its columns identify a record; the candidates are the required columns whose values are all distinct.
+    cites:
+      - {source: member, clause: 'A1:C3', says: 'A register of 2 rows with the columns Member ID, Email, Legacy number.'}

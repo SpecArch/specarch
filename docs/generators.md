@@ -1491,11 +1491,13 @@ in and `specarch extract tables` reads back (ADR-215): `<Entity>.csv`, the
 header row of the fields' titles, the primary key's fields first and the
 others by name; `<Entity>-instructions.csv`, the table of fields in the
 English vocabulary's words (Field, Type, Required, Sensitivity, Values,
-Description), each row a column with its type word, whether the entity
-requires it, its sensitivity, its allowed values (its enum's, or those of
-the enum it refers to, separated by `|`) and its description, a decimal's
-precision and scale and a reference's entity and key said in the
-description; and `<Entity>.xlsx`, both as the sheets `<Entity>` and
+Description), each row a column with its type word (`text`, `date`,
+`date-time`, `boolean`, `email`, `uuid`, `integer` for a 32-bit integer,
+`64-bit integer` for an `int64` or `uint64`, which reads back as a string
+of format `int64`, or `decimal`), whether the entity requires it, its
+sensitivity, its allowed values (its enum's, or those of the enum it
+refers to, separated by `|`) and its description, a decimal's precision
+and scale and a reference's entity and key said in the description; and `<Entity>.xlsx`, both as the sheets `<Entity>` and
 `Instructions`, so the workbook is a template `extract tables` takes with
 `--template`. A field that holds a list or an object is no column and is
 named in a warning. A CSV file has no comment, so the draft notice is in

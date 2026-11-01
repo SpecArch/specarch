@@ -249,12 +249,12 @@ func (t *tabReader) group(entity string, template, instructions *tabFile) error 
 			if tb.Instructions {
 				rules = append(rules, tb)
 			} else {
-				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the table at %s of the instructions %s is headed %s, not %s, so it is no table of fields; it is not read", tb.Range(), instructions.Name, tb.Header[0].Value, t.v.HeaderWord(vocabulary.Field)), clause: tb.Range(), blocks: []string{"entities"}})
+				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the table at %s of the instructions %s is headed %s, not %s, so it is no table of fields; it is not read", tb.Range(), instructions.Name, tb.Header[0].Value, t.v.HeaderWord(vocabulary.Field)), clause: tb.Range(), blocks: []string{"entities"}, source: tb.File.Key})
 			}
 		}
 		if len(rules) == 0 {
-			return refuse("the instructions %s hold no table of fields: its first column is headed %s, and the others %s, %s, %s, %s or %s", instructions.Name, t.v.HeaderWord(vocabulary.Field),
-				t.v.HeaderWord(vocabulary.Type), t.v.HeaderWord(vocabulary.Required), t.v.HeaderWord(vocabulary.Sensitivity), t.v.HeaderWord(vocabulary.Description), t.v.HeaderWord(vocabulary.Values))
+			return refuse("the instructions %s hold no table of fields: its first column is headed %s, and the others %s", instructions.Name, t.v.HeaderWord(vocabulary.Field),
+				joinOr(t.v.HeaderWords(vocabulary.Type, vocabulary.Required, vocabulary.Sensitivity, vocabulary.Description, vocabulary.Values)))
 		}
 	}
 	if len(rules) > 1 {
@@ -270,7 +270,7 @@ func (t *tabReader) group(entity string, template, instructions *tabFile) error 
 	if len(templates) == 1 {
 		t.registers[0].template = templates[0]
 		if n := len(templates[0].Rows); n > 0 {
-			t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the template %s holds %s under its header row; a template holds the header row alone, so they are not read", template.Name, plural(n, "row")), clause: templates[0].Range(), blocks: []string{"#/entities/" + t.registers[0].name}})
+			t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the template %s holds %s under its header row; a template holds the header row alone, so they are not read", template.Name, plural(n, "row")), clause: templates[0].Range(), blocks: []string{"#/entities/" + t.registers[0].name}, source: templates[0].File.Key})
 		}
 	}
 	if len(rules) == 1 {
@@ -492,8 +492,8 @@ func (t *tabReader) readInstructions(reg *tabRegister) {
 	for i, h := range tb.Header {
 		keyOf[i] = vocabulary.Key(v.Headers, h.Value)
 		if keyOf[i] == "" || keyOf[i] == vocabulary.RowNumber && i > 0 {
-			t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the column %s of the table of fields at %s of %s is headed %q, which is none of %s, %s, %s, %s, %s and %s; it is not read", xlsx.ColumnName(h.Col), tb.Range(), tb.File.Name, h.Value,
-				v.HeaderWord(vocabulary.Field), v.HeaderWord(vocabulary.Type), v.HeaderWord(vocabulary.Required), v.HeaderWord(vocabulary.Sensitivity), v.HeaderWord(vocabulary.Description), v.HeaderWord(vocabulary.Values)), clause: tb.ColumnRange(h.Col), blocks: []string{"#/entities/" + reg.name}})
+			t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the column %s of the table of fields at %s of %s is headed %q, which is none of %s; it is not read", xlsx.ColumnName(h.Col), tb.Range(), tb.File.Name, h.Value,
+				joinAnd(v.HeaderWords(vocabulary.Field, vocabulary.Type, vocabulary.Required, vocabulary.Sensitivity, vocabulary.Description, vocabulary.Values))), clause: tb.ColumnRange(h.Col), blocks: []string{"#/entities/" + reg.name}, source: tb.File.Key})
 		}
 	}
 	hasRequired := false
@@ -511,7 +511,7 @@ func (t *tabReader) readInstructions(reg *tabRegister) {
 		name := nameCamel(field.Value)
 		if name == "" {
 			if !field.Blank() {
-				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the field %q at %s of %s gives no field name; its row is not read", field.Value, tb.Ref(field.Row, field.Col), tb.File.Name), clause: tb.ColumnRange(field.Col), blocks: []string{"#/entities/" + reg.name + "/properties"}})
+				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the field %q at %s of %s gives no field name; its row is not read", field.Value, tb.Ref(field.Row, field.Col), tb.File.Name), clause: tb.ColumnRange(field.Col), blocks: []string{"#/entities/" + reg.name + "/properties"}, source: tb.File.Key})
 			}
 			continue
 		}
@@ -526,7 +526,7 @@ func (t *tabReader) readInstructions(reg *tabRegister) {
 		}
 		rule := c.stated
 		if rule.inRules {
-			t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the field %s is named twice in the table of fields at %s of %s, at %s; the second row is not read", name, tb.Range(), tb.File.Name, tb.Ref(field.Row, field.Col)), clause: tb.ColumnRange(field.Col), blocks: []string{"#/entities/" + reg.name + "/properties/" + name}})
+			t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("the field %s is named twice in the table of fields at %s of %s, at %s; the second row is not read", name, tb.Range(), tb.File.Name, tb.Ref(field.Row, field.Col)), clause: tb.ColumnRange(field.Col), blocks: []string{"#/entities/" + reg.name + "/properties/" + name}, source: tb.File.Key})
 			continue
 		}
 		rule.inRules, rule.hasRequired, rule.row = true, hasRequired, tabCellAt{tb, field}
@@ -534,7 +534,7 @@ func (t *tabReader) readInstructions(reg *tabRegister) {
 			rule.typeWord = strings.TrimSpace(ty.Value)
 			rule.typeKey = vocabulary.Key(v.Types, ty.Value)
 			if rule.typeKey == "" {
-				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("field %s of %s, at %s of %s, of type %q: the vocabulary names no type by that word, so the type is inferred from the values", name, reg.name, tb.Ref(ty.Row, ty.Col), tb.File.Name, ty.Value), clause: tb.ColumnRange(ty.Col), blocks: []string{"#/entities/" + reg.name + "/properties/" + name + "/type"}})
+				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("field %s of %s, at %s of %s, of type %q: the vocabulary names no type by that word, so the type is inferred from the values", name, reg.name, tb.Ref(ty.Row, ty.Col), tb.File.Name, ty.Value), clause: tb.ColumnRange(ty.Col), blocks: []string{"#/entities/" + reg.name + "/properties/" + name + "/type"}, source: tb.File.Key})
 			}
 		}
 		if req, ok := col[vocabulary.Required]; ok {
@@ -543,7 +543,7 @@ func (t *tabReader) readInstructions(reg *tabRegister) {
 		if s, ok := col[vocabulary.Sensitivity]; ok && !s.Blank() {
 			rule.sensitivity = vocabulary.Key(v.Sensitivities, s.Value)
 			if rule.sensitivity == "" {
-				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("field %s of %s, at %s of %s, of sensitivity %q: the vocabulary names no sensitivity by that word; left out", name, reg.name, tb.Ref(s.Row, s.Col), tb.File.Name, s.Value), clause: tb.ColumnRange(s.Col), blocks: []string{"#/entities/" + reg.name + "/properties/" + name + "/sensitivity"}})
+				t.notHeld = append(t.notHeld, notHeld{text: fmt.Sprintf("field %s of %s, at %s of %s, of sensitivity %q: the vocabulary names no sensitivity by that word; left out", name, reg.name, tb.Ref(s.Row, s.Col), tb.File.Name, s.Value), clause: tb.ColumnRange(s.Col), blocks: []string{"#/entities/" + reg.name + "/properties/" + name + "/sensitivity"}, source: tb.File.Key})
 			}
 		}
 		if d, ok := col[vocabulary.Description]; ok && !d.Blank() {
@@ -806,10 +806,18 @@ func (t *tabReader) readColumn(reg *tabRegister, col *tabColumn) (*yaml.Node, bo
 			set(f, "type", "string")
 			set(f, "format", "email")
 			words = "email"
+		case "uuid":
+			set(f, "type", "string")
+			set(f, "format", "uuid")
+			words = "uuid"
 		case "integer":
 			set(f, "type", "integer")
 			set(f, "format", "int32")
 			words = "integer"
+		case "integer64":
+			set(f, "type", "string")
+			set(f, "format", "int64")
+			words = "integer of 64 bits, carried as text"
 		case "decimal":
 			if in.format == "decimal" || in.typ == "integer" || in.format == "int64" {
 				precision, scale := in.precision, in.scale
@@ -844,9 +852,14 @@ func (t *tabReader) readColumn(reg *tabRegister, col *tabColumn) (*yaml.Node, bo
 				ok = k == "boolean"
 			case "email":
 				ok = k == "email"
+			case "uuid":
+				ok = k == "uuid"
 			case "integer":
 				n, err := strconv.ParseInt(s, 10, 64)
 				ok = k == "integer" && err == nil && n >= -1<<31 && n <= 1<<31-1
+			case "integer64":
+				_, err := strconv.ParseInt(s, 10, 64)
+				ok = k == "integer" && err == nil
 			case "decimal":
 				ok = k == "integer" || k == "decimal"
 			}
@@ -866,6 +879,10 @@ func (t *tabReader) readColumn(reg *tabRegister, col *tabColumn) (*yaml.Node, bo
 		if in.format == "decimal" {
 			set(f, "precision", in.precision)
 			set(f, "scale", in.scale)
+		}
+		// The values the instructions allow stand in for an inferred enum.
+		if rule != nil && len(rule.values) > 0 {
+			in.enum = nil
 		}
 		if in.enum != nil {
 			set(f, "enum", in.enum)
@@ -899,7 +916,12 @@ func (t *tabReader) readColumn(reg *tabRegister, col *tabColumn) (*yaml.Node, bo
 	}
 	// The allowed values the instructions give, and the values against them.
 	if rule != nil && len(rule.values) > 0 {
-		set(f, "enum", rule.values)
+		if nodes, wrong := enumValues(rule.values, f); len(wrong) == 0 {
+			set(f, "enum", flow(&yaml.Node{Kind: yaml.SequenceNode, Content: nodes}))
+		} else {
+			t.question(reg, fmt.Sprintf("The instructions allow %s for %s of %s, whose type is %s, and %s %s read as it: %s. Is the list wrong, or the type? The allowed values are left out until decided.", joinAnd(quoteAll(rule.values)), col.name, reg.name, words, plural(len(wrong), "value"), doesNot(len(wrong)), joinAnd(quoteAll(wrong))), "must", []string{at + "/enum"},
+				"An allowed value is written as a value of the field's type, and one that does not read as it is either a wrong value or a wrong type, which the reader does not choose.", citeRule())
+		}
 		allowed := map[string]bool{}
 		for _, v := range rule.values {
 			allowed[v] = true
@@ -1194,7 +1216,7 @@ func (t *tabReader) cite(tb *tabTable, col int) *yaml.Node {
 		t.cited[key][tb.Range()] = tb.Name
 		var headers []string
 		for _, h := range tb.Header {
-			headers = append(headers, strings.TrimSpace(h.Value))
+			headers = append(headers, headerTitle(h))
 		}
 		says := fmt.Sprintf("A register of %s with the columns %s.", plural(len(tb.Rows), "row"), strings.Join(headers, ", "))
 		switch {
@@ -1207,10 +1229,7 @@ func (t *tabReader) cite(tb *tabTable, col int) *yaml.Node {
 	}
 	h := tb.Header[col]
 	clause := tb.ColumnRange(h.Col)
-	title := strings.TrimSpace(h.Value)
-	if title == "" {
-		title = "Column " + xlsx.ColumnName(h.Col) + ", with no header"
-	}
+	title := headerTitle(h)
 	t.cited[key][clause] = title
 	values, blanks := 0, 0
 	for _, row := range tb.Rows {
@@ -1220,7 +1239,61 @@ func (t *tabReader) cite(tb *tabTable, col int) *yaml.Node {
 			values++
 		}
 	}
-	return citation(key, clause, fmt.Sprintf("The column %s: %s and %s.", strings.TrimSpace(h.Value), plural(values, "value"), plural(blanks, "blank")))
+	named := "The column " + title
+	if strings.TrimSpace(h.Value) == "" {
+		named = title
+	}
+	return citation(key, clause, fmt.Sprintf("%s: %s and %s.", named, plural(values, "value"), plural(blanks, "blank")))
+}
+
+// headerTitle names a column by its header, or by its letter when the
+// header is blank.
+func headerTitle(h tabCell) string {
+	if title := strings.TrimSpace(h.Value); title != "" {
+		return title
+	}
+	return "Column " + xlsx.ColumnName(h.Col) + ", with no header"
+}
+
+// enumValues writes allowed values as values of the field's type: a whole
+// number under integer, true or false under boolean, text otherwise; the
+// values that do not read as the type are returned instead.
+func enumValues(values []string, f *yaml.Node) (nodes []*yaml.Node, wrong []string) {
+	typ, format := "", ""
+	for i := 0; i+1 < len(f.Content); i += 2 {
+		switch f.Content[i].Value {
+		case "type":
+			typ = f.Content[i+1].Value
+		case "format":
+			format = f.Content[i+1].Value
+		}
+	}
+	for _, v := range values {
+		switch {
+		case typ == "integer":
+			n, err := strconv.ParseInt(v, 10, 64)
+			if !integerForm.MatchString(v) || err != nil || format == "int32" && (n < -1<<31 || n > 1<<31-1) {
+				wrong = append(wrong, v)
+				continue
+			}
+			nodes = append(nodes, literal("!!int", v))
+		case typ == "boolean":
+			if b := strings.ToLower(v); b == "true" || b == "false" {
+				nodes = append(nodes, literal("!!bool", b))
+			} else {
+				wrong = append(wrong, v)
+			}
+		case format == "int64":
+			if _, err := strconv.ParseInt(v, 10, 64); !integerForm.MatchString(v) || err != nil {
+				wrong = append(wrong, v)
+				continue
+			}
+			nodes = append(nodes, str(v))
+		default:
+			nodes = append(nodes, str(v))
+		}
+	}
+	return nodes, wrong
 }
 
 func instructionFields(tb *tabTable) []string {
@@ -1279,9 +1352,6 @@ func (t *tabReader) write(entity string, template, instructions *tabFile) {
 	}
 	for i := range t.notHeld {
 		h := &t.notHeld[i]
-		if h.source == "" {
-			h.source = t.sourceOf(*h)
-		}
 		if t.cited[h.source] == nil {
 			t.cited[h.source] = map[string]string{}
 		}
@@ -1348,27 +1418,4 @@ func (t *tabReader) filesList(files []*tabFile) string {
 		out = append(out, f.Rel)
 	}
 	return joinAnd(out)
-}
-
-// sourceOf is the key of the file a thing not read names, found by the
-// table its clause is in.
-func (t *tabReader) sourceOf(h notHeld) string {
-	for _, reg := range t.registers {
-		tables := append([]*tabTable(nil), reg.tables...)
-		if reg.template != nil {
-			tables = append(tables, reg.template)
-		}
-		if reg.instructions != nil {
-			tables = append(tables, reg.instructions)
-		}
-		for _, tb := range tables {
-			if h.clause == tb.Range() || strings.HasPrefix(h.clause, strings.TrimSuffix(tb.Range(), xlsx.Ref(tb.LastRow, tb.LastCol))) && strings.Contains(h.text, tb.File.Name) {
-				return tb.File.Key
-			}
-		}
-	}
-	if len(t.files) > 0 {
-		return t.files[0].Key
-	}
-	return ""
 }

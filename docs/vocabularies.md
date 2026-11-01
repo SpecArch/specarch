@@ -42,10 +42,11 @@ longer one is not found.
 | `headers` | `field`, `type`, `required`, `sensitivity`, `description`, `rowNumber` and `values`, each a list | a table whose first column is a field word and whose others are the other four, or the values word, is a table of fields; a leading row-number column is skipped in every table; the values column holds a field's allowed values, which `extract tables` reads from a register's instructions |
 | `yes` | the words of a Required column that mean required | the field is required |
 | `sensitivities` | `public`, `internal`, `personal` and `credential`, each a list | a Sensitivity column; a sentence that names a field and holds a personal or credential word gives its sensitivity |
-| `types` | `string`, `date`, `dateTime`, `boolean`, `email`, `integer` and `decimal`, each a list | a Type column; a type with no word is left for a question |
+| `types` | `string`, `date`, `dateTime`, `boolean`, `email`, `integer`, `decimal`, `uuid` and `integer64`, each a list | a Type column; a type with no word is left for a question; `integer64` is a whole number of 64 bits, carried as a string of format `int64` |
 
-`headers.values`, `types.integer` and `types.decimal` came after the
-format's first version and may be left out, which reads as an empty list.
+`headers.values`, `types.integer`, `types.decimal`, `types.uuid` and
+`types.integer64` came after the format's first version and may be left
+out, which reads as an empty list.
 The file is checked when it is read, and refused with its line when any
 other key is missing or a key is unknown, a number is not a whole number, a unit is not an
 ISO 8601 duration, the tag is not a language tag, a word is twice in one

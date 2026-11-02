@@ -1,0 +1,3 @@
+arguments: [decide, Q-1, --by, owner, --answer, "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.", --record, COM-1, project]
+exitStatus: 1
+standardOutput: ""

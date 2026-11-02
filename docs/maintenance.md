@@ -447,7 +447,7 @@ error unless it says warning.
 | `idea_decision` | an accepted idea has a `decision` with outcome accepted; a rejected one has outcome rejected |
 | `idea_question` | an idea whose status is question names the question under `became` |
 | `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
-| `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions cites an answer that links one of them |
+| `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions cites an answer that links one of them, said by the role `decidedBy` names |
 | `unheard` | a warning, at the stakeholder, once a communication, session or test session record is kept: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 
@@ -458,7 +458,7 @@ names.
 
 ## What the documentor will make
 
-Two targets join `DocumentTarget`, after the first set of documents:
+Four targets join `DocumentTarget`, after the first set of documents:
 
 - `changes`: the change and defect register. A table of the change
   requests and one of the defects, open items first (a change that is

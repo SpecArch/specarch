@@ -49,7 +49,7 @@ decisions:
       evidence files and their hashes (evidence), the cited records
       (record_cited: the record exists, its type is answer or information,
       and a decision answering questions cites an answer that links one of
-      them), and, once such records are kept, warns unheard at a
+      them and was said by the role that decided), and, once such records are kept, warns unheard at a
       stakeholder that an accepted requirement needs or that an approved
       specification's page is for, while no communication, session,
       interview or decision shows it was heard, naming the elements.

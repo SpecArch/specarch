@@ -74,3 +74,15 @@ decisions:
     cites:
       - record: COM-1
         says: "Five, as it has always been."
+  ADR-004:
+    title: A reservation holds a copy for three days
+    status: accepted
+    date: "2026-11-01"
+    context: Q-4 asked how long a reservation holds a copy.
+    decision: Three days.
+    consequences: The reservation's expiry is three days after it is made.
+    decidedBy: owner
+    answers: [Q-4]
+    cites:
+      - record: COM-5
+        says: "A reservation holds a copy for three days."

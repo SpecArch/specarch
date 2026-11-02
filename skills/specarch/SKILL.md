@@ -190,10 +190,10 @@ Error codes of --json:
   Answer an open question with a decision record and take the question out.
   exit 0: the record is written and the question taken out
   exit 1: refused; the question, the stakeholder or the source is unknown,
-  the record is not an answer record linking the question, the specification
-  tracks origin and neither a source nor a record is given, design is not a
-  stage, or the entry cannot be edited as text; or written, while the
-  specification has errors
+  the record is not an answer record linking the question and said by the
+  stakeholder, the specification tracks origin and neither a source nor a
+  record is given, design is not a stage, or the entry cannot be edited as
+  text; or written, while the specification has errors
   exit 2: usage error, or a file that could not be read or written
 - `specarch decision rests <decision> <folder>`
   Print the decisions that rest on a decision, nearest first.

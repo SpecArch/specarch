@@ -298,8 +298,10 @@ final class SchemaEvaluator: @unchecked Sendable {
 }
 
 /// An instant written as RFC 3339 writes it: a date, T, a time of day with
-/// an optional fraction, and Z or an offset, as the Go build's schema
-/// library reads the date-time format.
+/// an optional fraction, and Z or an offset, read as the Go build's schema
+/// library reads the date-time format: a second of 60, a leap second, is
+/// accepted only when the time less its offset is 23:59 UTC, where RFC
+/// 3339 places one.
 func isDateTime(_ s: String) -> Bool {
     let scalars = Array(s.unicodeScalars)
     guard scalars.count >= 20, scalars[10] == "T" || scalars[10] == "t", isDate(String(s.prefix(10))) else { return false }
@@ -319,6 +321,9 @@ func isDateTime(_ s: String) -> Bool {
     guard let m = digits(2), m <= 59, i < scalars.count, scalars[i] == ":" else { return false }
     i += 1
     guard let sec = digits(2), sec <= 60 else { return false }
+    // A leap second is accepted only at 23:59 UTC; the minutes of the
+    // offset are taken off the clock below, as the Go build does.
+    var utcMinutes = h * 60 + m
     if i < scalars.count, scalars[i] == "." {
         i += 1
         var n = 0
@@ -326,13 +331,19 @@ func isDateTime(_ s: String) -> Bool {
         if n == 0 { return false }
     }
     guard i < scalars.count else { return false }
-    if scalars[i] == "Z" || scalars[i] == "z" { return i + 1 == scalars.count }
+    if scalars[i] == "Z" || scalars[i] == "z" {
+        guard i + 1 == scalars.count else { return false }
+        return sec < 60 || utcMinutes == 23 * 60 + 59
+    }
     guard scalars[i] == "+" || scalars[i] == "-" else { return false }
+    let sign = scalars[i] == "+" ? -1 : 1
     i += 1
     guard let oh = digits(2), oh <= 23, i < scalars.count, scalars[i] == ":" else { return false }
     i += 1
-    guard let om = digits(2), om <= 59 else { return false }
-    return i == scalars.count
+    guard let om = digits(2), om <= 59, i == scalars.count else { return false }
+    utcMinutes += sign * (oh * 60 + om)
+    if utcMinutes < 0 { utcMinutes += 24 * 60 }
+    return sec < 60 || utcMinutes == 23 * 60 + 59
 }
 
 /// A calendar date written YYYY-MM-DD.

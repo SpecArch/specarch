@@ -129,6 +129,10 @@ func (rc *recordChecks) checkCitedRecords(c *checker) {
 				}
 				if !found {
 					c.add(recNode, ptr, RuleRecordCited, "%s answers %s, not %s, which %s answers; cite the record of the answer to %s, or link %s to it under questions", id, eitherOf(itemValues(source.Child(source.Child(rec.root, "links"), "questions"))), eitherOf(answers), path[1], eitherOf(answers), id)
+					continue
+				}
+				if from, by := rec.str("from"), source.Str(source.Child(n, "decidedBy")); from != by {
+					c.add(recNode, ptr, RuleRecordCited, "%s was said by %s, not %s, which %s names as decidedBy; a decision that answers a question is decided by the role that answered it: write decidedBy %s, or cite the record of the answer %s gave", id, from, by, path[1], from, by)
 				}
 			}
 		}

@@ -560,12 +560,6 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 		e.roles = uniqueStrings(e.roles)
 		out = append(out, e)
 	}
-	byRecord := map[string]*yaml.Node{}
-	for _, r := range state.Records {
-		if id := str(r, "id"); id != "" {
-			byRecord[id] = r
-		}
-	}
 	for _, r := range state.Records {
 		id := str(r, "id")
 		switch str(r, "kind") {
@@ -682,7 +676,6 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 		}
 		add(e)
 	}
-	_ = byRecord
 	for i := range out {
 		if out[i].shown == "" {
 			out[i].shown = "no date"

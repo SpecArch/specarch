@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-6
+direction: in
+from: librarian
+to: owner
+at: "2027-01-01T06:59:60+07:00"
+channel: chat
+type: information
+words: { form: summary, text: The desk reopens on the second of January. }
+recordedBy: owner
+links:
+  elements: [CASE-1]

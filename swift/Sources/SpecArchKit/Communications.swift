@@ -106,6 +106,12 @@ extension RecordChecks {
                     let linked = items(rec.root?.child("links")?.child("questions")).map(\.value)
                     if !answers.contains(where: { linked.contains($0) }) {
                         c.add(recNode, ptr, .recordCited, "\(id) answers \(eitherOf(linked)), not \(eitherOf(answers)), which \(path[1]) answers; cite the record of the answer to \(eitherOf(answers)), or link \(id) to it under questions")
+                        continue
+                    }
+                    let from = rec.str("from")
+                    let by = str(n.child("decidedBy"))
+                    if from != by {
+                        c.add(recNode, ptr, .recordCited, "\(id) was said by \(from), not \(by), which \(path[1]) names as decidedBy; a decision that answers a question is decided by the role that answered it: write decidedBy \(from), or cite the record of the answer \(by) gave")
                     }
                 }
             }

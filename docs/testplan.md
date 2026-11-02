@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 950 design tests, 474 golden and 476 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 951 design tests, 474 golden and 477 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 950 design tests, 474 golden and 476 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 946 |
+| system | 947 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -222,6 +222,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-118.
 - Given: a specification with an open question Q-1 and no communication record beside it
 - When: decide is run for Q-1 with --record COM-9
 - Then: it refuses, saying there is no records/communications/COM-9.yaml and how to record the answer, writes nothing and exits 1
+
+#### decide-record-wrong-by
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification with an open question Q-1 and beside it COM-1, an answer from library-board linking Q-1
+- When: decide is run for Q-1 with --record COM-1 and --by owner
+- Then: it refuses, saying COM-1 was said by library-board and not owner, naming --by library-board as the line log printed, writes nothing and exits 1
 
 #### decide-removes-questions-file
 
@@ -5131,7 +5139,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-23.
 
 Scenario: red; level: system; covers exit 1; verifies SA-117.
 
-- Given: a communication record naming a stakeholder, a session, a source, a question, a decision, a requirement, a pointer, a change, a defect and an idea that the specification and its records do not have, an answer record with no links, a communication whose at is not an instant, a session inviting an unknown role, a test session and a deploy in an unknown environment at a version that is no release, a tester and a deployer that are no stakeholders
+- Given: a communication record naming a stakeholder, a session, a source, a question, a decision, a requirement, a pointer, a change, a defect and an idea that the specification and its records do not have, an answer record with no links, a communication whose at is not an instant, one whose at names a leap second where none falls (23:59:60 at +07:00 is 16:59 UTC), a session inviting an unknown role, a test session and a deploy in an unknown environment at a version that is no release, a tester and a deployer that are no stakeholders
 - When: validate is run
 - Then: it reports record_ref at each reference, schema at the missing links and the instant, and exits 1
 
@@ -5139,7 +5147,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-117.
 
 Scenario: golden; level: system; verifies SA-117.
 
-- Given: a specification whose records beside it hold communications of every type (an answer with evidence whose SHA-256 matches, a question with its reply, a request, information given in a call with no evidence, an objection), a session with its attendance, a test session, a deploy, a planned release, a change and an idea, each naming only what the specification and the records have; an interview source with at and participants; a decision answering Q-1 that cites the answer record, and a requirement that cites the information record
+- Given: a specification whose records beside it hold communications of every type (an answer with evidence whose SHA-256 matches, a question with its reply, a request, information given in a call with no evidence, an objection, information at the leap second that ends 2026, 23:59:60 UTC as a clock at +07:00 reads it), a session with its attendance, a test session, a deploy, a planned release, a change and an idea, each naming only what the specification and the records have; an interview source with at and participants; a decision answering Q-1 that cites the answer record, and a requirement that cites the information record
 - When: validate is run on the specification's folder
 - Then: it prints nothing and exits 0
 
@@ -6643,9 +6651,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-95.
 
 Scenario: red; level: system; covers exit 1; verifies SA-117.
 
-- Given: a decision answering Q-1 that cites a communication record that does not exist, a decision that cites a request, a decision answering Q-3 that cites an answer whose links name Q-1 and Q-2, and a requirement that cites an information record
+- Given: a decision answering Q-1 that cites a communication record that does not exist, a decision that cites a request, a decision answering Q-3 that cites an answer whose links name Q-1 and Q-2, a decision answering Q-4 decided by owner that cites the answer library-board gave, and a requirement that cites an information record
 - When: validate is run
-- Then: it reports record_cited at the three decisions' citations, accepts the requirement's, and exits 1
+- Then: it reports record_cited at the four decisions' citations, accepts the requirement's, and exits 1
 
 #### validate-record-name
 

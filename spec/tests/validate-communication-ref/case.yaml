@@ -14,6 +14,7 @@ standardOutput: |
   records/communications/COM-1.yaml:20:11: error: /links/ideas/0: record_ref: IDEA-9 is not an idea: there is no records/ideas/IDEA-9.yaml [record_ref@../records/communications/COM-1.yaml#/links/ideas/0]
   records/communications/COM-2.yaml:1:1: error: /: schema: links is missing; add it here [schema@../records/communications/COM-2.yaml#/]
   records/communications/COM-2.yaml:7:5: error: /at: schema: 2026-10-31 10:20 is not a valid date-time (write it as "YYYY-MM-DDThh:mm:ss+hh:mm", an instant with its offset); correct it [schema@../records/communications/COM-2.yaml#/at]
+  records/communications/COM-3.yaml:7:5: error: /at: schema: 2026-10-31T23:59:60+07:00 is not a valid date-time (write it as "YYYY-MM-DDThh:mm:ss+hh:mm", an instant with its offset); correct it [schema@../records/communications/COM-3.yaml#/at]
   records/deploys/DEP-1.yaml:4:10: error: /version: record_ref: 2.0.0 is not a release: there is no records/releases/2.0.0.yaml [record_ref@../records/deploys/DEP-1.yaml#/version]
   records/deploys/DEP-1.yaml:5:14: error: /environment: record_ref: staging is not an environment of the specification; use one of production [record_ref@../records/deploys/DEP-1.yaml#/environment]
   records/deploys/DEP-1.yaml:7:5: error: /by: record_ref: operator is not a stakeholder of the specification; use one of librarian, library-board, owner [record_ref@../records/deploys/DEP-1.yaml#/by]

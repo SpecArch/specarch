@@ -147,7 +147,7 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if record != "" {
-		if reason := answerRecordRefusal(parsedRecords(l.spec), record, id); reason != "" {
+		if reason := answerRecordRefusal(parsedRecords(l.spec), record, id, by); reason != "" {
 			fmt.Fprintf(stderr, "specarch decide: %s\n", reason)
 			return 1
 		}
@@ -457,10 +457,10 @@ func joinAnd(items []string) string {
 }
 
 // answerRecordRefusal is why a communication record cannot be the one a
-// decision answering the question cites: it is not a communication
-// record, not an answer, or does not link the question (ADR-220). "" when
-// it can.
-func answerRecordRefusal(records recordIndex, id, question string) string {
+// decision answering the question, decided by the role by, cites: it is
+// not a communication record, not an answer, does not link the question,
+// or was said by another role than by (ADR-220). "" when it can.
+func answerRecordRefusal(records recordIndex, id, question, by string) string {
 	var rec *yaml.Node
 	for _, r := range records["communication"] {
 		if source.Str(source.Child(r, "id")) == id {
@@ -474,15 +474,20 @@ func answerRecordRefusal(records recordIndex, id, question string) string {
 		return fmt.Sprintf("%s is %s, not an answer; a decision cites the record of the answer given, so record the answer with specarch log --type answer --question %s and cite that", id, typeArticle(typ), question)
 	}
 	var linked []string
+	found := false
 	for _, item := range source.Items(source.Child(source.Child(rec, "links"), "questions")) {
-		if item.Value == question {
-			return ""
-		}
+		found = found || item.Value == question
 		linked = append(linked, item.Value)
 	}
-	answers := "answers no question: its links name none"
-	if len(linked) > 0 {
-		answers = "answers " + joinAnd(linked) + ", not " + question
+	if !found {
+		answers := "answers no question: its links name none"
+		if len(linked) > 0 {
+			answers = "answers " + joinAnd(linked) + ", not " + question
+		}
+		return fmt.Sprintf("%s %s; cite the record of the answer to %s, or add %s to its links under questions when it answered that too", id, answers, question, question)
 	}
-	return fmt.Sprintf("%s %s; cite the record of the answer to %s, or add %s to its links under questions when it answered that too", id, answers, question, question)
+	if from := source.Str(source.Child(rec, "from")); from != by {
+		return fmt.Sprintf("%s was said by %s, not %s; a decision that answers a question is decided by the role that answered it, so decide with --by %s, as the line specarch log printed, or record the answer %s gave with specarch log and cite that", id, from, by, from, by)
+	}
+	return ""
 }

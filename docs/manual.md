@@ -346,8 +346,10 @@ question by its ID in the merged `questions` section; refuses when
 there is none of that ID, naming the open ones, when `--by` is not a
 stakeholder of the specification, when `--source` names a source the
 root file does not declare, when `--record` names a record that is
-not a communication record, not an answer or one that does not link
-the question (ADR-220), when the specification tracks origin and
+not a communication record, not an answer, one that does not link
+the question or one said by another role than `--by`, since the
+decision that answers a question is decided by the role that
+answered it (ADR-220), when the specification tracks origin and
 neither `--source` nor `--record` is given, since the answer must
 then be citable, and when `stages` does not list design, where
 decisions live (ADR-155). `--source` and `--record` together are a
@@ -410,7 +412,7 @@ Anyone who has the program runs it.
 
 | Option | What it does | Required |
 |---|---|---|
-| `--by <by>` | The stakeholder who decided, by key; a role, never a person. | yes |
+| `--by <by>` | The stakeholder who decided, by key; a role, never a person. With --record, the role the record names as from. | yes |
 | `--answer <answer>` | The answer, as the stakeholder gave it; the record's decision. | yes |
 | `--source <source>` | The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. One of --source and --record is required when the specification tracks origin. |  |
 | `--record <record>` | The communication record of the answer given, by ID, written by specarch log with type answer and the question under its links; the decision cites it. Not with --source. |  |
@@ -433,7 +435,7 @@ On standard error: A usage message on a usage error, the reason a refusal, and o
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | the record is written and the question taken out |   |
-| 1 | refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors | Read the refusal on standard error and correct the question, stakeholder, source or record it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them. |
+| 1 | refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question and said by the stakeholder, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors | Read the refusal on standard error and correct the question, stakeholder, source or record it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them. |
 | 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch decision rests
@@ -3621,7 +3623,7 @@ Anyone who has the program runs it.
 | `--evidence <evidence>` | A file under records/ that shows it, by its path, with the media type after = when the extension does not say it; repeatable. |  |
 | `--question <question>` | A question of the specification it is about, open or answered, by ID; repeatable, and required for an answer. |  |
 | `--decision <decision>` | A decision it is about, by ID; repeatable. |  |
-| `--element <element>` | A requirement ID or a |  |
+| `--element <element>` | A requirement ID or a #/ pointer it is about; repeatable. |  |
 | `--change <change>` | A change request it is about, by ID; repeatable. |  |
 | `--defect <defect>` | A defect it is about, by ID; repeatable. |  |
 | `--idea <idea>` | An idea it is about, by ID; repeatable. |  |

@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-5
+direction: in
+from: library-board
+to: owner
+at: "2026-11-01T11:00:00+07:00"
+channel: meeting
+type: answer
+words: { form: verbatim, text: "A reservation holds a copy for three days." }
+recordedBy: owner
+links:
+  questions: [Q-4]

@@ -9,8 +9,10 @@ commands:
       there is none of that ID, naming the open ones, when `--by` is not a
       stakeholder of the specification, when `--source` names a source the
       root file does not declare, when `--record` names a record that is
-      not a communication record, not an answer or one that does not link
-      the question (ADR-220), when the specification tracks origin and
+      not a communication record, not an answer, one that does not link
+      the question or one said by another role than `--by`, since the
+      decision that answers a question is decided by the role that
+      answered it (ADR-220), when the specification tracks origin and
       neither `--source` nor `--record` is given, since the answer must
       then be citable, and when `stages` does not list design, where
       decisions live (ADR-155). `--source` and `--record` together are a
@@ -67,7 +69,7 @@ commands:
         schema: { type: string }
     options:
       by:
-        description: The stakeholder who decided, by key; a role, never a person.
+        description: The stakeholder who decided, by key; a role, never a person. With --record, the role the record names as from.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
         required: true
       answer:
@@ -95,7 +97,7 @@ commands:
     standardError: A usage message on a usage error, the reason a refusal, and one line naming the record written, the file the question left and what to do next.
     exitCodes:
       "0": the record is written and the question taken out
-      "1": refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors
+      "1": refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question and said by the stakeholder, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors
       "2": usage error, or a file that could not be read or written
     remedies:
       "1": "Read the refusal on standard error and correct the question, stakeholder, source or record it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them."

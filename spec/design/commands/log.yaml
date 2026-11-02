@@ -94,7 +94,7 @@ commands:
         description: A decision it is about, by ID; repeatable.
         schema: { type: array, items: { type: string, pattern: "^ADR-[0-9]{3,}$" } }
       element:
-        description: A requirement ID or a #/ pointer it is about; repeatable.
+        description: "A requirement ID or a #/ pointer it is about; repeatable."
         schema: { type: array, items: { type: string, minLength: 1 } }
       change:
         description: A change request it is about, by ID; repeatable.

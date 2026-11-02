@@ -64,7 +64,7 @@ would write and writes nothing.
 - `--evidence <evidence>` (given once per value): A file under records/ that shows it, by its path, with the media type after = when the extension does not say it; repeatable.
 - `--question <question>` (given once per value): A question of the specification it is about, open or answered, by ID; repeatable, and required for an answer.
 - `--decision <decision>` (given once per value): A decision it is about, by ID; repeatable.
-- `--element <element>` (given once per value): A requirement ID or a
+- `--element <element>` (given once per value): A requirement ID or a #/ pointer it is about; repeatable.
 - `--change <change>` (given once per value): A change request it is about, by ID; repeatable.
 - `--defect <defect>` (given once per value): A defect it is about, by ID; repeatable.
 - `--idea <idea>` (given once per value): An idea it is about, by ID; repeatable.

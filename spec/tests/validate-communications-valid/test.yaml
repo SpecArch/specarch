@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: golden
-given: "a specification whose records beside it hold communications of every type (an answer with evidence whose SHA-256 matches, a question with its reply, a request, information given in a call with no evidence, an objection), a session with its attendance, a test session, a deploy, a planned release, a change and an idea, each naming only what the specification and the records have; an interview source with at and participants; a decision answering Q-1 that cites the answer record, and a requirement that cites the information record"
+given: "a specification whose records beside it hold communications of every type (an answer with evidence whose SHA-256 matches, a question with its reply, a request, information given in a call with no evidence, an objection, information at the leap second that ends 2026, 23:59:60 UTC as a clock at +07:00 reads it), a session with its attendance, a test session, a deploy, a planned release, a change and an idea, each naming only what the specification and the records have; an interview source with at and participants; a decision answering Q-1 that cites the answer record, and a requirement that cites the information record"
 when: "validate is run on the specification's folder"
 then: "it prints nothing and exits 0"
 verifies: [SA-117]

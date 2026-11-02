@@ -276,40 +276,50 @@ a step below.
 
 ## 7. Steps
 
-1. **The principle and this design** (built): `docs/principles.md`, the
-   check in `CLAUDE.md`, this document, ADR-083 and SA-57.
+Every step is built; the case named is the test that verifies SA-57 for
+it.
+
+1. **The principle and this design**: `docs/principles.md`, the check in
+   `CLAUDE.md`, this document, ADR-083 and SA-57.
 2. **The records for acceptance**: `phase: acceptance`, `against`,
    `seenAt`, `observed`, `expected`, `cause` and `questions` in the record
-   schema and both validator builds, with their references checked under
-   `record_ref` (a change's `questions` only while it is open), a rule
-   that an acceptance record says what was observed, expected and against
-   which build, and one that an analysed change has a `cause`; an example
-   change from acceptance in the library lending example, with a test
-   that verifies SA-57; conformance cases.
-3. **A decision answers a change request**: `answers` may name a change
-   request, in both builds; an accepted decision that answers a change
-   whose decision is not approved is an error. If the owner chooses the
-   alternative of section 8.1, the change's `decision` names the decision
-   record instead, checked to exist, and `docs/maintenance.md` says so;
-   otherwise its sentence that the specification never points back at
-   records names this one exception.
-4. **The trace in generated output** (Go only): the pointer in every form
-   of section 2's table and the version and digest in every generated
-   header, after the marked draft of ADR-066 (diagnostics step 7).
+   schema and both validator builds, their references checked under
+   `record_ref` (a change's `questions` only while it is open), the schema
+   requiring what an acceptance remark says and the cause of an analysed
+   change; CR-3 of the library lending example; the cases
+   `validate-acceptance-valid` and `validate-acceptance-record`.
+3. **A decision answers a change request**: `answers` names a change
+   record in both builds, under the rule `change_answered`; an accepted
+   decision that answers a change whose decision is not approved is an
+   error, and `docs/maintenance.md` names the two exceptions to the rule
+   that the specification never points back at a record; the case
+   `validate-change-answered`.
+4. **The trace in generated output** (Go only): the pointer in SQL, the
+   Go server, OpenAPI and the Go tests, and the version and digest in
+   every generated header (`docs/generators.md`, rule 1).
 5. **The trace shown in an acceptance build**: `trace` on an environment,
-   the overlay in the web UI generators, the answer header in the
-   go-dxlib server, and the warning for a last environment that shows it.
+   `generate --environment`, the data attributes and the overlay in the
+   plain web UI, the answer header in the Go server, and the warning
+   `environment_trace` for a last environment that shows it; the cases
+   `generate-ui-trace`, `generate-environment-unknown` and
+   `validate-environment-trace`.
 6. **Reach and marks of open changes**: the reach of section 4 in the
    `changes` document, and an open change request shown at its element in
-   every document, beside the open questions.
+   every document, beside the open questions; the case
+   `document-writes-changes-reach`.
 7. **Release notes and the procedure**: phase and cause in the `releases`
    document and the count by cause; the return arrow in
-   `docs/refinement.md`'s path; an acceptance round in
+   `docs/refinement.md`'s path; a round of acceptance in
    `docs/from-sources.md` and its agent instructions.
 8. **diff against the approval**: the approval record's `commit`, and
    `diff` skipping the `version` check when both sides have the same
-   `info.version`, so the approver of a second round reads only what
-   changed.
+   `info.version`; the case `diff-same-version`.
+
+Not in these steps, and open: the pointer in the screens the TypeScript,
+Vue and SwiftUI stacks draw, whose page schema is data read by
+hand-written runtimes (a member of that schema and a change in each
+runtime), the native accessibility identifiers, the header on a message
+and the pointer in a request's log line, which no generator writes yet.
 
 ## 8. What the owner decided
 

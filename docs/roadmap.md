@@ -722,8 +722,24 @@ specification, and an operation stage with monitors. Built in this order:
    `specarch decide --record` (`spec/tests/log-writes-record`,
    `log-asks-missing`, `decide-cites-record`); the documentor targets
    `communications` and `timeline` (`spec/tests/document-writes-communications`,
-   `document-writes-timeline`). Built, unreleased. Left for later: the
-   acceptance loop's cause `unheard` resting on the warning (ADR-083).
+   `document-writes-timeline`). Built, unreleased.
+8. the acceptance loop (ADR-083, settled by the owner in ADR-221 to
+   ADR-224, `docs/acceptance.md`): a remark from the user acceptance test
+   as a change or defect record with the build it is against, where it
+   was seen, what was observed and expected and its cause (omitted,
+   wrong, changed or unheard); a decision that names the change it
+   settles under `answers` (`change_answered`); the digest in every
+   generated header and the pointer trace in SQL, the Go server, OpenAPI
+   and the Go tests; `trace: true` on an environment, `generate
+   --environment` and the web overlay (`environment_trace`); the reach of
+   an open change in the `changes` document and the change shown at its
+   element in every document; phase and cause in the `releases`
+   document; the approval's `commit` and `diff` within one pre-release
+   (`spec/tests/validate-acceptance-valid`, `validate-change-answered`,
+   `generate-ui-trace`, `document-writes-changes-reach`,
+   `diff-same-version`). Built, unreleased. Open: the pointer in the
+   screens of the TypeScript, Vue and SwiftUI stacks and the native
+   accessibility identifiers, a message header and a request's log line.
 
 ## Not planned
 

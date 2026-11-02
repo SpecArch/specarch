@@ -138,7 +138,7 @@ requirements:
     statement: Every output SpecArch generates shall name the element of the specification it came from, and a remark made at the user acceptance test shall be recorded as a change request or a defect that names the build it is about, where it was seen, what was observed and what was expected, and why the result was not what was wanted, and shall enter the specification as a decision, a question or a rejection, with what it reaches listed before anything changes.
     kind: functional
     priority: should
-    status: proposed
+    status: accepted
     acceptance:
       - A web page generated from a page of the specification carries the page's pointer and the pointer of each field and action it draws, and a build for an environment that shows the trace shows the pointer, the version and the digest on screen.
       - A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause.

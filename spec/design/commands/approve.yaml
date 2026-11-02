@@ -58,7 +58,7 @@ commands:
     remedies:
       "1": "Run specarch gaps and specarch validate on the same paths and settle what they print, run specarch document for each document not current, then approve again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-20]
+    satisfies: [SA-20, SA-57]
     why: |
       A specification is reviewed in the form its readers use, the
       documents, and approval must be of exactly what was read; a digest of

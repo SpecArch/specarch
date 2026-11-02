@@ -17,6 +17,7 @@ type Suite struct {
 	Title      string
 	Version    string
 	Meta       string
+	Digest     string // the specification's digest, as the approval record keeps it
 	Root       string // the root file as seen from the output folder
 	Tests      []Test
 	Algorithms []Algorithm
@@ -187,7 +188,7 @@ func Build(r *Request) Suite {
 		}
 	}
 	info, _ := r.Specification["info"].(map[string]any)
-	s := Suite{Title: oneLine(str(info, "title")), Version: str(info, "version"), Meta: r.Specarch, Root: relRoot(r.Root, r.Output)}
+	s := Suite{Title: oneLine(str(info, "title")), Version: str(info, "version"), Meta: r.Specarch, Digest: r.Digest, Root: relRoot(r.Root, r.Output)}
 	tests, _ := r.Specification["tests"].(map[string]any)
 	for _, name := range sortedKeys(tests) {
 		t, _ := tests[name].(map[string]any)

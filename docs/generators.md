@@ -16,8 +16,21 @@ a step, the emitter stops at that tool's input and lets it do the rest.
    `specarch generate <target> <folders>` write into a folder the target
    owns and nothing outside it: the folder the implementation file names
    under `targets`, or `--out`. Every generated file starts with a header
-   naming the root file, its `info.version` and the meta-model version it
-   came from.
+   naming the root file, its `info.version`, the meta-model version it
+   came from and the specification's digest, the one the approval record
+   keeps, so a build says exactly which specification it came from and a
+   remark from acceptance can name it (`docs/acceptance.md`, section 1).
+   Every output carries the JSON pointer of the element it came from, in
+   the form of that output (`docs/acceptance.md`, section 2): SQL writes
+   `-- specarch: #/entities/Loan` above a table and
+   `-- specarch: #/entities/Loan/properties/dueOn` above a column, the Go
+   server `// specarch: <pointer>` above each operation's request type
+   and handler and each entity's table entry, OpenAPI
+   `x-specarch-element` on each operation, and the Go tests a
+   `// specarch: #/tests/<name>` comment on each test and the pointer in
+   the log of a failed one. The web UI carries the pointer in its data
+   attributes only in a build for an environment that shows the trace
+   (section Plain JavaScript for the web).
 2. Generated output is never edited by hand. A change goes into the spec and
    the output is regenerated. With `--check` the output is made in memory
    and compared with the disk, and the run fails when it differs. In CI

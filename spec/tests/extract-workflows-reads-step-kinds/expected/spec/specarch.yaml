@@ -4,14 +4,14 @@ info:
   title: Workflows of workflows/refund.bpmn
   version: 0.1.0
   description: |
-    The workflows the BPMN 2.0 file workflows/refund.bpmn defines at commit e7783def636225ce2078c3bfabd813a9c5834e32, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+    The workflows the BPMN 2.0 file workflows/refund.bpmn defines at commit d2b7f0e172d5b4afee8f4a9222c420c7ec4d5444, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: e7783def636225ce2078c3bfabd813a9c5834e32
+    edition: d2b7f0e172d5b4afee8f4a9222c420c7ec4d5444
     url: ../repo
     clauses:
       - {clause: workflows/refund.bpmn, title: The BPMN 2.0 process definitions}

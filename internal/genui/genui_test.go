@@ -2,6 +2,7 @@ package genui
 
 import (
 	"encoding/json"
+	"github.com/SpecArch/specarch/internal/approval"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,7 +35,11 @@ func request(t *testing.T, change func(specification, content map[string]any)) *
 	content := source.ValueOf(root).(map[string]any)
 	specification := s.Value.(map[string]any)
 	change(specification, content)
-	data, err := json.Marshal(map[string]any{"specarch": "1.0.0", "target": "ui", "root": filepath.ToSlash(s.RootFile),
+	digest, err := approval.Digest(s.Dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(map[string]any{"specarch": "1.0.0", "digest": digest, "target": "ui", "root": filepath.ToSlash(s.RootFile),
 		"specification": specification, "output": "../../examples/library-lending/web",
 		"implementations": []any{map[string]any{"file": impl.Path, "content": content, "idioms": idioms}}})
 	if err != nil {

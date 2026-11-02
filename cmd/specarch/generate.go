@@ -50,7 +50,11 @@ var builtGenerators = map[string]bool{}
 // values, the target's settings from each implementation file, and the
 // folder the output is for.
 type pluginRequest struct {
-	Specarch        string                 `json:"specarch"`
+	Specarch string `json:"specarch"`
+	// Digest is the specification's digest, as the approval record keeps
+	// it, so every generated file names the specification it came from
+	// and a remark from acceptance can name the build (ADR-083).
+	Digest          string                 `json:"digest"`
 	Target          string                 `json:"target"`
 	Root            string                 `json:"root"`
 	Specification   any                    `json:"specification"`
@@ -491,7 +495,7 @@ func stackName(impl *yaml.Node) string {
 // for it, each with why and what the plug-in is not told.
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) (pluginRequest, []string) {
 	existing, notes := existingFiles(folder)
-	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: metamodel.Normalized(l.spec.Value), Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Digest: specDigest(l.spec.Dir), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: metamodel.Normalized(l.spec.Value), Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
 	req.APIDialect, req.APIEnvelopes = apiDialectOf(l.spec)
 	for dep, other := range validate.GivenDependencies(l.spec, readGiven(l, target)) {
 		if req.Dependencies == nil {
@@ -649,6 +653,17 @@ func apiDialectOf(s *spec.Spec) (dialect string, envelopes any) {
 		}
 	}
 	return dialect, envelopes
+}
+
+// specDigest is the specification's digest for the generated headers, or
+// "" when its files cannot be read; the digest is the approval's, taken
+// without the problem marks (ADR-083).
+func specDigest(dir string) string {
+	d, err := approval.Digest(dir)
+	if err != nil {
+		return ""
+	}
+	return d
 }
 
 // estateArgs takes --estate <file> out of generate's arguments: the

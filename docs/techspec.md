@@ -3667,7 +3667,10 @@ together, a file that names none joining the others of its plug-in,
 and each run writes into the folder its files name, so `--out` is
 refused when the files reach more than one plug-in or folder. The program runs each plug-in once per
 specification with a request on its standard input, as JSON:
-`specarch` (the meta-model version), `target`, `root` (the root file's
+`specarch` (the meta-model version), `digest` (the specification's
+digest, as the approval record keeps it, which every generated file
+names in its header beside the version, so a remark from acceptance
+can name the build; ADR-083), `target`, `root` (the root file's
 path), `specification` (the merged, validated specification as plain
 values), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms

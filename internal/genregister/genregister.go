@@ -21,7 +21,11 @@ import (
 
 // Request is what specarch writes on a plug-in's standard input.
 type Request struct {
-	Specarch        string           `json:"specarch"`
+	Specarch string `json:"specarch"`
+	// Digest is the specification's digest, as the approval record keeps
+	// it, so every generated file names the specification it came from
+	// and a remark from acceptance can name the build (ADR-083).
+	Digest          string           `json:"digest"`
 	Target          string           `json:"target"`
 	Root            string           `json:"root"`
 	Specification   map[string]any   `json:"specification"`

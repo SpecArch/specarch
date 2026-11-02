@@ -4,14 +4,14 @@ info:
   title: Workflows of workflows/reinstate.bpmn
   version: 0.1.0
   description: |
-    The workflows the BPMN 2.0 file workflows/reinstate.bpmn defines at commit cb4e770db1d91636ca8fbc946a89e8a9a3f4881d, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
+    The workflows the BPMN 2.0 file workflows/reinstate.bpmn defines at commit 4ade4b38cb7bc77ff18eda25d4ac73415d770040, in the sequential subset the meta-model holds: approvals, operation steps and deadlines. Every workflow cites the file; what it does not say, or says outside the subset, is a question.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: cb4e770db1d91636ca8fbc946a89e8a9a3f4881d
+    edition: 4ade4b38cb7bc77ff18eda25d4ac73415d770040
     url: ../repo
     clauses:
       - {clause: workflows/reinstate.bpmn, title: The BPMN 2.0 process definitions}

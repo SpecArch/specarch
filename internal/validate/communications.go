@@ -95,7 +95,9 @@ var citedTypes = map[string]bool{"answer": true, "information": true}
 
 // checkCitedRecords checks every citation that names a communication
 // record: the record exists, its type is one a citation may rest on, and a
-// decision that answers questions cites an answer to one of them.
+// decision that answers questions and cites an answer cites one to one of
+// them, said by the role that decided; information cited by a decision is
+// held to neither, since it answers nothing (ADR-220).
 func (rc *recordChecks) checkCitedRecords(c *checker) {
 	walk(rc.d.root, nil, func(n *yaml.Node, path []string) {
 		for i, item := range source.Items(source.Child(n, "cites")) {
@@ -110,11 +112,12 @@ func (rc *recordChecks) checkCitedRecords(c *checker) {
 				c.add(recNode, ptr, RuleRecordCited, "%s is not a communication record: there is no records/communications/%s.yaml; record what was said with specarch log, then cite it", id, id)
 				continue
 			}
-			if typ := rec.str("type"); !citedTypes[typ] {
+			typ := rec.str("type")
+			if !citedTypes[typ] {
 				c.add(recNode, ptr, RuleRecordCited, "%s is %s, which settles nothing by itself: cite the record of the answer given, or the decision it led to; a citation rests on an answer or on information", id, typeArticle(typ))
 				continue
 			}
-			if len(path) == 2 && path[0] == "decisions" {
+			if len(path) == 2 && path[0] == "decisions" && typ == "answer" {
 				answers := itemValues(source.Child(n, "answers"))
 				if len(answers) == 0 {
 					continue

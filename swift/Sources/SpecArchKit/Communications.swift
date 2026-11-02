@@ -83,7 +83,9 @@ extension RecordChecks {
 
     /// Checks every citation that names a communication record: the record
     /// exists, its type is one a citation may rest on, and a decision that
-    /// answers questions cites an answer to one of them.
+    /// answers questions and cites an answer cites one to one of them, said
+    /// by the role that decided; information cited by a decision is held to
+    /// neither, since it answers nothing (ADR-220).
     func checkCitedRecords(_ c: Checker) {
         walk(d.root, []) { n, path in
             for (i, item) in items(n.child("cites")).enumerated() {
@@ -100,7 +102,7 @@ extension RecordChecks {
                     c.add(recNode, ptr, .recordCited, "\(id) is \(typeArticle(typ)), which settles nothing by itself: cite the record of the answer given, or the decision it led to; a citation rests on an answer or on information")
                     continue
                 }
-                if path.count == 2 && path[0] == "decisions" {
+                if path.count == 2 && path[0] == "decisions" && typ == "answer" {
                     let answers = items(n.child("answers")).map(\.value)
                     if answers.isEmpty { continue }
                     let linked = items(rec.root?.child("links")?.child("questions")).map(\.value)

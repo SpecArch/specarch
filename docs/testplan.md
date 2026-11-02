@@ -6651,9 +6651,9 @@ Scenario: red; level: system; covers exit 1; verifies SA-95.
 
 Scenario: red; level: system; covers exit 1; verifies SA-117.
 
-- Given: a decision answering Q-1 that cites a communication record that does not exist, a decision that cites a request, a decision answering Q-3 that cites an answer whose links name Q-1 and Q-2, a decision answering Q-4 decided by owner that cites the answer library-board gave, and a requirement that cites an information record
+- Given: a decision answering Q-1 that cites a communication record that does not exist, a decision that cites a request, a decision answering Q-3 that cites an answer whose links name Q-1 and Q-2, a decision answering Q-4 decided by owner that cites the answer library-board gave, a decision answering Q-5 decided by owner that cites information library-board gave, and a requirement that cites an information record
 - When: validate is run
-- Then: it reports record_cited at the four decisions' citations, accepts the requirement's, and exits 1
+- Then: it reports record_cited at the first four decisions' citations, accepts the fifth decision's and the requirement's, and exits 1
 
 #### validate-record-name
 

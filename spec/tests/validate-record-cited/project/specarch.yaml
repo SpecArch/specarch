@@ -86,3 +86,15 @@ decisions:
     cites:
       - record: COM-5
         says: "A reservation holds a copy for three days."
+  ADR-005:
+    title: A lapsed reservation passes the copy on
+    status: accepted
+    date: "2026-11-01"
+    context: Q-5 asked what happens to a copy when its reservation lapses.
+    decision: The next member in line gets it.
+    consequences: The reservation list moves on by itself.
+    decidedBy: owner
+    answers: [Q-5]
+    cites:
+      - record: COM-6
+        says: "A reservation that lapses frees the copy for the next member in line."

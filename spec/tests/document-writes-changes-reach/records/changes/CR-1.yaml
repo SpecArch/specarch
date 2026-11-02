@@ -1,0 +1,19 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Show the due date as a date
+raisedBy: librarian
+raised: "2026-10-21"
+phase: acceptance
+against: { version: 1.1.0-dev, digest: "sha256:0000000000000000000000000000000000000000000000000000000000000001", environment: staging, build: case 1.1.0-dev at 7c1e4a9 }
+seenAt: ["#/entities/Loan/properties/dueOn"]
+observed: The loan shows "12 days left".
+expected: The loan shows the date it is due, which the desk reads out to the member.
+type: perfective
+urgency: normal
+reason: The desk reads the due date out to the member and had to count it from the days left.
+cause: omitted
+affects: { changes: ["#/entities/Loan/properties/dueOn"] }
+impact: patch
+decision: { by: library-board, date: "2026-10-28", outcome: approved, why: "The date is what the member is told." }
+status: approved

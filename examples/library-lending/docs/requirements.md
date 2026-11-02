@@ -99,6 +99,8 @@ Acceptance criteria:
 
 - The nightly job marks a loan due yesterday as overdue and publishes LoanOverdue.
 
+**Open change request CR-1:** Let a member renew a loan once. Raised in production by member on 2026-10-09; approved; cause omitted.
+
 ### LIB-5
 
 A late return shall be charged a flat daily rate, capped at the book's replacement cost.

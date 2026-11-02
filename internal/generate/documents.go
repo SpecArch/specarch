@@ -42,7 +42,7 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 	case "comparison":
 		write = func() string { return Comparison(root, relRoot, impls, state) }
 	case "changes":
-		return Changes(root, relRoot, state), true
+		return Changes(root, relRoot, impls, state), true
 	case "releases":
 		return Releases(root, relRoot, state), true
 	case "communications":

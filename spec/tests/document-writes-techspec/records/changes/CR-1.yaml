@@ -1,0 +1,18 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Let a customer have two names
+raisedBy: owner
+raised: "2026-10-21"
+phase: acceptance
+against: { version: 1.0.0, environment: production }
+seenAt: ["#/entities/Customer/properties/name"]
+observed: The form has one name field.
+expected: A given name and a family name, as the invoices print them.
+type: perfective
+urgency: normal
+reason: Invoices print the family name first.
+cause: omitted
+affects: { changes: ["#/entities/Customer"] }
+impact: minor
+status: analysed

@@ -1,0 +1,69 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.1.0-dev }
+stakeholders:
+  owner: { description: The product owner. }
+  librarian: { description: Runs the lending desk. }
+  library-board: { description: Decides the library's rules. }
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books at once.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    ownedBy: library-board
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      dueOn: { type: string, format: date }
+    required: [id, dueOn]
+    primaryKey: [id]
+permissions:
+  public: { description: Anyone may read the loans. }
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List the loans
+      permission: public
+      satisfies: [CASE-1]
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+tests:
+  loans-listed:
+    operation: listLoans
+    level: system
+    scenario: golden
+    given: a member with five open loans
+    when: the loans are listed
+    then: five loans are answered, none a sixth
+    verifies: [CASE-1]
+environments:
+  staging: { description: The copy of production the desk tries a release on., promotesTo: production }
+  production: { description: The live system. }
+questions:
+  Q-1:
+    question: Should the due date show the weekday beside the date?
+    kind: decision
+    priority: could
+    blocks: ["#/entities/Loan/properties/dueOn"]
+    decidedBy: librarian
+decisions:
+  ADR-001:
+    title: A loan's due date is shown as a date, not a count of days
+    status: accepted
+    date: "2026-10-28"
+    context: At the acceptance test the desk saw the due date as a count of days left (CR-1).
+    decision: The due date is shown as the date.
+    consequences: The Loan's dueOn is the date the desk reads out.
+    decidedBy: library-board
+    answers: [CR-1]
+    cites:
+      - record: COM-1
+        says: "Show the date itself; the desk reads it out to the member."

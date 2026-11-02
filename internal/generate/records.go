@@ -74,8 +74,12 @@ func sentence(s string) string {
 }
 
 // Changes writes the change and defect register from the records.
-func Changes(root *yaml.Node, relRoot string, state *State) string {
+func Changes(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
 	d := newRecordDoc("changes", root, relRoot, state)
+	reachOf := map[string]openChange{}
+	for _, c := range openChangesOf(state) {
+		reachOf[c.id] = c
+	}
 	info := get(root, "info")
 	changes, defects := recordsOf(state, "change"), recordsOf(state, "defect")
 	open := 0
@@ -86,7 +90,7 @@ func Changes(root *yaml.Node, relRoot string, state *State) string {
 	}
 	d.line("# %s: change and defect register", str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s and %s are recorded beside it, %s open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.",
+	d.para(fmt.Sprintf("Version %s of the specification: %s and %s are recorded beside it, %s open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now. Under each open change request stands what it reaches in the specification as it is now, before anything changes.",
 		str(info, "version"), countText(len(changes), "change request", "change requests"), countText(len(defects), "defect", "defects"), countText(open, "item", "items")))
 
 	d.section("Change requests")
@@ -94,17 +98,24 @@ func Changes(root *yaml.Node, relRoot string, state *State) string {
 		d.para("No change request is recorded.")
 	} else {
 		changes = byGroup(changes)
-		d.line("| Change | Title | Status | Type | Urgency | Impact | Release |")
-		d.line("|---|---|---|---|---|---|---|")
+		d.line("| Change | Title | Status | Raised in | Type | Urgency | Impact | Cause | Release |")
+		d.line("|---|---|---|---|---|---|---|---|---|")
 		for _, c := range changes {
-			d.line("| %s | %s | %s | %s | %s | %s | %s |", str(c, "id"), cell(str(c, "title")), str(c, "status"), str(c, "type"), str(c, "urgency"), cell(str(c, "impact")), cell(str(c, "release")))
+			d.line("| %s | %s | %s | %s | %s | %s | %s | %s | %s |", str(c, "id"), cell(str(c, "title")), str(c, "status"), str(c, "phase"), str(c, "type"), str(c, "urgency"), cell(str(c, "impact")), cell(str(c, "cause")), cell(str(c, "release")))
 		}
 		d.blank()
 		for _, c := range changes {
 			d.heading(3, str(c, "id")+": "+str(c, "title"))
 			d.para(fmt.Sprintf("Raised by %s on %s, in %s. %s, %s urgency%s. Status: %s.",
 				str(c, "raisedBy"), str(c, "raised"), str(c, "phase"), capitalise(str(c, "type")), str(c, "urgency"), impactText(str(c, "impact")), str(c, "status")))
+			d.remark(c)
 			d.para(str(c, "reason"))
+			if cause := str(c, "cause"); cause != "" {
+				d.para("Cause: " + cause + causeMeaning(cause) + ".")
+			}
+			if qs := strs(c, "questions"); len(qs) > 0 {
+				d.para("The analysis raised " + oneOrMany(len(qs), "the question", "the questions") + " " + strings.Join(qs, ", ") + ".")
+			}
 			affects := get(c, "affects")
 			var parts []string
 			for _, list := range []struct{ key, verb string }{{"adds", "adds"}, {"changes", "changes"}, {"removes", "removes"}} {
@@ -120,6 +131,9 @@ func Changes(root *yaml.Node, relRoot string, state *State) string {
 			}
 			if rel := str(c, "release"); rel != "" {
 				d.para("Released in " + rel + ".")
+			}
+			if oc, ok := reachOf[str(c, "id")]; ok {
+				d.reach(root, impls, state, oc)
 			}
 		}
 	}
@@ -142,6 +156,7 @@ func Changes(root *yaml.Node, relRoot string, state *State) string {
 				where = "in " + str(f, "phase") + ", on the " + env + " environment"
 			}
 			d.para(fmt.Sprintf("Reported by %s on %s, %s. Severity %s. Status: %s.", str(f, "reportedBy"), str(f, "reported"), where, str(f, "severity"), str(f, "status")))
+			d.remark(f)
 			var lines []string
 			if v := strs(f, "violates"); len(v) > 0 {
 				lines = append(lines, "Violates "+refList(v)+".")
@@ -194,6 +209,51 @@ func causeText(cause string) string {
 		return ""
 	}
 	return "; cause " + cause + " (" + meaning + ")"
+}
+
+// remark writes what a change or defect from acceptance carries about the
+// build it was seen on: the build, where it was seen, and what was
+// observed and expected.
+func (d *doc) remark(r *yaml.Node) {
+	if against := get(r, "against"); against != nil {
+		line := "Against the build of version " + str(against, "version")
+		if env := str(against, "environment"); env != "" {
+			line += " on " + env
+		}
+		var more []string
+		if b := str(against, "build"); b != "" {
+			more = append(more, "build "+b)
+		}
+		if dg := str(against, "digest"); dg != "" {
+			more = append(more, "digest `"+dg+"`")
+		}
+		if len(more) > 0 {
+			line += " (" + strings.Join(more, ", ") + ")"
+		}
+		d.para(line + ".")
+	}
+	if seen := strs(r, "seenAt"); len(seen) > 0 {
+		d.para("Seen at " + refList(seen) + ".")
+	}
+	if o := str(r, "observed"); o != "" {
+		d.para("Observed: " + sentence(o) + " Expected: " + sentence(str(r, "expected")))
+	}
+}
+
+// oneOrMany is one or many by the count, without the number.
+func oneOrMany(n int, one, many string) string {
+	if n == 1 {
+		return one
+	}
+	return many
+}
+
+// causeMeaning is what a cause value means, in parentheses.
+func causeMeaning(cause string) string {
+	if m := causeText(cause); m != "" {
+		return m[strings.Index(m, " ("):]
+	}
+	return ""
 }
 
 // foundIn is where a defect was found: its environment, or its phase

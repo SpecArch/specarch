@@ -316,6 +316,7 @@ func (d *doc) cite(key string) {
 func (d *doc) rowMarks(rows []element) {
 	for _, e := range rows {
 		d.open(e.label, e.node)
+		d.openChanges(e.label, e.node)
 		d.marksAt(e.label, e.node)
 	}
 }

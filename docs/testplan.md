@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 955 design tests, 476 golden and 479 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 956 design tests, 477 golden and 479 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 955 design tests, 476 golden and 479 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 951 |
+| system | 952 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1370,6 +1370,14 @@ Scenario: golden; level: system; verifies SA-26.
 - Given: a specification with an approved and a released change request and a confirmed defect in the records beside it
 - When: document changes is run
 - Then: it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0
+
+#### document-writes-changes-reach
+
+Scenario: golden; level: system; verifies SA-26, SA-57.
+
+- Given: an approved and an analysed change request from the acceptance test, each with the build it is against, where it was seen, what was observed and expected and its cause, the second with the question its analysis raised; a defect from acceptance; a test verifying the requirement one names, an operation whose answer reads the entity, an implementation file whose sql target reads entities and whose go-dxlib target reads paths
+- When: document changes is run
+- Then: it writes changes.md with each remark's build, place, observed and expected, its cause and questions, and under each open change what it reaches: the elements, the test, the operation, the sql target, the documents and the approval it would void, and exits 0
 
 #### document-writes-commissioning
 

@@ -2,32 +2,34 @@
 
 # SpecArch toolchain: change and defect register
 
-Version 1.4.0 of the specification: 14 change requests and 0 defects are recorded beside it, 0 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
+Version 1.4.0 of the specification: 14 change requests and 0 defects are recorded beside it, 0 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now. Under each open change request stands what it reaches in the specification as it is now, before anything changes.
 
 ## 1. Change requests
 
-| Change | Title | Status | Type | Urgency | Impact | Release |
-|---|---|---|---|---|---|---|
-| CR-1 | Make meta-model 1.0.0 the first stable version of every SpecArch format | released | perfective | normal | major | 1.0.0 |
-| CR-2 | Let the installed program say what it can do and how to use it | released | perfective | normal | minor | 1.1.0 |
-| CR-3 | Let a decision name the decisions it rests on, checked by the validator and printed by specarch decision why and rests | released | perfective | normal | minor | 1.2.0 |
-| CR-4 | Let a specification declare its time zone and read date() of an instant in it, and design state machines and date-times | released | perfective | normal | minor | 1.3.0 |
-| CR-5 | Let an author evaluate an algorithm on its worked examples or on given inputs and see each step of its formula, with specarch try | released | perfective | normal | minor | 1.3.0 |
-| CR-6 | Keep each proposal for the specification as an idea record with its status, decision and what it became, checked by the validator and named by specarch decision why and rests | released | perfective | normal | minor | 1.3.0 |
-| CR-7 | Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation | released | perfective | normal | minor | 1.3.0 |
-| CR-8 | Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0 | released | perfective | normal | minor | 1.3.0 |
-| CR-9 | Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates | released | perfective | normal | minor | 1.3.0 |
-| CR-10 | Let a dependency say how it is reached and called, and a call how it is made, mapped, retried and answered, with the cases they make derived | released | perfective | normal | minor | 1.3.0 |
-| CR-11 | Let a task page's answer lead to the caller's home with navigate callerHome, checked by both validators and opened by the three ui generators | released | perfective | normal | minor | 1.3.0 |
-| CR-12 | Let an idea say it came in by a guided walkthrough with inputMode walkthrough | released | perfective | normal | minor | 1.3.0 |
-| CR-13 | Let a call's mapping hold worked examples of what is sent and kept, checked by validate, tried by operation with specarch try and turned into tests | released | perfective | normal | minor | 1.4.0 |
-| CR-14 | Let decide answer a question that blocks a decision with a record that rests on it, not with origin decided | released | perfective | normal | patch | 1.4.0 |
+| Change | Title | Status | Raised in | Type | Urgency | Impact | Cause | Release |
+|---|---|---|---|---|---|---|---|---|
+| CR-1 | Make meta-model 1.0.0 the first stable version of every SpecArch format | released | development | perfective | normal | major | changed | 1.0.0 |
+| CR-2 | Let the installed program say what it can do and how to use it | released | development | perfective | normal | minor | omitted | 1.1.0 |
+| CR-3 | Let a decision name the decisions it rests on, checked by the validator and printed by specarch decision why and rests | released | development | perfective | normal | minor | omitted | 1.2.0 |
+| CR-4 | Let a specification declare its time zone and read date() of an instant in it, and design state machines and date-times | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-5 | Let an author evaluate an algorithm on its worked examples or on given inputs and see each step of its formula, with specarch try | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-6 | Keep each proposal for the specification as an idea record with its status, decision and what it became, checked by the validator and named by specarch decision why and rests | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-7 | Let a role name its home page, every signed-in caller hold signedIn, a field's mode follow a permission, and warn of the gaps in the navigation | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-8 | Add the workflow step kinds decision, task and wait, and an operation step's onFailure and compensatedBy, checked by both validators and written and read in BPMN 2.0 | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-9 | Let an algorithm be a decision table, its rules checked for overlap and gaps by its hit policy, each rule a worked example that specarch try evaluates | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-10 | Let a dependency say how it is reached and called, and a call how it is made, mapped, retried and answered, with the cases they make derived | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-11 | Let a task page's answer lead to the caller's home with navigate callerHome, checked by both validators and opened by the three ui generators | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-12 | Let an idea say it came in by a guided walkthrough with inputMode walkthrough | released | development | perfective | normal | minor | omitted | 1.3.0 |
+| CR-13 | Let a call's mapping hold worked examples of what is sent and kept, checked by validate, tried by operation with specarch try and turned into tests | released | development | perfective | normal | minor | omitted | 1.4.0 |
+| CR-14 | Let decide answer a question that blocks a decision with a record that rests on it, not with origin decided | released | development | perfective | normal | patch | wrong | 1.4.0 |
 
 ### CR-1: Make meta-model 1.0.0 the first stable version of every SpecArch format
 
 Raised by specification-author on 2026-10-25, in development. Perfective, normal urgency; impact major. Status: released.
 
 Authors need a format that does not move under them. Meta-model 1.0.0 promises that no key is renamed, moved, removed or made required, and that no meaning changes, for the whole 1.x; before freezing it, two keys of 0.3 that each meant two things are renamed.
+
+Cause: changed (the need changed after it was written).
 
 Affects: changes SA-95.
 
@@ -41,6 +43,8 @@ Raised by specification-author on 2026-10-25, in development. Perfective, normal
 
 A person or a program working with an installed specarch, with no source checkout or docs folder at hand, needs to learn its commands, options, outputs and exit codes from the program itself, read its results as JSON, and see what a command would write before it writes.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds SA-96.
 
 Decision: approved by specification-author on 2026-10-25. Every addition is new commands and new options (help, guide, capabilities, --json, --dry-run, a plug-in's --capabilities); nothing a 1.0.0 run prints or writes changes, so a minor release carries it (ADR-187).
@@ -52,6 +56,8 @@ Released in 1.1.0.
 Raised by specification-author on 2026-10-25, in development. Perfective, normal urgency; impact minor. Status: released.
 
 A reader about to change a decision had to reconstruct by hand, from the records' prose, which earlier decisions it rests on and which later ones rest on it; the specification needs that chain written at the decision, checked, and printed both ways.
+
+Cause: omitted (the specification left it out).
 
 Affects: adds SA-97, `#/commands/decision why`, `#/commands/decision rests`, `#/decisions/ADR-188`, `#/tests/decision-rests-chain`, `#/tests/decision-rests-chain-json`, `#/tests/decision-rests-none`, `#/tests/decision-rests-unknown`, `#/tests/decision-rests-usage-error`, `#/tests/decision-unknown`, `#/tests/decision-usage-error`, `#/tests/decision-why-chain`, `#/tests/decision-why-chain-json`, `#/tests/decision-why-no-links`, `#/tests/validate-decision-chain`, `#/tests/validate-decision-cycle`, `#/tests/validate-decision-rests-on-missing`, `#/tests/validate-decision-rests-on-superseded`; changes `#/enums/Rule`.
 
@@ -65,6 +71,8 @@ Raised by specification-author on 2026-10-26, in development. Perfective, normal
 
 A specification modelled an entity's control state only as one field and its moves, and left the zone of every date-time unsaid, so date() of an instant gave the Go and Swift builds different dates; it needs its time zone declared once, date() read in it the same way in both builds, and a design for state machines and date-times that the later build items follow.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds SA-98, SA-99, `#/decisions/ADR-189`, `#/decisions/ADR-190`, `#/decisions/ADR-191`, `#/decisions/ADR-192`, `#/decisions/ADR-193`, `#/decisions/ADR-194`, `#/sources/harel-1987`, `#/sources/iso-8601`, `#/sources/iso-9075-2`, `#/sources/postgresql-datetime`, `#/sources/rfc-3339`, `#/sources/rfc-6557`, `#/sources/rfc-9557`, `#/sources/scxml-1-0`, `#/sources/uml-2-5-1`, `#/tests/validate-time-zone`, `#/tests/validate-time-zone-missing`, `#/tests/validate-time-zone-unknown`; changes `#/enums/Rule`.
 
 Decision: approved by specification-author on 2026-10-27. One optional key (timeZone at the root of the 1.0 design schema) and one rule (time_zone); a 1.2.0 file holds no timeZone, so the error at a wrong name cannot reach it, and date() of an instant without a zone is a warning, so a file with no error on 1.2.0 gets no new error; the state machine design adds decision records and requirements only, with nothing built yet, so a minor release carries it (ADR-186, ADR-193).
@@ -76,6 +84,8 @@ Released in 1.3.0.
 Raised by specification-author on 2026-10-26, in development. Perfective, normal urgency; impact minor. Status: released.
 
 An author changing an algorithm's formula could only learn whether it still gives each worked example's expected value by generating code and running it; the specification needs a command that evaluates the formula as written, or a proposed one, on its examples or on given inputs, and shows every step.
+
+Cause: omitted (the specification left it out).
 
 Affects: adds SA-100, `#/commands/try`, `#/decisions/ADR-195`, `#/tests/try-example-fails`, `#/tests/try-example-others-fail`, `#/tests/try-exit-2`, `#/tests/try-file`, `#/tests/try-file-problem`, `#/tests/try-file-unrounded`, `#/tests/try-inputs`, `#/tests/try-inputs-unread`, `#/tests/try-json`, `#/tests/try-short-circuit`, `#/tests/try-succeeds`, `#/tests/try-unknown-algorithm`, `#/tests/try-usage-error`, `#/tests/try-values`, `#/tests/try-values-double`, `#/tests/try-values-duration`.
 
@@ -89,6 +99,8 @@ Raised by specification-author on 2026-10-27, in development. Perfective, normal
 
 A proposal raised in a conversation, a table, an example or a review was lost once taken or turned down, so a reader of a decision could not see the idea it came from, nor an author the ideas still open; the specification needs each one kept beside it as a record, checked, and named on the decision it became.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds SA-101, `#/decisions/ADR-196`, `#/tests/validate-idea-decision`, `#/tests/validate-idea-question`, `#/tests/validate-idea-ref`, `#/tests/validate-ideas-valid`, `#/tests/decision-why-ideas`, `#/tests/decision-rests-ideas-json`; changes `#/enums/Rule`, `#/commands/validate`, `#/commands/decision why`, `#/commands/decision rests`.
 
 Decision: approved by specification-author on 2026-10-27. The idea kind is one more kind in the 1.0 record schema and two rules (idea_decision, idea_question), and validate, decision why and decision rests read records/ideas/ beside the specification as well. specarch diff calls those three commands' change major, since each change is the description of an entry of their reads, a list whose items have no name, and the rule for such a list is cautious on purpose so that a person decides. It is not breaking. A 1.2.0 tree with no records/ideas/ is read, checked and printed as before, and one that held an idea file got an error from 1.2.0 for a kind it did not know. So no file that is clean on 1.2.0 gets a new error, nothing a 1.2.0 run prints or writes changes, and a minor release carries it (ADR-186, ADR-196). specarch diff's version error for this release is named in the history file.
@@ -100,6 +112,8 @@ Released in 1.3.0.
 Raised by specification-author on 2026-10-27, in development. Perfective, normal urgency; impact minor. Status: released.
 
 A person going through the screens in the order they meet them could not be followed in the specification, which said neither the page each role is shown first, nor a permission that every signed-in caller holds, nor a field shown or edited by permission, and said nothing of a page no one can reach.
+
+Cause: omitted (the specification left it out).
 
 Affects: adds SA-102, `#/decisions/ADR-197`, `#/tests/validate-navigation`, `#/tests/validate-navigation-valid`, `#/tests/validate-signed-in`, `#/tests/validate-field-modes`, `#/tests/generate-ui-navigation`, `#/tests/generate-ui-navigation-no-session`, `#/tests/generate-ui-swiftui-navigation`, `#/tests/generate-ui-typescript-navigation`; changes `#/enums/Rule`, `#/commands/generate`.
 
@@ -113,6 +127,8 @@ Raised by specification-author on 2026-10-27, in development. Perfective, normal
 
 A workflow held approvals and operation steps only, so a decision over the subject, a task that is not an approval, a wait for a message or a time, what a failed operation step does and which operation undoes a step were left to prose and not checked.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds SA-103, `#/decisions/ADR-198`, `#/tests/validate-workflow-step-kinds`, `#/tests/validate-workflow-step-kinds-refused`, `#/tests/validate-workflow-open-branch`, `#/tests/validate-workflow-deadline-undoes`, `#/tests/validate-workflow-undo-skipped-step`, `#/tests/generate-bpmn-step-kinds`, `#/tests/extract-workflows-reads-step-kinds`, `#/tests/extract-workflows-asks-unread-end`; changes `#/commands/extract`, `#/tests/extract-workflows-writes-tree`.
 
 Decision: approved by specification-author on 2026-10-28. The step kinds decision, task and wait and an operation step's onFailure and compensatedBy are new values and optional keys in the 1.0 design schema; a 1.2.0 workflow holds none of them and reads, checks and writes in BPMN as before, and the steps still run forward only, so no file that is clean on 1.2.0 gets a new error, and a minor release carries it (ADR-186, ADR-198).
@@ -124,6 +140,8 @@ Released in 1.3.0.
 Raised by specification-author on 2026-10-28, in development. Perfective, normal urgency; impact minor. Status: released.
 
 A choice among many cases written as one formula hid its overlaps and its gaps from the reviewer; a table of rules with a hit policy, after DMN 1.5, lets the validator name the inputs two rules both match and the inputs no rule matches.
+
+Cause: omitted (the specification left it out).
 
 Affects: adds SA-104, `#/decisions/ADR-199`, `#/tests/validate-decision-table`, `#/tests/validate-decision-table-refused`, `#/tests/try-decision-table`, `#/tests/try-decision-table-unreached`; changes `#/enums/Rule`, `#/commands/try`.
 
@@ -137,6 +155,8 @@ Raised by specification-author on 2026-10-28, in development. Perfective, normal
 
 A dependency was a name, a kind, a protocol and a time limit, so how this system proves itself to it, how often it may be called, how our values map to theirs, the key sent, the retries and which of their answers become ours were left to the code and not tested.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds SA-105, `#/decisions/ADR-200`, `#/tests/validate-integration-contract`, `#/tests/validate-integration-contract-refused`, `#/tests/validate-integration-contract-null`, `#/tests/derive-integration-contract`, `#/tests/derive-integration-contract-per-call`, `#/tests/document-techspec-integration`; changes `#/enums/Rule`.
 
 Decision: approved by specification-author on 2026-10-28. Every new key of a dependency and of a call is optional in the 1.0 design schema, and a call may still be a plain name; the rule integration reaches only those keys, so a 1.2.0 file gets no new error and derives the cases it derived before, and a minor release carries it (ADR-186, ADR-200).
@@ -148,6 +168,8 @@ Released in 1.3.0.
 Raised by specification-author on 2026-10-28, in development. Perfective, normal urgency; impact minor. Status: released.
 
 A task page used by several roles could only name one page to go to after its answer, so a person was sent to another role's page instead of back to their own home.
+
+Cause: omitted (the specification left it out).
 
 Affects: adds `#/decisions/ADR-206`, `#/tests/validate-caller-home`, `#/tests/validate-caller-home-refused`, `#/tests/validate-caller-home-no-home`, `#/tests/derive-caller-home`; changes `#/enums/Rule`.
 
@@ -161,6 +183,8 @@ Raised by specification-author on 2026-10-28, in development. Perfective, normal
 
 An idea raised while going through the screens in order could only be recorded as an interview or another mode, so a reader could not tell which ideas came from a walkthrough.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds `#/tests/validate-idea-input-mode`; changes `#/decisions/ADR-196`.
 
 Decision: approved by specification-author on 2026-10-28. walkthrough is one more value of inputMode in the 1.0 record schema, and the idea kind is itself new in this release, so nothing released reads it differently, and a minor release carries it (ADR-186, ADR-196).
@@ -173,6 +197,8 @@ Raised by specification-author on 2026-10-28, in development. Perfective, normal
 
 A call's send and receive expressions could be read but not checked on real values, so an author could not see what a request would carry or what a record would keep before the code was written, and a mistake in a mapping showed only at the integration test.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds SA-106, `#/decisions/ADR-207`, `#/tests/try-mapping`, `#/tests/try-mapping-both-names`, `#/tests/try-mapping-inputs`, `#/tests/try-mapping-json`, `#/tests/try-mapping-others-fail`, `#/tests/try-mapping-succeeds`, `#/tests/validate-mapping-examples`, `#/tests/validate-mapping-examples-wrong`; changes `#/enums/Rule`, `#/commands/try`.
 
 Decision: approved by specification-author on 2026-10-31. A mapping's examples are an optional key in the 1.0 design schema, and example_input, example_expected, example_mismatch and example_error only gain what they say of a mapping example, so a 1.3.0 file, which holds none, is checked as before. specarch diff calls the try change major, since its first argument is renamed from algorithm to name. It is not breaking. The argument is positional, so a command line is written as before, and an algorithm's name is read as before; the name may now also be an operationId. The one new refusal is a name that is both an algorithm's and an operation's, which a 1.3.0 tree holds only when an operationId equals an algorithm's name. So no file that is clean on 1.3.0 gets a new error, a try run on 1.3.0 prints the same unless that name is shared, and a minor release carries it (ADR-186, ADR-207). specarch diff's version error for this release is named in the history file.
@@ -184,6 +210,8 @@ Released in 1.4.0.
 Raised by specification-author on 2026-10-29, in development. Perfective, normal urgency; impact patch. Status: released.
 
 decide told the author to mark a blocked decision with origin decided and decidedIn, which validate refuses with origin_decision, so following its line made the specification invalid (BUG-065).
+
+Cause: wrong (the specification said it wrongly).
 
 Affects: adds `#/decisions/ADR-208`, `#/tests/decide-blocks-decision`, `#/tests/decide-blocks-decision-earlier`, `#/tests/validate-decision-rests-on-blocked`; changes `#/commands/decide`.
 

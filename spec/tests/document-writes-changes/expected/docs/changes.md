@@ -2,14 +2,14 @@
 
 # Case: change and defect register
 
-Version 1.0.0 of the specification: 2 change requests and 1 defect are recorded beside it, 2 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
+Version 1.0.0 of the specification: 2 change requests and 1 defect are recorded beside it, 2 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now. Under each open change request stands what it reaches in the specification as it is now, before anything changes.
 
 ## 1. Change requests
 
-| Change | Title | Status | Type | Urgency | Impact | Release |
-|---|---|---|---|---|---|---|
-| CR-1 | Let a member hold six books | approved | perfective | normal | minor |   |
-| CR-2 | Say how many books a member holds | released | additive | standard | minor | 1.0.0 |
+| Change | Title | Status | Raised in | Type | Urgency | Impact | Cause | Release |
+|---|---|---|---|---|---|---|---|---|
+| CR-1 | Let a member hold six books | approved | production | perfective | normal | minor |   |   |
+| CR-2 | Say how many books a member holds | released | development | additive | standard | minor |   | 1.0.0 |
 
 ### CR-1: Let a member hold six books
 
@@ -20,6 +20,12 @@ Families share one card.
 Affects: changes CASE-1.
 
 Decision: approved by owner on 2026-10-10. Families are most of the members.
+
+Reaches, as the specification is now:
+
+- elements `#/requirements/CASE-1`.
+- the documents techspec, requirements, testplan, traceability, html.
+- no approval to void: not approved: there is no records/approvals/1.0.0.yaml beside the specification.
 
 ### CR-2: Say how many books a member holds
 

@@ -491,8 +491,18 @@ Four targets join `DocumentTarget`, after the first set of documents:
   proposed, analysed or approved, a defect that is reported or confirmed),
   then the done ones, then the ones closed without a change; within each
   group by ID. After each table, one paragraph per item: who raised it and
-  when, its type and urgency or its severity, its reason, what it affects
-  or violates, the test that shows a fix, and the decision with its why.
+  when, its type and urgency or its severity, for a remark from acceptance
+  the build it is against, where it was seen and what was observed and
+  expected, its reason and cause, the questions its analysis raised, what
+  it affects or violates, the test that shows a fix, and the decision with
+  its why. Under each open change request, what it reaches in the
+  specification as it is now (`docs/acceptance.md`, section 4): the
+  elements its pointers name, the tests about them, the pages,
+  operations, commands and channels that read an entity or enum among
+  them, the code targets whose `reads` take a section it touches, the
+  documents that show one, and the approval it voids. Every other
+  document shows an open change request at the element it names, beside
+  the open questions.
 - `releases`: release notes, newest first by SemVer's precedence. For each
   version its status and date, then what it includes, grouped as added,
   changed, removed (from the `affects` of each change) and fixed (the

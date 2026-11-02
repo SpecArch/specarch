@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "an approved and an analysed change request from the acceptance test, each with the build it is against, where it was seen, what was observed and expected and its cause, the second with the question its analysis raised; a defect from acceptance; a test verifying the requirement one names, an operation whose answer reads the entity, an implementation file whose sql target reads entities and whose go-dxlib target reads paths"
+when: "document changes is run"
+then: "it writes changes.md with each remark's build, place, observed and expected, its cause and questions, and under each open change what it reaches: the elements, the test, the operation, the sql target, the documents and the approval it would void, and exits 0"
+verifies: [SA-26, SA-57]

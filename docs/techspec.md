@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 118 requirements, 5 entities, 27 commands, 7 algorithms, 955 tests, 210 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 118 requirements, 5 entities, 27 commands, 7 algorithms, 956 tests, 210 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -1438,8 +1438,17 @@ is of.
 The changes and releases targets are made from the records beside the
 specification, and their header names the records folder too. The
 changes target writes `changes.md`: the change requests and the
-defects, open ones first, each with its status, what it affects or
-violates and its decision. The releases target writes `releases.md`:
+defects, open ones first, each with its status, where it was raised,
+for a remark from acceptance the build it is against, where it was
+seen and what was observed and expected, its cause and the questions
+its analysis raised, what it affects or violates and its decision;
+under each open change request, what it reaches in the specification
+as it is now: the elements its pointers name, the tests about them,
+the pages, operations, commands and channels that read an entity or
+enum among them, the code targets whose reads take a section it
+touches, the documents that show one, and the approval it voids
+(ADR-083). Every document made from the specification shows an open
+change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was
 raised and its cause, and the release's changes counted by cause
@@ -17524,6 +17533,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
 | document-usage-error | command document | system | red | no target | document is run without arguments | it prints how to use it and exits 2 |
 | document-writes-changes | command document | system | golden | a specification with an approved and a released change request and a confirmed defect in the records beside it | document changes is run | it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0 |
+| document-writes-changes-reach | command document | system | golden | an approved and an analysed change request from the acceptance test, each with the build it is against, where it was seen, what was observed and expected and its cause, the second with the question its analysis raised; a defect from acceptance; a test verifying the requirement one names, an operation whose answer reads the entity, an implementation file whose sql target reads entities and whose go-dxlib target reads paths | document changes is run | it writes changes.md with each remark's build, place, observed and expected, its cause and questions, and under each open change what it reaches: the elements, the test, the operation, the sql target, the documents and the approval it would void, and exits 0 |
 | document-writes-commissioning | command document | system | golden | checks in two environments, one with a why and a citation, and a sign-off with one criterion and one signer | document commissioning is run | it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0 |
 | document-writes-communications | command document | system | golden | a specification whose records hold five communications (an answer with evidence, a question with its reply, a request, information from a call without evidence, an objection), a session with one role invited and present and a test session with one invited role absent | document communications is run | it writes communications.md with every record in time order, each with its direction, parties, channel, instant, words marked verbatim or in summary, person label, evidence or the mark that it has none and what it touches, then each stakeholder's history with the absent one named, then each question, decision and element's, and exits 0 |
 | document-writes-comparison | command document | system | golden | a specification that tracks origin, with a manual source listing five clauses and an interview source, two stated elements citing the manual, an inferred requirement, a decided requirement citing nothing and a decided entity citing the manual, an entity without origin, a could question citing a clause no element cites, and a decision citing another clause no element cites | document comparison is run | it writes comparison.md with the stated elements under the manual by clause as kept, the inferred requirement as clarified with its reason, the decided requirement as added and the decided entity as corrected, each with its decision and why, the clause only the question cites as asked about and the clause only the decision cites as dropped, the entity without origin listed with its warning, and exits 0 |
@@ -18759,7 +18769,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-23 | enums Rule; commands validate | tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered; tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate; decisions ADR-061 | tests document-testplan-by-release; tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid; tests validate-requirement-release |
 | SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-same-version; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
-| SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
+| SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-changes-reach; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts; tests validate-question-holds-one-method; tests validate-test-name-capital-run |
 | SA-29 | enums Rule; commands validate; decisions ADR-021; decisions ADR-097; decisions ADR-108; decisions ADR-109; decisions ADR-111; decisions ADR-134; decisions ADR-145; decisions ADR-168 | tests validate-concept-cases-listed; tests validate-dependency; tests validate-diagram-context; tests validate-diagram-context-valid; tests validate-guard; tests validate-guard-writes; tests validate-idempotency-key; tests validate-session; tests validate-validity |
@@ -18790,7 +18800,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-paged-whole; tests generate-ui-typescript-paged-whole-refused; tests generate-ui-typescript-refused |
-| SA-57 | decisions ADR-083 | tests diff-same-version; tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered |
+| SA-57 | decisions ADR-083 | tests diff-same-version; tests document-writes-changes-reach; tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered |
 | SA-58 | commands generate; decisions ADR-085; decisions ADR-139 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-integer-forms; tests document-html-marks-problems; tests document-writes-html |

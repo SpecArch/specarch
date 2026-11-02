@@ -1,3 +1,5 @@
 arguments: [document, techspec, project]
-exitStatus: 0
-standardOutput: ""
+exitStatus: 1
+standardOutput: |
+  records/changes/CR-1.yaml:5:11: error: /raisedBy: record_ref: owner is not a stakeholder of the specification; there are none in the specification [record_ref@../records/changes/CR-1.yaml#/raisedBy]
+  records/changes/CR-1.yaml:8:41: error: /against/environment: record_ref: production is not an environment of the specification; there are none in the specification [record_ref@../records/changes/CR-1.yaml#/against/environment]

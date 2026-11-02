@@ -131,6 +131,8 @@ Opened by librarian, head-librarian, member and desk-supervisor (the permission 
 
 **Origin:** decided in ADR-005, The actions of the loans list stand in the order the desk uses them, Renew first.
 
+**Open change request CR-3:** Put the Renew action where the desk reaches it first on the loans list. Raised in acceptance by librarian on 2026-10-21; approved; cause omitted.
+
 **Insight:** The actions stand in the order the desk uses them at the counter (ADR-005); Renew takes the first place when CR-1 adds it.
 
 | Column | What it shows |

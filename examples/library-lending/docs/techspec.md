@@ -215,6 +215,8 @@ Primary key: id.
 
 One copy of one book lent to one member for a period.
 
+**Open change request CR-1:** Let a member renew a loan once. Raised in production by member on 2026-10-09; approved; cause omitted.
+
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|
 | id | uuid | yes | set by the system |   |
@@ -1835,6 +1837,8 @@ The menu, each entry shown to who may open its page:
 
 **Origin on loans-list:** decided in ADR-005, The actions of the loans list stand in the order the desk uses them, Renew first.
 
+**Open change request CR-3 on loans-list:** Put the Renew action where the desk reaches it first on the loans list. Raised in acceptance by librarian on 2026-10-21; approved; cause omitted.
+
 **Insight on loans-list:** The actions stand in the order the desk uses them at the counter (ADR-005); Renew takes the first place when CR-1 adds it.
 
 **Insight on member-view:** The desk that registers members uses the contact section; a supervisor who reads a member's record to decide a fee waiver has no use for it, so it is left off their screen. This is screen layout, not a privacy rule; getMember still answers address and phones to every caller with members.read, and a role that must never receive them would need them left out of that response.
@@ -2417,6 +2421,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on LIB-1:** From Lending policy of the library, 2026, clause 1: Each member holds one card, and the card number identifies them at the desk.
 
 **Note on LIB-3:** From Lending policy of the library, 2026, clause 2: Standard members may hold three loans at a time and extended members six; no loan is made while a fee is unpaid.
+
+**Open change request CR-1 on LIB-4:** Let a member renew a loan once. Raised in production by member on 2026-10-09; approved; cause omitted.
 
 **Insight on LIB-5:** A flat rate can be checked by hand at the desk; the cap means a long-overdue book costs the same as a lost one, which is when the member should be told to treat it as lost.
 

@@ -4,11 +4,15 @@
 
 Version 1.0.0 of the specification: 1 requirement, 2 entities, 2 HTTP operations, 1 channel and 1 page. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 13 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** The specification has 2 errors, so it is invalid, and this document shows what could be read of it. 2 errors and 13 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@shop.go.specarch-implementation.yaml#/specarchImplementation]
 
 **Problem:** warning: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
+
+**Problem:** error: record_ref: owner is not a stakeholder of the specification; there are none in the specification [record_ref@../records/changes/CR-1.yaml#/raisedBy]
+
+**Problem:** error: record_ref: production is not an environment of the specification; there are none in the specification [record_ref@../records/changes/CR-1.yaml#/against/environment]
 
 ## 1. Introduction and goals
 
@@ -49,6 +53,8 @@ erDiagram
 ```
 
 ### Customer
+
+**Open change request CR-1 at `#/entities/Customer/properties/name`:** Let a customer have two names. Raised in acceptance by owner on 2026-10-21; analysed; cause omitted.
 
 | Field | Type | Required | Limits | Description |
 |---|---|---|---|---|

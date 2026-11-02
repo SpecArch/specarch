@@ -1,0 +1,8 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.1.0-dev }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  changes: { output: ../docs }
+  sql: { output: ../sql, reads: [entities, enums] }
+  go-dxlib: { output: ../server, reads: [paths] }

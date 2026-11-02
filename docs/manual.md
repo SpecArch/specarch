@@ -905,8 +905,17 @@ is of.
 The changes and releases targets are made from the records beside the
 specification, and their header names the records folder too. The
 changes target writes `changes.md`: the change requests and the
-defects, open ones first, each with its status, what it affects or
-violates and its decision. The releases target writes `releases.md`:
+defects, open ones first, each with its status, where it was raised,
+for a remark from acceptance the build it is against, where it was
+seen and what was observed and expected, its cause and the questions
+its analysis raised, what it affects or violates and its decision;
+under each open change request, what it reaches in the specification
+as it is now: the elements its pointers name, the tests about them,
+the pages, operations, commands and channels that read an entity or
+enum among them, the code targets whose reads take a section it
+touches, the documents that show one, and the approval it voids
+(ADR-083). Every document made from the specification shows an open
+change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was
 raised and its cause, and the release's changes counted by cause

@@ -2,15 +2,15 @@
 
 # Library Lending: change and defect register
 
-Version 0.1.0 of the specification: 3 change requests and 1 defect are recorded beside it, 2 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
+Version 0.1.0 of the specification: 3 change requests and 1 defect are recorded beside it, 2 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now. Under each open change request stands what it reaches in the specification as it is now, before anything changes.
 
 ## 1. Change requests
 
-| Change | Title | Status | Type | Urgency | Impact | Release |
-|---|---|---|---|---|---|---|
-| CR-1 | Let a member renew a loan once | approved | additive | normal | minor |   |
-| CR-3 | Put the Renew action where the desk reaches it first on the loans list | approved | perfective | normal | patch |   |
-| CR-2 | Send a receipt by text message on every return | rejected | additive | normal | minor |   |
+| Change | Title | Status | Raised in | Type | Urgency | Impact | Cause | Release |
+|---|---|---|---|---|---|---|---|---|
+| CR-1 | Let a member renew a loan once | approved | production | additive | normal | minor | omitted |   |
+| CR-3 | Put the Renew action where the desk reaches it first on the loans list | approved | acceptance | perfective | normal | patch | omitted |   |
+| CR-2 | Send a receipt by text message on every return | rejected | production | additive | normal | minor | omitted |   |
 
 ### CR-1: Let a member renew a loan once
 
@@ -18,25 +18,55 @@ Raised by member on 2026-10-09, in production. Additive, normal urgency; impact 
 
 Members who cannot reach the library by the due date ask to keep the book a little longer without paying a late fee.
 
+Cause: omitted (the specification left it out).
+
 Affects: adds `#/tests/renew-a-loan`; changes LIB-4, `#/entities/Loan`.
 
 Decision: approved by library-board on 2026-10-14. A single renewal keeps books moving and saves the desk the late fees it would otherwise waive by hand.
+
+Reaches, as the specification is now:
+
+- elements `#/entities/Loan`, `#/requirements/LIB-4`.
+- nothing yet at `#/tests/renew-a-loan`, which the change adds.
+- the tests loan-becomes-overdue, mark-overdue-runs-twice, mark-overdue-succeeds.
+- the page loan-form, the page loans-list, the operation lendCopies, the operation listLoans, the operation createLoan, the operation returnLoan, the operation reportLost, the channel loan.lifecycle, reading an entity or an enum it touches.
+- the code targets openapi of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, sql of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, seed of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, sqlc of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, ui of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, tests of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, bpmn of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, ui of ../spec/implementation/javascript/library-lending.javascript.specarch-implementation.yaml, ui of ../spec/implementation/swift/library-lending.swift.specarch-implementation.yaml, ui of ../spec/implementation/typescript/library-lending-acme.typescript.specarch-implementation.yaml, ui of ../spec/implementation/typescript/library-lending.typescript.specarch-implementation.yaml, reading every section.
+- the documents techspec, requirements, testplan, traceability, handover, html.
+- no approval to void: not approved: there is no records/approvals/0.1.0.yaml beside the specification.
 
 ### CR-3: Put the Renew action where the desk reaches it first on the loans list
 
 Raised by librarian on 2026-10-21, in acceptance. Perfective, normal urgency; impact patch. Status: approved.
 
+Against the build of version 0.2.0 on staging (build library-lending 0.2.0 at 7c1e4a9, digest `sha256:d5ed50a5243326009e5e7c6c2075c083ed7ab1a526d2ddea8aadbff571a44494`).
+
+Seen at `#/pages/loans-list`.
+
+Observed: On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal. Expected: Renew is the action the desk uses most once a member asks at the counter, so it stands first, in reach without scrolling.
+
 The desk renews loans many times a day; an action it scrolls for each time costs it more than the renewal saves (COM-4, at the acceptance test TS-1).
+
+Cause: omitted (the specification left it out).
 
 Affects: changes `#/pages/loans-list`.
 
 Decision: approved by library-board on 2026-10-28. The order of a page's actions is the order the desk uses them, Renew first; ADR-005 says so for the loans list, and the Renew action takes that place when CR-1 is carried out.
+
+Reaches, as the specification is now:
+
+- elements `#/pages/loans-list`.
+- the tests loans-list-denied, loans-list-denied-with-expired-session, loans-list-shown.
+- the code targets openapi of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, sql of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, seed of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, sqlc of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, ui of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, tests of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, bpmn of ../spec/implementation/go/library-lending.go.specarch-implementation.yaml, ui of ../spec/implementation/javascript/library-lending.javascript.specarch-implementation.yaml, ui of ../spec/implementation/swift/library-lending.swift.specarch-implementation.yaml, ui of ../spec/implementation/typescript/library-lending-acme.typescript.specarch-implementation.yaml, ui of ../spec/implementation/typescript/library-lending.typescript.specarch-implementation.yaml, reading every section.
+- the documents techspec, traceability, html, manual.
+- no approval to void: not approved: there is no records/approvals/0.1.0.yaml beside the specification.
 
 ### CR-2: Send a receipt by text message on every return
 
 Raised by librarian on 2026-10-10, in production. Additive, normal urgency; impact minor. Status: rejected.
 
 Members ask for proof that a book came back.
+
+Cause: omitted (the specification left it out).
 
 Affects: changes `#/channels`.
 

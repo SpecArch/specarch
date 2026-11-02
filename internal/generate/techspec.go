@@ -71,6 +71,7 @@ type doc struct {
 	cited     map[string]bool
 	sections  int                   // the sections numbered so far, for documents numbered as they go
 	questions []question            // the open questions, for Open paragraphs and draft notices
+	changes   []openChange          // the open change requests, shown at the elements they name
 	pointerOf map[*yaml.Node]string // every mapping's pointer, to find the questions about it
 	marks     []Mark                // the errors and warnings, for Problem paragraphs
 	placing   *placing              // where the marks stand, while the document is written twice
@@ -94,6 +95,7 @@ func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementati
 	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root)}
 	if state != nil {
 		d.marks, d.placing, d.withheld = state.Marks, state.placing, state.Withheld
+		d.changes = openChangesOf(state)
 	}
 	// The elements of the implementation files are found by their file
 	// too, so a problem in one is marked where the document shows it.

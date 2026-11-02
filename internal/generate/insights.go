@@ -47,6 +47,7 @@ func (d *doc) annotate(label string, n *yaml.Node) {
 		d.para(o)
 	}
 	d.open(label, n)
+	d.openChanges(label, n)
 	d.marksAt(label, n)
 	if why := strings.TrimSpace(str(n, "why")); why != "" {
 		d.para(fmt.Sprintf("**Insight%s:** %s", on, oneParagraph(why)))

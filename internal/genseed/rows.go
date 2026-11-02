@@ -283,10 +283,13 @@ func (g *gen) fieldValue(def, orig map[string]any, label string, i int64, distin
 	if int64(len(examples)) > i {
 		return g.fromExample(examples[i], def, orig, label), ""
 	}
-	if distinct && len(examples) > 0 {
+	if distinct && len(examples) > 0 && counted(def) {
 		// The rows after the examples count from the first counted
 		// value, skipping each value an example already holds, so a key
-		// or unique never repeats one.
+		// or unique never repeats one. A kind that is drawn rather than
+		// counted (a uuid, binary data, a pattern) is drawn once below,
+		// as any row is, and a draw that repeats an example is caught
+		// where the row's key and unique tuples are checked.
 		taken := map[string]bool{}
 		for _, x := range examples {
 			taken[g.fromExample(x, def, orig, label).key()] = true
@@ -308,6 +311,29 @@ func (g *gen) fieldValue(def, orig map[string]any, label string, i int64, distin
 		return null, fmt.Sprintf("it is a key or unique and every value counted from its bounds repeats one of its %d examples; give it more examples or wider bounds", len(examples))
 	}
 	return g.drawn(def, orig, label, i, distinct)
+}
+
+// counted says whether drawn gives a key or unique field the row's own
+// value, counted up from its bounds, rather than one drawn from the
+// random source: true for an enum, a boolean, a number of any kind, a
+// date, an instant, a time, a duration, an address of any kind and plain
+// text; false for a uuid, binary data, text from a pattern, a list and an
+// object. The branches mirror drawn's, format before pattern.
+func counted(def map[string]any) bool {
+	typ, format := typeOf(def)
+	switch typ {
+	case "enum", "boolean", "integer", "number":
+		return true
+	case "string":
+		switch format {
+		case "int64", "uint64", "decimal", "date", "date-time", "time", "duration", "email", "uri", "hostname", "ipv4", "ipv6":
+			return true
+		case "byte", "binary", "uuid":
+			return false
+		}
+		return text(def["pattern"]) == ""
+	}
+	return false
 }
 
 // given is the definition a field's const and examples are read from: the

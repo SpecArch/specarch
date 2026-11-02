@@ -215,6 +215,48 @@ func TestExamplesOnKey(t *testing.T) {
 	}
 }
 
+// A key that is drawn rather than counted (a uuid) with examples draws
+// once for each row after them, as a row without examples does, so the
+// random stream moves by one value a row: the rows after the examples
+// are the rows a key without them gives.
+func TestExamplesOnDrawnKey(t *testing.T) {
+	withExamples, errs := generated(t, `entities:
+  Tag:
+    type: object
+    properties:
+      id: { type: string, format: uuid, examples: [8f6a1c2e-4b3d-4e5f-8a9b-0c1d2e3f4a5b, 1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d] }
+      code: { type: string, maxLength: 20 }
+    required: [id, code]
+    primaryKey: [id]
+`, map[string]any{"Tag": 4})
+	mustHaveNoErrors(t, errs)
+	without, errs := generated(t, `entities:
+  Tag:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      code: { type: string, maxLength: 20 }
+    required: [id, code]
+    primaryKey: [id]
+`, map[string]any{"Tag": 2})
+	mustHaveNoErrors(t, errs)
+	rows := rowsOf(t, withExamples, "tag", 4)
+	plain := rowsOf(t, without, "tag", 2)
+	if !strings.HasPrefix(rows[0], "'8f6a1c2e-4b3d-4e5f-8a9b-0c1d2e3f4a5b'") || !strings.HasPrefix(rows[1], "'1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d'") {
+		t.Errorf("the examples are not the first rows: %q", rows[:2])
+	}
+	for n := 0; n < 2; n++ {
+		if id(rows[n+2]) != id(plain[n]) {
+			t.Errorf("row %d with examples holds %s, a key without them gives %s for its row %d", n+2, id(rows[n+2]), id(plain[n]), n)
+		}
+	}
+}
+
+// id is the first value of an INSERT's values.
+func id(values string) string {
+	return values[:strings.Index(values, ",")]
+}
+
 // Examples of a value object kept as JSON are read from the design's
 // field, each member typed by the schema's part; an object example of a
 // field with its own properties keeps a number a number, written as it

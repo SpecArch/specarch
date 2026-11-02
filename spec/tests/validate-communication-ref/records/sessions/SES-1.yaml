@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: session
+id: SES-1
+title: Lending rules
+channel: meeting
+start: "2026-10-31T10:00:00+07:00"
+invited: [librarian, trustee]
+present: [librarian]
+recordedBy: owner
+source: desk-interview

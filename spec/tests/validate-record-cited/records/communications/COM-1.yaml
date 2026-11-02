@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: library-board
+to: owner
+at: "2026-10-31T10:15:00+07:00"
+channel: chat
+type: answer
+words: { form: verbatim, text: "Five, as it has always been." }
+recordedBy: owner
+links:
+  questions: [Q-1, Q-2]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification that keeps a session record, approved for its version, with an accepted requirement needed by the board and the desk, a proposed one needed by the auditor, a page whose permission the desk and reader roles hold, a decision by the owner, and a session the reader attended and the desk did not"
+when: "validate is run"
+then: "it warns unheard at the board, needed by the requirement, and at the desk, needed by the requirement and the page, names neither the auditor (its requirement is proposed), the reader (present in the session) nor the owner (decided), and exits 0"
+verifies: [SA-117]

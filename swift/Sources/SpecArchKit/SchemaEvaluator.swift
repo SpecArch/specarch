@@ -287,12 +287,52 @@ final class SchemaEvaluator: @unchecked Sendable {
         switch f {
         case "date":
             return isDate(s)
+        case "date-time":
+            return isDateTime(s)
         case "regex":
             return (try? NSRegularExpression(pattern: s)) != nil
         default:
             return true
         }
     }
+}
+
+/// An instant written as RFC 3339 writes it: a date, T, a time of day with
+/// an optional fraction, and Z or an offset, as the Go build's schema
+/// library reads the date-time format.
+func isDateTime(_ s: String) -> Bool {
+    let scalars = Array(s.unicodeScalars)
+    guard scalars.count >= 20, scalars[10] == "T" || scalars[10] == "t", isDate(String(s.prefix(10))) else { return false }
+    var i = 11
+    func digits(_ n: Int) -> Int? {
+        guard i + n <= scalars.count else { return nil }
+        var v = 0
+        for k in i..<(i + n) {
+            guard let d = Int(String(scalars[k])), ("0"..."9").contains(scalars[k]) else { return nil }
+            v = v * 10 + d
+        }
+        i += n
+        return v
+    }
+    guard let h = digits(2), h <= 23, i < scalars.count, scalars[i] == ":" else { return false }
+    i += 1
+    guard let m = digits(2), m <= 59, i < scalars.count, scalars[i] == ":" else { return false }
+    i += 1
+    guard let sec = digits(2), sec <= 60 else { return false }
+    if i < scalars.count, scalars[i] == "." {
+        i += 1
+        var n = 0
+        while i < scalars.count, ("0"..."9").contains(scalars[i]) { i += 1; n += 1 }
+        if n == 0 { return false }
+    }
+    guard i < scalars.count else { return false }
+    if scalars[i] == "Z" || scalars[i] == "z" { return i + 1 == scalars.count }
+    guard scalars[i] == "+" || scalars[i] == "-" else { return false }
+    i += 1
+    guard let oh = digits(2), oh <= 23, i < scalars.count, scalars[i] == ":" else { return false }
+    i += 1
+    guard let om = digits(2), om <= 59 else { return false }
+    return i == scalars.count
 }
 
 /// A calendar date written YYYY-MM-DD.

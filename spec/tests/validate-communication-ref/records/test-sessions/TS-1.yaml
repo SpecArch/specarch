@@ -1,0 +1,12 @@
+specarchRecord: "1.0.0"
+kind: test-session
+id: TS-1
+title: Acceptance of the loan limit
+level: uat
+environment: staging
+version: 2.0.0
+start: "2026-11-03T09:00:00+07:00"
+invited: [librarian]
+present: [tester]
+result: passed
+recordedBy: owner

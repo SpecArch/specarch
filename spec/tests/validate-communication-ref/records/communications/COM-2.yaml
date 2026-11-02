@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-2
+direction: in
+from: librarian
+to: owner
+at: "2026-10-31 10:20"
+channel: meeting
+type: answer
+words: { form: summary, text: It does not count. }
+recordedBy: owner

@@ -441,6 +441,8 @@ func formatName(f string) string {
 	switch f {
 	case "date":
 		return "date (write it as \"YYYY-MM-DD\")"
+	case "date-time":
+		return "date-time (write it as \"YYYY-MM-DDThh:mm:ss+hh:mm\", an instant with its offset)"
 	case "regex":
 		return "regular expression"
 	}

@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: session
+id: SES-1
+title: Lending rules with the desk and the board
+channel: meeting
+start: "2026-10-31T10:00:00+07:00"
+end: "2026-10-31T11:00:00+07:00"
+invited: [librarian, library-board, owner]
+present: [librarian, library-board, owner]
+recordedBy: owner
+summary: The loan limit and reference copies.
+source: desk-interview
+links:
+  elements: [CASE-1]

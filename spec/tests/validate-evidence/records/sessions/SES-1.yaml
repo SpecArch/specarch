@@ -1,0 +1,12 @@
+specarchRecord: "1.0.0"
+kind: session
+id: SES-1
+title: Lending rules
+channel: meeting
+start: "2026-10-31T10:00:00+07:00"
+invited: [librarian]
+present: [librarian]
+recordedBy: owner
+evidence:
+  - { path: evidence/COM-3-minutes.txt, mediaType: text/plain, sha256: sha256:e238b24148856dc72f04c1880c2c565f5f3143e36bd144c8a13655e322978270 }
+  - { path: ../project/specarch.yaml, mediaType: application/yaml, sha256: sha256:e238b24148856dc72f04c1880c2c565f5f3143e36bd144c8a13655e322978270 }

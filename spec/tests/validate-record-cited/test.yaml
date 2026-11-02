@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a decision answering Q-1 that cites a communication record that does not exist, a decision that cites a request, a decision answering Q-3 that cites an answer whose links name Q-1 and Q-2, and a requirement that cites an information record"
+when: "validate is run"
+then: "it reports record_cited at the three decisions' citations, accepts the requirement's, and exits 1"
+verifies: [SA-117]

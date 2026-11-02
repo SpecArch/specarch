@@ -22,6 +22,14 @@ func (c *checker) checkRequirementsStage(d *design) {
 			}
 		}
 	}
+	for name, src := range d.sources {
+		for i, sh := range source.Items(source.Child(src, "participants")) {
+			if sh.Value != "" && d.stakeholders[sh.Value] == nil {
+				c.add(sh, source.Pointer("sources", name, "participants", fmt.Sprint(i)), RuleStakeholder,
+					"%s is not a stakeholder of the specification%s", sh.Value, suggest(sh.Value, d.stakeholders))
+			}
+		}
+	}
 	for name, req := range d.requirements {
 		if by := source.Child(req, "ownedBy"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
 			c.add(by, source.Pointer("requirements", name, "ownedBy"), RuleStakeholder,

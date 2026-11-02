@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-3
+direction: in
+from: librarian
+to: owner
+at: "2026-11-02T14:00:00+07:00"
+channel: email
+type: request
+words: { form: verbatim, text: "Could the desk see a member's open loans on one page?" }
+recordedBy: owner
+links:
+  changes: [CR-1]
+  ideas: [IDEA-1]

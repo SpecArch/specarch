@@ -430,7 +430,6 @@ func consequences(entries []blockedEntry, decisionID string) string {
 	return strings.Join(parts, " ")
 }
 
-
 func oneParagraph(s string) string {
 	return strings.Join(strings.Fields(s), " ")
 }

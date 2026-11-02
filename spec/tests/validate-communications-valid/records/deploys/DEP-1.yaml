@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: deploy
+id: DEP-1
+version: 1.0.0
+environment: production
+at: "2026-11-04T18:00:00+07:00"
+by: owner
+build: case 1.0.0 at 3f2a9c1
+result: succeeded
+note: Installed after the acceptance test passed.

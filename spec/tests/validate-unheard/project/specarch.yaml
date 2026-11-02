@@ -1,0 +1,111 @@
+specarch: "1.0.0"
+info: { title: Member desk, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+  desk: { description: "Staff at the desk, who register members." }
+  reader: { description: Staff who look members up. }
+  board: { description: "The board, which sets the rules." }
+  auditor: { description: Checks the records once a year. }
+needs:
+  NEED-1:
+    statement: Members are registered once.
+    stakeholders: [board, desk]
+  NEED-2:
+    statement: Every registration is kept for a year.
+    stakeholders: [auditor]
+requirements:
+  CASE-1:
+    statement: A member shall be registered with a full name and an email.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A member without an email is refused.]
+    needs: [NEED-1]
+  CASE-2:
+    statement: A registration shall be kept for a year.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance: [A registration of last year is still there.]
+    needs: [NEED-2]
+decisions:
+  ADR-001:
+    title: A full name is one field
+    status: accepted
+    date: "2026-10-31"
+    context: Whether to split the name.
+    decision: One field.
+    consequences: CASE-1 says full name.
+    decidedBy: owner
+    satisfies: [CASE-1, CASE-2]
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      fullName: { type: string, minLength: 1, maxLength: 200 }
+    required: [id, fullName]
+    primaryKey: [id]
+permissions:
+  public: { description: "Everyone, signed in or not." }
+  members.read: { description: See members. }
+  members.write: { description: Register members. }
+roles:
+  desk: { description: The desk., permissions: [members.read, members.write], home: members-list }
+  reader: { description: Reads members., permissions: [members.read], home: members-list }
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: The members
+      permission: members.read
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+pages:
+  members-list:
+    kind: list
+    title: Members
+    route: /members
+    entity: Member
+    permission: members.read
+    source: listMembers
+    columns: [fullName]
+tests:
+  list-members-succeeds:
+    operation: listMembers
+    level: system
+    scenario: golden
+    given: a caller with members.read
+    when: listMembers is called
+    then: it answers 200 with the members
+    verifies: [CASE-1, CASE-2]
+  list-members-denied:
+    operation: listMembers
+    level: system
+    scenario: red
+    covers: [denied without members.read]
+    given: a caller without members.read
+    when: listMembers is called
+    then: it is refused as not allowed
+    verifies: [CASE-1]
+  members-list-shown:
+    page: members-list
+    level: system
+    scenario: golden
+    given: a caller with members.read
+    when: the page members-list is opened
+    then: it shows the members
+    verifies: [CASE-1]
+  members-list-denied:
+    page: members-list
+    level: system
+    scenario: red
+    covers: [denied without members.read]
+    given: a caller without members.read
+    when: the page members-list is opened
+    then: it is refused as not allowed
+    verifies: [CASE-1]

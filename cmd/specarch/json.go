@@ -35,6 +35,8 @@ type jsonOutput struct {
 	// Next is what specarch gaps --next ranked first, per specification
 	// (ADR-209).
 	Next []generate.Next `json:"next,omitempty"`
+	// Log is what specarch log wrote, or what it still needs (ADR-220).
+	Log *logResult `json:"log,omitempty"`
 }
 
 // jsonDiagnostic is a problem line, by its fields.
@@ -166,6 +168,7 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 	var tried *validate.Tried
 	var triedOperation *validate.TriedOperation
 	var next []generate.Next
+	var logged *logResult
 	var status int
 	if commandName(args) == "mcp" {
 		// mcp's standard output is its JSON-RPC answers; one object around
@@ -176,6 +179,8 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 		status = tryInto(args[1:], &out, &errText, &tried, &triedOperation)
 	} else if len(args) > 0 && args[0] == "gaps" {
 		status = gapsInto(args[1:], &out, &errText, &next)
+	} else if len(args) > 0 && args[0] == "log" {
+		status = logInto(args[1:], &out, &errText, &logged)
 	} else {
 		status = dispatch(args, &out, &errText)
 	}
@@ -185,7 +190,7 @@ func runJSON(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	meaning, remedy := exitMeaning(name, status)
-	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried, TryOperation: triedOperation, Next: next}
+	o := jsonOutput{Format: jsonFormat, Command: name, ExitStatus: status, Meaning: meaning, Remedy: remedy, Diagnostics: []jsonDiagnostic{}, Lines: []string{}, Messages: []string{}, Try: tried, TryOperation: triedOperation, Next: next, Log: logged}
 	for _, line := range lines(out.String()) {
 		if m := problemLine.FindStringSubmatch(line); m != nil {
 			l, _ := strconv.Atoi(m[2])

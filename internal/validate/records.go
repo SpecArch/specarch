@@ -19,7 +19,8 @@ import (
 var recordFolders = map[string]string{
 	"change": "changes", "defect": "defects", "release": "releases",
 	"incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
-	"idea": "ideas",
+	"idea": "ideas", "communication": "communications", "session": "sessions",
+	"test-session": "test-sessions", "deploy": "deploys",
 }
 
 // record is one record file, read and checked against its schema.
@@ -36,7 +37,7 @@ type record struct {
 // environment of a commissioning run; "" when the fields are missing.
 func (r *record) key() string {
 	switch r.kind {
-	case "change", "defect", "incident", "idea":
+	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy":
 		return r.str("id")
 	case "release", "approval":
 		return r.str("version")
@@ -92,7 +93,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 			}
 		}
 	}
-	rc := &recordChecks{d: d, set: set}
+	rc := &recordChecks{d: d, set: set, dir: s.RecordsDir}
 	for _, r := range recs {
 		if r.kind != "" {
 			rc.check(r)
@@ -101,6 +102,8 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 	rootChecker := &checker{file: s.RootFile, files: s.Files}
 	rc.checkReleases(recs, rootChecker)
 	rc.checkRequirementReleases(rootChecker)
+	rc.checkCitedRecords(rootChecker)
+	rc.checkUnheard(rootChecker)
 	out := rootChecker.diags
 	for _, r := range recs {
 		out = append(out, withoutEchoes(withoutHeld(r.c.diags, r.held))...)
@@ -111,6 +114,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 type recordChecks struct {
 	d   *design
 	set recordSet
+	dir string // the records/ folder, which evidence paths are under
 }
 
 func (rc *recordChecks) check(r *record) {
@@ -181,6 +185,35 @@ func (rc *recordChecks) check(r *record) {
 		}
 		rc.checkBecame(r)
 		rc.checkIdeaDecision(r)
+	case "communication":
+		rc.role(r, "from")
+		rc.role(r, "to")
+		rc.role(r, "recordedBy")
+		rc.session(r)
+		rc.citedSource(r, source.Child(r.root, "source"), "/source")
+		rc.checkEvidence(r)
+		rc.checkLinks(r)
+	case "session":
+		rc.roles(r, "invited")
+		rc.roles(r, "present")
+		rc.role(r, "recordedBy")
+		rc.citedSource(r, source.Child(r.root, "source"), "/source")
+		rc.checkEvidence(r)
+		rc.checkLinks(r)
+	case "test-session":
+		rc.environment(r, "environment")
+		rc.release(r, "version")
+		rc.roles(r, "invited")
+		rc.roles(r, "present")
+		rc.role(r, "recordedBy")
+		rc.checkEvidence(r)
+		rc.checkLinks(r)
+	case "deploy":
+		rc.release(r, "version")
+		rc.environment(r, "environment")
+		rc.role(r, "by")
+		rc.checkEvidence(r)
+		rc.checkLinks(r)
 	}
 }
 
@@ -197,7 +230,7 @@ func (rc *recordChecks) checkName(r *record) {
 		return
 	}
 	switch r.kind {
-	case "change", "defect", "incident", "idea":
+	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy":
 		r.c.add(source.Child(r.root, "id"), "/id", RuleRecordName, "the file is named %s but the record's id is %s; name the file %s.yaml", name, key, key)
 	case "release", "approval":
 		r.c.add(source.Child(r.root, "version"), "/version", RuleRecordName, "the file is named %s but the record's version is %s; name the file %s.yaml", name, key, key)
@@ -280,7 +313,7 @@ func (rc *recordChecks) recordID(r *record, n *yaml.Node, path string, kinds ...
 		}
 		where = append(where, "records/"+recordFolders[k]+"/"+v+".yaml")
 	}
-	what := map[string]string{"change": "a change request", "defect": "a defect", "incident": "an incident"}
+	what := map[string]string{"change": "a change request", "defect": "a defect", "incident": "an incident", "idea": "an idea"}
 	var names []string
 	for _, k := range kinds {
 		names = append(names, what[k])

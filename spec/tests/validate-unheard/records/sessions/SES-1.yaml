@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: session
+id: SES-1
+title: Looking members up
+channel: call
+start: "2026-10-30T10:00:00+07:00"
+invited: [reader, desk]
+present: [reader]
+recordedBy: owner

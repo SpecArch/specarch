@@ -1,0 +1,187 @@
+import CryptoKit
+import Foundation
+
+// The checks of the records that keep who said what and when: a
+// communication, a session, a test session and a deploy (ADR-220).
+
+/// The types of a communication record an element may cite: what a
+/// stakeholder said, not what they asked for.
+private let citedTypes: Set<String> = ["answer", "information"]
+
+extension RecordChecks {
+    /// Checks that every item of a list is a stakeholder.
+    func roles(_ r: Record, _ key: String) {
+        for (i, item) in items(r.root?.child(key)).enumerated() {
+            let v = item.value
+            if !v.isEmpty && d.stakeholders[v] == nil {
+                r.c.add(item, pointer(key, String(i)), .recordRef, "\(v) is not a stakeholder of the specification\(suggest(v, d.stakeholders))")
+            }
+        }
+    }
+
+    /// Checks that a communication's session is a session or a test
+    /// session record.
+    func session(_ r: Record) {
+        guard let n = r.root?.child("session") else { return }
+        let v = str(n)
+        if v.isEmpty || has("session", v) || has("test-session", v) { return }
+        r.c.add(n, "/session", .recordRef, "\(v) is not a session or a test session: there is no records/sessions/\(v).yaml or records/test-sessions/\(v).yaml")
+    }
+
+    /// Checks what a record links: questions open or answered, decisions,
+    /// elements, and the change, defect and idea records.
+    func checkLinks(_ r: Record) {
+        let links = r.root?.child("links")
+        for (i, item) in items(links?.child("questions")).enumerated() {
+            let v = item.value
+            if !v.isEmpty && d.questions[v] == nil && !d.answered(v) {
+                r.c.add(item, pointer("links", "questions", String(i)), .recordRef, "\(v) is not a question of the specification: it is not open under questions and no decision answers it")
+            }
+        }
+        for (i, item) in items(links?.child("decisions")).enumerated() {
+            let v = item.value
+            if !v.isEmpty && d.decisions[v] == nil {
+                r.c.add(item, pointer("links", "decisions", String(i)), .recordRef, "\(v) is not a decision of the specification\(suggest(v, d.decisions))")
+            }
+        }
+        for (i, item) in items(links?.child("elements")).enumerated() {
+            reference(r, item, pointer("links", "elements", String(i)))
+        }
+        for (key, kind) in [("changes", "change"), ("defects", "defect"), ("ideas", "idea")] {
+            for (i, item) in items(links?.child(key)).enumerated() {
+                recordID(r, item, pointer("links", key, String(i)), [kind])
+            }
+        }
+    }
+
+    /// Checks that each file a record names as evidence is under records/
+    /// and still has the SHA-256 the record holds.
+    func checkEvidence(_ r: Record) {
+        for (i, item) in items(r.root?.child("evidence")).enumerated() {
+            let pathNode = item.child("path")
+            let p = str(pathNode)
+            if p.isEmpty { continue }
+            let ptr = pointer("evidence", String(i), "path")
+            let base = URL(fileURLWithPath: dir).standardizedFileURL
+            let full = URL(fileURLWithPath: p, relativeTo: base).standardizedFileURL
+            let basePath = base.path.hasSuffix("/") ? base.path : base.path + "/"
+            if !full.path.hasPrefix(basePath) {
+                r.c.add(pathNode, ptr, .evidence, "\(p) is not under records/; evidence lives under records/, named by its path from there")
+                continue
+            }
+            guard let data = FileManager.default.contents(atPath: full.path) else {
+                r.c.add(pathNode, ptr, .evidence, "\(p) is not under records/: there is no records/\(p); put the file there, or correct the path")
+                continue
+            }
+            let got = "sha256:" + SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+            let want = str(item.child("sha256"))
+            if !want.isEmpty && want != got {
+                r.c.add(item.child("sha256"), pointer("evidence", String(i), "sha256"), .evidence, "records/\(p) has changed since it was recorded: its SHA-256 is now \(got), not \(want); restore the file, or record it again as it is now")
+            }
+        }
+    }
+
+    /// Checks every citation that names a communication record: the record
+    /// exists, its type is one a citation may rest on, and a decision that
+    /// answers questions cites an answer to one of them.
+    func checkCitedRecords(_ c: Checker) {
+        walk(d.root, []) { n, path in
+            for (i, item) in items(n.child("cites")).enumerated() {
+                let recNode = item.child("record")
+                let id = str(recNode)
+                if id.isEmpty { continue }
+                let ptr = pointer(path + ["cites", "\(i)", "record"])
+                guard let rec = set["communication"]?[id] else {
+                    c.add(recNode, ptr, .recordCited, "\(id) is not a communication record: there is no records/communications/\(id).yaml; record what was said with specarch log, then cite it")
+                    continue
+                }
+                let typ = rec.str("type")
+                if !citedTypes.contains(typ) {
+                    c.add(recNode, ptr, .recordCited, "\(id) is \(typeArticle(typ)), which settles nothing by itself: cite the record of the answer given, or the decision it led to; a citation rests on an answer or on information")
+                    continue
+                }
+                if path.count == 2 && path[0] == "decisions" {
+                    let answers = items(n.child("answers")).map(\.value)
+                    if answers.isEmpty { continue }
+                    let linked = items(rec.root?.child("links")?.child("questions")).map(\.value)
+                    if !answers.contains(where: { linked.contains($0) }) {
+                        c.add(recNode, ptr, .recordCited, "\(id) answers \(eitherOf(linked)), not \(eitherOf(answers)), which \(path[1]) answers; cite the record of the answer to \(eitherOf(answers)), or link \(id) to it under questions")
+                    }
+                }
+            }
+        }
+    }
+
+    /// Warns, once the specification keeps who was heard, of a stakeholder
+    /// that an accepted requirement needs, or that an approved
+    /// specification's page is for, while no communication, session,
+    /// interview or decision shows it was ever heard (ADR-220).
+    func checkUnheard(_ c: Checker) {
+        let kept = (set["communication"]?.count ?? 0) + (set["session"]?.count ?? 0) + (set["test-session"]?.count ?? 0)
+        if kept == 0 { return }
+        var heard: Set<String> = []
+        for (_, r) in set["communication"] ?? [:] {
+            heard.insert(r.str("from"))
+            heard.insert(r.str("to"))
+        }
+        for kind in ["session", "test-session"] {
+            for (_, r) in set[kind] ?? [:] {
+                for v in items(r.root?.child("present")) { heard.insert(v.value) }
+            }
+        }
+        for (_, src) in d.sources {
+            for v in items(src.child("participants")) { heard.insert(v.value) }
+        }
+        for (_, dec) in d.decisions {
+            heard.insert(str(dec.child("decidedBy")))
+        }
+        var relies: [String: [String]] = [:] // role -> what relies on it, as named
+        func add(_ role: String, _ what: String) {
+            if role.isEmpty || heard.contains(role) || d.stakeholders[role] == nil { return }
+            if relies[role, default: []].contains(what) { return }
+            relies[role, default: []].append(what)
+        }
+        for id in d.requirements.keys.sorted(by: byteLess) {
+            let req = d.requirements[id]!
+            if str(req.child("status")) != "accepted" { continue }
+            add(str(req.child("ownedBy")), "requirement " + id)
+            for needID in items(req.child("needs")).map(\.value) {
+                for role in items(d.needs[needID]?.child("stakeholders")).map(\.value) {
+                    add(role, "requirement " + id)
+                }
+            }
+        }
+        let version = str(d.root.child("info")?.child("version"))
+        if has("approval", version) {
+            for name in d.pages.keys.sorted(by: byteLess) {
+                let perm = str(d.pages[name]?.child("permission"))
+                if perm.isEmpty || perm == "public" || perm == permissionSignedIn { continue }
+                for role in d.roles.keys.sorted(by: byteLess) where d.roleHolds(d.roles[role]).contains(perm) {
+                    add(role, "page " + name)
+                }
+            }
+        }
+        for role in relies.keys.sorted(by: byteLess) {
+            let what = relies[role]!
+            c.warn(d.stakeholders[role], pointer("stakeholders", role), .unheard, "\(role) was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while \(joinAnd(what)) \(what.count == 1 ? "relies" : "rely") on it; hear it before acceptance, and record what it said with specarch log")
+        }
+    }
+}
+
+/// A communication's type with its article, for a message.
+func typeArticle(_ typ: String) -> String {
+    switch typ {
+    case "answer", "objection", "information": return "an " + typ
+    case "": return "of no type"
+    default: return "a " + typ
+    }
+}
+
+/// Joins names with "or".
+func eitherOf(_ items: [String]) -> String {
+    switch items.count {
+    case 0: return "nothing"
+    case 1: return items[0]
+    default: return items.dropLast().joined(separator: ", ") + " or " + items.last!
+    }
+}

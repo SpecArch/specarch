@@ -631,13 +631,18 @@ let designSchemaJSON = #"""
       "minLength": 1
     },
     "citation": {
-      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here; or which communication record beside the specification, for a decision that rests on what a stakeholder said. A document renders it as a Note under the element's Insight.",
       "type": "object",
       "properties": {
         "source": {
           "description": "The key of a source declared under 'sources' in specarch.yaml.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "record": {
+          "description": "The ID of a communication record beside the specification, such as COM-12, whose type is answer or information: what a stakeholder said, cited instead of a declared source. A citation names a source or a record, not both; the validator checks the record exists and its type fits what cites it (record_cited).",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
         },
         "clause": {
           "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
@@ -651,7 +656,6 @@ let designSchemaJSON = #"""
         }
       },
       "required": [
-        "source",
         "says"
       ],
       "propertyNames": {
@@ -662,7 +666,36 @@ let designSchemaJSON = #"""
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "required": [
+                "record"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "source"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "record"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source": false,
+              "clause": false
+            }
+          }
+        }
+      ]
     },
     "citations": {
       "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",
@@ -972,6 +1005,21 @@ let designSchemaJSON = #"""
           "type": "string",
           "format": "date"
         },
+        "at": {
+          "description": "SpecArch keyword. For kind interview: when it was held, an instant as RFC 3339 writes it with its offset, \"2026-10-31T10:15:00+07:00\", when the time matters and not only the date.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "participants": {
+          "description": "SpecArch keyword. For kind interview: the roles that took part, each a stakeholder of the specification.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "url": {
           "description": "Where the source can be read. For a requirement-set, change-set or defect-set, a URL template with {id} for one item.",
           "type": "string",
@@ -1067,6 +1115,23 @@ let designSchemaJSON = #"""
           "then": {
             "properties": {
               "reading": false
+            }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "kind": {
+                  "const": "interview"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "at": false,
+              "participants": false
             }
           }
         }
@@ -19503,7 +19568,7 @@ let recordSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-1.0.schema.json",
   "title": "SpecArch record, 1.0",
-  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval or an idea. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification never points back at them. A record names people only by role. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval, an idea, a communication with a stakeholder, a session (a meeting or a call with its attendance), a test session or a deploy. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification points back only where a decision cites a communication record. A record names people only by role, except the person label a communication record may carry, which the documents for everyone leave out. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarchRecord": {
@@ -19521,7 +19586,11 @@ let recordSchemaJSON = #"""
         "incident",
         "commissioning",
         "approval",
-        "idea"
+        "idea",
+        "communication",
+        "session",
+        "test-session",
+        "deploy"
       ]
     }
   },
@@ -19634,6 +19703,66 @@ let recordSchemaJSON = #"""
       "then": {
         "$ref": "#/$defs/idea"
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "communication"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/communication"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "session"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/session"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "test-session"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/test-session"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "deploy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/deploy"
+      }
     }
   ],
   "$defs": {
@@ -19658,7 +19787,7 @@ let recordSchemaJSON = #"""
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
     },
     "recordId": {
-      "description": "The ID of a change request, defect, incident or idea: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7, INC-3 or IDEA-4. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
+      "description": "The ID of a change request, defect, incident, idea, communication, session, test session or deploy: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7, INC-3, IDEA-4, COM-9, SES-2, TS-1 or DEP-5. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
@@ -20518,6 +20647,504 @@ let recordSchemaJSON = #"""
         "raised",
         "inputMode",
         "status"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "instant": {
+      "description": "An instant, quoted, as RFC 3339 writes it with its offset: \"2026-10-31T10:15:00+07:00\". The offset is the one the clock showed where the event happened; the specification's timeZone is not applied to it.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "words": {
+      "description": "What was said: the text, and whether it is the words as given (verbatim) or a summary in the recorder's words.",
+      "type": "object",
+      "properties": {
+        "form": {
+          "description": "verbatim when the text is the words as they were said or written; summary when it is the recorder's summary of them.",
+          "type": "string",
+          "enum": [
+            "verbatim",
+            "summary"
+          ]
+        },
+        "text": {
+          "description": "The words, or the summary.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "form",
+        "text"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "description": "The files that show the event happened as recorded: a chat export, an email, minutes, a recording, a screenshot. Each by its path under records/, its media type and its SHA-256, so that a file edited later no longer matches. A record with none was recorded from memory or from a conversation that left no file, and the documents say so.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "description": "The file's path under records/, with slashes, such as evidence/COM-12-chat.txt.",
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^/].*$"
+          },
+          "mediaType": {
+            "description": "The file's media type, such as text/plain, image/png or application/pdf.",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$"
+          },
+          "sha256": {
+            "description": "The SHA-256 of the file's bytes, as sha256: and 64 hexadecimal digits.",
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "mediaType",
+          "sha256"
+        ],
+        "patternProperties": {
+          "^x-": {}
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "links": {
+      "description": "What the event touches in the specification and in the other records, each list by ID or pointer; at least one list.",
+      "type": "object",
+      "properties": {
+        "questions": {
+          "description": "The questions it is about, open or already answered by a decision, by ID.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "decisions": {
+          "description": "The decisions it is about, by ID.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ADR-[0-9]{3,}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "elements": {
+          "$ref": "#/$defs/references"
+        },
+        "changes": {
+          "description": "The change requests it is about, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "defects": {
+          "description": "The defects it is about, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "ideas": {
+          "description": "The ideas it is about, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "minProperties": 1,
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "channel": {
+      "description": "How the people met: a meeting, a chat, an email, a call or a document passed.",
+      "type": "string",
+      "enum": [
+        "meeting",
+        "chat",
+        "email",
+        "call",
+        "document"
+      ]
+    },
+    "communication": {
+      "description": "One communication with a stakeholder: something said or written by one side to the other, in a meeting, a chat, an email, a call or a document. Kept in records/communications/, named by its ID; specarch log writes one from what the analyst reports in chat.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "direction": {
+          "description": "in when the stakeholder said it to the project, out when the project said it to the stakeholder.",
+          "type": "string",
+          "enum": [
+            "in",
+            "out"
+          ]
+        },
+        "from": {
+          "description": "Who said it, by role.",
+          "$ref": "#/$defs/role"
+        },
+        "to": {
+          "description": "Who it was said to, by role.",
+          "$ref": "#/$defs/role"
+        },
+        "person": {
+          "description": "A label for the person on the stakeholder's side, when the role alone does not say who, such as the morning-shift lead; never a name a document for everyone may show, since those documents leave it out.",
+          "type": "string",
+          "minLength": 1
+        },
+        "at": {
+          "$ref": "#/$defs/instant"
+        },
+        "channel": {
+          "$ref": "#/$defs/channel"
+        },
+        "type": {
+          "description": "What it is: an answer to a question of the specification (answer), a question the stakeholder asked (question), a request for the system to be different (request), information given by either side (information), or an objection to what was shown or proposed (objection).",
+          "type": "string",
+          "enum": [
+            "answer",
+            "question",
+            "request",
+            "information",
+            "objection"
+          ]
+        },
+        "words": {
+          "$ref": "#/$defs/words"
+        },
+        "reply": {
+          "description": "What the other side said back, when one record holds both: the reply to a question the stakeholder asked.",
+          "$ref": "#/$defs/words"
+        },
+        "recordedBy": {
+          "description": "The role that wrote the record down, such as the analyst who reported the conversation.",
+          "$ref": "#/$defs/role"
+        },
+        "session": {
+          "description": "The session or test session it was said in, by ID.",
+          "$ref": "#/$defs/recordId"
+        },
+        "source": {
+          "description": "The declared source of the specification it belongs to, by key: the interview it was part of.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "direction",
+        "from",
+        "to",
+        "at",
+        "channel",
+        "type",
+        "words",
+        "recordedBy"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "answer"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "links": {
+                "required": [
+                  "questions"
+                ]
+              }
+            },
+            "required": [
+              "links"
+            ]
+          }
+        }
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "description": "One session with stakeholders: a meeting, a call or a workshop, with who was invited and who came, by role. The things said in it are communication records that name it under session. Kept in records/sessions/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what the session was about.",
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "$ref": "#/$defs/channel"
+        },
+        "start": {
+          "$ref": "#/$defs/instant"
+        },
+        "end": {
+          "$ref": "#/$defs/instant"
+        },
+        "invited": {
+          "description": "The roles invited.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/role"
+          },
+          "uniqueItems": true
+        },
+        "present": {
+          "description": "The roles that took part; a role invited and not here was absent.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/role"
+          },
+          "uniqueItems": true
+        },
+        "recordedBy": {
+          "description": "The role that wrote the record down.",
+          "$ref": "#/$defs/role"
+        },
+        "summary": {
+          "description": "What was covered, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "description": "The declared source of the specification the session is, by key: an interview.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "channel",
+        "start",
+        "invited",
+        "present",
+        "recordedBy"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "test-session": {
+      "description": "One test session: a system integration test, a user acceptance test or another kind, on one build in one environment, with who tested and the result. The remarks made in it are communication records that name it under session, and the change requests and defects they became are linked. Kept in records/test-sessions/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what was tested.",
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "description": "sit for a system integration test, uat for a user acceptance test, other for any other test session.",
+          "type": "string",
+          "enum": [
+            "sit",
+            "uat",
+            "other"
+          ]
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "version": {
+          "description": "The version of the build under test, a release record, planned or released.",
+          "$ref": "#/$defs/version"
+        },
+        "build": {
+          "description": "The build that was tested, such as an image tag or a commit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "start": {
+          "$ref": "#/$defs/instant"
+        },
+        "end": {
+          "$ref": "#/$defs/instant"
+        },
+        "invited": {
+          "description": "The roles invited to test.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/role"
+          },
+          "uniqueItems": true
+        },
+        "present": {
+          "description": "The roles that tested; a role invited and not here was absent.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/role"
+          },
+          "uniqueItems": true
+        },
+        "result": {
+          "description": "passed when every planned test passed, failed when one did not, incomplete when the session ended before the planned tests were run.",
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "incomplete"
+          ]
+        },
+        "recordedBy": {
+          "description": "The role that wrote the record down.",
+          "$ref": "#/$defs/role"
+        },
+        "summary": {
+          "description": "What was tested and what was seen, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "level",
+        "environment",
+        "version",
+        "start",
+        "invited",
+        "present",
+        "result",
+        "recordedBy"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "deploy": {
+      "description": "One deploy: a version installed in an environment, when, by whom and with what result. A release record says what a version carries; a deploy record says when it was put where. Kept in records/deploys/, named by its ID.",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "version": {
+          "description": "The version installed, a release record, planned or released.",
+          "$ref": "#/$defs/version"
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "at": {
+          "$ref": "#/$defs/instant"
+        },
+        "by": {
+          "description": "The role that deployed.",
+          "$ref": "#/$defs/role"
+        },
+        "build": {
+          "description": "The build that was installed, such as an image tag or a commit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "description": "succeeded when the version runs in the environment, failed when the deploy did not complete, rolled-back when it completed and was then taken back.",
+          "type": "string",
+          "enum": [
+            "succeeded",
+            "failed",
+            "rolled-back"
+          ]
+        },
+        "note": {
+          "description": "What was seen, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "links": {
+          "$ref": "#/$defs/links"
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "version",
+        "environment",
+        "at",
+        "by",
+        "result"
       ],
       "patternProperties": {
         "^x-": {}

@@ -94,6 +94,9 @@ const (
 	RuleIncidentLink           Rule = "incident_link"
 	RuleIdeaDecision           Rule = "idea_decision"
 	RuleIdeaQuestion           Rule = "idea_question"
+	RuleEvidence               Rule = "evidence"
+	RuleRecordCited            Rule = "record_cited"
+	RuleUnheard                Rule = "unheard"
 	RuleCommissioningRecord    Rule = "commissioning_record"
 	RuleReleaseContents        Rule = "release_contents"
 	RuleReleaseBump            Rule = "release_bump"
@@ -258,6 +261,9 @@ var Rules = []Rule{
 	RuleIncidentLink,
 	RuleIdeaDecision,
 	RuleIdeaQuestion,
+	RuleEvidence,
+	RuleRecordCited,
+	RuleUnheard,
 	RuleCommissioningRecord,
 	RuleReleaseContents,
 	RuleReleaseBump,

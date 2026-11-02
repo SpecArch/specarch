@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-5
+direction: out
+from: owner
+to: librarian
+at: "2026-11-03T09:30:00+07:00"
+channel: document
+type: objection
+words: { form: summary, text: The one-page view would show loans of other branches too. }
+recordedBy: owner
+session: TS-1
+links:
+  changes: [CR-1]

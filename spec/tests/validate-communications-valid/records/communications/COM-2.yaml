@@ -1,0 +1,15 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-2
+direction: in
+from: librarian
+to: owner
+at: "2026-10-31T10:20:00+07:00"
+channel: meeting
+type: question
+words: { form: summary, text: Whether a reference copy counts towards the five. }
+reply: { form: summary, text: It does not; a reference copy is not lent. }
+recordedBy: owner
+session: SES-1
+links:
+  elements: [CASE-1, "#/entities/Loan"]

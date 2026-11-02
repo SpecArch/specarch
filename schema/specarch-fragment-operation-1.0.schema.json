@@ -68,13 +68,18 @@
       "minLength": 1
     },
     "citation": {
-      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here. A document renders it as a Note under the element's Insight.",
+      "description": "SpecArch keyword. One citation: which source, where in it, and what it says here; or which communication record beside the specification, for a decision that rests on what a stakeholder said. A document renders it as a Note under the element's Insight.",
       "type": "object",
       "properties": {
         "source": {
           "description": "The key of a source declared under 'sources' in specarch.yaml.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "record": {
+          "description": "The ID of a communication record beside the specification, such as COM-12, whose type is answer or information: what a stakeholder said, cited instead of a declared source. A citation names a source or a record, not both; the validator checks the record exists and its type fits what cites it (record_cited).",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
         },
         "clause": {
           "description": "The clause, section, page or question cited, as the source numbers it, such as '5.2.5' or 'Annex A'.",
@@ -88,7 +93,6 @@
         }
       },
       "required": [
-        "source",
         "says"
       ],
       "propertyNames": {
@@ -99,7 +103,36 @@
       "patternProperties": {
         "^x-": {}
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "required": [
+                "record"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "source"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "record"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source": false,
+              "clause": false
+            }
+          }
+        }
+      ]
     },
     "citations": {
       "description": "SpecArch keyword. The sources this element rests on, one citation each. Optional on every element.",

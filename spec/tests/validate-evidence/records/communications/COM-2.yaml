@@ -1,0 +1,15 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-2
+direction: in
+from: library-board
+to: owner
+at: "2026-10-31T10:15:00+07:00"
+channel: chat
+type: answer
+words: { form: verbatim, text: "Five, as it has always been." }
+recordedBy: owner
+evidence:
+  - { path: evidence/COM-2-chat.txt, mediaType: text/plain, sha256: sha256:0de4560f511116f74b4a3521c7ef2def2a592b004ce4e3024f76fc0747fc1665 }
+links:
+  questions: [Q-1]

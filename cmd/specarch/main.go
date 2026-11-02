@@ -7,6 +7,7 @@
 //	specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--estate <file>] <folder>...
 //	specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--entity <name>] [--template <file>] [--instructions <file>] [--table] [--dry-run] --out <folder> <path>...
 //	specarch merge [--vocabulary <file>]... [--dry-run] --out <folder> <tree>...
+//	specarch log [options] <folder>
 //	specarch diff <old> <new>
 //	specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
 //	specarch derive [--fill] [--dry-run] <folder>...
@@ -46,8 +47,11 @@ const usage = `usage:
                                             --next only the one to ask next
   specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] <folder>...
                                             write a document from a specification
-  specarch decide <question> --by <stakeholder> --answer <text> [--source <key>] [--date <date>] [--dry-run] <folder>
+  specarch decide <question> --by <stakeholder> --answer <text> [--source <key> | --record <id>] [--date <date>] [--dry-run] <folder>
                                             answer an open question: write the decision record and take the question out
+  specarch log --direction in|out --from <role> --to <role> --at <instant> --channel <channel> --type <type> --words <text> --form verbatim|summary --recorded-by <role> [--reply <text>] [--person <label>] [--session <id>] [--source <key>] [--evidence <path>]... [--question <id>]... [--decision <id>]... [--element <ref>]... [--change <id>]... [--defect <id>]... [--idea <id>]... [--dry-run] <folder>
+                                            record what a stakeholder said, as a communication record beside the
+                                            specification; an option not given comes back as the question to ask
   specarch approve --by <stakeholder> [--date <date>] [--dry-run] <folder>...
                                             record that the documents were read and the specification is approved
   specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--estate <file>] <folder>...
@@ -124,6 +128,7 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"validate":     runValidate,
 	"gaps":         runGaps,
 	"decide":       runDecide,
+	"log":          runLog,
 	"approve":      runApprove,
 	"document":     runDocument,
 	"generate":     runGenerate,

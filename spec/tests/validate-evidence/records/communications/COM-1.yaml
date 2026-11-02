@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: librarian
+to: owner
+at: "2026-10-31T10:15:00+07:00"
+channel: email
+type: information
+words: { form: summary, text: The desk opens at nine. }
+recordedBy: owner
+evidence:
+  - { path: evidence/COM-1-email.eml, mediaType: message/rfc822, sha256: sha256:0000000000000000000000000000000000000000000000000000000000000000 }

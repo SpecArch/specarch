@@ -4,7 +4,8 @@ import Foundation
 let recordFolders: [String: String] = [
     "change": "changes", "defect": "defects", "release": "releases",
     "incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
-    "idea": "ideas",
+    "idea": "ideas", "communication": "communications", "session": "sessions",
+    "test-session": "test-sessions", "deploy": "deploys",
 ]
 
 /// One record file, read and checked against its schema.
@@ -28,7 +29,7 @@ final class Record {
     /// environment of a commissioning run; "" when the fields are missing.
     var key: String {
         switch kind {
-        case "change", "defect", "incident", "idea": return str("id")
+        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy": return str("id")
         case "release", "approval": return str("version")
         case "commissioning":
             let date = str("date"), env = str("environment")
@@ -65,13 +66,15 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
             }
         }
     }
-    let rc = RecordChecks(d: d, set: set)
+    let rc = RecordChecks(d: d, set: set, dir: s.recordsDir)
     for r in recs where !r.kind.isEmpty {
         rc.check(r)
     }
     let rootChecker = Checker(file: s.rootPath, files: s.files)
     rc.checkReleases(recs, rootChecker)
     rc.checkRequirementReleases(rootChecker)
+    rc.checkCitedRecords(rootChecker)
+    rc.checkUnheard(rootChecker)
     var out = rootChecker.diags
     for r in recs {
         out += withoutEchoes(withoutHeld(r.c.diags, r.held))
@@ -96,6 +99,7 @@ func prefixOf(_ id: String) -> String {
 struct RecordChecks {
     let d: Design
     let set: [String: [String: Record]]
+    let dir: String // the records/ folder, which evidence paths are under
 
     func has(_ kind: String, _ key: String) -> Bool { set[kind]?[key] != nil }
 
@@ -170,6 +174,35 @@ struct RecordChecks {
             }
             checkBecame(r)
             checkIdeaDecision(r)
+        case "communication":
+            role(r, "from")
+            role(r, "to")
+            role(r, "recordedBy")
+            session(r)
+            citedSource(r, root.child("source"), "/source")
+            checkEvidence(r)
+            checkLinks(r)
+        case "session":
+            roles(r, "invited")
+            roles(r, "present")
+            role(r, "recordedBy")
+            citedSource(r, root.child("source"), "/source")
+            checkEvidence(r)
+            checkLinks(r)
+        case "test-session":
+            environment(r, "environment")
+            release(r, "version")
+            roles(r, "invited")
+            roles(r, "present")
+            role(r, "recordedBy")
+            checkEvidence(r)
+            checkLinks(r)
+        case "deploy":
+            release(r, "version")
+            environment(r, "environment")
+            role(r, "by")
+            checkEvidence(r)
+            checkLinks(r)
         default:
             break
         }
@@ -188,7 +221,7 @@ struct RecordChecks {
         if name.hasSuffix(".yaml") { name = String(name.dropLast(5)) }
         if key.isEmpty || name == key { return }
         switch r.kind {
-        case "change", "defect", "incident", "idea":
+        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy":
             r.c.add(root.child("id"), "/id", .recordName, "the file is named \(name) but the record's id is \(key); name the file \(key).yaml")
         case "release", "approval":
             r.c.add(root.child("version"), "/version", .recordName, "the file is named \(name) but the record's version is \(key); name the file \(key).yaml")
@@ -270,7 +303,7 @@ struct RecordChecks {
             }
             whereFiles.append("records/\(recordFolders[k]!)/\(v).yaml")
         }
-        let what = ["change": "a change request", "defect": "a defect", "incident": "an incident"]
+        let what = ["change": "a change request", "defect": "a defect", "incident": "an incident", "idea": "an idea"]
         var msg = "\(v) is not \(kinds.map { what[$0]! }.joined(separator: " or ")): there is no \(whereFiles.joined(separator: " or "))"
         if !sets.isEmpty {
             msg += " and no source of kind \(sets.joined(separator: " or ")) with prefix \(prefix)"

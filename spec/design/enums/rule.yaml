@@ -166,6 +166,9 @@ enums:
       - profile
       - process
       - route
+      - evidence
+      - record_cited
+      - unheard
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -231,7 +234,7 @@ enums:
       server: a deployment's server name is used twice, its `runs` names a package or target the file does not have, it runs packages and is not of kind `service`, it names a `dependency` and has a `kind` or `runs`, or its `dependency` is not declared
       layout: a file or a section is not where the tree layout puts it; the root file's `stages` and the folders disagree, a test folder has no `test.yaml`, or a folder is not a stage
       need: a requirement's `needs` names a need that does not exist
-      stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy` or the handover's `to` names a stakeholder that does not exist
+      stakeholder: a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy`, an interview source's `participants` or the handover's `to` names a stakeholder that does not exist
       source: a citation names a source that is not declared under `sources`
       source_clause: a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning)
       environment: a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them
@@ -239,7 +242,7 @@ enums:
       secret_value: a setting marked secret carries a value, as a default or in a deployment
       monitor: an implementation's deployment watches a monitor the specification does not declare
       record_name: a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/`
-      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release or commissioning run that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model
+      record_ref: a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release, commissioning run, session or test session that is not a record and not in a declared change-set or defect-set; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model; a communication's, session's, test session's or deploy's links, session, source, version and roles are checked the same way, a question a decision answers counting as a question (ADR-220)
       change_applied: an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning
       change_decision: an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected
       defect_test: a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates
@@ -247,6 +250,9 @@ enums:
       incident_link: a resolved incident links to no defect or change and gives no `noChange` reason (a warning)
       idea_decision: an accepted idea has no decision with outcome accepted, or a rejected one no decision with outcome rejected
       idea_question: an idea whose status is question names no question under `became`
+      evidence: "a record's evidence names a file that is not under records/, or one whose SHA-256 is not the one recorded, so the file changed since the record was written (ADR-220)"
+      record_cited: "a citation names a communication record that does not exist, one whose type is neither answer nor information (a request, a question or an objection settles nothing by itself: cite the decision it led to, or the answer given), or, on a decision that answers questions, an answer record that links none of them (ADR-220)"
+      unheard: "as a warning, at the stakeholder, once a communication, session or test session record is kept beside the specification: a role that no communication record names as from or to, no session or test session lists as present, no interview source lists among its participants and no decision names under decidedBy, while an accepted requirement needs it (through its needs or ownedBy) or, in an approved specification, a page's permission is granted to it; the warning names the role and the elements, so the risk of that role objecting first at acceptance shows early (ADR-220)"
       commissioning_record: a commissioning record's results name a check that does not exist, or its version is not a release's
       release_contents: a released release includes a change that is not implemented or released or a defect that is not fixed or released, or a released change or defect and the release it names disagree
       release_bump: a released version steps from the previous released version by less than the largest impact of what it includes

@@ -416,6 +416,12 @@ extension Checker {
                     "\(sh.value) is not a stakeholder of the specification\(suggest(sh.value, d.stakeholders))")
             }
         }
+        for (name, src) in d.sources {
+            for (i, sh) in items(src.child("participants")).enumerated() where !sh.value.isEmpty && d.stakeholders[sh.value] == nil {
+                add(sh, pointer("sources", name, "participants", "\(i)"), .stakeholder,
+                    "\(sh.value) is not a stakeholder of the specification\(suggest(sh.value, d.stakeholders))")
+            }
+        }
         for (name, req) in d.requirements {
             if let by = req.child("ownedBy"), !by.value.isEmpty, d.stakeholders[by.value] == nil {
                 add(by, pointer("requirements", name, "ownedBy"), .stakeholder,

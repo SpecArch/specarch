@@ -256,6 +256,7 @@ private func jsonText(_ v: JSONValue) -> String {
 func formatName(_ f: String) -> String {
     switch f {
     case "date": return "date (write it as \"YYYY-MM-DD\")"
+    case "date-time": return "date-time (write it as \"YYYY-MM-DDThh:mm:ss+hh:mm\", an instant with its offset)"
     case "regex": return "regular expression"
     default: return f
     }

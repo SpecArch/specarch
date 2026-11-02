@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a communication record whose evidence names a file that is not under records/, one whose evidence file has changed since its SHA-256 was recorded, and a session whose evidence names a file outside records/ beside one that still matches"
+when: "validate is run"
+then: "it reports evidence at the missing file, at the changed file's sha256 and at the path outside records/, says nothing of the file that matches, and exits 1"
+verifies: [SA-117]

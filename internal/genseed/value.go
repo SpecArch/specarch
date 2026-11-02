@@ -22,8 +22,8 @@ const (
 	kBool
 	kInt     // an integer of any width, in num
 	kDecimal // an exact decimal, in text with its scale
-	kDouble
-	kText // text, an enum value, a uuid, an email and every other string format
+	kDouble  // in f; an example's own text in text, written as it was given
+	kText    // text, an enum value, a uuid, an email and every other string format
 	kDate
 	kTimestamp
 	kTimeOfDay // the seconds since midnight, in num
@@ -82,6 +82,9 @@ func (v value) literal(dialect string, literals map[string]string) string {
 	case kDecimal:
 		return v.text
 	case kDouble:
+		if v.text != "" {
+			return v.text
+		}
 		return strconv.FormatFloat(v.f, 'f', 2, 64)
 	case kText:
 		return quote(v.text)
@@ -202,6 +205,9 @@ func (v value) jsonValue() any {
 	case kDecimal:
 		return v.text
 	case kDouble:
+		if v.text != "" {
+			return json.Number(v.text)
+		}
 		return json.Number(strconv.FormatFloat(v.f, 'f', 2, 64))
 	case kText:
 		return v.text

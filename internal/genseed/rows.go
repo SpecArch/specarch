@@ -801,14 +801,14 @@ func (g *gen) fromExample(x any, def, orig map[string]any, label string) value {
 			return value{kind: kDecimal, text: e.String()}
 		case typ == "number":
 			f, _ := e.Float64()
-			return value{kind: kDouble, f: f}
+			return value{kind: kDouble, f: f, text: e.String()}
 		case typ == "" || typ == "object":
-			// A member no part types stays a number.
+			// A member no part types stays a number, as it was given.
 			if n, err := e.Int64(); err == nil {
 				return value{kind: kInt, num: n}
 			}
 			f, _ := e.Float64()
-			return value{kind: kDouble, f: f}
+			return value{kind: kDouble, f: f, text: e.String()}
 		}
 		return textValue(e.String())
 	case string:

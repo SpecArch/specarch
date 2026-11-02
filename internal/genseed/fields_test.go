@@ -217,7 +217,8 @@ func TestExamplesOnKey(t *testing.T) {
 
 // Examples of a value object kept as JSON are read from the design's
 // field, each member typed by the schema's part; an object example of a
-// field with its own properties keeps a number a number.
+// field with its own properties keeps a number a number, written as it
+// was given.
 func TestObjectExamples(t *testing.T) {
 	file, errs := generated(t, `schemas:
   Meta:
@@ -240,7 +241,7 @@ entities:
 `, map[string]any{"Tag": 2})
 	mustHaveNoErrors(t, errs)
 	rows := inserts(file, "tag")
-	if len(rows) != 2 || !strings.HasSuffix(rows[0], `'{"f":1.50,"n":3,"other":7}', '[{"pages":12}]', '{"note":"first","pages":300,"price":"12.50"}'`) {
+	if len(rows) != 2 || !strings.HasSuffix(rows[0], `'{"f":1.5,"n":3,"other":7}', '[{"pages":12}]', '{"note":"first","pages":300,"price":"12.50"}'`) {
 		t.Errorf("rows %q", rows)
 	}
 	if strings.Contains(rows[1], `"pages":"`) || !strings.Contains(rows[1], `"pages":`) {

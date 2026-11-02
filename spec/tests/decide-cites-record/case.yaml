@@ -1,0 +1,5 @@
+arguments: [decide, Q-1, --by, library-board, --answer, "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.", --record, COM-1, --date, "2026-10-31", project]
+exitStatus: 0
+standardOutput: |
+  requirements/all.yaml:5: #/requirements/CASE-1/priority: write priority from ADR-002; mark #/requirements/CASE-1 with origin: decided and decidedIn: ADR-002
+  requirements/all.yaml:5: #/requirements/CASE-1/acceptance: write acceptance from ADR-002; mark #/requirements/CASE-1 with origin: decided and decidedIn: ADR-002

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 930 design tests, 466 golden and 464 red, about 28 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 950 design tests, 474 golden and 476 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 930 design tests, 466 golden and 464 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 926 |
+| system | 946 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -191,6 +191,14 @@ Scenario: golden; level: system; verifies SA-85.
 - When: decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date
 - Then: it writes design/decisions/ADR-002.yaml without restsOn, its consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that restsOn is added after specarch upgrade and that ADR-001 keeps its own origin or is superseded by ADR-002, and exits 0
 
+#### decide-cites-record
+
+Scenario: golden; level: system; verifies SA-118.
+
+- Given: a specification that tracks origin, with an open must question Q-1 decided by library-board, and beside it the communication record COM-1, an answer from library-board that links Q-1 with a chat transcript as evidence
+- When: decide is run for Q-1 with --by library-board, the answer, --record COM-1 and a date
+- Then: it writes design/decisions/ADR-002.yaml, accepted and stated, citing COM-1 with the answer as what it says and no source, takes Q-1 out of requirements/all.yaml, prints the entries to write, and exits 0; validate then accepts the citation
+
 #### decide-needs-source
 
 Scenario: red; level: system; covers exit 1; verifies SA-85.
@@ -199,6 +207,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-85.
 - When: decide is run without --source
 - Then: it refuses, saying to declare the answer as an interview source and name it, writes nothing and exits 1
 
+#### decide-record-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification with an open question Q-1 and beside it COM-1, a request from library-board linking no question
+- When: decide is run for Q-1 with --record COM-1
+- Then: it refuses, saying COM-1 is a request and not an answer, naming the log line that records the answer, writes nothing and exits 1
+
+#### decide-record-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification with an open question Q-1 and no communication record beside it
+- When: decide is run for Q-1 with --record COM-9
+- Then: it refuses, saying there is no records/communications/COM-9.yaml and how to record the answer, writes nothing and exits 1
+
 #### decide-removes-questions-file
 
 Scenario: golden; level: system; verifies SA-85.
@@ -206,6 +230,14 @@ Scenario: golden; level: system; verifies SA-85.
 - Given: a specification that does not track origin, with no decision yet and one could question Q-3, alone in design/questions.yaml under a comment line, blocking a key that is written
 - When: decide is run for Q-3 with --by owner, the answer and a date, with no --source
 - Then: it writes design/decisions/ADR-001.yaml without origin or cites, removes design/questions.yaml since nothing but the comment was left, prints the entity's file and line with the key to write, and exits 0
+
+#### decide-source-and-record
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-118.
+
+- Given: a specification with an open question Q-1
+- When: decide is run with both --source and --record
+- Then: it says a decision cites the one or the other, prints how to use it and exits 2
 
 #### decide-unknown-question
 
@@ -797,6 +829,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-13.
 - When: document requirements is run
 - Then: it prints the validator's source error, writes the requirements document with the error marked at the stakeholder, and exits 1
 
+#### document-communications-everyone
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: a specification whose entity Loan is internal and whose records hold a communication with a person label and one that touches #/entities/Loan
+- When: document communications is run with --audience external
+- Then: it writes communications.md for everyone, without the person label and without the link to the internal entity, saying so in its summary, and exits 0
+
 #### document-deployment-marks-implementation-problem
 
 Scenario: red; level: system; verifies SA-51.
@@ -1325,6 +1365,14 @@ Scenario: golden; level: system; verifies SA-16.
 - When: document commissioning is run
 - Then: it writes commissioning.md with the staging checks before the production ones, a Result column for every step, the sign-off sheet, and exits 0
 
+#### document-writes-communications
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: a specification whose records hold five communications (an answer with evidence, a question with its reply, a request, information from a call without evidence, an objection), a session with one role invited and present and a test session with one invited role absent
+- When: document communications is run
+- Then: it writes communications.md with every record in time order, each with its direction, parties, channel, instant, words marked verbatim or in summary, person label, evidence or the mark that it has none and what it touches, then each stakeholder's history with the absent one named, then each question, decision and element's, and exits 0
+
 #### document-writes-comparison
 
 Scenario: golden; level: system; verifies SA-86.
@@ -1436,6 +1484,14 @@ Scenario: golden; level: system; verifies SA-16.
 - Given: a specification with a golden and a red test of one entity constraint, one with a why
 - When: document testplan is run
 - Then: it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0
+
+#### document-writes-timeline
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: a specification with a decision and records beside it: communications, a session, a test session, a deploy, a planned release, a change request, a defect and an idea, some with an instant and some with a date alone, and timeZone Asia/Jakarta
+- When: document timeline is run
+- Then: it writes timeline.md with every event in one table in time order, a date-only event at the start of its day in Asia/Jakarta, then the events by stakeholder, by requirement, decision and element, and by release, and exits 0
 
 #### document-writes-traceability
 
@@ -3919,6 +3975,72 @@ Scenario: golden; level: system; verifies SA-108.
 - When: init is run on it with no option
 - Then: it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0
 
+### Command log
+
+#### log-answer-needs-question
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification with an open question Q-1
+- When: log is run with every option of an answer but --question
+- Then: it prints that --question is missing, asking which question the answer answers and offering Q-1, writes nothing and exits 1
+
+#### log-asks-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification with the stakeholders owner and library-board
+- When: log is run with only who said it and the words
+- Then: it prints one line per missing option, the direction, the recipient, the instant, the channel, the type, the form and the recorder, each saying what to ask the analyst and the values the specification offers, writes nothing and exits 1
+
+#### log-asks-missing-json
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification with the stakeholders owner and library-board and an open question Q-1
+- When: log is run with --json and only --type answer
+- Then: it prints one JSON object whose log.missing lists each missing option with the question to put and the choices, the question among them since an answer names one, writes nothing and exits 1
+
+#### log-dry-run
+
+Scenario: golden; level: system; verifies SA-118.
+
+- Given: a specification with an open question Q-1 and no communication record
+- When: log is run with every option of an answer and --dry-run
+- Then: it prints the record it would write as would write, then the path and the decide line, writes nothing, and exits 0
+
+#### log-evidence-outside
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification and a records/ folder beside it
+- When: log is run naming the specification's own root file as evidence, which is not under records/
+- Then: it refuses, naming the file and where evidence lives, writes nothing and exits 1
+
+#### log-unknown-role
+
+Scenario: red; level: system; covers exit 1; verifies SA-118.
+
+- Given: a specification whose stakeholders are owner and library-board
+- When: log is run with --from board, which is not a stakeholder
+- Then: it refuses, naming the option, the value and the stakeholders there are, writes nothing and exits 1
+
+#### log-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-118.
+
+- Given: an option log does not have
+- When: log is run with --nonsense
+- Then: it prints how to use it and exits 2
+
+#### log-writes-record
+
+Scenario: golden; level: system; verifies SA-118.
+
+- Given: a specification with the stakeholders owner and library-board and an open question Q-1, no communication record yet, and a chat transcript under records/evidence/
+- When: log is run with every option of an answer: the direction, the roles, a person label, the instant with its offset, the channel, the type, the words and their form, the recorder, the transcript as evidence, Q-1 and CASE-1
+- Then: it writes records/communications/COM-1.yaml with every value as given, the evidence with its media type and SHA-256 and the links, prints the record's path and the decide line with --record COM-1, and exits 0
+
 ### Command mcp
 
 #### mcp-serves-tools
@@ -5005,6 +5127,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-23.
 - When: validate is run
 - Then: it reports commissioning_record for each and exits 1
 
+#### validate-communication-ref
+
+Scenario: red; level: system; covers exit 1; verifies SA-117.
+
+- Given: a communication record naming a stakeholder, a session, a source, a question, a decision, a requirement, a pointer, a change, a defect and an idea that the specification and its records do not have, an answer record with no links, a communication whose at is not an instant, a session inviting an unknown role, a test session and a deploy in an unknown environment at a version that is no release, a tester and a deployer that are no stakeholders
+- When: validate is run
+- Then: it reports record_ref at each reference, schema at the missing links and the instant, and exits 1
+
+#### validate-communications-valid
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: a specification whose records beside it hold communications of every type (an answer with evidence whose SHA-256 matches, a question with its reply, a request, information given in a call with no evidence, an objection), a session with its attendance, a test session, a deploy, a planned release, a change and an idea, each naming only what the specification and the records have; an interview source with at and participants; a decision answering Q-1 that cites the answer record, and a requirement that cites the information record
+- When: validate is run on the specification's folder
+- Then: it prints nothing and exits 0
+
 #### validate-compact-columns
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
@@ -5356,6 +5494,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-66, SA-95.
 - Given: the estate of validate-estate on 1, in one part
 - When: validate is run
 - Then: it reports meta_model_version at the estate's line asking for 1.0.0, still checks both modules, and exits 1
+
+#### validate-evidence
+
+Scenario: red; level: system; covers exit 1; verifies SA-117.
+
+- Given: a communication record whose evidence names a file that is not under records/, one whose evidence file has changed since its SHA-256 was recorded, and a session whose evidence names a file outside records/ beside one that still matches
+- When: validate is run
+- Then: it reports evidence at the missing file, at the changed file's sha256 and at the path outside records/, says nothing of the file that matches, and exits 1
 
 #### validate-example-double-forms
 
@@ -6493,6 +6639,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-95.
 - When: validate is run
 - Then: it reports exactly what it reports for the record on 0.1, and exits 1
 
+#### validate-record-cited
+
+Scenario: red; level: system; covers exit 1; verifies SA-117.
+
+- Given: a decision answering Q-1 that cites a communication record that does not exist, a decision that cites a request, a decision answering Q-3 that cites an answer whose links name Q-1 and Q-2, and a requirement that cites an information record
+- When: validate is run
+- Then: it reports record_cited at the three decisions' citations, accepts the requirement's, and exits 1
+
 #### validate-record-name
 
 Scenario: red; level: system; covers exit 1; verifies SA-23.
@@ -7221,6 +7375,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - When: validate is run on its folder
 - Then: it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, and exits 1
 
+#### validate-unheard
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: a specification that keeps a session record, approved for its version, with an accepted requirement needed by the board and the desk, a proposed one needed by the auditor, a page whose permission the desk and reader roles hold, a decision by the owner, and a session the reader attended and the desk did not
+- When: validate is run
+- Then: it warns unheard at the board, needed by the requirement, and at the desk, needed by the requirement and the page, names neither the auditor (its requirement is proposed), the reader (present in the session) nor the owner (decided), and exits 0
+
 #### validate-unique-where
 
 Scenario: red; level: system; covers exit 1; verifies SA-3.
@@ -7545,7 +7707,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-534 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+545 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7958,6 +8120,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-101 | acceptance 3 | golden | SA-101 names no harm |
 | requirement SA-101 | acceptance 4 | golden | SA-101 names no harm |
 | requirement SA-101 | acceptance 5 | golden | SA-101 names no harm |
+| requirement SA-117 | acceptance 1 | golden | SA-117 names no harm |
+| requirement SA-117 | acceptance 2 | golden | SA-117 names no harm |
+| requirement SA-117 | acceptance 3 | golden | SA-117 names no harm |
+| requirement SA-117 | acceptance 4 | golden | SA-117 names no harm |
+| requirement SA-117 | acceptance 5 | golden | SA-117 names no harm |
+| requirement SA-117 | acceptance 6 | golden | SA-117 names no harm |
+| requirement SA-117 | acceptance 7 | golden | SA-117 names no harm |
 | requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |
@@ -8045,6 +8214,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-97 | acceptance 1 | golden | SA-97 names no harm |
 | requirement SA-97 | acceptance 2 | golden | SA-97 names no harm |
 | requirement SA-97 | acceptance 3 | golden | SA-97 names no harm |
+| requirement SA-118 | acceptance 1 | golden | SA-118 names no harm |
+| requirement SA-118 | acceptance 2 | golden | SA-118 names no harm |
+| requirement SA-118 | acceptance 3 | golden | SA-118 names no harm |
+| requirement SA-118 | acceptance 4 | golden | SA-118 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

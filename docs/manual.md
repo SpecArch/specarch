@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.4.0 of the specification: 0 tasks, 0 pages and 26 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.4.0 of the specification: 0 tasks, 0 pages and 27 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
@@ -13,7 +13,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, mcp, merge, model, skill, try, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, log, mcp, merge, model, skill, try, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -345,9 +345,13 @@ specification, then works on what could be read (ADR-065). Finds the
 question by its ID in the merged `questions` section; refuses when
 there is none of that ID, naming the open ones, when `--by` is not a
 stakeholder of the specification, when `--source` names a source the
-root file does not declare, when the specification tracks origin and
-`--source` is not given, since the answer must then be citable, and
-when `stages` does not list design, where decisions live (ADR-155).
+root file does not declare, when `--record` names a record that is
+not a communication record, not an answer or one that does not link
+the question (ADR-220), when the specification tracks origin and
+neither `--source` nor `--record` is given, since the answer must
+then be citable, and when `stages` does not list design, where
+decisions live (ADR-155). `--source` and `--record` together are a
+usage error: a decision cites the one or the other.
 
 Writes the decision record as `design/decisions/<ID>.yaml`, a file of
 its own, under the next ID: `ADR-` and the largest number any
@@ -358,7 +362,9 @@ blocked and its Insight, its decision the answer, its consequences
 the entries the question blocked, which are to be written from the
 answer, `answers` the question's ID and `decidedBy` the stakeholder;
 with `--source` it is stated, citing that source with the answer as
-what it says. When the question blocked a decision the
+what it says; with `--record` it is stated, citing the communication
+record with the answer as what it says, which `specarch log` prints
+as the line to run after recording an answer (ADR-220). When the question blocked a decision the
 specification holds, the record rests on it: `restsOn` names each
 such decision once, in the order of `blocks`, on meta-model 1.0 and
 later, which have the key, and the consequences say so (ADR-208).
@@ -392,7 +398,7 @@ holds the agent to it.
 **Note:** From Documenting architecture decisions, 2011: A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
 ```
-specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--date <date>] [--dry-run]
+specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--record <record>] [--date <date>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -406,7 +412,8 @@ Anyone who has the program runs it.
 |---|---|---|
 | `--by <by>` | The stakeholder who decided, by key; a role, never a person. | yes |
 | `--answer <answer>` | The answer, as the stakeholder gave it; the record's decision. | yes |
-| `--source <source>` | The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. Required when the specification tracks origin. |  |
+| `--source <source>` | The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. One of --source and --record is required when the specification tracks origin. |  |
+| `--record <record>` | The communication record of the answer given, by ID, written by specarch log with type answer and the question under its links; the decision cites it. Not with --source. |  |
 | `--date <date>` | The date of the decision, as YYYY-MM-DD. Today when not given. |  |
 | `--dry-run` | Check the question and the answer and write nothing; print the blocked entries, then the decision record it would write and the question file it would edit or remove, as would write <path> and would remove <path>. |  |
 
@@ -426,7 +433,7 @@ On standard error: A usage message on a usage error, the reason a refusal, and o
 | Exit status | It means | What to do |
 |---|---|---|
 | 0 | the record is written and the question taken out |   |
-| 1 | refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors | Read the refusal on standard error and correct the question, stakeholder or source it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them. |
+| 1 | refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors | Read the refusal on standard error and correct the question, stakeholder, source or record it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them. |
 | 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch decision rests
@@ -892,6 +899,24 @@ violates and its decision. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed. Neither is ever a draft.
 
+The communications and timeline targets are made from the records
+too (ADR-220). The communications target writes `communications.md`:
+every communication, session and test session in time order, each
+with its direction, parties, channel, instant, words marked verbatim
+or in summary, reply, evidence with its media type and SHA-256 or
+the mark that it was recorded without any, and what it touches;
+then the history of each stakeholder, one never heard said so; then
+the history of each question, decision and element the records
+touch. The timeline target writes `timeline.md`: every event of the
+records and the specification's decisions in one table in time
+order, an event with an instant placed at it, one with a date alone
+at the start of that day in the specification's `timeZone`, UTC
+when none, and one with no date yet last; then the same events by
+stakeholder, by requirement, decision and element, and by release.
+A document for everyone (`--audience external`) leaves the person
+label and what touches an internal element out of both. Neither is
+ever a draft.
+
 The problems target writes `problems.txt` and `problems.sarif`
 (ADR-065), for an invalid specification too. `problems.txt` starts
 with a line naming the specification, its version and the counts of
@@ -1022,7 +1047,7 @@ It reads:
 
 - `{paths}`: The specifications and their implementation files.
 - `specarch.md`: The hand-written document beside each root file, when there is one.
-- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets.
+- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets.
 - `{out}`: The current output, with `--check`.
 
 It writes:
@@ -3523,6 +3548,103 @@ On standard error: A usage message on a usage error; the file that is already th
 |---|---|---|
 | 0 | the specification was written, or with --dry-run would be |   |
 | 2 | usage error, a folder that already holds specarch.yaml, or a path that could not be written | Read the reason on standard error: give a folder without specarch.yaml, or a profile of lean or full, or a path that can be written, and run it again. |
+
+### specarch log
+
+Record one communication with a stakeholder, from what the analyst reports in chat, as a record beside the specification.
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Writes
+one communication record, `records/communications/COM-<n>.yaml`
+beside the specification's folder, under the next number after the
+largest any communication record carries, from the options alone:
+who said it and to whom (`--from`, `--to`, roles), when (`--at`, an
+instant with its offset), how (`--channel`), what it is (`--type`),
+the words (`--words`, with `--form` saying whether they are verbatim
+or a summary), who wrote it down (`--recorded-by`), and what it
+touches (`--question`, `--decision`, `--element`, `--change`,
+`--defect`, `--idea`, each repeatable). The command guesses
+nothing: every one of who, when, how, what and what was said that is
+not given comes back as a line on standard output, one per missing
+option, saying what to ask the analyst and the option to give it
+with, and nothing is written, with exit 1; with `--json` the same
+under `log.missing`, each with its option, the question to put and
+the choices the specification offers (ADR-220).
+
+Refuses, with exit 1 and nothing written, a role that is not a
+stakeholder, an instant not written as RFC 3339 with its offset, a
+channel, type, form or direction outside their values, a question
+that is neither open nor answered by a decision, a decision,
+element, change, defect, idea, session or source the specification
+and its records do not have, an answer (`--type answer`) that names
+no question, a reply on a record that is not a question, and an
+evidence file that is not under `records/`. Each evidence file is
+read and its SHA-256 and media type written into the record, the
+media type from the file's extension or given after `=` as
+`--evidence <path>=<media type>`; the validator later refuses a
+record whose file no longer matches (`evidence`).
+
+Prints on standard output the record's path, and for an answer the
+`specarch decide` line that records it as the decision, citing the
+record with `--record`. With `--dry-run` it prints the record it
+would write and writes nothing.
+
+**Insight:** What a stakeholder said is the source of most of a specification, and it reaches the analyst in a chat, a call or a meeting that leaves no record of who said it and when. Typed into the record by an agent from the analyst's words, it stays traceable only if the agent fills nothing in: a guessed role or time is worse than none, since it reads as a fact. So the command takes every field as an option and sends back what is missing as the questions to ask, rather than reading free text and inferring.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.4.3: Each requirement is traceable to its source: the stakeholder need or the document it comes from. <https://www.iso.org/standard/72089.html>
+
+```
+specarch log <folder> [--direction <direction>] [--from <from>] [--to <to>] [--at <at>] [--channel <channel>] [--type <type>] [--words <words>] [--form <form>] [--reply <reply>] [--person <person>] [--recorded-by <recorded-by>] [--session <session>] [--source <source>] [--evidence <evidence>] [--question <question>] [--decision <decision>] [--element <element>] [--change <change>] [--defect <defect>] [--idea <idea>] [--dry-run]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<folder>` | The folder holding the specification; the record goes into records/communications/ beside it. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--direction <direction>` | in when the stakeholder said it to the project, out when the project said it to the stakeholder. One of: in, out. |  |
+| `--from <from>` | Who said it, by role; a stakeholder of the specification, never a person. |  |
+| `--to <to>` | Who it was said to, by role. |  |
+| `--at <at>` | When it was said, an instant with its offset as RFC 3339 writes it, such as 2026-10-31T10:15:00+07:00; the date and the offset are asked for when the analyst gave a time alone. |  |
+| `--channel <channel>` | How it was said: meeting, chat, email, call or document. One of: meeting, chat, email, call, document. |  |
+| `--type <type>` | What it is: answer (to a question of the specification), question (the stakeholder asked), request, information or objection. One of: answer, question, request, information, objection. |  |
+| `--words <words>` | What was said, as given or summarised. |  |
+| `--form <form>` | verbatim when --words holds the words as they were said or written, summary when it is a summary of them. One of: verbatim, summary. |  |
+| `--reply <reply>` | What was said back, for a question the stakeholder asked; in the same form as the words. |  |
+| `--person <person>` | A label for the person on the stakeholder's side when the role alone does not say who; left out of the documents for everyone. |  |
+| `--recorded-by <recorded-by>` | The role that writes it down, usually the analyst's. |  |
+| `--session <session>` | The session or test session record it was said in, by ID. |  |
+| `--source <source>` | The declared source it belongs to, by key: the interview it was part of. |  |
+| `--evidence <evidence>` | A file under records/ that shows it, by its path, with the media type after = when the extension does not say it; repeatable. |  |
+| `--question <question>` | A question of the specification it is about, open or answered, by ID; repeatable, and required for an answer. |  |
+| `--decision <decision>` | A decision it is about, by ID; repeatable. |  |
+| `--element <element>` | A requirement ID or a |  |
+| `--change <change>` | A change request it is about, by ID; repeatable. |  |
+| `--defect <defect>` | A defect it is about, by ID; repeatable. |  |
+| `--idea <idea>` | An idea it is about, by ID; repeatable. |  |
+| `--dry-run` | Check everything and write nothing; print the record it would write as would write <path>. |  |
+
+It reads:
+
+- `{folder}`: The specification, and the records beside it: the communication records for the next ID, the sessions and the records the links name.
+- `records/<evidence path>`: Each evidence file, to take its SHA-256.
+
+It writes:
+
+- `records/communications/COM-<n>.yaml`: The communication record, under the next number; refused when a file of that name exists.
+
+On standard output: The errors of an invalid specification; then, when something is missing, one line per missing option saying what to ask; or the path written and, for an answer, the decide line to run next.
+
+On standard error: A usage message on a usage error, the reason a refusal, and one line naming the record written.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | the record is written |   |
+| 1 | nothing written, since a required option is missing or a value names what the specification does not have; or written, while the specification has errors | Read the lines on standard output: ask the analyst each question they put, and run the command again with the option each names; a refusal on standard error names the value to correct. |
+| 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch mcp
 

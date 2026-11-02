@@ -27,7 +27,7 @@ import (
 // answer. It works on a specification with errors too, after printing
 // them (ADR-065), and exits 1 then.
 func runDecide(args []string, stdout, stderr io.Writer) int {
-	by, answer, src, date := "", "", "", ""
+	by, answer, src, record, date := "", "", "", "", ""
 	w := disk.Real
 	var rest []string
 	for i := 0; i < len(args); i++ {
@@ -38,7 +38,7 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 			rest = append(rest, args[i+1:]...)
 			i = len(args)
 			continue
-		case a == "--by" || a == "--answer" || a == "--source" || a == "--date":
+		case a == "--by" || a == "--answer" || a == "--source" || a == "--record" || a == "--date":
 			if i+1 >= len(args) {
 				fmt.Fprintf(stderr, "specarch decide: %s needs a value\n\n%s", a, usage)
 				return 2
@@ -48,11 +48,11 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		case a == "--dry-run":
 			w = disk.DryRun(stdout)
 			continue
-		case strings.HasPrefix(a, "--by=") || strings.HasPrefix(a, "--answer=") || strings.HasPrefix(a, "--source=") || strings.HasPrefix(a, "--date="):
+		case strings.HasPrefix(a, "--by=") || strings.HasPrefix(a, "--answer=") || strings.HasPrefix(a, "--source=") || strings.HasPrefix(a, "--record=") || strings.HasPrefix(a, "--date="):
 			name, value, _ = strings.Cut(a, "=")
 			ok = true
 		case strings.HasPrefix(a, "-") && len(a) > 1:
-			fmt.Fprintf(stderr, "specarch decide has no option %s; its options are --by, --answer, --source, --date and --dry-run\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch decide has no option %s; its options are --by, --answer, --source, --record, --date and --dry-run\n\n%s", a, usage)
 			return 2
 		default:
 			rest = append(rest, a)
@@ -66,6 +66,8 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 				answer = value
 			case "--source":
 				src = value
+			case "--record":
+				record = value
 			case "--date":
 				date = value
 			}
@@ -80,6 +82,9 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		return 2
 	case len(rest) != 2:
 		fmt.Fprintf(stderr, "specarch decide needs the question's ID and one folder, in that order\n\n%s", usage)
+		return 2
+	case src != "" && record != "":
+		fmt.Fprintf(stderr, "specarch decide takes --source or --record, not both: a decision cites the declared source the answer rests on, or the communication record of the answer given\n\n%s", usage)
 		return 2
 	}
 	id, folder := rest[0], rest[1]
@@ -137,9 +142,15 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stderr, "specarch decide: %s is not a source of %s, which %s; declare it under sources in %s, as an interview with its date for an answer given in words\n", src, l.spec.Dir, declared, spec.RootFile)
 		return 1
-	case src == "" && tracks:
-		fmt.Fprintf(stderr, "specarch decide: %s tracks origin, so the decision must cite where the answer came from; declare the answer under sources in %s, as an interview with its date, and give it with --source\n", l.spec.Dir, spec.RootFile)
+	case src == "" && record == "" && tracks:
+		fmt.Fprintf(stderr, "specarch decide: %s tracks origin, so the decision must cite where the answer came from; record the answer with specarch log and give its ID with --record, or declare it under sources in %s, as an interview with its date, and give it with --source\n", l.spec.Dir, spec.RootFile)
 		return 1
+	}
+	if record != "" {
+		if reason := answerRecordRefusal(parsedRecords(l.spec), record, id); reason != "" {
+			fmt.Fprintf(stderr, "specarch decide: %s\n", reason)
+			return 1
+		}
 	}
 	hasDesign := false
 	for _, s := range l.spec.Stages {
@@ -189,6 +200,7 @@ func runDecide(args []string, stdout, stderr io.Writer) int {
 		DecidedBy:    by,
 		RestsOn:      recordLinks(entries),
 		Source:       src,
+		Record:       record,
 	}
 	text, err := rec.Encode()
 	if err != nil {
@@ -442,4 +454,35 @@ func joinAnd(items []string) string {
 		return items[0]
 	}
 	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
+}
+
+// answerRecordRefusal is why a communication record cannot be the one a
+// decision answering the question cites: it is not a communication
+// record, not an answer, or does not link the question (ADR-220). "" when
+// it can.
+func answerRecordRefusal(records recordIndex, id, question string) string {
+	var rec *yaml.Node
+	for _, r := range records["communication"] {
+		if source.Str(source.Child(r, "id")) == id {
+			rec = r
+		}
+	}
+	if rec == nil {
+		return fmt.Sprintf("%s is not a communication record: there is no records/communications/%s.yaml beside the specification; record the answer with specarch log, which prints the decide line to run", id, id)
+	}
+	if typ := source.Str(source.Child(rec, "type")); typ != "answer" {
+		return fmt.Sprintf("%s is %s, not an answer; a decision cites the record of the answer given, so record the answer with specarch log --type answer --question %s and cite that", id, typeArticle(typ), question)
+	}
+	var linked []string
+	for _, item := range source.Items(source.Child(source.Child(rec, "links"), "questions")) {
+		if item.Value == question {
+			return ""
+		}
+		linked = append(linked, item.Value)
+	}
+	answers := "answers no question: its links name none"
+	if len(linked) > 0 {
+		answers = "answers " + joinAnd(linked) + ", not " + question
+	}
+	return fmt.Sprintf("%s %s; cite the record of the answer to %s, or add %s to its links under questions when it answered that too", id, answers, question, question)
 }

@@ -148,3 +148,23 @@ requirements:
     verification: test
     needs: [NEED-5, NEED-10]
     why: A proposal that is not yet part of the specification is lost when it is only said, and once it is in the text nobody can tell what was proposed, by which way it came in, and what was turned down and why; kept as a record it is checked like the other records, the person's decision on it is written down, and the decision it became can be traced back to it (ADR-196).
+  SA-117:
+    statement: A specification shall keep beside it, as records in records/, who said what to whom and when - a communication record for each thing a stakeholder said or was told, with its direction, roles, instant with offset, channel, type, words marked verbatim or summary, evidence hashed with SHA-256 or none, and the questions, decisions, elements, changes, defects and ideas it touches; a session record with its attendance by role; a test session record with its level, environment, version, build, attendance and result; and a deploy record with its version, environment, instant, actor and result - which the validator shall check in both builds, a citation shall be able to rest on, and the communications and timeline documents shall be written from.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - Communications of every type, an answer with evidence whose SHA-256 matches, a question with its reply, a request, information from a call with no evidence and an objection, a session and a test session with invited and present, a deploy, an interview source with at and participants, a decision citing the answer record and a requirement citing the information record, each naming only what the specification and the records have, validate with nothing printed and exit 0.
+      - A communication, session, test session or deploy record naming a role, a question, a decision, an element, a change, a defect, an idea, a session or a source that the specification or its records do not have is reported as record_ref at the key; a question a decision answers is still a question a record may link.
+      - Evidence naming a file that is not under records/, or whose SHA-256 is not the one recorded, is reported as evidence at the key, with the hash the file has now.
+      - A citation naming a communication record that does not exist, or one whose type is a request, a question or an objection, is reported as record_cited at the citation; so is a decision that answers questions citing an answer record that links none of them.
+      - Once a communication, session or test session record is kept, a stakeholder that an accepted requirement needs, or that a page of an approved specification is for, while no communication names it, no session lists it present, no interview lists it and no decision is by it, is warned as unheard at the stakeholder, naming the requirements and pages; a specification without such records warns nothing.
+      - The Go build and the Swift build print the same lines on each case.
+      - document communications writes every communication, session and test session in time order and then per stakeholder and per element, a person label left out of a document for everyone; document timeline writes every event of the records and the specification in one time order, a date-only event at the start of its day in the specification's time zone, then by stakeholder, by element and by release; neither is a draft.
+    verification: test
+    needs: [NEED-5, NEED-6, NEED-10]
+    why: Real requirements come from conversations, meetings, chats and emails that leave no record of who said what and when; kept as records beside the specification, checked like the others and cited by the decisions they led to, a stakeholder's words are traceable, a changed attachment shows, and a role nobody heard shows before it objects at acceptance (ADR-220).
+    cites:
+      - source: iso-29148
+        clause: "6.4.3"
+        says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."

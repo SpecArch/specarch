@@ -170,6 +170,24 @@ violates and its decision. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed. Neither is ever a draft.
 
+The communications and timeline targets are made from the records
+too (ADR-220). The communications target writes `communications.md`:
+every communication, session and test session in time order, each
+with its direction, parties, channel, instant, words marked verbatim
+or in summary, reply, evidence with its media type and SHA-256 or
+the mark that it was recorded without any, and what it touches;
+then the history of each stakeholder, one never heard said so; then
+the history of each question, decision and element the records
+touch. The timeline target writes `timeline.md`: every event of the
+records and the specification's decisions in one table in time
+order, an event with an instant placed at it, one with a date alone
+at the start of that day in the specification's `timeZone`, UTC
+when none, and one with no date yet last; then the same events by
+stakeholder, by requirement, decision and element, and by release.
+A document for everyone (`--audience external`) leaves the person
+label and what touches an internal element out of both. Neither is
+ever a draft.
+
 The problems target writes `problems.txt` and `problems.sarif`
 (ADR-065), for an invalid specification too. `problems.txt` starts
 with a line naming the specification, its version and the counts of
@@ -276,7 +294,7 @@ and the html page in place of what satisfies and verifies it.
 
 ## Arguments
 
-- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
+- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
 - `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
 
 ## Options
@@ -290,7 +308,7 @@ and the html page in place of what satisfies and verifies it.
 
 - `{paths}`: The specifications and their implementation files.
 - `specarch.md`: The hand-written document beside each root file, when there is one.
-- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets.
+- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets.
 - `{out}`: The current output, with `--check`.
 
 ## Writes

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log
+level: system
+scenario: golden
+given: "a specification with the stakeholders owner and library-board and an open question Q-1, no communication record yet, and a chat transcript under records/evidence/"
+when: "log is run with every option of an answer: the direction, the roles, a person label, the instant with its offset, the channel, the type, the words and their form, the recorder, the transcript as evidence, Q-1 and CASE-1"
+then: "it writes records/communications/COM-1.yaml with every value as given, the evidence with its media type and SHA-256 and the links, prints the record's path and the decide line with --record COM-1, and exits 0"
+verifies: [SA-118]

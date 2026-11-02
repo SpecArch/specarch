@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: defect
+id: DEF-1
+title: A sixth loan goes through at a branch desk
+reportedBy: librarian
+reported: "2026-11-03"
+phase: production
+environment: production
+severity: major
+violates: [CASE-1]
+status: confirmed

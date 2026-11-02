@@ -1,0 +1,10 @@
+arguments: [log, --from, library-board, --words, "Must: a release without the limit is not acceptable.", project]
+exitStatus: 1
+standardOutput: |
+  missing --direction: ask which way it went: did the stakeholder say it to the project (in), or the project to the stakeholder (out)?; one of in, out
+  missing --to: ask who it was said to, by role; one of library-board, owner
+  missing --at: ask when it was said: the date, the time and the offset of the clock it was read on (the specification's time zone is Asia/Jakarta); written as 2026-10-31T10:15:00+07:00
+  missing --channel: ask how it was said; one of meeting, chat, email, call, document
+  missing --type: ask what it is: an answer to a question of the specification, a question the stakeholder asked, a request for the system to be different, information, or an objection; one of answer, question, request, information, objection
+  missing --form: ask whether the words are as they were said or written (verbatim), or a summary; one of verbatim, summary
+  missing --recorded-by: ask who is writing it down, by role: the analyst's own role; one of library-board, owner

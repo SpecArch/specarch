@@ -58,10 +58,10 @@ commands:
         description: When it was said, an instant with its offset as RFC 3339 writes it, such as 2026-10-31T10:15:00+07:00; the date and the offset are asked for when the analyst gave a time alone.
         schema: { type: string, format: date-time }
       channel:
-        description: How it was said: meeting, chat, email, call or document.
+        description: "How it was said: meeting, chat, email, call or document."
         schema: { type: string, enum: [meeting, chat, email, call, document] }
       type:
-        description: What it is: answer (to a question of the specification), question (the stakeholder asked), request, information or objection.
+        description: "What it is: answer (to a question of the specification), question (the stakeholder asked), request, information or objection."
         schema: { type: string, enum: [answer, question, request, information, objection] }
       words:
         description: What was said, as given or summarised.
@@ -82,36 +82,29 @@ commands:
         description: The session or test session record it was said in, by ID.
         schema: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" }
       source:
-        description: The declared source it belongs to, by key: the interview it was part of.
+        description: "The declared source it belongs to, by key: the interview it was part of."
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
       evidence:
         description: A file under records/ that shows it, by its path, with the media type after = when the extension does not say it; repeatable.
-        schema: { type: string, minLength: 1 }
-        repeatable: true
+        schema: { type: array, items: { type: string, minLength: 1 } }
       question:
         description: A question of the specification it is about, open or answered, by ID; repeatable, and required for an answer.
-        schema: { type: string, pattern: "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$" }
-        repeatable: true
+        schema: { type: array, items: { type: string, pattern: "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$" } }
       decision:
         description: A decision it is about, by ID; repeatable.
-        schema: { type: string, pattern: "^ADR-[0-9]{3,}$" }
-        repeatable: true
+        schema: { type: array, items: { type: string, pattern: "^ADR-[0-9]{3,}$" } }
       element:
         description: A requirement ID or a #/ pointer it is about; repeatable.
-        schema: { type: string, minLength: 1 }
-        repeatable: true
+        schema: { type: array, items: { type: string, minLength: 1 } }
       change:
         description: A change request it is about, by ID; repeatable.
-        schema: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" }
-        repeatable: true
+        schema: { type: array, items: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" } }
       defect:
         description: A defect it is about, by ID; repeatable.
-        schema: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" }
-        repeatable: true
+        schema: { type: array, items: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" } }
       idea:
         description: An idea it is about, by ID; repeatable.
-        schema: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" }
-        repeatable: true
+        schema: { type: array, items: { type: string, pattern: "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$" } }
       dry-run:
         description: Check everything and write nothing; print the record it would write as would write <path>.
         schema: { type: boolean, default: false }

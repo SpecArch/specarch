@@ -36,6 +36,18 @@ func (w *Withheld) Covers(ptr string) bool {
 	return false
 }
 
+// CoversRef reports whether a reference, a requirement or need ID or a
+// pointer, names something left out.
+func (w *Withheld) CoversRef(ref string) bool {
+	if w == nil {
+		return false
+	}
+	if strings.HasPrefix(ref, "#/") {
+		return w.Covers(strings.TrimPrefix(ref, "#"))
+	}
+	return w.ids[ref]
+}
+
 // Total is the number of elements left out.
 func (w *Withheld) Total() int {
 	if w == nil {

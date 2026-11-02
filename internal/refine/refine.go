@@ -44,6 +44,7 @@ type Record struct {
 	DecidedBy    string
 	RestsOn      []string // the decisions the question blocked, which the record builds on
 	Source       string   // the source cited, or "" for none
+	Record       string   // the communication record cited, or "" for none
 }
 
 // Encode is the record as the text of a fragment file holding one accepted
@@ -68,9 +69,13 @@ func (r Record) Encode() ([]byte, error) {
 		}
 		add("restsOn", links)
 	}
-	if r.Source != "" {
+	if r.Source != "" || r.Record != "" {
 		add("origin", scalar("stated"))
-		cite := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Style: yaml.FlowStyle, Content: []*yaml.Node{scalar("source"), scalar(r.Source), scalar("says"), scalar(r.Says)}}
+		key, value := "source", r.Source
+		if r.Record != "" {
+			key, value = "record", r.Record
+		}
+		cite := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Style: yaml.FlowStyle, Content: []*yaml.Node{scalar(key), scalar(value), scalar("says"), scalar(r.Says)}}
 		add("cites", &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Content: []*yaml.Node{cite}})
 	}
 	root := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{

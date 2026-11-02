@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: member
+to: librarian
+at: "2026-10-09T10:15:00Z"
+channel: call
+type: request
+words: { form: summary, text: A member who cannot reach the library by the due date asked to keep the book a little longer without paying the late fee. }
+recordedBy: librarian
+links:
+  changes: [CR-1]
+  elements: [LIB-4, "#/entities/Loan"]

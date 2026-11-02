@@ -708,7 +708,22 @@ specification, and an operation stage with monitors. Built in this order:
    `spec/tests/diff-version-step`);
 5. the documentor targets `changes` and `releases` (0.3.0,
    `spec/tests/document-writes-changes`,
-   `spec/tests/document-writes-releases`).
+   `spec/tests/document-writes-releases`);
+6. ideas as records beside the specification, with their status and what
+   they became (ADR-196, `spec/tests/validate-ideas-valid`);
+7. who said what and when (ADR-220): communication, session, test-session
+   and deploy records with an instant and its offset and evidence hashed
+   with SHA-256, a citation naming a communication record and an
+   interview's `at` and `participants`, the rules `evidence`,
+   `record_cited` and `unheard` in both builds
+   (`spec/tests/validate-communications-valid`, `validate-evidence`,
+   `validate-record-cited`, `validate-unheard`); `specarch log`, which
+   writes one record from options alone and asks for what is missing, and
+   `specarch decide --record` (`spec/tests/log-writes-record`,
+   `log-asks-missing`, `decide-cites-record`); the documentor targets
+   `communications` and `timeline` (`spec/tests/document-writes-communications`,
+   `document-writes-timeline`). Built, unreleased. Left for later: the
+   acceptance loop's cause `unheard` resting on the warning (ADR-083).
 
 ## Not planned
 

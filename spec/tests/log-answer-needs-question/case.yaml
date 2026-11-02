@@ -1,0 +1,4 @@
+arguments: [log, --direction, in, --from, library-board, --to, owner, --person, the board chair, --at, "2026-10-31T10:15:00+07:00", --channel, chat, --type, answer, --words, "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.", --form, verbatim, --recorded-by, owner, project]
+exitStatus: 1
+standardOutput: |
+  missing --question: ask which question of the specification it answers, by ID; one of Q-1, Q-2, Q-3

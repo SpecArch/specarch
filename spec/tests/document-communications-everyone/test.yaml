@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose entity Loan is internal and whose records hold a communication with a person label and one that touches #/entities/Loan"
+when: "document communications is run with --audience external"
+then: "it writes communications.md for everyone, without the person label and without the link to the internal entity, saying so in its summary, and exits 0"
+verifies: [SA-117]

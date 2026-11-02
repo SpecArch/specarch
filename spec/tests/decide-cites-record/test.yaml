@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decide
+level: system
+scenario: golden
+given: "a specification that tracks origin, with an open must question Q-1 decided by library-board, and beside it the communication record COM-1, an answer from library-board that links Q-1 with a chat transcript as evidence"
+when: "decide is run for Q-1 with --by library-board, the answer, --record COM-1 and a date"
+then: "it writes design/decisions/ADR-002.yaml, accepted and stated, citing COM-1 with the answer as what it says and no source, takes Q-1 out of requirements/all.yaml, prints the entries to write, and exits 0; validate then accepts the citation"
+verifies: [SA-118]

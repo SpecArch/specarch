@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with an open question Q-1"
+when: "log is run with every option of an answer but --question"
+then: "it prints that --question is missing, asking which question the answer answers and offering Q-1, writes nothing and exits 1"
+verifies: [SA-118]

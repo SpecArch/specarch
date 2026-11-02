@@ -426,7 +426,10 @@ everywhere:
   element.
 - `cites`: a list of citations, each naming a `source` declared in the root
   file, the `clause` where relevant, and what the source `says` that
-  applies here. A document renders each as a Note under the Insight.
+  applies here; or, in place of `source`, a `record`, the communication
+  record beside the specification of what a stakeholder said, with `says`
+  and no `clause` (`record_cited` checks it exists and is an answer or
+  information). A document renders each as a Note under the Insight.
 - `origin`: how the element is known. `stated`: a source says it, and
   `cites` names the source and where in it (`origin_citation` otherwise).
   `inferred`: it was concluded from evidence, and `why` says from what
@@ -472,7 +475,10 @@ consequences: the context is what was true and at stake, `why` the
 reasoning that led from it to the decision. A decision that answers open
 questions names them under `answers` and the stakeholder who decided under
 `decidedBy`; an answer given in words is declared as a source of kind
-`interview` with its date. A decision that answers a question only in
+`interview` with its date, and may carry `at`, the instant it was held
+with its offset, and `participants`, the roles present; or the answer is a
+communication record, written by `specarch log`, that the decision cites
+with `record` (`specarch decide --record`, ADR-220). A decision that answers a question only in
 part names the questions it raised under `opens`. A decision names the
 earlier decisions it rests on under `restsOn`, by ID: each must be a
 decision of the specification (`decision`), and the chain may not come

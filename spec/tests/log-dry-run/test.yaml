@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log
+level: system
+scenario: golden
+given: "a specification with an open question Q-1 and no communication record"
+when: "log is run with every option of an answer and --dry-run"
+then: "it prints the record it would write as would write, then the path and the decide line, writes nothing, and exits 0"
+verifies: [SA-118]

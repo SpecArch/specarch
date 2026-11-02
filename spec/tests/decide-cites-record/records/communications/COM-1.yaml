@@ -1,0 +1,17 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: library-board
+to: owner
+person: the board chair
+at: "2026-10-31T10:15:00+07:00"
+channel: chat
+type: answer
+words: { form: verbatim, text: "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan." }
+recordedBy: owner
+evidence:
+  - { path: evidence/COM-1-chat.txt, mediaType: text/plain, sha256: "sha256:f610d0b208f2ea4f330f69c333e73fa5d5ca9ecc1ec80f9e2b73ea85ff30109e" }
+links:
+  questions: [Q-1]
+  elements: [CASE-1]

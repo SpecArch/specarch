@@ -20,6 +20,7 @@ standardOutput: |
   skills/specarch/references/idioms.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/idioms-diff.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/init.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/log.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/mcp.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/merge.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/model.md: missing; run specarch skill --out skills without --check

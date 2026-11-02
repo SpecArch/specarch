@@ -13,7 +13,7 @@ import (
 // recordDocuments are the targets made from the records beside the
 // specification rather than from the specification: never drafts, and not
 // outputs of the specification in the open questions document.
-var recordDocuments = map[string]bool{"changes": true, "releases": true}
+var recordDocuments = map[string]bool{"changes": true, "releases": true, "communications": true, "timeline": true}
 
 // newRecordDoc starts a document made from the records, with a header that
 // names the root file, its version, the records folder and the meta-model.

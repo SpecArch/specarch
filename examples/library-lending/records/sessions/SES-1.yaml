@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: session
+id: SES-1
+title: Renewals with the desk, the board and a member
+channel: meeting
+start: "2026-10-13T15:00:00Z"
+end: "2026-10-13T16:00:00Z"
+invited: [librarian, library-board, member, library-it]
+present: [librarian, library-board, member]
+recordedBy: librarian
+summary: Whether a member may renew a loan, how often and what a renewal does to the due date and the fee; the board decided CR-1 the next day.
+links:
+  changes: [CR-1]
+  elements: [LIB-4, "#/entities/Loan"]

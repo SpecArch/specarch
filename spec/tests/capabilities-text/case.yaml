@@ -22,7 +22,7 @@ standardOutput: |
         Compare a specification with the dumps of the running code, for a CI
         gate.
     specarch decide <question> <folder> --by <by> --answer <answer>
-      [--source <source>] [--date <date>] [--dry-run]
+      [--source <source>] [--record <record>] [--date <date>] [--dry-run]
         Answer an open question with a decision record and take the question
         out.
     specarch decision rests <decision> <folder>
@@ -64,6 +64,16 @@ standardOutput: |
         Print a shipped idiom's parts beside each override's.
     specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
         Write the smallest specification that validates into a new folder.
+    specarch log <folder> [--direction <direction>] [--from <from>]
+      [--to <to>] [--at <at>] [--channel <channel>] [--type <type>]
+      [--words <words>] [--form <form>] [--reply <reply>] [--person <person>]
+      [--recorded-by <recorded-by>] [--session <session>] [--source <source>]
+      [--evidence <evidence>]... [--question <question>]...
+      [--decision <decision>]... [--element <element>]...
+      [--change <change>]... [--defect <defect>]... [--idea <idea>]...
+      [--dry-run]
+        Record one communication with a stakeholder, from what the analyst
+        reports in chat, as a record beside the specification.
     specarch mcp
         Serve every command as a tool of the Model Context Protocol, over
         standard input and output.
@@ -89,7 +99,7 @@ standardOutput: |
 
   Document targets: techspec, requirements, testplan, traceability,
     deployment, commissioning, handover, questions, problems, comparison,
-    changes, releases, html, manual, operations
+    changes, releases, communications, timeline, html, manual, operations
   Extract sources: outline, database, router, documents, tables, openapi,
     permissions, pages, workflows, gateway, systemd, go, swift, javascript,
     dart

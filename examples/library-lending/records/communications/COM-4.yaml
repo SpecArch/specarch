@@ -1,0 +1,15 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-4
+direction: in
+from: librarian
+to: library-it
+at: "2026-10-21T10:40:00Z"
+channel: meeting
+type: objection
+words: { form: summary, text: "On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal." }
+recordedBy: librarian
+session: TS-1
+links:
+  changes: [CR-1]
+  elements: ["#/pages/loans-list"]

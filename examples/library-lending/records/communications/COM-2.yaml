@@ -1,0 +1,18 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-2
+direction: in
+from: library-board
+to: librarian
+person: the board secretary
+at: "2026-10-10T14:30:00Z"
+channel: email
+type: information
+words: { form: verbatim, text: "A member may renew a loan once, for the same period, when no other member has reserved the copy. A second renewal is refused." }
+recordedBy: librarian
+source: desk-interview
+evidence:
+  - { path: evidence/COM-2-policy-note.txt, mediaType: text/plain, sha256: "sha256:eefdb0b2cd7e475477af698d4fdc9a799ed803ab0af3f4cb287ea14f08809dd1" }
+links:
+  changes: [CR-1]
+  elements: [LIB-4]

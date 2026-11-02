@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-4
+direction: in
+from: library-board
+to: owner
+at: "2026-10-30T16:45:00+07:00"
+channel: call
+type: information
+words: { form: summary, text: The board has never allowed more than five. }
+recordedBy: owner
+links:
+  elements: [CASE-1]

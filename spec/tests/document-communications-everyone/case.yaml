@@ -1,0 +1,3 @@
+arguments: [document, communications, --audience, external, --out, docs-everyone, project]
+exitStatus: 0
+standardOutput: ""

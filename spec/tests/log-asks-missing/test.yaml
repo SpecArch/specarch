@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with the stakeholders owner and library-board"
+when: "log is run with only who said it and the words"
+then: "it prints one line per missing option, the direction, the recipient, the instant, the channel, the type, the form and the recorder, each saying what to ask the analyst and the values the specification offers, writes nothing and exits 1"
+verifies: [SA-118]

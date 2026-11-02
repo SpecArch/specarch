@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose records hold five communications (an answer with evidence, a question with its reply, a request, information from a call without evidence, an objection), a session with one role invited and present and a test session with one invited role absent"
+when: "document communications is run"
+then: "it writes communications.md with every record in time order, each with its direction, parties, channel, instant, words marked verbatim or in summary, person label, evidence or the mark that it has none and what it touches, then each stakeholder's history with the absent one named, then each question, decision and element's, and exits 0"
+verifies: [SA-117]

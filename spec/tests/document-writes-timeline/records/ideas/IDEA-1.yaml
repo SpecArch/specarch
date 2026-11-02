@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: idea
+id: IDEA-1
+statement: One page per member with every open loan.
+raised: "2026-11-02"
+raisedBy: librarian
+inputMode: chat
+location: the email of 2026-11-02
+about: "#/pages/member-loans"
+status: proposed

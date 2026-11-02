@@ -8,9 +8,13 @@ commands:
       question by its ID in the merged `questions` section; refuses when
       there is none of that ID, naming the open ones, when `--by` is not a
       stakeholder of the specification, when `--source` names a source the
-      root file does not declare, when the specification tracks origin and
-      `--source` is not given, since the answer must then be citable, and
-      when `stages` does not list design, where decisions live (ADR-155).
+      root file does not declare, when `--record` names a record that is
+      not a communication record, not an answer or one that does not link
+      the question (ADR-220), when the specification tracks origin and
+      neither `--source` nor `--record` is given, since the answer must
+      then be citable, and when `stages` does not list design, where
+      decisions live (ADR-155). `--source` and `--record` together are a
+      usage error: a decision cites the one or the other.
 
       Writes the decision record as `design/decisions/<ID>.yaml`, a file of
       its own, under the next ID: `ADR-` and the largest number any
@@ -21,7 +25,9 @@ commands:
       the entries the question blocked, which are to be written from the
       answer, `answers` the question's ID and `decidedBy` the stakeholder;
       with `--source` it is stated, citing that source with the answer as
-      what it says. When the question blocked a decision the
+      what it says; with `--record` it is stated, citing the communication
+      record with the answer as what it says, which `specarch log` prints
+      as the line to run after recording an answer (ADR-220). When the question blocked a decision the
       specification holds, the record rests on it: `restsOn` names each
       such decision once, in the order of `blocks`, on meta-model 1.0 and
       later, which have the key, and the consequences say so (ADR-208).
@@ -69,8 +75,11 @@ commands:
         schema: { type: string, minLength: 1 }
         required: true
       source:
-        description: The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. Required when the specification tracks origin.
+        description: The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. One of --source and --record is required when the specification tracks origin.
         schema: { type: string, pattern: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" }
+      record:
+        description: The communication record of the answer given, by ID, written by specarch log with type answer and the question under its links; the decision cites it. Not with --source.
+        schema: { type: string, pattern: "^COM-[0-9]+$" }
       date:
         description: The date of the decision, as YYYY-MM-DD. Today when not given.
         schema: { type: string, format: date }
@@ -86,12 +95,12 @@ commands:
     standardError: A usage message on a usage error, the reason a refusal, and one line naming the record written, the file the question left and what to do next.
     exitCodes:
       "0": the record is written and the question taken out
-      "1": refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors
+      "1": refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors
       "2": usage error, or a file that could not be read or written
     remedies:
-      "1": "Read the refusal on standard error and correct the question, stakeholder or source it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them."
+      "1": "Read the refusal on standard error and correct the question, stakeholder, source or record it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-85]
+    satisfies: [SA-85, SA-118]
     why: |
       An answered question is a decision with a context, a decision and
       consequences, and the question leaves the specification because it

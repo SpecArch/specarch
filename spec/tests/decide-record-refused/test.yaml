@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decide
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with an open question Q-1 and beside it COM-1, a request from library-board linking no question"
+when: "decide is run for Q-1 with --record COM-1"
+then: "it refuses, saying COM-1 is a request and not an answer, naming the log line that records the answer, writes nothing and exits 1"
+verifies: [SA-118]

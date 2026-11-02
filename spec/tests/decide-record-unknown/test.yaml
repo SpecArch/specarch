@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: decide
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with an open question Q-1 and no communication record beside it"
+when: "decide is run for Q-1 with --record COM-9"
+then: "it refuses, saying there is no records/communications/COM-9.yaml and how to record the answer, writes nothing and exits 1"
+verifies: [SA-118]

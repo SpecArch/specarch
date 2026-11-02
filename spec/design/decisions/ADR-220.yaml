@@ -1,0 +1,126 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-220:
+    title: Who said what and when is kept as records beside the specification, a communication, a session, a test session and a deploy each with an instant and its offset and evidence hashed with SHA-256; a citation names a communication record; specarch log writes one from options alone and asks for what is missing; the validator warns of a role nobody heard; and two documents, the communication history and the timeline, are written from the records
+    status: proposed
+    date: "2026-11-03"
+    context: |
+      A system analyst talks with the people the system is for by
+      meeting, chat, email and call, and types into an agent's chat, in
+      free words, what was asked and what was answered: "I asked X; the
+      board chair answered Y at 10:15 by chat". The specification holds
+      the decision that came of it, through specarch decide (ADR-155),
+      and cites an interview source for it; but the words as they were
+      said, the time they were said, the channel they came by, the
+      attachment that shows them and who was in the room are nowhere.
+      When a user objects at the acceptance test, nobody can show what
+      was asked, what the stakeholder said and when, and whether that
+      user's role was ever heard. The records beside the specification
+      already keep what a specification does not say about itself, the
+      change requests, defects, incidents, releases, commissioning runs,
+      approvals and ideas (ADR-196), each checked by the validator against
+      the specification. A date on each of them is a calendar day; a
+      conversation has a time, read on a clock in a place (ADR-193).
+    decision: |
+      Four record kinds join the records beside the specification. A
+      communication, records/communications/COM-<n>.yaml, is one thing
+      said: direction (in from the stakeholder, out to them), from and to
+      by role, an optional person label, at as an instant with its offset,
+      channel (meeting, chat, email, call, document), type (answer,
+      question, request, information, objection), the words with their
+      form (verbatim or summary), a reply for a question the stakeholder
+      asked, recordedBy, the session or test session it was said in, the
+      interview source it belongs to, evidence (each file under records/
+      with its path, media type and SHA-256) and links to the questions,
+      decisions, elements, changes, defects and ideas it touches. A
+      session, records/sessions/SES-<n>.yaml, is a meeting or a call with
+      its channel, start and end, invited and present by role, recordedBy
+      and summary; who was absent is invited minus present. A test
+      session, records/test-sessions/TS-<n>.yaml, adds the level (sit,
+      uat, other), the environment, the version and build tested and the
+      result. A deploy, records/deploys/DEP-<n>.yaml, is one installation:
+      version, environment, at, by, build and result; a release record
+      stays what it is, the version that was made. Every instant is RFC
+      3339 with its offset; the records that exist keep their dates and
+      are read as before. A citation anywhere in the specification may
+      name a communication record with record in place of source, with
+      says and no clause; an interview source may carry at and
+      participants. The validator checks the links (record_ref), the
+      evidence files and their hashes (evidence), the cited records
+      (record_cited: the record exists, its type is answer or information,
+      and a decision answering questions cites an answer that links one of
+      them), and, once such records are kept, warns unheard at a
+      stakeholder that an accepted requirement needs or that an approved
+      specification's page is for, while no communication, session,
+      interview or decision shows it was heard, naming the elements.
+      specarch log writes one communication record from its options
+      alone, every missing one printed as what to ask the analyst and
+      with --json as log.missing, and refuses a value the specification
+      and the records do not have; for an answer it prints the decide
+      line, and decide takes --record naming an answer record that links
+      the question, writing the decision stated and citing the record.
+      Two document targets are written from the records: communications,
+      the history in time order, then per stakeholder and per element,
+      the person label left out of a document for everyone (ADR-119); and
+      timeline, every event of the records and the specification in one
+      time order, a date-only event at the start of its day in the
+      specification's timeZone, UTC when none, then by stakeholder, by
+      element and by release. Neither is a draft.
+    consequences: |
+      What a stakeholder said is a record the validator checks, a
+      decision cites and a document shows, with the time it was said and
+      the file that shows it; a file changed after it was recorded fails
+      validate with the hash it has now. An agent writing from the
+      analyst's chat cannot fill in who or when: log sends the questions
+      back. A role that will use the system and was never heard is named
+      at the stakeholder before acceptance, with the requirements and
+      pages that rely on it; the acceptance loop's cause unheard (ADR-083)
+      can rest on it. A specification keeps its decisions and cites its
+      sources as before; the records point at the specification, and the
+      specification points back only where a decision or an element cites
+      a communication record. The example and this specification carry
+      no real person: a person label is a role's own words for who, kept
+      out of the documents for everyone.
+    why: |
+      A citation names the record with a key of its own, record, rather
+      than an interview source pointing at it, because a source is
+      declared once in the root file for a thing cited many times, while
+      each chat message is one thing said once: one declared source per
+      message would fill the sources section with entries nothing else
+      cites, and the record already holds the date, the participants and
+      the words a source would. The instant is RFC 3339 with its offset
+      rather than RFC 9557 with a zone name, because the person typing
+      knows what the clock read and where they were, not the name of the
+      zone, and a past instant's offset is exact while a zone's rules may
+      change; the specification's timeZone (ADR-193) places a date-only
+      record on the timeline, where the records with an instant need
+      nothing. Absent is derived from invited and present rather than
+      written, since a third list would say the same thing a second way
+      and could disagree. The person label is a key of its own, left out
+      of a document for everyone, rather than part of the words, so that
+      the role carries the record and the label can be withheld without
+      editing the words. The unheard warning is gated on at least one
+      communication, session or test session record, because a
+      specification that keeps no such records cannot say who was heard,
+      and warning every stakeholder of every such specification would be
+      noise nobody reads. log takes every field as an option and asks for
+      the missing ones rather than reading the analyst's sentence,
+      because a parser that infers who or when from free text writes a
+      guess as a fact, which is the one thing a record of what was said
+      may never do; the agent in the chat reads the sentence and asks the
+      analyst, and the command holds it to that. A deploy is a record
+      apart from a release because one version is installed on several
+      environments at several times, by several people, with its own
+      result each time.
+    cites:
+      - source: iso-29148
+        clause: "6.4.3"
+        says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
+      - source: rfc-3339
+        says: "A timestamp is a date and a time of day with its offset from UTC, so that two readers agree on the instant."
+      - source: rfc-9557
+        says: "A timestamp may carry the time zone name in brackets after the offset, when the zone matters and not only the instant."
+      - source: adr-nygard
+        says: "A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited."
+    satisfies: [SA-117, SA-118]
+    restsOn: [ADR-155, ADR-193, ADR-196, ADR-119]

@@ -1300,6 +1300,8 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | problems | ../../../docs |   |
 | changes | ../../../docs |   |
 | releases | ../../../docs |   |
+| communications | ../../../docs |   |
+| timeline | ../../../docs |   |
 | html | ../../../site |   |
 | openapi | ../../../openapi | tool oapi-codegen |
 | sql | ../../../migrations | dialect postgresql |

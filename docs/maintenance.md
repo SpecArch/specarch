@@ -36,7 +36,10 @@ So change requests, defects, releases and incidents are records. The
 specification never points back at them: no element carries a list of the
 changes that touched it. That list would be a change log under another
 name, and the documentor can compute it from the records, which point
-forward into the specification.
+forward into the specification. The one exception is a citation: a
+decision or an element may cite a communication record, what a
+stakeholder said, with `record` in place of `source`, because what was
+said is where the element came from, as a source is (ADR-220).
 
 ## Records
 
@@ -55,6 +58,11 @@ folder is specification.
 | `records/commissioning/` | commissioning run | `commissioning` | its date and environment, `2026-10-07-production.yaml` |
 | `records/approvals/` | approval for code generation | `approval` | its version, `1.4.0.yaml` |
 | `records/ideas/` | proposal for the specification | `idea` | its ID, `IDEA-4.yaml` |
+| `records/communications/` | one thing a stakeholder said or was told | `communication` | its ID, `COM-12.yaml` |
+| `records/sessions/` | a meeting or a call, with its attendance | `session` | its ID, `SES-3.yaml` |
+| `records/test-sessions/` | a test session (SIT, UAT or other), with its attendance and result | `test-session` | its ID, `TS-2.yaml` |
+| `records/deploys/` | one installation of a version on an environment | `deploy` | its ID, `DEP-5.yaml` |
+| `records/evidence/` | the files communication, session, test session and deploy records name as evidence | none: not records | any name; each record holds the path, media type and SHA-256 |
 
 A record file starts with `specarchRecord: "1.0.0"` and `kind`, and has its
 own schema, `schema/specarch-record-1.0.schema.json`, beside the other two.
@@ -352,6 +360,64 @@ checked only while the idea is open (proposed, discussed or question): a
 decided idea is history, and the element it was about may be renamed or
 removed later.
 
+## Communications, sessions, test sessions and deploys
+
+Requirements come out of conversations: a meeting, a chat message, an
+email, a call. The analyst types into an agent's chat what was asked and
+what was answered, and the record of it is kept beside the specification
+like the other records, so that who said what and when is traceable,
+cited by the decision it led to, and shown before a stakeholder objects at
+acceptance (ADR-220). The agent writes the record with `specarch log`,
+which takes every field as an option and asks for the ones it was not
+given; it never fills in who, when or what was said.
+
+A communication record holds `id`, `direction` (`in`, said by the
+stakeholder to the project; `out`, said by the project to the
+stakeholder), `from` and `to` (roles), `person` (a label for the person on
+the stakeholder's side when the role alone does not say who; a document
+for everyone leaves it out), `at` (an instant with its offset, RFC 3339,
+`"2026-10-31T10:15:00+07:00"`), `channel`, `type`, `words` (`form`:
+`verbatim` or `summary`, and `text`), `reply` for a question the
+stakeholder asked, `recordedBy` (the role that wrote it down), `session`
+(the session or test session it was said in), `source` (the interview it
+belongs to), `evidence` and `links`.
+
+| Key | Values |
+|---|---|
+| `channel` | `meeting`, `chat`, `email`, `call`, `document` |
+| `type` | `answer`: to a question of the specification, which `links.questions` names; `question`: the stakeholder asked, `reply` is what was said back; `request`: for the system to be different, which becomes or links a change request or an idea; `information`; `objection` |
+| `evidence` | a list, each `path` under `records/` (named from there, `evidence/COM-12-chat.txt`), `mediaType` and `sha256` (`sha256:` and 64 hex digits); a record without it is valid and reads in the documents as recorded without evidence |
+| `links` | `questions` (open, or answered by a decision), `decisions`, `elements` (requirement IDs and `#/` pointers), `changes`, `defects`, `ideas`, each a list of IDs |
+
+A session record is a meeting or a call: `id`, `title`, `channel`, `start`
+and `end` (instants), `invited` and `present` (roles; who was absent is
+`invited` minus `present`, derived, never written), `recordedBy`,
+`summary`, `source`, `evidence` and `links`. A test session record adds
+`level` (`sit`, `uat`, `other`), `environment`, `version` and `build`
+tested, and `result` (`passed`, `failed`, `partial`); the remarks that
+became change requests or defects are its `links`. A deploy record is one
+installation: `id`, `version`, `environment`, `at`, `by`, `build`,
+`result` (`succeeded`, `failed`, `rolled-back`), `note`, `evidence` and
+`links`; a release record stays what it is, the version that was made,
+while a deploy is each time it was installed somewhere.
+
+Every instant on these records carries its offset, as RFC 3339 writes it,
+because the person typing knows what the clock read where they were; the
+records that carry a date alone (a change's `raised`, a release's `date`)
+keep it, and the timeline places such an event at the start of its day
+in the specification's `timeZone`.
+
+The validator checks the links (`record_ref`), the evidence files and
+their hashes (`evidence`), the records a citation names (`record_cited`)
+and, once such records are kept, warns at a stakeholder nobody heard
+(`unheard`): a role an accepted requirement needs, through its needs or
+`ownedBy`, or that a page of an approved specification is for, while no
+communication names it as `from` or `to`, no session or test session
+lists it `present`, no interview source lists it among its `participants`
+and no decision is `decidedBy` it. The warning names the role and the
+requirements and pages, so the risk of that role objecting first at the
+user acceptance test shows early.
+
 ## Stack-neutral and stack-specific
 
 | In the specification or the records (stack-neutral) | In the implementation file (one stack) |
@@ -380,6 +446,9 @@ error unless it says warning.
 | `incident_link` | a resolved incident links to a defect or a change, or says `noChange` (warning) |
 | `idea_decision` | an accepted idea has a `decision` with outcome accepted; a rejected one has outcome rejected |
 | `idea_question` | an idea whose status is question names the question under `became` |
+| `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
+| `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions cites an answer that links one of them |
+| `unheard` | a warning, at the stakeholder, once a communication, session or test session record is kept: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 
 `monitors` adds no new rule: a monitor's `environment` uses the existing
@@ -405,14 +474,30 @@ Two targets join `DocumentTarget`, after the first set of documents:
   specification and implementation versions, the commissioning runs that
   accepted it and the commit.
 
-Both read the records beside the specification, name the records folder
+- `communications`: the communication history. Every communication,
+  session and test session in time order, each with its direction,
+  parties, channel, instant, words marked verbatim or in summary, reply,
+  evidence or the mark that it has none, and what it touches; then each
+  stakeholder's history, one never heard said so; then each question,
+  decision and element's.
+- `timeline`: every event in one table in time order, from the records and
+  the specification's decisions: communications, sessions, test sessions,
+  deploys, releases, commissioning runs, incidents, defects, change
+  requests raised and decided, ideas raised and decided, decisions and
+  approvals, each with its instant or date, what it says and what it
+  links; then the same events by stakeholder, by requirement, decision
+  and element, and by release. An event with a date alone is placed at
+  the start of its day in the specification's `timeZone`; one with no
+  date yet comes last.
+
+All four read the records beside the specification, name the records folder
 in their generated-from header, and are never drafts: an open question is
 about the specification, and these are made from what happened. For the
 same reason they are not rows of the open questions document's Outputs
 table, which says what can be made from the specification now.
 
 The rule that documents carry no change-log text is about documents made
-from the specification, which describe the system as it is. These two are
+from the specification, which describe the system as it is. These four are
 made from records, which are history by nature, so they read as history;
 that is what they are for.
 

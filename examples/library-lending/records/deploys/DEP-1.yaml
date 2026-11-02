@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: deploy
+id: DEP-1
+version: 0.1.0
+environment: production
+at: "2026-10-07T18:00:00Z"
+by: library-it
+build: library-lending 0.1.0 at 2b9d0f3
+result: succeeded
+note: Installed after the commissioning run of the same day passed.

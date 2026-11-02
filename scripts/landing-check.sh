@@ -65,7 +65,7 @@ documents_current() {
 	for target in techspec requirements testplan traceability deployment commissioning handover; do
 		"$bin/specarch" document $target --check spec examples || return 1
 	done
-	for target in techspec requirements testplan traceability deployment commissioning handover manual operations questions problems changes releases html; do
+	for target in techspec requirements testplan traceability deployment commissioning handover manual operations questions problems changes releases communications timeline html; do
 		"$bin/specarch" document $target --check spec examples/library-lending || return 1
 	done
 	for target in techspec requirements traceability questions problems html; do

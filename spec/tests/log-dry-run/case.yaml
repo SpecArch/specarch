@@ -1,0 +1,22 @@
+arguments: [log, --direction, in, --from, library-board, --to, owner, --person, the board chair, --at, "2026-10-31T10:15:00+07:00", --channel, chat, --type, answer, --words, "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.", --form, verbatim, --recorded-by, owner, --question, Q-1, --dry-run, project]
+exitStatus: 0
+standardOutput: |
+  would write records/communications/COM-1.yaml
+  # Written by specarch log from what owner reported. Edit it as any record.
+  specarchRecord: "1.0.0"
+  kind: communication
+  id: COM-1
+  direction: in
+  from: library-board
+  to: owner
+  person: the board chair
+  at: "2026-10-31T10:15:00+07:00"
+  channel: chat
+  type: answer
+  words:
+    form: verbatim
+    text: 'Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.'
+  recordedBy: owner
+  links:
+    questions: [Q-1]
+  next: specarch decide Q-1 --by library-board --answer "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan." --record COM-1 project

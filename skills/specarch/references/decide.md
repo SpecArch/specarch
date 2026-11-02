@@ -1,7 +1,7 @@
 # specarch decide
 
 ```
-specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--date <date>] [--dry-run]
+specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--record <record>] [--date <date>] [--dry-run]
 ```
 
 Answer an open question with a decision record and take the question out.
@@ -11,9 +11,13 @@ specification, then works on what could be read (ADR-065). Finds the
 question by its ID in the merged `questions` section; refuses when
 there is none of that ID, naming the open ones, when `--by` is not a
 stakeholder of the specification, when `--source` names a source the
-root file does not declare, when the specification tracks origin and
-`--source` is not given, since the answer must then be citable, and
-when `stages` does not list design, where decisions live (ADR-155).
+root file does not declare, when `--record` names a record that is
+not a communication record, not an answer or one that does not link
+the question (ADR-220), when the specification tracks origin and
+neither `--source` nor `--record` is given, since the answer must
+then be citable, and when `stages` does not list design, where
+decisions live (ADR-155). `--source` and `--record` together are a
+usage error: a decision cites the one or the other.
 
 Writes the decision record as `design/decisions/<ID>.yaml`, a file of
 its own, under the next ID: `ADR-` and the largest number any
@@ -24,7 +28,9 @@ blocked and its Insight, its decision the answer, its consequences
 the entries the question blocked, which are to be written from the
 answer, `answers` the question's ID and `decidedBy` the stakeholder;
 with `--source` it is stated, citing that source with the answer as
-what it says. When the question blocked a decision the
+what it says; with `--record` it is stated, citing the communication
+record with the answer as what it says, which `specarch log` prints
+as the line to run after recording an answer (ADR-220). When the question blocked a decision the
 specification holds, the record rests on it: `restsOn` names each
 such decision once, in the order of `blocks`, on meta-model 1.0 and
 later, which have the key, and the consequences say so (ADR-208).
@@ -62,7 +68,8 @@ holds the agent to it.
 
 - `--by <by>` (required): The stakeholder who decided, by key; a role, never a person.
 - `--answer <answer>` (required): The answer, as the stakeholder gave it; the record's decision.
-- `--source <source>`: The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. Required when the specification tracks origin.
+- `--source <source>`: The key of the source the answer rests on, declared in the root file; an interview for an answer given in words, a document for material provided. One of --source and --record is required when the specification tracks origin.
+- `--record <record>`: The communication record of the answer given, by ID, written by specarch log with type answer and the question under its links; the decision cites it. Not with --source.
 - `--date <date>`: The date of the decision, as YYYY-MM-DD. Today when not given.
 - `--dry-run`: Check the question and the answer and write nothing; print the blocked entries, then the decision record it would write and the question file it would edit or remove, as would write <path> and would remove <path>.
 
@@ -86,5 +93,5 @@ A usage message on a usage error, the reason a refusal, and one line naming the 
 ## Exit status
 
 - 0: the record is written and the question taken out.
-- 1: refused; the question, the stakeholder or the source is unknown, the specification tracks origin and no source is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors. Then: Read the refusal on standard error and correct the question, stakeholder or source it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them.
+- 1: refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors. Then: Read the refusal on standard error and correct the question, stakeholder, source or record it names, then run it again; when the record was written while the specification has errors, run specarch validate and settle them.
 - 2: usage error, or a file that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

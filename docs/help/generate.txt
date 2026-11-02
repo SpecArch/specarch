@@ -32,8 +32,9 @@ stakeholder is generated nowhere.
 Documents are written by specarch document <target>, built into the
 program: techspec, requirements, testplan, traceability, deployment,
 commissioning, handover, questions, problems, comparison, changes,
-releases, html, manual and operations. A specification with errors gets
-its documents too, each error marked at its element, and exits 1.
+releases, communications, timeline, html, manual and operations. A
+specification with errors gets its documents too, each error marked at
+its element, and exits 1.
 
 specarch help plugins lists the plug-ins found on PATH and what each
 writes.

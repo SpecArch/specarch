@@ -140,6 +140,9 @@ func logInto(args []string, stdout, stderr io.Writer, kept **logResult) int {
 
 	// What is missing: each line is a question for the analyst.
 	miss := func(option, ask string, choices []string) {
+		if choices == nil {
+			choices = []string{}
+		}
 		result.Missing = append(result.Missing, logMissing{Option: option, Ask: ask, Choices: choices})
 	}
 	if values["direction"] == "" {
@@ -248,11 +251,15 @@ func logInto(args []string, stdout, stderr io.Writer, kept **logResult) int {
 	var evidences []evidence
 	for _, e := range lists["evidence"] {
 		p, mediaType, _ := strings.Cut(e, "=")
-		full := p
-		if !filepath.IsAbs(full) {
-			full = filepath.Join(".", p)
+		full, err := filepath.Abs(p)
+		if err != nil {
+			return refuse("--evidence %s cannot be read: %s", p, spec.PlainIOError(err))
 		}
-		rel, err := filepath.Rel(l.spec.RecordsDir, full)
+		recordsDir, err := filepath.Abs(l.spec.RecordsDir)
+		if err != nil {
+			return refuse("--evidence %s cannot be placed under %s: %s", p, l.spec.RecordsDir, spec.PlainIOError(err))
+		}
+		rel, err := filepath.Rel(recordsDir, full)
 		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 			return refuse("--evidence %s is not under %s; put the file under records/ beside the specification's folder, such as records/evidence/, and name it from there", p, l.spec.RecordsDir)
 		}
@@ -359,9 +366,9 @@ func logInto(args []string, stdout, stderr io.Writer, kept **logResult) int {
 		fmt.Fprintf(stderr, "specarch log: cannot write %s: %v\n", recordPath, err)
 		return 2
 	}
-	result.Record, result.ID = relSlash(l.spec.Dir, recordPath), id
+	result.Record, result.ID = filepath.ToSlash(recordPath), id
 	if values["type"] == "answer" {
-		result.Next = fmt.Sprintf("specarch decide %s %s --by %s --answer %s --record %s", lists["question"][0], folder, values["from"], strconv.Quote(values["words"]), id)
+		result.Next = fmt.Sprintf("specarch decide %s --by %s --answer %s --record %s %s", lists["question"][0], values["from"], strconv.Quote(values["words"]), id, folder)
 	}
 	if w.Dry() {
 		fmt.Fprint(stdout, b.String())

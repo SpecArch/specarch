@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a decision and records beside it: communications, a session, a test session, a deploy, a planned release, a change request, a defect and an idea, some with an instant and some with a date alone, and timeZone Asia/Jakarta"
+when: "document timeline is run"
+then: "it writes timeline.md with every event in one table in time order, a date-only event at the start of its day in Asia/Jakarta, then the events by stakeholder, by requirement, decision and element, and by release, and exits 0"
+verifies: [SA-117]

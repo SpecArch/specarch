@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-3
+direction: in
+from: library-it
+to: librarian
+at: "2026-10-20T09:00:00Z"
+channel: chat
+type: information
+words: { form: verbatim, text: "Build 0.2.0 is on the test host with last night's data; the renewal is in." }
+recordedBy: librarian
+links:
+  changes: [CR-1]
+  defects: [DEF-1]

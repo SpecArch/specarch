@@ -52,8 +52,44 @@ When the person's answer is none of the options, record it in their
 words. When they cannot answer, leave the question open and go to the
 next one with gaps; say who else could answer it.
 
+Recording what the analyst reports from a conversation
+
+The analyst talks with the stakeholders by meeting, chat, email and call,
+and reports it in the chat in free words: "I asked about the limit; the
+board chair answered five at 10:15 by chat", "the desk asked me whether a
+reference copy counts; I said no", "the board asked for a one-page view".
+Each is one communication record beside the specification, written with
+specarch log from what the analyst said and nothing else.
+
+1. Ask the analyst's own role once, at the start, and give it as
+   --recorded-by on every record.
+2. For each thing reported, run specarch log with what the analyst said:
+   who (--from, --to, roles; --person for a label when the role alone
+   does not say who), when (--at, the date, time and offset as
+   2026-10-31T10:15:00+07:00), how (--channel), what it is (--type:
+   answer, question, request, information or objection), the words
+   (--words, with --form verbatim or summary), and what it touches
+   (--question, --element, --change, --defect, --idea, --decision). Give
+   --evidence for a file the analyst put under records/, and --session
+   for the meeting it was said in.
+3. The command prints one line per missing option, "missing --at: ask
+   ...". Ask the analyst exactly that, one line at a time, and run it
+   again with the answer. Never fill in who, when or what was said: a
+   time the analyst gave without a date or an offset is asked back, and
+   a role is one of the specification's stakeholders, never a name.
+4. For an answer, log prints the specarch decide line to run next, with
+   --record naming the record; run it as printed, so the decision cites
+   what was said. For a request, raise the change request or the idea and
+   link it; for a question the stakeholder asked, give what was said back
+   with --reply.
+5. A call or a meeting with no minutes is still a record, without
+   --evidence: it reads in the documents as recorded without evidence.
+   A meeting is a session record with who was invited and present;
+   validate warns unheard of a role an accepted requirement needs that no
+   record shows was ever heard.
+
 The program itself asks nothing: gaps --next prints and exits, and every
-answer is recorded by decide, with its source and the entries it
+answer is recorded by decide, with its source or record and the entries it
 settles. The order of questions, one at a time with a recommended option,
 comes from Spec Kit's clarify command (github.com/github/spec-kit, MIT);
 Spec Kit stops after five questions, SpecArch does not.

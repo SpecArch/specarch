@@ -1,0 +1,18 @@
+specarchRecord: "1.0.0"
+kind: test-session
+id: TS-1
+title: Acceptance of the loan limit
+level: uat
+environment: production
+version: 1.0.0
+build: case 1.0.0 at 3f2a9c1
+start: "2026-11-03T09:00:00+07:00"
+end: "2026-11-03T10:00:00+07:00"
+invited: [librarian, library-board]
+present: [librarian]
+result: passed
+recordedBy: owner
+summary: A sixth loan was refused at the desk.
+links:
+  changes: [CR-1]
+  elements: [CASE-1]

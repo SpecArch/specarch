@@ -90,7 +90,8 @@ expression language of checks and formulas. The language is defined by three
 JSON Schema 2020-12 documents, the meta-model, in `schema/`: one for the
 specification, one for implementation files and one for the records kept
 beside a specification (change requests, defects, releases, incidents,
-commissioning runs, approvals and ideas). The same schema gives editors
+commissioning runs, approvals, ideas, and who said what and when:
+communications, sessions, test sessions and deploys). The same schema gives editors
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
@@ -137,6 +138,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
 | `docs/problems.txt`, `problems.sarif` | every error, warning and open question of `spec/`, one compiler line each and as a SARIF 2.1.0 log |
 | `docs/changes.md`, `releases.md` | the change register and the release notes, generated from the records in `records/` |
+| `docs/communications.md`, `timeline.md` | the communication history and the timeline of every event, generated from the records in `records/` where a specification keeps them (`examples/library-lending/docs/`) |
 | `records/` | SpecArch's own records: its releases |
 | `swift/` | the Swift build of `specarch` |
 | `third_party/typescript-go/` | the TypeScript compiler's Go source that `specarch facts javascript` reads with, copied at a pinned release by `tools/typescript-go/pull.sh`, with its own LICENSE and NOTICE.txt |
@@ -426,7 +428,9 @@ and what it blocks. `specarch gaps` lists the questions by stage and says
 which documents and code targets are ready, drafts or waiting. The owner
 answers with decisions and material; `specarch decide <question> --by
 <stakeholder> --answer <text>` records each as a decision, takes the
-question out and prints the entries to write from it; the questions
+question out and prints the entries to write from it; what a stakeholder
+said in a meeting, a chat, an email or a call is kept with `specarch log`
+as a communication record the decision cites; the questions
 shrink, the documents are regenerated and read, and `specarch approve --by <stakeholder>` records
 the approval with a digest of the files. `specarch generate` runs only
 then. `docs/refinement.md` is the design.

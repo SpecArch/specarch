@@ -1,0 +1,19 @@
+specarchRecord: "1.0.0"
+kind: test-session
+id: TS-1
+title: Acceptance of the renewal and the fee cap
+level: uat
+environment: production
+version: 0.2.0
+build: library-lending 0.2.0 at 7c1e4a9
+start: "2026-10-21T10:00:00Z"
+end: "2026-10-21T11:30:00Z"
+invited: [librarian, library-board, library-it]
+present: [librarian, library-it]
+result: passed
+recordedBy: librarian
+summary: A loan was renewed once and a second renewal refused; a late return of a lost book was charged the replacement cost and no more. The desk objected to where the Renew action sits (COM-4).
+links:
+  changes: [CR-1]
+  defects: [DEF-1]
+  elements: [LIB-4, LIB-5]

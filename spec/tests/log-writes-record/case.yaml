@@ -1,0 +1,5 @@
+arguments: [log, --direction, in, --from, library-board, --to, owner, --person, the board chair, --at, "2026-10-31T10:15:00+07:00", --channel, chat, --type, answer, --words, "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan.", --form, verbatim, --recorded-by, owner, --evidence, records/evidence/COM-1-chat.txt, --question, Q-1, --element, CASE-1, project]
+exitStatus: 0
+standardOutput: |
+  records/communications/COM-1.yaml
+  next: specarch decide Q-1 --by library-board --answer "Must: a release without the limit is not acceptable. It is shown met by refusing a sixth loan." --record COM-1 project

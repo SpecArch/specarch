@@ -50,21 +50,27 @@ in YAML, lists every problem in it, and writes documents and code from it.
    put next, put it to the stakeholder it names with two to five options and
    one recommended, record the answer with `specarch decide`, and run `gaps
    --next` again; `specarch help asking` is the procedure.
-6. Write what people read with `specarch document <target> --out <folder>
+6. What a stakeholder said in a meeting, a chat, an email or a call:
+   `specarch log <folder>` with who, when, how, what and the words as
+   options writes the communication record beside the specification, prints
+   a line per missing option saying what to ask the analyst, and guesses
+   nothing; for an answer it prints the `specarch decide --record` line;
+   `specarch help asking` has the procedure.
+7. Write what people read with `specarch document <target> --out <folder>
    <folder>` (techspec, requirements, problems, questions, manual and the
    others); once the owner has read them, they record the approval with
    `specarch approve`.
-7. Write code with `specarch generate <target> <folder>`; it refuses an
+8. Write code with `specarch generate <target> <folder>`; it refuses an
    unapproved specification unless `--unapproved` makes the output a draft.
    `--dry-run` lists what it would write; `--check` fails when the files on
    disk differ, so run it before each commit and in CI.
-8. For a system that exists already: `specarch extract <source>` once per
+9. For a system that exists already: `specarch extract <source>` once per
    surface (documents, database, router, code), `specarch merge` the trees,
    then validate and gaps; `specarch check` compares the specification with
    the code's own tables later.
-9. When a release moves the formats: `specarch upgrade --dry-run <folder>`
-   lists the changes and the steps left to the author, `specarch upgrade
-   <folder>` makes them.
+10. When a release moves the formats: `specarch upgrade --dry-run <folder>`
+    lists the changes and the steps left to the author, `specarch upgrade
+    <folder>` makes them.
 
 ## Reading problems
 
@@ -180,11 +186,12 @@ Error codes of --json:
   catalogue dump with no implementation file to compare it through, or with
   one whose tables cannot be written for PostgreSQL; or a revision git does
   not know
-- `specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--date <date>] [--dry-run]`
+- `specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--record <record>] [--date <date>] [--dry-run]`
   Answer an open question with a decision record and take the question out.
   exit 0: the record is written and the question taken out
   exit 1: refused; the question, the stakeholder or the source is unknown,
-  the specification tracks origin and no source is given, design is not a
+  the record is not an answer record linking the question, the specification
+  tracks origin and neither a source nor a record is given, design is not a
   stage, or the entry cannot be edited as text; or written, while the
   specification has errors
   exit 2: usage error, or a file that could not be read or written
@@ -332,6 +339,14 @@ Error codes of --json:
   exit 0: the specification was written, or with --dry-run would be
   exit 2: usage error, a folder that already holds specarch.yaml, or a path
   that could not be written
+- `specarch log <folder> [--direction <direction>] [--from <from>] [--to <to>] [--at <at>] [--channel <channel>] [--type <type>] [--words <words>] [--form <form>] [--reply <reply>] [--person <person>] [--recorded-by <recorded-by>] [--session <session>] [--source <source>] [--evidence <evidence>]... [--question <question>]... [--decision <decision>]... [--element <element>]... [--change <change>]... [--defect <defect>]... [--idea <idea>]... [--dry-run]`
+  Record one communication with a stakeholder, from what the analyst reports
+  in chat, as a record beside the specification.
+  exit 0: the record is written
+  exit 1: nothing written, since a required option is missing or a value
+  names what the specification does not have; or written, while the
+  specification has errors
+  exit 2: usage error, or a file that could not be read or written
 - `specarch mcp`
   Serve every command as a tool of the Model Context Protocol, over standard
   input and output.
@@ -415,6 +430,7 @@ Protocol.
 - [idioms](references/idioms.md): List the idioms each implementation file uses, and how.
 - [idioms diff](references/idioms-diff.md): Print a shipped idiom's parts beside each override's.
 - [init](references/init.md): Write the smallest specification that validates into a new folder.
+- [log](references/log.md): Record one communication with a stakeholder, from what the analyst reports in chat, as a record beside the specification.
 - [mcp](references/mcp.md): Serve every command as a tool of the Model Context Protocol, over standard input and output.
 - [merge](references/merge.md): Merge the partial specifications the readers wrote into one.
 - [model](references/model.md): Print the specifications as one JSON document, for a program.

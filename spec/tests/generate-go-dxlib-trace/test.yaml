@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with operations over an entity, and an environment staging whose entry says trace true"
+when: "generate go-dxlib is run with --unapproved and --environment staging"
+then: "it writes the service with each handler setting the header Specarch-Element to the pointer of its operation, and exits 0"
+verifies: [SA-57]

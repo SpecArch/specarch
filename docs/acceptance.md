@@ -301,8 +301,8 @@ it.
    `generate --environment`, the data attributes and the overlay in the
    plain web UI, the answer header in the Go server, and the warning
    `environment_trace` for a last environment that shows it; the cases
-   `generate-ui-trace`, `generate-environment-unknown` and
-   `validate-environment-trace`.
+   `generate-ui-trace`, `generate-go-dxlib-trace`,
+   `generate-environment-unknown` and `validate-environment-trace`.
 6. **Reach and marks of open changes**: the reach of section 4 in the
    `changes` document, and an open change request shown at its element in
    every document, beside the open questions; the case

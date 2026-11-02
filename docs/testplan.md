@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 959 design tests, 479 golden and 480 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 960 design tests, 480 golden and 480 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 959 design tests, 479 golden and 480 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 955 |
+| system | 956 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2890,6 +2890,14 @@ Scenario: golden; level: system; verifies SA-93.
 - Given: the specification of validate-sign-in-oidc and an implementation file whose go-dxlib target names the package and the database; specarch-gen-go-dxlib built from this repository on PATH
 - When: generate go-dxlib is run with --unapproved
 - Then: it writes the handler FinishSignIn of the callback, which reads code and state from the query and returns bodyFinishSignIn, the body the project writes, as every operation's handler does, and the client's call of it; and warns at /signIn/callback that the provider comes back with a GET, which dxlib does not serve, naming the GET route the project adds; and exits 0
+
+#### generate-go-dxlib-trace
+
+Scenario: golden; level: system; verifies SA-57.
+
+- Given: a specification with operations over an entity, and an environment staging whose entry says trace true
+- When: generate go-dxlib is run with --unapproved and --environment staging
+- Then: it writes the service with each handler setting the header Specarch-Element to the pointer of its operation, and exits 0
 
 #### generate-go-dxlib-value-objects
 

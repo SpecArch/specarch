@@ -736,7 +736,8 @@ specification, and an operation stage with monitors. Built in this order:
    element in every document; phase and cause in the `releases`
    document; the approval's `commit` and `diff` within one pre-release
    (`spec/tests/validate-acceptance-valid`, `validate-change-answered`,
-   `generate-ui-trace`, `document-writes-changes-reach`,
+   `generate-ui-trace`, `generate-go-dxlib-trace`,
+   `document-writes-changes-reach`,
    `diff-same-version`). Built, unreleased. Open: the pointer in the
    screens of the TypeScript, Vue and SwiftUI stacks and the native
    accessibility identifiers, a message header and a request's log line.

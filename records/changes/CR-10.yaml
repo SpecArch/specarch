@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A dependency was a name, a kind, a protocol and a time limit, so how this system proves itself to it, how often it may be called, how our values map to theirs, the key sent, the retries and which of their answers become ours were left to the code and not tested.
+cause: omitted
 affects:
   adds:
     - SA-105

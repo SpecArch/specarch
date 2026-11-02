@@ -4,7 +4,7 @@
 
 Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 118 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -1708,8 +1708,6 @@ Acceptance criteria:
 - A change request in the acceptance phase without the build, what was observed or what was expected is reported, and so is one analysed without a cause.
 - A decision that answers a change request whose decision is not approved is reported.
 - The changes document lists, under each open change request, the tests, outputs, documents and approval its pointers reach.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
 **Insight:** People never write a complete specification, and the people who will use a system see it first at the user acceptance test; a remark that cannot name the element it is about, or that has no way back into the specification, is lost or applied by hand where the next generation overwrites it.
 

@@ -20,3 +20,6 @@ pages:
       - { label: Return, kind: operation, target: returnLoan, permission: loans.return, when: 'status == "open" || status == "overdue"', confirm: "Record this copy as returned?", then: { message: The copy is recorded as returned. } }
       - { label: Lost, kind: operation, target: reportLost, permission: loans.return, when: 'status == "open" || status == "overdue"', confirm: "Charge the replacement cost and close this loan?", then: { message: The loan is closed and the replacement cost charged. } }
       - { label: Ask to waive the fee, kind: navigate, target: fee-waiver-form, permission: fees.request, when: 'status == "returned"', with: { loanId: id } }
+    origin: decided
+    decidedIn: ADR-005
+    why: The actions stand in the order the desk uses them at the counter (ADR-005); Renew takes the first place when CR-1 adds it.

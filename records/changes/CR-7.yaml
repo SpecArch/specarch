@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A person going through the screens in the order they meet them could not be followed in the specification, which said neither the page each role is shown first, nor a permission that every signed-in caller holds, nor a field shown or edited by permission, and said nothing of a page no one can reach.
+cause: omitted
 affects:
   adds:
     - SA-102

@@ -129,7 +129,7 @@ ol.problems p{margin:2px 0}
 </ol></li>
 <li><a href="#algorithms-and-decisions">Algorithms and decisions</a><ol>
 <li><a href="#/algorithms">Algorithms</a> <span class="count">2</span></li>
-<li><a href="#/decisions">Decisions</a> <span class="count">4</span></li>
+<li><a href="#/decisions">Decisions</a> <span class="count">5</span></li>
 </ol></li>
 <li><a href="#tests-and-traceability">Tests and traceability</a><ol>
 <li><a href="#/tests">Tests</a> <span class="count">199</span></li>
@@ -185,7 +185,7 @@ ol.problems p{margin:2px 0}
 <tr><td><a href="#/theme">Theme</a></td><td>one</td></tr>
 <tr><td><a href="#/workflows">Workflows</a></td><td>1</td></tr>
 <tr><td><a href="#/algorithms">Algorithms</a></td><td>2</td></tr>
-<tr><td><a href="#/decisions">Decisions</a></td><td>4</td></tr>
+<tr><td><a href="#/decisions">Decisions</a></td><td>5</td></tr>
 <tr><td><a href="#/tests">Tests</a></td><td>199</td></tr>
 <tr><td><a href="#/environments">Environments</a></td><td>3</td></tr>
 <tr><td><a href="#/configuration">Configuration</a></td><td>4</td></tr>
@@ -4821,6 +4821,8 @@ label {
 &lt;/body&gt;
 &lt;/html&gt;
 "></iframe><figcaption>The screen as specarch generate ui writes it, without its scripts, so it shows no data.</figcaption></figure>
+<p class="origin"><strong>Origin:</strong> decided in ADR-005, The actions of the loans list stand in the order the desk uses them, Renew first.</p>
+<p class="insight"><strong>Insight:</strong> The actions stand in the order the desk uses them at the counter (ADR-005); Renew takes the first place when CR-1 adds it.</p>
 <dl>
 <dt>kind</dt>
 <dd>list</dd>
@@ -7724,6 +7726,37 @@ label {
 <dd>
 <p><a href="#/requirements/LIB-8">LIB-8</a></p>
 </dd>
+</dl>
+</article>
+<article class="element" data-search id="/decisions/ADR-005">
+<h4>ADR-005: The actions of the loans list stand in the order the desk uses them, Renew first <a class="ptr" href="#/decisions/ADR-005">/decisions/ADR-005</a></h4>
+<p class="insight"><strong>Insight:</strong> The person at the counter reaches for one action many times a day; an action placed by the order it was written in costs that person a scroll each time, and the acceptance test is where that cost is first seen.</p>
+<p class="note"><strong>Note:</strong> From <a href="#/sources"></a>: On the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last.</p>
+<dl>
+<dt>title</dt>
+<dd>The actions of the loans list stand in the order the desk uses them, Renew first</dd>
+<dt>status</dt>
+<dd>accepted</dd>
+<dt>date</dt>
+<dd>2026-10-28</dd>
+<dt>context</dt>
+<dd>
+<p>At the acceptance test of 0.2.0 the desk found the Renew action below the fold of the loans list and scrolled for it on every renewal (CR-3). The specification said which actions the page has and nothing about their order, so the generated page took the order they were written in.</p>
+</dd>
+<dt>decision</dt>
+<dd>
+<p>The actions of the loans list are listed in the order the desk uses them at the counter: Renew first, once CR-1 adds it, then Return and Lost, and the request to waive a fee last. The order of the list under actions is the order on the screen, so nothing else is added to the page.</p>
+</dd>
+<dt>consequences</dt>
+<dd>
+<p>Every page&#39;s actions are read as ordered by use, not by the order they were thought of; a page whose order is not the desk&#39;s is a change request, not a defect, since the specification sets it.</p>
+</dd>
+<dt>answers</dt>
+<dd>
+<p>CR-3</p>
+</dd>
+<dt>decidedBy</dt>
+<dd><a href="#/stakeholders/library-board">library-board</a></dd>
 </dl>
 </article>
 </section>

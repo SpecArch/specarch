@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: Authors need a format that does not move under them. Meta-model 1.0.0 promises that no key is renamed, moved, removed or made required, and that no meaning changes, for the whole 1.x; before freezing it, two keys of 0.3 that each meant two things are renamed.
+cause: changed
 affects:
   changes: [SA-95]
 impact: major

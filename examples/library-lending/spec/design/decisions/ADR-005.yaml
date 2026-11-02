@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-005:
+    title: The actions of the loans list stand in the order the desk uses them, Renew first
+    status: accepted
+    date: "2026-10-28"
+    context: |
+      At the acceptance test of 0.2.0 the desk found the Renew action below
+      the fold of the loans list and scrolled for it on every renewal
+      (CR-3). The specification said which actions the page has and
+      nothing about their order, so the generated page took the order
+      they were written in.
+    decision: |
+      The actions of the loans list are listed in the order the desk uses
+      them at the counter: Renew first, once CR-1 adds it, then Return and
+      Lost, and the request to waive a fee last. The order of the list
+      under actions is the order on the screen, so nothing else is added
+      to the page.
+    consequences: |
+      Every page's actions are read as ordered by use, not by the order
+      they were thought of; a page whose order is not the desk's is a
+      change request, not a defect, since the specification sets it.
+    answers: [CR-3]
+    decidedBy: library-board
+    cites:
+      - { record: COM-5, says: "On the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last." }
+    why: The person at the counter reaches for one action many times a day; an action placed by the order it was written in costs that person a scroll each time, and the acceptance test is where that cost is first seen.

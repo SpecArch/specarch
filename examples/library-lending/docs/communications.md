@@ -2,7 +2,7 @@
 
 # Library Lending: communication history
 
-Version 0.1.0 of the specification: 4 communications, 1 session and 1 test session are recorded beside it, in `records/communications/`, `records/sessions/` and `records/test-sessions/`. They come first in time order, then the history of each stakeholder and of each question, decision and element they touch. Each record says who said what to whom, when, by which channel and whether the words are verbatim or a summary; 3 communications carry no evidence and read as what their recorder wrote down. People are named by role.
+Version 0.1.0 of the specification: 5 communications, 1 session and 1 test session are recorded beside it, in `records/communications/`, `records/sessions/` and `records/test-sessions/`. They come first in time order, then the history of each stakeholder and of each question, decision and element they touch. Each record says who said what to whom, when, by which channel and whether the words are verbatim or a summary; 4 communications carry no evidence and read as what their recorder wrote down. People are named by role.
 
 ## 1. In time order
 
@@ -46,7 +46,7 @@ Recorded without evidence: the record holds what librarian wrote down and nothin
 
 Touches: changes CR-1; defects DEF-1.
 
-### TS-1: test session “Acceptance of the renewal and the fee cap” (uat on production, version 0.2.0)
+### TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0)
 
 From 2026-10-21T10:00:00Z to 2026-10-21T11:30:00Z, build library-lending 0.2.0 at 7c1e4a9. Invited: librarian, library-board, library-it. Present: librarian, library-it. Absent: library-board. Result: passed. Recorded by librarian.
 
@@ -56,7 +56,7 @@ Said in it: COM-4.
 
 Recorded without evidence: the record holds what librarian wrote down and nothing that shows it.
 
-Touches: elements LIB-4, LIB-5; changes CR-1; defects DEF-1.
+Touches: elements LIB-4, LIB-5; changes CR-1, CR-3; defects DEF-1.
 
 ### COM-4: objection from librarian to library-it (meeting)
 
@@ -66,7 +66,17 @@ In summary: On the desk screen the Renew action sits below the fold of the loans
 
 Recorded without evidence: the record holds what librarian wrote down and nothing that shows it.
 
-Touches: elements `#/pages/loans-list`; changes CR-1.
+Touches: elements `#/pages/loans-list`; changes CR-1, CR-3.
+
+### COM-5: answer from library-board to librarian (meeting)
+
+In, said by the stakeholder to the project: from library-board to librarian, by meeting, at 2026-10-28T19:20:00Z. Recorded by librarian.
+
+In summary: The board agrees: on the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last.
+
+Recorded without evidence: the record holds what librarian wrote down and nothing that shows it.
+
+Touches: elements `#/pages/loans-list`; changes CR-3.
 
 ## 2. By stakeholder
 
@@ -76,8 +86,9 @@ Touches: elements `#/pages/loans-list`; changes CR-1.
 - 2026-10-10T14:30:00Z, COM-2: information from library-board to librarian (email): “A member may renew a loan once, for the same period, when no other member has reserved the copy. A second renewal is refused.”
 - 2026-10-13T15:00:00Z, SES-1: session “Renewals with the desk, the board and a member” (meeting): present
 - 2026-10-20T09:00:00Z, COM-3: information from library-it to librarian (chat): “Build 0.2.0 is on the test host with last night's data; the renewal is in.”
-- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on production, version 0.2.0): present
+- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0): present
 - 2026-10-21T10:40:00Z, COM-4: objection from librarian to library-it (meeting): On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal.
+- 2026-10-28T19:20:00Z, COM-5: answer from library-board to librarian (meeting): The board agrees: on the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last.
 
 ### member
 
@@ -88,13 +99,14 @@ Touches: elements `#/pages/loans-list`; changes CR-1.
 
 - 2026-10-10T14:30:00Z, COM-2: information from library-board to librarian (email): “A member may renew a loan once, for the same period, when no other member has reserved the copy. A second renewal is refused.”
 - 2026-10-13T15:00:00Z, SES-1: session “Renewals with the desk, the board and a member” (meeting): present
-- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on production, version 0.2.0): invited, absent
+- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0): invited, absent
+- 2026-10-28T19:20:00Z, COM-5: answer from library-board to librarian (meeting): The board agrees: on the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last.
 
 ### library-it
 
 - 2026-10-13T15:00:00Z, SES-1: session “Renewals with the desk, the board and a member” (meeting): invited, absent
 - 2026-10-20T09:00:00Z, COM-3: information from library-it to librarian (chat): “Build 0.2.0 is on the test host with last night's data; the renewal is in.”
-- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on production, version 0.2.0): present
+- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0): present
 - 2026-10-21T10:40:00Z, COM-4: objection from librarian to library-it (meeting): On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal.
 
 ## 3. By question, decision and element
@@ -104,11 +116,11 @@ Touches: elements `#/pages/loans-list`; changes CR-1.
 - 2026-10-09T10:15:00Z, COM-1: request from member to librarian (call): A member who cannot reach the library by the due date asked to keep the book a little longer without paying the late fee.
 - 2026-10-10T14:30:00Z, COM-2: information from library-board to librarian (email): “A member may renew a loan once, for the same period, when no other member has reserved the copy. A second renewal is refused.”
 - 2026-10-13T15:00:00Z, SES-1: session “Renewals with the desk, the board and a member” (meeting)
-- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on production, version 0.2.0)
+- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0)
 
 ### LIB-5
 
-- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on production, version 0.2.0)
+- 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0)
 
 ### `#/entities/Loan`
 
@@ -118,4 +130,5 @@ Touches: elements `#/pages/loans-list`; changes CR-1.
 ### `#/pages/loans-list`
 
 - 2026-10-21T10:40:00Z, COM-4: objection from librarian to library-it (meeting): On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal.
+- 2026-10-28T19:20:00Z, COM-5: answer from library-board to librarian (meeting): The board agrees: on the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last.
 

@@ -1,0 +1,7 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:42:15: error: /decisions/ADR-001/answers/0: change_answered: ADR-001 is accepted and answers CR-1, but CR-1 is analysed, not approved; approve the change, with its decision's by, date, outcome approved and why, or set the decision's status to proposed while it waits [change_answered@specarch.yaml#/decisions/ADR-001/answers/0]
+  project/specarch.yaml:51:15: error: /decisions/ADR-002/answers/0: change_answered: ADR-002 is accepted and answers CR-2, but CR-2 is rejected, not approved; approve the change, with its decision's by, date, outcome approved and why, or set the decision's status to proposed while it waits [change_answered@specarch.yaml#/decisions/ADR-002/answers/0]
+  project/specarch.yaml:60:15: error: /decisions/ADR-003/answers/0: change_answered: CR-3 was approved by librarian, not library-board, which ADR-003 names as decidedBy; the decision that settles a change request is decided by the role that approved it: write decidedBy librarian, or correct the change's decision [change_answered@specarch.yaml#/decisions/ADR-003/answers/0]
+  project/specarch.yaml:71:17: error: /decisions/ADR-004/cites/0/record: record_cited: COM-1 answers Q-1, not CR-4, which ADR-004 answers; cite the record of the answer to CR-4, or link COM-1 to it under questions or changes [record_cited@specarch.yaml#/decisions/ADR-004/cites/0/record]

@@ -2,20 +2,18 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 951 design tests, 474 golden and 477 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 954 design tests, 475 golden and 479 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 947 |
+| system | 950 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -4967,6 +4965,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-84.
 - When: validate is run
 - Then: it reports via at each of the operations and items, and proof at the three proofs, and exits 1
 
+#### validate-acceptance-record
+
+Scenario: red; level: system; covers exit 1; verifies SA-23, SA-57.
+
+- Given: a change request from acceptance without the build it is against, what was observed or what was expected; one analysed without a cause; one whose build names an environment the specification does not have, whose seenAt does not resolve and whose questions name no question; a defect from acceptance without its environment and with a seenAt that does not resolve; and an answer record that links neither a question nor a change request
+- When: validate is run
+- Then: it reports each at its key, as schema or record_ref, and exits 1
+
+#### validate-acceptance-valid
+
+Scenario: golden; level: system; verifies SA-23, SA-57.
+
+- Given: a change request from the acceptance test with the build it is against, where it was seen, what was observed and expected and its cause, approved and answered by an accepted decision that cites the board's answer linking it; a second one analysed with the question its analysis wrote; and a defect from acceptance with its environment and build
+- When: validate is run
+- Then: it reports no error and exits 0
+
 #### validate-accessibility
 
 Scenario: red; level: system; covers exit 1; verifies SA-42.
@@ -5070,6 +5084,14 @@ Scenario: red; level: system; verifies SA-83, SA-88.
 - Given: the estate of derive-caller-estate with the core's tests derive wrote, less the one for a caller through a client the identity module's role does not list
 - When: validate is run on the estate file
 - Then: it reports that one missing test as an error at the core's delete, its then naming the security event with the identifier under the identity module's trust domain, and exits 1
+
+#### validate-change-answered
+
+Scenario: red; level: system; covers exit 1; verifies SA-23, SA-57.
+
+- Given: accepted decisions that answer a change request still analysed, one rejected, and one approved by another role than decidedBy; an accepted decision answering an approved change that cites an answer record linking a question and not the change; and a proposed decision answering a change still analysed
+- When: validate is run
+- Then: it reports change_answered at the first three decisions' answers, record_cited at the fourth's citation, accepts the proposed decision, and exits 1
 
 #### validate-change-applied
 

@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Show the due date as a date
+raisedBy: librarian
+raised: "2026-10-21"
+phase: acceptance
+type: perfective
+urgency: normal
+reason: The desk reads the due date out to the member.
+status: proposed

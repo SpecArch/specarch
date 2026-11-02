@@ -1,0 +1,19 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-4
+title: The member's name on the loan
+raisedBy: librarian
+raised: "2026-10-21"
+phase: acceptance
+against: { version: 1.1.0-dev, environment: staging }
+seenAt: ["#/entities/Loan"]
+observed: The loan shows less than the desk needs.
+expected: The loan shows the member's name on the loan.
+type: perfective
+urgency: normal
+reason: The desk asked for it at the acceptance test.
+cause: omitted
+affects: { changes: ["#/entities/Loan"] }
+impact: patch
+decision: { by: library-board, date: "2026-10-28", outcome: approved, why: "The desk needs it." }
+status: approved

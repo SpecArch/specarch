@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A person or a program working with an installed specarch, with no source checkout or docs folder at hand, needs to learn its commands, options, outputs and exit codes from the program itself, read its results as JSON, and see what a command would write before it writes.
+cause: omitted
 affects:
   adds: [SA-96]
 impact: minor

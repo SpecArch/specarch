@@ -74,6 +74,7 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
     rc.checkReleases(recs, rootChecker)
     rc.checkRequirementReleases(rootChecker)
     rc.checkCitedRecords(rootChecker)
+    rc.checkChangeAnswered(rootChecker)
     rc.checkUnheard(rootChecker)
     var out = rootChecker.diags
     for r in recs {
@@ -91,6 +92,9 @@ enum Resolution {
 }
 
 private let openChange: Set<String> = ["proposed", "analysed", "approved"]
+
+/// The statuses of a defect not yet fixed or closed.
+private let openDefect: Set<String> = ["reported", "confirmed"]
 
 func prefixOf(_ id: String) -> String {
     String(id.split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
@@ -111,11 +115,16 @@ struct RecordChecks {
             role(r, "raisedBy")
             role(r, "decision", "by")
             release(r, "release")
+            against(r)
+            seenAt(r, openChange.contains(r.str("status")))
+            changeQuestions(r)
             checkApplied(r)
             checkDecision(r)
         case "defect":
             role(r, "reportedBy")
             environment(r, "environment")
+            against(r)
+            seenAt(r, openDefect.contains(r.str("status")))
             for (i, item) in items(root.child("violates")).enumerated() {
                 reference(r, item, pointer("violates", String(i)))
             }
@@ -248,6 +257,77 @@ struct RecordChecks {
         let v = str(n)
         if !v.isEmpty && d.environments[v] == nil {
             r.c.add(n, pointer(key), .recordRef, "\(v) is not an environment of the specification\(suggest(v, d.environments))")
+        }
+    }
+
+    /// Checks the environment of the build a remark from acceptance names;
+    /// a defect's build has none, since the defect's own environment is
+    /// the one.
+    func against(_ r: Record) {
+        guard let n = r.root?.child("against")?.child("environment") else { return }
+        let v = str(n)
+        if !v.isEmpty && d.environments[v] == nil {
+            r.c.add(n, "/against/environment", .recordRef, "\(v) is not an environment of the specification\(suggest(v, d.environments))")
+        }
+    }
+
+    /// Checks, while the record is open, that each pointer the tester
+    /// copied from the trace resolves; a closed record's pointers may name
+    /// what the change itself removed.
+    func seenAt(_ r: Record, _ open: Bool) {
+        if !open { return }
+        for (i, item) in items(r.root?.child("seenAt")).enumerated() {
+            reference(r, item, pointer("seenAt", String(i)))
+        }
+    }
+
+    /// Checks, while a change is proposed or analysed, that the questions
+    /// its analysis wrote are questions of the specification, open or
+    /// answered since.
+    func changeQuestions(_ r: Record) {
+        let status = r.str("status")
+        if status != "proposed" && status != "analysed" { return }
+        for (i, item) in items(r.root?.child("questions")).enumerated() {
+            let v = item.value
+            if !v.isEmpty && d.questions[v] == nil && !answeredQuestion(v) {
+                r.c.add(item, pointer("questions", String(i)), .recordRef, "\(v) is not a question of the specification: it is not open under questions and no decision answers it; write the question the analysis raised, or correct the ID\(suggest(v, d.questions))")
+            }
+        }
+    }
+
+    /// Whether an ID under a decision's answers names a change request: a
+    /// change record beside the specification, or an ID of a declared
+    /// change tracker. Every other ID there is a question's.
+    func isChange(_ id: String) -> Bool {
+        has("change", id) || d.trackerPrefixes("change-set")[prefixOf(id)] != nil
+    }
+
+    /// Whether a decision names the ID under answers as a question it
+    /// answers, not as a change request it settles.
+    func answeredQuestion(_ id: String) -> Bool {
+        !isChange(id) && d.answered(id)
+    }
+
+    /// Checks each change request a decision names under answers
+    /// (ADR-221): an accepted decision settles a change whose decision is
+    /// approved, by the role the decision names as decidedBy.
+    func checkChangeAnswered(_ c: Checker) {
+        for (id, dec) in d.decisions {
+            for (i, a) in items(dec.child("answers")).enumerated() {
+                guard let ch = set["change"]?[a.value] else { continue }
+                let ptr = pointer("decisions", id, "answers", "\(i)")
+                let decision = ch.root?.child("decision")
+                let outcome = str(decision?.child("outcome"))
+                if str(dec.child("status")) == "accepted" && outcome != "approved" {
+                    let state = outcome == "rejected" ? "rejected" : ch.str("status")
+                    c.add(a, ptr, .changeAnswered, "\(id) is accepted and answers \(a.value), but \(a.value) is \(state), not approved; approve the change, with its decision's by, date, outcome approved and why, or set the decision's status to proposed while it waits")
+                    continue
+                }
+                let by = str(decision?.child("by")), decidedBy = str(dec.child("decidedBy"))
+                if !by.isEmpty && !decidedBy.isEmpty && by != decidedBy {
+                    c.add(a, ptr, .changeAnswered, "\(a.value) was \(outcome) by \(by), not \(decidedBy), which \(id) names as decidedBy; the decision that settles a change request is decided by the role that approved it: write decidedBy \(by), or correct the change's decision")
+                }
+            }
         }
     }
 

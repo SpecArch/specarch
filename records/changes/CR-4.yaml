@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A specification modelled an entity's control state only as one field and its moves, and left the zone of every date-time unsaid, so date() of an instant gave the Go and Swift builds different dates; it needs its time zone declared once, date() read in it the same way in both builds, and a design for state machines and date-times that the later build items follow.
+cause: omitted
 affects:
   adds:
     - SA-98

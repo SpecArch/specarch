@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: An idea raised while going through the screens in order could only be recorded as an interview or another mode, so a reader could not tell which ideas came from a walkthrough.
+cause: omitted
 affects:
   adds: ["#/tests/validate-idea-input-mode"]
   changes: ["#/decisions/ADR-196"]

@@ -1,0 +1,81 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.1.0-dev }
+stakeholders:
+  owner: { description: The product owner. }
+  librarian: { description: Runs the lending desk. }
+  library-board: { description: Decides the library's rules. }
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books at once.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+    ownedBy: library-board
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      dueOn: { type: string, format: date }
+    required: [id, dueOn]
+    primaryKey: [id]
+environments:
+  staging: { description: The copy of production the desk tries a release on., promotesTo: production }
+  production: { description: The live system. }
+questions:
+  Q-1:
+    question: Should the loan show the member's photo?
+    kind: decision
+    priority: could
+    blocks: ["#/entities/Loan"]
+    decidedBy: library-board
+decisions:
+  ADR-001:
+    title: The due date is shown as a date
+    status: accepted
+    date: "2026-10-28"
+    context: CR-1 asked for the date.
+    decision: The date is shown.
+    consequences: dueOn is read out as a date.
+    decidedBy: library-board
+    answers: [CR-1]
+  ADR-002:
+    title: The weekday is not shown
+    status: accepted
+    date: "2026-10-28"
+    context: CR-2 asked for the weekday.
+    decision: The weekday is not shown.
+    consequences: dueOn stays a date.
+    decidedBy: library-board
+    answers: [CR-2]
+  ADR-003:
+    title: The book's title is shown on the loan
+    status: accepted
+    date: "2026-10-28"
+    context: CR-3 asked for the title.
+    decision: The title is shown.
+    consequences: The loan carries the title.
+    decidedBy: library-board
+    answers: [CR-3]
+  ADR-004:
+    title: The member's name is shown on the loan
+    status: accepted
+    date: "2026-10-28"
+    context: CR-4 asked for the name.
+    decision: The name is shown.
+    consequences: The loan carries the name.
+    decidedBy: library-board
+    answers: [CR-4]
+    cites:
+      - record: COM-1
+        says: "Show the name."
+  ADR-005:
+    title: The loan shows how many days are left
+    status: proposed
+    date: "2026-10-28"
+    context: CR-5 asked for the count; the board has not decided.
+    decision: The count is shown beside the date.
+    consequences: Nothing until the board decides.
+    decidedBy: library-board
+    answers: [CR-5]

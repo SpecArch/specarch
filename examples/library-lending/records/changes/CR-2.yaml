@@ -8,6 +8,7 @@ phase: production
 type: additive
 urgency: normal
 reason: Members ask for proof that a book came back.
+cause: omitted
 affects:
   changes: ["#/channels"]
 impact: minor

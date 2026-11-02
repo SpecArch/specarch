@@ -11,5 +11,5 @@ words: { form: summary, text: "On the desk screen the Renew action sits below th
 recordedBy: librarian
 session: TS-1
 links:
-  changes: [CR-1]
+  changes: [CR-1, CR-3]
   elements: ["#/pages/loans-list"]

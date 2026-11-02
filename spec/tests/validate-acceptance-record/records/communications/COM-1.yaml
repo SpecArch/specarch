@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: library-board
+to: librarian
+at: "2026-10-28T19:20:00Z"
+channel: meeting
+type: answer
+words: { form: summary, text: "Show the date itself." }
+recordedBy: librarian
+links:
+  elements: ["#/entities/Loan"]

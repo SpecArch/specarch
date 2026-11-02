@@ -2,13 +2,14 @@
 
 # Library Lending: change and defect register
 
-Version 0.1.0 of the specification: 2 change requests and 1 defect are recorded beside it, 1 item open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
+Version 0.1.0 of the specification: 3 change requests and 1 defect are recorded beside it, 2 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now.
 
 ## 1. Change requests
 
 | Change | Title | Status | Type | Urgency | Impact | Release |
 |---|---|---|---|---|---|---|
 | CR-1 | Let a member renew a loan once | approved | additive | normal | minor |   |
+| CR-3 | Put the Renew action where the desk reaches it first on the loans list | approved | perfective | normal | patch |   |
 | CR-2 | Send a receipt by text message on every return | rejected | additive | normal | minor |   |
 
 ### CR-1: Let a member renew a loan once
@@ -20,6 +21,16 @@ Members who cannot reach the library by the due date ask to keep the book a litt
 Affects: adds `#/tests/renew-a-loan`; changes LIB-4, `#/entities/Loan`.
 
 Decision: approved by library-board on 2026-10-14. A single renewal keeps books moving and saves the desk the late fees it would otherwise waive by hand.
+
+### CR-3: Put the Renew action where the desk reaches it first on the loans list
+
+Raised by librarian on 2026-10-21, in acceptance. Perfective, normal urgency; impact patch. Status: approved.
+
+The desk renews loans many times a day; an action it scrolls for each time costs it more than the renewal saves (COM-4, at the acceptance test TS-1).
+
+Affects: changes `#/pages/loans-list`.
+
+Decision: approved by library-board on 2026-10-28. The order of a page's actions is the order the desk uses them, Renew first; ADR-005 says so for the loans list, and the Renew action takes that place when CR-1 is carried out.
 
 ### CR-2: Send a receipt by text message on every return
 

@@ -1,0 +1,28 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-3
+title: Put the Renew action where the desk reaches it first on the loans list
+raisedBy: librarian
+raised: "2026-10-21"
+phase: acceptance
+against:
+  version: 0.2.0
+  digest: sha256:d5ed50a5243326009e5e7c6c2075c083ed7ab1a526d2ddea8aadbff571a44494
+  environment: staging
+  build: library-lending 0.2.0 at 7c1e4a9
+seenAt: ["#/pages/loans-list"]
+observed: On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal.
+expected: Renew is the action the desk uses most once a member asks at the counter, so it stands first, in reach without scrolling.
+type: perfective
+urgency: normal
+reason: The desk renews loans many times a day; an action it scrolls for each time costs it more than the renewal saves (COM-4, at the acceptance test TS-1).
+cause: omitted
+affects:
+  changes: ["#/pages/loans-list"]
+impact: patch
+decision:
+  by: library-board
+  date: "2026-10-28"
+  outcome: approved
+  why: The order of a page's actions is the order the desk uses them, Renew first; ADR-005 says so for the loans list, and the Renew action takes that place when CR-1 is carried out.
+status: approved

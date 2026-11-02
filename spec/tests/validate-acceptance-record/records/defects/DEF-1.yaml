@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: defect
+id: DEF-1
+title: A sixth loan is accepted
+reportedBy: librarian
+reported: "2026-10-21"
+phase: acceptance
+against: { version: 1.1.0-dev }
+seenAt: ["#/entities/Loans"]
+observed: A member with five open loans was lent a sixth book.
+expected: The sixth loan is refused, as CASE-1 says.
+severity: major
+violates: [CASE-1]
+status: reported

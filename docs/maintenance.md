@@ -36,10 +36,14 @@ So change requests, defects, releases and incidents are records. The
 specification never points back at them: no element carries a list of the
 changes that touched it. That list would be a change log under another
 name, and the documentor can compute it from the records, which point
-forward into the specification. The one exception is a citation: a
+forward into the specification. There are two exceptions. A citation: a
 decision or an element may cite a communication record, what a
 stakeholder said, with `record` in place of `source`, because what was
-said is where the element came from, as a source is (ADR-220).
+said is where the element came from, as a source is (ADR-220). And a
+decision names the change request it settles under `answers`, as it
+names the question it answers, because the request is part of the
+specification's own account of why an element is as it is (ADR-221,
+`docs/acceptance.md`).
 
 ## Records
 
@@ -107,10 +111,15 @@ raised during development or in production.
 |---|---|
 | `id`, `title` | `CR-12`, and one line |
 | `raisedBy`, `raised` | the stakeholder role, and the date |
-| `phase` | `development` or `production` |
+| `phase` | `development`, `acceptance` (a remark at the user acceptance test, on a build that is not released) or `production` |
+| `against` | the build an acceptance remark is about: `version` (the specification's `info.version`, a pre-release one included), `environment` (a key of the deployment stage), and when known `digest` (the specification's digest the build names) and `build` (the commit or build id). Required in the acceptance phase |
+| `seenAt` | the pointers the tester copied from the build's trace: where it showed, before anyone has analysed what changes. Checked to resolve while the change is open |
+| `observed`, `expected` | what the tester saw, and what they expected, in their words. Required in the acceptance phase |
 | `type` | `additive`, `perfective`, `adaptive` or `preventive`: the maintenance types of ISO/IEC/IEEE 14764 other than corrective, which is a defect |
 | `urgency` | `standard`, `normal` or `emergency`: the change types of ITIL 4 change enablement, which set how much assessment it gets before approval |
 | `reason` | why it is asked for, in plain words |
+| `cause` | why the result was not what was wanted, once analysed: `omitted` (the specification left it out; nobody wrote it and nobody was asked about it), `wrong` (the specification said it, and it was not what was meant), `changed` (the specification said what was meant, and the need changed after it was written) or `unheard` (the stakeholder who uses it was absent or never asked when the requirement was taken; pick it when the `unheard` warning, a session they missed or a communication record shows they were not heard). Required from analysed on, rejected included; the `releases` document counts a release's changes by it |
+| `questions` | the open questions the analysis wrote, by ID; checked to be questions of the specification while the change is proposed or analysed |
 | `affects` | what it changes, by stage: `adds`, `changes` and `removes`, each a list of references into the specification (requirement IDs, `#/` pointers such as `#/entities/Loan`, test names, environment and setting keys) |
 | `impact` | `major`, `minor` or `patch`, by the version rule below |
 | `decision` | `by` (a role), `date`, `outcome` (approved or rejected) and `why` |
@@ -130,6 +139,13 @@ Statuses and transitions:
 Analysis is a status of its own because an approval without a written
 impact is the usual way a small request turns out to break an interface.
 
+A change from acceptance ends in one of three ways (`docs/acceptance.md`,
+section 3): a decision record of the specification that names it under
+`answers`, with `decidedBy` the role that approved it, the elements it
+changes carrying `origin: decided` and `decidedIn`; an open question the
+change names under `questions`, answered later by a decision that names
+both; or a rejection on the record.
+
 The commit that implements a change names its ID in the message. That link
 lives in git, where history belongs; the validator does not read it.
 
@@ -143,7 +159,10 @@ during development or in production, it is the corrective maintenance of
 |---|---|
 | `id`, `title` | `DEF-7`, and one line |
 | `reportedBy`, `reported` | the role, and the date |
-| `phase`, `environment` | where it was found: `development` or `production`, and the environment key |
+| `phase`, `environment` | where it was found: `development`, `acceptance` or `production`, and the environment key, required from acceptance on |
+| `against` | the build an acceptance remark is about: `version`, and when known `digest` and `build`; the environment is the defect's own. Required in the acceptance phase |
+| `seenAt` | the pointers the tester copied from the build's trace; checked to resolve while the defect is reported or confirmed |
+| `observed`, `expected` | what the tester saw and expected, in their words. Required in the acceptance phase |
 | `severity` | `critical`, `major`, `minor` or `cosmetic`: how badly it stops the system from meeting its requirements |
 | `violates` | the requirement IDs, or `#/` pointers to the design elements, it breaks |
 | `test` | the test in `tests/` that shows it is fixed: it fails before the fix and passes after |
@@ -435,9 +454,10 @@ error unless it says warning.
 | Rule | Checks |
 |---|---|
 | `record_name` | a record's file name equals its `id`, its `version` for a release or an approval, or its date and environment for a commissioning run, and it sits in the folder of its kind |
-| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record, or a change or defect whose prefix is that of a declared change-set or defect-set. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
+| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record, or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
 | `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open (proposed, analysed or approved), `changes` and `removes` resolve, and an `adds` that already resolves is a warning. A requirement of an external set is taken as resolving and never as removed, since the validator cannot read the set |
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
+| `change_answered` | on a decision whose `answers` name a change request (a change record, or an ID of a declared change tracker; every other ID under `answers` is a question's): an accepted decision answers a change whose decision is approved, taken by the role `decidedBy` names (ADR-221). A proposed decision may answer a change still analysed |
 | `defect_test` | a fixed or released defect names a `test` that verifies a requirement the defect violates, or whose subject (its operation, command, page or entity) is the element a violated `#/` pointer points into |
 | `defect_duplicate` | a duplicate names a defect that exists and is not itself a duplicate |
 | `release_contents` | a released release includes only changes that are implemented or released and defects that are fixed or released; a change or defect with status released names a released release that includes it, and one that a released release includes and whose status is released names that release |
@@ -447,7 +467,7 @@ error unless it says warning.
 | `idea_decision` | an accepted idea has a `decision` with outcome accepted; a rejected one has outcome rejected |
 | `idea_question` | an idea whose status is question names the question under `became` |
 | `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
-| `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions cites an answer that links one of them, said by the role `decidedBy` names |
+| `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions or change requests cites an answer that links one of them, said by the role `decidedBy` names |
 | `unheard` | a warning, at the stakeholder, once a communication, session or test session record is kept: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 

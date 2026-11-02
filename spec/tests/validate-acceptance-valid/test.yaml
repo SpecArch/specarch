@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a change request from the acceptance test with the build it is against, where it was seen, what was observed and expected and its cause, approved and answered by an accepted decision that cites the board's answer linking it; a second one analysed with the question its analysis wrote; and a defect from acceptance with its environment and build"
+when: "validate is run"
+then: "it reports no error and exits 0"
+verifies: [SA-23, SA-57]

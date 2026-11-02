@@ -1,0 +1,19 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-3
+title: Show the book's title on the loan
+raisedBy: librarian
+raised: "2026-10-21"
+phase: acceptance
+against: { version: 1.1.0-dev, environment: uat }
+seenAt: ["#/entities/Book/properties/title"]
+observed: The loan shows the book's id.
+expected: The loan shows the book's title.
+type: perfective
+urgency: normal
+reason: Nobody knows a book by its id.
+cause: unheard
+questions: [Q-9]
+affects: { changes: ["#/entities/Loan"] }
+impact: minor
+status: analysed

@@ -32,9 +32,12 @@ extension RecordChecks {
     /// elements, and the change, defect and idea records.
     func checkLinks(_ r: Record) {
         let links = r.root?.child("links")
+        if r.str("type") == "answer", let links, links.child("questions") == nil, links.child("changes") == nil {
+            r.c.add(links, "/links", .recordRef, "\(r.str("id")) is an answer that links neither a question nor a change request; name the question it answers under links.questions, or the change request it settles under links.changes")
+        }
         for (i, item) in items(links?.child("questions")).enumerated() {
             let v = item.value
-            if !v.isEmpty && d.questions[v] == nil && !d.answered(v) {
+            if !v.isEmpty && d.questions[v] == nil && !answeredQuestion(v) {
                 r.c.add(item, pointer("links", "questions", String(i)), .recordRef, "\(v) is not a question of the specification: it is not open under questions and no decision answers it")
             }
         }
@@ -105,9 +108,12 @@ extension RecordChecks {
                 if path.count == 2 && path[0] == "decisions" && typ == "answer" {
                     let answers = items(n.child("answers")).map(\.value)
                     if answers.isEmpty { continue }
-                    let linked = items(rec.root?.child("links")?.child("questions")).map(\.value)
+                    // An answer links the question it answers, or the
+                    // change request it settles (ADR-221).
+                    let links = rec.root?.child("links")
+                    let linked = items(links?.child("questions")).map(\.value) + items(links?.child("changes")).map(\.value)
                     if !answers.contains(where: { linked.contains($0) }) {
-                        c.add(recNode, ptr, .recordCited, "\(id) answers \(eitherOf(linked)), not \(eitherOf(answers)), which \(path[1]) answers; cite the record of the answer to \(eitherOf(answers)), or link \(id) to it under questions")
+                        c.add(recNode, ptr, .recordCited, "\(id) answers \(eitherOf(linked)), not \(eitherOf(answers)), which \(path[1]) answers; cite the record of the answer to \(eitherOf(answers)), or link \(id) to it under questions or changes")
                         continue
                     }
                     let from = rec.str("from")

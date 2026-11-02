@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-2
+title: Show the weekday beside the due date
+raisedBy: librarian
+raised: "2026-10-21"
+phase: development
+type: perfective
+urgency: standard
+reason: Members ask which day of the week the date is.
+affects: { changes: ["#/entities/Loan/properties/dueOn"] }
+impact: patch
+status: analysed

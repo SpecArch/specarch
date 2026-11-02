@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A workflow held approvals and operation steps only, so a decision over the subject, a task that is not an approval, a wait for a message or a time, what a failed operation step does and which operation undoes a step were left to prose and not checked.
+cause: omitted
 affects:
   adds:
     - SA-103

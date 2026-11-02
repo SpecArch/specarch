@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a change request from acceptance without the build it is against, what was observed or what was expected; one analysed without a cause; one whose build names an environment the specification does not have, whose seenAt does not resolve and whose questions name no question; a defect from acceptance without its environment and with a seenAt that does not resolve; and an answer record that links neither a question nor a change request"
+when: "validate is run"
+then: "it reports each at its key, as schema or record_ref, and exits 1"
+verifies: [SA-23, SA-57]

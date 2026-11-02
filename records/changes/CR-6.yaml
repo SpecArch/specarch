@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A proposal raised in a conversation, a table, an example or a review was lost once taken or turned down, so a reader of a decision could not see the idea it came from, nor an author the ideas still open; the specification needs each one kept beside it as a record, checked, and named on the decision it became.
+cause: omitted
 affects:
   adds:
     - SA-101

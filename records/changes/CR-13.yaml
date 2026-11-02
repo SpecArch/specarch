@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A call's send and receive expressions could be read but not checked on real values, so an author could not see what a request would carry or what a record would keep before the code was written, and a mistake in a mapping showed only at the integration test.
+cause: omitted
 affects:
   adds:
     - SA-106

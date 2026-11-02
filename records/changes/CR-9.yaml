@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A choice among many cases written as one formula hid its overlaps and its gaps from the reviewer; a table of rules with a hit policy, after DMN 1.5, lets the validator name the inputs two rules both match and the inputs no rule matches.
+cause: omitted
 affects:
   adds:
     - SA-104

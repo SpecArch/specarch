@@ -103,6 +103,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 	rc.checkReleases(recs, rootChecker)
 	rc.checkRequirementReleases(rootChecker)
 	rc.checkCitedRecords(rootChecker)
+	rc.checkChangeAnswered(rootChecker)
 	rc.checkUnheard(rootChecker)
 	out := rootChecker.diags
 	for _, r := range recs {
@@ -124,11 +125,16 @@ func (rc *recordChecks) check(r *record) {
 		rc.role(r, "raisedBy")
 		rc.role(r, "decision", "by")
 		rc.release(r, "release")
+		rc.against(r)
+		rc.seenAt(r, openChange[r.str("status")])
+		rc.changeQuestions(r)
 		rc.checkApplied(r)
 		rc.checkDecision(r)
 	case "defect":
 		rc.role(r, "reportedBy")
 		rc.environment(r, "environment")
+		rc.against(r)
+		rc.seenAt(r, openDefect[r.str("status")])
 		for i, item := range source.Items(source.Child(r.root, "violates")) {
 			rc.reference(r, item, source.Pointer("violates", fmt.Sprint(i)))
 		}
@@ -387,6 +393,90 @@ func (rc *recordChecks) reference(r *record, n *yaml.Node, path string) {
 }
 
 var openChange = map[string]bool{"proposed": true, "analysed": true, "approved": true}
+
+// openDefect are the statuses of a defect not yet fixed or closed.
+var openDefect = map[string]bool{"reported": true, "confirmed": true}
+
+// against checks the environment of the build a remark from acceptance
+// names; a defect's build has none, since the defect's own environment is
+// the one.
+func (rc *recordChecks) against(r *record) {
+	n := source.Child(source.Child(r.root, "against"), "environment")
+	if v := source.Str(n); n != nil && v != "" && rc.d.environments[v] == nil {
+		r.c.add(n, "/against/environment", RuleRecordRef, "%s is not an environment of the specification%s", v, suggest(v, rc.d.environments))
+	}
+}
+
+// seenAt checks, while the record is open, that each pointer the tester
+// copied from the trace resolves; a closed record's pointers may name what
+// the change itself removed.
+func (rc *recordChecks) seenAt(r *record, open bool) {
+	if !open {
+		return
+	}
+	for i, item := range source.Items(source.Child(r.root, "seenAt")) {
+		rc.reference(r, item, source.Pointer("seenAt", fmt.Sprint(i)))
+	}
+}
+
+// changeQuestions checks, while a change is proposed or analysed, that
+// the questions its analysis wrote are questions of the specification,
+// open or answered since.
+func (rc *recordChecks) changeQuestions(r *record) {
+	if status := r.str("status"); status != "proposed" && status != "analysed" {
+		return
+	}
+	for i, item := range source.Items(source.Child(r.root, "questions")) {
+		if v := item.Value; v != "" && rc.d.questions[v] == nil && !rc.answeredQuestion(v) {
+			r.c.add(item, source.Pointer("questions", fmt.Sprint(i)), RuleRecordRef, "%s is not a question of the specification: it is not open under questions and no decision answers it; write the question the analysis raised, or correct the ID%s", v, suggest(v, rc.d.questions))
+		}
+	}
+}
+
+// isChange reports whether an ID under a decision's answers names a change
+// request: a change record beside the specification, or an ID of a
+// declared change tracker. Every other ID there is a question's.
+func (rc *recordChecks) isChange(id string) bool {
+	if rc.set.has("change", id) {
+		return true
+	}
+	prefix, _, _ := strings.Cut(id, "-")
+	return rc.d.trackerPrefixes("change-set")[prefix] != nil
+}
+
+// answeredQuestion reports whether a decision names the ID under answers
+// as a question it answers, not as a change request it settles.
+func (rc *recordChecks) answeredQuestion(id string) bool {
+	return !rc.isChange(id) && rc.d.answered(id)
+}
+
+// checkChangeAnswered checks each change request a decision names under
+// answers (ADR-221): an accepted decision settles a change whose decision
+// is approved, by the role the decision names as decidedBy.
+func (rc *recordChecks) checkChangeAnswered(c *checker) {
+	for id, dec := range rc.d.decisions {
+		for i, a := range source.Items(source.Child(dec, "answers")) {
+			ch := rc.set["change"][a.Value]
+			if ch == nil {
+				continue
+			}
+			ptr := source.Pointer("decisions", id, "answers", fmt.Sprint(i))
+			decision := source.Child(ch.root, "decision")
+			outcome := source.Str(source.Child(decision, "outcome"))
+			if source.Str(source.Child(dec, "status")) == "accepted" && outcome != "approved" {
+				state := ch.str("status")
+				if outcome == "rejected" {
+					state = "rejected"
+				}
+				c.add(a, ptr, RuleChangeAnswered, "%s is accepted and answers %s, but %s is %s, not approved; approve the change, with its decision's by, date, outcome approved and why, or set the decision's status to proposed while it waits", id, a.Value, a.Value, state)
+				continue
+			}
+			if by, decidedBy := source.Str(source.Child(decision, "by")), source.Str(source.Child(dec, "decidedBy")); by != "" && decidedBy != "" && by != decidedBy {
+				c.add(a, ptr, RuleChangeAnswered, "%s was %s by %s, not %s, which %s names as decidedBy; the decision that settles a change request is decided by the role that approved it: write decidedBy %s, or correct the change's decision", a.Value, outcome, by, decidedBy, id, by)
+			}
+		}
+	}
+}
 
 // checkApplied checks a change's affects against the specification as it
 // is now: carried out once implemented, still to be done while open.

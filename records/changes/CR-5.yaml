@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: An author changing an algorithm's formula could only learn whether it still gives each worked example's expected value by generating code and running it; the specification needs a command that evaluates the formula as written, or a proposed one, on its examples or on given inputs, and shows every step.
+cause: omitted
 affects:
   adds:
     - SA-100

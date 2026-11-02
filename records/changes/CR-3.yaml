@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: A reader about to change a decision had to reconstruct by hand, from the records' prose, which earlier decisions it rests on and which later ones rest on it; the specification needs that chain written at the decision, checked, and printed both ways.
+cause: omitted
 affects:
   adds:
     - SA-97

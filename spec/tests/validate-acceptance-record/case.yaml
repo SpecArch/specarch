@@ -1,0 +1,13 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/changes/CR-1.yaml:1:1: error: /: schema: against is missing; add it here [schema.70198d2b@../records/changes/CR-1.yaml#/]
+  records/changes/CR-1.yaml:1:1: error: /: schema: expected is missing; add it here [schema.34d47546@../records/changes/CR-1.yaml#/]
+  records/changes/CR-1.yaml:1:1: error: /: schema: observed is missing; add it here [schema.0e2b4fee@../records/changes/CR-1.yaml#/]
+  records/changes/CR-2.yaml:1:1: error: /: schema: cause is missing; add it here [schema@../records/changes/CR-2.yaml#/]
+  records/changes/CR-3.yaml:8:45: error: /against/environment: record_ref: uat is not an environment of the specification; use one of production, staging [record_ref@../records/changes/CR-3.yaml#/against/environment]
+  records/changes/CR-3.yaml:9:10: error: /seenAt/0: record_ref: #/entities/Book/properties/title does not resolve in the specification; point at an element that exists [record_ref@../records/changes/CR-3.yaml#/seenAt/0]
+  records/changes/CR-3.yaml:16:13: error: /questions/0: record_ref: Q-9 is not a question of the specification: it is not open under questions and no decision answers it; write the question the analysis raised, or correct the ID; there are none in the specification [record_ref@../records/changes/CR-3.yaml#/questions/0]
+  records/communications/COM-1.yaml:13:3: error: /links: record_ref: COM-1 is an answer that links neither a question nor a change request; name the question it answers under links.questions, or the change request it settles under links.changes [record_ref@../records/communications/COM-1.yaml#/links]
+  records/defects/DEF-1.yaml:1:1: error: /: schema: environment is missing; add it here [schema@../records/defects/DEF-1.yaml#/]
+  records/defects/DEF-1.yaml:9:10: error: /seenAt/0: record_ref: #/entities/Loans does not resolve in the specification; point at an element that exists [record_ref@../records/defects/DEF-1.yaml#/seenAt/0]

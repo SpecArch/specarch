@@ -87,6 +87,17 @@ specarch log from what the analyst said and nothing else.
    A meeting is a session record with who was invited and present;
    validate warns unheard of a role an accepted requirement needs that no
    record shows was ever heard.
+6. A remark at the user acceptance test is logged as an objection or a
+   request, then raised as a change request (or a defect, when the system
+   does not do what the specification says) with phase acceptance, the
+   build it is against (version, environment, and the digest and build
+   id when known), seenAt (the pointers copied from the build's trace),
+   observed and expected in the tester's words, and the record linked
+   under --change. Its analysis writes the cause (omitted, wrong, changed
+   or unheard) and ends in a decision that names the change under
+   answers, decided by the role that approved it and citing the answer
+   given, in an open question the change names under questions, or in a
+   rejection on the record.
 
 The program itself asks nothing: gaps --next prints and exits, and every
 answer is recorded by decide, with its source or record and the entries it

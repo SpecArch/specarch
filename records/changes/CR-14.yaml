@@ -8,6 +8,7 @@ phase: development
 type: perfective
 urgency: normal
 reason: decide told the author to mark a blocked decision with origin decided and decidedIn, which validate refuses with origin_decision, so following its line made the specification invalid (BUG-065).
+cause: wrong
 affects:
   adds:
     - "#/decisions/ADR-208"

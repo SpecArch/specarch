@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "accepted decisions that answer a change request still analysed, one rejected, and one approved by another role than decidedBy; an accepted decision answering an approved change that cites an answer record linking a question and not the change; and a proposed decision answering a change still analysed"
+when: "validate is run"
+then: "it reports change_answered at the first three decisions' answers, record_cited at the fourth's citation, accepts the proposed decision, and exits 1"
+verifies: [SA-23, SA-57]

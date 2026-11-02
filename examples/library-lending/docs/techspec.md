@@ -2,7 +2,7 @@
 
 # Library Lending: technical specification
 
-Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 199 tests, 4 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 199 tests, 5 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 ## 1. Introduction and goals
 
@@ -1833,6 +1833,10 @@ The menu, each entry shown to who may open its page:
 | second-factor | task | /sign-in/second-factor | none; submits to confirmSecondFactor | public | code |
 | sign-in | task | /sign-in | none; submits to signIn | public | email, password |
 
+**Origin on loans-list:** decided in ADR-005, The actions of the loans list stand in the order the desk uses them, Renew first.
+
+**Insight on loans-list:** The actions stand in the order the desk uses them at the counter (ADR-005); Renew takes the first place when CR-1 adds it.
+
 **Insight on member-view:** The desk that registers members uses the contact section; a supervisor who reads a member's record to decide a fee waiver has no use for it, so it is left off their screen. This is screen layout, not a privacy rule; getMember still answers address and phones to every caller with members.read, and a role that must never receive them would need them left out of that response.
 
 **Insight on profile:** Every person who holds a card sees their own record and what they owe; the page needs no permission granted by role, so a role added later has it too, and staff, who hold no card, are told so.
@@ -2096,6 +2100,30 @@ request not approved within its deadline is refused and the fee
 stands.
 
 **Insight:** A request of its own, approved by a second person, is the one way the amount, the reason and the approval are all readable afterwards; a fee set to zero by the person who asked would make the waiver a change nobody can read back.
+
+### ADR-005: The actions of the loans list stand in the order the desk uses them, Renew first
+
+Status: accepted, 2026-10-28.
+
+Context: At the acceptance test of 0.2.0 the desk found the Renew action below
+the fold of the loans list and scrolled for it on every renewal
+(CR-3). The specification said which actions the page has and
+nothing about their order, so the generated page took the order
+they were written in.
+
+Decision: The actions of the loans list are listed in the order the desk uses
+them at the counter: Renew first, once CR-1 adds it, then Return and
+Lost, and the request to waive a fee last. The order of the list
+under actions is the order on the screen, so nothing else is added
+to the page.
+
+Consequences: Every page's actions are read as ordered by use, not by the order
+they were thought of; a page whose order is not the desk's is a
+change request, not a defect, since the specification sets it.
+
+**Insight:** The person at the counter reaches for one action many times a day; an action placed by the order it was written in costs that person a scroll each time, and the acceptance test is where that cost is first seen.
+
+**Note:** From : On the loans list the actions stand in the order the desk uses them, Renew first, and the fee waiver last.
 
 ## 10. Quality requirements
 
@@ -2419,6 +2447,7 @@ Every source a Note in this document cites.
 
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
+|  |   |   |   |   |
 | data-protection-rules | The data-protection rules the library is bound by | 2024 | The regulator |   |
 | desk-interview | Interview with the desk staff about lending and returns |   |   |   |
 | lending-policy | Lending policy of the library | 2026 | The library board |   |

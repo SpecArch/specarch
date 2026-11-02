@@ -2,13 +2,11 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.4.0 of the specification: 10 needs, 118 requirements, and 2 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.4.0 of the specification: 10 needs, 118 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-57; add verifies: [SA-57] to the test that shows it is met [requirement_unverified@requirements/requirements/refinement.yaml#/requirements/SA-57]
 
 ## 1. Needs to requirements
 
@@ -51,7 +49,7 @@ Version 1.4.0 of the specification: 10 needs, 118 requirements, and 2 gaps. Each
 | SA-20 | NEED-8 | commands approve; commands generate; decisions ADR-019; decisions ADR-086 | tests approve-after-document-records-and-site; tests approve-refuses-open-question; tests approve-refuses-stale-document; tests approve-writes-record; tests generate-refuses-open-question; tests generate-refuses-unapproved; tests generate-unapproved |
 | SA-21 | NEED-9 | commands validate; decisions ADR-020; decisions ADR-054; decisions ADR-055 | tests validate-derived-acceptance; tests validate-derived-cases-harm; tests validate-derived-cases-listed; tests validate-derived-cases-mistakes; tests validate-derived-decision-table; tests validate-derived-flow; tests validate-derived-test-names; tests validate-enabled-by; tests validate-meta-model-0-1-missing-test; tests validate-meta-model-0-2-missing-test; tests validate-schema-harm-unknown; tests validate-test-subject-no-state-machine |
 | SA-22 | NEED-9, NEED-3 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
-| SA-23 | NEED-5 | enums Rule; commands validate | tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
+| SA-23 | NEED-5 | enums Rule; commands validate | tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered; tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | NEED-5 | enums Rule; commands validate; decisions ADR-061 | tests document-testplan-by-release; tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid; tests validate-requirement-release |
 | SA-25 | NEED-5 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
 | SA-26 | NEED-3, NEED-5 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
@@ -85,7 +83,7 @@ Version 1.4.0 of the specification: 10 needs, 118 requirements, and 2 gaps. Each
 | SA-54 | NEED-2 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | NEED-2 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | NEED-2 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-paged-whole; tests generate-ui-typescript-paged-whole-refused; tests generate-ui-typescript-refused |
-| SA-57 | NEED-10 | decisions ADR-083 |   |
+| SA-57 | NEED-10 | decisions ADR-083 | tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered |
 | SA-58 | NEED-3, NEED-10 | commands generate; decisions ADR-085; decisions ADR-139 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | NEED-3, NEED-8 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 | SA-60 | NEED-3, NEED-10 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-integer-forms; tests document-html-marks-problems; tests document-writes-html |
@@ -152,5 +150,5 @@ Version 1.4.0 of the specification: 10 needs, 118 requirements, and 2 gaps. Each
 
 The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
 
-- Requirements no test, check or monitor verifies: SA-98, SA-57.
+- Requirements no test, check or monitor verifies: SA-98.
 

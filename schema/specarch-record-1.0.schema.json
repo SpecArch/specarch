@@ -265,12 +265,35 @@
           "$ref": "#/$defs/date"
         },
         "phase": {
-          "description": "Where it was raised: during development, or in production.",
+          "description": "Where it was raised: during development, at the user acceptance test on a build that is not released (acceptance), or in production.",
           "type": "string",
           "enum": [
             "development",
+            "acceptance",
             "production"
           ]
+        },
+        "against": {
+          "$ref": "#/$defs/buildOfChange"
+        },
+        "seenAt": {
+          "description": "Where the tester saw it: the pointers copied from the trace of the build, before anyone has analysed what changes. Checked to resolve while the record is open.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "observed": {
+          "description": "What the tester saw, in their words; no customer data.",
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "description": "What the tester expected, in their words.",
+          "type": "string",
+          "minLength": 1
         },
         "type": {
           "description": "The maintenance type of ISO/IEC/IEEE 14764:2022 other than corrective, which is a defect: additive (a new capability), perfective (a better one), adaptive (a new environment) or preventive (a problem headed off).",
@@ -295,6 +318,26 @@
           "description": "Why it is asked for, in plain words.",
           "type": "string",
           "minLength": 1
+        },
+        "cause": {
+          "description": "Why the result was not what was wanted, written when the change is analysed. omitted: the specification left it out; nobody wrote it and nobody was asked about it. wrong: the specification said it, and it was not what was meant. changed: the specification said what was meant, and the need changed after it was written. unheard: the stakeholder who uses it was absent or never asked when the requirement was taken; pick it when the unheard warning, a session they missed or a communication record shows they were not heard. omitted, wrong and unheard measure the requirements work; changed is normal change.",
+          "type": "string",
+          "enum": [
+            "omitted",
+            "wrong",
+            "changed",
+            "unheard"
+          ]
+        },
+        "questions": {
+          "description": "The open questions the analysis wrote, by ID. Text, as a decision's answers are, since an answered question leaves the specification; checked to be questions of the specification while the change is proposed or analysed.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9]{0,15}-[A-Za-z0-9._]+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "affects": {
           "description": "What it changes in the specification, written when it is analysed.",
@@ -413,6 +456,25 @@
         {
           "if": {
             "properties": {
+              "phase": {
+                "const": "acceptance"
+              }
+            },
+            "required": [
+              "phase"
+            ]
+          },
+          "then": {
+            "required": [
+              "against",
+              "observed",
+              "expected"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
               "status": {
                 "enum": [
                   "analysed",
@@ -431,6 +493,29 @@
             "required": [
               "affects",
               "impact"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "analysed",
+                  "approved",
+                  "rejected",
+                  "implemented",
+                  "released"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "cause"
             ]
           }
         },
@@ -478,15 +563,38 @@
           "$ref": "#/$defs/date"
         },
         "phase": {
-          "description": "Where it was found: during development, or in production.",
+          "description": "Where it was found: during development, at the user acceptance test on a build that is not released (acceptance), or in production.",
           "type": "string",
           "enum": [
             "development",
+            "acceptance",
             "production"
           ]
         },
         "environment": {
           "$ref": "#/$defs/name"
+        },
+        "against": {
+          "$ref": "#/$defs/buildOfDefect"
+        },
+        "seenAt": {
+          "description": "Where the tester saw it: the pointers copied from the trace of the build, before anyone has analysed what changes. Checked to resolve while the record is open.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "observed": {
+          "description": "What the tester saw, in their words; no customer data.",
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "description": "What the tester expected, in their words.",
+          "type": "string",
+          "minLength": 1
         },
         "severity": {
           "description": "How badly it stops the system from meeting its requirements.",
@@ -575,7 +683,10 @@
           "if": {
             "properties": {
               "phase": {
-                "const": "production"
+                "enum": [
+                  "acceptance",
+                  "production"
+                ]
               }
             },
             "required": [
@@ -585,6 +696,25 @@
           "then": {
             "required": [
               "environment"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "phase": {
+                "const": "acceptance"
+              }
+            },
+            "required": [
+              "phase"
+            ]
+          },
+          "then": {
+            "required": [
+              "against",
+              "observed",
+              "expected"
             ]
           }
         }
@@ -1326,16 +1456,14 @@
             ]
           },
           "then": {
-            "properties": {
-              "links": {
-                "required": [
-                  "questions"
-                ]
-              }
-            },
             "required": [
               "links"
-            ]
+            ],
+            "properties": {
+              "links": {
+                "description": "An answer links the question it answers under questions, or the change request it settles under changes (ADR-221); the validator checks that one of them is there."
+              }
+            }
           }
         }
       ],
@@ -1579,6 +1707,62 @@
         "at",
         "by",
         "result"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "buildOfChange": {
+      "description": "The build a remark from acceptance is about: the specification's version (a pre-release one included), the environment it ran in, and when known the digest and the commit or build id.",
+      "type": "object",
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "digest": {
+          "description": "The specification's digest the build names in its generated files, as the approval record keeps it.",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "build": {
+          "description": "The commit or build id, as a commissioning or test-session record names it.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "version",
+        "environment"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "buildOfDefect": {
+      "description": "The build a remark from acceptance is about: the specification's version (a pre-release one included), and when known the digest and the commit or build id; the environment is the defect's own.",
+      "type": "object",
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "digest": {
+          "description": "The specification's digest the build names in its generated files, as the approval record keeps it.",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "build": {
+          "description": "The commit or build id, as a commissioning or test-session record names it.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "version"
       ],
       "patternProperties": {
         "^x-": {}

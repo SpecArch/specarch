@@ -129,6 +129,10 @@ Reached from the menu Loans › All loans.
 
 Opened by librarian, head-librarian, member and desk-supervisor (the permission loans.read).
 
+**Origin:** decided in ADR-005, The actions of the loans list stand in the order the desk uses them, Renew first.
+
+**Insight:** The actions stand in the order the desk uses them at the counter (ADR-005); Renew takes the first place when CR-1 adds it.
+
 | Column | What it shows |
 |---|---|
 | Member |   |

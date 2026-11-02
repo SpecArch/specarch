@@ -41,8 +41,11 @@ func (rc *recordChecks) session(r *record) {
 // decisions, elements, and the change, defect and idea records.
 func (rc *recordChecks) checkLinks(r *record) {
 	links := source.Child(r.root, "links")
+	if r.str("type") == "answer" && links != nil && source.Child(links, "questions") == nil && source.Child(links, "changes") == nil {
+		r.c.add(links, "/links", RuleRecordRef, "%s is an answer that links neither a question nor a change request; name the question it answers under links.questions, or the change request it settles under links.changes", r.str("id"))
+	}
 	for i, item := range source.Items(source.Child(links, "questions")) {
-		if v := item.Value; v != "" && rc.d.questions[v] == nil && !rc.d.answered(v) {
+		if v := item.Value; v != "" && rc.d.questions[v] == nil && !rc.answeredQuestion(v) {
 			r.c.add(item, source.Pointer("links", "questions", fmt.Sprint(i)), RuleRecordRef, "%s is not a question of the specification: it is not open under questions and no decision answers it", v)
 		}
 	}
@@ -122,16 +125,23 @@ func (rc *recordChecks) checkCitedRecords(c *checker) {
 				if len(answers) == 0 {
 					continue
 				}
+				// An answer links the question it answers, or the change
+				// request it settles (ADR-221).
+				links := source.Child(rec.root, "links")
+				var names []string
 				linked := map[string]bool{}
-				for _, q := range itemValues(source.Child(source.Child(rec.root, "links"), "questions")) {
-					linked[q] = true
+				for _, key := range []string{"questions", "changes"} {
+					for _, q := range itemValues(source.Child(links, key)) {
+						linked[q] = true
+						names = append(names, q)
+					}
 				}
 				found := false
 				for _, q := range answers {
 					found = found || linked[q]
 				}
 				if !found {
-					c.add(recNode, ptr, RuleRecordCited, "%s answers %s, not %s, which %s answers; cite the record of the answer to %s, or link %s to it under questions", id, eitherOf(itemValues(source.Child(source.Child(rec.root, "links"), "questions"))), eitherOf(answers), path[1], eitherOf(answers), id)
+					c.add(recNode, ptr, RuleRecordCited, "%s answers %s, not %s, which %s answers; cite the record of the answer to %s, or link %s to it under questions or changes", id, eitherOf(names), eitherOf(answers), path[1], eitherOf(answers), id)
 					continue
 				}
 				if from, by := rec.str("from"), source.Str(source.Child(n, "decidedBy")); from != by {

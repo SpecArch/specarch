@@ -30,9 +30,10 @@ entities:
       email: { type: string, format: email, maxLength: 254, sensitivity: personal }
       website: { type: [string, "null"], format: uri, maxLength: 200 }
       bornOn: { type: string, format: date }
+      availableFrom: { type: string, format: time }
       address: { $ref: "#/schemas/Address" }
       phones: { type: array, items: { $ref: "#/schemas/Phone" }, maxItems: 2, storage: json }
-    required: [id, name, email, bornOn]
+    required: [id, name, email, bornOn, availableFrom]
     primaryKey: [id]
     constraints:
       author_email_unique: { kind: unique, fields: [email], message: The email is taken. }
@@ -50,7 +51,9 @@ entities:
       inStock: { type: boolean }
       tags: { type: array, items: { type: string, maxLength: 20 }, maxItems: 3 }
       withdrawnOn: { type: [string, "null"], format: date }
-    required: [id, authorId, isbn, title, shelf, pages, price, rating, inStock, tags]
+      readingTime: { type: string, format: duration }
+      cover: { type: [string, "null"], format: byte }
+    required: [id, authorId, isbn, title, shelf, pages, price, rating, inStock, tags, readingTime]
     primaryKey: [id]
     audited: true
     deletion: soft

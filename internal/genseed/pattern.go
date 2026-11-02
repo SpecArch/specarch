@@ -51,24 +51,32 @@ func walk(n *syntax.Regexp, r *random, b *strings.Builder) string {
 			b.WriteRune(c)
 		}
 	case syntax.OpCharClass:
-		// n.Rune holds pairs, lo and hi of each range.
+		// n.Rune holds pairs, lo and hi of each range. A class that holds
+		// any printable ASCII (a negated class spans nearly all of
+		// Unicode) draws from that part alone, so the value is readable
+		// and one UTF-16 unit a rune, as SQL Server counts a column's
+		// length.
+		ranges := printable(n.Rune)
+		if len(ranges) == 0 {
+			ranges = n.Rune
+		}
 		var total int64
-		for i := 0; i < len(n.Rune); i += 2 {
-			total += int64(n.Rune[i+1]-n.Rune[i]) + 1
+		for i := 0; i < len(ranges); i += 2 {
+			total += int64(ranges[i+1]-ranges[i]) + 1
 		}
 		if total == 0 {
 			return "a character class matches nothing"
 		}
 		pick := r.intn(total)
-		for i := 0; i < len(n.Rune); i += 2 {
-			size := int64(n.Rune[i+1]-n.Rune[i]) + 1
+		for i := 0; i < len(ranges); i += 2 {
+			size := int64(ranges[i+1]-ranges[i]) + 1
 			if pick < size {
-				c := n.Rune[i] + rune(pick)
+				c := ranges[i] + rune(pick)
 				if c == '\n' || c == '\r' || c == '\'' || c == '\\' {
 					// A class that spans a line break or a quote would make
 					// a value a SQL literal cannot hold plainly; take the
 					// printable neighbour the class also holds when it does.
-					c = plainIn(n.Rune, c)
+					c = plainIn(ranges, c)
 				}
 				b.WriteRune(c)
 				return ""
@@ -115,6 +123,19 @@ func repeat(n *syntax.Regexp, count int, r *random, b *strings.Builder) string {
 		}
 	}
 	return ""
+}
+
+// printable is the part of the class ranges inside printable ASCII (space
+// to tilde), as pairs; empty when the class holds none.
+func printable(ranges []rune) []rune {
+	var out []rune
+	for i := 0; i < len(ranges); i += 2 {
+		lo, hi := max(ranges[i], ' '), min(ranges[i+1], '~')
+		if lo <= hi {
+			out = append(out, lo, hi)
+		}
+	}
+	return out
 }
 
 // plainIn is a printable rune of the class ranges other than c when the

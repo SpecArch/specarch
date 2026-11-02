@@ -3041,7 +3041,7 @@ Scenario: golden; level: system; verifies SA-87.
 
 Scenario: golden; level: system; verifies SA-116.
 
-- Given: a specification with an enum, a value object kept in columns and a list of value objects kept as JSON, an audited entity with soft deletion, a unique constraint, a check constraint, a pattern, examples, bounded numbers, a decimal, a list of text and relations, one of them to the entity itself, an implementation file in Go whose sql target is PostgreSQL and whose seed target sets the rows per entity and the seed, and specarch-gen-seed built from this repository on PATH
+- Given: a specification with an enum, a value object kept in columns and a list of value objects kept as JSON, an audited entity with soft deletion, a unique constraint, a check constraint, a pattern, examples, bounded numbers, a decimal, a time of day, a duration, binary data, a list of text and relations, one of them to the entity itself, an implementation file in Go whose sql target is PostgreSQL and whose seed target sets the rows per entity and the seed, and specarch-gen-seed built from this repository on PATH
 - When: generate seed is run with --unapproved
 - Then: it writes seed.sql with the counts asked for, the tables in the order the foreign keys need, each row an INSERT whose values follow the fields' types, bounds, enum, pattern and examples, the keys and the unique constraint never repeating, the check constraint holding, the value object's required parts set whenever it is present, the audit columns and the soft-delete flag as the idioms mean them, and exits 0
 

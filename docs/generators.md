@@ -793,14 +793,20 @@ column: an integer, a number and a decimal lie inside the field's bounds
 (`minimum`, `maximum`, the exclusive forms and `multipleOf`), at its
 precision and scale, within ten thousand of the lower bound where the
 design gives no maximum; text is the field's words and the row's number,
-"Full name 3", within `minLength` and `maxLength`; a `pattern` gives a
-value drawn from its syntax tree and matched back against it; an enum one
+"Full name 3", within `minLength` and `maxLength`, or the row's number
+padded to `minLength` with the words' letters and zeros, "Co3", where
+the words do not fit; a `pattern` gives a value drawn from its syntax
+tree and matched back against it, a character class drawn from its
+printable ASCII when it holds any, so a negated class such as `[^@ ]`
+gives readable text; an enum one
 of its values; a date, an instant, a time of day and a duration in 2026,
 each in the dialect's own literal; a uuid a version 4 value; binary data
 in the dialect's hex form; an email, a URI, a host name and an IP address
 in the ranges RFC 2606, RFC 5737 and RFC 3849 reserve for documentation,
 so no value is about a real person; a field's `examples` are the first
-rows' values and a `const` every row's. An optional field is NULL in one
+rows' values and a `const` every row's, read from the design's field
+when the column keeps a value object as JSON, each member of an object
+example typed by the schema's part, so a number stays a number. An optional field is NULL in one
 row of four. A value object kept in columns is present or absent as a
 whole, its required parts set whenever it is present, as the migration's
 presence check asks; one kept as JSON, a list of value objects and a map
@@ -811,13 +817,17 @@ row's hours and the actor `seed`, the soft-delete flag is false, and a
 value.
 
 A key and a unique constraint never repeat: a column of one counts up
-with the row where it can, and each tuple is checked against the rows
+with the row where it can, from after its `examples` and skipping a
+value an example holds, and each tuple is checked against the rows
 before; a check constraint is evaluated on every row as the validator
-evaluates a fixture's record, and a row that repeats a tuple or breaks a
-check is drawn again, up to a hundred times. A foreign key points at a
-row written earlier in the file, an optional one at NULL in one row of
-four, a relation to the entity itself at an earlier row of it, and a
-one-to-one relation at the row of the same rank.
+evaluates a fixture's record, a list read as its length, and a row that
+repeats a tuple or breaks a check is drawn again, up to a hundred times;
+the error names the key, unique or check the last draw failed. A
+foreign key points at a row written earlier in the file, an optional
+one at NULL in one row of four, a relation to the entity itself at an
+earlier row of it, and a one-to-one relation at the row of the same
+rank, NULL beyond the other side's rows when the relation is
+optional.
 
 What the file cannot hold is an error at the entry, the entity gets no
 rows, the file says so under the entity's comment, the rest is written
@@ -826,7 +836,8 @@ key and the salt of its hash are the service's, so such records are made
 through the service or the entity's rows set to 0; a required relation to
 an entity that gets no rows or that another stakeholder owns; a required
 relation the entity holds to itself; a cycle of required relations; a
-one-to-one relation with fewer rows across than the entity has; an
+required one-to-one relation with fewer rows across than the entity
+has; an
 entity no row of which satisfies its constraints in a hundred draws; a
 key or unique column whose values are fewer than the rows, such as a
 boolean or a small enum; a pattern using a word boundary, or giving no

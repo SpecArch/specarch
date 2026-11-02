@@ -38,23 +38,34 @@ decisions:
       follows its field: an integer, a number and a decimal inside the
       bounds, at the precision and scale, ten thousand wide where the
       design gives no maximum; text as the field's words and the row's
-      number within minLength and maxLength; a pattern through Go's own
-      regexp/syntax tree, each value matched back against the pattern; an
-      enum one of its values; a date, an instant, a time of day and a
+      number within minLength and maxLength, or the row's number padded
+      to minLength with the words' letters and zeros where the words do
+      not fit; a pattern through Go's own regexp/syntax tree, each value
+      matched back against the pattern, a character class drawn from its
+      printable ASCII when it holds any, so a negated class gives
+      readable text of one UTF-16 unit a rune; an enum one of its
+      values; a date, an instant, a time of day and a
       duration in 2026, each written in the dialect's literal; an email,
       a URI, a host name and an IP address in the ranges RFC 2606, RFC
       5737 and RFC 3849 reserve for documentation; a field's examples as
-      the first rows' values. A key and a unique constraint count up with
-      the row where they can and are checked as tuples otherwise, a row
-      that repeats one or breaks a check constraint is drawn again, up to
-      a hundred times, and an entity no row of which passes is an error
-      at the entity. A foreign key points at a row written before it, an
-      optional one at NULL in one row of four, a relation to the entity
-      itself at an earlier row, a one-to-one relation at the row of the
-      same rank; a required relation to an entity that gets no rows, a
-      required relation the entity holds to itself, a cycle of required
-      relations and a one-to-one relation with too few rows across are
-      errors at the entry, and the entity gets no rows, which the file
+      the first rows' values, read from the design's field when the
+      table keeps a value object as one JSON column, each member of an
+      object example typed by the schema's part. A key and a unique
+      constraint count up with the row where they can, from after the
+      examples and skipping a value an example holds, and are checked as
+      tuples otherwise, a row that repeats one or breaks a check
+      constraint is drawn again, up to a hundred times, and an entity no
+      row of which passes is an error at the entity naming the key,
+      unique or check the last draw failed. A check reads a list as its
+      length and an object as an object, as the validator reads a
+      fixture's record. A foreign key points at a row written before it,
+      an optional one at NULL in one row of four, a relation to the
+      entity itself at an earlier row, a one-to-one relation at the row
+      of the same rank, NULL beyond the other side's rows when the
+      relation is optional; a required relation to an entity that gets
+      no rows, a required relation the entity holds to itself, a cycle
+      of required relations and a required one-to-one relation with too
+      few rows across are errors at the entry, and the entity gets no rows, which the file
       says in a comment. A required field encrypted at rest is an error
       at the field. An optional field is NULL in one row of four; a value
       object kept in columns is present or absent as a whole, its

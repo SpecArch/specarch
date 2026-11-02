@@ -82,18 +82,22 @@ func TestDeterministic(t *testing.T) {
 	}
 }
 
-// Every dialect writes the file, each with its own literals.
+// Every dialect writes the file, each with its own literals for an
+// instant, a time of day, a duration and binary data drawn from the
+// case's fields.
 func TestDialects(t *testing.T) {
-	settings := map[string]any{"rows": map[string]any{"Author": 2, "Book": 2, "Review": 2}}
-	for dialect, want := range map[string]string{
-		"postgresql": "TIMESTAMP WITH TIME ZONE '2026-01-01 00:00:00+00'",
-		"sqlserver":  "'2026-01-01T00:00:00Z'",
-		"oracle":     "TIMESTAMP '2026-01-01 00:00:00 +00:00'",
-		"mariadb":    "'2026-01-01T00:00:00.000000000Z'",
+	settings := map[string]any{"rows": map[string]any{"Author": 2, "Book": 4, "Review": 2}}
+	for dialect, wants := range map[string][]*regexp.Regexp{
+		"postgresql": {regexp.MustCompile(`TIMESTAMP WITH TIME ZONE '2026-01-01 00:00:00\+00'`), regexp.MustCompile(`TIME '\d\d:\d\d:\d\d'`), regexp.MustCompile(`INTERVAL 'P(\dD)?T\d+H(\d+M)?'`), regexp.MustCompile(`'\\x[0-9a-f]{16}'`)},
+		"sqlserver":  {regexp.MustCompile(`'2026-01-01T00:00:00Z'`), regexp.MustCompile(`, '\d\d:\d\d:\d\d', '2026`), regexp.MustCompile(`'P(\dD)?T\d+H(\d+M)?'`), regexp.MustCompile(`0x[0-9A-F]{16}`)},
+		"oracle":     {regexp.MustCompile(`TIMESTAMP '2026-01-01 00:00:00 \+00:00'`), regexp.MustCompile(`INTERVAL '0 \d\d:\d\d:\d\d' DAY TO SECOND`), regexp.MustCompile(`INTERVAL '[01] \d\d:\d\d:00' DAY TO SECOND`), regexp.MustCompile(`HEXTORAW\('[0-9A-F]{16}'\)`)},
+		"mariadb":    {regexp.MustCompile(`'2026-01-01T00:00:00.000000000Z'`), regexp.MustCompile(`, '\d\d:\d\d:\d\d', '2026`), regexp.MustCompile(`'P(\dD)?T\d+H(\d+M)?'`), regexp.MustCompile(`X'[0-9A-F]{16}'`)},
 	} {
 		s := seedOf(t, request(t, caseProject, dialect, settings))
-		if !strings.Contains(s, want) {
-			t.Errorf("%s: no %s in\n%s", dialect, want, s)
+		for _, want := range wants {
+			if !want.MatchString(s) {
+				t.Errorf("%s: no %s in\n%s", dialect, want, s)
+			}
 		}
 	}
 }

@@ -42,7 +42,12 @@ func (g *gen) row(e string, t gensql.Table, parents []parent, i int64) (*row, bo
 			switch {
 			case len(rows) == 0:
 			case p.oneToOne:
-				pick = &rows[i]
+				// The row of the same rank; an optional relation holds
+				// NULL beyond the other side's rows (a required one is
+				// refused in fill).
+				if i < int64(len(rows)) {
+					pick = &rows[i]
+				}
 			case !p.required && g.rnd.chance(optionalOnceIn):
 			default:
 				pick = &rows[g.rnd.intn(int64(len(rows)))]
@@ -97,7 +102,10 @@ func (g *gen) row(e string, t gensql.Table, parents []parent, i int64) (*row, bo
 			}
 		}
 		r.values[c.Name] = v
-		if c.Role == "" && c.Field != "" && !hasPlan(plan, c.Name) && v.kind != kJSON && v.kind != kList {
+		// A list is given to the checks as its length and an object as
+		// an object, as the evaluator reads a fixture's record, so a check
+		// that reads one is evaluated rather than skipped.
+		if c.Role == "" && c.Field != "" && !hasPlan(plan, c.Name) {
 			r.fields[c.Field] = v.expression()
 		}
 	}
@@ -267,13 +275,59 @@ func words(name string) string {
 // names itself by, i the row and distinct whether the value counts up with
 // the row. It answers why no value can be drawn, or "".
 func (g *gen) fieldValue(def, orig map[string]any, label string, i int64, distinct bool) (value, string) {
-	typ, format := typeOf(def)
-	if c, ok := def["const"]; ok {
+	src := given(def, orig)
+	if c, ok := src["const"]; ok {
 		return g.fromExample(c, def, orig, label), ""
 	}
-	if examples := list(def["examples"]); int64(len(examples)) > i {
+	examples := list(src["examples"])
+	if int64(len(examples)) > i {
 		return g.fromExample(examples[i], def, orig, label), ""
 	}
+	if distinct && len(examples) > 0 {
+		// The rows after the examples count from the first counted
+		// value, skipping each value an example already holds, so a key
+		// or unique never repeats one.
+		taken := map[string]bool{}
+		for _, x := range examples {
+			taken[g.fromExample(x, def, orig, label).key()] = true
+		}
+		rank := i - int64(len(examples))
+		for j := int64(0); j <= i; j++ {
+			v, why := g.drawn(def, orig, label, j, true)
+			if why != "" {
+				return v, why
+			}
+			if taken[v.key()] {
+				continue
+			}
+			if rank == 0 {
+				return v, ""
+			}
+			rank--
+		}
+		return null, fmt.Sprintf("it is a key or unique and every value counted from its bounds repeats one of its %d examples; give it more examples or wider bounds", len(examples))
+	}
+	return g.drawn(def, orig, label, i, distinct)
+}
+
+// given is the definition a field's const and examples are read from: the
+// field itself, or the design's field when the table reads a value object
+// kept as JSON as one column, whose keywords it drops.
+func given(def, orig map[string]any) map[string]any {
+	if text(def["storage"]) == "json" && orig != nil {
+		if _, ok := def["examples"]; !ok {
+			if _, ok := def["const"]; !ok {
+				return orig
+			}
+		}
+	}
+	return def
+}
+
+// drawn draws a value for a field from its type, format and bounds, with
+// no example read; the arguments are fieldValue's.
+func (g *gen) drawn(def, orig map[string]any, label string, i int64, distinct bool) (value, string) {
+	typ, format := typeOf(def)
 	switch typ {
 	case "enum":
 		values := g.enumValues(def)
@@ -586,7 +640,9 @@ func (g *gen) patterned(def map[string]any, pattern string) (value, string) {
 }
 
 // plainText is "<label> <row>", repeated to the field's minLength and no
-// longer than its maxLength.
+// longer than its maxLength; where the label does not fit, the row's
+// number alone, padded to minLength with the label's letters and then
+// zeros, so a short code column still holds a value of its length.
 func (g *gen) plainText(def map[string]any, label string, i int64) (value, string) {
 	maxLength, _ := strconv.Atoi(text(def["maxLength"]))
 	minLength, _ := strconv.Atoi(text(def["minLength"]))
@@ -596,10 +652,18 @@ func (g *gen) plainText(def map[string]any, label string, i int64) (value, strin
 		s = label + " " + s
 	}
 	if maxLength > 0 && len([]rune(s)) > maxLength {
-		if len(n) > maxLength || minLength > maxLength {
-			return null, fmt.Sprintf("its maxLength %d holds neither %q nor the row's number; give the field examples", maxLength, s)
+		if len(n) > maxLength {
+			return null, fmt.Sprintf("its maxLength %d does not hold the row's number %s; give the field examples", maxLength, n)
 		}
-		s = n
+		if minLength > maxLength {
+			return null, fmt.Sprintf("its minLength %d is above its maxLength %d, so no value fits", minLength, maxLength)
+		}
+		letters := []rune(strings.ReplaceAll(label, " ", ""))
+		pad := minLength - len(n)
+		if pad > len(letters) {
+			pad = len(letters)
+		}
+		s = string(letters[:max(pad, 0)]) + strings.Repeat("0", max(minLength-len(n)-pad, 0)) + n
 	}
 	return textValue(s), ""
 }
@@ -648,18 +712,9 @@ func (g *gen) object(def, orig map[string]any, label string, i int64) (value, st
 		}
 	}
 	v := value{kind: kJSON, members: map[string]value{}}
-	ref := text(source["$ref"])
-	var schema map[string]any
-	switch {
-	case strings.HasPrefix(ref, "#/schemas/"):
-		schema = obj0(obj0(g.spec["schemas"])[strings.TrimPrefix(ref, "#/schemas/")])
-	case strings.HasPrefix(ref, "#/entities/"):
-		schema = obj0(obj0(g.spec["entities"])[strings.TrimPrefix(ref, "#/entities/")])
-	default:
-		schema = source
-	}
+	schema := g.schemaOf(source)
 	if schema == nil {
-		return null, fmt.Sprintf("%s names no schema of the specification", ref)
+		return null, fmt.Sprintf("%s names no schema of the specification", text(source["$ref"]))
 	}
 	props := obj0(schema["properties"])
 	if len(props) == 0 {
@@ -697,8 +752,41 @@ func (g *gen) object(def, orig map[string]any, label string, i int64) (value, st
 	return v, ""
 }
 
+// schemaOf is the schema an object field draws its parts from: the one
+// its $ref names, an entity's record, or the field's own properties; nil
+// when the $ref names nothing.
+func (g *gen) schemaOf(source map[string]any) map[string]any {
+	ref := text(source["$ref"])
+	switch {
+	case strings.HasPrefix(ref, "#/schemas/"):
+		return obj0(obj0(g.spec["schemas"])[strings.TrimPrefix(ref, "#/schemas/")])
+	case strings.HasPrefix(ref, "#/entities/"):
+		return obj0(obj0(g.spec["entities"])[strings.TrimPrefix(ref, "#/entities/")])
+	}
+	return source
+}
+
+// partOf is the definition of one member of an object example: the
+// schema's part of that name, the additionalProperties schema of a map,
+// or an empty definition.
+func (g *gen) partOf(def, orig map[string]any, member string) map[string]any {
+	source := def
+	if text(def["storage"]) == "json" && orig != nil {
+		source = orig
+	}
+	schema := g.schemaOf(source)
+	if pd := obj0(obj0(schema["properties"])[member]); pd != nil {
+		return pd
+	}
+	if extra := obj0(schema["additionalProperties"]); extra != nil {
+		return extra
+	}
+	return map[string]any{}
+}
+
 // fromExample turns an example, a const or a default the design writes
-// into a value of the field's type.
+// into a value of the field's type: each member of an object by the
+// schema's part it is, each item of a list by the field's items.
 func (g *gen) fromExample(x any, def, orig map[string]any, label string) value {
 	typ, format := typeOf(def)
 	switch e := x.(type) {
@@ -712,6 +800,13 @@ func (g *gen) fromExample(x any, def, orig map[string]any, label string) value {
 		case format == "decimal":
 			return value{kind: kDecimal, text: e.String()}
 		case typ == "number":
+			f, _ := e.Float64()
+			return value{kind: kDouble, f: f}
+		case typ == "" || typ == "object":
+			// A member no part types stays a number.
+			if n, err := e.Int64(); err == nil {
+				return value{kind: kInt, num: n}
+			}
 			f, _ := e.Float64()
 			return value{kind: kDouble, f: f}
 		}
@@ -746,8 +841,11 @@ func (g *gen) fromExample(x any, def, orig map[string]any, label string) value {
 		}
 		return textValue(e)
 	case []any:
-		v := value{kind: kList, items: []value{}}
+		v := value{kind: kList, items: []value{}, json: text(def["storage"]) == "json"}
 		items := obj0(def["items"])
+		if items == nil && text(def["storage"]) == "json" {
+			items = obj0(orig["items"])
+		}
 		for _, it := range e {
 			v.items = append(v.items, g.fromExample(it, items, obj0(orig["items"]), label))
 		}
@@ -755,7 +853,8 @@ func (g *gen) fromExample(x any, def, orig map[string]any, label string) value {
 	case map[string]any:
 		v := value{kind: kJSON, members: map[string]value{}}
 		for _, k := range sortedKeys(e) {
-			v.members[k] = g.fromExample(e[k], map[string]any{}, nil, words(k))
+			pd := g.partOf(def, orig, k)
+			v.members[k] = g.fromExample(e[k], pd, pd, words(k))
 		}
 		return v
 	}

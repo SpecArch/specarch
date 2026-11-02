@@ -323,9 +323,9 @@ func (g *gen) fill(e string) {
 			g.problem(at, "%s needs a row of %s for each of its rows through %s, and %s has none (%s); set rows.%s: 0 as well, or give %s rows", e, p.entity, p.fk.Relation, p.entity, why, e, p.entity)
 			g.out[e] = "it needs a row of " + p.entity + ", and " + p.entity + " has none"
 			return
-		case p.oneToOne && int64(len(g.made[p.entity])) < n:
-			g.problem(at+"/relations/"+p.fk.Relation, "%s has %d rows, and its one-to-one relation %s needs a row of %s for each, and %s has %d; give %s at least %d rows, or %s at most %d", e, n, p.fk.Relation, p.entity, p.entity, len(g.made[p.entity]), p.entity, n, e, len(g.made[p.entity]))
-			g.out[e] = "its one-to-one relation " + p.fk.Relation + " has too few " + p.entity + " rows"
+		case p.oneToOne && p.required && int64(len(g.made[p.entity])) < n:
+			g.problem(at+"/relations/"+p.fk.Relation, "%s has %d rows, and its required one-to-one relation %s needs a row of %s for each, and %s has %d; give %s at least %d rows or %s at most %d, or make the relation optional, so the rows beyond hold NULL", e, n, p.fk.Relation, p.entity, p.entity, len(g.made[p.entity]), p.entity, n, e, len(g.made[p.entity]))
+			g.out[e] = "its required one-to-one relation " + p.fk.Relation + " has too few " + p.entity + " rows"
 			return
 		}
 	}
@@ -333,23 +333,25 @@ func (g *gen) fill(e string) {
 	seen := g.seenSets(t)
 	for i := int64(0); i < n; i++ {
 		var kept *row
-		var why string
+		var why, advice string
 		for attempt := 0; attempt < attempts && kept == nil; attempt++ {
 			r, ok := g.row(e, t, parents, i)
 			if !ok {
 				return // the field is reported
 			}
-			if !g.distinct(t, r, seen, false) {
-				why = "two rows would hold the same key or unique values"
+			if repeated := g.distinct(t, r, seen, false); repeated != "" {
+				why = "it repeated " + repeated + " of an earlier row"
+				advice = "give its columns more values to draw from (wider bounds, more enum values or examples)"
 				continue
 			}
 			if why = g.satisfies(e, r); why != "" {
+				advice = "give the fields the constraint reads bounds or examples a row can satisfy"
 				continue
 			}
 			kept = r
 		}
 		if kept == nil {
-			g.problem(at, "no row of %s satisfied its constraints in %d tries, the last one failing because %s; give the fields the constraint reads bounds or examples a row can satisfy, or set rows.%s: 0", e, attempts, why, e)
+			g.problem(at, "no row of %s satisfied its constraints in %d tries, the last one failing because %s; %s, or set rows.%s: 0", e, attempts, why, advice, e)
 			g.out[e] = "no row satisfied its constraints"
 			g.made[e] = nil
 			return
@@ -359,27 +361,38 @@ func (g *gen) fill(e string) {
 	}
 }
 
-// seenSets is one set per key and unique constraint of a table, of the
-// value tuples its rows hold.
-func (g *gen) seenSets(t gensql.Table) [][]any {
-	var sets [][]any
+// seenSet is the value tuples the rows written so far hold in one key or
+// unique constraint.
+type seenSet struct {
+	name    string // how a message names it
+	columns []string
+	seen    map[string]bool
+}
+
+// seenSets is one set per key and unique constraint of a table.
+func (g *gen) seenSets(t gensql.Table) []*seenSet {
+	var sets []*seenSet
 	if len(t.Keys.PrimaryKey) > 0 {
-		sets = append(sets, []any{t.Keys.PrimaryKey, map[string]bool{}})
+		sets = append(sets, &seenSet{name: "the primary key (" + strings.Join(t.Keys.PrimaryKey, ", ") + ")", columns: t.Keys.PrimaryKey, seen: map[string]bool{}})
 	}
 	for _, u := range t.Keys.Uniques {
-		sets = append(sets, []any{u.Columns, map[string]bool{}})
+		name := "the unique constraint " + u.Constraint
+		if u.Constraint == "" {
+			name = "the unique constraint " + u.Name
+		}
+		sets = append(sets, &seenSet{name: name + " (" + strings.Join(u.Columns, ", ") + ")", columns: u.Columns, seen: map[string]bool{}})
 	}
 	return sets
 }
 
-// distinct reports whether a row's key and unique tuples are new, and
-// records them when record is set.
-func (g *gen) distinct(t gensql.Table, r *row, sets [][]any, record bool) bool {
+// distinct names the first key or unique constraint whose tuple a row
+// repeats, or answers "" when every tuple is new, and records the tuples
+// when record is set.
+func (g *gen) distinct(t gensql.Table, r *row, sets []*seenSet, record bool) string {
 	for _, s := range sets {
-		cols, seen := s[0].([]string), s[1].(map[string]bool)
 		var parts []string
 		allNull := true
-		for _, c := range cols {
+		for _, c := range s.columns {
 			v := r.values[c]
 			if v.kind != kNull {
 				allNull = false
@@ -390,14 +403,14 @@ func (g *gen) distinct(t gensql.Table, r *row, sets [][]any, record bool) bool {
 			continue // two NULLs are distinct in a unique constraint
 		}
 		k := strings.Join(parts, "\x00")
-		if seen[k] && !record {
-			return false
+		if s.seen[k] && !record {
+			return s.name
 		}
 		if record {
-			seen[k] = true
+			s.seen[k] = true
 		}
 	}
-	return true
+	return ""
 }
 
 // parseChecks parses an entity's check constraints once.

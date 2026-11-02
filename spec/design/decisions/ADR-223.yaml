@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+# Written by specarch decide; answers Q-3. Edit it as any decision.
+decisions:
+  ADR-223:
+    title: Are the causes of a change omitted, wrong and changed, required once a change is analysed?
+    status: accepted
+    date: "2026-10-31"
+    context: |-
+      Q-3 asked: Are the causes of a change omitted, wrong and changed,
+      required once a change is analysed? The options were: Yes: omitted,
+      wrong and changed, required once analysed; Yes, with a fourth value,
+      unheard: the stakeholder who uses it was absent or never asked when the
+      requirement was taken; No: the cause stays free text in the reason. It
+      blocked #/decisions/ADR-083. The cause keeps apart what measures the
+      requirements work from what is normal change; a value that is not in the
+      list cannot be counted.
+    decision: |-
+      Yes, with a fourth value. The cause of a change is omitted (the
+      specification left it out), wrong (the specification said it, and it was
+      not what was meant), changed (the specification said what was meant, and
+      the need changed after it was written) or unheard (the stakeholder who
+      uses it was absent or never asked when the requirement was taken),
+      required once the change is analysed. Every value carries a plain
+      description of what it means and when to pick it, in the schema, the
+      documents and the help, and the releases document counts a release's
+      changes by cause.
+    consequences: |-
+      This decision rests on ADR-083, which stays as it is written unless this
+      decision supersedes it.
+    answers: [Q-3]
+    decidedBy: owner
+    restsOn: [ADR-083]
+    origin: stated
+    cites:
+      - {source: owner-review-2026-10-31, says: 'Yes, with a fourth value. The cause of a change is omitted (the specification left it out), wrong (the specification said it, and it was not what was meant), changed (the specification said what was meant, and the need changed after it was written) or unheard (the stakeholder who uses it was absent or never asked when the requirement was taken), required once the change is analysed. Every value carries a plain description of what it means and when to pick it, in the schema, the documents and the help, and the releases document counts a release''s changes by cause.'}

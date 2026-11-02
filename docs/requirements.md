@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 5 stakeholders, 10 needs and 118 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 118 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -24,6 +24,7 @@ Owners: specarch-maintainers.
 | reviewer | A person who reviews a specification or the documents made from it before work starts. | Every design element traces to a requirement, and every requirement to a test; The reasoning behind a choice is written next to it |
 | operator | A person who installs, releases and runs the built system. | Release, rollback and commissioning are written down and checkable |
 | ci-job | The continuous-integration job that checks every change of a project that uses SpecArch. | Every check runs with one command and answers with an exit status |
+| owner | The person who owns SpecArch, decides its design where a question is put to them, and approves its releases. | A design choice put to them is explained in plain words with an example, so it can be settled in one reading; What was decided, by whom and on what date is written in the specification, not in a conversation |
 
 **Note on specification-author:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: Stakeholders are identified at the start, and their needs are the input to every requirement. <https://www.iso.org/standard/72089.html>
 

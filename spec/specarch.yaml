@@ -142,6 +142,11 @@ sources:
     title: OWASP Session Management Cheat Sheet
     author: OWASP
     url: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
+  owner-review-2026-10-31:
+    kind: interview
+    title: The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled
+    date: "2026-10-31"
+    participants: [owner]
   iso-12207:
     kind: standard
     title: ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes

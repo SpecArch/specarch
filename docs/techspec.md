@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 118 requirements, 5 entities, 27 commands, 7 algorithms, 951 tests, 206 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 118 requirements, 5 entities, 27 commands, 7 algorithms, 951 tests, 210 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -24,6 +24,7 @@ Owners: specarch-maintainers.
 | reviewer | A person who reviews a specification or the documents made from it before work starts. | Every design element traces to a requirement, and every requirement to a test; The reasoning behind a choice is written next to it |
 | operator | A person who installs, releases and runs the built system. | Release, rollback and commissioning are written down and checkable |
 | ci-job | The continuous-integration job that checks every change of a project that uses SpecArch. | Every check runs with one command and answers with an exit status |
+| owner | The person who owns SpecArch, decides its design where a question is put to them, and approves its releases. | A design choice put to them is explained in plain words with an example, so it can be settled in one reading; What was decided, by whom and on what date is written in the specification, not in a conversation |
 
 **Note on specification-author:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: Stakeholders are identified at the start, and their needs are the input to every requirement. <https://www.iso.org/standard/72089.html>
 
@@ -8990,7 +8991,7 @@ field name; moving them to with is open.
 
 ### ADR-083: A result is shown early and traced to its elements, and a remark from acceptance comes back as a change request that becomes a decision, a question or a rejection
 
-Status: proposed, 2026-10-09.
+Status: accepted, 2026-10-09.
 
 Context: People never write a complete specification. Some of it is left
 out, some is wrong in a way nobody sees until the system is in
@@ -9014,7 +9015,7 @@ environment with trace true shows it to the tester and sends it in
 an answer header, and no other environment shows it. A remark is a
 change or defect record with phase acceptance, the build it is
 against, where it was seen, what was observed and expected, and for
-a change its cause: omitted, wrong or changed. Its analysis ends in
+a change its cause: omitted, wrong, changed or unheard. Its analysis ends in
 a decision that names the change request under answers, with the
 elements it changes carrying origin decided; in an open question
 the change names; or in a rejection. The changes document shows
@@ -9027,11 +9028,11 @@ the same version.
 Consequences: The record schema, both validator builds, the generators, the
 changes and releases documents and the deployment stage gain what
 docs/acceptance.md lists, in the steps it numbers. A decision may
-name a change request, the one link from the specification to a
-record. Until the marked draft is built, a preview before approval
-still needs --unapproved.
+name a change request, a link from the specification to a record,
+beside a citation of a communication record. The marked draft of
+generate --unapproved is the build a tester runs before approval.
 
-**Insight:** A specification that compiles can still be the wrong one, and only the people who use the system find out, by looking at it. A remark that cannot name the element it is about is applied by guesswork, and one applied to the generated code instead of the specification is overwritten by the next generation. The JSON pointer is the id the records, the problems and diff already use, so a tester's remark lands where the analyst works without a second id scheme. A pointer names the inside of the system, so it is shown only where a tester needs it. The cause keeps apart what measures the requirements work (omitted and wrong) from what is normal change, and a defect stays measured against the specification, so triage still has a reference. Approval stays of exactly what was read, as ADR-019 says; diff makes reading again cheap without approving part of a specification. Points for the owner are listed in the last section of docs/acceptance.md.
+**Insight:** A specification that compiles can still be the wrong one, and only the people who use the system find out, by looking at it. A remark that cannot name the element it is about is applied by guesswork, and one applied to the generated code instead of the specification is overwritten by the next generation. The JSON pointer is the id the records, the problems and diff already use, so a tester's remark lands where the analyst works without a second id scheme. A pointer names the inside of the system, so it is shown only where a tester needs it. The cause keeps apart what measures the requirements work (omitted and wrong) from what is normal change, and a defect stays measured against the specification, so triage still has a reference. Approval stays of exactly what was read, as ADR-019 says; diff makes reading again cheap without approving part of a specification. The owner settled the four points of docs/acceptance.md, section 8, on 2026-10-31, in ADR-221 to ADR-224, which rest on this decision.
 
 **Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.11: The validation process provides objective evidence that the system fulfils its intended use in its intended operational environment. <https://www.iso.org/standard/63712.html>
 
@@ -17213,6 +17214,135 @@ out of the documents for everyone.
 
 **Note:** From Documenting architecture decisions, 2011: A decision record holds the context, the decision and its consequences; a decision is superseded by a later one rather than edited. <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>
 
+### ADR-221: Does a decision name the change request it settles under answers, a link from the specification to a record, or does the change's decision name the decision record while the specification stays silent about records?
+
+Status: accepted, 2026-10-31.
+
+Rests on: [ADR-083](#adr-083-a-result-is-shown-early-and-traced-to-its-elements-and-a-remark-from-acceptance-comes-back-as-a-change-request-that-becomes-a-decision-a-question-or-a-rejection).
+
+Context: Q-1 asked: Does a decision name the change request it settles under
+answers, a link from the specification to a record, or does the change's
+decision name the decision record while the specification stays silent
+about records? The options were: A decision names the change request
+under answers, as it names a question; docs/maintenance.md names this
+one exception; The change's decision names the decision record, and the
+specification stays silent about records. It blocked
+#/decisions/ADR-083. A decision is the specification's own account of
+why an element is as it is; whether the request it settles is part of
+that account decides where the one link lives.
+
+Decision: A decision names the change request it settles under answers, as a
+decision names the question it answers, with decidedBy and cites; the
+elements it changes carry origin decided and decidedIn. This is a link
+from the specification to a record, and docs/maintenance.md names it as
+one of the two exceptions to the rule that the specification never
+points back at its records, beside a citation of a communication record.
+The alternative, the change's decision naming the decision record while
+the specification stays silent, was not taken: the request a decision
+settles is part of the specification's own account of why an element is
+as it is, as the question is.
+
+Consequences: This decision rests on ADR-083, which stays as it is written unless this
+decision supersedes it.
+
+**Origin:** stated in The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled.
+
+**Note:** From The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled: A decision names the change request it settles under answers, as a decision names the question it answers, with decidedBy and cites; the elements it changes carry origin decided and decidedIn. This is a link from the specification to a record, and docs/maintenance.md names it as one of the two exceptions to the rule that the specification never points back at its records, beside a citation of a communication record. The alternative, the change's decision naming the decision record while the specification stays silent, was not taken: the request a decision settles is part of the specification's own account of why an element is as it is, as the question is.
+
+### ADR-222: Is the trace shown only in an environment with trace true, the last environment showing it a warning, or in every build except that of the last environment, with no key?
+
+Status: accepted, 2026-10-31.
+
+Rests on: [ADR-083](#adr-083-a-result-is-shown-early-and-traced-to-its-elements-and-a-remark-from-acceptance-comes-back-as-a-change-request-that-becomes-a-decision-a-question-or-a-rejection).
+
+Context: Q-2 asked: Is the trace shown only in an environment with trace true,
+the last environment showing it a warning, or in every build except that
+of the last environment, with no key? The options were: Only in an
+environment with trace: true, such as a user acceptance test
+environment; trace: true on the last environment, the one with no
+promotesTo, is a warning; In every build except that of the last
+environment, with no key. It blocked #/decisions/ADR-083. The second
+option takes the trace away from a project whose last environment is not
+its production, or that tests in it.
+
+Decision: The trace is shown only in an environment whose entry says trace true,
+such as a user acceptance test environment: its builds carry the pointer
+in the web UI's data attributes and overlay and in the answer header. An
+environment that promotes to none, the last one, with trace true is a
+warning at that key, since it shows the inside of the system to its
+users. The alternative, showing the trace in every build except that of
+the last environment with no key, was not taken: it takes the trace away
+from a project whose last environment is not its production, or that
+tests in it.
+
+Consequences: This decision rests on ADR-083, which stays as it is written unless this
+decision supersedes it.
+
+**Origin:** stated in The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled.
+
+**Note:** From The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled: The trace is shown only in an environment whose entry says trace true, such as a user acceptance test environment: its builds carry the pointer in the web UI's data attributes and overlay and in the answer header. An environment that promotes to none, the last one, with trace true is a warning at that key, since it shows the inside of the system to its users. The alternative, showing the trace in every build except that of the last environment with no key, was not taken: it takes the trace away from a project whose last environment is not its production, or that tests in it.
+
+### ADR-223: Are the causes of a change omitted, wrong and changed, required once a change is analysed?
+
+Status: accepted, 2026-10-31.
+
+Rests on: [ADR-083](#adr-083-a-result-is-shown-early-and-traced-to-its-elements-and-a-remark-from-acceptance-comes-back-as-a-change-request-that-becomes-a-decision-a-question-or-a-rejection).
+
+Context: Q-3 asked: Are the causes of a change omitted, wrong and changed,
+required once a change is analysed? The options were: Yes: omitted,
+wrong and changed, required once analysed; Yes, with a fourth value,
+unheard: the stakeholder who uses it was absent or never asked when the
+requirement was taken; No: the cause stays free text in the reason. It
+blocked #/decisions/ADR-083. The cause keeps apart what measures the
+requirements work from what is normal change; a value that is not in the
+list cannot be counted.
+
+Decision: Yes, with a fourth value. The cause of a change is omitted (the
+specification left it out), wrong (the specification said it, and it was
+not what was meant), changed (the specification said what was meant, and
+the need changed after it was written) or unheard (the stakeholder who
+uses it was absent or never asked when the requirement was taken),
+required once the change is analysed. Every value carries a plain
+description of what it means and when to pick it, in the schema, the
+documents and the help, and the releases document counts a release's
+changes by cause.
+
+Consequences: This decision rests on ADR-083, which stays as it is written unless this
+decision supersedes it.
+
+**Origin:** stated in The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled.
+
+**Note:** From The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled: Yes, with a fourth value. The cause of a change is omitted (the specification left it out), wrong (the specification said it, and it was not what was meant), changed (the specification said what was meant, and the need changed after it was written) or unheard (the stakeholder who uses it was absent or never asked when the requirement was taken), required once the change is analysed. Every value carries a plain description of what it means and when to pick it, in the schema, the documents and the help, and the releases document counts a release's changes by cause.
+
+### ADR-224: Does approval stay whole, with the cost of approving again kept down by diff against the approval, or may part of a specification be approved?
+
+Status: accepted, 2026-10-31.
+
+Rests on: [ADR-083](#adr-083-a-result-is-shown-early-and-traced-to-its-elements-and-a-remark-from-acceptance-comes-back-as-a-change-request-that-becomes-a-decision-a-question-or-a-rejection).
+
+Context: Q-4 asked: Does approval stay whole, with the cost of approving again
+kept down by diff against the approval, or may part of a specification
+be approved? The options were: Approval stays whole; diff between the
+approved specification and the working tree shows the approver only what
+changed; Part of a specification may be approved. It blocked
+#/decisions/ADR-083. ADR-019 approves exactly what was read; an approval
+of a part is an approval of a digest no document shows.
+
+Decision: Approval stays whole: the digest is over every file, because approval is
+of exactly what was read (ADR-019). The cost of approving again is kept
+down by diff, not by approving part of a specification: the approval
+record gains the commit it was made at, and diff between that commit and
+the working tree lists every changed element with the change request or
+defect that covers it, its version check skipped when both sides have
+the same info.version.
+
+Consequences: This decision rests on ADR-083, which stays as it is written unless this
+decision supersedes it.
+
+**Origin:** stated in The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled.
+
+**Note:** From The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled: Approval stays whole: the digest is over every file, because approval is of exactly what was read (ADR-019). The cost of approving again is kept down by diff, not by approving part of a specification: the approval record gains the commit it was made at, and diff between that commit and the working tree lists every changed element with the change request or defect that covers it, its version check skipped when both sides have the same info.version.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -18755,6 +18885,7 @@ Every source a Note in this document cites.
 | owasp-asvs | OWASP Application Security Verification Standard, chapter V16, Security Logging and Error Handling | 5.0.0 | OWASP | https://github.com/OWASP/ASVS/blob/master/5.0/en/0x25-V16-Security-Logging-and-Error-Handling.md |
 | owasp-authorization | OWASP Authorization Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html |
 | owasp-session-management | OWASP Session Management Cheat Sheet |   | OWASP | https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html |
+| owner-review-2026-10-31 | The owner's review of the acceptance loop, ADR-083 section 8, with the four points settled |   |   |   |
 | posix-signal | The Open Group Base Specifications Issue 8, signal.h | 2024 | IEEE and The Open Group | https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/signal.h.html |
 | postgresql-datetime | PostgreSQL 17 Documentation, 8.5 Date/Time Types | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/datatype-datetime.html |
 | postgresql-row-security | PostgreSQL documentation, Row Security Policies and CREATE POLICY | 17 | The PostgreSQL Global Development Group | https://www.postgresql.org/docs/17/ddl-rowsecurity.html |

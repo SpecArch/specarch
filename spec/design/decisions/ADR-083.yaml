@@ -2,7 +2,7 @@
 decisions:
   ADR-083:
     title: A result is shown early and traced to its elements, and a remark from acceptance comes back as a change request that becomes a decision, a question or a rejection
-    status: proposed
+    status: accepted
     date: "2026-10-09"
     context: |
       People never write a complete specification. Some of it is left
@@ -27,7 +27,7 @@ decisions:
       an answer header, and no other environment shows it. A remark is a
       change or defect record with phase acceptance, the build it is
       against, where it was seen, what was observed and expected, and for
-      a change its cause: omitted, wrong or changed. Its analysis ends in
+      a change its cause: omitted, wrong, changed or unheard. Its analysis ends in
       a decision that names the change request under answers, with the
       elements it changes carrying origin decided; in an open question
       the change names; or in a rejection. The changes document shows
@@ -40,9 +40,9 @@ decisions:
       The record schema, both validator builds, the generators, the
       changes and releases documents and the deployment stage gain what
       docs/acceptance.md lists, in the steps it numbers. A decision may
-      name a change request, the one link from the specification to a
-      record. Until the marked draft is built, a preview before approval
-      still needs --unapproved.
+      name a change request, a link from the specification to a record,
+      beside a citation of a communication record. The marked draft of
+      generate --unapproved is the build a tester runs before approval.
     why: |
       A specification that compiles can still be the wrong one, and only
       the people who use the system find out, by looking at it. A remark
@@ -57,8 +57,9 @@ decisions:
       and a defect stays measured against the specification, so triage
       still has a reference. Approval stays of exactly what was read, as
       ADR-019 says; diff makes reading again cheap without approving part
-      of a specification. Points for the owner are listed in the last
-      section of docs/acceptance.md.
+      of a specification. The owner settled the four points of
+      docs/acceptance.md, section 8, on 2026-10-31, in ADR-221 to
+      ADR-224, which rest on this decision.
     satisfies: [SA-57]
     cites:
       - source: iso-12207

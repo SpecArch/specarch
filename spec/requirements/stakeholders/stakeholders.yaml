@@ -27,3 +27,8 @@ stakeholders:
     description: The continuous-integration job that checks every change of a project that uses SpecArch.
     concerns:
       - Every check runs with one command and answers with an exit status.
+  owner:
+    description: The person who owns SpecArch, decides its design where a question is put to them, and approves its releases.
+    concerns:
+      - A design choice put to them is explained in plain words with an example, so it can be settled in one reading.
+      - What was decided, by whom and on what date is written in the specification, not in a conversation.

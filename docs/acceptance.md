@@ -6,10 +6,9 @@ the system is in front of them, and the people who will use the system
 come to the user acceptance test, not to the requirements meetings. What
 they bring is a change request about something they saw. This document
 designs the loop that takes such a remark back into the specification and
-out again in the next build. The decision is ADR-083, which is proposed
-until the owner settles the points in its last section; nothing here is
-built yet except the principle and the marked draft, and the steps are
-listed at the end.
+out again in the next build. The decision is ADR-083, accepted; the four
+points the owner settled on 2026-10-31 are ADR-221 to ADR-224, and
+section 8 says what each decided. The steps are listed in section 7.
 
 In short:
 
@@ -24,7 +23,8 @@ In short:
 - A remark is a change request record, with who asked, when, against
   which build, where they saw it, what they saw and what they expected,
   and why the result was not what was wanted: the specification left it
-  out, said it wrongly, or was right and the need changed. A remark that
+  out, said it wrongly, was right and the need changed, or the people who
+  use it were never asked. A remark that
   is the system not doing what the specification says is a defect.
 - The remark enters the specification as a decision (a decision record
   that names the change request, and elements with origin decided), as a
@@ -140,9 +140,9 @@ rules (`docs/maintenance.md`). They gain what a remark on a build needs:
 |---|---|---|
 | `phase` | change, defect | `development`, `acceptance` or `production`: acceptance is a remark made at the user acceptance test, on a build that is not released |
 | `against` | change, defect | the build the remark is about: `version` (the specification's `info.version`, a pre-release one included), `digest` (the specification's digest the build names), `environment` (a key of the deployment stage) and `build` (the commit or build id, as in a commissioning record). Required in the acceptance phase. A defect keeps its own `environment` and has no second one under `against` |
-| `seenAt` | change, defect | the pointers the tester copied from the trace: where it showed, before anyone has analysed what changes |
+| `seenAt` | change, defect | the pointers the tester copied from the trace: where it showed, before anyone has analysed what changes. Checked to resolve while the change or defect is open, since what it points at may be removed by the change itself |
 | `observed`, `expected` | change, defect | what the tester saw, and what they expected, in their words. Required in the acceptance phase |
-| `cause` | change | why the result was not what was wanted: `omitted` (the specification did not say it), `wrong` (the specification said it, and it was not what was meant) or `changed` (the specification said what was meant, and the need changed). Required once the change is analysed |
+| `cause` | change | why the result was not what was wanted: `omitted` (the specification left it out: nobody wrote it, and nobody was asked about it), `wrong` (the specification said it, and it was not what was meant), `changed` (the specification said what was meant, and the need changed after it was written) or `unheard` (the stakeholder who uses it was absent or never asked when the requirement was taken; pick it when the `unheard` warning, a session they missed or a communication record shows they were not heard). Required once the change is analysed, rejected included |
 | `questions` | change | the questions the analysis wrote, by ID. The IDs are text, as in a decision's `answers`, since an answered question leaves the specification; only a change still open (proposed or analysed) has them checked to be questions of the specification |
 
 `raisedBy` on a change and `reportedBy` on a defect stay a role, a stakeholder key of the specification, never a
@@ -151,7 +151,7 @@ no customer data: a record is read by more people than a ticket system.
 
 ### Spec wrong, spec silent, need changed, system wrong
 
-Four answers to "why is this not what I wanted" are all normal, and the
+Five answers to "why is this not what I wanted" are all normal, and the
 records keep them apart:
 
 | What happened | Record | Measured against |
@@ -160,12 +160,16 @@ records keep them apart:
 | The specification did not say it | change, `cause: omitted` | what the users need |
 | The specification said it, and it was not what was meant | change, `cause: wrong` | what the users need |
 | The specification was right, and the need changed | change, `cause: changed` | what the users need now |
+| The specification was written without the people who use it | change, `cause: unheard` | what the users need, asked of them |
 
 A defect triaged `not-a-defect` names the change it became, and that
-change's `cause` says which of the other three it was. The `changes`
+change's `cause` says which of the other four it was. The `releases`
 document counts each release's changes by cause; a release with many
-omitted and wrong says the requirements work left gaps, and a release
-with many changed says only that the need moved.
+omitted, wrong or unheard says the requirements work left gaps, and a
+release with many changed says only that the need moved. Unheard is
+kept apart from omitted because its remedy is different: not a better
+pen, but a chair at the table for the role the `unheard` warning
+names.
 
 ### Analysis: a decision, a question or a rejection
 
@@ -273,7 +277,7 @@ a step below.
 ## 7. Steps
 
 1. **The principle and this design** (built): `docs/principles.md`, the
-   check in `CLAUDE.md`, this document, ADR-083 (proposed) and SA-57.
+   check in `CLAUDE.md`, this document, ADR-083 and SA-57.
 2. **The records for acceptance**: `phase: acceptance`, `against`,
    `seenAt`, `observed`, `expected`, `cause` and `questions` in the record
    schema and both validator builds, with their references checked under
@@ -307,21 +311,33 @@ a step below.
    `info.version`, so the approver of a second round reads only what
    changed.
 
-## 8. For the owner to decide
+## 8. What the owner decided
 
-ADR-083 stays proposed until these are settled:
+The owner settled these on 2026-10-31; each is a decision of the
+specification resting on ADR-083, and ADR-083 is accepted.
 
-1. A decision names the change request it settles under `answers`, a link
-   from the specification to a record, which `docs/maintenance.md`
-   otherwise does not make (section 3). The alternative keeps every link
-   in the record: the change's `decision` names the decision record, and
-   the specification stays silent about records.
-2. The trace is shown only in an environment with `trace: true`, and the
-   last environment showing it is a warning. The alternative shows it in
-   every build except that of the last environment, the one with no
-   `promotesTo`, without a key; that takes the trace away from a project
-   whose last environment is not its production, or that tests in it.
-3. The causes `omitted`, `wrong` and `changed`, required once a change is
-   analysed.
-4. Approval stays whole, and the cost of approving again is kept down by
-   `diff`, not by approving part of a specification.
+1. **A decision names the change request it settles under `answers`**
+   (ADR-221), as it names a question, with `decidedBy` and `cites`; the
+   elements it changes carry `origin: decided` and `decidedIn`. It is a
+   link from the specification to a record, and `docs/maintenance.md`
+   names it as one of the two exceptions to the rule that the
+   specification never points back at its records, beside a citation of
+   a communication record. The alternative, the change's `decision`
+   naming the decision record while the specification stays silent, was
+   not taken: the request a decision settles is part of the
+   specification's own account of why an element is as it is.
+2. **The trace is shown only in an environment with `trace: true`**
+   (ADR-222), such as a user acceptance test environment, and the last
+   environment, the one with no `promotesTo`, showing it is a warning.
+   The alternative, every build except the last environment's without a
+   key, takes the trace away from a project whose last environment is not
+   its production, or that tests in it.
+3. **Four causes, required once a change is analysed** (ADR-223):
+   `omitted`, `wrong`, `changed` and `unheard`, each with a plain
+   description of what it means and when to pick it, in the schema, the
+   documents and the help; the `releases` document counts a release's
+   changes by cause.
+4. **Approval stays whole** (ADR-224): the digest is over every file,
+   because approval is of exactly what was read (ADR-019). The cost of
+   approving again is kept down by `diff` against the approval's
+   `commit`, not by approving part of a specification.

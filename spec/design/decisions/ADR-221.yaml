@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+# Written by specarch decide; answers Q-1. Edit it as any decision.
+decisions:
+  ADR-221:
+    title: Does a decision name the change request it settles under answers, a link from the specification to a record, or does the change's decision name the decision record while the specification stays silent about records?
+    status: accepted
+    date: "2026-10-31"
+    context: |-
+      Q-1 asked: Does a decision name the change request it settles under
+      answers, a link from the specification to a record, or does the change's
+      decision name the decision record while the specification stays silent
+      about records? The options were: A decision names the change request
+      under answers, as it names a question; docs/maintenance.md names this
+      one exception; The change's decision names the decision record, and the
+      specification stays silent about records. It blocked
+      #/decisions/ADR-083. A decision is the specification's own account of
+      why an element is as it is; whether the request it settles is part of
+      that account decides where the one link lives.
+    decision: |-
+      A decision names the change request it settles under answers, as a
+      decision names the question it answers, with decidedBy and cites; the
+      elements it changes carry origin decided and decidedIn. This is a link
+      from the specification to a record, and docs/maintenance.md names it as
+      one of the two exceptions to the rule that the specification never
+      points back at its records, beside a citation of a communication record.
+      The alternative, the change's decision naming the decision record while
+      the specification stays silent, was not taken: the request a decision
+      settles is part of the specification's own account of why an element is
+      as it is, as the question is.
+    consequences: |-
+      This decision rests on ADR-083, which stays as it is written unless this
+      decision supersedes it.
+    answers: [Q-1]
+    decidedBy: owner
+    restsOn: [ADR-083]
+    origin: stated
+    cites:
+      - {source: owner-review-2026-10-31, says: 'A decision names the change request it settles under answers, as a decision names the question it answers, with decidedBy and cites; the elements it changes carry origin decided and decidedIn. This is a link from the specification to a record, and docs/maintenance.md names it as one of the two exceptions to the rule that the specification never points back at its records, beside a citation of a communication record. The alternative, the change''s decision naming the decision record while the specification stays silent, was not taken: the request a decision settles is part of the specification''s own account of why an element is as it is, as the question is.'}

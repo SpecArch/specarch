@@ -496,9 +496,13 @@ Four targets join `DocumentTarget`, after the first set of documents:
 - `releases`: release notes, newest first by SemVer's precedence. For each
   version its status and date, then what it includes, grouped as added,
   changed, removed (from the `affects` of each change) and fixed (the
-  defects), with an included ID kept in a tracker listed apart; then the
-  specification and implementation versions, the commissioning runs that
-  accepted it and the commit.
+  defects), each with the phase it was raised in and, for a change, its
+  cause; an included ID kept in a tracker listed apart; the release's
+  changes counted by cause, so a release with many omitted, wrong or
+  unheard says the requirements work left gaps and one with many changed
+  says only that the need moved; then the specification and
+  implementation versions, the commissioning runs that accepted it and
+  the commit.
 
 - `communications`: the communication history. Every communication,
   session and test session in time order, each with its direction,

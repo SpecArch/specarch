@@ -2,23 +2,27 @@
 
 # Case: release notes
 
-Version 1.0.0 of the specification: 2 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`.
+Version 1.0.0 of the specification: 2 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`, each change with where it was raised and why the result was not what was wanted, and the changes counted by cause: omitted, wrong and unheard measure the requirements work, changed is normal change.
 
 ## 1.1.0, planned
 
 ### Changed
 
-- CR-1, Let a member hold six books: CASE-1.
+- CR-1, Let a member hold six books: CASE-1; raised in production by owner.
 
 ### Fixed
 
-- DEF-1, A sixth loan goes through: violated CASE-1.
+- DEF-1, A sixth loan goes through: violated CASE-1; raised in development by owner.
+
+Changes by cause: 1 with no cause written.
 
 ## 1.0.0, released 2026-10-05
 
 ### Changed
 
-- CR-2, Say how many books a member holds: CASE-1.
+- CR-2, Say how many books a member holds: CASE-1; raised in development by owner.
+
+Changes by cause: 1 with no cause written.
 
 Specification 1.0.0.
 

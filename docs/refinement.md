@@ -11,9 +11,12 @@ last section says what is built and what the dispatcher queues next.
 
 The path is:
 
-    old document  ->  specification  ->  validation  ->  refinement  ->  refined documents  ->  code
-                      extract, or an      validate        decide, and       document             approve,
-                      agent by hand       gaps            edit the spec     (and gaps)           generate
+    old document  ->  specification  ->  validation  ->  refinement  ->  refined documents  ->  code  ->  acceptance
+                      extract, or an      validate        decide, and       document             approve,     a build in front
+                      agent by hand       gaps            edit the spec     (and gaps)           generate     of its users
+                            ^                                                                                      |
+                            |          a remark is a change request: decision, question or rejection               |
+                            +--------------------------------------------------------------------------------------+
 
 - Old document: the prose documents of an existing system, or its code, are
   the input. They are declared as sources of the specification, so that
@@ -35,6 +38,14 @@ The path is:
 - Code: `specarch approve` records that a stakeholder read current
   documents and approves this exact specification; `specarch generate` refuses to run
   without that record, or while a question blocks what the target reads.
+- Acceptance: a build, a marked draft or the approved output, is put in
+  front of the people who will use the system, who see it there first and
+  not in the documents. A remark is a change request or a defect record
+  with the build it is against, where it was seen, what was observed and
+  expected, and its cause; it comes back into the specification as a
+  decision, a question or a rejection, and the next build carries the
+  change (`docs/acceptance.md`). The path is a loop, not a line, because a
+  specification is never complete.
 
 The standards behind it are ISO/IEC/IEEE 29148:2018, whose rule for a complete
 set of requirements is that it holds no "to be defined", "to be specified" or

@@ -167,6 +167,35 @@ func Changes(root *yaml.Node, relRoot string, state *State) string {
 	return d.String()
 }
 
+// raisedIn says where a change or defect was raised and by which role,
+// for the release notes: "; raised in acceptance by librarian".
+func raisedIn(x *yaml.Node, byKey string) string {
+	phase := str(x, "phase")
+	if phase == "" {
+		return ""
+	}
+	out := "; raised in " + phase
+	if by := str(x, byKey); by != "" {
+		out += " by " + by
+	}
+	return out
+}
+
+// causeText names a change's cause for the release notes, with what the
+// value means, or "" when none is written.
+func causeText(cause string) string {
+	meaning := map[string]string{
+		"omitted": "the specification left it out",
+		"wrong":   "the specification said it wrongly",
+		"changed": "the need changed after it was written",
+		"unheard": "the stakeholder who uses it was not asked",
+	}[cause]
+	if meaning == "" {
+		return ""
+	}
+	return "; cause " + cause + " (" + meaning + ")"
+}
+
 // foundIn is where a defect was found: its environment, or its phase
 // when it names none.
 func foundIn(f *yaml.Node) string {
@@ -208,7 +237,7 @@ func Releases(root *yaml.Node, relRoot string, state *State) string {
 	}
 	d.line("# %s: release notes", str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`.",
+	d.para(fmt.Sprintf("Version %s of the specification: %s recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`, each change with where it was raised and why the result was not what was wanted, and the changes counted by cause: omitted, wrong and unheard measure the requirements work, changed is normal change.",
 		str(info, "version"), countText(len(releases), "release is", "releases are")))
 	if len(releases) == 0 {
 		d.para("No release is recorded.")
@@ -221,6 +250,8 @@ func Releases(root *yaml.Node, relRoot string, state *State) string {
 		d.heading(2, title)
 		groups := map[string][]string{}
 		var tracker []string
+		byCause := map[string]int{}
+		changesCounted := 0
 		for _, id := range strs(r, "includes") {
 			x := byID[id]
 			if x == nil {
@@ -229,13 +260,17 @@ func Releases(root *yaml.Node, relRoot string, state *State) string {
 			}
 			name := id + ", " + str(x, "title")
 			if str(x, "kind") == "defect" {
-				groups["Fixed"] = append(groups["Fixed"], name+": violated "+refList(strs(x, "violates"))+".")
+				groups["Fixed"] = append(groups["Fixed"], name+": violated "+refList(strs(x, "violates"))+raisedIn(x, "reportedBy")+".")
 				continue
+			}
+			changesCounted++
+			if cause := str(x, "cause"); cause != "" {
+				byCause[cause]++
 			}
 			affects := get(x, "affects")
 			for _, g := range []struct{ key, title string }{{"adds", "Added"}, {"changes", "Changed"}, {"removes", "Removed"}} {
 				if refs := strs(affects, g.key); len(refs) > 0 {
-					groups[g.title] = append(groups[g.title], name+": "+refList(refs)+".")
+					groups[g.title] = append(groups[g.title], name+": "+refList(refs)+raisedIn(x, "raisedBy")+causeText(str(x, "cause"))+".")
 				}
 			}
 		}
@@ -254,6 +289,18 @@ func Releases(root *yaml.Node, relRoot string, state *State) string {
 		}
 		if len(tracker) > 0 {
 			d.para("Also includes, kept in a tracker: " + strings.Join(tracker, ", ") + ".")
+		}
+		if changesCounted > 0 {
+			var parts []string
+			for _, c := range []string{"omitted", "wrong", "changed", "unheard"} {
+				if byCause[c] > 0 {
+					parts = append(parts, fmt.Sprintf("%d %s", byCause[c], c))
+				}
+			}
+			if unsaid := changesCounted - (byCause["omitted"] + byCause["wrong"] + byCause["changed"] + byCause["unheard"]); unsaid > 0 {
+				parts = append(parts, fmt.Sprintf("%d with no cause written", unsaid))
+			}
+			d.para("Changes by cause: " + strings.Join(parts, ", ") + ".")
 		}
 		var facts []string
 		if v := str(r, "specificationVersion"); v != "" {

@@ -413,6 +413,34 @@ with the folder it writes to. `specarch document <target> --check spec`
 exits 1 when a committed document is not what the specification makes
 now; run it before each commit.
 
+### 3.7 A round of acceptance
+
+The people who will use the system do not read the documents; they see
+the system when a build is in front of them, and that is where they ask
+for changes (`docs/acceptance.md`). A round is:
+
+1. Build: `specarch generate <target> --unapproved spec` writes a marked
+   draft while questions are open, or the approved output after
+   `approve`; every file names the specification's version and digest,
+   and a build for an environment with `trace: true` shows each screen's
+   and field's pointer to the tester.
+2. Record each remark as it is made: `specarch log` for what was said
+   (an objection or a request, linked to the elements seen), then a
+   change request in `records/changes/` with `phase: acceptance`, the
+   build under `against`, the pointers under `seenAt`, `observed` and
+   `expected` in the tester's words; a remark that is the system not
+   doing what the specification says is a defect record instead.
+3. Analyse each against the specification: write `affects`, `impact` and
+   `cause` (omitted, wrong, changed or unheard). The `changes` document
+   then shows what the change reaches before anything moves. End it as a
+   decision record that names the change under `answers`, decided by the
+   role that owns the requirement and citing the answer given; as an open
+   question the change names under `questions`; or as a rejection.
+4. Change the specification, validate, document and generate again; the
+   next build has a new digest. `specarch diff` between the approval's
+   commit and the working tree lists what changed and the record that
+   covers each element, so the second approval is of the difference.
+
 ## 4. What the owner reads
 
 - `questions.md`, the same text as `specarch gaps`: what to decide, with
@@ -466,6 +494,12 @@ with the pinned version and checksum filled in:
       `specarch gaps spec`, and regenerate the documents with
       `specarch document <target> spec` for questions, requirements,
       techspec and traceability. End each work item with the gaps output.
+    - A remark from a build in front of its users is a change request
+      (or a defect) record with phase acceptance, the build it is
+      against, where it was seen, what was observed and expected, and
+      once analysed its cause; it ends in a decision that names it under
+      answers, in a question it names, or in a rejection. Never apply a
+      remark to generated code: the next generation overwrites it.
 
 ## 6. Not built yet
 

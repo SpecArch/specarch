@@ -168,7 +168,9 @@ changes target writes `changes.md`: the change requests and the
 defects, open ones first, each with its status, what it affects or
 violates and its decision. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
-added, changed, removed and fixed. Neither is ever a draft.
+added, changed, removed and fixed, each change with where it was
+raised and its cause, and the release's changes counted by cause
+(ADR-223). Neither is ever a draft.
 
 The communications and timeline targets are made from the records
 too (ADR-220). The communications target writes `communications.md`:

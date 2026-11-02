@@ -2,21 +2,23 @@
 
 # Library Lending: release notes
 
-Version 0.1.0 of the specification: 2 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`.
+Version 0.1.0 of the specification: 2 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`, each change with where it was raised and why the result was not what was wanted, and the changes counted by cause: omitted, wrong and unheard measure the requirements work, changed is normal change.
 
 ## 0.2.0, planned
 
 ### Added
 
-- CR-1, Let a member renew a loan once: `#/tests/renew-a-loan`.
+- CR-1, Let a member renew a loan once: `#/tests/renew-a-loan`; raised in production by member; cause omitted (the specification left it out).
 
 ### Changed
 
-- CR-1, Let a member renew a loan once: LIB-4, `#/entities/Loan`.
+- CR-1, Let a member renew a loan once: LIB-4, `#/entities/Loan`; raised in production by member; cause omitted (the specification left it out).
 
 ### Fixed
 
-- DEF-1, The late fee is not capped at the replacement cost: violated LIB-5.
+- DEF-1, The late fee is not capped at the replacement cost: violated LIB-5; raised in production by librarian.
+
+Changes by cause: 1 omitted.
 
 ## 0.1.0, released 2026-10-07
 

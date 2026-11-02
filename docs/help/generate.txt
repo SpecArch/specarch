@@ -16,6 +16,15 @@ implementation file names for the target).
                 file is marked a draft. Not for anything that is used.
   --estate      bring an estate's modules into the run, so references
                 into them resolve.
+  --environment <key>
+                build for that environment of the specification. One whose
+                entry says trace: true shows the trace to its testers: the
+                web UI names each page, field and column's element in
+                data-specarch-element and draws an overlay with the
+                element under the focus, the build's version and digest
+                and a remark to copy as a change request; the Go server
+                answers with the header Specarch-Element. Give --out for
+                a traced build: the output folder holds the untraced one.
 
 What generation does not promise: a plug-in writes what its target covers
 from the specification, marks each entry it could not write at its place,

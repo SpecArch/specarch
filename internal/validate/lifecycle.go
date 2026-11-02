@@ -53,6 +53,12 @@ func (c *checker) checkDeploymentStage(d *design) {
 			c.add(next, source.Pointer("environments", name, "promotesTo"), RuleEnvironment,
 				"%s is not an environment of the specification%s", v, suggest(v, d.environments))
 		}
+		// The last environment is the one its users see; a trace there
+		// shows them the inside of the system (ADR-222).
+		if trace := source.Child(env, "trace"); next == nil && source.Str(trace) == "true" {
+			c.warn(trace, source.Pointer("environments", name, "trace"), RuleEnvironmentTrace,
+				"%s shows the trace and promotes to no environment, so it is the last one, where the people who use the system would see each screen's pointer into the specification; set trace on the environment they test in, or give %s a promotesTo", name, name)
+		}
 	}
 	for name, chk := range d.checks {
 		env := source.Child(chk, "environment")

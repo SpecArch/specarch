@@ -3177,8 +3177,10 @@ specification with a request on its standard input, as JSON:
 `specarch` (the meta-model version), `digest` (the specification's
 digest, as the approval record keeps it, which every generated file
 names in its header beside the version, so a remark from acceptance
-can name the build; ADR-083), `target`, `root` (the root file's
-path), `specification` (the merged, validated specification as plain
+can name the build; ADR-083), `environment` and `trace` (the
+environment given with `--environment`, and whether its entry says
+the build shows the trace; ADR-222), `target`, `root` (the root
+file's path), `specification` (the merged, validated specification as plain
 values), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms
 it uses, each with its `name`, `version`, how it applies (`as`:
@@ -3296,7 +3298,7 @@ the target up.
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
 ```
-specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--unapproved] [--dry-run]
+specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--environment <environment>] [--unapproved] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -3311,6 +3313,7 @@ Anyone who has the program runs it.
 | `--out <out>` | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |  |
 | `--check` | Make the output in memory and fail when the files on disk differ. Writes nothing. |  |
 | `--estate <estate>` | An estate file whose modules the run reads beside the folders given, so a reference into one of them is written rather than refused; the modules are checked with the estate and none is generated unless a folder names it; repeated, one per estate. |  |
+| `--environment <environment>` | The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, field's and column's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds; a traced build goes under `--out`, since the two cannot share one folder under `--check`. |  |
 | `--unapproved` | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |  |
 | `--dry-run` | Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check. |  |
 

@@ -90,6 +90,7 @@ const (
 	RuleChangeApplied          Rule = "change_applied"
 	RuleChangeDecision         Rule = "change_decision"
 	RuleChangeAnswered         Rule = "change_answered"
+	RuleEnvironmentTrace       Rule = "environment_trace"
 	RuleDefectTest             Rule = "defect_test"
 	RuleDefectDuplicate        Rule = "defect_duplicate"
 	RuleIncidentLink           Rule = "incident_link"
@@ -258,6 +259,7 @@ var Rules = []Rule{
 	RuleChangeApplied,
 	RuleChangeDecision,
 	RuleChangeAnswered,
+	RuleEnvironmentTrace,
 	RuleDefectTest,
 	RuleDefectDuplicate,
 	RuleIncidentLink,

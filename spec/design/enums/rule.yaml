@@ -82,6 +82,7 @@ enums:
       - change_applied
       - change_decision
       - change_answered
+      - environment_trace
       - defect_test
       - defect_duplicate
       - incident_link
@@ -247,6 +248,7 @@ enums:
       change_applied: an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning
       change_decision: an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected
       change_answered: "on a decision whose answers name a change request (a change record beside the specification, or an ID of a declared change tracker; every other ID under answers is a question's): an accepted decision answers a change whose decision is not approved, or the change's decision was taken by another role than the one decidedBy names (ADR-221)"
+      environment_trace: "as a warning, at the key: an environment whose trace is true and that promotes to no environment, the last one, where the people who use the system would see each screen's pointer into the specification (ADR-222)"
       defect_test: a fixed or released defect names no test, or one that neither verifies a requirement the defect violates nor is about an element it violates
       defect_duplicate: a duplicate defect names no defect, one that does not exist, or one that is itself a duplicate
       incident_link: a resolved incident links to no defect or change and gives no `noChange` reason (a warning)

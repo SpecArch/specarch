@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 956 design tests, 477 golden and 479 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 959 design tests, 479 golden and 480 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 956 design tests, 477 golden and 479 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 952 |
+| system | 955 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2795,6 +2795,14 @@ Scenario: golden; level: system; verifies SA-59.
 - When: generate openapi --unapproved is run
 - Then: it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0
 
+#### generate-environment-unknown
+
+Scenario: red; level: system; covers usage error; verifies SA-57.
+
+- Given: a specification whose environments are staging and production
+- When: generate ui is run with --environment uat
+- Then: it refuses, naming the environments the specification has, writes nothing and exits 2
+
 #### generate-framework-plugin
 
 Scenario: golden; level: system; verifies SA-78.
@@ -3618,6 +3626,14 @@ Scenario: golden; level: system; verifies SA-49, SA-78.
 - Given: a specification whose info.wireNames is snake_case and whose fields are named in camelCase, the generate-ui-wire-names case's with an operation that answers the session: a list with a column of each, a filter by a query parameter and one by a field its listOf makes filterable, a row that opens a view and an operation on a row that takes its path parameter from the row and sends the reason its body takes; a view whose fields include a value of parts, hidden while the record's status says so; a form that loads its record, sends its fields and a value of parts, checks a field and locks another by the record, fills a field from a picker that searches a list, shows a refusal beside its field and opens the view from the answer's field; an implementation file in Swift whose ui target is platform iphone, with the session in its settings; and specarch-gen-ui-swiftui built from this repository on PATH
 - When: generate ui is run with --unapproved
 - Then: the schemas name every field the screens read from a record or send by its snake_case name on the wire: the columns, the row's key and path parameter, the reason, the filters' fields, the filterable field's filter, the view's places and the parts of its value, the condition, the form's fields, what it sends, its check, the picker's value, shown fields and fills, the refusal's field and the field the next page's parameter comes from; the session's properties are read mapped; the paginated-list idiom's names, the list's and the picker's, are mapped too, page_size and total_items as generate openapi writes them; the filter by the query parameter is sent under the parameter's own name, shelfName, and the routes' parameters keep theirs; and it exits 0
+
+#### generate-ui-trace
+
+Scenario: golden; level: system; verifies SA-57.
+
+- Given: a specification with a list page and a form page, and an environment staging whose entry says trace true
+- When: generate ui is run with --unapproved and --environment staging
+- Then: it writes the screens with data-specarch-element on each page, its column headers and its form controls, the overlay trace.js naming the environment, version and digest, and exits 0
 
 #### generate-ui-typescript
 
@@ -5500,6 +5516,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-2.
 - Given: a check that runs in an environment the specification does not declare
 - When: validate is run
 - Then: it reports environment and exits 1
+
+#### validate-environment-trace
+
+Scenario: golden; level: system; verifies SA-57.
+
+- Given: an environment staging with trace true that promotes to production, and production with trace true and no promotesTo
+- When: validate is run
+- Then: it warns environment_trace at production's trace, says nothing of staging, and exits 0
 
 #### validate-estate
 

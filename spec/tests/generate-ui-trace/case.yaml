@@ -1,0 +1,4 @@
+arguments: [generate, ui, --unapproved, --environment, staging, project]
+exitStatus: 0
+standardOutput: ""
+plugins: [ui]

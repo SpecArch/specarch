@@ -1,0 +1,4 @@
+arguments: [validate, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:7:55: warning: /environments/production/trace: environment_trace: production shows the trace and promotes to no environment, so it is the last one, where the people who use the system would see each screen's pointer into the specification; set trace on the environment they test in, or give production a promotesTo [environment_trace@specarch.yaml#/environments/production/trace]

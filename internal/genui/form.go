@@ -136,7 +136,7 @@ func (g *gen) fieldControl(f formField, optional bool) ([]string, bool) {
 	if f.readOnly {
 		readOnly = " readonly"
 	}
-	name := " name=" + quoted(g.wire(f.name))
+	name := " name=" + quoted(g.wire(f.name)) + g.traceAttr(f.at)
 	var input string
 	t := propertyType(prop)
 	switch format := text(prop["format"]); {

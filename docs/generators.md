@@ -876,6 +876,18 @@ screen in a real project and has to reproduce it before it is accepted.
 
 ### Plain JavaScript for the web
 
+A build for an environment whose entry says `trace: true`
+(`specarch generate ui --environment <key>`, `docs/acceptance.md`) carries
+the trace: `data-specarch-element` on each page's `main`, on each form
+control and on each list column header, with the pointer into the
+specification of what it draws, and `trace.js`, an overlay on every page
+that shows the pointer under the focus or the mouse, the build's
+environment, version and digest, and copies a remark as the start of a
+change request record. Without `--environment`, or for an environment
+without `trace`, none of it is written, since the HTML goes to every
+browser; that untraced output is what the output folder holds, and a
+traced build goes under `--out`.
+
 `specarch-gen-ui` writes, for a `ui` target of platform `web` and
 framework `plain-javascript`, each list page as `<page>.html` and
 `<page>.js`, every event of the screens once in `events.js`,

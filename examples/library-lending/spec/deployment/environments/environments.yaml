@@ -4,8 +4,9 @@ environments:
     description: A developer's machine, with a throwaway database.
     promotesTo: staging
   staging:
-    description: A copy of production the librarians try a release on before it goes live.
+    description: A copy of production the librarians try a release on before it goes live; its builds show the trace, so a remark at the acceptance test names the element it is about.
     promotesTo: production
+    trace: true
   production:
     description: The live system at the desk, on the library's own hosts.
     runBy: customer

@@ -28,7 +28,12 @@ type Request struct {
 	// Digest is the specification's digest, as the approval record keeps
 	// it, so every generated file names the specification it came from
 	// and a remark from acceptance can name the build (ADR-083).
-	Digest          string           `json:"digest"`
+	Digest string `json:"digest"`
+	// Environment is the environment the run builds for, and Trace true
+	// when its entry says trace: true, so the output shows each element\'s
+	// pointer to the tester (ADR-222).
+	Environment     string           `json:"environment,omitempty"`
+	Trace           bool             `json:"trace"`
 	Target          string           `json:"target"`
 	Root            string           `json:"root"`
 	Specification   map[string]any   `json:"specification"`

@@ -444,6 +444,12 @@ extension Checker {
                 add(next, pointer("environments", name, "promotesTo"), .environment,
                     "\(v) is not an environment of the specification\(suggest(v, d.environments))")
             }
+            // The last environment is the one its users see; a trace there
+            // shows them the inside of the system (ADR-222).
+            if let trace = env.child("trace"), next == nil, str(trace) == "true" {
+                warn(trace, pointer("environments", name, "trace"), .environmentTrace,
+                    "\(name) shows the trace and promotes to no environment, so it is the last one, where the people who use the system would see each screen's pointer into the specification; set trace on the environment they test in, or give \(name) a promotesTo")
+            }
         }
         for (name, chk) in d.checks {
             let env = chk.child("environment")

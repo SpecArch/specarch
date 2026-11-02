@@ -9,7 +9,7 @@ Version 0.1.0 of the specification: 2 monitors, 1 job, 2 dependencies and 20 end
 | Environment | Purpose | Run by | Promotes to |
 |---|---|---|---|
 | development | A developer's machine, with a throwaway database. | vendor | staging |
-| staging | A copy of production the librarians try a release on before it goes live. | vendor | production |
+| staging | A copy of production the librarians try a release on before it goes live; its builds show the trace, so a remark at the acceptance test names the element it is about. | vendor | production |
 | production | The live system at the desk, on the library's own hosts. | customer |   |
 
 **Insight on production:** The library's board keeps member data on hosts it controls, so its IT staff build each release from the source and run production themselves; the vendor runs development and staging.

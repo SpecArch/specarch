@@ -1,0 +1,7 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+environments:
+  staging: { description: The copy of production the desk tries a release on., promotesTo: production, trace: true }
+  production: { description: The live system., trace: true }

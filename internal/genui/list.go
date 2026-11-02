@@ -2,6 +2,7 @@ package genui
 
 import (
 	"html"
+	"strconv"
 	"strings"
 )
 
@@ -26,13 +27,20 @@ func (g *gen) headOf(name, title, language string, module bool) []string {
 	if module {
 		out = append(out, `<script type="module" src="`+name+`.js"></script>`)
 	}
+	if g.trace {
+		out = append(out, `<script type="module" src="trace.js"></script>`)
+	}
 	if g.session != nil && len(obj0(g.spec["menus"])) > 0 {
 		// The menu shows only the entries whose page opens to the person.
 		out = append(out, `<script type="module" src="session.js"></script>`)
 	}
 	out = append(out, "</head>", "<body>")
 	out = append(out, g.menuHTML(name)...)
-	return append(out, "<main>", `<h1 id="title">`+html.EscapeString(title)+"</h1>")
+	main := "<main>"
+	if obj0(g.spec["pages"])[name] != nil {
+		main = "<main" + g.traceAttr("/pages/"+name) + ">"
+	}
+	return append(out, main, `<h1 id="title">`+html.EscapeString(title)+"</h1>")
 }
 
 // html writes the list page's HTML.
@@ -66,7 +74,7 @@ func (p *page) html(g *gen) string {
 		if p.wide[c] {
 			class = ` class="wide"`
 		}
-		w(`<th scope="col"` + class + `>` + html.EscapeString(p.titles[i]) + `</th>`)
+		w(`<th scope="col"` + class + g.traceAttr("/pages/"+p.name+"/columns/"+strconv.Itoa(i)) + `>` + html.EscapeString(p.titles[i]) + `</th>`)
 	}
 	if len(p.actions) > 0 {
 		w(`<th scope="col">Actions</th>`)

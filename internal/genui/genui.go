@@ -85,7 +85,12 @@ type Request struct {
 	// Digest is the specification's digest, as the approval record keeps
 	// it, so every generated file names the specification it came from
 	// and a remark from acceptance can name the build (ADR-083).
-	Digest          string           `json:"digest"`
+	Digest string `json:"digest"`
+	// Environment is the environment the run builds for, and Trace true
+	// when its entry says trace: true, so the output shows each element\'s
+	// pointer to the tester (ADR-222).
+	Environment     string           `json:"environment,omitempty"`
+	Trace           bool             `json:"trace"`
 	Target          string           `json:"target"`
 	Root            string           `json:"root"`
 	Specification   map[string]any   `json:"specification"`
@@ -165,6 +170,12 @@ type gen struct {
 	impl     Implementation
 	settings map[string]any
 	root     string
+	// trace is true when the build is for an environment that shows the
+	// trace: the pages carry each element's pointer in data attributes
+	// and load the overlay (ADR-222); environment, version and digest
+	// are what the overlay shows of the build.
+	trace                        bool
+	environment, version, digest string
 	// wireNames is the specification's info.wireNames, the rule a field's
 	// name follows on the wire (ADR-062).
 	wireNames string
@@ -207,6 +218,7 @@ func (g *gen) failed() bool {
 // Generate writes the screens of a request.
 func Generate(r *Request) Response {
 	g := &gen{spec: r.Specification, root: r.Root, dialect: "standard", handshakes: map[string]string{}, deps: r.Dependencies}
+	g.trace, g.environment, g.digest, g.version = r.Trace, r.Environment, r.Digest, text(obj0(r.Specification["info"])["version"])
 	// A value typed by another module's element is drawn from a copy of
 	// it, as from this specification's own (ADR-184).
 	var imports []xref.Problem
@@ -460,6 +472,9 @@ func Generate(r *Request) Response {
 		files = append(files, File{Path: "identity-provider.js", Content: header("// ", "", nil) + js})
 	}
 	files = append(files, File{Path: "theme.css", Content: header("/* ", " */", nil) + g.themeCSS()})
+	if g.trace {
+		files = append(files, File{Path: "trace.js", Content: header("// ", "", nil) + g.traceJS()})
+	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return g.response(files)
 }
@@ -1290,4 +1305,85 @@ func sortedKeys(m map[string]any) []string {
 // jsTemplate escapes text for a JavaScript template literal.
 func jsTemplate(s string) string {
 	return strings.NewReplacer("\\", "\\\\", "`", "\\`", "${", "\\${").Replace(s)
+}
+
+// traceAttr is the data attribute that names the element a piece of a page
+// came from, in a build for an environment that shows the trace, and ""
+// otherwise (docs/acceptance.md, section 2).
+func (g *gen) traceAttr(pointer string) string {
+	if !g.trace || pointer == "" {
+		return ""
+	}
+	if !strings.HasPrefix(pointer, "#") {
+		pointer = "#" + pointer
+	}
+	return " data-specarch-element=" + quoted(pointer)
+}
+
+// traceJS is the overlay a build for an environment with trace true loads
+// on every page: the pointer of the element under the focus or the
+// pointer, the build's environment, version and digest, and a button that
+// copies a remark as the start of a change request record (ADR-222).
+func (g *gen) traceJS() string {
+	return fmt.Sprintf(`// The trace overlay of a build for %s: it shows the pointer into the
+// specification of the element under the focus or the pointer, the
+// build's version and digest, and copies a remark as the start of a
+// change request record for records/changes/. Only a build for an
+// environment with trace: true loads it.
+const build = { environment: %s, version: %s, digest: %s };
+const panel = document.createElement("aside");
+panel.id = "specarch-trace";
+panel.setAttribute("aria-label", "Specification trace");
+panel.setAttribute("aria-live", "polite");
+panel.style.cssText = "position:fixed;right:0;bottom:0;max-width:28rem;font:12px/1.4 ui-monospace,monospace;background:#fffbe6;color:#000;border:1px solid #999;padding:.5rem;z-index:2147483647";
+const where = document.createElement("div");
+const info = document.createElement("div");
+info.textContent = build.environment + ": version " + build.version + ", digest " + build.digest;
+const copy = document.createElement("button");
+copy.type = "button";
+copy.textContent = "Copy as change request";
+panel.append(where, info, copy);
+document.body.append(panel);
+let current = document.querySelector("main[data-specarch-element]")?.dataset.specarchElement ?? "";
+function show(element) {
+  const traced = element?.closest?.("[data-specarch-element]");
+  if (traced) {
+    current = traced.dataset.specarchElement;
+  }
+  where.textContent = current || "no element of the specification here";
+}
+document.addEventListener("focusin", (event) => show(event.target));
+document.addEventListener("pointerover", (event) => show(event.target));
+copy.addEventListener("click", async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const text = [
+    "# A remark from the acceptance test, copied from the trace of the build; the analyst gives it the next free ID, the type and the urgency.",
+    'specarchRecord: "1.0.0"',
+    "kind: change",
+    "id: ",
+    "title: ",
+    "raisedBy: ",
+    'raised: "' + today + '"',
+    "phase: acceptance",
+    "against:",
+    "  version: " + build.version,
+    "  digest: " + build.digest,
+    "  environment: " + build.environment,
+    'seenAt: ["' + current + '"]',
+    "observed: ",
+    "expected: ",
+    "type: ",
+    "urgency: ",
+    "reason: ",
+    "status: proposed",
+  ].join("\n") + "\n";
+  try {
+    await navigator.clipboard.writeText(text);
+    copy.textContent = "Copied; paste it into records/changes/";
+  } catch (error) {
+    where.textContent = "cannot copy to the clipboard (" + error.message + "); the element is " + current;
+  }
+});
+show(document.activeElement);
+`, g.environment, quoted(g.environment), quoted(g.version), quoted(g.digest))
 }

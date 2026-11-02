@@ -54,7 +54,14 @@ type pluginRequest struct {
 	// Digest is the specification's digest, as the approval record keeps
 	// it, so every generated file names the specification it came from
 	// and a remark from acceptance can name the build (ADR-083).
-	Digest          string                 `json:"digest"`
+	Digest string `json:"digest"`
+	// Environment is the key of the environment the run builds for, given
+	// with --environment, and Trace true when that environment's entry
+	// says trace: true, so the web UI carries its data attributes and
+	// overlay and the server its answer header (ADR-222). Without
+	// --environment nothing shows the trace.
+	Environment     string                 `json:"environment,omitempty"`
+	Trace           bool                   `json:"trace"`
 	Target          string                 `json:"target"`
 	Root            string                 `json:"root"`
 	Specification   any                    `json:"specification"`
@@ -160,6 +167,11 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
+	args, environment, msg := environmentArg(args)
+	if msg != "" {
+		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+		return 2
+	}
 	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved", "dry-run"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
@@ -199,6 +211,30 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 	if len(specs) == 0 {
 		fmt.Fprintf(stderr, "specarch generate: no output folder for %s in any specification given; give --out, or an implementation file whose targets name %s and its output\n", target, target)
 		return 2
+	}
+	// The environment the run builds for must be one of each
+	// specification's; its trace setting goes into the request (ADR-222).
+	traces := make([]bool, len(specs))
+	for i, l := range specs {
+		if environment == "" {
+			continue
+		}
+		envs := source.Child(l.spec.Root, "environments")
+		env := source.Child(envs, environment)
+		if env == nil {
+			var names []string
+			for _, p := range source.Pairs(envs) {
+				names = append(names, p.Key.Value)
+			}
+			sort.Strings(names)
+			have := "it has none"
+			if len(names) > 0 {
+				have = "its environments are " + strings.Join(names, ", ")
+			}
+			fmt.Fprintf(stderr, "specarch generate: %s is not an environment of %s; %s\n", environment, l.spec.Dir, have)
+			return 2
+		}
+		traces[i] = source.Str(source.Child(env, "trace")) == "true"
 	}
 	groups := make([][]pluginGroup, len(specs))
 	for i, l := range specs {
@@ -256,6 +292,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			}
 			req.Draft = drafts[i]
 			req.Check = check
+			req.Environment, req.Trace = environment, traces[i]
 			resp, status := runPlugin(g.exe, g.name, req, stderr)
 			if status != 0 {
 				return status
@@ -653,6 +690,30 @@ func apiDialectOf(s *spec.Spec) (dialect string, envelopes any) {
 		}
 	}
 	return dialect, envelopes
+}
+
+// environmentArg takes --environment <key> out of generate's arguments:
+// the environment the run builds for, whose trace setting the request
+// carries (ADR-222).
+func environmentArg(args []string) (rest []string, environment, msg string) {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		switch {
+		case a == "--":
+			return append(rest, args[i:]...), environment, ""
+		case a == "--environment":
+			if i+1 >= len(args) {
+				return nil, "", "--environment needs the key of an environment of the specification"
+			}
+			environment = args[i+1]
+			i++
+		case strings.HasPrefix(a, "--environment="):
+			environment = strings.TrimPrefix(a, "--environment=")
+		default:
+			rest = append(rest, a)
+		}
+	}
+	return rest, environment, ""
 }
 
 // specDigest is the specification's digest for the generated headers, or

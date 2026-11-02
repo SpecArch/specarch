@@ -6713,6 +6713,10 @@
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         },
+        "trace": {
+          "description": "SpecArch keyword. True when the builds for this environment show the trace to the people who test there: the web UI carries each page's, field's and column's pointer into the specification in its data attributes and draws an overlay with the pointer under the focus, the build's version and digest and a remark to copy as the start of a change request; the server sends the header Specarch-Element on every answer. Left out or false, nothing of the inside of the system reaches a user. On the last environment, the one with no promotesTo, it is a warning (ADR-222).",
+          "type": "boolean"
+        },
         "runBy": {
           "description": "SpecArch keyword. Who installs and runs the environment. vendor: the team that builds the system. customer: the party that takes the system builds, installs and runs it on hosts of its own, from the handover; the specification then needs handover, release and rollback, and the implementation file's deployment of it needs build, method and infrastructure. Left out, the vendor runs it (ADR-129).",
           "type": "string",

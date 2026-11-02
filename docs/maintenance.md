@@ -246,7 +246,9 @@ validator, which sees one version at a time, cannot make either check.
 
 `specarch diff <old> <new>` takes two specification folders. The old one
 is normally the previous release's tag checked out on its own
-(`git worktree add ../v1.4.0 v1.4.0`), the new one the working tree. Both
+(`git worktree add ../v1.4.0 v1.4.0`), or for a second approval the
+`commit` of the approval record checked out the same way, the new one
+the working tree. Both
 are validated first, and the errors of a specification that has them are
 printed; it is compared as far as it can be read, and the command then
 exits 1 whatever the checks find (ADR-065). The records read are the new one's: the
@@ -297,7 +299,11 @@ line per failed check, starting `error:`. The checks:
 
 - `version`: the release's version is after the old one, and steps from
   it by at least the largest impact in the list, with the step before
-  1.0.0 as above; the line names the version to release instead.
+  1.0.0 as above; the line names the version to release instead. Left
+  out when both folders carry the same `info.version`: the approval's
+  commit checked out beside the working tree, inside one pre-release
+  during a round of acceptance (`docs/acceptance.md`, step 8); the release
+  record of that version is still required and `covered` still runs.
 - `covered`: every element in the list is named by an entry of the
   `affects` of a change request, or of the `violates` of a defect, that
   the release includes. An entry names an element when one of the two

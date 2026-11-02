@@ -22,7 +22,11 @@ Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
 one by at least the largest impact (version), and that a change
 request or defect it includes names every element in the list
-(covered). A version that is not a semantic version fails the
+(covered). When both folders carry the same `info.version`, as the
+approved commit and the working tree do inside one pre-release
+during a round of acceptance, the version check is left out and
+only the coverage is checked, against the release record of that
+version (ADR-224). A version that is not a semantic version fails the
 version check, naming the version and the folder, and the release
 is not checked further. Each failed check is one line starting
 `error:`; an
@@ -31,7 +35,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 
 ## Arguments
 
-- `<old>` (required): The folder of the earlier specification, normally the previous release's tag checked out on its own.
+- `<old>` (required): The folder of the earlier specification, normally the previous release's tag checked out on its own, or the approval record's commit checked out on its own for a second approval.
 - `<new>` (required): The folder of the later specification, normally the working tree.
 
 ## Reads

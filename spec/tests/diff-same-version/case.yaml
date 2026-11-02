@@ -1,0 +1,4 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 0
+standardOutput: |
+  minor changed #/enums/Colour: gains the value blue

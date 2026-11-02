@@ -14,10 +14,15 @@ commands:
       `document` has just written is current; the questions, problems and comparison targets are the
       refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
       the specification's folder: the record kind, the version, who
-      approved, the date, the documents that were current, and the digest
+      approved, the date, the documents that were current, the digest
       of the specification's files (the SHA-256 of every `.yaml` file under
       its folder, in byte order of their relative paths, each as its path,
-      a zero byte, its bytes without its problem marks, and a zero byte).
+      a zero byte, its bytes without its problem marks, and a zero byte),
+      and the commit the folder is at when it is inside a git repository
+      and every file under it is committed, so that `diff` between that
+      commit and the working tree later shows the approver only what
+      changed (ADR-224); a folder with changes not committed gets no
+      commit, with a line on standard error saying so.
       A later change to any of those files voids the approval, and
       `generate` says so; a problem mark, a line that starts with
       `# specarch-problem:` (ADR-066), is not a change.
@@ -43,9 +48,9 @@ commands:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "<output>/<target>.md", description: "Every configured document, compared with what the specification generates now." }
     writes:
-      - { path: "records/approvals/<version>.yaml", description: "The approval record, beside the specification's folder; an earlier approval of the same version is replaced." }
+      - { path: "records/approvals/<version>.yaml", description: "The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced." }
     standardOutput: The errors of an invalid specification, and one line per configured document that is missing or differs.
-    standardError: A usage message on a usage error, the reason a refusal, and one line naming the record written.
+    standardError: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
     exitCodes:
       "0": the approval was recorded
       "1": refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current

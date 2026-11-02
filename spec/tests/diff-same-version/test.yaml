@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: diff
+level: system
+scenario: golden
+given: "two folders of the same pre-release 1.1.0-dev, the approved one and the working tree, where a value was added to a public enum, a planned release 1.1.0 including the change request that names the enum"
+when: "diff is run"
+then: "it lists the enum as minor, leaves the version check out since both carry the same version, finds the change covered, and exits 0"
+verifies: [SA-25, SA-57]

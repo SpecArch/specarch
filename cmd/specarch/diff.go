@@ -90,6 +90,14 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 		}
 	case release == nil:
 		problems = append(problems, fmt.Sprintf("error: version: there is no records/releases/%s.yaml for the new version %s; add it with the changes and defects it includes", ver, newText))
+	case oldText == newText:
+		// One pre-release edited and compared with itself, as between an
+		// approval and the working tree in a round of acceptance: the
+		// version cannot have stepped, so only the coverage is checked
+		// (ADR-224).
+		cov, warn := coverageProblems(rs, release, ver, changes)
+		problems = append(problems, cov...)
+		warnings = warn
 	default:
 		problems = append(problems, versionProblems(oldV, oldText, ver, changes)...)
 		cov, warn := coverageProblems(rs, release, ver, changes)

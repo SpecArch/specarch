@@ -46,10 +46,15 @@ html site, its problems, diagrams and screens, so a document that
 `document` has just written is current; the questions, problems and comparison targets are the
 refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
 the specification's folder: the record kind, the version, who
-approved, the date, the documents that were current, and the digest
+approved, the date, the documents that were current, the digest
 of the specification's files (the SHA-256 of every `.yaml` file under
 its folder, in byte order of their relative paths, each as its path,
-a zero byte, its bytes without its problem marks, and a zero byte).
+a zero byte, its bytes without its problem marks, and a zero byte),
+and the commit the folder is at when it is inside a git repository
+and every file under it is committed, so that `diff` between that
+commit and the working tree later shows the approver only what
+changed (ADR-224); a folder with changes not committed gets no
+commit, with a line on standard error saying so.
 A later change to any of those files voids the approval, and
 `generate` says so; a problem mark, a line that starts with
 `# specarch-problem:` (ADR-066), is not a change.
@@ -83,11 +88,11 @@ It reads:
 
 It writes:
 
-- `records/approvals/<version>.yaml`: The approval record, beside the specification's folder; an earlier approval of the same version is replaced.
+- `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
 
 On standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
 
-On standard error: A usage message on a usage error, the reason a refusal, and one line naming the record written.
+On standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
 
 | Exit status | It means | What to do |
 |---|---|---|
@@ -693,7 +698,11 @@ Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
 one by at least the largest impact (version), and that a change
 request or defect it includes names every element in the list
-(covered). A version that is not a semantic version fails the
+(covered). When both folders carry the same `info.version`, as the
+approved commit and the working tree do inside one pre-release
+during a round of acceptance, the version check is left out and
+only the coverage is checked, against the release record of that
+version (ADR-224). A version that is not a semantic version fails the
 version check, naming the version and the folder, and the release
 is not checked further. Each failed check is one line starting
 `error:`; an
@@ -712,7 +721,7 @@ Anyone who has the program runs it.
 
 | Argument | What to give | Required |
 |---|---|---|
-| `<old>` | The folder of the earlier specification, normally the previous release's tag checked out on its own. | yes |
+| `<old>` | The folder of the earlier specification, normally the previous release's tag checked out on its own, or the approval record's commit checked out on its own for a second approval. | yes |
 | `<new>` | The folder of the later specification, normally the working tree. | yes |
 
 It reads:

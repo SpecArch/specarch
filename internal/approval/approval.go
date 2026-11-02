@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -29,6 +30,10 @@ type Record struct {
 	Date       string   `yaml:"date"`
 	Documents  []string `yaml:"documents"`
 	Digest     string   `yaml:"digest"`
+	// Commit is the commit the specification's folder was at when it was
+	// approved, or "" outside a git repository or when the folder had
+	// changes not committed (ADR-224).
+	Commit string `yaml:"commit"`
 }
 
 type file struct {
@@ -39,6 +44,7 @@ type file struct {
 	Date           string   `yaml:"date"`
 	Documents      []string `yaml:"documents"`
 	Digest         string   `yaml:"digest"`
+	Commit         string   `yaml:"commit"`
 }
 
 // Folder is where a specification's approvals live: records/approvals/
@@ -136,7 +142,7 @@ func Read(specDir, version string) (*Record, error) {
 	case f.Digest == "" || f.ApprovedBy == "" || f.Date == "":
 		return nil, fmt.Errorf("%s is missing digest, approvedBy or date", Name(version))
 	}
-	return &Record{Version: f.Version, ApprovedBy: f.ApprovedBy, Date: f.Date, Documents: f.Documents, Digest: f.Digest}, nil
+	return &Record{Version: f.Version, ApprovedBy: f.ApprovedBy, Date: f.Date, Documents: f.Documents, Digest: f.Digest, Commit: f.Commit}, nil
 }
 
 // Write writes the approval of r.Version through w, replacing an earlier
@@ -152,7 +158,35 @@ func Write(w *disk.Writer, specDir string, r Record) error {
 		fmt.Fprintf(&b, "documents: [%s]\n", strings.Join(r.Documents, ", "))
 	}
 	fmt.Fprintf(&b, "digest: %s\n", r.Digest)
+	if r.Commit != "" {
+		fmt.Fprintf(&b, "commit: %s\n", r.Commit)
+	}
 	return w.WriteFile(Path(specDir, r.Version), []byte(b.String()), 0o644)
+}
+
+// Commit is the commit the specification's folder is at, so that diff
+// against it later shows an approver only what changed since (ADR-224):
+// HEAD of the git repository the folder is in, when every file under the
+// folder is committed. Outside a repository it is "" with no note; in a
+// repository whose folder has changes not committed it is "" and note
+// says why, since HEAD would not hold what was approved.
+func Commit(specDir string) (commit, note string) {
+	if out, err := exec.Command("git", "-C", specDir, "rev-parse", "--is-inside-work-tree").Output(); err != nil || strings.TrimSpace(string(out)) != "true" {
+		return "", ""
+	}
+	status, err := exec.Command("git", "-C", specDir, "status", "--porcelain", "--", ".").Output()
+	if err != nil {
+		return "", fmt.Sprintf("the approval records no commit: git status failed under %s (%v)", specDir, err)
+	}
+	if lines := strings.TrimSpace(string(status)); lines != "" {
+		n := strings.Count(lines, "\n") + 1
+		return "", fmt.Sprintf("the approval records no commit: %d file%s under %s %s changes not committed, so no commit holds what was approved; commit them and approve again, and diff can then compare against the approval", n, map[bool]string{true: "s", false: ""}[n > 1], specDir, map[bool]string{true: "have", false: "has"}[n > 1])
+	}
+	head, err := exec.Command("git", "-C", specDir, "rev-parse", "HEAD").Output()
+	if err != nil {
+		return "", fmt.Sprintf("the approval records no commit: git rev-parse HEAD failed under %s (%v)", specDir, err)
+	}
+	return strings.TrimSpace(string(head)), ""
 }
 
 // State says, in one sentence, where a version's approval stands against

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 954 design tests, 475 golden and 479 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 955 design tests, 476 golden and 479 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 954 design tests, 475 golden and 479 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 950 |
+| system | 951 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -712,6 +712,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-25.
 - Given: a release whose only change names the entity, while the requirement changed too
 - When: diff is run
 - Then: it reports covered for the requirement and exits 1
+
+#### diff-same-version
+
+Scenario: golden; level: system; verifies SA-25, SA-57.
+
+- Given: two folders of the same pre-release 1.1.0-dev, the approved one and the working tree, where a value was added to a public enum, a planned release 1.1.0 including the change request that names the enum
+- When: diff is run
+- Then: it lists the enum as minor, leaves the version check out since both carry the same version, finds the change covered, and exits 0
 
 #### diff-tracker-unknown
 

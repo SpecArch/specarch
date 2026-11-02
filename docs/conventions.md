@@ -3186,6 +3186,7 @@ documents of a specification and approves it for code generation, as
     date: "2026-10-08"
     documents: [techspec, requirements, testplan]
     digest: sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+    commit: 13a7741636f5c3a996cded5502e9af89aeef6161
 
 The record is written only when the specification has no error and no
 `must` or `should` question, `--by` is one of its stakeholders, and every
@@ -3193,7 +3194,10 @@ configured document on disk is what the specification generates now. The
 digest is the SHA-256 of every `.yaml` file under the specification's
 folder, in byte order of their paths relative to it, each as its path, a
 zero byte, its bytes and a zero byte; any later change to one of those
-files voids the approval. `specarch generate` refuses a target while a
+files voids the approval. The commit is the one the folder was at, written
+when the folder is in a git repository with every file under it
+committed, so that `specarch diff` between that commit and the working
+tree shows the approver of the next round only what changed (ADR-224). `specarch generate` refuses a target while a
 `must` or `should` question blocks a section it reads (the sections the
 implementation file names under `targets.<name>.reads`, or every section),
 and refuses without an approval whose digest is the digest of the files

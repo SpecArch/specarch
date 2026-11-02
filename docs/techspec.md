@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 118 requirements, 5 entities, 27 commands, 7 algorithms, 954 tests, 210 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 118 requirements, 5 entities, 27 commands, 7 algorithms, 955 tests, 210 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -649,10 +649,15 @@ html site, its problems, diagrams and screens, so a document that
 `document` has just written is current; the questions, problems and comparison targets are the
 refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
 the specification's folder: the record kind, the version, who
-approved, the date, the documents that were current, and the digest
+approved, the date, the documents that were current, the digest
 of the specification's files (the SHA-256 of every `.yaml` file under
 its folder, in byte order of their relative paths, each as its path,
-a zero byte, its bytes without its problem marks, and a zero byte).
+a zero byte, its bytes without its problem marks, and a zero byte),
+and the commit the folder is at when it is inside a git repository
+and every file under it is committed, so that `diff` between that
+commit and the working tree later shows the approver only what
+changed (ADR-224); a folder with changes not committed gets no
+commit, with a line on standard error saying so.
 A later change to any of those files voids the approval, and
 `generate` says so; a problem mark, a line that starts with
 `# specarch-problem:` (ADR-066), is not a change.
@@ -672,11 +677,11 @@ A later change to any of those files voids the approval, and
 
 Reads `{paths}`: The specifications and their implementation files; `<output>/<target>.md`: Every configured document, compared with what the specification generates now.
 
-Writes `records/approvals/<version>.yaml`: The approval record, beside the specification's folder; an earlier approval of the same version is replaced.
+Writes `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
 
 Standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
 
-Standard error: A usage message on a usage error, the reason a refusal, and one line naming the record written.
+Standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
 
 ```mermaid
 sequenceDiagram
@@ -1234,7 +1239,11 @@ Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
 one by at least the largest impact (version), and that a change
 request or defect it includes names every element in the list
-(covered). A version that is not a semantic version fails the
+(covered). When both folders carry the same `info.version`, as the
+approved commit and the working tree do inside one pre-release
+during a round of acceptance, the version check is left out and
+only the coverage is checked, against the release record of that
+version (ADR-224). A version that is not a semantic version fails the
 version check, naming the version and the folder, and the release
 is not checked further. Each failed check is one line starting
 `error:`; an
@@ -1247,7 +1256,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<old>` | string | yes | The folder of the earlier specification, normally the previous release's tag checked out on its own. |
+| `<old>` | string | yes | The folder of the earlier specification, normally the previous release's tag checked out on its own, or the approval record's commit checked out on its own for a second approval. |
 | `<new>` | string | yes | The folder of the later specification, normally the working tree. |
 
 Reads `{old}`: The earlier specification; `{new}`: The later specification; `records/ beside {new}`: The release record of the new version and the change and defect records it includes.
@@ -17431,6 +17440,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-map-values | command diff | system | golden | a new version in which one map's values change from boolean to string, a closed object comes to allow any member, a map of strings becomes a closed object, an object that said nothing of other members allows any, and a map open to any value comes to allow only dates, released as 2.0.0 by a major change naming them | diff is run | the changed value type, the closed object and the map narrowed to dates are major with the reason, the object that allows any member minor, the object that says the same as before a patch, the major step passes, and it exits 0 |
 | diff-no-release | command diff | system | red | a new version 1.1.0 with no release record beside it | diff is run | it lists the change, reports version for the missing record and exits 1 |
 | diff-not-covered | command diff | system | red | a release whose only change names the entity, while the requirement changed too | diff is run | it reports covered for the requirement and exits 1 |
+| diff-same-version | command diff | system | golden | two folders of the same pre-release 1.1.0-dev, the approved one and the working tree, where a value was added to a public enum, a planned release 1.1.0 including the change request that names the enum | diff is run | it lists the enum as minor, leaves the version check out since both carry the same version, finds the change covered, and exits 0 |
 | diff-tracker-unknown | command diff | system | golden | a release that includes only TRK-4, an ID of a declared change-set | diff is run | the changed element is a covered warning, since the tracker may name it, and it exits 0 |
 | diff-usage-error | command diff | system | red | one folder | diff is run with only the old folder | it prints how to use it and exits 2 |
 | diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
@@ -18746,7 +18756,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered; tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate; decisions ADR-061 | tests document-testplan-by-release; tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid; tests validate-requirement-release |
-| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
+| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-same-version; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts; tests validate-question-holds-one-method; tests validate-test-name-capital-run |
@@ -18778,7 +18788,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-paged-whole; tests generate-ui-typescript-paged-whole-refused; tests generate-ui-typescript-refused |
-| SA-57 | decisions ADR-083 | tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered |
+| SA-57 | decisions ADR-083 | tests diff-same-version; tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered |
 | SA-58 | commands generate; decisions ADR-085; decisions ADR-139 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-integer-forms; tests document-html-marks-problems; tests document-writes-html |

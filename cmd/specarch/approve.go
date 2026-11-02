@@ -138,7 +138,11 @@ func approve(l loaded, by, date string, w *disk.Writer, stdout, stderr io.Writer
 		return 2
 	}
 	version := source.Str(source.Child(source.Child(root, "info"), "version"))
-	rec := approval.Record{Version: version, ApprovedBy: by, Date: date, Documents: documents, Digest: digest}
+	commit, note := approval.Commit(l.spec.Dir)
+	if note != "" {
+		fmt.Fprintf(stderr, "specarch approve: %s\n", note)
+	}
+	rec := approval.Record{Version: version, ApprovedBy: by, Date: date, Documents: documents, Digest: digest, Commit: commit}
 	if err := approval.Write(w, l.spec.Dir, rec); err != nil {
 		fmt.Fprintf(stderr, "specarch approve: cannot write the record: %v\n", err)
 		return 2

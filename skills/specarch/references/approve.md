@@ -17,10 +17,15 @@ html site, its problems, diagrams and screens, so a document that
 `document` has just written is current; the questions, problems and comparison targets are the
 refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
 the specification's folder: the record kind, the version, who
-approved, the date, the documents that were current, and the digest
+approved, the date, the documents that were current, the digest
 of the specification's files (the SHA-256 of every `.yaml` file under
 its folder, in byte order of their relative paths, each as its path,
-a zero byte, its bytes without its problem marks, and a zero byte).
+a zero byte, its bytes without its problem marks, and a zero byte),
+and the commit the folder is at when it is inside a git repository
+and every file under it is committed, so that `diff` between that
+commit and the working tree later shows the approver only what
+changed (ADR-224); a folder with changes not committed gets no
+commit, with a line on standard error saying so.
 A later change to any of those files voids the approval, and
 `generate` says so; a problem mark, a line that starts with
 `# specarch-problem:` (ADR-066), is not a change.
@@ -42,7 +47,7 @@ A later change to any of those files voids the approval, and
 
 ## Writes
 
-- `records/approvals/<version>.yaml`: The approval record, beside the specification's folder; an earlier approval of the same version is replaced.
+- `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
 
 ## Standard output
 
@@ -50,7 +55,7 @@ The errors of an invalid specification, and one line per configured document tha
 
 ## Standard error
 
-A usage message on a usage error, the reason a refusal, and one line naming the record written.
+A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
 
 ## Exit status
 

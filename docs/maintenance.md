@@ -394,7 +394,7 @@ and `end` (instants), `invited` and `present` (roles; who was absent is
 `invited` minus `present`, derived, never written), `recordedBy`,
 `summary`, `source`, `evidence` and `links`. A test session record adds
 `level` (`sit`, `uat`, `other`), `environment`, `version` and `build`
-tested, and `result` (`passed`, `failed`, `partial`); the remarks that
+tested, and `result` (`passed`, `failed`, `incomplete`); the remarks that
 became change requests or defects are its `links`. A deploy record is one
 installation: `id`, `version`, `environment`, `at`, `by`, `build`,
 `result` (`succeeded`, `failed`, `rolled-back`), `note`, `evidence` and

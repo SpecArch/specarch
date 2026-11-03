@@ -272,7 +272,10 @@ binding's `framework` names it. An idiom that renders one of the file's
 stacks approves its technologies whatever the design reads: an approval
 is about the stack, not the design, so an idiom of this concern needs no
 `reads`. A binding on an approved name is not warned about, whatever
-the design has. An excluded idiom approves nothing (ADR-231). An idiom
+the design has. An excluded idiom approves nothing, and neither does an
+override: it is not applied as an idiom of its own, so `technologies` on
+a file with `overrides` is an error, `idiom_part_unknown`, and the
+approval goes in an idiom of its own beside it (ADR-231). An idiom
 that only approves technologies reads nothing of the design, so
 `specarch idioms` and the technical specification's Idioms table do not
 list it yet, although it silences the warning; listing it is a
@@ -283,7 +286,7 @@ follow-up.
 | Rule | When |
 |---|---|
 | `idiom_unknown` | an `idioms` key or an `overrides.idiom` names no shipped or project idiom |
-| `idiom_part_unknown` | an override names a part the idiom does not have |
+| `idiom_part_unknown` | an override names a part the idiom does not have, or carries `technologies` |
 | `idiom_override_reason` | an override or an exclusion without `why` |
 | `idiom_stack` | an override renders a stack that is not the implementation file's: its language, a target's dialect or a ui target's framework |
 | `idiom_version_behind` | the override's `version` is older than the shipped one (warning) |

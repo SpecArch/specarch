@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  implementation/go/case.go.specarch-implementation.yaml:10:3: warning: /bindings/messaging: technology_unjustified: nothing in the specification needs a messaging binding: it has no channels and no dependency of kind messageBroker, and no decision justifies github.com/segmentio/kafka-go against a simpler alternative; add the design elements that need it, or set origin decided and decidedIn naming an accepted decision that satisfies a requirement and names under alternatives the simpler option it rejects, or approve it under technologies in an idiom of this file's stacks [technology_unjustified@implementation/go/case.go.specarch-implementation.yaml#/bindings/messaging]
+  implementation/go/idioms/health-endpoint.specarch-idiom.yaml:7:1: error: /technologies: idiom_part_unknown: an override approves no technologies: the override of health-endpoint is not applied as an idiom of its own, so technologies here is read nowhere; move them to an idiom of concern technologies without overrides in this idioms folder [idiom_part_unknown@implementation/go/idioms/health-endpoint.specarch-idiom.yaml#/technologies]

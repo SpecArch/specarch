@@ -1254,10 +1254,13 @@ func decisions(d *doc, title string, root *yaml.Node) {
 			d.para("Rests on: " + strings.Join(ids, ", ") + ".")
 		}
 		if alts := items(dec, "alternatives"); len(alts) > 0 {
-			// The simpler options the decision did not take, each with why (ADR-231).
+			// The simpler options the decision did not take, each with why
+			// (ADR-231), one sentence each so two never run together.
 			var lines []string
 			for _, a := range alts {
-				lines = append(lines, strings.TrimSpace(str(a, "option"))+" "+strings.TrimSpace(str(a, "why")))
+				option := strings.TrimRight(strings.TrimSpace(str(a, "option")), ".:")
+				why := strings.TrimRight(strings.TrimSpace(str(a, "why")), ".")
+				lines = append(lines, option+": "+why+".")
 			}
 			d.para("Alternatives not taken: " + strings.Join(lines, " "))
 		}

@@ -272,6 +272,11 @@ extension Checker {
                 add(p, pointer("overrides", "parts", "\(i)"), .idiomPartUnknown, "\(shipped.name) has no part \(p.value)\(suggest(p.value, valid))")
             }
         }
+        if let t = o.root.key("technologies") {
+            // An override is not applied as an idiom of its own, so its
+            // technologies would be read nowhere (ADR-231).
+            add(t, "/technologies", .idiomPartUnknown, "an override approves no technologies: the override of \(shipped.name) is not applied as an idiom of its own, so technologies here is read nowhere; move them to an idiom of concern technologies without overrides in this idioms folder")
+        }
         let whole = str(ov.child("whole")) == "true"
         for p in pairs(o.root.child("parts")) {
             if !whole && !listed.contains(p.key.value) {

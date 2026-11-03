@@ -114,8 +114,9 @@ func TestConditionalsAcceptWhatTheyDid(t *testing.T) {
 			}, added: workflowStepAdded},
 		{def: "decision", key: "status", values: []any{"proposed", "accepted", "deprecated", "superseded", "other"}, keys: []string{"supersededBy"},
 			// A citation that names a communication record is a 1.0 form of
-			// cites, so the citations are left out of the comparison too.
-			objects: func(r map[string]any) []map[string]any { return mapsOf(r["decisions"]) }, added: []string{"restsOn", "cites"}},
+			// cites, so the citations are left out of the comparison too, as are
+			// alternatives, a 1.0 key (ADR-231).
+			objects: func(r map[string]any) []map[string]any { return mapsOf(r["decisions"]) }, added: []string{"restsOn", "cites", "alternatives"}},
 	}
 	for _, rule := range rules {
 		after, err := c.Compile(designSchemaID + "#/$defs/" + rule.def)

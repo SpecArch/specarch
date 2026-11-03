@@ -1,0 +1,10 @@
+specarchIdiom: "1.0.0"
+name: health-endpoint
+version: 1.0.0
+description: The shipped health endpoint, with the platform's broker approved beside it.
+why: The platform team keeps its choices in one file.
+overrides: { idiom: health-endpoint, version: 1.0.0 }
+technologies:
+  kafka:
+    why: Decided for the platform as a whole.
+    names: [github.com/segmentio/kafka-go]

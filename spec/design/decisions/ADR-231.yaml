@@ -33,7 +33,9 @@ decisions:
       project's own idiom of concern technologies in the idioms folder
       beside the implementation file is the organisation's baseline. A
       binding on the standard library adopts nothing and is left alone.
-      The warning names what the design lacks and the three ways to
+      An override of a shipped idiom approves nothing: it is not applied
+      as an idiom of its own, so technologies on it is an error,
+      idiom_part_unknown, rather than a key read nowhere. The warning names what the design lacks and the three ways to
       justify the binding, or the gaps of the decision it names.
     consequences: |
       A binding that the design does not need is visible at once, with
@@ -71,5 +73,10 @@ decisions:
       definition stays readable: a decidedIn naming no decision is the
       origin check's error alone, and the binding is otherwise read as it
       is.
+    alternatives:
+      - option: Warn at every library under libraries that no element of the design names
+        why: A library is a package name the validator cannot classify, so the rule would warn at a YAML parser as loudly as at a message broker, and a warning that loud gets turned off; the binding is where a file says what a framework is for.
+      - option: Keep the approved technologies in a file kind of their own
+        why: An organisation's technology choice is one more thing decided once for every project, which is what an idiom is; a file kind of its own would need its own lookup, schema and stacks filter, which the idioms folder already has.
     satisfies: [SA-120]
     restsOn: [ADR-028, ADR-188]

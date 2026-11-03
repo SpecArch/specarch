@@ -284,6 +284,11 @@ func (c *checker) checkOverride(o Idiom, ov *yaml.Node, shippedSet map[string]Id
 			c.add(p, source.Pointer("overrides", "parts", itoa(i)), RuleIdiomPartUnknown, "%s has no part %s%s", shippedIdiom.Name(), p.Value, suggestPart(p.Value, shippedParts))
 		}
 	}
+	if t := source.Key(o.Root, "technologies"); t != nil {
+		// An override is not applied as an idiom of its own, so its
+		// technologies would be read nowhere (ADR-231).
+		c.add(t, "/technologies", RuleIdiomPartUnknown, "an override approves no technologies: the override of %s is not applied as an idiom of its own, so technologies here is read nowhere; move them to an idiom of concern technologies without overrides in this idioms folder", shippedIdiom.Name())
+	}
 	whole := source.Str(source.Child(ov, "whole")) == "true"
 	for _, p := range source.Pairs(source.Child(o.Root, "parts")) {
 		if !whole && !listed[p.Key.Value] {

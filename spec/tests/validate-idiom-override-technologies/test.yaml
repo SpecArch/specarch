@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: the same Kafka binding with no decision, and an override of the shipped health-endpoint idiom that carries technologies approving the Kafka client
+when: validate is run
+then: it reports idiom_part_unknown at the override's technologies, since an override is not applied as an idiom of its own and approves nothing, still warns technology_unjustified at the binding, and exits 1
+verifies: [SA-120]

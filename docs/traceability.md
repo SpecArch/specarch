@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.4.0 of the specification: 10 needs, 123 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.4.0 of the specification: 10 needs, 124 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,11 +13,11 @@ Version 1.4.0 of the specification: 10 needs, 123 requirements, and 1 gap. Each 
 | Need | Status | Refined by |
 |---|---|---|
 | NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
-| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-9, SA-10 |
+| NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-125, SA-118 |
-| NEED-6 | accepted | SA-15, SA-13, SA-117, SA-97, SA-126 |
+| NEED-6 | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-51 |
 | NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
@@ -150,6 +150,7 @@ Version 1.4.0 of the specification: 10 needs, 123 requirements, and 1 gap. Each 
 | SA-121 | NEED-3, NEED-10 | decisions ADR-227 | tests generate-deploy; tests generate-deploy-refused |
 | SA-125 | NEED-5, NEED-10 | enums DocumentTarget; commands document; commands log test-run; decisions ADR-230 | tests document-writes-testruns; tests document-writes-testruns-external; tests document-writes-timeline-test-runs; tests log-test-run-asks-missing; tests log-test-run-defect-not-failed; tests log-test-run-maps-worked-examples; tests log-test-run-nameless-testcase; tests log-test-run-not-junit; tests log-test-run-results-outside; tests log-test-run-usage-error; tests log-test-run-writes-record; tests validate-test-run-ref |
 | SA-126 | NEED-1, NEED-6 | enums Rule; decisions ADR-231 | tests validate-idiom-override-technologies; tests validate-technology-approved; tests validate-technology-decided; tests validate-technology-decision-incomplete; tests validate-technology-decision-missing; tests validate-technology-standard-library; tests validate-technology-unjustified |
+| SA-127 | NEED-2, NEED-6 | commands compare; decisions ADR-232 | tests compare-marks-gaps; tests compare-refuses-input-outside-records; tests compare-refuses-unknown-name; tests compare-two-implementations; tests compare-usage-error |
 
 ## 3. Gaps
 

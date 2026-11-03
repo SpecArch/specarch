@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 987 design tests, 496 golden and 491 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 992 design tests, 498 golden and 494 red, about 31 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 987 design tests, 496 golden and 491 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 983 |
+| system | 988 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -170,6 +170,48 @@ Scenario: red; level: system; covers usage error; verifies SA-72.
 - Given: a specification and no dump
 - When: check is run with the specification alone
 - Then: it prints how to use it and exits 2
+
+### Command compare
+
+#### compare-marks-gaps
+
+Scenario: golden; level: system; verifies SA-127.
+
+- Given: a specification with two implementation files, lending.go with a JUnit XML results file and lending.swift with nothing: no test run, no results, no scan and no measurements
+- When: compare is run on both implementation files with --results for lending.go only and no --out
+- Then: it prints the table as Markdown with every cell lending.swift has no input for, and every measured value of lending.go, written gap with its reason, lists each gap with the option that fills it, and exits 0
+
+#### compare-refuses-input-outside-records
+
+Scenario: red; level: system; covers exit 1; verifies SA-127.
+
+- Given: a specification with two implementation files and a JUnit XML file beside the specification's folder, not under records/
+- When: compare is run with --results naming that file
+- Then: it refuses, naming the file and records/, writes nothing, and exits 1
+
+#### compare-refuses-unknown-name
+
+Scenario: red; level: system; covers exit 1; verifies SA-127.
+
+- Given: a specification with two implementation files, lending.go and lending.swift
+- When: compare is run on lending.go alone with --test-run naming lending.swift, which is not among the files given
+- Then: it refuses, naming lending.swift and the names given, writes nothing, and exits 1
+
+#### compare-two-implementations
+
+Scenario: golden; level: system; verifies SA-127.
+
+- Given: a specification with two implementation files, lending.go and lending.swift, the Go build's JUnit XML file with the loan-limit test failed, the Swift build's test run TR-1 with loan-limit passed and loan-return skipped, a grype scan of the Go build and an osv-scanner scan of the Swift build, and a measurements file for each, the Swift one without the build time and the throughput of CASE-3
+- When: compare is run on both implementation files with --results, --test-run, --scan and --measurements for each and --out records/comparisons/lending
+- Then: it writes records/comparisons/lending/comparison.md and comparison.json, one column per implementation in the order given: duplicate loan_once failed for lending.go and passed for lending.swift, duplicate member_email_unique a gap, not run, in both; CASE-3's latency for both and its throughput for lending.go beside the requirement's statement; the four libraries, each not used in the other; the three findings by severity, the osv-scanner group read as critical from its CVSS score 9.1; the inputs with their SHA-256; and the gaps, each with the option or key that fills it; prints the two paths and the sources entry to cite the comparison, and exits 0
+
+#### compare-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-127.
+
+- Given: no specification and no implementation file
+- When: compare is run with only --out
+- Then: it prints that it needs the specification's folder and an implementation file, with the usage, and exits 2
 
 ### Command decide
 
@@ -8003,7 +8045,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-571 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+576 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8444,6 +8486,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-125 | acceptance 5 | golden | SA-125 names no harm |
 | requirement SA-125 | acceptance 6 | golden | SA-125 names no harm |
 | requirement SA-125 | acceptance 7 | golden | SA-125 names no harm |
+| requirement SA-127 | acceptance 1 | golden | SA-127 names no harm |
+| requirement SA-127 | acceptance 2 | golden | SA-127 names no harm |
+| requirement SA-127 | acceptance 3 | golden | SA-127 names no harm |
+| requirement SA-127 | acceptance 4 | golden | SA-127 names no harm |
+| requirement SA-127 | acceptance 5 | golden | SA-127 names no harm |
 | requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |

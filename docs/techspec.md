@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 123 requirements, 5 entities, 28 commands, 7 algorithms, 987 tests, 215 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 124 requirements, 5 entities, 29 commands, 7 algorithms, 992 tests, 216 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -73,6 +73,7 @@ The interfaces the system offers, as its clients see them.
 | approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | capabilities | List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads | public | 0: printed; 2: usage error |
 | check | Compare a specification with the dumps of the running code, for a CI gate | public | 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since; 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in; 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know |
+| compare | Compare alternative implementation files of one specification in one table, from their test results, scan findings and measurements | public | 0: the table is written or printed, its gaps marked in their cells and listed; 1: nothing written, since an implementation file, an option's name or a test-run record is not the specification's, or an input file is refused; or written, while the specification has errors; 2: usage error, or a folder or file that could not be read or written |
 | decide | Answer an open question with a decision record and take the question out | public | 0: the record is written and the question taken out; 1: refused; the question, the stakeholder or the source is unknown, the record is not an answer record linking the question and said by the stakeholder, the specification tracks origin and neither a source nor a record is given, design is not a stage, or the entry cannot be edited as text; or written, while the specification has errors; 2: usage error, or a file that could not be read or written |
 | decision why | Print the chain of decisions a decision rests on, earliest first | public | 0: the chain is printed; 1: refused, the decision is not one of the specification's; or printed, while the specification has errors; 2: usage error, or a folder that could not be read |
 | decision rests | Print the decisions that rest on a decision, nearest first | public | 0: the decisions are printed; 1: refused, the decision is not one of the specification's; or printed, while the specification has errors; 2: usage error, or a folder that could not be read |
@@ -460,7 +461,7 @@ The packages of ../spec/implementation/go/specarch.go.specarch-implementation.ya
 
 ```mermaid
 flowchart LR
-  package_cmd_specarch["cmd/specarch, implements 22"]
+  package_cmd_specarch["cmd/specarch, implements 23"]
   package_schema["schema"]
   package_idioms["idioms"]
   package_internal_extract["internal/extract"]
@@ -937,6 +938,122 @@ sequenceDiagram
   P->>F: read {specification}
   P->>F: read {dumps}
   P->>F: read {allowlist}
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command compare
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Reads
+the implementation files given, each one of the specification's own
+(`implementation/<stack>/<name>.<stack>.specarch-implementation.yaml`)
+and named in the table and in the options by its name, the file's
+name without `.specarch-implementation.yaml`, such as `lending.go`;
+the columns follow the order they are given in. For each it reads
+what the options give it, every option taking `<name>=<value>` and
+given once per implementation at most (ADR-232):
+
+- `--test-run <name>=TR-<n>`: a test-run record of
+  `records/test-runs/`, whose results name their tests already; or
+- `--results <name>=<path>`: a JUnit XML file under `records/`,
+  each testcase mapped to its test as `specarch log test-run` maps
+  it. Not both for one implementation.
+- `--scan <name>=<path>`: the scan of its software bill of
+  materials, under `records/`: grype's JSON (`matches`) or
+  osv-scanner's (`results`). A grype finding keeps grype's
+  severity; an osv-scanner group of aliases is one finding, its
+  severity read from its highest CVSS score by the CVSS v3.1
+  qualitative scale (9.0 and above critical, 7.0 high, 4.0 medium,
+  above 0 low, 0.0, None on that scale, negligible as grype words
+  it), unknown without one.
+- `--measurements <name>=<path>`: a JSON object in a file under
+  `records/` (JSON, since every YAML file there is read as a
+  record), with what only a person or a CI job measures, every key optional
+  and no other key read: `buildSeconds`, how long the build took,
+  `linesOfCode` and `deploySteps`, the steps a person takes to
+  deploy it, each a whole number from 0; and `requirements`, keyed
+  by requirement ID, each with `latency` or `throughput` or both,
+  each `{value, unit, how}`, the value a number, the unit and how
+  it was measured in words (`how` optional).
+
+Writes one table, the summary first: per implementation the
+derived cases passed of all the case rows, the results by
+outcome, the scan findings by severity, the libraries, the build
+time, the lines of code and the deploy steps. Then the derived
+cases, one row per case that is chosen or that a test covers, with
+the tests that cover it, each cell failed when any result of those
+tests failed or errored, else passed when one passed, else skipped
+when one was skipped; the requirements a measurements file names,
+one row per requirement and quantity, with the requirement's
+statement beside the values so the reader judges each against it,
+since a requirement states its target in words; the libraries of
+the implementation files' `libraries`, one row each, with the
+version, licence and scope each file gives, or not used; the scan
+findings, one row per finding and package, with the severity and
+the version in each scan, or not found; the inputs, each with its
+SHA-256; and the gaps.
+
+A result that is missing is a gap, never a stop: no test-run and no
+results for an implementation, a case no test covers (no test), a
+case whose tests have no result in the run (not run), no scan, no
+measurements file, or one that leaves out a key or a quantity
+another gives. Each is written `gap` in its cell, with the reason,
+and listed under Gaps with the option that fills it.
+
+Without `--out` it prints the table as Markdown on standard
+output. With `--out <folder>` it writes `comparison.md` and
+`comparison.json` there, prints their paths, and prints the entry
+to declare under `sources` in `specarch.yaml` for a decision to
+cite the comparison: kind document, its title, the SHA-256 of
+`comparison.json` as its edition, and the path of `comparison.md`
+from the specification's folder as its url. With `--json` the
+comparison is under `compare`, in the form `comparison.json`
+holds (`specarchComparison` 1.0.0).
+
+Refuses, with exit 1 and nothing written, an implementation file
+that is not one of the specification's, one given twice, an option
+whose name is no implementation given or that names one twice,
+`--test-run` and `--results` for one implementation, a test-run
+record the records do not hold, a file that is not under
+`records/`, cannot be read or is not of its format, a measurements
+file with a key it does not read or given twice, a value that is
+not a number, a number that is not a whole number from 0 where one
+is asked, or a requirement the
+specification does not have. With `--dry-run` it lists the files
+it would write and writes nothing.
+
+**Insight:** Choosing between two implementations of one design is a decision taken from evidence scattered over CI logs, scan reports and what people remember of the build; one table from the records, its inputs kept with their SHA-256 and every missing result marked rather than left blank, makes the choice quick to take and quick to review, and the decision cites the comparison as a source, so the evidence stays traceable from the decision to the inputs.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<folder>` | string | yes | The folder holding the specification; the inputs are under records/ beside it. |
+| `<implementations>` | string, one or more | yes | The implementation files to compare, each one of the specification's, in the order of the table's columns. |
+| `--test-run` | list of string |   | An implementation's test-run record, as <name>=TR-<n>, such as lending.go=TR-3; repeatable, once per implementation. |
+| `--results` | list of string |   | An implementation's JUnit XML results file under records/, as <name>=<path>, such as lending.go=records/evidence/go-junit.xml; repeatable, once per implementation. |
+| `--scan` | list of string |   | An implementation's scan of its software bill of materials under records/, grype's or osv-scanner's JSON, as <name>=<path>; repeatable, once per implementation. |
+| `--measurements` | list of string |   | An implementation's measurements file under records/, as <name>=<path>: build time, lines of code, deploy steps and the latency and throughput per requirement; repeatable, once per implementation. |
+| `--out` | string |   | The folder to write comparison.md and comparison.json into; left out, the Markdown goes to standard output. |
+| `--dry-run` | bool |   | Check everything and write nothing; list the files it would write. |
+
+Reads `{folder}`: The specification, its tests and implementation files, and the test-run records beside it; `{implementations}`: The implementation files, for their names and libraries; `records/<input path>`: The results, scan and measurements files the options name, for their content and their SHA-256.
+
+Writes `{out}/comparison.md`: The table as Markdown, with --out; `{out}/comparison.json`: The table as JSON, with --out.
+
+Standard output: The errors of an invalid specification; then the table as Markdown, or with --out the paths of the two files written and the sources entry to cite the comparison.
+
+Standard error: A usage message on a usage error, the reason a refusal, and one line counting the implementations, rows and gaps.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: compare <folder> <implementations>
+  P->>F: read {folder}
+  P->>F: read {implementations}
+  P->>F: read records/<input path>
+  P->>F: write {out}/comparison.md
+  P->>F: write {out}/comparison.json
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -5194,7 +5311,7 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/try, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/compare, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/try, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
 | internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the documents reader taking Markdown, PDF, Word, PowerPoint, Excel and email messages, each format read into the same blocks (ADR-212), the tables reader of CSV, TSV and Excel registers with the dialect detected, the types inferred from every value, the template and the instructions read as the fields' statement and the questions where the files disagree (ADR-215), the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table, a catalogue dump and a register file with a specification, each difference with its rule and subject (ADR-124). |   |
@@ -17958,6 +18075,68 @@ rule once a server can name its decision.
 
 **Insight:** The binding is the subject, not the library, because a binding is where an implementation file says what a framework is for, and the design says whether it has anything of that kind; a library is a package name, and a rule that warned at every library the design does not name would warn at a YAML parser as loudly as at a broker, which is the noise that gets a warning turned off. The rule asks a decision for a requirement and a rejected alternative because those are the two things a reviewer of a technology choice needs: what it is for, and what simpler thing would not do; MADR's considered options are the model, and a decision that names none has not considered the simpler thing. The baseline is an idiom, under the idiom folder's lookup and the stacks filter the idioms already have, rather than a file kind of its own, because an organisation's technology choice is one more thing decided once for every project, which is what an idiom is; it applies whatever the design reads, since an approval is about the stack, not the design. It is a warning, not an error, because the binding is not wrong, only unjustified, and an incomplete specification stays readable (docs/principles.md); the message names each way to justify it so the next step is a line in the file, not a search. An incomplete definition stays readable: a decidedIn naming no decision is the origin check's error alone, and the binding is otherwise read as it is.
 
+### ADR-232: specarch compare writes one table of alternative implementation files from their test results, scans and measurements, each input paired with its implementation on the command line, every missing result a gap in its cell, and the comparison cited by a decision as a document source
+
+Status: proposed, 2026-11-04.
+
+Rests on: [ADR-230](#adr-230-a-test-run-is-a-record-beside-the-specification-with-each-result-mapped-to-a-test-of-the-specification-specarch-log-test-run-imports-a-junit-xml-file-under-records-as-its-evidence-keeps-a-result-that-maps-to-no-test-and-reports-it-and-opens-a-defect-for-a-failure-only-when-asked-the-testruns-document-writes-the-runs-and-the-failures-per-element-and-per-requirement-run-by-run), [ADR-221](#adr-221-does-a-decision-name-the-change-request-it-settles-under-answers-a-link-from-the-specification-to-a-record-or-does-the-changes-decision-name-the-decision-record-while-the-specification-stays-silent-about-records).
+
+Context: A specification may have several implementation files, one per
+stack or one per alternative of a stack, and a team often builds
+two before choosing one. The choice is a decision, and its evidence
+is scattered: the test results of each build, the scan of each
+software bill of materials, the libraries and their licences, and
+what only a person or a CI job measures, such as the build time,
+the lines of code, the steps of a deploy and the latency and
+throughput under load. A test-run record (ADR-230) names its
+environment and build but not an implementation file. No element of
+the meta-model states a latency or a throughput as a number: a
+requirement of kind quality states it in words, a monitor's
+objective is a sentence, and an implementation file's
+testing.performance is prose. A decision cites a source declared
+under sources, or a communication record (ADR-220, ADR-221).
+
+Decision: specarch compare <folder> <implementation>... reads implementation
+files of the specification, each named by its file name without
+.specarch-implementation.yaml, and for each the inputs its options
+give as <name>=<value>, once per implementation: --test-run, a
+test-run record, or --results, a JUnit XML file mapped as log
+test-run maps it; --scan, grype's or osv-scanner's JSON; and
+--measurements, a JSON file holding buildSeconds, linesOfCode,
+deploySteps and, per requirement, latency and throughput as a value,
+a unit and how it was measured. Every input file is under records/,
+and the comparison keeps the path and SHA-256 of each. The table
+has a summary, then one row per derived case that is chosen or
+covered (failed over passed over skipped, from the results of the
+tests covering it), per measured requirement and quantity with the
+requirement's statement, per library, per scan finding, then the
+inputs and the gaps. A missing result is a gap: written gap in its
+cell, with its reason, and listed with the option that fills it; it
+never stops the command. An input that is given but wrong (outside
+records/, not of its format, naming what the specification does not
+have) is refused with exit 1, as log test-run refuses it. Without
+--out the Markdown goes to standard output; with --out the command
+writes comparison.md and comparison.json and prints the sources
+entry, kind document, with the SHA-256 of comparison.json as its
+edition, that a decision's cites names.
+
+Consequences: A choice between implementations rests on one table whose every
+cell names where it came from, and whose empty cells say what is
+missing instead of reading as zero. The decision cites the
+comparison like any document; its edition, the SHA-256 of the JSON,
+tells a reader whether the file beside the specification is the one
+the decision read. The validator does not check that hash, nor
+that the url names a file: a comparison is a document, and a
+document source is checked as one. Latency and throughput are shown
+beside the requirement's statement, not judged against it: a person
+reads the two. A test-run record names no implementation, so the
+person running compare says which run belongs to which
+implementation each time.
+
+**Insight:** The inputs are paired on the command line, by the implementation's name, rather than through a new key in the test-run record or a new record kind: either is a change to the record format, checked by both validator builds, for a link only the comparison reads, and a test run of one build may be compared again later with a third implementation. The name is the file's own, unique among a specification's implementation files (one folder per stack, the stack in the name), so the option and the column say the same thing. The test-run record is read first and JUnit XML is the fallback, as the request asked, through the same mapping log test-run uses, so a testcase maps to the same test either way. A derived case comes from the validator's own derivation, the cases the tests' covers name, so the comparison and the test plan count the same cases. A failure wins over a pass in a case's cell, since one failing test of a case means the case is not shown met. The measurements are a plain JSON file read only by this command, with every key fixed and no other read, rather than a versioned format or a record kind: they are an input of one command, and a value of a person's own measuring; the command definition holds the shape. JSON and not YAML, because every YAML file under records/ is read as a record and would fail the validator, and a CI job writes JSON as readily. Latency and throughput are not parsed from a requirement's words into a threshold, because a parse that misreads a sentence makes a verdict that reads as a fact; the value stands beside the statement. A scan is read in the two formats the release scan already writes, grype's and osv-scanner's JSON; osv-scanner gives a CVSS score, read into the qualitative scale of CVSS v3.1 so both columns speak the same words; its None, a score of 0.0, is written negligible, grype's word for a finding of no practical severity, because one list of words counts both scanners' findings and a finding a scanner lists is still a row the reader sees. The comparison is cited as a source of kind document rather than as a record: a citation of a record is for what a stakeholder said (ADR-220), and docs/maintenance.md allows the specification to point back at records only there and for a change request a decision answers (ADR-221); a comparison is evidence written from records, which is what a document source is. A given input that is wrong is refused, not shown as a gap, because a wrong file read as missing would hide the mistake behind a mark the reader takes as known.
+
+**Note:** From Common Vulnerability Scoring System v3.1, Specification Document, 3.1, clause 5: The qualitative severity rating scale: None 0.0, Low 0.1 to 3.9, Medium 4.0 to 6.9, High 7.0 to 8.9, Critical 9.0 to 10.0. <https://www.first.org/cvss/v3.1/specification-document>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -17979,6 +18158,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | check-skips-a-partition | command check | system | golden | a specification of an events entity with a check whose implementation file maps it to the events table and lists its index idx_at, and a repository whose first commit holds the migration of a table partitioned by range with that check and that index, a partition partitioned again by list, and a default partition with a check and an index of its own, and whose second commit holds the catalogue dump made from it | check is run on the catalogue dump | it compares the events table alone, finds no difference since the partitions are not compared, neither as tables nor by the check and index of their own, and the index, which the catalogue prints with ON ONLY, is the plain index the mapping lists, reports the check's text the database rewrote, and exits 0 |
 | check-succeeds | command check | system | golden | a specification of branches and copies with its implementation file, and a repository whose first commit holds the migrations, the router and the permission check and whose second holds the catalogue dump, the route table and the permission table made from them, naming the first, and an allowlist of three lines; the router serves a route the specification does not name, the database has a table it does not hold and a CHAR column where it has a string of that width, a check whose text the database rewrote and an index on an expression, an operation the specification makes public is a route that checks no permission, a clerk is granted a permission the specification's clerk holds through implies, and the foreign key's no action is the reader's restrict | check is run with the allowlist and --since HEAD on the three dumps | it counts the three differences the allowlist names and does not print them, prints the check's text and the index the mapping does not list as warnings, finds no other difference, and exits 0 |
 | check-usage-error | command check | system | red | a specification and no dump | check is run with the specification alone | it prints how to use it and exits 2 |
+| compare-marks-gaps | command compare | system | golden | a specification with two implementation files, lending.go with a JUnit XML results file and lending.swift with nothing: no test run, no results, no scan and no measurements | compare is run on both implementation files with --results for lending.go only and no --out | it prints the table as Markdown with every cell lending.swift has no input for, and every measured value of lending.go, written gap with its reason, lists each gap with the option that fills it, and exits 0 |
+| compare-refuses-input-outside-records | command compare | system | red | a specification with two implementation files and a JUnit XML file beside the specification's folder, not under records/ | compare is run with --results naming that file | it refuses, naming the file and records/, writes nothing, and exits 1 |
+| compare-refuses-unknown-name | command compare | system | red | a specification with two implementation files, lending.go and lending.swift | compare is run on lending.go alone with --test-run naming lending.swift, which is not among the files given | it refuses, naming lending.swift and the names given, writes nothing, and exits 1 |
+| compare-two-implementations | command compare | system | golden | a specification with two implementation files, lending.go and lending.swift, the Go build's JUnit XML file with the loan-limit test failed, the Swift build's test run TR-1 with loan-limit passed and loan-return skipped, a grype scan of the Go build and an osv-scanner scan of the Swift build, and a measurements file for each, the Swift one without the build time and the throughput of CASE-3 | compare is run on both implementation files with --results, --test-run, --scan and --measurements for each and --out records/comparisons/lending | it writes records/comparisons/lending/comparison.md and comparison.json, one column per implementation in the order given: duplicate loan_once failed for lending.go and passed for lending.swift, duplicate member_email_unique a gap, not run, in both; CASE-3's latency for both and its throughput for lending.go beside the requirement's statement; the four libraries, each not used in the other; the three findings by severity, the osv-scanner group read as critical from its CVSS score 9.1; the inputs with their SHA-256; and the gaps, each with the option or key that fills it; prints the two paths and the sources entry to cite the comparison, and exits 0 |
+| compare-usage-error | command compare | system | red | no specification and no implementation file | compare is run with only --out | it prints that it needs the specification's folder and an implementation file, with the usage, and exits 2 |
 | decide-blocks-decision | command decide | system | golden | a specification on 1.0.0 that tracks origin, with an accepted decision ADR-001 and a must question Q-1 in design/all.yaml that blocks #/decisions/ADR-001 | decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date | it writes design/decisions/ADR-002.yaml with restsOn: [ADR-001] and consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that ADR-002 rests on it and that it keeps its own origin or is superseded by ADR-002, never origin decided or decidedIn, and exits 0 |
 | decide-blocks-decision-earlier | command decide | system | golden | the same specification on 0.1, whose decisions have no restsOn | decide is run for Q-1 with --by owner, the answer, --source owner-answer and a date | it writes design/decisions/ADR-002.yaml without restsOn, its consequences saying it rests on ADR-001, takes Q-1 out of design/all.yaml, prints for ADR-001 that restsOn is added after specarch upgrade and that ADR-001 keeps its own origin or is superseded by ADR-002, and exits 0 |
 | decide-cites-record | command decide | system | golden | a specification that tracks origin, with an open must question Q-1 decided by library-board, and beside it the communication record COM-1, an answer from library-board that links Q-1 with a chat transcript as evidence | decide is run for Q-1 with --by library-board, the answer, --record COM-1 and a date | it writes design/decisions/ADR-002.yaml, accepted and stated, citing COM-1 with the answer as what it says and no source, takes Q-1 out of requirements/all.yaml, prints the entries to write, and exits 0; validate then accepts the citation |
@@ -19078,6 +19262,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-101 | The validator shall check, in both builds, the ideas kept beside a specification, one record each in records/ideas/, holding a proposal for the specification from a conversation, a table, an example, a document, code, a recording or a review, the element it is about, the text it proposes and its status as a person set it, against the record schema and the specification; and decision why and decision rests shall name, on each decision's line, the ideas that became it. | functional | must | proposed | test | Ideas in every status, proposed, discussed, accepted, rejected and question, each naming only what the specification and its records have, validate with nothing printed and exit 0; an open idea may be about an element the specification does not have yet under one it has or under a section of the meta-model. An idea naming a role, a source, a requirement, a pointer, a decision, a question, a change or a defect that the specification or its records do not have is reported as record_ref at the key; an accepted or rejected idea's about is not checked; a question a decision answers is still a question an idea may name. An accepted idea without a decision whose outcome is accepted, or a rejected one without a decision whose outcome is rejected, is reported as idea_decision; an idea whose status is question naming no question under became is reported as idea_question. The Go build and the Swift build print the same lines on each case. decision why and decision rests print "from idea" and the IDs of the ideas whose became names the decision on that decision's line. | NEED-5, NEED-10 |
 | SA-117 | A specification shall keep beside it, as records in records/, who said what to whom and when - a communication record for each thing a stakeholder said or was told, with its direction, roles, instant with offset, channel, type, words marked verbatim or summary, evidence hashed with SHA-256 or none, and the questions, decisions, elements, changes, defects and ideas it touches; a session record with its attendance by role; a test session record with its level, environment, version, build, attendance and result; and a deploy record with its version, environment, instant, actor and result - which the validator shall check in both builds, a citation shall be able to rest on, and the communications and timeline documents shall be written from. | functional | must | proposed | test | Communications of every type, an answer with evidence whose SHA-256 matches, a question with its reply, a request, information from a call with no evidence and an objection, a session and a test session with invited and present, a deploy, an interview source with at and participants, a decision citing the answer record and a requirement citing the information record, each naming only what the specification and the records have, validate with nothing printed and exit 0. A communication, session, test session or deploy record naming a role, a question, a decision, an element, a change, a defect, an idea, a session or a source that the specification or its records do not have is reported as record_ref at the key; a question a decision answers is still a question a record may link. Evidence naming a file that is not under records/, or whose SHA-256 is not the one recorded, is reported as evidence at the key, with the hash the file has now. A citation naming a communication record that does not exist, or one whose type is a request, a question or an objection, is reported as record_cited at the citation; so is a decision that answers questions citing an answer record that links none of them. A stakeholder that an accepted requirement needs, or that a page of an approved specification is for, while no communication names it, no session lists it present, no interview lists it and no decision is by it, is warned as unheard at the stakeholder, naming the requirements and pages; with no communication, session or test session record kept yet, every such stakeholder is warned, the warning adding that none is kept yet and to start by logging the first conversation, and one communication record naming a role clears that role alone. The Go build and the Swift build print the same lines on each case. document communications writes every communication, session and test session in time order and then per stakeholder and per element, a person label left out of a document for everyone; document timeline writes every event of the records and the specification in one time order, a date-only event at the start of its day in the specification's time zone, then by stakeholder, by element and by release; neither is a draft. | NEED-5, NEED-6, NEED-10 |
 | SA-125 | A specification shall keep beside it, as records in records/test-runs/, each run of its tests - the environment, the version, the build, the specification's digest, the instant with its offset, the role that ran it, the results file as evidence and each result with the test it maps to, its outcome, its message and the defect it opened - and specarch log test-run shall write one from a JUnit XML file, mapping each testcase to a test by the names the test generators write, keeping and reporting a testcase that maps to no test, and opening a defect for a failure only for a test it is told to; the validator shall check the record in both builds, and the testruns document shall write the runs and the failures per element and per requirement, run by run. | functional | should | proposed | test | log test-run with a JUnit XML file under records/, the environment, the instant and the role writes records/test-runs/TR-<n>.yaml under the next number, with the file as evidence with its SHA-256 and one result per testcase in the file's order, each mapped to its test by its name, Test or test and the name in Pascal case, or the name and a colon, and exits 0. A testcase whose name is a test the generators write for an algorithm's or a call mapping's worked examples names that algorithm or the path of the operation under element, with no test and no unmapped line, and counts for that element in the testruns document. A testcase whose name maps to no test and no element, or to two, is kept in the record without either, printed as an unmapped line naming it and why, and listed under log.unmapped with --json; validate warns test_unmapped at that result. log test-run without the results file, the environment, the instant or the role prints one line per missing option and writes nothing, with exit 1; it refuses a results file outside records/ or not JUnit XML, one with no testcase, an environment, version, role or digest the specification and its records do not have, and an --open-defect for a test that did not fail in the run, or without --severity and --phase. With --open-defect naming a failed test, it writes records/defects/DEF-<n>.yaml, reported, violating the requirements the test verifies or the element it is about, naming the test, observed from the failure's message and expected from the test's then, and links it from the result. A test-run record naming an environment, a version, a role, a test or a defect the specification or its records do not have is reported as record_ref at the key, in the Go build and the Swift build alike. document testruns lists the runs oldest first with their passed, failed, errored, skipped and unmapped counts, then the failures per element and per requirement with one column per run and the open defects, then the unmapped results; the timeline places each run at its instant. | NEED-5, NEED-10 |
+| SA-127 | specarch compare shall write, for alternative implementation files of one specification, one table as Markdown and JSON from each implementation's test-run record or JUnit XML results file, the scan of its software bill of materials and a measurements file - the derived cases passed, the latency and throughput beside the requirements a measurement names, the libraries with their licences, the scan findings, the build time, the lines of code and the deploy steps - marking every missing result as a gap in its cell and in a list of gaps rather than stopping, and printing the source entry by which a decision cites the comparison. | functional | should | proposed | test | compare with two implementation files of the specification, each with a JUnit XML results file or a test-run record, a scan and a measurements file under records/, prints the table as Markdown with one column per implementation in the order given, and with --out writes comparison.md and comparison.json and prints their paths and the sources entry, and exits 0. A derived case shows failed when a result of a test that covers it failed or errored, passed when one passed, skipped when one was skipped, and gap with no test or not run otherwise; a requirement a measurements file names shows each implementation's value and unit beside the requirement's statement. An implementation with no results, no scan or no measurements, or a measurements file that leaves out a key another gives, is written gap in each cell it leaves empty, with the reason, and listed under Gaps with the option that fills it, and compare exits 0. compare refuses, with exit 1 and nothing written, an implementation file that is not the specification's, an option whose name is no implementation given, --test-run and --results for one implementation, a test-run record the records do not hold, and an input file outside records/, unreadable or not of its format. A decision that cites the comparison through the sources entry compare printed validates without an error. | NEED-2, NEED-6 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. A question may block a key inside an element's x- block or a root x- block, the block and the keys on the way present and at most the last one missing; a pointer into a root x- block the file lacks, or below a key the block lacks, is reported, and the question is about no stage. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
@@ -19316,6 +19501,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-125:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
 
+**Insight on SA-127:** Choosing between two implementations of one design is a decision taken from CI logs, scan reports and what people remember of the build; one table built from the kept inputs, every missing result marked rather than left blank and the comparison cited by the decision as a source, makes the choice quick to take and to review and keeps it traceable to its evidence (ADR-232).
+
 **Insight on SA-17:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
 
 **Note on SA-17:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
@@ -19509,6 +19696,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-121 | decisions ADR-227 | tests generate-deploy; tests generate-deploy-refused |
 | SA-125 | enums DocumentTarget; commands document; commands log test-run; decisions ADR-230 | tests document-writes-testruns; tests document-writes-testruns-external; tests document-writes-timeline-test-runs; tests log-test-run-asks-missing; tests log-test-run-defect-not-failed; tests log-test-run-maps-worked-examples; tests log-test-run-nameless-testcase; tests log-test-run-not-junit; tests log-test-run-results-outside; tests log-test-run-usage-error; tests log-test-run-writes-record; tests validate-test-run-ref |
 | SA-126 | enums Rule; decisions ADR-231 | tests validate-idiom-override-technologies; tests validate-technology-approved; tests validate-technology-decided; tests validate-technology-decision-incomplete; tests validate-technology-decision-missing; tests validate-technology-standard-library; tests validate-technology-unjustified |
+| SA-127 | commands compare; decisions ADR-232 | tests compare-marks-gaps; tests compare-refuses-input-outside-records; tests compare-refuses-unknown-name; tests compare-two-implementations; tests compare-usage-error |
 
 ## Sources
 
@@ -19522,6 +19710,7 @@ Every source a Note in this document cites.
 | bpmn-2-0 | Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas | 2011 | Object Management Group | https://www.omg.org/spec/BPMN/2.0/ |
 | cel | Common Expression Language, language definition | 2024 | The CEL project | https://github.com/google/cel-spec/blob/master/doc/langdef.md |
 | csp-3 | Content Security Policy Level 3 |   | W3C | https://www.w3.org/TR/CSP3/ |
+| cvss-3-1 | Common Vulnerability Scoring System v3.1, Specification Document | 3.1 | FIRST | https://www.first.org/cvss/v3.1/specification-document |
 | ecma-262 | ECMA-262, ECMAScript language specification, the Number type | 2025 | Ecma International | https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type |
 | gnu-coding-standards | GNU Coding Standards |   | The GNU Project | https://www.gnu.org/prep/standards/ |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |

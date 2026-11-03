@@ -5,4 +5,4 @@ scenario: golden
 given: a design with one requirement and no channel, and a Go implementation file whose messaging binding names a Kafka client, with no decision and no idiom approving it
 when: validate is run
 then: it warns technology_unjustified at the binding, saying the design has no channels and no dependency of kind messageBroker and naming what would justify it (the design elements, a decision that satisfies a requirement and names a simpler alternative, or an idiom's technologies), and exits 0
-verifies: [SA-120]
+verifies: [SA-126]

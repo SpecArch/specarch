@@ -5,4 +5,4 @@ scenario: golden
 given: the same binding, decided in an accepted implementation decision that satisfies no requirement and names no alternative
 when: validate is run
 then: it warns technology_unjustified at decidedIn, naming the decision and both gaps, and exits 0
-verifies: [SA-120]
+verifies: [SA-126]

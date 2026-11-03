@@ -5,4 +5,4 @@ scenario: golden
 given: the same binding with no decision, and a project idiom of concern technologies in the file's idioms folder, for the go and typescript stacks, approving kafka under technologies with the Kafka client's name
 when: validate is run
 then: it prints nothing and exits 0, since the idiom of the file's stack approves the framework
-verifies: [SA-120]
+verifies: [SA-126]

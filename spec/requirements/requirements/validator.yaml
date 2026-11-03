@@ -146,7 +146,7 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-10]
     why: A reader decides on a rule faster and more accurately from its result on a case they recognise than from its formula; validate says only that an example does not hold, so the result of a passing example, the steps that gave a wrong one and the effect of a proposed formula on the examples were worked out by hand, which is the cost the goal names (ADR-195).
-  SA-120:
+  SA-126:
     statement: The validator shall warn, in both builds, at a binding of an implementation file whose framework no element of the design needs, unless an idiom of the file's stacks approves the framework under technologies or the binding is decided in an accepted decision that satisfies a requirement and names under alternatives the simpler option it rejected; the warning shall name what would justify the binding.
     kind: functional
     priority: must

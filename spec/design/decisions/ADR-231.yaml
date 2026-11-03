@@ -78,5 +78,5 @@ decisions:
         why: A library is a package name the validator cannot classify, so the rule would warn at a YAML parser as loudly as at a message broker, and a warning that loud gets turned off; the binding is where a file says what a framework is for.
       - option: Keep the approved technologies in a file kind of their own
         why: An organisation's technology choice is one more thing decided once for every project, which is what an idiom is; a file kind of its own would need its own lookup, schema and stacks filter, which the idioms folder already has.
-    satisfies: [SA-120]
+    satisfies: [SA-126]
     restsOn: [ADR-028, ADR-188]

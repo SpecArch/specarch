@@ -5,4 +5,4 @@ scenario: golden
 given: the same binding, decided in an accepted implementation decision that satisfies the requirement and names under alternatives the HTTP call and the nightly job it rejected, each with why
 when: validate is run
 then: it prints nothing and exits 0
-verifies: [SA-120]
+verifies: [SA-126]

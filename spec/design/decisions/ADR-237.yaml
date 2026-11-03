@@ -29,25 +29,33 @@ decisions:
       3. Unheard roles: each role the validator warns unheard, with the
          warning's text, taken from the warnings so the document and the
          validator cannot disagree.
-      4. The stakeholder list: confirmed complete by a role on a date when
-         the specification holds stakeholdersComplete, and otherwise the
-         line that no role has confirmed it.
+      4. The stakeholder list: the number of stakeholders and the line
+         that no role's confirmation of the list is recorded. The
+         meta-model has no key that records the confirmation, so the
+         document reads none and claims none.
       5. Effort: each change request with its status and the hours
          recorded on it, estimated and spent in two columns, and the word
-         missing where it records none; the sums of each column, each over
-         the change requests that record that figure, said as such; and
-         the change requests with no effort counted and named. No average,
-         forecast or filled-in figure is made.
+         missing where it records none; a value that is not a number above
+         0, which the schema refuses, shown as written and marked not
+         counted, never summed; the sums of each column, each over the
+         change requests that record that figure, said as such; and the
+         change requests with no counted figure, an effort with only
+         extension keys among them, counted and named as missing. No
+         average, forecast or filled-in figure is made.
       6. Burn-up: one point per release, in version order, each the
-         cumulative count of distinct elements (requirement IDs and #/
-         pointers) the change requests it includes name under affects adds
-         and changes: approved once the request's decision approves it,
-         generated once its status is implemented or released; and beside
-         them the elements the specification holds now, as the scope line.
+         cumulative count of distinct elements the change requests it
+         includes name under affects adds and changes, each reference
+         counted as the element Size counts it under: a requirement ID as
+         the requirement's pointer, and a pointer inside an element cut to
+         the entry of its section, or to the section when it holds one
+         thing. An element is approved once the request's decision approves
+         it and the request is not withdrawn or rejected, and generated once
+         its status is implemented or released; beside them stand the
+         elements the specification holds now, as the scope line.
 
       A change record takes an optional effort mapping with estimatedHours
-      and spentHours, each a positive number of hours and at least one of
-      them given.
+      and spentHours, each a positive number of hours; an empty effort is
+      an error.
     why: |
       Every figure comes from a key a person wrote, so two readers who ask
       get the same answer and a figure can be traced to the record that
@@ -56,14 +64,25 @@ decisions:
       key's name cannot be read in the wrong unit. Estimated and spent are
       two keys, not one with a kind, because a change request carries the
       estimate taken at its analysis and the time spent after it is done,
-      and the two must never be added together. A change request with no
+      and the two must never be added together. An effort with only an
+      extension key is read, as every extension key is, and records no
+      hours; requiring one of the two keys in the schema instead would
+      print two errors, one for each key as if both were missing, for one
+      problem. A change request with no
       effort is shown as missing rather than as zero or as an average of
       the others, since a guess in a progress report is read as a fact and
-      hides the gap the team must close. The burn-up counts elements, not
+      hides the gap the team must close; a refused value is shown, marked,
+      rather than summed or dropped, as a compiler marks a problem at its
+      entry. The burn-up counts elements, not
       change requests, because a change request may touch one element or
       twenty; it counts what the records name rather than a past
       specification's size, since only the current specification is at
-      hand, and the scope line is today's size for that reason.
+      hand, and the scope line is today's size for that reason. A
+      reference is counted as its element because one element may be
+      named by its ID and its pointer, or by a pointer inside it, and
+      counting each spelling would pass the scope line it is drawn
+      against. A request withdrawn or rejected after its approval carries
+      nothing into the delivery, so it adds nothing.
     consequences: |
       A release with no recorded change request is a point that does not
       rise. A specification without records has a progress document with

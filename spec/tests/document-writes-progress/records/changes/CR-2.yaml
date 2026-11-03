@@ -10,7 +10,7 @@ urgency: normal
 reason: The desk refuses it by hand today.
 cause: omitted
 affects:
-  changes: [CASE-1, "#/entities/Loan"]
+  changes: [CASE-1, "#/requirements/CASE-2", "#/entities/Loan/properties/id"]
 impact: minor
 effort: { estimatedHours: 4 }
 decision:

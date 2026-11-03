@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a requirement for everyone and an internal one, an open question about each, and an approved change request that names both requirements and a pointer inside the internal one, in a planned release"
+when: "document progress is run with --audience external"
+then: "it writes progress.md that says the internal elements and the questions only about them are not counted, sizes the requirements as 1, counts 1 open question, and gives the release 1 element approved, and exits 0"
+verifies: [SA-121]

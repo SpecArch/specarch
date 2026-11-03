@@ -1,0 +1,6 @@
+arguments: [document, progress, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  records/changes/CR-1.yaml:11:27: error: /effort/estimatedHours: schema: -4 must be above 0 [schema@../records/changes/CR-1.yaml#/effort/estimatedHours]
+  records/changes/CR-3.yaml:11:27: error: /effort/estimatedHours: schema: this is a string, but a number is expected here [schema@../records/changes/CR-3.yaml#/effort/estimatedHours]
+  records/changes/CR-3.yaml:11:44: error: /effort/spentHours: schema: this is an array, but a number is expected here [schema@../records/changes/CR-3.yaml#/effort/spentHours]

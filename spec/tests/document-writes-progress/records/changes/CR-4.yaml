@@ -1,0 +1,21 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-4
+title: Keep a copy of every loan in a second environment
+raisedBy: librarian
+raised: "2026-10-08"
+phase: development
+type: additive
+urgency: normal
+reason: The desk feared losing the loans.
+cause: omitted
+affects:
+  changes: ["#/environments/production"]
+impact: minor
+effort: { estimatedHours: 1e-1 }
+decision:
+  by: owner
+  date: "2026-10-09"
+  outcome: approved
+  why: A copy is cheap.
+status: withdrawn

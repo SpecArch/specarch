@@ -1,0 +1,4 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  librarian: { description: Runs the lending desk. }

@@ -1,0 +1,21 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Refuse a sixth loan and mark risky loans
+raisedBy: librarian
+raised: "2026-10-02"
+phase: development
+type: additive
+urgency: normal
+reason: The desk refuses a sixth loan by hand today.
+cause: omitted
+affects:
+  changes: [CASE-1, CASE-2, "#/requirements/CASE-2/acceptance"]
+impact: minor
+effort: { estimatedHours: 3 }
+decision:
+  by: librarian
+  date: "2026-10-03"
+  outcome: approved
+  why: The rule is the library's.
+status: approved

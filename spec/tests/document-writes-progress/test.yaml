@@ -2,7 +2,7 @@
 command: document
 level: system
 scenario: golden
-given: "a specification with stakeholders, requirements, an entity, a page and three open questions, a communication record that hears the librarian alone while an accepted requirement relies on the member too, three change requests, one with an estimate, one with an estimate and the hours spent and one with no effort, and two releases"
+given: "a specification with stakeholders, requirements, an entity, a page and three open questions, a communication record that hears the librarian alone while an accepted requirement relies on the member too, four change requests, one with an estimate and the hours spent, one with an estimate that names a requirement by its ID and by its pointer and a property inside the entity, one with no effort, and one withdrawn after its approval with an estimate written with an exponent, and two releases"
 when: "document progress is run"
-then: "it writes progress.md with the elements of each stage, the open questions by priority and deciding role, the member warned unheard, the stakeholder list not confirmed, the effort table with the change request without effort counted and named as missing, and a burn-up of two points, and exits 0"
+then: "it writes progress.md with the elements of each stage, the open questions by priority and deciding role, the member warned unheard, the stakeholder list not confirmed, the effort table with the exponent read as 0.1 and the change request without effort counted and named as missing, and a burn-up of two points that counts the requirement named two ways and the property as the elements they name, once, and adds nothing for the withdrawn request, and exits 0"
 verifies: [SA-121]

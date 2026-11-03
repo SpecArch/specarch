@@ -9,6 +9,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/semver"
+	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
 
@@ -66,15 +67,7 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 	}
 
 	d.section("Stakeholder list")
-	if c := get(root, "stakeholdersComplete"); c != nil {
-		says := fmt.Sprintf("Confirmed complete by %s on %s", str(c, "by"), str(c, "date"))
-		if src := str(c, "source"); src != "" {
-			says += ", from " + src
-		}
-		d.para(says + ".")
-	} else {
-		d.para(fmt.Sprintf("Not confirmed: no role has confirmed the list of %s complete, so a role nobody has named yet may still be missing.", countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders")))
-	}
+	d.para(fmt.Sprintf("Not confirmed: the specification records no role confirming the list of %s complete, so a role nobody has named yet may still be missing.", countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders")))
 
 	d.section("Effort")
 	d.progressEffort(state)
@@ -177,32 +170,68 @@ func (d *doc) progressQuestions() {
 	d.blank()
 }
 
-// hours sums the figures of one effort key exactly, as decimals, so 0.1
+// hours sums the figures of one effort key exactly, as rationals, so 0.1
 // and 0.2 make 0.3.
 type hours struct {
-	sum      big.Rat
-	count    int
-	decimals int
+	sum   big.Rat
+	count int
 }
 
-func (h *hours) add(text string) bool {
+// add counts the value of one effort key when it is a number above 0, as
+// the schema asks, and returns the cell the table shows for it: the figure,
+// missing when the key is absent, or the value as written with why it is
+// not counted. A value the schema refuses is marked here and kept out of
+// the sum, never read as a figure.
+func (h *hours) add(n *yaml.Node) string {
+	n = source.Deref(n)
+	if n == nil {
+		return "missing"
+	}
 	var r big.Rat
-	if _, ok := r.SetString(text); !ok {
-		return false
+	tag := n.ShortTag()
+	if n.Kind != yaml.ScalarNode || tag != "!!int" && tag != "!!float" {
+		return fmt.Sprintf("%s (not counted: not a number; a positive number of hours is expected)", cell(valueText(n)))
+	}
+	if _, ok := r.SetString(n.Value); !ok || r.Sign() <= 0 {
+		return fmt.Sprintf("%s (not counted: not above 0; a positive number of hours is expected)", cell(n.Value))
 	}
 	h.sum.Add(&h.sum, &r)
 	h.count++
-	if _, frac, ok := strings.Cut(text, "."); ok && len(frac) > h.decimals {
-		h.decimals = len(frac)
-	}
-	return true
+	return ratText(&r)
 }
 
-func (h *hours) String() string {
-	if h.sum.IsInt() {
-		return h.sum.Num().String()
+func (h *hours) String() string { return ratText(&h.sum) }
+
+// valueText is a value as written, a scalar's text or the kind of a list
+// or mapping.
+func valueText(n *yaml.Node) string {
+	switch n.Kind {
+	case yaml.SequenceNode:
+		return "a list"
+	case yaml.MappingNode:
+		return "a mapping"
 	}
-	return h.sum.FloatString(h.decimals)
+	if n.ShortTag() == "!!str" {
+		return fmt.Sprintf("%q", n.Value)
+	}
+	return n.Value
+}
+
+// ratText writes a number in decimal with as many decimals as it needs, so
+// 1e-1 reads 0.1 and 3.250 reads 3.25.
+func ratText(r *big.Rat) string {
+	if r.IsInt() {
+		return r.Num().String()
+	}
+	scaled := new(big.Rat).Set(r)
+	ten := big.NewRat(10, 1)
+	for places := 1; places <= 30; places++ {
+		scaled.Mul(scaled, ten)
+		if scaled.IsInt() {
+			return r.FloatString(places)
+		}
+	}
+	return r.FloatString(30)
 }
 
 // progressEffort writes the effort each change request records, the word
@@ -219,16 +248,15 @@ func (d *doc) progressEffort(state *State) {
 	type row struct{ id, title, status, estimated, spent string }
 	var rows []row
 	for _, c := range changes {
-		r := row{id: str(c, "id"), title: str(c, "title"), status: str(c, "status"), estimated: "missing", spent: "missing"}
 		effort := get(c, "effort")
-		if effort == nil {
+		counted := estimated.count + spent.count
+		r := row{id: str(c, "id"), title: str(c, "title"), status: str(c, "status"),
+			estimated: estimated.add(get(effort, "estimatedHours")), spent: spent.add(get(effort, "spentHours"))}
+		// A request records its effort when one of its figures is counted:
+		// an effort with only extension keys, or with values that are not
+		// a positive number, records none and is named as missing.
+		if estimated.count+spent.count == counted {
 			missing = append(missing, r.id)
-		}
-		if v := str(effort, "estimatedHours"); v != "" && estimated.add(v) {
-			r.estimated = v
-		}
-		if v := str(effort, "spentHours"); v != "" && spent.add(v) {
-			r.spent = v
 		}
 		rows = append(rows, r)
 	}
@@ -266,9 +294,31 @@ func pick(cond bool, yes, no string) string {
 
 // progressBurnUp writes one point per release, in version order: the
 // distinct elements the change requests it includes name under affects
-// adds and changes, cumulative from the first release, approved once the
-// request's decision approves it and generated once it is implemented or
+// adds and changes, each as the element it names, cumulative from the
+// first release, approved once the request's decision approves it and it
+// is not withdrawn or rejected, and generated once it is implemented or
 // released.
+// elementOf is the element a reference names, as Size counts it, so one
+// element is counted once however it is named: a requirement ID is the
+// requirement's pointer, and a pointer into an element is cut to the
+// element, the entry of a section or a single section.
+func elementOf(ref string) string {
+	if !strings.HasPrefix(ref, "#/") {
+		return source.Pointer("requirements", ref)
+	}
+	var tokens []string
+	for _, t := range strings.Split(strings.TrimPrefix(ref, "#/"), "/") {
+		tokens = append(tokens, source.UnescapeToken(t))
+	}
+	switch {
+	case spec.IsSingleSection(tokens[0]) || spec.IsElement(tokens[:1]):
+		tokens = tokens[:1]
+	case len(tokens) > 2:
+		tokens = tokens[:2]
+	}
+	return source.Pointer(tokens...)
+}
+
 func (d *doc) progressBurnUp(state *State, scope int) {
 	releases := recordsOf(state, "release")
 	sort.SliceStable(releases, func(i, j int) bool {
@@ -276,7 +326,7 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 		b, _ := semver.Parse(str(releases[j], "version"))
 		return semver.Compare(a, b) < 0
 	})
-	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements (requirement IDs and #/ pointers) that the change requests it includes name under affects adds and changes: approved once the request's decision approves it and it is not withdrawn, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
+	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
 		countText(scope, "element", "elements")))
 	if len(releases) == 0 {
 		d.para("No release is recorded.")
@@ -302,14 +352,15 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 			isGenerated := status == "implemented" || status == "released"
 			affects := get(c, "affects")
 			for _, ref := range append(strs(affects, "adds"), strs(affects, "changes")...) {
-				if state.Withheld != nil && state.Withheld.CoversRef(ref) {
+				if ref == "" || state.Withheld != nil && state.Withheld.CoversRef(ref) {
 					continue
 				}
+				element := elementOf(ref)
 				if isApproved {
-					approved[ref] = true
+					approved[element] = true
 				}
 				if isGenerated {
-					generated[ref] = true
+					generated[element] = true
 				}
 			}
 		}

@@ -1,0 +1,12 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-2
+title: Show a member's open loans
+raisedBy: librarian
+raised: "2026-10-02"
+phase: development
+type: additive
+urgency: normal
+reason: The desk looks a member's loans up one by one.
+effort: { x-note: later }
+status: proposed

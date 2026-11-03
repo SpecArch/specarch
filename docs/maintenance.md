@@ -477,7 +477,7 @@ error unless it says warning.
 | `idea_question` | an idea whose status is question names the question under `became` |
 | `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
 | `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions or change requests cites an answer that links one of them, said by the role `decidedBy` names |
-| `unheard` | a warning, at the stakeholder, once a communication, session or test session record is kept: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements |
+| `unheard` | a warning, at the stakeholder, from the first day: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements; while no communication, session or test session record is kept, every such role is unheard and the warning says to start by logging the first conversation |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 
 `monitors` adds no new rule: a monitor's `environment` uses the existing

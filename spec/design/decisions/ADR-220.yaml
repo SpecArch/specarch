@@ -103,19 +103,21 @@ decisions:
       and could disagree. The person label is a key of its own, left out
       of a document for everyone, rather than part of the words, so that
       the role carries the record and the label can be withheld without
-      editing the words. The unheard warning holds from the first day, records or
-      not, rather than waiting for the first communication, session or
-      test session record: a specification with no such record has no
-      evidence that anyone it relies on was heard, which is the very risk
-      the warning names, and a team that never starts recording would
-      otherwise never see it; the warning stays at the stakeholder, so it
-      is as many lines as roles relied on, and it says to log the first
-      conversation, the one step that starts clearing it. log takes every field as an option and asks for
-      the missing ones rather than reading the analyst's sentence,
-      because a parser that infers who or when from free text writes a
-      guess as a fact, which is the one thing a record of what was said
-      may never do; the agent in the chat reads the sentence and asks the
-      analyst, and the command holds it to that. A deploy is a record
+      editing the words. The unheard warning holds from the first day,
+      records or not, rather than waiting for the first communication,
+      session or test session record: a specification with no such
+      record has no evidence that anyone it relies on was heard, which
+      is the very risk the warning names, and a team that never starts
+      recording would otherwise never see it; the warning stays at the
+      stakeholder, so it is as many lines as roles relied on, and it
+      says to log the first conversation, the one step that starts
+      clearing it.
+      log takes every field as an option and asks for the missing ones
+      rather than reading the analyst's sentence, because a parser that
+      infers who or when from free text writes a guess as a fact, which
+      is the one thing a record of what was said may never do; the agent
+      in the chat reads the sentence and asks the analyst, and the
+      command holds it to that. A deploy is a record
       apart from a release because one version is installed on several
       environments at several times, by several people, with its own
       result each time.

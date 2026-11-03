@@ -337,6 +337,11 @@ func logTestRun(args []string, stdout, stderr io.Writer, kept **logResult) int {
 	if len(cases) == 0 {
 		return refuse("--results %s holds no testcase, so there is no result to record", p)
 	}
+	for i, c := range cases {
+		if strings.TrimSpace(c.name) == "" {
+			return refuse("--results %s: testcase %d of %d has no name attribute, so no test can be found for it; JUnit XML names each testcase", p, i+1, len(cases))
+		}
+	}
 	mediaType := mediaTypeOf(p)
 	if mediaType == "" {
 		mediaType = "application/xml"

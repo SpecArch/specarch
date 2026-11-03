@@ -53,8 +53,8 @@ Each failed result of that test links the defect. A failure no
 `--open-defect` names opens nothing.
 
 Refuses, with exit 1 and nothing written, a results file that is
-not under `records/`, cannot be read, is not JUnit XML or holds no
-testcase; an environment, a version or a role the specification
+not under `records/`, cannot be read, is not JUnit XML, holds no
+testcase or holds a testcase without a name; an environment, a version or a role the specification
 and its records do not have; a digest not written as sha256: and 64
 hexadecimal digits; an instant not written as RFC 3339 with its
 offset; an `--open-defect` for a test that is not one of the
@@ -63,7 +63,9 @@ specification's or that did not fail in the run, one without
 an acceptance defect without `--version`, and a test that verifies
 nothing and is about no element. Prints on standard output the
 unmapped lines, then the record's path and the path of each defect
-opened. With `--dry-run` it prints the records it would write and
+opened; with `--json` the record under `log.record` and `log.id`,
+the unmapped testcases under `log.unmapped` and the defects under
+`log.defects`. With `--dry-run` it prints the records it would write and
 writes nothing.
 
 ## Arguments

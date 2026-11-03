@@ -695,12 +695,15 @@ and in `docs/testruns.md`, after the second run:
 A testcase the specification has no test for is kept, not dropped
 (`spec/tests/log-test-run-writes-record`):
 
-    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon
+    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples
 
 **What to watch for.** A testcase maps by the names the test generators
-write (`TestReturnLate`, `testReturnLate()`, `return-late: ...`); a runner
-that names tests otherwise leaves results unmapped, and `validate` warns
-`test_unmapped` at each until `test` is written into the result. Nothing
+write (`TestReturnLate`, `testReturnLate()`, `return-late: ...`), and the
+generated tests of an algorithm's or a call mapping's worked examples
+(`TestAlgorithmLateFee`, `algorithm lateFee: ...`) name that element under
+`element`; a runner that names tests otherwise leaves results unmapped,
+and `validate` warns `test_unmapped` at each until `test` or `element` is
+written into the result. Nothing
 is read from the file's timestamp, which has no offset: give `--at`. A
 failure opens no defect by itself, since a flaky host fails a test too.
 Keep the results file once it is recorded: the `evidence` rule fails when

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: red
+covers: [exit 1]
+given: "a JUnit XML file under records/evidence/ whose second of two testcases has no name attribute"
+when: "log test-run is run on it with every required option"
+then: "it refuses, saying testcase 2 of 2 has no name attribute so no test can be found for it, writes nothing and exits 1"
+verifies: [SA-125]

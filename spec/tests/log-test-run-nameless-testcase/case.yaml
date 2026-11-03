@@ -1,0 +1,5 @@
+arguments: [log, test-run, --results, records/evidence/report.xml, --environment, staging, --at, "2026-11-03T14:05:00+07:00", --by, tester, project]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch log test-run: --results records/evidence/report.xml: testcase 2 of 2 has no name attribute, so no test can be found for it; JUnit XML names each testcase; nothing written

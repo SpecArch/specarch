@@ -17,3 +17,9 @@ results:
     outcome: passed
   - name: TestRenewal
     outcome: failed
+  - name: TestAlgorithmRenewalFee
+    element: "#/algorithms/renewal-fee"
+    outcome: passed
+  - name: TestAlgorithmLoanKey
+    element: "#/entities/Loan"
+    outcome: passed

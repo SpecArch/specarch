@@ -470,14 +470,24 @@ each with its `name` as the file writes it, the `test` it maps to,
 no offset, and its hostname is no environment of the specification.
 
 A testcase maps to a test when its name, cut at the first `/` and with a
-trailing `()` taken off, is the test's name, or `Test` or `test` and the
+trailing argument list such as `()` taken off, is the test's name, or `Test` or `test` and the
 name in Pascal case (`TestReturnLate` and `testReturnLate()` for
 `return-late`, as the Go and Swift test generators name them), or begins
 with the name and a colon (`return-late: operation returnLoan, golden
-scenario`, the display name). A testcase that maps to no test, or to two,
-is kept without `test`, printed as `unmapped: <name>: <why>`, and warned
-by the validator (`test_unmapped`) until someone writes its `test` or the
-specification gains the test.
+scenario`, the display name). The generated tests of an algorithm's or a
+call mapping's worked examples have no entry under `tests`: a testcase
+named as one of them (`TestAlgorithmLateFee/returned on time`,
+`testMappingReturnLoanFeeLedgerPostChargeSent(...)`, `algorithm lateFee:
+worked examples`, `mapping of returnLoan's call to feeLedger postCharge
+...`) names under `element` the algorithm (`#/algorithms/lateFee`) or the
+path of the operation (`#/paths/~1loans~1{loanId}~1return`), and no
+`test`; the validator checks that pointer resolves, and a worked example's
+failure opens no defect. A testcase that maps to nothing, or to two, is
+kept without `test` or `element`, printed as `unmapped: <name>: <why>`,
+and warned by the validator (`test_unmapped`) until someone writes its
+`test` or `element` or the specification gains the test. `specarch log
+test-run` and the testruns document place a test on its element by the
+one function, `generate.TestElement`.
 
 A failure opens a defect only when asked: `--open-defect <test>`, with
 `--severity` and `--phase`, writes `records/defects/DEF-<n>.yaml`,
@@ -520,7 +530,7 @@ error unless it says warning.
 | `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
 | `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions or change requests cites an answer that links one of them, said by the role `decidedBy` names |
 | `unheard` | a warning, at the stakeholder, from the first day: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements; while no communication, session or test session record is kept, every such role is unheard and the warning says to start by logging the first conversation |
-| `test_unmapped` | a warning, at the result: a result of a test run names no `test`, since its testcase maps to none or to two; the outcome counts for no element or requirement until its test is named |
+| `test_unmapped` | a warning, at the result: a result of a test run names no `test` and no `element`, since its testcase maps to none or to two; the outcome counts for no element or requirement until its test or element is named |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 
 `monitors` adds no new rule: a monitor's `environment` uses the existing
@@ -581,9 +591,12 @@ Five targets join `DocumentTarget`, after the first set of documents:
   skipped and unmapped results; then the failures per element (the
   element each test is about) and per requirement (each test's
   `verifies`), one column per run, a cell counting the failed and errored
-  results of those tests in that run and a dash when none of them ran,
-  with the open defects on each; then the results that map to no test;
-  then each run's results. The timeline places each run at its instant.
+  results of those tests in that run, and on an element's row those of
+  the results naming it as their `element`, and a dash when none of them
+  ran, with the open defects on each; then the results that map to no
+  test; then each run's results. With `--audience external` a result
+  whose test, that test's element, or whose element is internal is left
+  out and counted, and the unmapped results are counted, not named. The timeline places each run at its instant.
 
 All five read the records beside the specification, name the records folder
 in their generated-from header, and are never drafts: an open question is

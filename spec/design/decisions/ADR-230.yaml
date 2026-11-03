@@ -28,7 +28,8 @@ decisions:
       offset), by (the role that ran it), the results file as evidence
       (its path under records/, media type and SHA-256), and the results,
       one per testcase in the file's order: the name as the file writes
-      it, the test of the specification it maps to, the outcome (passed,
+      it, the test of the specification it maps to, or the element whose
+      worked examples it runs, the outcome (passed,
       failed, error, skipped), the failure's message, and the defect it
       opened. specarch log test-run --results <file> writes it from a
       JUnit XML file under records/, with --environment, --at and --by
@@ -36,28 +37,49 @@ decisions:
       is read from the file but the testcases, since its timestamp has no
       offset and its hostname is no environment of the specification. A
       testcase maps to a test when its name, cut at the first / (a
-      subtest) and with a trailing () taken off, is the test's name, or
-      Test or test followed by the name in Pascal case (the functions
-      specarch-gen-tests-go and specarch-gen-tests-swift write), or
-      begins with the name and a colon (the display name the Swift and
-      Dart generators write). A testcase that maps to no test, or to two,
-      stays in the record without test, is printed as a line saying why,
-      under log.unmapped with --json, and is warned by the validator at
-      the result (test_unmapped) until someone names its test. A failed
+      subtest) and with a trailing argument list such as () taken off, is
+      the test's name, or Test or test followed by the name in Pascal case
+      (the functions specarch-gen-tests-go and specarch-gen-tests-swift
+      write), or begins with the name and a colon (the display name the
+      Swift and Dart generators write). The generators also write a test
+      for the worked examples of each algorithm and of each call mapping,
+      which no entry under tests names: a testcase whose cut name is one
+      of those functions (TestAlgorithm or testAlgorithm and the
+      algorithm's name in Pascal case; TestMapping and the operation and
+      the call in Pascal case, or testMapping with them and Sent or Kept),
+      or whose name is or begins with their display name (algorithm
+      <name>, or mapping of <operation>'s call to <call>) and a colon or a
+      space, names as its element the algorithm, #/algorithms/<name>, or
+      the path of the operation, #/paths/<path>, and no test. A testcase
+      that maps to no test and no element, or to two of them, stays in
+      the record without either, is printed as a line saying why, under
+      log.unmapped with --json, and is warned by the validator at the
+      result (test_unmapped) until someone names its test or element. A
+      failed
       or errored result opens a defect only when --open-defect names its
       test, with --severity and --phase given: the defect, reported, by
       the run's role on the run's date, violates the requirements the
       test verifies, or the element it is about when it verifies none,
       names the test, says what was observed with the failure's message
       and what was expected with the test's then; for acceptance its
-      against is the run's version, digest and build. The validator
+      against is the run's version, digest and build; --open-defect names
+      a test, so a worked example's failure opens none. The element a
+      test is about is the path of its operation, or the command, page,
+      job, process, route, gateway, workflow, flow, algorithm or entity it
+      names, one function for the defect and the document. The validator
       checks the run's environment, version, role, evidence, each
-      result's test and defect (record_ref). The testruns document lists
-      the runs, oldest first, with their counts, then a table per element
-      and per requirement with one column per run holding the failures
-      of the tests about it in that run, and the open defects; then the
-      results that map to no test, and each run's results. The timeline
-      places each run at its instant.
+      result's test, element and defect (record_ref). The testruns
+      document lists the runs, oldest first, with their counts, then a
+      table per element and per requirement with one column per run
+      holding the failures of the tests about it in that run, and on an
+      element's row of the results naming it as their element, and the
+      open defects; then the results that map to no test, and each run's
+      results. A document for everyone (--audience external) leaves out
+      a result whose test, the element that test is about, or whose
+      element is internal, and counts the results that map to nothing
+      without naming them, since nothing tells whether one runs an
+      internal element (ADR-119). The timeline places each run at its
+      instant.
     consequences: |
       What a build showed is kept beside the specification and checked
       like the other records: a results file changed after the import
@@ -84,7 +106,13 @@ decisions:
       generators already write instead of a mapping file or a fuzzy
       match, because a fuzzy match that maps a testcase to the wrong test
       reads as a fact in every document after it, and a result kept
-      unmapped and warned costs one edit. A result is kept when it maps
+      unmapped and warned costs one edit. A worked example's result names
+      its element rather than a test, since the example belongs to the
+      algorithm or the call mapping and no test of the specification
+      runs it; a warning on it would ask for a test nobody needs, and
+      counting it for its element is what the trend asks. A name that
+      matches a test and a worked example is ambiguous like one that
+      matches two tests. A result is kept when it maps
       to nothing, in place of being dropped or refused, because a
       compiler for specifications never silently drops what it read
       (docs/principles.md), and a failure of a test the specification

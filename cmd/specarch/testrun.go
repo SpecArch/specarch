@@ -17,6 +17,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/disk"
+	"github.com/SpecArch/specarch/internal/generate"
 	"github.com/SpecArch/specarch/internal/gentests"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
@@ -128,48 +129,47 @@ func readJUnit(data []byte) ([]junitCase, error) {
 	return cases, nil
 }
 
-// mapTestCase names the test of the specification a test case runs: the
-// test case's name, cut at the first / (a subtest) and with a trailing ()
-// taken off, is the test's name, or Test or test followed by the name in
-// Pascal case; or the name begins with the test's name and a colon. When
-// none or more than one test matches, it says why instead (ADR-230).
-func mapTestCase(name string, tests []string) (string, string) {
+// mapTestCase names the test of the specification a test case runs, or
+// the algorithm or operation whose worked examples it runs. The test
+// case's name, cut at the first / (a subtest) and with a trailing
+// argument list such as () taken off, is the test's name, or Test or test
+// followed by the name in Pascal case; or the name begins with the test's
+// name and a colon. It runs an algorithm's or a call mapping's worked
+// examples when that cut name is a function a generator writes for them,
+// or the name is or begins with the display name the Swift and Dart
+// tests give them, followed by a colon or a space. When none, or more
+// than one test or worked example matches, it says why instead (ADR-230).
+func mapTestCase(name string, tests []string, worked []gentests.Worked) (test, element, why string) {
 	base, _, _ := strings.Cut(name, "/")
-	base = strings.TrimSuffix(base, "()")
+	if open := strings.Index(base, "("); open > 0 && strings.HasSuffix(base, ")") {
+		base = base[:open]
+	}
 	var found []string
 	for _, t := range tests {
 		if base == t || base == gentests.TestName("Test", t) || base == gentests.TestName("test", t) || strings.HasPrefix(name, t+":") {
 			found = append(found, t)
+			test = t
+		}
+	}
+	for _, w := range worked {
+		matched := name == w.Display || strings.HasPrefix(name, w.Display+":") || strings.HasPrefix(name, w.Display+" ")
+		for _, f := range w.Functions {
+			if base == f {
+				matched = true
+			}
+		}
+		if matched {
+			found = append(found, "the worked examples of "+w.Display)
+			element = w.Element
 		}
 	}
 	switch len(found) {
 	case 1:
-		return found[0], ""
+		return test, element, ""
 	case 0:
-		return "", "no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon"
+		return "", "", "no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples"
 	}
-	return "", "it maps to " + strings.Join(found, " and ") + ", more than one test"
-}
-
-// testAbout is the #/ pointer of the element a test is about: the path of
-// its operation, or the command, page or entity it names; "" for none.
-func testAbout(root, t *yaml.Node) string {
-	if v := source.Str(source.Child(t, "operation")); v != "" {
-		for _, p := range source.Pairs(source.Child(root, "paths")) {
-			for _, op := range source.Pairs(p.Value) {
-				if source.Str(source.Child(op.Value, "operationId")) == v {
-					return "#" + source.Pointer("paths", p.Key.Value)
-				}
-			}
-		}
-		return ""
-	}
-	for _, k := range []string{"command", "page", "entity"} {
-		if v := source.Str(source.Child(t, k)); v != "" {
-			return "#" + source.Pointer(k+"s", v)
-		}
-	}
-	return ""
+	return "", "", "it maps to " + strings.Join(found, " and ") + ", more than one test or worked example"
 }
 
 // logTestRun records one run of the tests from a JUnit XML file (ADR-230).
@@ -352,12 +352,15 @@ func logTestRun(args []string, stdout, stderr io.Writer, kept **logResult) int {
 	// Each test case mapped to its test.
 	testsNode := source.Child(root, "tests")
 	tests := sortedPairKeys(testsNode)
+	specification, _ := l.spec.Value.(map[string]any)
+	worked := gentests.WorkedTests(specification)
 	mapped := make([]string, len(cases))
+	elements := make([]string, len(cases))
 	failedTests := map[string]bool{}
 	for i, c := range cases {
-		t, why := mapTestCase(c.name, tests)
-		mapped[i] = t
-		if t == "" {
+		t, el, why := mapTestCase(c.name, tests, worked)
+		mapped[i], elements[i] = t, el
+		if t == "" && el == "" {
 			result.Unmapped = append(result.Unmapped, logUnmapped{Name: c.name, Why: why})
 		}
 		if t != "" && (c.outcome == "failed" || c.outcome == "error") {
@@ -391,12 +394,12 @@ func logTestRun(args []string, stdout, stderr io.Writer, kept **logResult) int {
 			violates = append(violates, v.Value)
 		}
 		if len(violates) == 0 {
-			if about := testAbout(root, tn); about != "" {
+			if about := generate.TestElement(root, tn); about != "" {
 				violates = []string{about}
 			}
 		}
 		if len(violates) == 0 {
-			return refuse("--open-defect %s: the test verifies no requirement and is about no operation, command, page or entity, so the defect would violate nothing; add verifies to the test, or write the defect by hand", t)
+			return refuse("--open-defect %s: the test verifies no requirement and is about no operation, command, page, job, process, route, gateway, workflow, flow, algorithm or entity, so the defect would violate nothing; add verifies to the test, or write the defect by hand", t)
 		}
 		did := nextRecordID(defectIDs, "DEF")
 		defectIDs = append(defectIDs, did)
@@ -504,6 +507,11 @@ func logTestRun(args []string, stdout, stderr io.Writer, kept **logResult) int {
 		r.Content = append(r.Content, scalarNode("name"), scalarNode(c.name))
 		if mapped[i] != "" {
 			r.Content = append(r.Content, scalarNode("test"), scalarNode(mapped[i]))
+		}
+		if elements[i] != "" {
+			el := scalarNode(elements[i])
+			el.Style = yaml.DoubleQuotedStyle
+			r.Content = append(r.Content, scalarNode("element"), el)
 		}
 		r.Content = append(r.Content, scalarNode("outcome"), scalarNode(c.outcome))
 		if c.message != "" {

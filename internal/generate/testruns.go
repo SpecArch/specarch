@@ -20,11 +20,13 @@ var testElementKeys = []struct{ key, section string }{
 	{"gateway", "gateways"}, {"workflow", "workflows"}, {"flow", "flows"}, {"algorithm", "algorithms"}, {"entity", "entities"},
 }
 
-// testRunElement is the #/ pointer of the element a test is about: the
+// TestElement is the #/ pointer of the element a test is about: the
 // path of its operation, or the command, page, job, process, route,
-// gateway, workflow, flow, algorithm or entity it names; the test itself
-// when it names none of them.
-func testRunElement(root *yaml.Node, name string, t *yaml.Node) string {
+// gateway, workflow, flow, algorithm or entity it names; "" when it names
+// none of them, or an operation no path has. specarch log test-run opens
+// a defect on it and the testruns document counts the test's results for
+// it, so both place a test on the same element (ADR-230).
+func TestElement(root, t *yaml.Node) string {
 	if v := str(t, "operation"); v != "" {
 		for _, path := range pairs(root, "paths") {
 			for _, op := range source.Pairs(path.Value) {
@@ -38,6 +40,15 @@ func testRunElement(root *yaml.Node, name string, t *yaml.Node) string {
 		if v := str(t, k.key); v != "" {
 			return "#" + source.Pointer(k.section, v)
 		}
+	}
+	return ""
+}
+
+// testRunElement is the element the testruns document counts a test's
+// results for: its TestElement, or the test itself when it has none.
+func testRunElement(root *yaml.Node, name string, t *yaml.Node) string {
+	if el := TestElement(root, t); el != "" {
+		return el
 	}
 	return "#" + source.Pointer("tests", name)
 }
@@ -71,7 +82,7 @@ func countRun(r *yaml.Node) runCounts {
 		case "skipped":
 			c.skipped++
 		}
-		if get(res, "test") == nil {
+		if get(res, "test") == nil && get(res, "element") == nil {
 			c.unmapped++
 		}
 	}
@@ -79,19 +90,31 @@ func countRun(r *yaml.Node) runCounts {
 }
 
 // trendRow is one element or requirement of the trend: the tests that
-// count for it and the open defects on it.
+// count for it, whether the results that name it as their element count
+// too (an element row's do), and the open defects on it.
 type trendRow struct {
-	key     string
-	tests   map[string]bool
-	defects []string
+	key       string
+	tests     map[string]bool
+	byElement bool
+	defects   []string
 }
 
-// trendCell is the failed and errored results of a row's tests in a run,
-// or a dash when none of them ran: a skipped result did not run.
+// counts reports whether a result counts for the row: it names one of
+// the row's tests, or, on an element row, it runs the worked examples of
+// that element (ADR-230).
+func (row *trendRow) counts(res *yaml.Node) bool {
+	if t := str(res, "test"); t != "" {
+		return row.tests[t]
+	}
+	return row.byElement && elementOfRef(str(res, "element")) == row.key
+}
+
+// trendCell is the failed and errored results that count for a row in a
+// run, or a dash when none of them ran: a skipped result did not run.
 func trendCell(row *trendRow, run *yaml.Node) string {
 	ran, failed := false, 0
 	for _, res := range items(run, "results") {
-		if !row.tests[str(res, "test")] {
+		if !row.counts(res) {
 			continue
 		}
 		switch str(res, "outcome") {
@@ -131,7 +154,7 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			str(runs[0], "at"), str(last, "at"), str(last, "id"), countText(len(items(last, "results")), "result", "results"),
 			c.passed, c.failed, c.errored, c.skipped, c.unmapped, oneOrMany(c.unmapped, "maps", "map"))
 	}
-	d.para(intro + ". The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies.")
+	d.para(intro + ". The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies, or the algorithm or operation whose worked examples it ran.")
 
 	d.section("Test runs")
 	if len(runs) == 0 {
@@ -162,6 +185,37 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 		for _, req := range strs(t.Value, "verifies") {
 			row(requirements, req).tests[t.Key.Value] = true
 		}
+	}
+	// A result that runs an algorithm's or a call mapping's worked
+	// examples names its element instead of a test, and counts for it.
+	for _, r := range runs {
+		for _, res := range items(r, "results") {
+			if el := elementOfRef(str(res, "element")); el != "" && get(res, "test") == nil {
+				row(elements, el)
+			}
+		}
+	}
+	for _, r := range elements {
+		r.byElement = true
+	}
+
+	// A document for everyone leaves out a result whose test, or the
+	// element that test is about, or the element it names, is internal;
+	// and it names no result that maps to nothing, since nothing tells
+	// whether that one runs an internal element (ADR-119).
+	everyone := state.Withheld != nil
+	withheld := func(res *yaml.Node) bool {
+		if !everyone {
+			return false
+		}
+		t, el := str(res, "test"), str(res, "element")
+		switch {
+		case t != "":
+			return state.Withheld.CoversRef("#"+source.Pointer("tests", t)) || state.Withheld.CoversRef(testElementOf[t])
+		case el != "":
+			return state.Withheld.CoversRef(el)
+		}
+		return true
 	}
 	for _, def := range recordsOf(state, "defect") {
 		if !isOpen(def) {
@@ -233,7 +287,7 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			d.para(fmt.Sprintf("No test of %s ran in a recorded run: %s.", countText(len(never), "other "+one, "other "+many), strings.Join(never, ", ")))
 		}
 	}
-	trend("Failures per element", "Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.",
+	trend("Failures per element", "Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run, and those of the results that name it as the algorithm or operation whose worked examples they ran; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.",
 		"Element", "element", "elements", elements, func(k string) string { return "`" + k + "`" })
 	trend("Failures per requirement", "Each run is a column, oldest first. A cell counts the failed and errored results of the tests that verify the requirement in that run; a dash says none of those tests ran. The open defects are the ones reported or confirmed that violate the requirement.",
 		"Requirement", "requirement", "requirements", requirements, func(k string) string { return k })
@@ -242,14 +296,18 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 	var unmapped []string
 	for _, r := range runs {
 		for _, res := range items(r, "results") {
-			if get(res, "test") == nil {
+			if get(res, "test") == nil && get(res, "element") == nil {
 				unmapped = append(unmapped, fmt.Sprintf("| %s | %s | %s | %s |", str(r, "id"), cell(str(res, "name")), str(res, "outcome"), cell(str(res, "message"))))
 			}
 		}
 	}
-	if len(unmapped) == 0 {
-		d.para("Every result names the test it ran.")
-	} else {
+	switch {
+	case len(unmapped) == 0:
+		d.para("Every result names the test it ran, or the element whose worked examples it ran.")
+	case everyone:
+		d.para(fmt.Sprintf("%s to no test of the specification, so %s for no element or requirement above. A document for everyone does not name %s, since nothing tells whether %s an internal element.",
+			countText(len(unmapped), "result maps", "results map"), oneOrMany(len(unmapped), "it counts", "they count"), oneOrMany(len(unmapped), "it", "them"), oneOrMany(len(unmapped), "it runs", "they run")))
+	default:
 		d.para("These results name no test of the specification, so they count for no element or requirement above; each is a test the specification does not have yet, or one whose name its record must give under test.")
 		d.line("| Run | Result | Outcome | Message |")
 		d.line("|---|---|---|---|")
@@ -287,14 +345,25 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 		}
 		d.line("| Result | Test | Outcome | Message | Defect |")
 		d.line("|---|---|---|---|---|")
+		left := 0
 		for _, res := range items(r, "results") {
+			if withheld(res) {
+				left++
+				continue
+			}
 			test := str(res, "test")
 			if test == "" {
 				test = "none"
+				if el := str(res, "element"); el != "" {
+					test = "the worked examples of `" + el + "`"
+				}
 			}
 			d.line("| %s | %s | %s | %s | %s |", cell(str(res, "name")), test, str(res, "outcome"), cell(str(res, "message")), cell(str(res, "defect")))
 		}
 		d.blank()
+		if left > 0 {
+			d.para(fmt.Sprintf("%s of this run %s left out of a document for everyone: %s an internal test or element, or %s to no test (ADR-119).", countText(left, "result", "results"), oneOrMany(left, "is", "are"), oneOrMany(left, "it runs", "they run"), oneOrMany(left, "maps", "map")))
+		}
 	}
 	return d.String()
 }

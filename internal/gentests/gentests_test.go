@@ -150,3 +150,50 @@ func bodies(content string, call *regexp.Regexp) []string {
 	sort.Strings(names)
 	return names
 }
+
+// TestWorkedTestsNameWhatGeneratorsWrite checks that every function and
+// display name the Go, Swift and Dart generators write for an algorithm's
+// or a call mapping's worked examples is one WorkedTests gives, with the
+// element it runs, so specarch log test-run maps each back (ADR-230).
+func TestWorkedTestsNameWhatGeneratorsWrite(t *testing.T) {
+	r, _ := libraryLending(t, asStack)
+	worked := WorkedTests(r.Specification)
+	functions, displays := map[string]string{}, map[string]string{}
+	for _, w := range worked {
+		for _, f := range w.Functions {
+			functions[f] = w.Element
+		}
+		displays[w.Display] = w.Element
+	}
+	if functions["TestAlgorithmLateFee"] != "#/algorithms/lateFee" || functions["TestAlgorithmMayLend"] != "#/algorithms/mayLend" {
+		t.Errorf("the algorithms' tests map to %q and %q", functions["TestAlgorithmLateFee"], functions["TestAlgorithmMayLend"])
+	}
+	if el := functions["TestMappingReturnLoanFeeLedgerPostCharge"]; !strings.HasPrefix(el, "#/paths/") || strings.Count(el, "/") != 2 {
+		t.Errorf("the mapping's test maps to %q, not the path of its operation", el)
+	}
+	check := func(stack, content string, names *regexp.Regexp, known map[string]string) {
+		n := 0
+		for _, m := range names.FindAllStringSubmatch(content, -1) {
+			n++
+			if known[m[1]] == "" {
+				t.Errorf("%s writes %q, which WorkedTests does not name", stack, m[1])
+			}
+		}
+		if n == 0 {
+			t.Errorf("%s writes no test for a worked example; the check reads nothing", stack)
+		}
+	}
+	goFile := generated(t, GenerateGo(r), GoFile)[GoFile]
+	check("Go", goFile, regexp.MustCompile(`func (Test(?:Algorithm|Mapping)[A-Za-z0-9]*)\(`), functions)
+	swiftFile := generated(t, GenerateSwift(r), SwiftFile)[SwiftFile]
+	check("Swift", swiftFile, regexp.MustCompile(`func (test(?:Algorithm|Mapping)[A-Za-z0-9]*)\(`), functions)
+	check("Swift", swiftFile, regexp.MustCompile(`@Test\("((?:algorithm|mapping of) [^"]*?): [^"]*"`), displays)
+	dartFile := generated(t, GenerateDart(r), DartLibraryFile, DartTestFile)[DartTestFile]
+	check("Dart", strings.ReplaceAll(dartFile, `\'`, "\x00"), regexp.MustCompile(`group\('((?:algorithm|mapping of) [^']*)'`), func() map[string]string {
+		escaped := map[string]string{}
+		for k, v := range displays {
+			escaped[strings.ReplaceAll(k, "'", "\x00")] = v
+		}
+		return escaped
+	}())
+}

@@ -163,27 +163,41 @@ commands:
 
       Each result names the test of the specification it maps to: the
       testcase's name, cut at the first `/` (a subtest) and with a
-      trailing `()` taken off, is the test's name, or `Test` or `test`
-      followed by the name in Pascal case (the functions
-      specarch-gen-tests-go and specarch-gen-tests-swift write), or
-      begins with the name and a colon (the display name of the Swift
-      and Dart tests). A testcase that maps to no test, or to two, is
-      kept in the record without a test and printed as a line `unmapped:
-      <name>: <why>` on standard output, under `log.unmapped` with
-      `--json`; the validator warns `test_unmapped` at it until its test
-      is named (ADR-230).
+      trailing argument list such as `()` taken off, is the test's name,
+      or `Test` or `test` followed by the name in Pascal case (the
+      functions specarch-gen-tests-go and specarch-gen-tests-swift
+      write), or begins with the name and a colon (the display name of
+      the Swift and Dart tests). A testcase that runs the worked examples
+      of an algorithm or of a call mapping, which no test names, names
+      that element under `element` instead: its cut name is a function
+      the generators write for them (`TestAlgorithm` or `testAlgorithm`
+      and the algorithm's name in Pascal case; `TestMapping` and the
+      operation and the call in Pascal case, or `testMapping` with them
+      and `Sent` or `Kept`), or its name is or begins with their display
+      name (`algorithm <name>`, or `mapping of <operation>'s call to
+      <call>`) and a colon or a space; the element is
+      `#/algorithms/<name>`, or the path of the operation,
+      `#/paths/<path>`. A testcase that maps to no test and no element,
+      or to two of them, is kept in the record without either and
+      printed as a line `unmapped: <name>: <why>` on standard output,
+      under `log.unmapped` with `--json`; the validator warns
+      `test_unmapped` at it until its test or element is named
+      (ADR-230).
 
       `--open-defect <test>`, repeatable, opens a defect for a test that
       failed or errored in the run, with `--severity` and `--phase`
       given: `records/defects/DEF-<n>.yaml`, status reported, reported by
       the run's role on the date of the run's instant, violating the
       requirements the test verifies, or the element the test is about
-      when it verifies none, naming the test, observed from the first
+      when it verifies none (the path of its operation, or the command,
+      page, job, process, route, gateway, workflow, flow, algorithm or
+      entity it names, the element the testruns document counts it for), naming the test, observed from the first
       failure's message and expected from the test's then; for the
       acceptance and production phases its environment is the run's, and
       for acceptance its build is the run's version, digest and build.
       Each failed result of that test links the defect. A failure no
-      `--open-defect` names opens nothing.
+      `--open-defect` names opens nothing, and a worked example's
+      failure, which names no test, opens none.
 
       Refuses, with exit 1 and nothing written, a results file that is
       not under `records/`, cannot be read, is not JUnit XML, holds no

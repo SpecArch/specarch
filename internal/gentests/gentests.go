@@ -120,13 +120,13 @@ func escape(token string) string {
 	return strings.NewReplacer("~", "~0", "/", "~1").Replace(token)
 }
 
-// pascal turns a test name such as lend-a-copy into LendACopy.
 // TestName is the name of the function a generator writes for a test in
 // a language whose test functions start with prefix: Test for Go, test
 // for Swift, then the test's name in Pascal case. specarch log test-run
 // maps a test case of a results file back to its test by it.
 func TestName(prefix, test string) string { return prefix + pascal(test) }
 
+// pascal turns a test name such as lend-a-copy into LendACopy.
 func pascal(s string) string {
 	var b strings.Builder
 	up := true
@@ -170,4 +170,39 @@ func (w *writer) head(s Suite, marks bool) {
 // failed is the answer of a plug-in that could not write its file.
 func failed(r *Request, message string) Response {
 	return Response{Files: []File{}, Diagnostics: []Diagnostic{{File: r.Root, Line: 1, Severity: "error", Path: "/", Rule: "generator", Message: message}}}
+}
+
+// Worked is a test a generator writes for an algorithm's or a call
+// mapping's worked examples: the names a results file may give it and the
+// element it runs, as specarch log test-run records them (ADR-230).
+type Worked struct {
+	// Functions are the test functions' names: Test then the name in
+	// Pascal case for Go, test for Swift, and for a mapping's Swift tests
+	// one ending in Sent and one in Kept.
+	Functions []string
+	// Display is the display name the Swift and Dart tests begin with:
+	// algorithm <name>, or mapping of <operation>'s call to <call>.
+	Display string
+	// Element is the #/ pointer of the algorithm, or of the path of the
+	// operation whose call the mapping is.
+	Element string
+}
+
+// WorkedTests are the tests the generators write for the worked examples
+// of a specification's algorithms and call mappings, read the way they
+// read them, so a name maps back to the element it runs.
+func WorkedTests(specification map[string]any) []Worked {
+	s := Build(&Request{Specification: specification})
+	var out []Worked
+	for _, a := range s.Algorithms {
+		out = append(out, Worked{Functions: []string{"TestAlgorithm" + pascal(a.Name), "testAlgorithm" + pascal(a.Name)},
+			Display: "algorithm " + a.Name, Element: "#/algorithms/" + escape(a.Name)})
+	}
+	for _, m := range s.Mappings {
+		name := pascal(m.Operation) + pascal(m.Call)
+		path, _, _ := strings.Cut(strings.TrimPrefix(m.Pointer, "/paths/"), "/")
+		out = append(out, Worked{Functions: []string{"TestMapping" + name, "testMapping" + name + "Sent", "testMapping" + name + "Kept"},
+			Display: "mapping of " + m.Operation + "'s call to " + m.Call, Element: "#/paths/" + path})
+	}
+	return out
 }

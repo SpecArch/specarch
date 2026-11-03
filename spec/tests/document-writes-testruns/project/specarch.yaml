@@ -44,6 +44,27 @@ entities:
         fields: [email]
         message: This email belongs to another member.
     satisfies: [CASE-2]
+algorithms:
+  loanCap:
+    description: Whether a member with this many open loans may borrow one more.
+    inputs:
+      loansOpen: { type: integer, format: int32, minimum: 0, description: The member's loans not yet returned. }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { loansOpen: "< 5" }
+          then: true
+        - then: false
+          note: CASE-1's limit is reached.
+    examples:
+      - name: four open loans
+        inputs: { loansOpen: 4 }
+        expected: true
+    pseudocode: |
+      function loanCap(loansOpen):
+          return loansOpen < 5
+    satisfies: [CASE-1]
 environments:
   staging: { description: "The build under test, before release." }
 tests:

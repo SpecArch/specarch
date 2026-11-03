@@ -224,8 +224,9 @@ struct RecordChecks {
     }
 
     /// Checks each result of a test run: the test it names is a test of the
-    /// specification and the defect a defect; a result that names no test
-    /// is kept and warned of, since its test case maps to none (ADR-230).
+    /// specification, the element it names resolves, and the defect is a
+    /// defect; a result that names no test and no element is kept and
+    /// warned of, since its test case maps to none (ADR-230).
     func checkResults(_ r: Record) {
         let tests = d.root.child("tests")
         for (i, item) in items(r.root?.child("results")).enumerated() {
@@ -237,8 +238,12 @@ struct RecordChecks {
                     for p in pairs(tests) { known[p.key.value] = p.value }
                     r.c.add(n, pointer("results", at, "test"), .recordRef, "\(v) is not a test of the specification\(suggest(v, known))")
                 }
-            } else if let nameNode = item.child("name"), !str(nameNode).isEmpty {
-                r.c.warn(nameNode, pointer("results", at, "name"), .testUnmapped, "\(str(nameNode)) of \(r.str("id")) names no test, so its outcome counts for no element or requirement; add test with the test it runs, or add that test to the specification")
+            }
+            if let n = item.child("element"), str(n).hasPrefix("#/") {
+                reference(r, n, pointer("results", at, "element"))
+            }
+            if let nameNode = item.child("name"), !str(nameNode).isEmpty, item.child("test") == nil, item.child("element") == nil {
+                r.c.warn(nameNode, pointer("results", at, "name"), .testUnmapped, "\(str(nameNode)) of \(r.str("id")) names no test and no element, so its outcome counts for no element or requirement; add test with the test it runs, or element with the #/ pointer of the algorithm or operation whose worked examples it runs, or add that test to the specification")
             }
             if let n = item.child("defect") {
                 recordID(r, n, pointer("results", at, "defect"), ["defect"])

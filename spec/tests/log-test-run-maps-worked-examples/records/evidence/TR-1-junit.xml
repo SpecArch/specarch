@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="specarchtests">
+    <testcase name="TestAlgorithmLoanCap/four open loans" classname="specarchtests"/>
+    <testcase name="TestAlgorithmLoanCap/five open loans" classname="specarchtests">
+      <failure message="got true, want false"/>
+    </testcase>
+    <testcase name="algorithm loanCap: worked examples" classname="SpecArchDesignTests"/>
+    <testcase name="TestLoanLimit" classname="specarchtests"/>
+  </testsuite>
+</testsuites>

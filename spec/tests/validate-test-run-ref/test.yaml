@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: red
-given: "a test-run record naming an environment, a version and a role the specification and its records do not have, a result whose test is misspelt and whose defect is not a record, and a result with no test"
+given: "a test-run record naming an environment, a version and a role the specification and its records do not have, a result whose test is misspelt and whose defect is not a record, a result with no test, a result whose element does not resolve, and one whose element does"
 when: validate is run
-then: "it reports record_ref at the environment, the version, the role, the misspelt test with the test it may mean, and the defect, warns test_unmapped at the result with no test, and exits 1, in the Go build and the Swift build alike"
+then: "it reports record_ref at the environment, the version, the role, the misspelt test with the test it may mean, the defect and the element that does not resolve, warns test_unmapped at the result with neither test nor element and at no other, and exits 1, in the Go build and the Swift build alike"
 verifies: [SA-125]

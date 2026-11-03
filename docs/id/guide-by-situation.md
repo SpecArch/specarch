@@ -731,13 +731,16 @@ dan di `docs/testruns.md`, setelah run kedua:
 Testcase yang test-nya belum ada di spesifikasi tetap disimpan, tidak
 dibuang (`spec/tests/log-test-run-writes-record`):
 
-    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon
+    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples
 
 **Yang perlu diperhatikan.** Testcase di-map lewat nama yang ditulis oleh
-generator test (`TestReturnLate`, `testReturnLate()`, `return-late: ...`);
-runner yang menamai test dengan cara lain akan menyisakan result yang
-tidak ter-map, dan `validate` memberi warning `test_unmapped` di setiap
-result itu sampai `test` ditulis di result-nya. Timestamp di berkas tidak
+generator test (`TestReturnLate`, `testReturnLate()`, `return-late: ...`),
+dan test hasil generate untuk worked example sebuah algorithm atau call
+mapping (`TestAlgorithmLateFee`, `algorithm lateFee: ...`) menyebut
+element-nya di `element`; runner yang menamai test dengan cara lain akan
+menyisakan result yang tidak ter-map, dan `validate` memberi warning
+`test_unmapped` di setiap result itu sampai `test` atau `element` ditulis
+di result-nya. Timestamp di berkas tidak
 dibaca karena tidak punya offset: isi `--at`. Failure tidak otomatis
 membuka defect, karena host yang tidak stabil juga bisa membuat test
 gagal. Simpan berkas hasil setelah dicatat: rule `evidence` gagal kalau

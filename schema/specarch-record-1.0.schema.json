@@ -1827,7 +1827,7 @@
           "$ref": "#/$defs/evidence"
         },
         "results": {
-          "description": "One result per test case of the results file, in the file's order; several may name one test, as subtests and parameterised cases run it more than once.",
+          "description": "One result per test case of the results file, in the file's order; several may name one test or element, as subtests and parameterised cases run it more than once.",
           "type": "array",
           "items": {
             "type": "object",
@@ -1838,8 +1838,13 @@
                 "minLength": 1
               },
               "test": {
-                "description": "The test of the specification the test case runs, by name; left out when its name maps to no test or to two, which the validator warns of (test_unmapped).",
+                "description": "The test of the specification the test case runs, by name; left out when it runs an algorithm's or a call mapping's worked examples (element), or when its name maps to no test or to two, which the validator warns of (test_unmapped).",
                 "$ref": "#/$defs/name"
+              },
+              "element": {
+                "description": "The algorithm, or the path of the operation whose call mapping, the test case runs the worked examples of, as a #/ pointer, such as #/algorithms/late-fee: a test the test generators write for those examples, which no entry under tests names. Its outcome counts for that element.",
+                "type": "string",
+                "pattern": "^#/"
               },
               "outcome": {
                 "description": "passed; failed when an assertion did not hold; error when the test could not run to its end; skipped when it was not run.",

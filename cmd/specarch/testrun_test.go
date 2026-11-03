@@ -3,26 +3,56 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/SpecArch/specarch/internal/gentests"
 )
 
-// TestMapTestCase checks each way a test case's name maps to a test, and
-// that a name matching two tests or none maps to nothing, with why.
+// TestMapTestCase checks each way a test case's name maps to a test or to
+// an algorithm's or a call mapping's worked examples, and that a name
+// matching two of them or none maps to nothing, with why.
 func TestMapTestCase(t *testing.T) {
 	tests := []string{"loan-limit", "loan-2-limit", "loan2-limit", "member-key"}
-	for _, c := range []struct{ name, want, why string }{
-		{"loan-limit", "loan-limit", ""},
-		{"TestLoanLimit", "loan-limit", ""},
-		{"testLoanLimit()", "loan-limit", ""},
-		{"TestMemberKey/opaque/second", "member-key", ""},
-		{"member-key: entity Member, golden scenario", "member-key", ""},
-		{"TestLoan2Limit", "", "it maps to loan-2-limit and loan2-limit, more than one test"},
-		{"TestRenewal", "", "no test of the specification is named so"},
-		{"loanLimit", "", "no test of the specification is named so"},
+	worked := []gentests.Worked{
+		{Functions: []string{"TestAlgorithmLateFee", "testAlgorithmLateFee"}, Display: "algorithm late-fee", Element: "#/algorithms/late-fee"},
+		{Functions: []string{"TestAlgorithmMayLend", "testAlgorithmMayLend"}, Display: "algorithm may-lend", Element: "#/algorithms/may-lend"},
+		{Functions: []string{"TestMappingReturnLoanFeeLedgerPostCharge", "testMappingReturnLoanFeeLedgerPostChargeSent", "testMappingReturnLoanFeeLedgerPostChargeKept"},
+			Display: "mapping of returnLoan's call to feeLedger postCharge", Element: "#/paths/~1loans~1{loanId}~1return"},
+	}
+	for _, c := range []struct{ name, test, element, why string }{
+		{"loan-limit", "loan-limit", "", ""},
+		{"TestLoanLimit", "loan-limit", "", ""},
+		{"testLoanLimit()", "loan-limit", "", ""},
+		{"TestMemberKey/opaque/second", "member-key", "", ""},
+		{"member-key: entity Member, golden scenario", "member-key", "", ""},
+		{"TestAlgorithmLateFee/returned on time", "", "#/algorithms/late-fee", ""},
+		{"TestAlgorithmMayLend", "", "#/algorithms/may-lend", ""},
+		{"testAlgorithmLateFee(example:input:expected:)", "", "#/algorithms/late-fee", ""},
+		{"algorithm late-fee: worked examples", "", "#/algorithms/late-fee", ""},
+		{"algorithm late-fee returned on time", "", "#/algorithms/late-fee", ""},
+		{"TestMappingReturnLoanFeeLedgerPostCharge/a late return", "", "#/paths/~1loans~1{loanId}~1return", ""},
+		{"testMappingReturnLoanFeeLedgerPostChargeKept(example:answer:kept:)", "", "#/paths/~1loans~1{loanId}~1return", ""},
+		{"mapping of returnLoan's call to feeLedger postCharge: what is sent", "", "#/paths/~1loans~1{loanId}~1return", ""},
+		{"algorithm late-feed", "", "", "no test of the specification is named so"},
+		{"TestAlgorithmLateFee2", "", "", "no test of the specification is named so"},
+		{"TestLoan2Limit", "", "", "it maps to loan-2-limit and loan2-limit, more than one test"},
+		{"TestAlgorithmLateFee()", "", "#/algorithms/late-fee", ""},
+		{"TestRenewal", "", "", "no test of the specification is named so"},
+		{"loanLimit", "", "", "no test of the specification is named so"},
 	} {
-		got, why := mapTestCase(c.name, tests)
-		if got != c.want || !strings.HasPrefix(why, c.why) {
-			t.Errorf("mapTestCase(%q) = %q, %q; want %q, a why starting %q", c.name, got, why, c.want, c.why)
+		test, element, why := mapTestCase(c.name, tests, worked)
+		if test != c.test || element != c.element || !strings.HasPrefix(why, c.why) {
+			t.Errorf("mapTestCase(%q) = %q, %q, %q; want %q, %q, a why starting %q", c.name, test, element, why, c.test, c.element, c.why)
 		}
+	}
+	// A spec test whose Pascal name is a generated algorithm test's name
+	// is two matches, so neither is taken.
+	clash := []string{"algorithm-late-fee"}
+	_, _, why := mapTestCase("TestAlgorithmLateFee", clash, worked)
+	if why != "it maps to algorithm-late-fee and the worked examples of algorithm late-fee, more than one test or worked example" {
+		t.Errorf("a name matching a test and an algorithm's examples gave %q", why)
+	}
+	if test, _, why := mapTestCase("algorithm-late-fee: its own display name", clash, worked); test != "algorithm-late-fee" || why != "" {
+		t.Errorf("the test's own display name gave %q, %q", test, why)
 	}
 }
 

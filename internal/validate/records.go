@@ -230,9 +230,9 @@ func (rc *recordChecks) check(r *record) {
 }
 
 // checkResults checks each result of a test run: the test it names is a
-// test of the specification and the defect a defect; a result that names
-// no test is kept and warned of, since its test case maps to none
-// (ADR-230).
+// test of the specification, the element it names resolves, and the
+// defect is a defect; a result that names no test and no element is kept
+// and warned of, since its test case maps to none (ADR-230).
 func (rc *recordChecks) checkResults(r *record) {
 	tests := source.Child(rc.d.root, "tests")
 	for i, item := range source.Items(source.Child(r.root, "results")) {
@@ -241,8 +241,12 @@ func (rc *recordChecks) checkResults(r *record) {
 			if v := source.Str(n); v != "" && source.Child(tests, v) == nil {
 				r.c.add(n, source.Pointer("results", at, "test"), RuleRecordRef, "%s is not a test of the specification%s", v, suggest(v, topMap(rc.d.root, "tests")))
 			}
-		} else if name := source.Str(source.Child(item, "name")); name != "" {
-			r.c.warn(source.Child(item, "name"), source.Pointer("results", at, "name"), RuleTestUnmapped, "%s of %s names no test, so its outcome counts for no element or requirement; add test with the test it runs, or add that test to the specification", name, r.str("id"))
+		}
+		if n := source.Child(item, "element"); n != nil && strings.HasPrefix(source.Str(n), "#/") {
+			rc.reference(r, n, source.Pointer("results", at, "element"))
+		}
+		if name := source.Str(source.Child(item, "name")); name != "" && source.Child(item, "test") == nil && source.Child(item, "element") == nil {
+			r.c.warn(source.Child(item, "name"), source.Pointer("results", at, "name"), RuleTestUnmapped, "%s of %s names no test and no element, so its outcome counts for no element or requirement; add test with the test it runs, or element with the #/ pointer of the algorithm or operation whose worked examples it runs, or add that test to the specification", name, r.str("id"))
 		}
 		if n := source.Child(item, "defect"); n != nil {
 			rc.recordID(r, n, source.Pointer("results", at, "defect"), "defect")

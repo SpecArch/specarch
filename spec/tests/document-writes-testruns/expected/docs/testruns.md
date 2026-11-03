@@ -2,21 +2,22 @@
 
 # Case: test runs and failure trend
 
-Version 1.0.0 of the specification: 2 test runs are recorded beside it, from 2026-11-02T09:00:00+07:00 to 2026-11-03T14:05:00+07:00. The latest, TR-2, has 4 results: 0 passed, 2 failed, 1 errored, 1 skipped, and 1 maps to no test. The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies.
+Version 1.0.0 of the specification: 2 test runs are recorded beside it, from 2026-11-02T09:00:00+07:00 to 2026-11-03T14:05:00+07:00. The latest, TR-2, has 5 results: 0 passed, 3 failed, 1 errored, 1 skipped, and 1 maps to no test. The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies, or the algorithm or operation whose worked examples it ran.
 
 ## 1. Test runs
 
 | Run | At | Environment | Version | Build | Passed | Failed | Errored | Skipped | Unmapped |
 |---|---|---|---|---|---|---|---|---|---|
 | TR-1 | 2026-11-02T09:00:00+07:00 | staging | 1.0.0 | git:1a2b3c4 | 2 | 1 | 0 | 0 | 0 |
-| TR-2 | 2026-11-03T14:05:00+07:00 | staging | 1.0.0 | git:4f2a9c1 | 0 | 2 | 1 | 1 | 1 |
+| TR-2 | 2026-11-03T14:05:00+07:00 | staging | 1.0.0 | git:4f2a9c1 | 0 | 3 | 1 | 1 | 1 |
 
 ## 2. Failures per element
 
-Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.
+Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run, and those of the results that name it as the algorithm or operation whose worked examples they ran; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.
 
 | Element | TR-1 | TR-2 | Open defects |
 |---|---|---|---|
+| `#/algorithms/loanCap` | - | 1 | none |
 | `#/entities/Loan` | 1 | 2 | DEF-1 |
 | `#/entities/Member` | 0 | - | none |
 
@@ -63,4 +64,5 @@ Recorded without a results file as evidence.
 | TestLoanReturn | loan-return | error | the database did not start |   |
 | TestMemberKey | member-key | skipped |   |   |
 | TestRenewal | none | failed | renewal is not built yet |   |
+| TestAlgorithmLoanCap/four open loans | the worked examples of `#/algorithms/loanCap` | failed | got false, want true |   |
 

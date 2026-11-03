@@ -2,7 +2,7 @@
 
 # Library Lending: test runs and failure trend
 
-Version 0.1.0 of the specification: 2 test runs are recorded beside it, from 2026-10-14T09:30:00Z to 2026-10-20T08:00:00Z. The latest, TR-2, has 5 results: 5 passed, 0 failed, 0 errored, 0 skipped, and 0 map to no test. The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies.
+Version 0.1.0 of the specification: 2 test runs are recorded beside it, from 2026-10-14T09:30:00Z to 2026-10-20T08:00:00Z. The latest, TR-2, has 5 results: 5 passed, 0 failed, 0 errored, 0 skipped, and 0 map to no test. The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies, or the algorithm or operation whose worked examples it ran.
 
 ## 1. Test runs
 
@@ -13,7 +13,7 @@ Version 0.1.0 of the specification: 2 test runs are recorded beside it, from 202
 
 ## 2. Failures per element
 
-Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.
+Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run, and those of the results that name it as the algorithm or operation whose worked examples they ran; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.
 
 | Element | TR-1 | TR-2 | Open defects |
 |---|---|---|---|
@@ -36,7 +36,7 @@ No test of 6 other requirements ran in a recorded run: LIB-1, LIB-2, LIB-4, LIB-
 
 ## 4. Results that map to no test
 
-Every result names the test it ran.
+Every result names the test it ran, or the element whose worked examples it ran.
 
 ## 5. Results by run
 

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "the two test runs of document-writes-testruns, with the entity Member marked internal, so the test member-key is about an internal element, and TR-2 holding TestRenewal, which maps to no test"
+when: "document testruns is run with --audience external"
+then: "it writes docs/testruns.md with Member left out of the failures per element, member-key's results left out of each run's results with a line counting what was left out, TestRenewal counted among the results that map to no test without its name or message, and the algorithm loanCap's worked example and the Loan tests shown as for the internal document, and exits 0"
+verifies: [SA-125]

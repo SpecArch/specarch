@@ -22,3 +22,7 @@ results:
   - name: TestRenewal
     outcome: failed
     message: renewal is not built yet
+  - name: TestAlgorithmLoanCap/four open loans
+    element: "#/algorithms/loanCap"
+    outcome: failed
+    message: got false, want true

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: golden
+given: "a specification with the test loan-limit and the algorithm loanCap with two worked examples, and a JUnit XML file under records/evidence/ whose testcases are the Go subtests TestAlgorithmLoanCap/four open loans and TestAlgorithmLoanCap/five open loans (failed), the Swift display name algorithm loanCap: worked examples, and TestLoanLimit"
+when: "log test-run is run on the file with the environment, the instant and the role"
+then: "it writes records/test-runs/TR-1.yaml with the three results of the worked examples naming the element #/algorithms/loanCap and no test, and TestLoanLimit mapped to loan-limit; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0"
+verifies: [SA-125]

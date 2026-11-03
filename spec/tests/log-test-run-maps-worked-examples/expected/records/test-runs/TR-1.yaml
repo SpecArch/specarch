@@ -1,0 +1,23 @@
+# Written by specarch log test-run from records/evidence/TR-1-junit.xml. Edit it as any record.
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: staging
+at: "2026-11-03T14:05:00+07:00"
+by: tester
+evidence:
+  - {path: evidence/TR-1-junit.xml, mediaType: application/xml, sha256: 'sha256:b509b4ef3a4c435ac572f04ac3e25d736cb6b1d83ed7efd4cefaa4a7c4687a36'}
+results:
+  - name: TestAlgorithmLoanCap/four open loans
+    element: "#/algorithms/loanCap"
+    outcome: passed
+  - name: TestAlgorithmLoanCap/five open loans
+    element: "#/algorithms/loanCap"
+    outcome: failed
+    message: got true, want false
+  - name: 'algorithm loanCap: worked examples'
+    element: "#/algorithms/loanCap"
+    outcome: passed
+  - name: TestLoanLimit
+    test: loan-limit
+    outcome: passed

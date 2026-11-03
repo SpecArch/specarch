@@ -1,0 +1,6 @@
+arguments: [log, test-run, --results, records/evidence/TR-1-junit.xml, --environment, staging, --at, "2026-11-03T14:05:00+07:00", --by, tester, project]
+exitStatus: 0
+standardOutput: |
+  records/test-runs/TR-1.yaml
+standardError: |
+  specarch log test-run: TR-1 written to records/test-runs/TR-1.yaml, 4 results: 3 passed, 1 failed, 0 errored, 0 skipped, 0 unmapped

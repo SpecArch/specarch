@@ -1,7 +1,7 @@
 arguments: [log, test-run, --results, records/evidence/TR-1-junit.xml, --environment, staging, --version, 1.0.0, --build, "git:4f2a9c1", --at, "2026-11-03T14:05:00+07:00", --by, tester, --open-defect, loan-limit, --severity, major, --phase, development, project]
 exitStatus: 0
 standardOutput: |
-  unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon
+  unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples
   records/test-runs/TR-1.yaml
   records/defects/DEF-1.yaml
 standardError: |

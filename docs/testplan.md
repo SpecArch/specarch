@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 978 design tests, 490 golden and 488 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 985 design tests, 495 golden and 490 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 978 design tests, 490 golden and 488 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 974 |
+| system | 981 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -6071,6 +6071,14 @@ Scenario: golden; level: system; verifies SA-32.
 - When: validate is run
 - Then: it reports nothing and exits 0: the override's rows cover every field on Oracle, and the shipped Go rows cover them on Go
 
+#### validate-idiom-override-technologies
+
+Scenario: red; level: system; verifies SA-126.
+
+- Given: the same Kafka binding with no decision, and an override of the shipped health-endpoint idiom that carries technologies approving the Kafka client
+- When: validate is run
+- Then: it reports idiom_part_unknown at the override's technologies, since an override is not applied as an idiom of its own and approves nothing, still warns technology_unjustified at the binding, and exits 1
+
 #### validate-idiom-problems
 
 Scenario: red; level: system; covers exit 1; verifies SA-32.
@@ -7391,6 +7399,54 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports page five times and flow twice, lists a golden case for each success the submit operation answers, and exits 1
 
+#### validate-technology-approved
+
+Scenario: golden; level: system; verifies SA-126.
+
+- Given: the same binding with no decision, and a project idiom of concern technologies in the file's idioms folder, for the go and typescript stacks, approving kafka under technologies with the Kafka client's name
+- When: validate is run
+- Then: it prints nothing and exits 0, since the idiom of the file's stack approves the framework
+
+#### validate-technology-decided
+
+Scenario: golden; level: system; verifies SA-126.
+
+- Given: the same binding, decided in an accepted implementation decision that satisfies the requirement and names under alternatives the HTTP call and the nightly job it rejected, each with why
+- When: validate is run
+- Then: it prints nothing and exits 0
+
+#### validate-technology-decision-incomplete
+
+Scenario: golden; level: system; verifies SA-126.
+
+- Given: the same binding, decided in an accepted implementation decision that satisfies no requirement and names no alternative
+- When: validate is run
+- Then: it warns technology_unjustified at decidedIn, naming the decision and both gaps, and exits 0
+
+#### validate-technology-decision-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-126.
+
+- Given: a design with one requirement and no channel, and a Go implementation file whose Kafka messaging binding is decided in ADR-999, a decision neither the design nor the file holds
+- When: validate is run
+- Then: it reports origin_decision at decidedIn alone, with no technology_unjustified beside it, and exits 1
+
+#### validate-technology-standard-library
+
+Scenario: golden; level: system; verifies SA-126.
+
+- Given: a design with one requirement and no command, and a Go implementation file whose cli binding is on the standard library, with no decision and no idiom approving it
+- When: validate is run
+- Then: it prints nothing and exits 0, since a binding on the standard library adopts no technology
+
+#### validate-technology-unjustified
+
+Scenario: golden; level: system; verifies SA-126.
+
+- Given: a design with one requirement and no channel, and a Go implementation file whose messaging binding names a Kafka client, with no decision and no idiom approving it
+- When: validate is run
+- Then: it warns technology_unjustified at the binding, saying the design has no channels and no dependency of kind messageBroker and naming what would justify it (the design elements, a decision that satisfies a requirement and names a simpler alternative, or an idiom's technologies), and exits 0
+
 #### validate-tenant
 
 Scenario: red; level: system; covers exit 1; verifies SA-91.
@@ -7573,7 +7629,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 
 - Given: an implementation file whose ui binding maps three components of its UI library, one binding a field, one a column by its field property, and one binding a row
 - When: validate is run on its folder
-- Then: it takes the first two and reports the binding of a row as a schema error at that entry, and exits 1
+- Then: it takes the first two and reports the binding of a row as a schema error at that entry, warns technology_unjustified at the ui binding since the design has no pages, and exits 1
 
 #### validate-ui-schema-file
 
@@ -7581,7 +7637,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 
 - Given: an implementation file with three bindings each naming a schema file, _schema.ts, layout.tsx, a file the App Router serves itself, and schemas/page.ts, a path rather than a name beside the page
 - When: validate is run on its folder
-- Then: it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, and exits 1
+- Then: it takes _schema.ts and reports layout.tsx and schemas/page.ts each as a schema error at its entry, warns technology_unjustified at each ui binding since the design has no pages, and exits 1
 
 #### validate-unheard
 
@@ -7931,7 +7987,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-561 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+566 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8496,6 +8552,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-100 | acceptance 5 | golden | SA-100 names no harm |
 | requirement SA-100 | acceptance 6 | golden | SA-100 names no harm |
 | requirement SA-100 | acceptance 7 | golden | SA-100 names no harm |
+| requirement SA-126 | acceptance 1 | golden | SA-126 names no harm |
+| requirement SA-126 | acceptance 2 | golden | SA-126 names no harm |
+| requirement SA-126 | acceptance 3 | golden | SA-126 names no harm |
+| requirement SA-126 | acceptance 4 | golden | SA-126 names no harm |
+| requirement SA-126 | acceptance 5 | golden | SA-126 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

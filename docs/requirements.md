@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 121 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 122 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -44,12 +44,12 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-125, SA-118 |
-| NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-97 |
+| NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-97, SA-126 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
@@ -180,6 +180,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-74 | interface | must | accepted | specarch model shall print, in both builds, one JSON document in RFC 8785's canonical form that holds, for every specification of the folders given, the merged document, every node's file, line and column, every resolved reference with the keyword that made it, the layout problems, and each implementation file and estate, so that a program reads a specification as specarch does without a loader of its own. |
 | SA-95 | functional | must | accepted | specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. |
 | SA-100 | functional | must | proposed | specarch try shall evaluate one algorithm's formula, in both builds, on each of its worked examples or on inputs given on the command line, with the specification's definition of the algorithm or a proposed one read from a file in its place, and print for each evaluation its inputs, every operation and call of the formula with the value it gave, in the order they were computed, the result and, for an example, the expected value and whether it holds. |
+| SA-126 | functional | must | proposed | The validator shall warn, in both builds, at a binding of an implementation file whose framework no element of the design needs, unless an idiom of the file's stacks approves the framework under technologies or the binding is decided in an accepted decision that satisfies a requirement and names under alternatives the simpler option it rejected; the warning shall name what would justify the binding. |
 
 ### SA-31
 
@@ -2094,6 +2095,22 @@ Acceptance criteria:
 - With --json the Go build prints the evaluations as data beside the lines.
 
 **Insight:** A reader decides on a rule faster and more accurately from its result on a case they recognise than from its formula; validate says only that an example does not hold, so the result of a passing example, the steps that gave a wrong one and the effect of a proposed formula on the examples were worked out by hand, which is the cost the goal names (ADR-195).
+
+### SA-126
+
+The validator shall warn, in both builds, at a binding of an implementation file whose framework no element of the design needs, unless an idiom of the file's stacks approves the framework under technologies or the binding is decided in an accepted decision that satisfies a requirement and names under alternatives the simpler option it rejected; the warning shall name what would justify the binding.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-1, NEED-6.
+
+Acceptance criteria:
+
+- A messaging binding on a Kafka client in an implementation file of a design with no channel and no dependency of kind messageBroker, with no decision and no idiom approving it, is warned about as technology_unjustified at the binding, the message saying what the design lacks and the three ways to justify it.
+- The same binding decided in an accepted decision that satisfies no requirement and names no alternative is warned about at decidedIn, naming the decision and both gaps.
+- The same binding decided in an accepted decision that satisfies a requirement and names under alternatives a simpler option with why it was not taken is not warned about.
+- The same binding with a project idiom of concern technologies in the file's idioms folder, for the file's stack, naming the client under technologies, is not warned about, whatever the design reads.
+- A binding whose kind the design has elements of, or whose framework is the standard library, is never warned about; a decidedIn naming no decision is reported by origin_decision alone.
+
+**Insight:** A broker, a framework or a protocol that nothing in the design needs is the technology choice that costs a delivery most, and the one a reviewer sees last, when it is already built; a warning at the binding makes the decision to adopt it visible where it is written, and names what would make it traceable to a requirement, a rejected simpler option or the organisation's baseline (ADR-231).
 
 ## 5. Constraints
 

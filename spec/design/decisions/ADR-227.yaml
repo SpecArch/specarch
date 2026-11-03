@@ -89,7 +89,10 @@ decisions:
       and the seed target's seed.sql into it through the container's own
       client, runs the implementation's testing.run with the settings'
       values in the environment, and on any exit takes the project down
-      with its volumes. The secrets of the run, and the throwaway
+      with its volumes, an interrupt, a termination or a hang-up included:
+      dash, /bin/sh on Debian and Ubuntu, runs no exit trap when a signal
+      ends the shell, so the script turns each of those signals into an
+      exit with the signal's status. The secrets of the run, and the throwaway
       database's password, come from the environment the script runs in.
       The script sits in the deployment's folder and names the migrations
       and the seed relative to it. The run publishes the deployment's own

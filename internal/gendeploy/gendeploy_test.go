@@ -8,7 +8,9 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/SpecArch/specarch/internal/gensql"
 )
@@ -118,21 +120,17 @@ func TestNoNameRefusesTheForms(t *testing.T) {
 // folder under the output, must find the sql target's migrations and the
 // seed target's seed.sql, load them in order, run the build and the
 // suite in the project, and tear the project down.
-func TestFreshScriptFindsTheMigrationsAndTheSeed(t *testing.T) {
+// writeFreshScript generates the deploy target of a small specification
+// with a compose deployment under fresh into a temporary project and
+// returns the folder above the project, the project and the deploy output.
+func writeFreshScript(t *testing.T) (root, project, out string) {
+	t.Helper()
 	if runtime.GOOS == "windows" {
 		t.Skip("fresh.sh is a POSIX shell script")
 	}
-	root := t.TempDir()
-	project := filepath.Join(root, "project")
-	write := func(p, content string) {
-		t.Helper()
-		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	root = t.TempDir()
+	project = filepath.Join(root, "project")
+	write := func(p, content string) { writeTestFile(t, p, content) }
 	write(filepath.Join(project, "migrations", "0001_expand.sql"), "-- first\n")
 	write(filepath.Join(project, "migrations", "0002_expand.sql"), "-- second\n")
 	write(filepath.Join(project, "seed", "seed.sql"), "-- seed\n")
@@ -167,7 +165,7 @@ func TestFreshScriptFindsTheMigrationsAndTheSeed(t *testing.T) {
 			"configuration": map[string]any{"channelUrl": "http://localhost:8081/?a=1&b=it's"},
 		}},
 	}
-	out := filepath.Join(project, "deploy")
+	out = filepath.Join(project, "deploy")
 	r := &Request{Request: gensql.Request{Specarch: "1.0.0", Digest: "sha256:0", Target: "deploy", Root: filepath.Join(project, "spec", "specarch.yaml"), Specification: spec, Output: out,
 		Implementations: []gensql.Implementation{{File: filepath.Join(project, "spec", "implementation", "go", "desk.go.specarch-implementation.yaml"), Content: impl}}}}
 	data, _ := json.Marshal(r)
@@ -182,6 +180,22 @@ func TestFreshScriptFindsTheMigrationsAndTheSeed(t *testing.T) {
 	for _, f := range resp.Files {
 		write(filepath.Join(out, filepath.FromSlash(f.Path)), f.Content)
 	}
+	return root, project, out
+}
+
+func writeTestFile(t *testing.T, p, content string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestFreshScriptFindsTheMigrationsAndTheSeed(t *testing.T) {
+	root, project, out := writeFreshScript(t)
+	write := func(p, content string) { writeTestFile(t, p, content) }
 	calls, loaded := filepath.Join(root, "calls"), filepath.Join(root, "loaded")
 	stub := filepath.Join(root, "compose-stub")
 	write(stub, `echo "$*" >>"$CALLS"
@@ -214,6 +228,65 @@ case "$*" in *"exec -T db sh -c psql"*) cat >>"$LOADED" ;; esac
 		f := strings.Fields(call)
 		if len(f) < 2 || f[0] != "-p" || !regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`).MatchString(f[1]) {
 			t.Errorf("fresh.sh called compose without a project name Compose takes: %s", call)
+		}
+	}
+}
+
+// TestFreshScriptTearsDownOnASignal checks that an interrupt, a
+// termination or a hang-up during a run takes the project down: dash runs
+// no EXIT trap when a signal ends the shell, so the script turns each into
+// an exit with the signal's status. The script runs under sh and, where
+// the host has it, dash.
+func TestFreshScriptTearsDownOnASignal(t *testing.T) {
+	root, project, out := writeFreshScript(t)
+	shells := []string{"sh"}
+	if _, err := exec.LookPath("dash"); err == nil {
+		shells = append(shells, "dash")
+	}
+	signals := []struct {
+		name   string
+		signal syscall.Signal
+		status int
+	}{{"INT", syscall.SIGINT, 130}, {"TERM", syscall.SIGTERM, 143}, {"HUP", syscall.SIGHUP, 129}}
+	for _, shell := range shells {
+		for _, sg := range signals {
+			t.Run(shell+"/"+sg.name, func(t *testing.T) {
+				calls, started := filepath.Join(root, shell+"-"+sg.name+".calls"), filepath.Join(root, shell+"-"+sg.name+".up")
+				stub := filepath.Join(root, "compose-stub-signal")
+				// up marks that the project started, then holds the run.
+				writeTestFile(t, stub, `echo "$*" >>"$CALLS"
+case "$*" in *" up -d"*) : >"$STARTED"; sleep 1 ;; esac
+`)
+				cmd := exec.Command(shell, filepath.Join(out, "local", "fresh.sh"), project)
+				cmd.Env = append(os.Environ(), "COMPOSE=sh "+stub, "CALLS="+calls, "STARTED="+started, "DB_PASSWORD=throwaway", "API_TOKEN=token")
+				var output strings.Builder
+				cmd.Stdout, cmd.Stderr = &output, &output
+				if err := cmd.Start(); err != nil {
+					t.Fatal(err)
+				}
+				deadline := time.Now().Add(10 * time.Second)
+				for {
+					if _, err := os.Stat(started); err == nil {
+						break
+					}
+					if time.Now().After(deadline) {
+						_ = cmd.Process.Kill()
+						_ = cmd.Wait()
+						t.Fatalf("fresh.sh under %s did not reach compose up within 10 s\n%s", shell, output.String())
+					}
+					time.Sleep(20 * time.Millisecond)
+				}
+				if err := cmd.Process.Signal(sg.signal); err != nil {
+					t.Fatal(err)
+				}
+				_ = cmd.Wait()
+				if got := cmd.ProcessState.ExitCode(); got != sg.status {
+					t.Errorf("fresh.sh under %s on %s exited %d (%s), want %d\n%s", shell, sg.name, got, cmd.ProcessState, sg.status, output.String())
+				}
+				if got := readFile(calls); !strings.Contains(got, "down --volumes --remove-orphans") {
+					t.Errorf("fresh.sh under %s on %s did not tear the project down; the compose calls:\n%s\n%s", shell, sg.name, got, output.String())
+				}
+			})
 		}
 	}
 }

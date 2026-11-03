@@ -152,6 +152,14 @@ func (g *gen) fresh(d *deployment) {
 	b.WriteString("(cd \"$project\" && " + d.build + ")\n")
 	b.WriteString(fmt.Sprintf("echo \"fresh: 2 of %d: start the project $name\"\n", total))
 	b.WriteString(fmt.Sprintf("trap 'echo \"fresh: %d of %d: tear down $name with its volumes\"; compose down --volumes --remove-orphans' EXIT\n", total, total))
+	// dash, /bin/sh on Debian and Ubuntu, runs no EXIT trap when a signal
+	// ends the shell: each signal of an interrupt, a CI timeout or a closed
+	// terminal exits through the shell's own exit instead, with the status
+	// the signal would have left (128 + its number), so the teardown runs.
+	b.WriteString("# An interrupt, a termination or a hang-up exits through exit, so the teardown above runs in every shell, dash included.\n")
+	b.WriteString("trap 'exit 130' INT\n")
+	b.WriteString("trap 'exit 143' TERM\n")
+	b.WriteString("trap 'exit 129' HUP\n")
 	b.WriteString("compose up -d\n")
 	if dbs.name != "" {
 		b.WriteString(fmt.Sprintf("echo \"fresh: 3 of %d: wait for the database %s\"\n", total, dbs.name))

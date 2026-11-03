@@ -1865,7 +1865,10 @@ the sql target's migrations in order and the seed target's `seed.sql`
 into it through the container's
 own client, runs the implementation's `testing.run` with the settings'
 values in the environment, and on any exit takes the project down with
-its volumes. It takes the folder the tasks run in as its argument and
+its volumes, an interrupt, a termination or a hang-up included: dash,
+`/bin/sh` on Debian and Ubuntu, runs no exit trap when a signal ends the
+shell, so the script traps `INT`, `TERM` and `HUP` and exits with the
+signal's status (130, 143, 129), which runs the teardown. It takes the folder the tasks run in as its argument and
 reads the secrets of the run, the throwaway database's password among
 them, from the environment it runs in; `COMPOSE` names the compose
 command (`podman compose` when unset). The script names the migrations

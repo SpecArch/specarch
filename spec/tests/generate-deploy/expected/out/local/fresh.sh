@@ -20,6 +20,10 @@ printf 'fresh: 1 of 6: build in %s: %s\n' "$project" 'podman build -t case-desk-
 (cd "$project" && podman build -t case-desk-api .)
 echo "fresh: 2 of 6: start the project $name"
 trap 'echo "fresh: 6 of 6: tear down $name with its volumes"; compose down --volumes --remove-orphans' EXIT
+# An interrupt, a termination or a hang-up exits through exit, so the teardown above runs in every shell, dash included.
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 compose up -d
 echo "fresh: 3 of 6: wait for the database db"
 i=0

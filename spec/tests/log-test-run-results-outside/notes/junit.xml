@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="2" errors="0" skipped="1">
+  <testsuite name="lending" tests="5" failures="2" skipped="1" timestamp="2026-11-03T14:05:00">
+    <testcase name="TestLoanLimit" classname="lending" time="0.012">
+      <failure message="the sixth loan was saved" type="assertion">loan_test.go:41: want refused, got saved</failure>
+    </testcase>
+    <testcase name="TestMemberKey/opaque" classname="lending" time="0.003"/>
+    <testcase name="loan-return: entity Loan, golden scenario" classname="lending" time="0.004"/>
+    <testcase name="testLoanLimit()" classname="LendingTests" time="0">
+      <skipped message="runs on the device only"/>
+    </testcase>
+    <testcase name="TestRenewal" classname="lending" time="0.002">
+      <failure message="renewal is not built yet"/>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -380,6 +380,15 @@ Error codes of --json:
   names what the specification does not have; or written, while the
   specification has errors
   exit 2: usage error, or a file that could not be read or written
+- `specarch log test-run <folder> [--results <results>] [--environment <environment>] [--version <version>] [--build <build>] [--digest <digest>] [--at <at>] [--by <by>] [--open-defect <open-defect>]... [--severity <severity>] [--phase <phase>] [--dry-run]`
+  Record one run of the tests, from a JUnit XML results file, as a test-run
+  record beside the specification, each result mapped to its test.
+  exit 0: the record is written; a testcase that maps to no test is printed
+  and kept, and does not change the status
+  exit 1: nothing written, since a required option is missing or a value
+  names what the specification and its records do not have, or the results
+  file is refused; or written, while the specification has errors
+  exit 2: usage error, or a file that could not be read or written
 - `specarch mcp`
   Serve every command as a tool of the Model Context Protocol, over standard
   input and output.

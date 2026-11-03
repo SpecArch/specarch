@@ -99,6 +99,7 @@ const (
 	RuleEvidence               Rule = "evidence"
 	RuleRecordCited            Rule = "record_cited"
 	RuleUnheard                Rule = "unheard"
+	RuleTestUnmapped           Rule = "test_unmapped"
 	RuleCommissioningRecord    Rule = "commissioning_record"
 	RuleReleaseContents        Rule = "release_contents"
 	RuleReleaseBump            Rule = "release_bump"
@@ -268,6 +269,7 @@ var Rules = []Rule{
 	RuleEvidence,
 	RuleRecordCited,
 	RuleUnheard,
+	RuleTestUnmapped,
 	RuleCommissioningRecord,
 	RuleReleaseContents,
 	RuleReleaseBump,

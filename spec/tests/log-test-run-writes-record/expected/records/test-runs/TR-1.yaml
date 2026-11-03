@@ -1,0 +1,30 @@
+# Written by specarch log test-run from records/evidence/TR-1-junit.xml. Edit it as any record.
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: staging
+version: "1.0.0"
+build: git:4f2a9c1
+at: "2026-11-03T14:05:00+07:00"
+by: tester
+evidence:
+  - {path: evidence/TR-1-junit.xml, mediaType: application/xml, sha256: 'sha256:f326aa636070ab9c97c0f952f585b72a4ca3ca3061985372b4568742839bfad9'}
+results:
+  - name: TestLoanLimit
+    test: loan-limit
+    outcome: failed
+    message: the sixth loan was saved
+    defect: DEF-1
+  - name: TestMemberKey/opaque
+    test: member-key
+    outcome: passed
+  - name: 'loan-return: entity Loan, golden scenario'
+    test: loan-return
+    outcome: passed
+  - name: testLoanLimit()
+    test: loan-limit
+    outcome: skipped
+    message: runs on the device only
+  - name: TestRenewal
+    outcome: failed
+    message: renewal is not built yet

@@ -1,0 +1,11 @@
+arguments: [log, test-run, --open-defect, loan-limit, project]
+exitStatus: 1
+standardOutput: |
+  missing --results: ask where the JUnit XML file of the run is: put it under records/ beside the specification's folder, such as records/evidence/, and give its path
+  missing --environment: ask which environment of the specification the tests ran in; one of staging
+  missing --at: ask when the run started: the date, the time and the offset of the clock it was read on; written as 2026-11-03T14:05:00+07:00
+  missing --by: ask who ran the tests, by role; one of owner, tester
+  missing --severity: ask how badly the failures to open defects for stop the system from meeting its requirements; one of critical, major, minor, cosmetic
+  missing --phase: ask where the failures were found: in development, at the acceptance test on a build not yet released, or in production; one of development, acceptance, production
+standardError: |
+  specarch log test-run: 6 options not given; ask what each line above asks, and run it again with every option; nothing written

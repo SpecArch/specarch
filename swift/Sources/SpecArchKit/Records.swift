@@ -5,7 +5,7 @@ let recordFolders: [String: String] = [
     "change": "changes", "defect": "defects", "release": "releases",
     "incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
     "idea": "ideas", "communication": "communications", "session": "sessions",
-    "test-session": "test-sessions", "deploy": "deploys",
+    "test-session": "test-sessions", "deploy": "deploys", "test-run": "test-runs",
 ]
 
 /// One record file, read and checked against its schema.
@@ -29,7 +29,7 @@ final class Record {
     /// environment of a commissioning run; "" when the fields are missing.
     var key: String {
         switch kind {
-        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy": return str("id")
+        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run": return str("id")
         case "release", "approval": return str("version")
         case "commissioning":
             let date = str("date"), env = str("environment")
@@ -212,8 +212,37 @@ struct RecordChecks {
             role(r, "by")
             checkEvidence(r)
             checkLinks(r)
+        case "test-run":
+            environment(r, "environment")
+            release(r, "version")
+            role(r, "by")
+            checkEvidence(r)
+            checkResults(r)
         default:
             break
+        }
+    }
+
+    /// Checks each result of a test run: the test it names is a test of the
+    /// specification and the defect a defect; a result that names no test
+    /// is kept and warned of, since its test case maps to none (ADR-230).
+    func checkResults(_ r: Record) {
+        let tests = d.root.child("tests")
+        for (i, item) in items(r.root?.child("results")).enumerated() {
+            let at = String(i)
+            if let n = item.child("test") {
+                let v = str(n)
+                if !v.isEmpty && tests?.child(v) == nil {
+                    var known: [String: YNode] = [:]
+                    for p in pairs(tests) { known[p.key.value] = p.value }
+                    r.c.add(n, pointer("results", at, "test"), .recordRef, "\(v) is not a test of the specification\(suggest(v, known))")
+                }
+            } else if let nameNode = item.child("name"), !str(nameNode).isEmpty {
+                r.c.warn(nameNode, pointer("results", at, "name"), .testUnmapped, "\(str(nameNode)) of \(r.str("id")) names no test, so its outcome counts for no element or requirement; add test with the test it runs, or add that test to the specification")
+            }
+            if let n = item.child("defect") {
+                recordID(r, n, pointer("results", at, "defect"), ["defect"])
+            }
         }
     }
 
@@ -230,7 +259,7 @@ struct RecordChecks {
         if name.hasSuffix(".yaml") { name = String(name.dropLast(5)) }
         if key.isEmpty || name == key { return }
         switch r.kind {
-        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy":
+        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run":
             r.c.add(root.child("id"), "/id", .recordName, "the file is named \(name) but the record's id is \(key); name the file \(key).yaml")
         case "release", "approval":
             r.c.add(root.child("version"), "/version", .recordName, "the file is named \(name) but the record's version is \(key); name the file \(key).yaml")

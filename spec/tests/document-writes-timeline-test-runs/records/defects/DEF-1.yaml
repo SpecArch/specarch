@@ -1,0 +1,14 @@
+specarchRecord: "1.0.0"
+kind: defect
+id: DEF-1
+title: Test loan-limit failed in test run TR-1
+reportedBy: tester
+reported: "2026-11-02"
+phase: development
+environment: staging
+observed: the sixth loan was saved
+expected: the sixth loan is refused and the five stay
+severity: major
+violates: [CASE-1]
+test: loan-limit
+status: confirmed

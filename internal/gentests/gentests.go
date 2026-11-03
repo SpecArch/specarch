@@ -121,6 +121,12 @@ func escape(token string) string {
 }
 
 // pascal turns a test name such as lend-a-copy into LendACopy.
+// TestName is the name of the function a generator writes for a test in
+// a language whose test functions start with prefix: Test for Go, test
+// for Swift, then the test's name in Pascal case. specarch log test-run
+// maps a test case of a results file back to its test by it.
+func TestName(prefix, test string) string { return prefix + pascal(test) }
+
 func pascal(s string) string {
 	var b strings.Builder
 	up := true

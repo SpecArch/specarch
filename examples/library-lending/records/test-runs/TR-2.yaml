@@ -1,0 +1,27 @@
+# Written by specarch log test-run from records/evidence/TR-2-junit.xml. Edit it as any record.
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-2
+environment: staging
+version: "0.2.0"
+build: library-lending 0.2.0 at 7c1e4a9
+at: "2026-10-20T08:00:00Z"
+by: library-it
+evidence:
+  - {path: evidence/TR-2-junit.xml, mediaType: application/xml, sha256: 'sha256:4f35db80c231af1d89cf676b5fe46903101662e7ed3081e0fdd91193e38d29bc'}
+results:
+  - name: TestLendACopy
+    test: lend-a-copy
+    outcome: passed
+  - name: TestLendLimitReached
+    test: lend-limit-reached
+    outcome: passed
+  - name: TestReturnLate
+    test: return-late
+    outcome: passed
+  - name: TestBookIsbnOnce
+    test: book-isbn-once
+    outcome: passed
+  - name: TestReturnUnknownLoan
+    test: return-unknown-loan
+    outcome: passed

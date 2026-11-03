@@ -760,6 +760,17 @@ specification, and an operation stage with monitors. Built in this order:
    `diff-same-version`). Built, unreleased. Open: the pointer in the
    screens of the TypeScript, Vue and SwiftUI stacks and the native
    accessibility identifiers, a message header and a request's log line.
+9. test runs (ADR-230): a test-run record per run of the tests, each
+   result mapped to its test and so to the elements and requirements it
+   verifies, the rule `test_unmapped` in both builds
+   (`spec/tests/validate-test-run-ref`); `specarch log test-run`, which
+   imports a JUnit XML file under `records/` as the run's evidence and
+   opens a defect for a failure only when asked
+   (`spec/tests/log-test-run-writes-record` and its refusals); the
+   documentor target `testruns`, the failures per element and per
+   requirement run by run (`spec/tests/document-writes-testruns`), and the
+   runs in the timeline (`document-writes-timeline-test-runs`). Built,
+   unreleased.
 
 ## Not planned
 

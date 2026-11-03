@@ -1,0 +1,29 @@
+# Written by specarch log test-run from records/evidence/TR-1-junit.xml. Edit it as any record.
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: staging
+version: "0.2.0"
+build: library-lending 0.2.0 at 5d3e8b1
+at: "2026-10-14T09:30:00Z"
+by: library-it
+evidence:
+  - {path: evidence/TR-1-junit.xml, mediaType: application/xml, sha256: 'sha256:5086f4f1985b00c4c981c882aa9269a375c31a7768b33180d7356200bf3f17c2'}
+results:
+  - name: TestLendACopy
+    test: lend-a-copy
+    outcome: passed
+  - name: TestLendLimitReached
+    test: lend-limit-reached
+    outcome: passed
+  - name: TestReturnLate
+    test: return-late
+    outcome: failed
+    message: late fee is 30.00, want 3.50 capped at the replacement cost 25.00
+    defect: DEF-1
+  - name: TestBookIsbnOnce
+    test: book-isbn-once
+    outcome: passed
+  - name: TestReturnUnknownLoan
+    test: return-unknown-loan
+    outcome: passed

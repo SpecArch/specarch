@@ -34,6 +34,11 @@ type logResult struct {
 	// Next is the decide line that records an answer as the decision,
 	// "" for a record that is no answer.
 	Next string `json:"next"`
+	// Unmapped are the test cases of a test run's results file that map
+	// to no test, each with why; kept in the record without a test.
+	Unmapped []logUnmapped `json:"unmapped,omitempty"`
+	// Defects are the paths of the defect records a test run opened.
+	Defects []string `json:"defects,omitempty"`
 }
 
 // logMissing is one option specarch log needs and was not given.
@@ -64,6 +69,9 @@ func runLog(args []string, stdout, stderr io.Writer) int {
 
 // logInto is runLog keeping its result for --json.
 func logInto(args []string, stdout, stderr io.Writer, kept **logResult) int {
+	if len(args) > 0 && args[0] == "test-run" {
+		return logTestRun(args[1:], stdout, stderr, kept)
+	}
 	values := map[string]string{}
 	lists := map[string][]string{}
 	w := disk.Real

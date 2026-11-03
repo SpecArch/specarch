@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="0">
+  <testsuite name="github.com/example/library-lending/tests" tests="5" failures="0" timestamp="2026-10-20T08:00:00">
+    <testcase name="TestLendACopy" classname="github.com/example/library-lending/tests" time="0.039"/>
+    <testcase name="TestLendLimitReached" classname="github.com/example/library-lending/tests" time="0.020"/>
+    <testcase name="TestReturnLate" classname="github.com/example/library-lending/tests" time="0.031"/>
+    <testcase name="TestBookIsbnOnce" classname="github.com/example/library-lending/tests" time="0.010"/>
+    <testcase name="TestReturnUnknownLoan" classname="github.com/example/library-lending/tests" time="0.016"/>
+  </testsuite>
+</testsuites>

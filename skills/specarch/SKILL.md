@@ -350,6 +350,15 @@ Error codes of --json:
   names what the specification does not have; or written, while the
   specification has errors
   exit 2: usage error, or a file that could not be read or written
+- `specarch log test-run <folder> [--results <results>] [--environment <environment>] [--version <version>] [--build <build>] [--digest <digest>] [--at <at>] [--by <by>] [--open-defect <open-defect>]... [--severity <severity>] [--phase <phase>] [--dry-run]`
+  Record one run of the tests, from a JUnit XML results file, as a test-run
+  record beside the specification, each result mapped to its test.
+  exit 0: the record is written; a testcase that maps to no test is printed
+  and kept, and does not change the status
+  exit 1: nothing written, since a required option is missing or a value
+  names what the specification and its records do not have, or the results
+  file is refused; or written, while the specification has errors
+  exit 2: usage error, or a file that could not be read or written
 - `specarch mcp`
   Serve every command as a tool of the Model Context Protocol, over standard
   input and output.
@@ -434,6 +443,7 @@ Protocol.
 - [idioms diff](references/idioms-diff.md): Print a shipped idiom's parts beside each override's.
 - [init](references/init.md): Write the smallest specification that validates into a new folder.
 - [log](references/log.md): Record one communication with a stakeholder, from what the analyst reports in chat, as a record beside the specification.
+- [log test-run](references/log-test-run.md): Record one run of the tests, from a JUnit XML results file, as a test-run record beside the specification, each result mapped to its test.
 - [mcp](references/mcp.md): Serve every command as a tool of the Model Context Protocol, over standard input and output.
 - [merge](references/merge.md): Merge the partial specifications the readers wrote into one.
 - [model](references/model.md): Print the specifications as one JSON document, for a program.

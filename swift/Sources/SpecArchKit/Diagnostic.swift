@@ -88,6 +88,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case evidence = "evidence"
     case recordCited = "record_cited"
     case unheard = "unheard"
+    case testUnmapped = "test_unmapped"
     case commissioningRecord = "commissioning_record"
     case releaseContents = "release_contents"
     case releaseBump = "release_bump"

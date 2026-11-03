@@ -83,6 +83,12 @@ a role nobody has heard.
   dumps; specarch skill --check keeps the agent skill current. Topic:
   check.
 
+[test-results] Keeping the test results of each build
+  specarch log test-run records a JUnit XML file under records/ as a
+  test run, each testcase mapped to its test; one that maps to none is
+  kept and warned. specarch document testruns writes the failures per
+  element and per requirement, run by run. Topic: log test-run.
+
 [small-change] A small change
   A change record with its affects and impact, the edit, specarch
   validate, specarch generate --check, specarch diff against the approved

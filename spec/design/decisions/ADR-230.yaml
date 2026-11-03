@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-230:
+    title: A test run is a record beside the specification, with each result mapped to a test of the specification; specarch log test-run imports a JUnit XML file under records/ as its evidence, keeps a result that maps to no test and reports it, and opens a defect for a failure only when asked; the testruns document writes the runs and the failures per element and per requirement, run by run
+    status: proposed
+    date: "2026-11-03"
+    context: |
+      The tests of a specification say what is checked and which
+      requirements each verifies; whether they pass is known only to the
+      build that ran them, in a results file that a CI job writes and
+      throws away. A team that delivers to a customer is asked which
+      requirements were shown met on the build that went to acceptance,
+      which elements keep failing from one build to the next, and where
+      the defects sit, and answers from memory or a spreadsheet. A test
+      session record (ADR-220) says a person tested a build and the
+      session passed or failed, not which test failed; a defect record
+      names the test that shows its fix, not the runs it failed in. Most
+      test runners write, or can be made to write, a JUnit XML file:
+      testsuites holding testsuite elements holding testcase elements,
+      each with a name and a classname and a failure, error or skipped
+      child when it did not pass.
+    decision: |
+      A test run, records/test-runs/TR-<n>.yaml, is one execution of the
+      tests on one build: the environment, the version (a release record)
+      when the build is one, the build (a commit or an image tag), the
+      digest of the specification the build was generated from (as the
+      approval and a defect's against keep it), at (an instant with its
+      offset), by (the role that ran it), the results file as evidence
+      (its path under records/, media type and SHA-256), and the results,
+      one per testcase in the file's order: the name as the file writes
+      it, the test of the specification it maps to, the outcome (passed,
+      failed, error, skipped), the failure's message, and the defect it
+      opened. specarch log test-run --results <file> writes it from a
+      JUnit XML file under records/, with --environment, --at and --by
+      required and --version, --build and --digest when known; nothing
+      is read from the file but the testcases, since its timestamp has no
+      offset and its hostname is no environment of the specification. A
+      testcase maps to a test when its name, cut at the first / (a
+      subtest) and with a trailing () taken off, is the test's name, or
+      Test or test followed by the name in Pascal case (the functions
+      specarch-gen-tests-go and specarch-gen-tests-swift write), or
+      begins with the name and a colon (the display name the Swift and
+      Dart generators write). A testcase that maps to no test, or to two,
+      stays in the record without test, is printed as a line saying why,
+      under log.unmapped with --json, and is warned by the validator at
+      the result (test_unmapped) until someone names its test. A failed
+      or errored result opens a defect only when --open-defect names its
+      test, with --severity and --phase given: the defect, reported, by
+      the run's role on the run's date, violates the requirements the
+      test verifies, or the element it is about when it verifies none,
+      names the test, says what was observed with the failure's message
+      and what was expected with the test's then; for acceptance its
+      against is the run's version, digest and build. The validator
+      checks the run's environment, version, role, evidence, each
+      result's test and defect (record_ref). The testruns document lists
+      the runs, oldest first, with their counts, then a table per element
+      and per requirement with one column per run holding the failures
+      of the tests about it in that run, and the open defects; then the
+      results that map to no test, and each run's results. The timeline
+      places each run at its instant.
+    consequences: |
+      What a build showed is kept beside the specification and checked
+      like the other records: a results file changed after the import
+      fails validate with its new hash, a test renamed in the
+      specification shows as record_ref at every result that named it,
+      and a testcase the specification does not know is a warning, not a
+      line lost. Which requirement was shown met on which build, and
+      which element fails run after run, is read from the testruns
+      document instead of from memory. A team whose runner names tests
+      some other way edits test into the result by hand, or names its
+      tests as the generators do; SpecArch does not learn a mapping file.
+      A defect is never opened by a failure alone: a test fails for a
+      flaky host as well as for a fault, and the person who runs the
+      import decides which failures are defects and how severe.
+    why: |
+      The results file is the evidence of the run, under records/ with
+      its SHA-256, rather than a path outside the records, because a run
+      that cannot be shown is a claim, and the existing evidence check
+      then holds the file and the record together without a new rule.
+      The option is --results, not --from as the request named it,
+      because in specarch log --from is the role that said something, and
+      one option meaning a role in one form and a file in another is two
+      ways to read one word. The mapping follows the names the
+      generators already write instead of a mapping file or a fuzzy
+      match, because a fuzzy match that maps a testcase to the wrong test
+      reads as a fact in every document after it, and a result kept
+      unmapped and warned costs one edit. A result is kept when it maps
+      to nothing, in place of being dropped or refused, because a
+      compiler for specifications never silently drops what it read
+      (docs/principles.md), and a failure of a test the specification
+      does not have yet is the first sign of a requirement nobody wrote.
+      Several results may map to one test, since subtests and
+      parameterised cases run one test many times; a result that maps to
+      two tests is ambiguous and stays unmapped. JUnit XML is read rather
+      than each runner's own format because it is the one most runners
+      write or convert to; TAP and the others can be converted to it.
+      Its timestamp is not read as the run's instant because it carries
+      no offset, and specarch log guesses no instant (ADR-220). The
+      digest is the specification's digest, the same as a defect's
+      against and the approval keep, so a run is tied to the specification
+      it was generated from; an image digest goes in build. The trend is
+      counted per element and per requirement and not per test, because
+      the question a team is asked is which part of the system keeps
+      failing and which requirement is not yet shown met, and a test is
+      the way it is asked.
+    satisfies: [SA-125]
+    restsOn: [ADR-220]
+    cites:
+      - source: iso-29119-3
+        clause: "8"
+        says: "Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome."

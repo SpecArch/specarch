@@ -199,6 +199,17 @@ A document for everyone (`--audience external`) leaves the person
 label and what touches an internal element out of both. Neither is
 ever a draft.
 
+The testruns target writes `testruns.md` from the test-run records
+(ADR-230): every run oldest first with its instant, environment,
+version, build and its passed, failed, errored, skipped and unmapped
+results; then the failures per element, the element each test is
+about, and per requirement, each test's verifies, one column per
+run holding the failed and errored results of those tests in that
+run, a dash when none of them ran, and the open defects that name
+the element or the requirement; then the results that map to no
+test; then each run's results. It is never a draft. The timeline
+places each test run at its instant.
+
 The problems target writes `problems.txt` and `problems.sarif`
 (ADR-065), for an invalid specification too. `problems.txt` starts
 with a line naming the specification, its version and the counts of
@@ -305,7 +316,7 @@ and the html page in place of what satisfies and verifies it.
 
 ## Arguments
 
-- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
+- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
 - `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
 
 ## Options
@@ -319,7 +330,7 @@ and the html page in place of what satisfies and verifies it.
 
 - `{paths}`: The specifications and their implementation files.
 - `specarch.md`: The hand-written document beside each root file, when there is one.
-- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets.
+- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets; the test-run and defect records, for the testruns target.
 - `{out}`: The current output, with `--check`.
 
 ## Writes

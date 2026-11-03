@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: red
+covers: [exit 1]
+given: "an XML file under records/evidence/ whose root element is report, not testsuites or testsuite"
+when: "log test-run is run on it with every required option"
+then: "it refuses, saying the file is not JUnit XML and naming the root element it has, writes nothing and exits 1"
+verifies: [SA-125]

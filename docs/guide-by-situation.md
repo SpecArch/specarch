@@ -656,6 +656,59 @@ the Go one when both are built: they print the same output.
 **Deeper.** `docs/sync-gates.md`, `scripts/landing-check.sh` (every check
 this repository runs), `specarch help check`.
 
+<!-- situation: test-results -->
+## Keeping the test results of each build
+
+**When it happens.** CI runs the tests on every build and throws the
+results away. At the acceptance test the customer asks which requirements
+were shown met on the build in front of them, and which part of the system
+keeps failing from one build to the next.
+
+**What to run.** Put the runner's JUnit XML file under `records/`, then:
+
+    specarch log test-run --results records/evidence/TR-1-junit.xml --environment staging --version 0.2.0 --build "library-lending 0.2.0 at 5d3e8b1" --at 2026-10-14T09:30:00Z --by library-it spec
+    specarch document testruns spec
+
+`log test-run` writes `records/test-runs/TR-<n>.yaml`: the run's
+environment, version, build and instant, who ran it, the file as its
+evidence with its SHA-256, and one result per testcase mapped to its test
+of the specification, so to the element the test is about and the
+requirements it verifies. `--open-defect <test>` with `--severity` and
+`--phase` opens a defect for a failure you judge to be one.
+`document testruns` lists the runs and the failures per element and per
+requirement, one column per run; the `timeline` places each run.
+
+**A worked example.** The library lending example's first run, in
+`examples/library-lending`:
+
+    $ specarch log test-run --results records/evidence/TR-1-junit.xml --environment staging --version 0.2.0 --build "library-lending 0.2.0 at 5d3e8b1" --at 2026-10-14T09:30:00Z --by library-it spec
+    records/test-runs/TR-1.yaml
+    specarch log test-run: TR-1 written to records/test-runs/TR-1.yaml, 5 results: 4 passed, 1 failed, 0 errored, 0 skipped, 0 unmapped
+
+and in `docs/testruns.md`, after the second run:
+
+    | Requirement | TR-1 | TR-2 | Open defects |
+    |---|---|---|---|
+    | LIB-3 | 0 | 0 | none |
+    | LIB-5 | 1 | 0 | none |
+
+A testcase the specification has no test for is kept, not dropped
+(`spec/tests/log-test-run-writes-record`):
+
+    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon
+
+**What to watch for.** A testcase maps by the names the test generators
+write (`TestReturnLate`, `testReturnLate()`, `return-late: ...`); a runner
+that names tests otherwise leaves results unmapped, and `validate` warns
+`test_unmapped` at each until `test` is written into the result. Nothing
+is read from the file's timestamp, which has no offset: give `--at`. A
+failure opens no defect by itself, since a flaky host fails a test too.
+Keep the results file once it is recorded: the `evidence` rule fails when
+it changes.
+
+**Deeper.** `docs/maintenance.md` (Test runs), `specarch help log test-run`,
+ADR-230.
+
 <!-- situation: small-change -->
 ## A small change
 

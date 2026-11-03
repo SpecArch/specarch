@@ -2,7 +2,7 @@
 
 # Library Lending: timeline
 
-Version 0.1.0 of the specification: 29 events in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (UTC) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release.
+Version 0.1.0 of the specification: 31 events in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, test runs, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (UTC) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release.
 
 ## 1. Every event
 
@@ -22,6 +22,8 @@ Version 0.1.0 of the specification: 29 events in one time order, from the record
 | 2026-10-13T15:00:00Z | SES-1: session “Renewals with the desk, the board and a member” (meeting) | Whether a member may renew a loan, how often and what a renewal does to the due date and the fee; the board decided CR-1 the next day. Present: librarian, library-board, member; absent: library-it. | LIB-4, `#/entities/Loan`; CR-1 |
 | 2026-10-14 | CR-1: change request approved by library-board | A single renewal keeps books moving and saves the desk the late fees it would otherwise waive by hand. | `#/tests/renew-a-loan`, LIB-4, `#/entities/Loan` |
 | 2026-10-14 | CR-2: change request rejected by library-board | The email the system already sends on a return is proof enough, and text messages cost the library per message. | `#/channels` |
+| 2026-10-14T09:30:00Z | TR-1: test run in staging by library-it | 4 passed, 1 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 5d3e8b1. | LIB-5; DEF-1; release 0.2.0 |
+| 2026-10-20T08:00:00Z | TR-2: test run in staging by library-it | 5 passed, 0 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 7c1e4a9. | release 0.2.0 |
 | 2026-10-20T09:00:00Z | COM-3: information from library-it to librarian (chat) | “Build 0.2.0 is on the test host with last night's data; the renewal is in.” | CR-1, DEF-1 |
 | 2026-10-21 | CR-3: change request raised by librarian | Put the Renew action where the desk reaches it first on the loans list | `#/pages/loans-list` |
 | 2026-10-21T10:00:00Z | TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0) | Result: passed. A loan was renewed once and a second renewal refused; a late return of a lost book was charged the replacement cost and no more. The desk objected to where the Renew action sits (COM-4). Present: librarian, library-it; absent: library-board. | LIB-4, LIB-5; CR-1, CR-3, DEF-1; release 0.2.0 |
@@ -81,6 +83,8 @@ Version 0.1.0 of the specification: 29 events in one time order, from the record
 
 - 2026-10-07T18:00:00Z, DEP-1: deploy of 0.1.0 to production by library-it: Result: succeeded. Installed after the commissioning run of the same day passed. Build library-lending 0.1.0 at 2b9d0f3.
 - 2026-10-13T15:00:00Z, SES-1: session “Renewals with the desk, the board and a member” (meeting): Whether a member may renew a loan, how often and what a renewal does to the due date and the fee; the board decided CR-1 the next day. Present: librarian, library-board, member; absent: library-it.
+- 2026-10-14T09:30:00Z, TR-1: test run in staging by library-it: 4 passed, 1 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 5d3e8b1.
+- 2026-10-20T08:00:00Z, TR-2: test run in staging by library-it: 5 passed, 0 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 7c1e4a9.
 - 2026-10-20T09:00:00Z, COM-3: information from library-it to librarian (chat): “Build 0.2.0 is on the test host with last night's data; the renewal is in.”
 - 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0): Result: passed. A loan was renewed once and a second renewal refused; a late return of a lost book was charged the replacement cost and no more. The desk objected to where the Renew action sits (COM-4). Present: librarian, library-it; absent: library-board.
 - 2026-10-21T10:40:00Z, COM-4: objection from librarian to library-it (meeting): On the desk screen the Renew action sits below the fold of the loans list, so the desk scrolls for it on every renewal.
@@ -124,6 +128,7 @@ Version 0.1.0 of the specification: 29 events in one time order, from the record
 
 - 2026-10-07, ADR-001: decision, accepted: Late fees are a flat daily rate capped at the replacement cost.
 - 2026-10-12, DEF-1: defect reported by librarian, fixed: The late fee is not capped at the replacement cost
+- 2026-10-14T09:30:00Z, TR-1: test run in staging by library-it: 4 passed, 1 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 5d3e8b1.
 - 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0): Result: passed. A loan was renewed once and a second renewal refused; a late return of a lost book was charged the replacement cost and no more. The desk objected to where the Renew action sits (COM-4). Present: librarian, library-it; absent: library-board.
 - 2026-10-25, ADR-003: decision, accepted: The late fee is computed once, at return, and stored on the loan.
 
@@ -176,6 +181,8 @@ Version 0.1.0 of the specification: 29 events in one time order, from the record
 
 ### 0.2.0
 
+- 2026-10-14T09:30:00Z, TR-1: test run in staging by library-it: 4 passed, 1 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 5d3e8b1.
+- 2026-10-20T08:00:00Z, TR-2: test run in staging by library-it: 5 passed, 0 failed, 0 errored, 0 skipped, 0 mapping to no test. Build library-lending 0.2.0 at 7c1e4a9.
 - 2026-10-21T10:00:00Z, TS-1: test session “Acceptance of the renewal and the fee cap” (uat on staging, version 0.2.0): Result: passed. A loan was renewed once and a second renewal refused; a late return of a lost book was charged the replacement cost and no more. The desk objected to where the Renew action sits (COM-4). Present: librarian, library-it; absent: library-board.
 - no date, release 0.2.0, planned: Includes CR-1, DEF-1.
 

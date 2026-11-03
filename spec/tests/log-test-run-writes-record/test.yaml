@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: golden
+given: "a specification with the tests loan-limit, loan-return and member-key, the environment staging, a planned release 1.0.0 and a JUnit XML file under records/evidence/ whose testcases are named TestLoanLimit (failed), TestMemberKey/opaque, a display name beginning loan-return:, testLoanLimit() (skipped) and TestRenewal (failed), a test the specification does not have"
+when: "log test-run is run on the file with the environment, the version, the build, the instant, the role, and --open-defect loan-limit with a severity and a phase"
+then: "it writes records/test-runs/TR-1.yaml with the file as evidence and one result per testcase in the file's order, the first four mapped to loan-limit, member-key, loan-return and loan-limit and TestRenewal kept without a test; writes records/defects/DEF-1.yaml violating CASE-1, naming the test, observed from the failure's message and expected from the test's then, linked from the failed loan-limit result; prints the unmapped line for TestRenewal, the record's path and the defect's path, and exits 0"
+verifies: [SA-125]

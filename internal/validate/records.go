@@ -20,7 +20,7 @@ var recordFolders = map[string]string{
 	"change": "changes", "defect": "defects", "release": "releases",
 	"incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
 	"idea": "ideas", "communication": "communications", "session": "sessions",
-	"test-session": "test-sessions", "deploy": "deploys",
+	"test-session": "test-sessions", "deploy": "deploys", "test-run": "test-runs",
 }
 
 // record is one record file, read and checked against its schema.
@@ -37,7 +37,7 @@ type record struct {
 // environment of a commissioning run; "" when the fields are missing.
 func (r *record) key() string {
 	switch r.kind {
-	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy":
+	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run":
 		return r.str("id")
 	case "release", "approval":
 		return r.str("version")
@@ -220,6 +220,33 @@ func (rc *recordChecks) check(r *record) {
 		rc.role(r, "by")
 		rc.checkEvidence(r)
 		rc.checkLinks(r)
+	case "test-run":
+		rc.environment(r, "environment")
+		rc.release(r, "version")
+		rc.role(r, "by")
+		rc.checkEvidence(r)
+		rc.checkResults(r)
+	}
+}
+
+// checkResults checks each result of a test run: the test it names is a
+// test of the specification and the defect a defect; a result that names
+// no test is kept and warned of, since its test case maps to none
+// (ADR-230).
+func (rc *recordChecks) checkResults(r *record) {
+	tests := source.Child(rc.d.root, "tests")
+	for i, item := range source.Items(source.Child(r.root, "results")) {
+		at := fmt.Sprint(i)
+		if n := source.Child(item, "test"); n != nil {
+			if v := source.Str(n); v != "" && source.Child(tests, v) == nil {
+				r.c.add(n, source.Pointer("results", at, "test"), RuleRecordRef, "%s is not a test of the specification%s", v, suggest(v, topMap(rc.d.root, "tests")))
+			}
+		} else if name := source.Str(source.Child(item, "name")); name != "" {
+			r.c.warn(source.Child(item, "name"), source.Pointer("results", at, "name"), RuleTestUnmapped, "%s of %s names no test, so its outcome counts for no element or requirement; add test with the test it runs, or add that test to the specification", name, r.str("id"))
+		}
+		if n := source.Child(item, "defect"); n != nil {
+			rc.recordID(r, n, source.Pointer("results", at, "defect"), "defect")
+		}
 	}
 }
 
@@ -236,7 +263,7 @@ func (rc *recordChecks) checkName(r *record) {
 		return
 	}
 	switch r.kind {
-	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy":
+	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run":
 		r.c.add(source.Child(r.root, "id"), "/id", RuleRecordName, "the file is named %s but the record's id is %s; name the file %s.yaml", name, key, key)
 	case "release", "approval":
 		r.c.add(source.Child(r.root, "version"), "/version", RuleRecordName, "the file is named %s but the record's version is %s; name the file %s.yaml", name, key, key)

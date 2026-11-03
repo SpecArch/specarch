@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "the results file named with --from, the option of log that names who said something"
+when: "log test-run is run with --from in place of --results"
+then: "it prints that log test-run has no option --from, the options it has and how to use it, and exits 2"
+verifies: [SA-125]

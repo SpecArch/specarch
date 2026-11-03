@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "two test runs, TR-1 and TR-2, a defect opened from the first and a planned release 1.0.0"
+when: document timeline is run
+then: "it writes docs/timeline.md with each test run at its instant, its counts and build, the requirements its failed tests verify and the defects its results link, and the runs under release 1.0.0, and exits 0"
+verifies: [SA-125]

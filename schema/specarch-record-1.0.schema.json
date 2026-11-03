@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-1.0.schema.json",
   "title": "SpecArch record, 1.0",
-  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval, an idea, a communication with a stakeholder, a session (a meeting or a call with its attendance), a test session or a deploy. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification points back only where a decision cites a communication record. A record names people only by role, except the person label a communication record may carry, which the documents for everyone leave out. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval, an idea, a communication with a stakeholder, a session (a meeting or a call with its attendance), a test session, a deploy or a test run. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification points back only where a decision cites a communication record. A record names people only by role, except the person label a communication record may carry, which the documents for everyone leave out. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarchRecord": {
@@ -24,7 +24,8 @@
         "communication",
         "session",
         "test-session",
-        "deploy"
+        "deploy",
+        "test-run"
       ]
     }
   },
@@ -196,6 +197,21 @@
       },
       "then": {
         "$ref": "#/$defs/deploy"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "test-run"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/test-run"
       }
     }
   ],
@@ -1768,6 +1784,103 @@
       },
       "required": [
         "version"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "test-run": {
+      "description": "One run of the tests on one build: where it ran, on what, when, by whom, the results file as its evidence, and one result per test case of that file, each with the test of the specification it maps to. Kept in records/test-runs/, named by its ID; specarch log test-run writes it from a JUnit XML file (ADR-230).",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "environment": {
+          "$ref": "#/$defs/name"
+        },
+        "version": {
+          "description": "The version of the build, a release record, planned or released, when the build is one.",
+          "$ref": "#/$defs/version"
+        },
+        "build": {
+          "description": "The build that was tested, such as a commit or an image tag with its digest.",
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "description": "The digest of the specification the build was generated from, as the approval record and a defect's against keep it.",
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "at": {
+          "$ref": "#/$defs/instant"
+        },
+        "by": {
+          "description": "The role that ran the tests.",
+          "$ref": "#/$defs/role"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "results": {
+          "description": "One result per test case of the results file, in the file's order; several may name one test, as subtests and parameterised cases run it more than once.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "The test case's name as the results file writes it.",
+                "type": "string",
+                "minLength": 1
+              },
+              "test": {
+                "description": "The test of the specification the test case runs, by name; left out when its name maps to no test or to two, which the validator warns of (test_unmapped).",
+                "$ref": "#/$defs/name"
+              },
+              "outcome": {
+                "description": "passed; failed when an assertion did not hold; error when the test could not run to its end; skipped when it was not run.",
+                "type": "string",
+                "enum": [
+                  "passed",
+                  "failed",
+                  "error",
+                  "skipped"
+                ]
+              },
+              "message": {
+                "description": "What the results file says of a failure, an error or a skip, in one line.",
+                "type": "string",
+                "minLength": 1
+              },
+              "defect": {
+                "description": "The defect this failure opened or belongs to, by ID.",
+                "$ref": "#/$defs/recordId"
+              }
+            },
+            "required": [
+              "name",
+              "outcome"
+            ],
+            "patternProperties": {
+              "^x-": {}
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "environment",
+        "at",
+        "by",
+        "results"
       ],
       "patternProperties": {
         "^x-": {}

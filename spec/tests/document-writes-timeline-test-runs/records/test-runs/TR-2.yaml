@@ -1,0 +1,24 @@
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-2
+environment: staging
+version: "1.0.0"
+build: git:4f2a9c1
+at: "2026-11-03T14:05:00+07:00"
+by: tester
+results:
+  - name: TestLoanLimit
+    test: loan-limit
+    outcome: failed
+    message: the sixth loan was saved
+    defect: DEF-1
+  - name: TestLoanReturn
+    test: loan-return
+    outcome: error
+    message: the database did not start
+  - name: TestMemberKey
+    test: member-key
+    outcome: skipped
+  - name: TestRenewal
+    outcome: failed
+    message: renewal is not built yet

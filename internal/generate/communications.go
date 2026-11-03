@@ -32,7 +32,7 @@ type event struct {
 
 // kindOrder places events of one instant: what was said before what was
 // decided, and a session before what was said in it.
-var kindOrder = map[string]int{"session": 0, "test-session": 0, "communication": 1, "idea": 2, "change": 3, "defect": 3, "incident": 3, "decision": 4, "approval": 5, "release": 6, "commissioning": 7, "deploy": 8}
+var kindOrder = map[string]int{"session": 0, "test-session": 0, "communication": 1, "idea": 2, "change": 3, "defect": 3, "incident": 3, "decision": 4, "approval": 5, "release": 6, "commissioning": 7, "deploy": 8, "test-run": 9}
 
 // zoneOf is the specification's time zone, UTC when it declares none or
 // the name is not in the database; a date-only event is the first instant
@@ -433,7 +433,7 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 
 	d.line("# %s: timeline", str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (%s) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release.",
+	d.para(fmt.Sprintf("Version %s of the specification: %s in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, test runs, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (%s) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release.",
 		str(info, "version"), countText(len(events), "event", "events"), zone))
 	if state.Withheld != nil {
 		d.para("This document is for everyone: what touches an internal element is left out.")
@@ -589,6 +589,28 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 			}
 			add(event{when: placeInTime(str(r, "at"), loc), shown: str(r, "at"), kind: "deploy", id: id, label: fmt.Sprintf("%s: deploy of %s to %s by %s", id, str(r, "version"), str(r, "environment"), str(r, "by")), what: what,
 				roles: []string{str(r, "by")}, refs: linkRefs(r), records: linkRecords(r), versions: []string{str(r, "version")}, node: r})
+		case "test-run":
+			c := countRun(r)
+			what := fmt.Sprintf("%d passed, %d failed, %d errored, %d skipped, %d mapping to no test.", c.passed, c.failed, c.errored, c.skipped, c.unmapped)
+			if b := str(r, "build"); b != "" {
+				what += " Build " + b + "."
+			}
+			var refs, recs []string
+			for _, res := range items(r, "results") {
+				if o := str(res, "outcome"); o != "failed" && o != "error" {
+					continue
+				}
+				refs = append(refs, strs(testOf(root, str(res, "test")), "verifies")...)
+				if dft := str(res, "defect"); dft != "" {
+					recs = append(recs, dft)
+				}
+			}
+			e := event{when: placeInTime(str(r, "at"), loc), shown: str(r, "at"), kind: "test-run", id: id, label: fmt.Sprintf("%s: test run in %s by %s", id, str(r, "environment"), str(r, "by")), what: what,
+				roles: []string{str(r, "by")}, refs: refs, records: recs, node: r}
+			if v := str(r, "version"); v != "" {
+				e.versions = []string{v}
+			}
+			add(e)
 		case "release":
 			v := str(r, "version")
 			what := "Includes nothing recorded."
@@ -717,4 +739,12 @@ func uniqueStrings(in []string) []string {
 		out = append(out, s)
 	}
 	return out
+}
+
+// testOf is the test of the specification of that name, nil for none.
+func testOf(root *yaml.Node, name string) *yaml.Node {
+	if name == "" {
+		return nil
+	}
+	return get(get(root, "tests"), name)
 }

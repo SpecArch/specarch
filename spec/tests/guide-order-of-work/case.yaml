@@ -107,6 +107,14 @@ standardOutput: |
       [--dry-run]
         Record one communication with a stakeholder, from what the analyst
         reports in chat, as a record beside the specification.
+    specarch log test-run <folder> [--results <results>]
+      [--environment <environment>] [--version <version>] [--build <build>]
+      [--digest <digest>] [--at <at>] [--by <by>]
+      [--open-defect <open-defect>]... [--severity <severity>]
+      [--phase <phase>] [--dry-run]
+        Record one run of the tests, from a JUnit XML results file, as a
+        test-run record beside the specification, each result mapped to its
+        test.
     specarch mcp
         Serve every command as a tool of the Model Context Protocol, over
         standard input and output.

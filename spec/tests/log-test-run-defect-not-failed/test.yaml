@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: red
+covers: [exit 1]
+given: "a JUnit XML file in which member-key passed"
+when: "log test-run is run with --open-defect member-key"
+then: "it refuses, saying no result of the run maps to member-key and failed or errored, writes neither the run nor a defect and exits 1"
+verifies: [SA-125]

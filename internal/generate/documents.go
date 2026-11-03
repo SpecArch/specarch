@@ -49,6 +49,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 		return Communications(root, relRoot, state), true
 	case "timeline":
 		return Timeline(root, relRoot, state), true
+	case "testruns":
+		return TestRuns(root, relRoot, state), true
 	case "html":
 		return Site(root, relRoot, impls, state), true
 	default:

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a test-run record naming an environment, a version and a role the specification and its records do not have, a result whose test is misspelt and whose defect is not a record, and a result with no test"
+when: validate is run
+then: "it reports record_ref at the environment, the version, the role, the misspelt test with the test it may mean, and the defect, warns test_unmapped at the result with no test, and exits 1, in the Go build and the Swift build alike"
+verifies: [SA-125]

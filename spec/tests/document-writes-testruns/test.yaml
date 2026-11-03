@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "two test runs of one build line, TR-1 with loan-limit failed and TR-2 with loan-limit failed, loan-return errored, member-key skipped and TestRenewal mapping to no test, and an open defect DEF-1 on CASE-1 from loan-limit"
+when: document testruns is run
+then: "it writes docs/testruns.md listing TR-1 then TR-2 with their counts, the failures per element with Loan at 1 in TR-1 and 2 in TR-2 and Member at 0 and a dash, the failures per requirement with CASE-1 at 1 and 2 and CASE-2 at 0 and a dash, DEF-1 open on Loan and CASE-1, TestRenewal among the results that map to no test, and each run's results, and exits 0"
+verifies: [SA-125]

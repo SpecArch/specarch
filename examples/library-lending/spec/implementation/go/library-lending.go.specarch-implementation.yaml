@@ -105,6 +105,8 @@ targets:
     output: ../../../docs
   timeline:
     output: ../../../docs
+  testruns:
+    output: ../../../docs
   html:
     output: ../../../site
     description: The whole specification as one page to open from the disk, kept current by CI.

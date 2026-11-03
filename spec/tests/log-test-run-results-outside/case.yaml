@@ -1,0 +1,5 @@
+arguments: [log, test-run, --results, notes/junit.xml, --environment, staging, --at, "2026-11-03T14:05:00+07:00", --by, tester, project]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch log test-run: --results notes/junit.xml is not under records/; put the file under records/ beside the specification's folder, such as records/evidence/, and name it from there, so the record can keep it as its evidence; nothing written

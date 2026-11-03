@@ -1,0 +1,19 @@
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: uat
+version: "2.0.0"
+build: git:4f2a9c1
+at: "2026-11-03T14:05:00+07:00"
+by: analyst
+results:
+  - name: TestLoanLimit
+    test: loan-limt
+    outcome: failed
+    message: the sixth loan was saved
+    defect: DEF-9
+  - name: TestMemberKey
+    test: member-key
+    outcome: passed
+  - name: TestRenewal
+    outcome: failed

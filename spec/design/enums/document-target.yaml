@@ -7,9 +7,9 @@ enums:
       stage of the life cycle, the open questions, the problems, the
       comparison of the old documents with the refined specification, and
       from the records beside the specification the change register, the
-      release notes, the communication history and the timeline, and for the people who use and run the system the
+      release notes, the communication history, the timeline and the test runs with their failure trend, and for the people who use and run the system the
       user manual and the operations guide (ADR-160).
-    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, handover, questions, problems, comparison, changes, releases, communications, timeline, html, manual, operations]
+    enum: [techspec, requirements, testplan, traceability, deployment, commissioning, handover, questions, problems, comparison, changes, releases, communications, timeline, testruns, html, manual, operations]
     valueDescriptions:
       techspec: arc42 technical specification in Markdown with generated Mermaid diagrams
       requirements: requirements specification, in the layout of ISO/IEC/IEEE 29148
@@ -25,10 +25,11 @@ enums:
       releases: release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records
       communications: "the communication history, from the records: every communication, session and test session in time order, then the history of each stakeholder and of each requirement, decision and element they touch, each record with who said what to whom, when, by which channel, verbatim or in summary, with its evidence or marked as recorded without any (ADR-220)"
       timeline: "every event in one time order, from the records and the specification: communications, sessions, test sessions, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals, each with its date or instant and what it links; then the same events by stakeholder, by requirement or element and by release (ADR-220)"
+      testruns: "the test runs and their trend, from the records: every test run oldest first with its environment, version, build and its passed, failed, errored, skipped and unmapped results, then the failures of the tests about each element and of the tests that verify each requirement, one column per run, with the open defects on each, then the results that map to no test, and each run's results (ADR-230)"
       html: "index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark"
       manual: "user manual, for the people who use the system: the roles a person holds and the pages each opens, the menus, each flow as numbered steps, and each page with how it is reached, who opens it, its fields or columns, its actions, and for each problem it names the message, the condition and the remedy, and each command with its usage line, who runs it, its arguments, options, files and output, and each exit status with its meaning and remedy (ADR-160, ADR-165)"
       operations: "operations guide, for the people who run the live system: the environments and the hosts each implementation deploys there, a daily checklist of the monitors, jobs and dependencies, each monitor with how it is watched and the response when its objective is missed, the jobs, the channels with their carriers, publishers and consumers, the dependencies with what uses them, the endpoints with their permissions, the settings, and the backup, restore and rollback steps (ADR-160)"
-    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60, SA-73, SA-86, SA-90]
+    satisfies: [SA-7, SA-16, SA-19, SA-26, SA-51, SA-60, SA-73, SA-86, SA-90, SA-125]
     cites:
       - source: iso-29119-3
         clause: "7.2 and 8.3"

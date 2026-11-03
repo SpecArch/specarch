@@ -1,0 +1,5 @@
+arguments: [log, test-run, --results, records/evidence/TR-1-junit.xml, --environment, staging, --at, "2026-11-03T14:05:00+07:00", --by, tester, --open-defect, member-key, --severity, minor, --phase, development, project]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch log test-run: --open-defect member-key: no result of the run maps to member-key and failed or errored, so there is no failure to open a defect for; nothing written

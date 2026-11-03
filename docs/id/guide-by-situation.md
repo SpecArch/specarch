@@ -690,6 +690,62 @@ bila keduanya dibangun: keduanya mencetak keluaran yang sama.
 **Lebih dalam.** `docs/sync-gates.md`, `scripts/landing-check.sh` (setiap
 pemeriksaan yang dijalankan repositori ini), `specarch help check`.
 
+<!-- situation: test-results -->
+## Menyimpan hasil test setiap build
+
+**Kapan terjadi.** CI menjalankan test di setiap build lalu hasilnya
+dibuang. Saat user acceptance test, customer bertanya requirement mana
+yang sudah terbukti terpenuhi di build yang sedang mereka lihat, dan
+bagian sistem mana yang terus gagal dari satu build ke build berikutnya.
+
+**Apa yang dijalankan.** Taruh berkas JUnit XML dari test runner di bawah
+`records/`, lalu:
+
+    specarch log test-run --results records/evidence/TR-1-junit.xml --environment staging --version 0.2.0 --build "library-lending 0.2.0 at 5d3e8b1" --at 2026-10-14T09:30:00Z --by library-it spec
+    specarch document testruns spec
+
+`log test-run` menulis `records/test-runs/TR-<n>.yaml`: environment,
+version, build dan waktu run, siapa yang menjalankan, berkas hasil sebagai
+evidence beserta SHA-256-nya, dan satu result per testcase yang di-map ke
+test di spesifikasi, sehingga ke elemen yang di-test dan requirement yang
+di-verify oleh test itu. `--open-defect <test>` bersama `--severity` dan
+`--phase` membuka defect untuk failure yang Anda nilai memang defect.
+`document testruns` menampilkan run-run tersebut dan jumlah failure per
+elemen dan per requirement, satu kolom per run; `timeline` menempatkan
+setiap run di waktunya.
+
+**Contoh.** Run pertama di contoh library lending, di
+`examples/library-lending`:
+
+    $ specarch log test-run --results records/evidence/TR-1-junit.xml --environment staging --version 0.2.0 --build "library-lending 0.2.0 at 5d3e8b1" --at 2026-10-14T09:30:00Z --by library-it spec
+    records/test-runs/TR-1.yaml
+    specarch log test-run: TR-1 written to records/test-runs/TR-1.yaml, 5 results: 4 passed, 1 failed, 0 errored, 0 skipped, 0 unmapped
+
+dan di `docs/testruns.md`, setelah run kedua:
+
+    | Requirement | TR-1 | TR-2 | Open defects |
+    |---|---|---|---|
+    | LIB-3 | 0 | 0 | none |
+    | LIB-5 | 1 | 0 | none |
+
+Testcase yang test-nya belum ada di spesifikasi tetap disimpan, tidak
+dibuang (`spec/tests/log-test-run-writes-record`):
+
+    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon
+
+**Yang perlu diperhatikan.** Testcase di-map lewat nama yang ditulis oleh
+generator test (`TestReturnLate`, `testReturnLate()`, `return-late: ...`);
+runner yang menamai test dengan cara lain akan menyisakan result yang
+tidak ter-map, dan `validate` memberi warning `test_unmapped` di setiap
+result itu sampai `test` ditulis di result-nya. Timestamp di berkas tidak
+dibaca karena tidak punya offset: isi `--at`. Failure tidak otomatis
+membuka defect, karena host yang tidak stabil juga bisa membuat test
+gagal. Simpan berkas hasil setelah dicatat: rule `evidence` gagal kalau
+berkas itu berubah.
+
+**Lebih dalam.** `docs/maintenance.md` (Test runs), `specarch help log test-run`,
+ADR-230.
+
 <!-- situation: small-change -->
 ## Perubahan kecil
 

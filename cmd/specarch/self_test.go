@@ -123,6 +123,7 @@ var commandFiles = map[string][]string{
 	"facts.go":    {"facts"},
 	"gaps.go":     {"gaps"},
 	"log.go":      {"log"},
+	"testrun.go":  {"log test-run"},
 	"generate.go": {"generate"},
 	"idioms.go":   {"idioms", "idioms diff"},
 	"merge.go":    {"merge"},

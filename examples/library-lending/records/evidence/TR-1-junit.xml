@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="1">
+  <testsuite name="github.com/example/library-lending/tests" tests="5" failures="1" timestamp="2026-10-14T09:30:00">
+    <testcase name="TestLendACopy" classname="github.com/example/library-lending/tests" time="0.041"/>
+    <testcase name="TestLendLimitReached" classname="github.com/example/library-lending/tests" time="0.022"/>
+    <testcase name="TestReturnLate" classname="github.com/example/library-lending/tests" time="0.035">
+      <failure message="late fee is 30.00, want 3.50 capped at the replacement cost 25.00">return_late_test.go:58: late fee is 30.00, want 3.50 capped at the replacement cost 25.00</failure>
+    </testcase>
+    <testcase name="TestBookIsbnOnce" classname="github.com/example/library-lending/tests" time="0.009"/>
+    <testcase name="TestReturnUnknownLoan" classname="github.com/example/library-lending/tests" time="0.018"/>
+  </testsuite>
+</testsuites>

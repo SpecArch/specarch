@@ -66,7 +66,8 @@ folder is specification.
 | `records/sessions/` | a meeting or a call, with its attendance | `session` | its ID, `SES-3.yaml` |
 | `records/test-sessions/` | a test session (SIT, UAT or other), with its attendance and result | `test-session` | its ID, `TS-2.yaml` |
 | `records/deploys/` | one installation of a version on an environment | `deploy` | its ID, `DEP-5.yaml` |
-| `records/evidence/` | the files communication, session, test session and deploy records name as evidence | none: not records | any name; each record holds the path, media type and SHA-256 |
+| `records/test-runs/` | one run of the tests on one build, each result mapped to its test | `test-run` | its ID, `TR-4.yaml` |
+| `records/evidence/` | the files communication, session, test session, deploy and test-run records name as evidence | none: not records | any name; each record holds the path, media type and SHA-256 |
 
 A record file starts with `specarchRecord: "1.0.0"` and `kind`, and has its
 own schema, `schema/specarch-record-1.0.schema.json`, beside the other two.
@@ -446,6 +447,47 @@ test session record is kept yet, every such role is unheard, and the
 warning adds that none is kept yet and to start by logging the first
 conversation.
 
+## Test runs
+
+A test session says that people tested a build and how it went; a test
+run says which test passed and which failed on a build, as the runner
+reported it (ADR-230). Most runners write, or convert to, a JUnit XML
+file. Put it under `records/`, such as `records/evidence/TR-4-junit.xml`,
+and record it:
+
+    specarch log test-run --results records/evidence/TR-4-junit.xml \
+      --environment staging --version 1.3.0 --build git:4f2a9c1 \
+      --at 2026-11-03T14:05:00+07:00 --by tester spec
+
+The record, `records/test-runs/TR-4.yaml`, holds `environment`, `version`
+(a release record, when the build is one), `build`, `digest` (the
+specification's digest the build was generated from, as the approval
+keeps it), `at` with its offset, `by` (the role that ran it), the results
+file as `evidence`, and `results`: one per testcase in the file's order,
+each with its `name` as the file writes it, the `test` it maps to,
+`outcome` (`passed`, `failed`, `error`, `skipped`), `message` and the
+`defect` it opened. Nothing else is read from the file: its timestamp has
+no offset, and its hostname is no environment of the specification.
+
+A testcase maps to a test when its name, cut at the first `/` and with a
+trailing `()` taken off, is the test's name, or `Test` or `test` and the
+name in Pascal case (`TestReturnLate` and `testReturnLate()` for
+`return-late`, as the Go and Swift test generators name them), or begins
+with the name and a colon (`return-late: operation returnLoan, golden
+scenario`, the display name). A testcase that maps to no test, or to two,
+is kept without `test`, printed as `unmapped: <name>: <why>`, and warned
+by the validator (`test_unmapped`) until someone writes its `test` or the
+specification gains the test.
+
+A failure opens a defect only when asked: `--open-defect <test>`, with
+`--severity` and `--phase`, writes `records/defects/DEF-<n>.yaml`,
+reported by the run's role, violating the requirements the test verifies
+(or the element it is about when it verifies none), naming the test, with
+`observed` from the failure's message and `expected` from the test's
+`then`; at acceptance its `against` is the run's version, digest and
+build. A test fails for a flaky host as well as for a fault, so the person
+who imports the run decides which failures are defects.
+
 ## Stack-neutral and stack-specific
 
 | In the specification or the records (stack-neutral) | In the implementation file (one stack) |
@@ -463,7 +505,7 @@ error unless it says warning.
 | Rule | Checks |
 |---|---|
 | `record_name` | a record's file name equals its `id`, its `version` for a release or an approval, or its date and environment for a commissioning run, and it sits in the folder of its kind |
-| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record, or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
+| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record (a test run's version and each result's test and defect among them), or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
 | `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open (proposed, analysed or approved), `changes` and `removes` resolve, and an `adds` that already resolves is a warning. A requirement of an external set is taken as resolving and never as removed, since the validator cannot read the set |
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
 | `change_answered` | on a decision whose `answers` name a change request (a change record, or an ID of a declared change tracker; every other ID under `answers` is a question's): an accepted decision answers a change whose decision is approved, taken by the role `decidedBy` names (ADR-221). A proposed decision may answer a change still analysed |
@@ -478,6 +520,7 @@ error unless it says warning.
 | `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
 | `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions or change requests cites an answer that links one of them, said by the role `decidedBy` names |
 | `unheard` | a warning, at the stakeholder, from the first day: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements; while no communication, session or test session record is kept, every such role is unheard and the warning says to start by logging the first conversation |
+| `test_unmapped` | a warning, at the result: a result of a test run names no `test`, since its testcase maps to none or to two; the outcome counts for no element or requirement until its test is named |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 
 `monitors` adds no new rule: a monitor's `environment` uses the existing
@@ -487,7 +530,7 @@ names.
 
 ## What the documentor will make
 
-Four targets join `DocumentTarget`, after the first set of documents:
+Five targets join `DocumentTarget`, after the first set of documents:
 
 - `changes`: the change and defect register. A table of the change
   requests and one of the defects, open items first (a change that is
@@ -533,14 +576,23 @@ Four targets join `DocumentTarget`, after the first set of documents:
   the start of its day in the specification's `timeZone`; one with no
   date yet comes last.
 
-All four read the records beside the specification, name the records folder
+- `testruns`: the test runs and their trend. Every run oldest first with
+  its environment, version, build and its passed, failed, errored,
+  skipped and unmapped results; then the failures per element (the
+  element each test is about) and per requirement (each test's
+  `verifies`), one column per run, a cell counting the failed and errored
+  results of those tests in that run and a dash when none of them ran,
+  with the open defects on each; then the results that map to no test;
+  then each run's results. The timeline places each run at its instant.
+
+All five read the records beside the specification, name the records folder
 in their generated-from header, and are never drafts: an open question is
 about the specification, and these are made from what happened. For the
 same reason they are not rows of the open questions document's Outputs
 table, which says what can be made from the specification now.
 
 The rule that documents carry no change-log text is about documents made
-from the specification, which describe the system as it is. These four are
+from the specification, which describe the system as it is. These five are
 made from records, which are history by nature, so they read as history;
 that is what they are for.
 

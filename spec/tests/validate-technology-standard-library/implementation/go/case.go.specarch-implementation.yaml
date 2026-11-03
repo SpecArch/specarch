@@ -1,0 +1,8 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+bindings:
+  cli:
+    framework: standard library
+    description: The flag package reads the arguments of a maintenance command run by hand.

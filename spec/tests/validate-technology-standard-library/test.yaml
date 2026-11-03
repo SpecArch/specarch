@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: a design with one requirement and no command, and a Go implementation file whose cli binding is on the standard library, with no decision and no idiom approving it
+when: validate is run
+then: it prints nothing and exits 0, since a binding on the standard library adopts no technology
+verifies: [SA-120]

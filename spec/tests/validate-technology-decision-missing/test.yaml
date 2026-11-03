@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: a design with one requirement and no channel, and a Go implementation file whose Kafka messaging binding is decided in ADR-999, a decision neither the design nor the file holds
+when: validate is run
+then: it reports origin_decision at decidedIn alone, with no technology_unjustified beside it, and exits 1
+verifies: [SA-120]

@@ -241,7 +241,7 @@
       "additionalProperties": false
     },
     "stakeholdersComplete": {
-      "description": "SpecArch keyword. Who confirmed that the stakeholder list is complete, when, and on what: the three facts that make the confirmation traceable, as a decision names who decided, when and what it cites.",
+      "description": "SpecArch keyword. Who confirmed that the stakeholder list is complete, when, and, where a declared source records it, on what: the facts that make the confirmation traceable, as a decision names who decided, when and what it cites.",
       "type": "object",
       "properties": {
         "by": {
@@ -255,7 +255,7 @@
           "format": "date"
         },
         "source": {
-          "description": "The key of a source declared under 'sources' in specarch.yaml where the list was confirmed, such as an interview or a kickoff meeting; checked by the rule source.",
+          "description": "The key of a source declared under 'sources' in specarch.yaml where the list was confirmed, such as an interview or a kickoff meeting; checked by the rule source. Left out when the confirmation was taken where no declared source records it.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
         }

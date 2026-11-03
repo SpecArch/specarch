@@ -44,3 +44,6 @@ channels:
           properties:
             loanId: { type: string, format: uuid }
           required: [loanId]
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

@@ -17,22 +17,27 @@ decisions:
     decision: |
       The root holds stakeholdersComplete, a single section of the
       requirements stage beside the stakeholders, with by, the
-      stakeholder who confirms that the list is complete, date, and
-      source, the declared source where it was confirmed, such as the
-      kickoff interview. by must be a stakeholder (the rule stakeholder)
-      and source a declared source (the rule source), as a decision's
-      decidedBy and cites are checked. Until the key is set, validate
+      stakeholder who confirms that the list is complete, date, and, when
+      a declared source records the confirmation, source, that source,
+      such as the kickoff interview. by must be a stakeholder (the rule
+      stakeholder) and source, when given, a declared source (the rule
+      source), as a decision's decidedBy and cites are checked. Until the key is set, validate
       warns stakeholders_unconfirmed at /stakeholders, every document
       specarch document writes and the overview of the HTML site carry
       the banner Stakeholders unconfirmed under their title, and
       specarch approve prints the same warning on standard error, writes
       the approval record and exits 0. A must question that blocks the
-      stakeholders holds the warning, since the gap is then already
-      asked about. The key is the refinement's own record, not an
+      stakeholders holds the warning and the banner alike, since the
+      gap is then already asked about and the documents name the
+      question. A specification that lists no stakeholders is told to
+      list them first, since by names one of them. A file on a meta-model
+      before 1.0.0 gets neither the warning nor the banner, since its
+      schema has no stakeholdersComplete and its meta_model_version
+      warning already tells it to upgrade. The key is the refinement's own record, not an
       element of the system: diff and the comparison leave it out, and
       origin tracking does not ask it for an origin.
     consequences: |
-      Every specification without the key warns once, in validate and
+      Every specification on meta-model 1.0 without the key warns once, in validate and
       in each document, until a role confirms the list; the examples of
       this repository and its own specification show the warning until
       their lists are confirmed. The confirmation is one small object
@@ -50,13 +55,20 @@ decisions:
       is the one place that reader looks. A declared source rather than
       free text, because the confirmation then rests on the same kind
       of evidence a decision rests on, and specarch gaps and the
-      comparison can show it. by, date and source as three plain keys
-      rather than a cites list, because there is one confirmation, by
-      one role, on one day; a citation object with a clause and what it
-      says is more than the fact needs (the Low IQ Tax). Held by a must
-      question that blocks the stakeholders, because a question on the
-      list is the same gap already tracked, with a stakeholder to
-      answer it, and two marks for one gap are noise. An incomplete
+      comparison can show it. by, date and source as plain keys rather
+      than a cites list, because there is one confirmation, by one
+      role, on one day; a citation object with a clause and what it
+      says is more than the fact needs (the Low IQ Tax). source
+      optional rather than required, because a small specification
+      confirms its list at a talk it never declared as a source, as
+      specarch decide asks for a declared source only where origin is
+      tracked; when it is given, it is checked. Held, the warning and
+      the banner alike, by a must question that blocks the
+      stakeholders, because a question on the list is the same gap
+      already tracked, with a stakeholder to answer it, and two marks
+      for one gap are noise: the documents name the question in their
+      Draft notice, and a banner beside it would say the same thing
+      twice. An incomplete
       specification stays readable: the key missing is a warning at the
       list and a banner, and nothing else changes.
     satisfies: [SA-120]

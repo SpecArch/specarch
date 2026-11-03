@@ -4,8 +4,6 @@
 
 Version 1.0.0 of Shop. The customer builds, installs and runs production from the source. This document says what the customer receives, what stays whose responsibility, how a release is built and installed, what the hosts must provide, and how the installed system is checked and accepted. It is written for the customer's engineers and needs nothing else to be read.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
-
 Each release is handed to the shop's IT staff as source; the vendor runs staging and never reaches the shop's host.
 
 **Insight:** The shop's accountant asks who can reach the sales ledger.

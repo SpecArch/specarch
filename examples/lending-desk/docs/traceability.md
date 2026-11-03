@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: 0 needs, 7 requirements, and 8 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
 **Draft:** 5 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-5); see the open questions document, or run specarch gaps.
 

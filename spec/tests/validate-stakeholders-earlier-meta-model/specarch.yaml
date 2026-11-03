@@ -1,0 +1,4 @@
+specarch: "0.3"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  clerk: { description: Staff at the till. }

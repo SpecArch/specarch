@@ -43,3 +43,4 @@ decisions:
     cites:
       - record: COM-1
         says: "Show the date itself; the desk reads it out to the member."
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

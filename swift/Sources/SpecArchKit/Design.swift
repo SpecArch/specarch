@@ -439,11 +439,18 @@ extension Checker {
     /// complete (ADR-226): the warning stands at the list until the root
     /// holds stakeholdersComplete, whose by is a stakeholder and whose
     /// source, when given, is a declared source. A must question that
-    /// blocks the stakeholders holds the warning.
+    /// blocks the stakeholders holds the warning. The warning is anchored
+    /// at the list itself, whose line is its first entry's in the file
+    /// that holds it, and at line 1 of the root file when there is no
+    /// list; a specification with no stakeholders is told to list them
+    /// first, since by must be one of them. A file on a meta-model before
+    /// 1.0.0, whose schema has no stakeholdersComplete, is not warned: it
+    /// could not follow the remedy, and its meta_model_version warning
+    /// already tells it to upgrade.
     func checkStakeholdersComplete(_ d: Design) {
         guard let complete = d.root.child("stakeholdersComplete") else {
-            if !d.mustBlocked("stakeholders") {
-                warn(d.root.key("stakeholders"), "/stakeholders", .stakeholdersUnconfirmed, stakeholdersUnconfirmed)
+            if !d.mustBlocked("stakeholders") && !MetaModelFormat.design.isEarlier(d.metaModelVersion) {
+                warn(d.root.child("stakeholders"), "/stakeholders", .stakeholdersUnconfirmed, d.stakeholders.isEmpty ? stakeholdersNone : stakeholdersUnconfirmed)
             }
             return
         }
@@ -981,5 +988,12 @@ extension Checker {
     }
 }
 
-/// The one message of stakeholders_unconfirmed, the same in both validators.
-let stakeholdersUnconfirmed = "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve"
+/// The remedy both messages of stakeholders_unconfirmed end with, the same
+/// in both validators.
+let stakeholdersUnconfirmedRemedy = "add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve"
+
+/// The message of stakeholders_unconfirmed at a list nobody has confirmed,
+/// and the one at a specification that lists no stakeholders yet, where by
+/// has nothing to name until the list is written.
+let stakeholdersUnconfirmed = "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, " + stakeholdersUnconfirmedRemedy
+let stakeholdersNone = "the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then " + stakeholdersUnconfirmedRemedy

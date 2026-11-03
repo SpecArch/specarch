@@ -88,3 +88,6 @@ tests:
   remind-succeeds: { job: remind, level: system, scenario: golden, given: loans falling due, when: the job remind runs, then: it completes }
   remind-runs-twice: { job: remind, level: system, scenario: golden, covers: [runs twice], given: the job has run, when: it runs again over the same records, then: nothing changes a second time }
   remind-rows: { job: remind, level: system, scenario: red, covers: [acts only on the rows of member in Loan], given: the job acts as member, when: the job remind runs, then: it reads only the loans the rule holds for }
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

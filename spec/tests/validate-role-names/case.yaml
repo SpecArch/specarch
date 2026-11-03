@@ -1,6 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:7:15: error: /roles/desk_staff: schema: the name desk_staff is not valid: it must be kebab-case, such as members-list; rename it [schema@specarch.yaml#/roles/desk_staff]
   specarch.yaml:8:15: error: /roles/desk-staff: wire_name: the roles desk_staff and desk-staff both go on the wire as DESK_STAFF (info.roleNames: upper_snake); rename one [wire_name@specarch.yaml#/roles/desk-staff]

@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 13 events in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, test runs, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (Asia/Jakarta) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
 ## 1. Every event
 

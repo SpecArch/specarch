@@ -76,7 +76,7 @@ type doc struct {
 	marks                   []Mark                // the errors and warnings, for Problem paragraphs
 	placing                 *placing              // where the marks stand, while the document is written twice
 	withheld                *Withheld             // for a document for everyone, what it left out
-	unconfirmedStakeholders bool                  // the root holds no stakeholdersComplete, so every document carries the banner
+	unconfirmedStakeholders bool                  // no stakeholdersComplete and no must question on the list, so every document carries the banner
 	slugs                   map[string]int        // the headings written so far by anchor, to make the next one unique
 	anchors                 map[string]string     // section/name -> the anchor of the heading that describes the element
 }
@@ -93,7 +93,7 @@ func (d *doc) section(title string) {
 // root file and each implementation file, with their versions, and the
 // meta-model.
 func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) *doc {
-	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root), unconfirmedStakeholders: get(root, "stakeholdersComplete") == nil}
+	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root), unconfirmedStakeholders: validate.StakeholdersUnconfirmed(root)}
 	if state != nil {
 		d.marks, d.placing, d.withheld = state.Marks, state.placing, state.Withheld
 		d.changes = openChangesOf(state)
@@ -121,7 +121,9 @@ func (d *doc) blank()                          { d.WriteString("\n") }
 // overview carry while the stakeholder list is not confirmed complete
 // (ADR-226): a role with an interest in the system may still be missing,
 // and the reader should know before relying on what the document shows.
-const StakeholdersBanner = "**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification."
+// It is held by the must question that holds the validator's warning,
+// as validate.StakeholdersUnconfirmed says, so one gap gets one mark.
+const StakeholdersBanner = "**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification."
 
 // stakeholdersNotice writes the banner while the list is unconfirmed.
 func (d *doc) stakeholdersNotice() {

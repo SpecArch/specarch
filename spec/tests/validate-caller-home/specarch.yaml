@@ -213,3 +213,4 @@ tests:
   page-sign-in-refused: { level: system, page: sign-in, scenario: red, given: "a wrong password", when: "the page sign-in is submitted", then: "it is refused and stays on the page" }
   desk-signs-in-succeeds: { level: system, flow: desk-signs-in, scenario: golden, given: "a desk", when: "they go through sign-in, members-list", then: "each step leads to the next, and the last completes" }
   desk-signs-in-refused: { level: system, flow: desk-signs-in, scenario: red, given: "a desk whose password is wrong", when: "they go through sign-in", then: "it is refused on sign-in" }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

@@ -51,15 +51,27 @@ func (c *checker) checkRequirementsStage(d *design) {
 // and whose source, when given, is a declared source. A must question
 // that blocks the stakeholders holds the warning, since the gap is then
 // already asked about. Writing order stays free: the rest of the
-// specification is read as it is.
+// specification is read as it is. The warning is anchored at the list
+// itself, whose line is its first entry's in the file that holds it (the
+// merged document's section key carries the same line), and at line 1 of
+// the root file when there is no list; the pointer is /stakeholders
+// either way. A specification with no stakeholders is told to list them
+// first, since by must be one of them. A file on a meta-model before
+// 1.0.0, whose schema has no stakeholdersComplete, is not warned: it
+// could not follow the remedy, and its meta_model_version warning already
+// tells it to upgrade.
 func (c *checker) checkStakeholdersComplete(d *design) {
-	complete := source.Child(d.root, "stakeholdersComplete")
-	if complete == nil {
-		if !d.mustBlocked("stakeholders") {
-			c.warn(source.Key(d.root, "stakeholders"), "/stakeholders", RuleStakeholdersUnconfirmed, "%s", stakeholdersUnconfirmed)
+	if source.Child(d.root, "stakeholdersComplete") == nil {
+		if d.stakeholdersUnconfirmed() {
+			msg := stakeholdersUnconfirmed
+			if len(d.stakeholders) == 0 {
+				msg = stakeholdersNone
+			}
+			c.warn(source.Child(d.root, "stakeholders"), "/stakeholders", RuleStakeholdersUnconfirmed, "%s", msg)
 		}
 		return
 	}
+	complete := source.Child(d.root, "stakeholdersComplete")
 	if by := source.Child(complete, "by"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
 		c.add(by, "/stakeholdersComplete/by", RuleStakeholder, "%s is not a stakeholder of the specification%s", by.Value, suggest(by.Value, d.stakeholders))
 	}
@@ -72,9 +84,35 @@ func (c *checker) checkStakeholdersComplete(d *design) {
 	}
 }
 
-// stakeholdersUnconfirmed is the one message of stakeholders_unconfirmed,
-// the same in both validators.
-const stakeholdersUnconfirmed = "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve"
+// StakeholdersUnconfirmed reports whether a specification's stakeholder
+// list is unconfirmed as the validator sees it (ADR-226). The documents,
+// the site and approve show the banner and the warning on the same
+// condition, so one gap gets one mark.
+func StakeholdersUnconfirmed(root *yaml.Node) bool {
+	return newDesign(root).stakeholdersUnconfirmed()
+}
+
+// stakeholdersUnconfirmed reports whether the root holds no
+// stakeholdersComplete, no open must question blocks the stakeholders,
+// and the file is on a meta-model whose schema has the key.
+func (d *design) stakeholdersUnconfirmed() bool {
+	return source.Child(d.root, "stakeholdersComplete") == nil &&
+		!d.mustBlocked("stakeholders") &&
+		!metamodel.Design.IsEarlier(d.metaModelVersion())
+}
+
+// stakeholdersUnconfirmedRemedy is the remedy both messages of
+// stakeholders_unconfirmed end with, the same in both validators.
+const stakeholdersUnconfirmedRemedy = "add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve"
+
+// stakeholdersUnconfirmed is the message of stakeholders_unconfirmed at a
+// list nobody has confirmed, and stakeholdersNone the one at a
+// specification that lists no stakeholders yet, where by has nothing to
+// name until the list is written.
+const (
+	stakeholdersUnconfirmed = "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, " + stakeholdersUnconfirmedRemedy
+	stakeholdersNone        = "the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then " + stakeholdersUnconfirmedRemedy
+)
 
 // checkDeploymentStage checks the links inside the deployment,
 // commissioning and operation stages, and that no secret carries a value.

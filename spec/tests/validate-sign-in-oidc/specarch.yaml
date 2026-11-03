@@ -174,3 +174,6 @@ tests:
   cases-list-denied-with-expired-session: { page: cases-list, level: system, scenario: red, covers: [denied with expired session], given: "a caller whose session has expired", when: "the page cases-list is opened", then: "it is refused as not signed in" }
   cases-list-denied-without-cases-read: { page: cases-list, level: system, scenario: red, covers: [denied without cases.read], given: "a caller without cases.read", when: "the page cases-list is opened", then: "it is refused as not allowed" }
   cases-list-succeeds: { page: cases-list, level: system, scenario: golden, given: "a caller with cases.read", when: "the page cases-list is opened", then: "it shows the page" }
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

@@ -64,3 +64,4 @@ tests:
   reports-path-outside-the-folder: { route: reports, level: system, scenario: red, covers: [path outside the folder], given: a request whose path climbs out of the folder with .., when: it is requested under /reports/, then: it is refused and no file outside the folder is read }
   health-succeeds: { route: health, level: system, scenario: golden, given: any caller, when: GET /health is requested, then: "it answers 200: the service is healthy", expect: { status: 200 } }
   health-unhealthy: { route: health, level: system, scenario: red, covers: [unhealthy], given: what the service needs is not reachable, when: GET /health is requested, then: it answers 503 naming what is not healthy, expect: { status: 503 } }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on meta-model 0.3, whose schema has no stakeholdersComplete, with stakeholders and no confirmation"
+when: "validate is run"
+then: "it gives the meta_model_version warning alone and no stakeholders_unconfirmed, since the file could not hold the key the remedy names, and exits 0"
+verifies: [SA-120]

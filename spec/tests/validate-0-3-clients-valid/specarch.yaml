@@ -75,3 +75,6 @@ tests:
   legacy-list-closed: { operation: legacyList, level: system, scenario: red, covers: [refused for every caller], given: any caller, when: legacyList is called, then: it is refused as closed }
   status-succeeds: { operation: status, level: system, scenario: golden, given: anyone, when: status is called, then: it answers 200 }
   status-service-token: { operation: status, level: system, scenario: red, covers: [refused for a service's own token], given: a service with its own certificate, when: status is called, then: it is refused }
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

@@ -1,5 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:18:3: error: /tokens: security_events: the specification declares tokens and clients, so every refusal of a caller is a security event, and declares no securityEvents; add securityEvents with store and alarm, two dependencies [security_events@specarch.yaml#/tokens]

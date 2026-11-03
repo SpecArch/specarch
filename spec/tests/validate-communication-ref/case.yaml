@@ -1,7 +1,7 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:12:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
+  project/specarch.yaml:12:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   records/communications/COM-1.yaml:5:7: error: /from: record_ref: patron is not a stakeholder of the specification; use one of librarian, library-board, owner [record_ref@../records/communications/COM-1.yaml#/from]
   records/communications/COM-1.yaml:11:13: error: /recordedBy: record_ref: analyst is not a stakeholder of the specification; use one of librarian, library-board, owner [record_ref@../records/communications/COM-1.yaml#/recordedBy]
   records/communications/COM-1.yaml:12:10: error: /session: record_ref: SES-9 is not a session or a test session: there is no records/sessions/SES-9.yaml or records/test-sessions/SES-9.yaml [record_ref@../records/communications/COM-1.yaml#/session]

@@ -6,7 +6,7 @@ Version 1.0.0 of the specification: 5 communications, 1 session and 1 test sessi
 
 This document is for everyone: the person labels the records carry are left out, and so is what touches an internal element.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
 ## 1. In time order
 

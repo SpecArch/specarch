@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+given: "a specification with stakeholders, no stakeholdersComplete and an open must question that blocks the stakeholders, and a configured requirements document"
+when: "document requirements is run"
+then: "the document carries the Draft notice naming the question and no Stakeholders unconfirmed banner, since the question already marks the gap, and the run exits 0"
+verifies: [SA-120]

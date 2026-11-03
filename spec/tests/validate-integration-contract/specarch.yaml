@@ -107,3 +107,6 @@ paths:
             send: { loan: loanId }
           mode: fireAndForget
       satisfies: [CASE-1]
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

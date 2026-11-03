@@ -86,3 +86,6 @@ jobs:
     trigger: { schedule: "0 6 * * *" }
     role: staff
     reads: [Loan]
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

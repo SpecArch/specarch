@@ -58,3 +58,6 @@ tests:
   prune-in-use: { job: prune, level: system, scenario: red, given: "the oldest release is still running", when: "the job prune runs", then: "it keeps that release" }
   pruner-fails: { process: pruner, level: system, scenario: red, given: "the disk is read-only", when: "the process pruner is started when a job it runs is due", then: "it exits with a status other than 0 and is not started again" }
   disk-report-fails: { process: diskReport, level: system, scenario: red, given: "the folder of releases is missing", when: "the process diskReport is started, every PT6H", then: "it exits with a status other than 0" }
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

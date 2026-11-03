@@ -8,8 +8,6 @@ standardOutput: |+
 
   Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
 
-  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
-
   ## 1. Outputs
 
   What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.
@@ -30,8 +28,6 @@ standardOutput: |+
   # Customer registry: open questions
 
   Version 2.4.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
-
-  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
 
   ## 1. Outputs
 

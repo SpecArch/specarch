@@ -5,8 +5,6 @@ standardOutput: |+
 
   Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
 
-  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
-
   ## 1. References to other specifications
 
   1 reference names an element of another specification and is not resolved in this run: the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.
@@ -37,8 +35,6 @@ standardOutput: |+
   Version 2.4.0 of the specification: 1 open question (1 must, 0 should, 0 could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.
 
   Decisions to take: registry-owner 1.
-
-  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
 
   ## 1. Design
 

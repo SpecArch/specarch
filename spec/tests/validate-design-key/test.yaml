@@ -3,7 +3,7 @@ command: validate
 level: system
 scenario: red
 covers: [exit 1]
-given: an implementation file with an entities key
+given: an implementation file with an entities key and a stakeholdersComplete key
 when: validate is run
-then: it reports design_key and exits 1
+then: it reports design_key at each of the two keys and exits 1
 verifies: [SA-9]

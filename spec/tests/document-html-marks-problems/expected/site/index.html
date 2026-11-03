@@ -109,17 +109,16 @@ ol.problems p{margin:2px 0}
 <li><a href="#open-questions">Open questions</a><ol>
 <li><a href="#/questions">Questions</a> <span class="count">3</span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">6</span></li>
+<li><a href="#problems">Problems</a> <span class="count">5</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
 <h1>Case</h1>
 <p>Version 1.0.0; meta-model 0.1; stages requirements, design.</p>
-<p class="notice"><strong>Stakeholders unconfirmed:</strong> nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.</p>
 <p class="notice draft"><strong>Draft:</strong> 2 must or should questions hold up what this page shows (Q-1, Q-2); see <a href="#/questions">Open questions</a>.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/1.0.0.yaml beside the specification</p>
 <p class="notice error"><strong>Invalid:</strong> the specification has 1 error; this page shows what could be read of it, and each error is marked at its entry.</p>
-<p><a href="#problems">1 error, 2 warnings and 3 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">1 error, 1 warning and 3 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>1</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>1</td></tr>
@@ -135,7 +134,6 @@ ol.problems p{margin:2px 0}
 <h2>Requirements</h2>
 <section class="section" id="/stakeholders">
 <h3>Stakeholders <a class="ptr" href="#/stakeholders">/stakeholders</a></h3>
-<p class="mark warning"><a href="#problem-stakeholders_unconfirmed@requirements/all.yaml%23/stakeholders">warning</a> stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/all.yaml#/stakeholders]</p>
 <article class="element" data-search id="/stakeholders/owner">
 <h4>owner <a class="ptr" href="#/stakeholders/owner">/stakeholders/owner</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in The old design document, clause 1.</p>
@@ -379,10 +377,6 @@ ol.problems p{margin:2px 0}
 <li class="error" data-search id="problem-permission_ungranted@design/all.yaml%23/permissions/members.read">
 <p><code>../project/design/all.yaml:45:17: error: /permissions/members.read: permission_ungranted: no role grants members.read, so nobody can use what it guards; add it to a role, or use public if it is meant for everyone [permission_ungranted@design/all.yaml#/permissions/members.read]</code></p>
 <p>Marked at <a href="#/permissions/members.read">/permissions/members.read</a>.</p>
-</li>
-<li class="warning" data-search id="problem-stakeholders_unconfirmed@requirements/all.yaml%23/stakeholders">
-<p><code>../project/requirements/all.yaml:2:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/all.yaml#/stakeholders]</code></p>
-<p>Marked at <a href="#/stakeholders">/stakeholders</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-1">
 <p><code>../project/requirements/all.yaml:11:3: question: /questions/Q-1: open_question: (must, decision) How important is the five-book limit, and how is it shown to be met? Decided by owner. Answer with a decision record that names Q-1 under answers. [Q-1]</code></p>

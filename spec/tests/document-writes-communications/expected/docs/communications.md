@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 5 communications, 1 session and 1 test session are recorded beside it, in `records/communications/`, `records/sessions/` and `records/test-sessions/`. They come first in time order, then the history of each stakeholder and of each question, decision and element they touch. Each record says who said what to whom, when, by which channel and whether the words are verbatim or a summary; 4 communications carry no evidence and read as what their recorder wrote down. People are named by role.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
 ## 1. In time order
 

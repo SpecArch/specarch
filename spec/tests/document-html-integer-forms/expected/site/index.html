@@ -112,7 +112,7 @@ ol.problems p{margin:2px 0}
 <section class="group" id="overview">
 <h1>Lending</h1>
 <p>Version 1.0.0; meta-model 1.0.0.</p>
-<p class="notice"><strong>Stakeholders unconfirmed:</strong> nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.</p>
+<p class="notice"><strong>Stakeholders unconfirmed:</strong> nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/1.0.0.yaml beside the specification</p>
 <p><a href="#problems">0 errors, 2 warnings and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
@@ -890,7 +890,7 @@ ol.problems p{margin:2px 0}
 <p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
 <ol class="problems">
 <li class="warning" data-search id="problem-stakeholders_unconfirmed@specarch.yaml%23/stakeholders">
-<p><code>../project/specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]</code></p>
+<p><code>../project/specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]</code></p>
 <p>At <code>/stakeholders</code>, which this page does not show.</p>
 </li>
 <li class="warning" data-search id="problem-navigation@specarch.yaml%23/pages/member-loans">

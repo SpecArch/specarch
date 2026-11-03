@@ -5,8 +5,6 @@ standardOutput: |+
 
   Version 1.0.0 of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.
 
-  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
-
   ## 1. References to other specifications
 
   2 references name elements of other specifications and are not resolved in this run: the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.

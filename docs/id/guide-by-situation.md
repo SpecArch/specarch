@@ -99,7 +99,7 @@ menurut peran, karena setiap pertanyaan menyebut siapa yang memutuskan dan
 setiap catatan menyebut siapa yang berbicara; validate memberi warning
 `stakeholders_unconfirmed`, dan setiap dokumen membawa banner, sampai ada
 peran yang mengonfirmasi daftarnya sudah lengkap lewat
-`stakeholdersComplete` (by, date, source), supaya peran yang terlewat
+`stakeholdersComplete` (by, date, dan source kalau ada), supaya peran yang terlewat
 terlihat sebelum acceptance test, bukan saat UAT berjalan. Lima hal yang dilewatkan
 draf pertama adalah kesalahan pada setiap profil: kunci utama entitas,
 ringkasan operasi, deskripsi setiap respons, satu izin yang dibutuhkan

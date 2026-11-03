@@ -23,3 +23,4 @@ requirements:
     acceptance: [A loan is due after the loan period.]
     origin: inferred
     why: The code has a constant of 14 days; the document never says it.
+stakeholdersComplete: { by: owner, date: "2026-11-03", source: old-doc }

@@ -24,3 +24,6 @@ decisions:
     decision: D.
     consequences: E.
     restsOn: [ADR-002, ADR-001]
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

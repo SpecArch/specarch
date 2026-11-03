@@ -36,5 +36,10 @@ confirms it writes, beside the stakeholders:
 
   stakeholdersComplete: { by: <stakeholder>, date: "YYYY-MM-DD", source: <source> }
 
-by is a stakeholder of the specification and source a declared source,
-such as the kickoff interview.
+by is a stakeholder of the specification; source, when given, is a
+declared source, such as the kickoff interview, and a confirmation taken
+where no declared source records it leaves source out. A must question
+that blocks the stakeholders holds the warning and the banner. A
+specification that lists no stakeholders is told to list them first. A
+file on a meta-model before 1.0.0 is not warned, since its schema has no
+stakeholdersComplete.

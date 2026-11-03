@@ -97,3 +97,6 @@ tests:
   delete-invoice-not-found: { operation: deleteInvoice, level: system, scenario: red, covers: [not found invoiceId], given: no invoice with that invoiceId, when: deleteInvoice is called, then: it is refused as not found }
   delete-invoice-denied: { operation: deleteInvoice, level: system, scenario: red, covers: [denied without invoices.delete], given: a caller without invoices.delete, when: deleteInvoice is called, then: it is refused }
   delete-invoice-expired: { operation: deleteInvoice, level: system, scenario: red, covers: [denied with expired transaction], given: a transaction token expired after 5 minutes, when: deleteInvoice is called, then: "it is refused as not signed in, and the event token (low) is written" }
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

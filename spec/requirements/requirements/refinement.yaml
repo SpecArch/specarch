@@ -295,7 +295,7 @@ requirements:
         clause: "6.4.3"
         says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
   SA-120:
-    statement: A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed.
+    statement: A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed.
     kind: functional
     priority: must
     status: proposed
@@ -304,6 +304,7 @@ requirements:
       - stakeholdersComplete whose by is not a stakeholder is the error stakeholder at /stakeholdersComplete/by, and a source that is not declared is the error source at /stakeholdersComplete/source.
       - Every document specarch document writes, and the overview of the HTML site, carries the Stakeholders unconfirmed banner while the key is not set, and none once it is.
       - approve on such a specification writes the approval record, prints the warning on standard error and exits 0.
+      - A must question that blocks the stakeholders holds the warning and the banner alike, a specification that lists no stakeholders is told to list them first, and a file on a meta-model before 1.0.0 is not warned, since its schema has no stakeholdersComplete.
     verification: test
     needs: [NEED-1, NEED-8]
     why: A stakeholder nobody listed is the one who objects first at acceptance, and the list is confirmed by a person, not by a rule; a warning that stands in every output until a role confirms it keeps the gap visible without stopping the work, which a compiler for specifications never does.

@@ -17,3 +17,6 @@ monitors:
       - name: Look at the database
         action: Open the database's slow query log for the last hour.
         check: The slowest query is named.
+stakeholders:
+  owner: { description: Owns the system. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

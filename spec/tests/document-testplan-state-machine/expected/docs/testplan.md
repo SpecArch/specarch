@@ -4,8 +4,6 @@
 
 Version 1.0.0 of the specification: 2 design tests, 2 golden and 0 red, about 2 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
-
 ## 1. Levels and how the tests run
 
 | Level | Design tests |

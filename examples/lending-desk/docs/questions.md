@@ -6,7 +6,7 @@ Version 0.1.0 of the specification: 8 open questions (5 must, 3 should, 0 could)
 
 Decisions to take: desk-manager 7. Material to provide: desk-manager 1.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
 Elements by origin: 21 stated, 34 inferred, 1 decided, 0 without origin.
 

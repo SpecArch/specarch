@@ -9,3 +9,4 @@ requirements:
     acceptance: [A sixth loan is refused.]
     origin: stated
     cites: [{ source: old-doc, clause: "4.2", says: "Five books at a time." }]
+stakeholdersComplete: { by: owner, date: "2026-11-03" }

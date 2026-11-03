@@ -408,10 +408,16 @@ stakeholdersComplete:
   source: desk-interview
 ```
 
-`by` is a stakeholder (`stakeholder`), `source` a declared source
-(`source`), as a decision's `decidedBy` and `cites` are checked. A must
-question that blocks the stakeholders holds the warning, since the gap is
-then already asked about. The key is the refinement's own record, not an
+`by` is a stakeholder (`stakeholder`); `source`, when given, is a declared
+source (`source`), as a decision's `decidedBy` and `cites` are checked, and
+a confirmation taken where no declared source records it leaves `source`
+out. A must question that blocks the stakeholders holds the warning and
+the banner alike, since the gap is then already asked about and the
+documents name the question. A specification that lists no stakeholders
+is told to list them first, since `by` names one of them. A file on a
+meta-model before 1.0.0 has no `stakeholdersComplete` in its schema, so
+it gets neither the warning nor the banner; its `meta_model_version`
+warning already tells it to upgrade. The key is the refinement's own record, not an
 element of the system: `diff` and the comparison leave it out, and origin
 tracking asks it for no origin.
 
@@ -815,7 +821,7 @@ redefined.
 | `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |
 | `language` (on a source) | BCP 47 | the language subtag and the subtags after it; the tag names the vocabulary a document is read by |
 | `stakeholders`, `needs`, `requirements`, `statement`, `priority`, `status`, `acceptance`, `verification` | SpecArch, after ISO/IEC/IEEE 29148 | the requirements stage: the standard's stakeholders (5.2.2), needs (6.3), requirements (6.4) and attributes (5.2.8); priority after MoSCoW; verification methods after MIL-STD-961E |
-| `stakeholdersComplete`, `by`, `date`, `source` (of the confirmation) | SpecArch, after ISO/IEC/IEEE 29148 5.2.2 | the role that confirmed the stakeholder list is complete, when, and the declared source it rests on; until it is set, `stakeholders_unconfirmed` warns, every document carries a banner and approve warns (ADR-226) |
+| `stakeholdersComplete`, `by`, `date`, `source` (of the confirmation) | SpecArch, after ISO/IEC/IEEE 29148 5.2.2 | the role that confirmed the stakeholder list is complete, when, and the declared source it rests on, when there is one; until it is set, `stakeholders_unconfirmed` warns, every document carries a banner and approve warns (ADR-226) |
 | `glossary`, `assumptions`, `constraints` (top level) | SpecArch, after ISO/IEC/IEEE 29148 | 9.2.3, 9.5.19 and 9.6.16 of the standard; arc42 sections 2 and 12 |
 | `satisfies`, `verifies` | SpecArch, after SysML and 29148 6.5 | the satisfy and verify relations from a design element or a test to a requirement |
 | `why`, `cites`, `source`, `clause`, `says` | SpecArch | the rationale and the citations every element may carry; 29148 (5.2.8) names rationale and source as attributes |

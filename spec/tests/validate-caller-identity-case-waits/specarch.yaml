@@ -61,3 +61,4 @@ paths:
       satisfies: [INV-1]
       responses:
         "204": { description: Deleted. }
+stakeholdersComplete: { by: finance, date: "2026-11-03" }

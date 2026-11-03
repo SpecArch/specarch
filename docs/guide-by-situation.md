@@ -92,7 +92,7 @@ is the layout of the files; `specarch help conventions` the keywords.
 question names who decides and every record names who spoke; validate
 warns `stakeholders_unconfirmed`, and every document carries a banner,
 until a role confirms the list is complete with `stakeholdersComplete`
-(by, date, source), so a role nobody listed is seen before the acceptance
+(by, date and, when there is one, source), so a role nobody listed is seen before the acceptance
 test rather than at it. Five things a
 first draft leaves out are errors on every profile: the entity's primary
 key, the operation's summary, each response's description, the one

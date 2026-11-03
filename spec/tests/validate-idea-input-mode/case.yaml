@@ -1,5 +1,5 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:6:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
+  project/specarch.yaml:6:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   records/ideas/IDEA-2.yaml:6:12: error: /inputMode: schema: interview is not allowed here; use one of chat, code, document, example, review, table, voice, walkthrough [schema@../records/ideas/IDEA-2.yaml#/inputMode]

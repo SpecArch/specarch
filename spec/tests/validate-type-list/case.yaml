@@ -1,7 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
-  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:8:23: error: /schemas/Settings/properties/either/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/either/type]
   specarch.yaml:9:22: error: /schemas/Settings/properties/three/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/three/type]
   specarch.yaml:10:21: error: /schemas/Settings/properties/typo/type: schema: this is an array, but a string is expected here [schema@specarch.yaml#/schemas/Settings/properties/typo/type]

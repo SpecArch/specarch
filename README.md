@@ -147,6 +147,8 @@ a defect in the roadmap, not an accepted state.
 | `AGENTS.md` | instructions for agents working in this repository, with the guide `specarch guide --agent` prints |
 | `skills/specarch/` | the agent skill `specarch skill` writes, in the Agent Skills format, kept equal to the program's by a test |
 | `docs/help/` | the help topics built into the program, which `specarch help <topic>` prints |
+| `docs/guide-by-situation.md` | the guide by situation: which feature to use in which real situation, each with when it happens, what to run, a worked example with the program's output, what to watch for and the deeper document; `specarch help situations` is its index, and a test keeps every feature of the program in it |
+| `docs/id/guide-by-situation.md` | the same guide in Indonesian, under the same situation ids, kept equal by the same test |
 | `BUG_OUTSTANDING.md`, `BUG_HISTORY.md` | the bugs, one BUG-NNN entry each: the open ones, and the fixed ones with the commit that fixed them; the repository has no GitHub issues (`CONTRIBUTING.md`, Bugs) |
 | `docs/principles.md` | the three principles, a compiler for specifications, the Low IQ Tax and a change that carries its reason, and how SpecArch applies them |
 | `docs/conventions.md` | the tree layout, YAML layout, Markdown sections, generated and hand-drawn diagrams |

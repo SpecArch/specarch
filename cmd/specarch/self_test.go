@@ -389,7 +389,7 @@ func TestAgentsFile(t *testing.T) {
 func TestHelpTopics(t *testing.T) {
 	noPlugins(t)
 	topics := helpTopics()
-	for _, want := range []string{"format", "validate", "gaps", "generate", "extract", "upgrade", "plugins", "conventions", "examples", "try", "start"} {
+	for _, want := range []string{"format", "validate", "gaps", "generate", "extract", "upgrade", "plugins", "conventions", "examples", "try", "start", "asking", "agents", "situations"} {
 		if topics[want] == "" {
 			t.Errorf("docs/help has no %s.txt", want)
 		}

@@ -9,7 +9,9 @@ description: "Write, check and generate from SpecArch specifications with the sp
 
 SpecArch is a compiler for specifications: it reads a specification written
 in YAML, lists every problem in it, and writes documents and code from it.
-`specarch capabilities --json` holds every fact below as JSON.
+`specarch capabilities --json` holds every fact below as JSON; `specarch
+help situations` says which feature to use in which situation, one entry per
+situation.
 
 ## Formats
 

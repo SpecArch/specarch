@@ -9,7 +9,8 @@ Explain an area of SpecArch or one command, from the text built into the program
 Without a topic it prints the usage and the list of topics. A topic
 is an area, with a short guide of its own (format, extract,
 validate, generate, upgrade, gaps, asking, start, plugins,
-conventions, examples),
+conventions, examples, agents, situations, the last one entry per
+situation saying when it happens and what to run),
 or a command's name, `idioms-diff` or `idioms diff` for the
 subcommand. A command's topic prints the command's reference made
 from its definition in this specification: the synopsis, the

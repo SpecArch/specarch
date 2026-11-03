@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-225:
+    title: One guide organised by situation, in English and Indonesian under the same situation ids, with a help topic as its index, and a test that every feature of the program appears in it
+    status: proposed
+    date: "2026-11-03"
+    context: |
+      What SpecArch can do is written in several places, each organised
+      by command: the agent guide, the capabilities listing, the help
+      topics, the generated manual and the design documents. A person who
+      has a situation in hand, a customer's documents, a daemon, a user
+      who objects at the acceptance test, does not know which command to
+      look up, and an agent reads the order of work but not which feature
+      a situation calls for. A guide written once and never checked names
+      a flag the program lost or misses a target it gained within a
+      release or two, and a translation drifts from its original the
+      same way.
+    decision: |
+      docs/guide-by-situation.md explains every feature by the situation
+      it is for, one section per situation, each saying when it happens,
+      what to run, a worked example with the output the program prints
+      on the examples of this repository, what to watch for and where the
+      deeper document is. Each section carries a situation id in an HTML
+      comment before its heading, and docs/id/guide-by-situation.md is
+      the same guide in Indonesian under the same ids, the command lines
+      and the output kept as the program prints them. specarch help
+      situations is the index built into the program: one entry per
+      situation, its id in brackets on the heading line, when it happens,
+      what to run and the topic or command that explains it, within 80
+      columns, naming the full guide's file; specarch guide and specarch
+      guide --agent name it. One test reads the three texts and fails
+      when the ids differ or are in another order, and when a command the
+      specification defines, a document target, an extract source, a
+      plug-in in the repository, a help topic or a format the program
+      reads is named in neither guide.
+    consequences: |
+      A feature added to the program has to be given a situation, in both
+      languages, before the build passes; a situation added to one guide
+      has to be added to the other and to the help topic. The help topic
+      stays an index, so the worked examples live in the repository's
+      documents alone, and an installed program points at them by file
+      name. The guide's output is taken from real runs and is not kept
+      equal to the program by a test, since a recorded run changes with
+      the examples; a stale line is corrected when the example changes.
+    why: |
+      The guide is organised by situation, not by command, because the
+      question a person has is "what do I do now", and a feature's name
+      is the answer, not the question; the help topics and the manual
+      stay organised by command for the reader who already knows the
+      name. The help topic is an index rather than the whole guide
+      because a topic is read in an 80-column terminal from an installed
+      program with no docs folder, where a worked example with its output
+      does not fit and a file link does. The situation ids are shared
+      between the languages rather than the headings, because a heading
+      is translated and an id is not, so one test can hold the two guides
+      to the same situations without reading either language. The ids are
+      an HTML comment in the Markdown so that a reader of the rendered
+      page sees the headings alone, and in brackets in the plain text
+      where there is no comment. The test checks that each feature is
+      named, not that each is explained well, because a test cannot read
+      prose; what it can hold is that no feature is left out, which is
+      the drift a reader cannot see. An incomplete specification stays
+      readable (docs/principles.md): the guide's two realities, a
+      specification never fixed and users who attend late, are said once
+      at its start and run through every situation, and the situations
+      of the acceptance loop show a remark taken back into the
+      specification as a record with its cause.
+    satisfies: [SA-119]
+    restsOn: [ADR-187]
+    cites:
+      - source: iso-29148
+        clause: "5.2.6"
+        says: "A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency."

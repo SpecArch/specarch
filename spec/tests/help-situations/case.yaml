@@ -1,0 +1,129 @@
+arguments: [help, situations]
+exitStatus: 0
+standardOutput: |
+  Which feature for which situation
+
+  One entry per situation: when it happens, what to run, and the help
+  topic or command that explains it. The full guide, with a worked example
+  and its output for each situation, is docs/guide-by-situation.md in the
+  repository (in Indonesian, docs/id/guide-by-situation.md), under the same
+  ids. Two realities run through every situation: requirements are never
+  fixed, so an incomplete specification is read, every gap is a problem or
+  a question, and a change is a record with its cause; and users attend
+  late, so every result carries a trace to its element, a remark at the
+  acceptance test is a change request naming it, and the validator warns of
+  a role nobody has heard.
+
+  [new-system] Starting a new system
+    Nothing exists yet. specarch init --profile lean <folder>, then
+    specarch validate after each edit, specarch gaps for what is open,
+    specarch document techspec. Topics: start, examples, format.
+
+  [interviewing] Interviewing people
+    Open questions and a person who can answer them. specarch gaps --next
+    picks the one to ask; put it with two to five options, one
+    recommended; specarch decide records the answer in full. Topics:
+    asking, gaps.
+
+  [customer-documents] Capturing from customer documents
+    A manual in Word, rules in a PDF, slides, a spreadsheet, an email
+    thread. specarch extract documents per file (--vocabulary, --language),
+    specarch extract outline for a surface no reader reads, specarch merge,
+    then validate, gaps and specarch document comparison. Topic: extract.
+
+  [existing-code] Capturing from existing code and databases
+    The system runs and its specification is the code. specarch extract
+    database, router, openapi, permissions, pages, workflows, gateway and
+    go; specarch facts for swift, javascript and dart; specarch merge;
+    later specarch check against the running code's dumps. Topic: extract.
+
+  [registers] Tabular registers
+    A spreadsheet people fill in, one file per period. specarch extract
+    tables (--entity, --template, --instructions), specarch generate
+    register writes the template back, specarch check compares a filled
+    file. Topic: extract.
+
+  [daemons] Daemons and service units
+    A process a service manager starts and watches. specarch extract
+    systemd reads the units into processes; specarch document operations
+    and deployment write the guides. Topic: extract.
+
+  [conversation-record] Recording a conversation and who was present
+    The analyst reports what a stakeholder said. specarch log writes the
+    record and asks for what is missing; specarch decide --record cites it;
+    a session record says who was invited and present; specarch document
+    communications and timeline. Topic: asking (recording what the analyst
+    reports).
+
+  [requirement-detailed] A requirement made more detailed
+    One sentence becomes entities, operations, rules and tests. satisfies
+    and verifies keep the trace; specarch validate warns of a requirement
+    nothing verifies; specarch derive drafts the missing tests; specarch
+    try evaluates an algorithm's worked examples; specarch document
+    traceability and testplan. Topics: validate, try.
+
+  [draft-before-approval] Generating a draft before approval to show users
+    Users understand a screen before a document. specarch document html
+    and techspec with the problems marked; specarch generate --unapproved
+    for a marked draft; --environment with trace: true and --out for a
+    build whose screens name their elements. Topic: generate.
+
+  [approving] Approving the specification
+    Questions answered, documents read. specarch document, then specarch
+    approve --by <role>, run by the person; the record holds the digest
+    and the commit. Topic: gaps.
+
+  [building] Building the system from the specification
+    specarch generate sql, seed, sqlc, scripts, openapi, go-dxlib, tests,
+    ui, bpmn and register, each a plug-in on PATH, into the folders the
+    implementation file names; specarch idioms and idioms diff for the
+    overrides; --estate for the modules of an estate. Topics: generate,
+    plugins.
+
+  [ci] Keeping the specification and the code equal in CI
+    specarch generate --check and document --check fail on a stale file;
+    specarch check compares the specification with the running code's
+    dumps; specarch skill --check keeps the agent skill current. Topic:
+    check.
+
+  [small-change] A small change
+    A change record with its affects and impact, the edit, specarch
+    validate, specarch generate --check, specarch diff against the approved
+    version, specarch document changes. Topic: diff.
+
+  [large-change-late] A large change late in the life cycle
+    Analyse before anyone says yes: specarch document changes shows what
+    an open change reaches; specarch decision rests shows what rests on a
+    decision it would overturn; the analysis ends in a decision, a
+    question or a rejection; specarch diff checks the version step.
+    Topics: diff, decision rests.
+
+  [absent-user-objects] A user who was absent objects at the acceptance test
+    Before the test, specarch validate warns unheard of a role no record
+    shows was heard. At the test, specarch log the objection, raise a
+    change request with phase acceptance, the build, seenAt from the trace
+    and cause unheard; the decision names it; specarch decision why shows
+    the chain. Topics: asking, decision why.
+
+  [approve-again] Approving again, with diff
+    The approval holds the commit it was made at; specarch diff between it
+    and the working tree lists every changed element with the record that
+    covers it; the approver reads the list and runs specarch approve again.
+    Topic: diff.
+
+  [release] Release and release notes
+    A planned release record, the pre-release tag dropped on release,
+    specarch diff between the tagged versions, specarch document releases,
+    deployment, commissioning, handover, manual and timeline; a deploy is a
+    record. Topic: diff.
+
+  [formats-move] A release of SpecArch moves the formats
+    specarch version names what it reads; specarch upgrade --dry-run lists
+    the changes, specarch upgrade makes them; approve again; specarch skill
+    again. Topic: upgrade.
+
+  [agents] Agents driving SpecArch
+    specarch guide --agent, specarch capabilities --json, --json on every
+    command, --dry-run on every command that writes, specarch model for a
+    program, specarch mcp and specarch skill for an agent's client. Topics:
+    agents, conventions.

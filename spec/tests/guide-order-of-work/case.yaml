@@ -130,5 +130,6 @@ standardOutput: |
     specarch version
         Print the program version and the meta-model versions it reads.
 
-  specarch help <topic or command> explains each; specarch guide --agent is the
-  same order with what an agent must do and must ask.
+  specarch help <topic or command> explains each; specarch help situations says
+  which to use in which situation; specarch guide --agent is the same order with
+  what an agent must do and must ask.

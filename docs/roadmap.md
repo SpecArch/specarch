@@ -155,6 +155,23 @@ it supports, showed the gap. Next: the stateless revision 2026-07-28 of
 the protocol (`server/discover`), once its schema is read; a client that
 speaks both falls back to `initialize` now.
 
+One guide says which feature to use in which real situation, for people
+and for agents: `docs/guide-by-situation.md`, one section per situation
+(starting a new system, interviewing, customer documents, existing code,
+registers, daemons, a conversation recorded, a requirement made more
+detailed, a draft before approval, approving, building, CI, a small change,
+a large change late, an absent user who objects at the acceptance test,
+approving again with diff, release, the formats moving, agents), each with
+when it happens, what to run, a worked example with the program's output,
+what to watch for and the deeper document; `docs/id/guide-by-situation.md`
+is the same guide in Indonesian under the same situation ids; `specarch
+help situations` is the index built into the program, named by `guide` and
+`guide --agent`; and a test fails when the three hold different situations
+or when a command, document target, extract source, plug-in, help topic or
+format is named in neither guide (ADR-225, SA-119,
+`spec/tests/help-situations`, `cmd/specarch/situations_test.go`): built on
+main, in no release yet.
+
 ## 2. Targets, in order of payoff
 
 Documents are `specarch document <target> <folders>`, built into the

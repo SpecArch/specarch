@@ -19,7 +19,7 @@ func Guide(l Listing, commands []Command) string {
 		synopsis(&b, c, "  ", "    ")
 		indent(&b, c.Summary+".", "      ")
 	}
-	b.WriteString("\nspecarch help <topic or command> explains each; specarch guide --agent is the\nsame order with what an agent must do and must ask.\n")
+	b.WriteString("\nspecarch help <topic or command> explains each; specarch help situations says\nwhich to use in which situation; specarch guide --agent is the same order with\nwhat an agent must do and must ask.\n")
 	return b.String()
 }
 
@@ -38,7 +38,7 @@ func AgentGuide(l Listing, commands []Command) string {
 func AgentCore(l Listing, commands []Command) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# SpecArch %s for agents\n\n", l.Version)
-	indent(&b, "SpecArch is a compiler for specifications: it reads a specification written in YAML, lists every problem in it, and writes documents and code from it. `specarch capabilities --json` holds every fact below as JSON.", "")
+	indent(&b, "SpecArch is a compiler for specifications: it reads a specification written in YAML, lists every problem in it, and writes documents and code from it. `specarch capabilities --json` holds every fact below as JSON; `specarch help situations` says which feature to use in which situation, one entry per situation.", "")
 	b.WriteString("\n## Formats\n\n")
 	for _, f := range l.Formats {
 		line := fmt.Sprintf("%s (version key %s): writes %s; reads %s", f.Name, f.Key, f.Write, strings.Join(f.Read, ", "))

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.4.0 of the specification: 10 needs, 118 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.4.0 of the specification: 10 needs, 119 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -18,7 +18,7 @@ Version 1.4.0 of the specification: 10 needs, 118 requirements, and 1 gap. Each 
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-118 |
 | NEED-6 | accepted | SA-15, SA-13, SA-117, SA-97 |
-| NEED-7 | accepted | SA-14, SA-96, SA-112, SA-108, SA-74, SA-95 |
+| NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-51 |
 | NEED-9 | accepted | SA-31, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | accepted | SA-102, SA-106, SA-58, SA-60, SA-116, SA-101, SA-117, SA-108, SA-57, SA-100 |
@@ -145,6 +145,7 @@ Version 1.4.0 of the specification: 10 needs, 118 requirements, and 1 gap. Each 
 | SA-116 | NEED-2, NEED-10 | commands generate; decisions ADR-219 | tests generate-seed; tests generate-seed-dialect-refused; tests generate-seed-encrypted-refused; tests generate-seed-mariadb; tests generate-seed-oracle; tests generate-seed-rows-zero; tests generate-seed-sqlserver |
 | SA-117 | NEED-5, NEED-6, NEED-10 | commands document; commands validate; decisions ADR-220 | tests document-communications-everyone; tests document-writes-communications; tests document-writes-timeline; tests validate-communication-ref; tests validate-communications-valid; tests validate-evidence; tests validate-record-cited; tests validate-unheard |
 | SA-118 | NEED-5, NEED-8 | commands decide; commands log; decisions ADR-220 | tests decide-cites-record; tests decide-record-refused; tests decide-record-unknown; tests decide-record-wrong-by; tests decide-source-and-record; tests log-answer-needs-question; tests log-asks-missing; tests log-asks-missing-json; tests log-dry-run; tests log-evidence-outside; tests log-unknown-role; tests log-usage-error; tests log-writes-record |
+| SA-119 | NEED-7 | decisions ADR-225 | tests help-situations |
 
 ## 3. Gaps
 

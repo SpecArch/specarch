@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-231:
+    title: A binding the design does not need is warned about unless a decision justifies it against a simpler alternative or an idiom of the file's stacks approves it under technologies
+    status: proposed
+    date: "2026-11-03"
+    context: |
+      A team adopts a message broker, an RPC framework, a query language
+      or a web framework for reasons that are not in the specification:
+      the last project used it, a tutorial showed it, or a simpler thing
+      was not considered. The cost lands late, in delivery: another
+      service to run, another client library to keep current, another
+      failure mode nobody wrote a test for. An implementation file names
+      such a technology under bindings, the framework per interface kind,
+      and nothing checked that the design has anything of that kind. A
+      decision record could say why, but nothing asked it to name the
+      simpler option it rejected, which is the part a reviewer needs.
+    decision: |
+      The validator warns, technology_unjustified, at a binding whose
+      framework the design does not need: no element of its kind (http:
+      paths, routes or gateways; messaging: channels or a dependency of
+      kind messageBroker; cli: commands; ui: pages; storage: entities or
+      views), no idiom of the file's stacks approving the framework, and
+      no decision that justifies it. A decision justifies a binding when
+      the binding names it under decidedIn (origin decided, as any
+      element) and the decision satisfies a requirement and names under
+      alternatives, a new key of a decision in the design and in an
+      implementation file, the simpler options considered and not taken,
+      each with why. An idiom approves technologies under a new key,
+      technologies: each by a kebab-case name with why and the names
+      implementation files write it under; an idiom that renders one of
+      the file's stacks approves them whatever the design reads, so a
+      project's own idiom of concern technologies in the idioms folder
+      beside the implementation file is the organisation's baseline. A
+      binding on the standard library adopts nothing and is left alone.
+      The warning names what the design lacks and the three ways to
+      justify the binding, or the gaps of the decision it names.
+    consequences: |
+      A binding that the design does not need is visible at once, with
+      what would justify it, and a specification whose implementation
+      files pass without the warning traces every framework to a design
+      element, a decision with its rejected alternative or the
+      organisation's baseline. A decision that justifies a technology
+      has to name a requirement and an alternative, so a decision record
+      written after the fact says what the technology is for. Libraries
+      under libraries and servers of a deployment are not checked by this
+      rule: a library is a package name the validator cannot classify,
+      and a server of kind messageBroker without a dependency is a later
+      rule once a server can name its decision.
+    why: |
+      The binding is the subject, not the library, because a binding is
+      where an implementation file says what a framework is for, and the
+      design says whether it has anything of that kind; a library is a
+      package name, and a rule that warned at every library the design
+      does not name would warn at a YAML parser as loudly as at a broker,
+      which is the noise that gets a warning turned off. The rule asks a
+      decision for a requirement and a rejected alternative because those
+      are the two things a reviewer of a technology choice needs: what it
+      is for, and what simpler thing would not do; MADR's considered
+      options are the model, and a decision that names none has not
+      considered the simpler thing. The baseline is an idiom, under the
+      idiom folder's lookup and the stacks filter the idioms already
+      have, rather than a file kind of its own, because an organisation's
+      technology choice is one more thing decided once for every project,
+      which is what an idiom is; it applies whatever the design reads,
+      since an approval is about the stack, not the design. It is a
+      warning, not an error, because the binding is not wrong, only
+      unjustified, and an incomplete specification stays readable
+      (docs/principles.md); the message names each way to justify it so
+      the next step is a line in the file, not a search. An incomplete
+      definition stays readable: a decidedIn naming no decision is the
+      origin check's error alone, and the binding is otherwise read as it
+      is.
+    satisfies: [SA-120]
+    restsOn: [ADR-028, ADR-188]

@@ -1253,6 +1253,14 @@ func decisions(d *doc, title string, root *yaml.Node) {
 			}
 			d.para("Rests on: " + strings.Join(ids, ", ") + ".")
 		}
+		if alts := items(dec, "alternatives"); len(alts) > 0 {
+			// The simpler options the decision did not take, each with why (ADR-231).
+			var lines []string
+			for _, a := range alts {
+				lines = append(lines, strings.TrimSpace(str(a, "option"))+" "+strings.TrimSpace(str(a, "why")))
+			}
+			d.para("Alternatives not taken: " + strings.Join(lines, " "))
+		}
 		for _, part := range [][2]string{{"context", "Context"}, {"decision", "Decision"}, {"consequences", "Consequences"}} {
 			if v := strings.TrimSpace(str(dec, part[0])); v != "" {
 				d.para(part[1] + ": " + v)

@@ -19,7 +19,8 @@ open question of the specification) and note.
 
 Beyond the JSON Schema, it checks references across the tree, fail-closed
 access (an operation with no permission is an error), the boundary
-between design and implementation, expressions and their types, worked
+between design and implementation, a binding the design has nothing for
+(technology_unjustified), expressions and their types, worked
 examples evaluated to the last digit, concrete integer types, the test
 scenarios each subject needs, citations and traceability.
 

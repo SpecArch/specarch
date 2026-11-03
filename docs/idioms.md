@@ -115,7 +115,7 @@ The keys:
 |---|---|
 | `name` | kebab-case; the key an implementation file and an override use |
 | `version` | the idiom's own version, semantic; it moves when a contract statement, a part or a test changes |
-| `concern` | one of a closed list: `type-rendering`, `request-validation`, `error-response`, `list-operations`, `authorization`, `pii-logging`, `audit-fields`, `soft-delete`, `identifiers`, `transactions`, `retries`, `idempotency`, `configuration`, `secrets`, `background-jobs`, `migrations`, `encryption`, `health`, `rate-limit`, `ui-components`, `design-tokens`, `other` |
+| `concern` | one of a closed list: `type-rendering`, `request-validation`, `error-response`, `list-operations`, `authorization`, `pii-logging`, `audit-fields`, `soft-delete`, `identifiers`, `transactions`, `retries`, `idempotency`, `configuration`, `secrets`, `background-jobs`, `migrations`, `encryption`, `health`, `rate-limit`, `ui-components`, `design-tokens`, `technologies`, `other` |
 | `stacks` | the stacks the idiom renders; `any` for one that is stack-neutral |
 | `reads` | the design keywords it applies to; an idiom applies only to a specification that uses them, so an idiom for `listOf` is silent in a specification without one. One exception: `generate ui` hands its plug-ins the paginated-list idiom whether or not the design has a `listOf`, since the Next.js server routes page a list answered whole in its envelope and the screens page another module's list by its names; the file's exclusion or override still applies to it |
 | `contract` | statements keyed by id, each with `statement`, and `check`: `schema` (a shape the implementation file or an override must carry), `name` (a derivation rule for names, as the conventions derive table names), `document` (something the generated document or code must contain, checked by the generator's `--check`), `test` (a derived test case), or `guidance` (no check) |
@@ -123,6 +123,7 @@ The keys:
 | `tests` | the cases derived for every element the idiom applies to, in the shape of the derived cases of `docs/conventions.md` |
 | `why`, `cites` | as everywhere else |
 | `sources` | the sources the idiom's citations name, in the shape of a specification's `sources` |
+| `technologies` | the technologies the idiom approves, keyed by a kebab-case name, each with `why` and `names`, the names implementation files write it under, a binding's `framework`; below, Approved technologies |
 
 In a project's file, one more key:
 
@@ -240,6 +241,43 @@ reason in the Idioms table. An idiom whose shipped `version` changed but whose
 override replaced none of the changed parts gets the same warning, because
 the contract or the tests may have moved.
 
+## Approved technologies
+
+A binding of an implementation file names the framework for one
+interface kind, and the design says whether it has anything of that kind
+(`docs/conventions.md`, Design and implementation). A binding the design
+does not need is warned about, `technology_unjustified`, unless a
+decision justifies it against a simpler alternative or an idiom approves
+it. The approval is the organisation's baseline, decided once for every
+project, which is what an idiom is: a small file of concern
+`technologies`, with no contract or parts, in the project's idioms folder
+beside the implementation file, or a shipped idiom that carries the key.
+
+    specarchIdiom: "1.0.0"
+    name: platform-messaging
+    version: 1.0.0
+    concern: technologies
+    stacks: [go, typescript]
+    description: The one message broker every service of the platform publishes on and reads from.
+    why: One broker for the platform means one client library per stack and one place to look when a message is late.
+    technologies:
+      kafka:
+        description: The platform's Kafka cluster, run by the platform team.
+        why: Decided for the platform as a whole; a service that publishes an event uses it and needs no decision of its own.
+        names: [github.com/segmentio/kafka-go, kafkajs]
+
+Each technology has a kebab-case name, `why` the organisation chose it,
+and `names`, the strings implementation files write it under, as a
+binding's `framework` names it. An idiom that renders one of the file's
+stacks approves its technologies whatever the design reads: an approval
+is about the stack, not the design, so an idiom of this concern needs no
+`reads`. A binding on an approved name is not warned about, whatever
+the design has. An excluded idiom approves nothing (ADR-231). An idiom
+that only approves technologies reads nothing of the design, so
+`specarch idioms` and the technical specification's Idioms table do not
+list it yet, although it silences the warning; listing it is a
+follow-up.
+
 ## What the validator checks
 
 | Rule | When |
@@ -251,6 +289,7 @@ the contract or the tests may have moved.
 | `idiom_version_behind` | the override's `version` is older than the shipped one (warning) |
 | `idiom_contract` | a contract statement with a `schema`, `name` or `document` check fails for an element the idiom applies to: a field type with no row in the type-rendering table for the target's dialect, a `listOf` without a page-size maximum, an entity marked `audited` whose generated table lacks the audit columns |
 | `test_case_missing` | the cases under `tests` join the derived cases of the subject, with the same ranking |
+| `technology_unjustified` | a binding whose kind the design has nothing of, with no idiom of the file's stacks approving its framework under `technologies` and no decision that satisfies a requirement and names a simpler alternative (warning, at the binding or at its `decidedIn`) |
 
 The generators follow the resolved idiom when they write, and their
 `--check` form, the fourth gate of `docs/sync-gates.md`, keeps the written

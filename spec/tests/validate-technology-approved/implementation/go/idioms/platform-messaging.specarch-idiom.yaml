@@ -1,0 +1,12 @@
+specarchIdiom: "1.0.0"
+name: platform-messaging
+version: 1.0.0
+concern: technologies
+stacks: [go, typescript]
+description: The one message broker every service of the platform publishes on and reads from.
+why: One broker for the platform means one client library per stack, one set of operations runbooks and one place to look when a message is late.
+technologies:
+  kafka:
+    description: The platform's Kafka cluster, run by the platform team.
+    why: Decided for the platform as a whole; a service that publishes an event uses it and needs no decision of its own.
+    names: [github.com/segmentio/kafka-go, kafkajs]

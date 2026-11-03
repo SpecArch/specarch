@@ -5807,6 +5807,31 @@ let designSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
+        "alternatives": {
+          "description": "SpecArch keyword. The simpler options considered and not taken, each with why it was not: what breaks, what is lost or what rule it would break. A decision that justifies a technology the design does not need names at least one (technology_unjustified).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "option": {
+                "description": "The option, in plain words: the simpler thing that would have done.",
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "description": "Why it was not taken.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "option",
+              "why"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "answers": {
           "description": "SpecArch keyword. The open questions this decision answers, by ID. The questions themselves are removed from the specification once answered, so these IDs are text, not references; the validator refuses an accepted decision that answers a question still present.",
           "type": "array",
@@ -17428,6 +17453,31 @@ let implementationSchemaJSON = #"""
           "minItems": 1,
           "uniqueItems": true
         },
+        "alternatives": {
+          "description": "SpecArch keyword. The simpler options considered and not taken, each with why it was not: what breaks, what is lost or what rule it would break. A decision that justifies a technology the design does not need names at least one (technology_unjustified).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "option": {
+                "description": "The option, in plain words: the simpler thing that would have done.",
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "description": "Why it was not taken.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "option",
+              "why"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -22547,6 +22597,7 @@ let idiomSchemaJSON = #"""
         "rate-limit",
         "ui-components",
         "design-tokens",
+        "technologies",
         "other"
       ]
     },
@@ -22618,6 +22669,43 @@ let idiomSchemaJSON = #"""
       "items": {
         "$ref": "#/$defs/case"
       }
+    },
+    "technologies": {
+      "description": "SpecArch keyword. The technologies the idiom approves, keyed by a kebab-case name: each with why it is the organisation's choice and the names an implementation file writes it under, a binding's framework. A binding on an approved name that no element of the design needs is not warned about (technology_unjustified); the idiom approves it for every implementation file of its stacks, whatever the design reads.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/$defs/markdown"
+          },
+          "why": {
+            "description": "Why the organisation chose it: the requirement or the simpler option it rejected, as a decision record says it.",
+            "type": "string",
+            "minLength": 1
+          },
+          "names": {
+            "description": "The names implementation files write the technology under, as a binding's framework names it.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "why",
+          "names"
+        ],
+        "additionalProperties": false
+      },
+      "minProperties": 1
     },
     "overrides": {
       "$ref": "#/$defs/overrides"

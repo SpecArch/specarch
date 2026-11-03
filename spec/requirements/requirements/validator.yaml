@@ -146,3 +146,17 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-10]
     why: A reader decides on a rule faster and more accurately from its result on a case they recognise than from its formula; validate says only that an example does not hold, so the result of a passing example, the steps that gave a wrong one and the effect of a proposed formula on the examples were worked out by hand, which is the cost the goal names (ADR-195).
+  SA-120:
+    statement: The validator shall warn, in both builds, at a binding of an implementation file whose framework no element of the design needs, unless an idiom of the file's stacks approves the framework under technologies or the binding is decided in an accepted decision that satisfies a requirement and names under alternatives the simpler option it rejected; the warning shall name what would justify the binding.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - A messaging binding on a Kafka client in an implementation file of a design with no channel and no dependency of kind messageBroker, with no decision and no idiom approving it, is warned about as technology_unjustified at the binding, the message saying what the design lacks and the three ways to justify it.
+      - The same binding decided in an accepted decision that satisfies no requirement and names no alternative is warned about at decidedIn, naming the decision and both gaps.
+      - The same binding decided in an accepted decision that satisfies a requirement and names under alternatives a simpler option with why it was not taken is not warned about.
+      - The same binding with a project idiom of concern technologies in the file's idioms folder, for the file's stack, naming the client under technologies, is not warned about, whatever the design reads.
+      - A binding whose kind the design has elements of, or whose framework is the standard library, is never warned about; a decidedIn naming no decision is reported by origin_decision alone.
+    verification: test
+    needs: [NEED-1, NEED-6]
+    why: A broker, a framework or a protocol that nothing in the design needs is the technology choice that costs a delivery most, and the one a reviewer sees last, when it is already built; a warning at the binding makes the decision to adopt it visible where it is written, and names what would make it traceable to a requirement, a rejected simpler option or the organisation's baseline (ADR-231).

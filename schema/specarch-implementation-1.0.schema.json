@@ -1632,6 +1632,31 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "alternatives": {
+          "description": "SpecArch keyword. The simpler options considered and not taken, each with why it was not: what breaks, what is lost or what rule it would break. A decision that justifies a technology the design does not need names at least one (technology_unjustified).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "option": {
+                "description": "The option, in plain words: the simpler thing that would have done.",
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "description": "Why it was not taken.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "option",
+              "why"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },

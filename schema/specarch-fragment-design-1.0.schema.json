@@ -4974,6 +4974,31 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "alternatives": {
+          "description": "SpecArch keyword. The simpler options considered and not taken, each with why it was not: what breaks, what is lost or what rule it would break. A decision that justifies a technology the design does not need names at least one (technology_unjustified).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "option": {
+                "description": "The option, in plain words: the simpler thing that would have done.",
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "description": "Why it was not taken.",
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "option",
+              "why"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
         "answers": {
           "description": "SpecArch keyword. The open questions this decision answers, by ID. The questions themselves are removed from the specification once answered, so these IDs are text, not references; the validator refuses an accepted decision that answers a question still present.",
           "type": "array",

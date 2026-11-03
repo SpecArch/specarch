@@ -133,7 +133,8 @@ func (c *checker) checkImplementation(s *spec.Spec, load Loader) {
 	c.checkCitations(c.root, nil, d)
 	c.checkDeployments(d)
 	c.checkSuites(d, rel)
-	c.checkIdioms(s)
+	approved := c.checkIdioms(s)
+	c.checkTechnologies(d, decisions, approved)
 }
 
 // checkHandler checks a handler record against the code it was read from

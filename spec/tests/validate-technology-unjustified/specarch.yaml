@@ -1,0 +1,5 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stages: [implementation]
+requirements:
+  CASE-1: { statement: A late return is told to the finance desk the same night., kind: functional, priority: must, status: accepted, acceptance: [The desk sees it the next morning.] }

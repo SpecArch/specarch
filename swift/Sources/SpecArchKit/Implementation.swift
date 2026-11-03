@@ -149,7 +149,8 @@ extension Checker {
         checkCitations(root, [], d)
         checkDeployments(d)
         checkSuites(d)
-        checkIdioms(s)
+        let approved = checkIdioms(s)
+        checkTechnologies(d, decisions, approved)
     }
 
     /// Checks a handler record against the code it was read from (ADR-144):

@@ -169,6 +169,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case profile = "profile"
     case process = "process"
     case route = "route"
+    case technologyUnjustified = "technology_unjustified"
 }
 
 /// Whether a diagnostic makes the file invalid.

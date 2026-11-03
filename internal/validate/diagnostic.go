@@ -180,6 +180,7 @@ const (
 	RuleProfile                Rule = "profile"
 	RuleProcess                Rule = "process"
 	RuleRoute                  Rule = "route"
+	RuleTechnologyUnjustified  Rule = "technology_unjustified"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -350,6 +351,7 @@ var Rules = []Rule{
 	RuleProfile,
 	RuleProcess,
 	RuleRoute,
+	RuleTechnologyUnjustified,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

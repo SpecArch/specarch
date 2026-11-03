@@ -262,6 +262,20 @@ it depends on, and the diagram draws no arrow from it. `extract go
 layout entry whose Go files it reads, the packages of the same module
 they import, test files left out (ADR-133).
 
+A binding is a technology the implementation adopts for one interface
+kind, and the design says whether it has anything of that kind: `paths`,
+`routes` or `gateways` for `http`; `channels` or a dependency of kind
+`messageBroker` for `messaging`; `commands` for `cli`; `pages` for `ui`;
+`entities` or `views` for `storage`. A binding whose kind the design has
+nothing of is a warning at the binding, `technology_unjustified`, unless
+an idiom of the file's stacks approves the framework under `technologies`
+(`docs/idioms.md`) or the binding is decided, `origin: decided` with
+`decidedIn`, in an accepted decision that satisfies a requirement and
+names under `alternatives` the simpler option it rejected. The warning
+names what the design lacks and each way to justify the binding, or the
+gaps of the decision it names. A binding on the `standard library` adopts
+nothing and is not checked (ADR-231).
+
 A deployment's server may say what it is and what runs on it, for the
 deployment diagram (ADR-136):
 
@@ -490,7 +504,11 @@ rests on what still holds and supersedes the old one, which says
 `status: superseded` and names it under `supersededBy`. `specarch decision
 why <ID> <folder>` prints the chain a decision rests on, earliest first,
 and `specarch decision rests <ID> <folder>` the decisions that rest on it,
-nearest first, one decision per line after a summary line.
+nearest first, one decision per line after a summary line. A decision
+names under `alternatives` the simpler options it considered and did not
+take, each an `option` with `why` it was not taken, after MADR's
+considered options; a decision that justifies a binding the design does
+not need names at least one (`technology_unjustified`, ADR-231).
 
 ## Change records
 
@@ -865,6 +883,8 @@ redefined.
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
 | `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
 | `restsOn` (of a decision) | SpecArch, after the links between records in Nygard's form | the earlier decisions a decision rests on, by ID; `supersededBy` is the one link Nygard's record has, from the old decision to the one that replaced it, and `restsOn` runs the other way, from a decision to what it builds on (ADR-188) |
+| `alternatives` (of a decision) | SpecArch, after MADR's considered options | the simpler options a decision considered and did not take, each `option` with `why`; a decision that justifies a binding the design does not need names at least one (ADR-231) |
+| `technologies` (of an idiom) | SpecArch | the technologies an idiom approves, each by a kebab-case name with `why` and the `names` implementation files write it under; an idiom that renders one of the file's stacks approves them whatever the design reads (ADR-231) |
 | `tests`, `scenario`, `level`, `given`, `when`, `then`, `covers`, `notApplicable` | SpecArch, after ISO/IEC/IEEE 29119 and Gherkin | design tests; the levels are 29119-1's; given, when and then are the Gherkin words, without Gherkin's file format |
 | `environments`, `promotesTo`, `trace`, `configuration`, `secret`, `release`, `rollback`, `migrations`, `steps`, `action`, `check` | SpecArch, after ISO/IEC/IEEE 12207 6.4.10 | the deployment stage: the transition process, written as environments, settings and steps |
 | `runBy`, `handover`, `to`, `sourceDelivery` (of a handover; `source` before 1.0.0), `responsibilities` | SpecArch, after ISO/IEC/IEEE 12207 6.1.1 and 6.1.2 | who runs an environment, the vendor or the customer (12207's supplier and acquirer), and what a customer who runs one receives (ADR-129) |

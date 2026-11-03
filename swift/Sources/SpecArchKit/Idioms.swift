@@ -182,8 +182,11 @@ extension Checker {
 
     /// Checks the idioms of an implementation file against the specification
     /// it implements: what the file excludes and overrides, the overrides
-    /// themselves, and the contract of every idiom that applies.
-    func checkIdioms(_ s: Spec) {
+    /// themselves, and the contract of every idiom that applies. It returns
+    /// the technologies the idioms of the file's stacks approve, by name,
+    /// for the technology check (ADR-231).
+    @discardableResult
+    func checkIdioms(_ s: Spec) -> [String: String] {
         let (stacks, at, ptr) = implementationStacks()
         var isStack: Set<String> = ["any"]
         for st in stacks { isStack.insert(st) }
@@ -230,7 +233,7 @@ extension Checker {
             diags += oc.diags
         }
 
-        guard let specRoot = s.root else { return }
+        guard let specRoot = s.root else { return [:] }
         var apply: [String: Idiom] = [:]
         for (name, i) in shippedIdioms where !excluded.contains(name) { apply[name] = i }
         for (name, i) in project where i.root.child("overrides") == nil && !excluded.contains(name) { apply[name] = i }
@@ -245,6 +248,7 @@ extension Checker {
                 }
             }
         }
+        return approvedTechnologies(apply, isStack)
     }
 
     /// Checks one override file against the shipped idiom it overrides. The

@@ -1,0 +1,20 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+libraries:
+  github.com/segmentio/kafka-go: { version: v0.4.49, licence: MIT, purpose: Publishes each late return on a topic. }
+bindings:
+  messaging:
+    framework: github.com/segmentio/kafka-go
+    description: The late returns go on a Kafka topic the finance desk's service reads.
+    origin: decided
+    decidedIn: ADR-001
+decisions:
+  ADR-001:
+    title: Late returns go on a Kafka topic
+    status: accepted
+    date: "2026-11-03"
+    context: The finance desk's service wants the late returns of the day.
+    decision: Each late return is published on a Kafka topic that service reads.
+    consequences: A broker runs beside the service.

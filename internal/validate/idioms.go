@@ -171,8 +171,10 @@ func (c *checker) projectIdioms() map[string]Idiom {
 
 // checkIdioms checks the idioms of an implementation file against the
 // specification it implements: what the file excludes and overrides, the
-// overrides themselves, and the contract of every idiom that applies.
-func (c *checker) checkIdioms(s *spec.Spec) {
+// overrides themselves, and the contract of every idiom that applies. It
+// returns the technologies the idioms of the file's stacks approve, by
+// name, for the technology check (ADR-231).
+func (c *checker) checkIdioms(s *spec.Spec) map[string]string {
 	stacks, at, ptr := c.implementationStacks()
 	isStack := map[string]bool{"any": true}
 	for _, st := range stacks {
@@ -227,7 +229,7 @@ func (c *checker) checkIdioms(s *spec.Spec) {
 	}
 
 	if s == nil || s.Root == nil {
-		return
+		return nil
 	}
 	apply := map[string]Idiom{}
 	for name, i := range shippedSet {
@@ -259,6 +261,7 @@ func (c *checker) checkIdioms(s *spec.Spec) {
 			}
 		}
 	}
+	return approvedTechnologies(apply, isStack)
 }
 
 // checkOverride checks one override file against the shipped idiom it

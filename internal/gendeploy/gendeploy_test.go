@@ -251,14 +251,21 @@ func TestFreshScriptTearsDownOnASignal(t *testing.T) {
 	for _, shell := range shells {
 		for _, sg := range signals {
 			t.Run(shell+"/"+sg.name, func(t *testing.T) {
-				calls, started := filepath.Join(root, shell+"-"+sg.name+".calls"), filepath.Join(root, shell+"-"+sg.name+".up")
+				base := filepath.Join(root, shell+"-"+sg.name)
+				calls, started, release := base+".calls", base+".up", base+".release"
 				stub := filepath.Join(root, "compose-stub-signal")
-				// up marks that the project started, then holds the run.
+				// up marks that the project started, then holds the run
+				// until the test has sent the signal (10 s at most), so the
+				// signal always arrives while up runs.
 				writeTestFile(t, stub, `echo "$*" >>"$CALLS"
-case "$*" in *" up -d"*) : >"$STARTED"; sleep 1 ;; esac
+case "$*" in *" up -d"*)
+  : >"$STARTED"
+  i=0
+  until [ -e "$RELEASE" ] || [ "$i" -ge 200 ]; do i=$((i + 1)); sleep 0.05; done ;;
+esac
 `)
 				cmd := exec.Command(shell, filepath.Join(out, "local", "fresh.sh"), project)
-				cmd.Env = append(os.Environ(), "COMPOSE=sh "+stub, "CALLS="+calls, "STARTED="+started, "DB_PASSWORD=throwaway", "API_TOKEN=token")
+				cmd.Env = append(os.Environ(), "COMPOSE=sh "+stub, "CALLS="+calls, "STARTED="+started, "RELEASE="+release, "DB_PASSWORD=throwaway", "API_TOKEN=token")
 				var output strings.Builder
 				cmd.Stdout, cmd.Stderr = &output, &output
 				if err := cmd.Start(); err != nil {
@@ -279,6 +286,7 @@ case "$*" in *" up -d"*) : >"$STARTED"; sleep 1 ;; esac
 				if err := cmd.Process.Signal(sg.signal); err != nil {
 					t.Fatal(err)
 				}
+				writeTestFile(t, release, "")
 				_ = cmd.Wait()
 				if got := cmd.ProcessState.ExitCode(); got != sg.status {
 					t.Errorf("fresh.sh under %s on %s exited %d (%s), want %d\n%s", shell, sg.name, got, cmd.ProcessState, sg.status, output.String())

@@ -73,7 +73,7 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 	d.progressEffort(state)
 
 	d.section("Burn-up")
-	d.progressBurnUp(state, total)
+	d.progressBurnUp(root, state, total)
 	return d.String()
 }
 
@@ -138,36 +138,83 @@ func sectionSize(root *yaml.Node, section string) int {
 }
 
 // progressQuestions writes the open questions as a table of the deciding
-// roles against the priorities.
+// roles against the priorities. A question whose priority is not must,
+// should or could, which the schema refuses, is counted under Other
+// priority and named below the table with the value as written, and a
+// question with no decidedBy is counted under a row that says so, so every
+// question is in one cell of its row and the rows add up to the total.
 func (d *doc) progressQuestions() {
 	qs := d.questions
 	if len(qs) == 0 {
 		d.para("No question is open.")
 		return
 	}
+	const noRole = "no role named (decidedBy missing)"
+	const other = "other"
 	byRole := map[string]map[string]int{}
 	var roles []string
 	totals := map[string]int{}
+	var odd []string
 	for _, q := range qs {
 		role := str(q.node, "decidedBy")
+		if role == "" {
+			role = noRole
+		}
 		if byRole[role] == nil {
 			byRole[role] = map[string]int{}
 			roles = append(roles, role)
 		}
-		byRole[role][q.priority]++
-		totals[q.priority]++
+		priority := q.priority
+		if priority != "must" && priority != "should" && priority != "could" {
+			priority = other
+			written := "missing"
+			if n := source.Deref(get(q.node, "priority")); n != nil {
+				written = valueText(n)
+			}
+			odd = append(odd, fmt.Sprintf("- %s: priority %s (not counted as must, should or could; one of them is expected)", q.id, cell(written)))
+		}
+		byRole[role][priority]++
+		totals[priority]++
 	}
-	sort.Strings(roles)
-	d.para(fmt.Sprintf("%s: %d must, %d should, %d could, by the role that decides each or must provide what it asks for. A must question holds up everything that reads what it blocks; a should question holds up code generation and approval; a could question holds up nothing. The questions document lists each one.",
-		countText(len(qs), "open question", "open questions"), totals["must"], totals["should"], totals["could"]))
-	d.line("| Decided by | Must | Should | Could | Total |")
-	d.line("|---|---|---|---|---|")
+	// The row of questions with no role named comes last.
+	sort.Slice(roles, func(i, j int) bool {
+		if (roles[i] == noRole) != (roles[j] == noRole) {
+			return roles[j] == noRole
+		}
+		return roles[i] < roles[j]
+	})
+	says := fmt.Sprintf("%s: %d must, %d should, %d could", countText(len(qs), "open question", "open questions"), totals["must"], totals["should"], totals["could"])
+	if totals[other] > 0 {
+		says += fmt.Sprintf(", %d with another priority", totals[other])
+	}
+	d.para(says + ", by the role that decides each or must provide what it asks for. A must question holds up everything that reads what it blocks; a should question holds up code generation and approval; a could question holds up nothing. The questions document lists each one.")
+	if totals[other] > 0 {
+		d.line("| Decided by | Must | Should | Could | Other priority | Total |")
+		d.line("|---|---|---|---|---|---|")
+	} else {
+		d.line("| Decided by | Must | Should | Could | Total |")
+		d.line("|---|---|---|---|---|")
+	}
+	row := func(label string, c map[string]int, total int) {
+		if totals[other] > 0 {
+			d.line("| %s | %d | %d | %d | %d | %d |", label, c["must"], c["should"], c["could"], c[other], total)
+			return
+		}
+		d.line("| %s | %d | %d | %d | %d |", label, c["must"], c["should"], c["could"], total)
+	}
 	for _, r := range roles {
 		c := byRole[r]
-		d.line("| %s | %d | %d | %d | %d |", cell(r), c["must"], c["should"], c["could"], c["must"]+c["should"]+c["could"])
+		row(cell(r), c, c["must"]+c["should"]+c["could"]+c[other])
 	}
-	d.line("| Total | %d | %d | %d | %d |", totals["must"], totals["should"], totals["could"], len(qs))
+	row("Total", totals, len(qs))
 	d.blank()
+	if len(odd) > 0 {
+		d.para(fmt.Sprintf("%s a priority that is not must, should or could:", countText(len(odd), "question has", "questions have")))
+		for _, l := range odd {
+			d.line("%s", l)
+		}
+		d.blank()
+	}
 }
 
 // hours sums the figures of one effort key exactly, as rationals, so 0.1
@@ -292,41 +339,59 @@ func pick(cond bool, yes, no string) string {
 	return no
 }
 
+// elementOf is the element a reference names, as Size counts it, so one
+// element is counted once however it is named: a requirement ID is the
+// requirement's pointer, and a pointer into an element is cut to the
+// element, the entry of a section or a single section. A reference Size
+// does not count, because it names no stage's section (a question), an
+// extension key, a whole section, or an element the specification does not
+// hold, such as a requirement of another specification, returns "" and
+// why, so the burn-up names it rather than counting it past the scope line.
+func elementOf(root *yaml.Node, ref string) (string, string) {
+	var tokens []string
+	if !strings.HasPrefix(ref, "#/") {
+		tokens = []string{"requirements", ref}
+	} else {
+		for _, t := range strings.Split(strings.TrimPrefix(ref, "#/"), "/") {
+			tokens = append(tokens, source.UnescapeToken(t))
+		}
+	}
+	section := tokens[0]
+	if spec.Sections[section] == "" || spec.IsExtensionKey(section) {
+		return "", "names no section that Size counts"
+	}
+	if spec.IsSingleSection(section) || spec.IsElement(tokens[:1]) {
+		tokens = tokens[:1]
+	} else {
+		if len(tokens) < 2 {
+			return "", "names a whole section, not one element"
+		}
+		if spec.IsExtensionKey(tokens[1]) {
+			return "", "names an extension key, not an element"
+		}
+		tokens = tokens[:2]
+	}
+	if _, ok := source.Resolve(root, tokens); !ok {
+		return "", "names an element the specification does not hold"
+	}
+	return source.Pointer(tokens...), ""
+}
+
 // progressBurnUp writes one point per release, in version order: the
 // distinct elements the change requests it includes name under affects
 // adds and changes, each as the element it names, cumulative from the
 // first release, approved once the request's decision approves it and it
 // is not withdrawn or rejected, and generated once it is implemented or
-// released.
-// elementOf is the element a reference names, as Size counts it, so one
-// element is counted once however it is named: a requirement ID is the
-// requirement's pointer, and a pointer into an element is cut to the
-// element, the entry of a section or a single section.
-func elementOf(ref string) string {
-	if !strings.HasPrefix(ref, "#/") {
-		return source.Pointer("requirements", ref)
-	}
-	var tokens []string
-	for _, t := range strings.Split(strings.TrimPrefix(ref, "#/"), "/") {
-		tokens = append(tokens, source.UnescapeToken(t))
-	}
-	switch {
-	case spec.IsSingleSection(tokens[0]) || spec.IsElement(tokens[:1]):
-		tokens = tokens[:1]
-	case len(tokens) > 2:
-		tokens = tokens[:2]
-	}
-	return source.Pointer(tokens...)
-}
-
-func (d *doc) progressBurnUp(state *State, scope int) {
+// released. A reference that names no element Size counts is listed below
+// the table with why, and not counted.
+func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 	releases := recordsOf(state, "release")
 	sort.SliceStable(releases, func(i, j int) bool {
 		a, _ := semver.Parse(str(releases[i], "version"))
 		b, _ := semver.Parse(str(releases[j], "version"))
 		return semver.Compare(a, b) < 0
 	})
-	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
+	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
 		countText(scope, "element", "elements")))
 	if len(releases) == 0 {
 		d.para("No release is recorded.")
@@ -337,6 +402,8 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 		changes[str(c, "id")] = c
 	}
 	approved, generated := map[string]bool{}, map[string]bool{}
+	seen := map[string]bool{}
+	var notCounted []string
 	d.line("| Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |")
 	d.line("|---|---|---|---|---|---|---|")
 	for _, r := range releases {
@@ -355,7 +422,15 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 				if ref == "" || state.Withheld != nil && state.Withheld.CoversRef(ref) {
 					continue
 				}
-				element := elementOf(ref)
+				element, why := elementOf(root, ref)
+				if element == "" {
+					key := id + " " + ref
+					if !seen[key] {
+						seen[key] = true
+						notCounted = append(notCounted, fmt.Sprintf("- %s names %s: not counted, it %s.", id, cell(ref), why))
+					}
+					continue
+				}
 				if isApproved {
 					approved[element] = true
 				}
@@ -375,4 +450,11 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 		d.line("| %s | %s | %s | %s | %d | %d | %d |", str(r, "version"), str(r, "status"), date, list, len(approved), len(generated), scope)
 	}
 	d.blank()
+	if len(notCounted) > 0 {
+		d.para(fmt.Sprintf("%s under affects %s not counted, since Size does not count what %s:", countText(len(notCounted), "reference", "references"), pick(len(notCounted) == 1, "is", "are"), pick(len(notCounted) == 1, "it names", "they name")))
+		for _, l := range notCounted {
+			d.line("%s", l)
+		}
+		d.blank()
+	}
 }

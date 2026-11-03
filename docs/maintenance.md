@@ -600,13 +600,18 @@ Five targets join `DocumentTarget`, after the first set of documents:
   out and counted, and the unmapped results are counted, not named. The timeline places each run at its instant.
 - `progress`: the progress report, from the specification and the records
   (ADR-227). The elements of each stage by section; the open questions by
-  priority and by the role that decides them; each role warned unheard;
+  priority and by the role that decides them, a priority that is not must,
+  should or could in a column of its own and named, and a question with no
+  `decidedBy` on a row that says so; each role warned unheard;
   whether a role has confirmed the stakeholder list complete; each change
   request with the hours estimated and spent it records, `missing` where
   it records none, each column summed over the requests that record it
   and the requests with no effort named; and a burn-up, one point per
   release in version order, of the distinct elements the included change
-  requests name under `affects` adds and changes, cumulative, approved
+  requests name under `affects` adds and changes, each as the element it
+  names, a reference to what the size does not count (a question, an
+  extension key, an element the specification does not hold) named with
+  why and left out, cumulative, approved
   once the request is approved and generated once it is implemented or
   released, beside the elements the specification holds now. It makes no
   average, forecast or filled-in figure.

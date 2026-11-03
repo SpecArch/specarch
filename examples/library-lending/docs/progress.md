@@ -42,10 +42,14 @@ Not confirmed: the specification records no role confirming the list of 4 stakeh
 
 ## 6. Burn-up
 
-One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 338 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
+One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 338 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
 
 | Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |
 |---|---|---|---|---|---|---|
 | 0.1.0 | released | 2026-10-07 | none | 0 | 0 | 338 |
-| 0.2.0 | planned | not yet | CR-1 | 3 | 0 | 338 |
+| 0.2.0 | planned | not yet | CR-1 | 2 | 0 | 338 |
+
+1 reference under affects is not counted, since Size does not count what it names:
+
+- CR-1 names #/tests/renew-a-loan: not counted, it names an element the specification does not hold.
 

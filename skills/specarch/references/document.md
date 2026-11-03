@@ -218,7 +218,10 @@ places each test run at its instant.
 
 The progress target writes `progress.md` from the specification and
 the records (ADR-227): the elements of each stage by section; the
-open questions by priority and by the role that decides them; each
+open questions by priority and by the role that decides them, a
+priority that is not must, should or could counted in a column of its
+own and named with the value as written, and a question with no
+decidedBy on a row that says so, so the rows add up to the total; each
 role the validator warns unheard, with the warning; the line that
 no role's confirmation of the stakeholder list is recorded; each
 change request with the hours estimated and spent that it records,
@@ -229,7 +232,10 @@ named as missing; and a burn-up, one point per release in version
 order, of the distinct elements the change requests it includes name
 under affects adds and changes, each reference counted as the
 element it names (a requirement by its ID or its pointer once, a
-pointer inside an element as that element), cumulative, approved
+pointer inside an element as that element), and a reference to what
+Size does not count (a question, an extension key, a whole section,
+an element the specification does not hold) named below the table
+with why and left out, cumulative, approved
 once the request's decision approves it and it is not withdrawn or
 rejected, and generated once it is implemented or released, beside
 the elements the specification holds now. It invents no figure: no average,

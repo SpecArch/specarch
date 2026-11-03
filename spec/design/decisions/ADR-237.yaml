@@ -25,7 +25,11 @@ decisions:
          elements counted by its entries and a single section as one.
       2. Open work: the open questions by priority (must, should, could)
          and by the role that decides them, as a table of roles against
-         priorities.
+         priorities. A priority that is not one of the three, which the
+         schema refuses, is counted in a column of its own and named below
+         the table with the value as written, and a question with no
+         decidedBy on a row that says no role is named, so every question
+         is in one cell and the rows add up to the total.
       3. Unheard roles: each role the validator warns unheard, with the
          warning's text, taken from the warnings so the document and the
          validator cannot disagree.
@@ -49,7 +53,12 @@ decisions:
          counted as the element Size counts it under: a requirement ID as
          the requirement's pointer, and a pointer inside an element cut to
          the entry of its section, or to the section when it holds one
-         thing. An element is approved once the request's decision approves
+         thing. A reference to what Size does not count, a question, an
+         extension key, a whole section or an element the specification
+         does not hold (a requirement of another specification among
+         them), is named below the table with why and not counted, so the
+         burn-up never passes the scope line it is drawn against. An
+         element is approved once the request's decision approves
          it and the request is not withdrawn or rejected, and generated once
          its status is implemented or released; beside them stand the
          elements the specification holds now, as the scope line.

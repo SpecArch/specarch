@@ -1,0 +1,8 @@
+arguments: [document, progress, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:50:5: error: /questions/Q-3: schema: decidedBy is missing; add it here [schema@specarch.yaml#/questions/Q-3]
+  project/specarch.yaml:52:15: error: /questions/Q-3/priority: schema: Could is not allowed here; use one of could, must, should [schema@specarch.yaml#/questions/Q-3/priority]
+  records/changes/CR-1.yaml:13:18: error: /affects/adds/1: change_applied: CR-1 is implemented but OTHER-7, which it adds, is not in the specification; add it, or set the change back to approved [change_applied@../records/changes/CR-1.yaml#/affects/adds/1]
+  records/changes/CR-1.yaml:14:51: error: /affects/changes/2: change_applied: CR-1 is implemented but #/entities/x-note, which it changes, is not in the specification; correct the reference [change_applied@../records/changes/CR-1.yaml#/affects/changes/2]
+  records/changes/CR-1.yaml:14:72: error: /affects/changes/3: change_applied: CR-1 is implemented but #/entities/Fine, which it changes, is not in the specification; correct the reference [change_applied@../records/changes/CR-1.yaml#/affects/changes/3]

@@ -26,7 +26,7 @@ as `extract tests` writes it, is kept whole under
 test of an earlier tree has it, a line naming each renamed; a
 question of its tree that blocks nothing but such tests is kept as
 it is, its pointers naming each test by its name in the merged
-specification, numbered with the trees' other questions (ADR-234).
+specification, numbered with the trees' other questions (ADR-235).
 A line counts the tests kept.
 
 - The same element in two trees (an entry of a section by its name,

@@ -1,4 +1,5 @@
 stakeholders:
+  # specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
   system-owner:
     description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
     origin: inferred

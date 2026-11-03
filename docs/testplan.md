@@ -2,7 +2,9 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 1000 design tests, 503 golden and 497 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 1012 design tests, 508 golden and 504 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +15,7 @@ Version 1.4.0 of the specification: 1000 design tests, 503 golden and 497 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 996 |
+| system | 1008 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -71,6 +73,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 - When: approve is run
 - Then: it names the document that differs, writes nothing and exits 1
 
+#### approve-stakeholders-complete
+
+Scenario: golden; level: system; verifies SA-129.
+
+- Given: a specification whose stakeholdersComplete is set by a declared stakeholder, a current requirements document and a stakeholder clerk
+- When: approve is run with --by clerk and a date
+- Then: it writes the approval record with no warning about the stakeholder list, and exits 0
+
 #### approve-usage-error
 
 Scenario: red; level: system; covers usage error, exit 2.
@@ -78,6 +88,14 @@ Scenario: red; level: system; covers usage error, exit 2.
 - Given: no --by
 - When: approve is run without saying who approves
 - Then: it prints how to use it and exits 2
+
+#### approve-warns-stakeholders-unconfirmed
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification with stakeholders and no stakeholdersComplete, a current requirements document and a stakeholder clerk
+- When: approve is run with --by clerk and a date
+- Then: it warns on standard error that the stakeholder list is not confirmed complete, still writes the approval record, and exits 0
 
 #### approve-writes-record
 
@@ -1141,6 +1159,30 @@ Scenario: golden; level: system.
 - When: document techspec is run
 - Then: the region holds the call, the event on order.events and the 200 answer, and it exits 0
 
+#### document-stakeholders-banner
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification with stakeholders and no stakeholdersComplete, and a configured requirements document
+- When: document requirements is run
+- Then: the document carries the Stakeholders unconfirmed banner under its title and the warning marked as a problem, and the run exits 0
+
+#### document-stakeholders-complete
+
+Scenario: golden; level: system; verifies SA-129.
+
+- Given: a specification whose stakeholdersComplete is set by a declared stakeholder, and a configured requirements document
+- When: document requirements is run
+- Then: the document carries no Stakeholders unconfirmed banner and no problem, and the run prints nothing and exits 0
+
+#### document-stakeholders-held
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification with stakeholders, no stakeholdersComplete and an open must question that blocks the stakeholders, and a configured requirements document
+- When: document requirements is run
+- Then: the document carries the Draft notice naming the question and no Stakeholders unconfirmed banner, since the question already marks the gap, and the run exits 0
+
 #### document-state-diagram
 
 Scenario: golden; level: system.
@@ -1372,6 +1414,14 @@ Scenario: golden; level: system; verifies SA-16.
 - Given: a Loan state machine with two paths and a test that walks one of them
 - When: document testplan is run
 - Then: testplan.md has a State machines section with the Loan state diagram and a row per path naming the test that walks it, and exits 0
+
+#### document-testruns-stakeholders-banner
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification with stakeholders and no stakeholdersComplete, and two test runs recorded beside it
+- When: document testruns is run
+- Then: docs/testruns.md carries the Stakeholders unconfirmed banner under its summary, the test runs read as they do with the list confirmed, and the run exits 0
 
 #### document-traceability-harm
 
@@ -2537,7 +2587,7 @@ Scenario: golden; level: system; verifies SA-113.
 
 #### extract-tests-incomplete-scripts
 
-Scenario: golden; level: system; verifies SA-129.
+Scenario: golden; level: system; verifies SA-130.
 
 - Given: a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then, a Scenario Outline of two examples, two scenarios of one title that an Outline's numbered names already take, and an Outline whose Examples rows lack a column and leave cells blank, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title
 - When: extract tests is run on both files
@@ -4401,7 +4451,7 @@ Scenario: golden; level: system; verifies SA-45.
 
 #### merge-keeps-read-tests
 
-Scenario: golden; level: system; verifies SA-129.
+Scenario: golden; level: system; verifies SA-130.
 
 - Given: a design tree of a kept note that tracks origin, and the tree extract tests wrote from a feature file and a test sheet, with six tests read from them and ten must questions, each blocking a test or one of its keys
 - When: merge is run on both
@@ -5647,9 +5697,9 @@ Scenario: golden; level: system; verifies SA-21.
 
 Scenario: red; level: system; covers exit 1; verifies SA-9.
 
-- Given: an implementation file with an entities key
+- Given: an implementation file with an entities key and a stakeholdersComplete key
 - When: validate is run
-- Then: it reports design_key and exits 1
+- Then: it reports design_key at each of the two keys and exits 1
 
 #### validate-design-ref
 
@@ -7435,6 +7485,54 @@ Scenario: red; level: system; covers exit 1; verifies SA-2.
 - When: validate is run
 - Then: it reports stakeholder and exits 1
 
+#### validate-stakeholders-complete
+
+Scenario: golden; level: system; verifies SA-129.
+
+- Given: a specification whose stakeholdersComplete is set by a declared stakeholder, with a date and a declared interview source
+- When: validate is run
+- Then: it prints nothing and exits 0: the confirmation ends the stakeholders_unconfirmed warning
+
+#### validate-stakeholders-complete-unknown
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification whose stakeholdersComplete names a role that is not a stakeholder and a source that is not declared
+- When: validate is run
+- Then: it reports stakeholder at /stakeholdersComplete/by and source at /stakeholdersComplete/source, each with the closest declared name, and exits 1
+
+#### validate-stakeholders-earlier-meta-model
+
+Scenario: golden; level: system; verifies SA-129.
+
+- Given: a specification on meta-model 0.3, whose schema has no stakeholdersComplete, with stakeholders and no confirmation
+- When: validate is run
+- Then: it gives the meta_model_version warning alone and no stakeholders_unconfirmed, since the file could not hold the key the remedy names, and exits 0
+
+#### validate-stakeholders-none
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification with no stakeholders section and no stakeholdersComplete
+- When: validate is run
+- Then: it warns stakeholders_unconfirmed at /stakeholders, at line 1 of the root file since there is no list, telling the author to list the stakeholders first and then confirm the list, and exits 0
+
+#### validate-stakeholders-unconfirmed
+
+Scenario: red; level: system; verifies SA-129.
+
+- Given: a specification with stakeholders and no stakeholdersComplete, so no role has confirmed that the list is complete
+- When: validate is run
+- Then: it warns stakeholders_unconfirmed at /stakeholders, naming the key that ends the warning, and exits 0, since a warning is not an error
+
+#### validate-stakeholders-unconfirmed-held
+
+Scenario: golden; level: system; verifies SA-129.
+
+- Given: a specification with stakeholders, no stakeholdersComplete, and a must question that blocks the stakeholders
+- When: validate is run
+- Then: it prints no stakeholders_unconfirmed, only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0: the must question holds stakeholders_unconfirmed, since the gap is already asked about
+
 #### validate-state-field
 
 Scenario: red; level: system; covers exit 1.
@@ -8111,7 +8209,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-584 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+589 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8148,9 +8246,9 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-128 | acceptance 3 | golden | SA-128 names no harm |
 | requirement SA-128 | acceptance 4 | golden | SA-128 names no harm |
 | requirement SA-128 | acceptance 5 | golden | SA-128 names no harm |
-| requirement SA-129 | acceptance 1 | golden | SA-129 names no harm |
-| requirement SA-129 | acceptance 2 | golden | SA-129 names no harm |
-| requirement SA-129 | acceptance 3 | golden | SA-129 names no harm |
+| requirement SA-130 | acceptance 1 | golden | SA-130 names no harm |
+| requirement SA-130 | acceptance 2 | golden | SA-130 names no harm |
+| requirement SA-130 | acceptance 3 | golden | SA-130 names no harm |
 | requirement SA-33 | acceptance 1 | golden | SA-33 names no harm |
 | requirement SA-33 | acceptance 2 | golden | SA-33 names no harm |
 | requirement SA-33 | acceptance 3 | golden | SA-33 names no harm |
@@ -8656,6 +8754,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-118 | acceptance 2 | golden | SA-118 names no harm |
 | requirement SA-118 | acceptance 3 | golden | SA-118 names no harm |
 | requirement SA-118 | acceptance 4 | golden | SA-118 names no harm |
+| requirement SA-129 | acceptance 1 | golden | SA-129 names no harm |
+| requirement SA-129 | acceptance 2 | golden | SA-129 names no harm |
+| requirement SA-129 | acceptance 3 | golden | SA-129 names no harm |
+| requirement SA-129 | acceptance 4 | golden | SA-129 names no harm |
+| requirement SA-129 | acceptance 5 | golden | SA-129 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

@@ -2,9 +2,13 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 126 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 127 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
+
+**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/stakeholders/stakeholders.yaml#/stakeholders]
 
 ## 1. Purpose and scope
 
@@ -44,15 +48,15 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-129, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-125, SA-118 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-129, SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-51 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-129, SA-75 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-130, SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-51 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-130, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-125, SA-108, SA-57, SA-100 |
 
 ## 4. Requirements
@@ -68,7 +72,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-21 | functional | must | accepted | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. |
 | SA-22 | functional | must | accepted | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. |
 | SA-128 | functional | should | proposed | specarch generate tests --package <environment> shall write a test package of one specification for one of its environments - every test, and every chosen derived case no test covers drafted as derive drafts it, each as a request to the environment's servers with what its answer must show, or with the reason it cannot run from outside - holding back a test an open must or should question holds up until it is answered, and holding no credential; specarch run shall run the package against the environment, signing each role in with headers it is given and putting a case's records in place through a program it is given, and write the results as JUnit XML that specarch log test-run maps back to each test, or to a derived case's subject. |
-| SA-129 | functional | should | proposed | specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package. |
+| SA-130 | functional | should | proposed | specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package. |
 | SA-33 | functional | must | accepted | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. |
 | SA-34 | functional | must | accepted | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. |
 | SA-35 | functional | must | accepted | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. |
@@ -172,6 +176,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-86 | functional | must | accepted | specarch document comparison shall write the old documents against the refined specification, derived from the elements' origin, their citations and the decisions and from no other input - the stated elements kept from each source by clause, the inferred ones clarified with what they were concluded from, the decided ones added or corrected with their decision and its reason, and the clauses of each source's outline that no element cites - so that a reviewer sees what the refinement changed before approving. |
 | SA-97 | functional | must | accepted | A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line. |
 | SA-118 | functional | must | proposed | specarch log shall write one communication record from options alone, who said it to whom, when with its offset, by which channel, of which type, in which words and form, recorded by whom and touching what, guessing none of them - every missing one printed as a line saying what to ask the analyst and the option to give it with, and nothing written - and shall print, for an answer, the decide line that records it as the decision; and specarch decide shall take --record naming an answer record that links the question, writing the decision as stated and citing the record, in place of --source. |
+| SA-129 | functional | must | proposed | A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed. |
 | SA-1 | functional | must | accepted | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. |
 | SA-2 | functional | must | accepted | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. |
 | SA-3 | functional | must | accepted | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. |
@@ -330,7 +335,7 @@ Acceptance criteria:
 
 **Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
 
-### SA-129
+### SA-130
 
 specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package.
 
@@ -342,7 +347,7 @@ Acceptance criteria:
 - merge of a design tree and that tree keeps each read test whole under tests/ with the questions that block only it, and a line counts them.
 - After decide answers each question of a read test and the answer's keys are written, generate tests --package lists the test among the cases instead of under held, and run passes it against a service that answers as the test expects.
 
-**Insight:** A team that already has test scripts has the test cases a stakeholder wrote down, often with a step or a result missing; reading them into the specification, with a question for each missing part instead of a guess, puts that knowledge where the derived cases are, and the test joins the package once a person settles what is missing (ADR-234).
+**Insight:** A team that already has test scripts has the test cases a stakeholder wrote down, often with a step or a result missing; reading them into the specification, with a question for each missing part instead of a guess, puts that knowledge where the derived cases are, and the test joins the package once a person settles what is missing (ADR-235).
 
 **Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
 
@@ -2005,6 +2010,24 @@ Acceptance criteria:
 **Insight:** What a stakeholder said reaches the analyst in a chat or a call, and the agent that writes it down must not fill in who, when or what was answered, since a guessed fact reads as a fact; taking every field as an option and sending back the questions to ask keeps the record true to what the analyst reported, and the decision that follows cites the record rather than a source declared for every chat message (ADR-220).
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.4.3: Each requirement is traceable to its source: the stakeholder need or the document it comes from. <https://www.iso.org/standard/72089.html>
+
+### SA-129
+
+A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-1, NEED-8.
+
+Acceptance criteria:
+
+- validate on a specification with stakeholders and no stakeholdersComplete warns stakeholders_unconfirmed at /stakeholders and exits 0; with stakeholdersComplete set by a declared stakeholder it prints nothing.
+- stakeholdersComplete whose by is not a stakeholder is the error stakeholder at /stakeholdersComplete/by, and a source that is not declared is the error source at /stakeholdersComplete/source.
+- Every document specarch document writes, and the overview of the HTML site, carries the Stakeholders unconfirmed banner while the key is not set, and none once it is.
+- approve on such a specification writes the approval record, prints the warning on standard error and exits 0.
+- A must question that blocks the stakeholders holds the warning and the banner alike, a specification that lists no stakeholders is told to list them first, and a file on a meta-model before 1.0.0 is not warned, since its schema has no stakeholdersComplete.
+
+**Insight:** A stakeholder nobody listed is the one who objects first at acceptance, and the list is confirmed by a person, not by a rule; a warning that stands in every output until a role confirms it keeps the gap visible without stopping the work, which a compiler for specifications never does.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: The stakeholders of the system are identified, so that every class of stakeholder with a legitimate interest in the system is represented. <https://www.iso.org/standard/72089.html>
 
 ### SA-1
 

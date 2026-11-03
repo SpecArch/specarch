@@ -2914,7 +2914,7 @@ The sources this build reads:
   or `Platform.environment` names it by a literal, with its type and
   its `defaultValue`, and written as extract javascript writes one.
 - `tests`: existing test scripts and test sheets, complete or not
-  (ADR-234): Gherkin feature files (`.feature`) and test sheets in
+  (ADR-235): Gherkin feature files (`.feature`) and test sheets in
   CSV, TSV or Excel, one or more files in one repository, each a
   document source under its file's name, cited by line for a
   feature file and by the row's range for a sheet. Each Scenario or
@@ -4157,7 +4157,7 @@ as `extract tests` writes it, is kept whole under
 test of an earlier tree has it, a line naming each renamed; a
 question of its tree that blocks nothing but such tests is kept as
 it is, its pointers naming each test by its name in the merged
-specification, numbered with the trees' other questions (ADR-234).
+specification, numbered with the trees' other questions (ADR-235).
 A line counts the tests kept.
 
 - The same element in two trees (an entry of a section by its name,

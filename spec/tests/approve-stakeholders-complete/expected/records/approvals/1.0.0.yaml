@@ -1,0 +1,7 @@
+specarchRecord: "1.0.0"
+kind: approval
+version: 1.0.0
+approvedBy: clerk
+date: "2026-11-03"
+documents: [requirements]
+digest: sha256:8dcef23a69447d74f87db0665068d7ba74a16af835ee8311db0e2e60a68ac2e5

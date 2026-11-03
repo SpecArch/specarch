@@ -4,6 +4,8 @@
 
 Version 1.4.0 of the specification: 2 environments, 0 settings and 0 migrations. Secrets are named here with where their value comes from, never with a value.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Environments
 
 A release goes to developer-machine, then ci-runner.

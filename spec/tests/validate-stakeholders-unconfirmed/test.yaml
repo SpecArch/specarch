@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a specification with stakeholders and no stakeholdersComplete, so no role has confirmed that the list is complete"
+when: "validate is run"
+then: "it warns stakeholders_unconfirmed at /stakeholders, naming the key that ends the warning, and exits 0, since a warning is not an error"
+verifies: [SA-120]

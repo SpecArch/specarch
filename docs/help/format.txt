@@ -5,8 +5,8 @@ the system and its version (info), the stages it keeps and the sources it
 cites. Each stage is a folder of its name beside the root file, in
 life-cycle order:
 
-  requirements/          stakeholders, needs, requirements, glossary,
-                         assumptions, constraints
+  requirements/          stakeholders, stakeholdersComplete, needs,
+                         requirements, glossary, assumptions, constraints
   design/                enums, entities, permissions, roles, endpoints,
                          routes, commands, channels, jobs, processes,
                          workflows, pages, algorithms, decisions

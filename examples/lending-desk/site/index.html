@@ -116,16 +116,17 @@ ol.problems p{margin:2px 0}
 <li><a href="#open-questions">Open questions</a><ol>
 <li><a href="#/questions">Questions</a> <span class="count">8</span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">9</span></li>
+<li><a href="#problems">Problems</a> <span class="count">10</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
 <h1>Lending Desk</h1>
 <p>The as-built specification of a small lending desk, written from its desk manual and its code by the procedure in docs/from-sources.md. Every element says how it is known and cites the manual section or the code file and line it came from. Where the two disagree, or a source is silent, the specification asks instead of choosing. It is an example, not a real library&#39;s system.</p>
 <p>Version 0.1.0; meta-model 1.0.0; stages requirements, design, implementation, tests.</p>
+<p class="notice"><strong>Stakeholders unconfirmed:</strong> nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.</p>
 <p class="notice draft"><strong>Draft:</strong> 8 must or should questions hold up what this page shows (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see <a href="#/questions">Open questions</a>.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/0.1.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 1 warning and 8 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 2 warnings and 8 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>4</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>7</td></tr>
@@ -146,6 +147,7 @@ ol.problems p{margin:2px 0}
 <h2>Requirements</h2>
 <section class="section" id="/stakeholders">
 <h3>Stakeholders <a class="ptr" href="#/stakeholders">/stakeholders</a></h3>
+<p class="mark warning"><a href="#problem-stakeholders_unconfirmed@requirements/requirements.yaml%23/stakeholders">warning</a> stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]</p>
 <article class="element" data-search id="/stakeholders/desk-staff">
 <h4>desk-staff <a class="ptr" href="#/stakeholders/desk-staff">/stakeholders/desk-staff</a></h4>
 <p class="origin"><strong>Origin:</strong> stated in Lending desk manual, clause 2.2.</p>
@@ -2280,35 +2282,39 @@ ol.problems p{margin:2px 0}
 <p class="problem-note"><code>../sources/code/lending/routes.go:97:1: note: source desk-code, clause lending/routes.go:97: ShowMember answers one member&#39;s card number and full name.</code></p>
 <p>Marked at <a href="#/questions/Q-7">/questions/Q-7</a>.</p>
 </li>
+<li class="warning" data-search id="problem-stakeholders_unconfirmed@requirements/requirements.yaml%23/stakeholders">
+<p><code>../spec/requirements/requirements.yaml:4:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]</code></p>
+<p>Marked at <a href="#/stakeholders">/stakeholders</a>.</p>
+</li>
 <li class="warning" data-search id="problem-requirement_unverified@requirements/requirements.yaml%23/requirements/LEND-4">
-<p><code>../spec/requirements/requirements.yaml:53:3: warning: /requirements/LEND-4: requirement_unverified: no test, commissioning check or monitor verifies requirement LEND-4; add verifies: [LEND-4] to the test that shows it is met [requirement_unverified@requirements/requirements.yaml#/requirements/LEND-4]</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:60:9: note: source desk-manual, clause 3.3: The loan period is 21 days.</code></p>
+<p><code>../spec/requirements/requirements.yaml:54:3: warning: /requirements/LEND-4: requirement_unverified: no test, commissioning check or monitor verifies requirement LEND-4; add verifies: [LEND-4] to the test that shows it is met [requirement_unverified@requirements/requirements.yaml#/requirements/LEND-4]</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:61:9: note: source desk-manual, clause 3.3: The loan period is 21 days.</code></p>
 <p class="problem-note"><code>../sources/code/lending/model.go:8:1: note: source desk-code, clause lending/model.go:8: LoanPeriod is 14 days.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:18:1: note: source desk-code, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14.</code></p>
 <p>Marked at <a href="#/requirements/LEND-4">/requirements/LEND-4</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-1">
-<p><code>../spec/requirements/requirements.yaml:92:3: question: /questions/Q-1: open_question: (must, decision) Is the loan period 21 days, as the manual says, or 14 days, as the service does? Decided by desk-manager. Answer with a decision record that names Q-1 under answers. [Q-1]</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:53:3: note: blocks #/requirements/LEND-4/statement, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:101:9: note: source desk-manual, clause 3.3: The loan period is 21 days.</code></p>
+<p><code>../spec/requirements/requirements.yaml:93:3: question: /questions/Q-1: open_question: (must, decision) Is the loan period 21 days, as the manual says, or 14 days, as the service does? Decided by desk-manager. Answer with a decision record that names Q-1 under answers. [Q-1]</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:54:3: note: blocks #/requirements/LEND-4/statement, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:102:9: note: source desk-manual, clause 3.3: The loan period is 21 days.</code></p>
 <p class="problem-note"><code>../sources/code/lending/model.go:8:1: note: source desk-code, clause lending/model.go:8: LoanPeriod is 14 days.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:18:1: note: source desk-code, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14.</code></p>
 <p>Marked at <a href="#/questions/Q-1">/questions/Q-1</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-2">
-<p><code>../spec/requirements/requirements.yaml:105:3: question: /questions/Q-2: open_question: (should, decision) The service lists a member&#39;s loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager. Answer with a decision record that names Q-2 under answers. [Q-2]</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:80:3: note: blocks #/requirements/LEND-7</code></p>
+<p><code>../spec/requirements/requirements.yaml:106:3: question: /questions/Q-2: open_question: (should, decision) The service lists a member&#39;s loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager. Answer with a decision record that names Q-2 under answers. [Q-2]</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:81:3: note: blocks #/requirements/LEND-7</code></p>
 <p>Marked at <a href="#/questions/Q-2">/questions/Q-2</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-3">
-<p><code>../spec/requirements/requirements.yaml:114:3: question: /questions/Q-3: open_question: (must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers. [Q-3]</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:24:3: note: blocks #/requirements/LEND-1/acceptance, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:34:3: note: blocks #/requirements/LEND-2/acceptance, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:43:3: note: blocks #/requirements/LEND-3/acceptance, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:53:3: note: blocks #/requirements/LEND-4/acceptance, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:63:3: note: blocks #/requirements/LEND-5/acceptance, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:71:3: note: blocks #/requirements/LEND-6/acceptance, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:80:3: note: blocks #/requirements/LEND-7/acceptance, which is not given yet</code></p>
+<p><code>../spec/requirements/requirements.yaml:115:3: question: /questions/Q-3: open_question: (must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers. [Q-3]</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:25:3: note: blocks #/requirements/LEND-1/acceptance, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:35:3: note: blocks #/requirements/LEND-2/acceptance, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:44:3: note: blocks #/requirements/LEND-3/acceptance, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:54:3: note: blocks #/requirements/LEND-4/acceptance, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:64:3: note: blocks #/requirements/LEND-5/acceptance, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:72:3: note: blocks #/requirements/LEND-6/acceptance, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:81:3: note: blocks #/requirements/LEND-7/acceptance, which is not given yet</code></p>
 <p>Marked at <a href="#/questions/Q-3">/questions/Q-3</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-5">

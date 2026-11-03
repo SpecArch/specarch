@@ -166,7 +166,9 @@ Error codes of --json:
 
 - `specarch approve --by <by> [--date <date>] [--dry-run] <paths>...`
   Record that the documents were read and the specification is approved.
-  exit 0: the approval was recorded
+  exit 0: the approval was recorded; a warning on standard error when no
+  role has confirmed that the stakeholder list is complete
+  (stakeholdersComplete)
   exit 1: refused; the specification has errors or open questions, the
   stakeholder is unknown, no document is configured, or a document is not
   current

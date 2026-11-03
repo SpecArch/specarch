@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:16:20: error: /tokens/serviceAccess/claims/aud/enum: token_audience: serviceAccess is forwarded by aud by gateway api, whose forwards are its fixed audience; remove enum, which says the list a second time [token_audience@specarch.yaml#/tokens/serviceAccess/claims/aud/enum]
   specarch.yaml:37:14: error: /paths/~1status/get/token: gateway: serviceAccess is forwarded by aud by gateway api, so it is the services' token, and operation getStatus accepts it; name a token of this system's own [gateway@specarch.yaml#/paths/~1status/get/token]
   specarch.yaml:56:12: error: /gateways/api/token: gateway: serviceAccess is forwarded by aud, so it is the services' token, and it is marked default, which makes every operation of this specification accept it; remove default from serviceAccess [gateway@specarch.yaml#/gateways/api/token]

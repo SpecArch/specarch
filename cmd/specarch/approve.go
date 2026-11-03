@@ -96,6 +96,9 @@ func approve(l loaded, by, date string, w *disk.Writer, stdout, stderr io.Writer
 		fmt.Fprintf(stderr, "specarch approve: %s is not a stakeholder of %s; approve as one of its stakeholders, by key\n", by, l.spec.Dir)
 		return 1
 	}
+	if source.Child(root, "stakeholdersComplete") == nil {
+		fmt.Fprintf(stderr, "specarch approve: warning: the stakeholder list of %s is not confirmed complete (stakeholders_unconfirmed), so a role with an interest in the system may be missing from it and object first at acceptance; the approval goes ahead, and a stakeholder confirms the list with stakeholdersComplete (by, date, source) in the specification\n", l.spec.Dir)
+	}
 	var documents []string
 	stale := 0
 	for _, target := range generate.DocumentTargets {

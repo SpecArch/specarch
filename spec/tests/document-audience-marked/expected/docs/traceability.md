@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 2 needs, 3 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks; 1 requirement is held elsewhere, fulfilled by another stakeholder's component.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |

@@ -46,7 +46,7 @@ const QuestionsSection = "questions"
 
 // Sections maps every section to its stage.
 var Sections = map[string]string{
-	"stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
+	"stakeholders": "requirements", "stakeholdersComplete": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
 	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "signIn": "design", "middlewares": "design", "handshakes": "design", "paths": "design", "routes": "design",
 	"commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "processes": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
@@ -60,7 +60,7 @@ var Sections = map[string]string{
 // sectionOrder is the order sections appear in the merged document and in
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
-	"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
+	"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints",
 	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "routes", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations", "handover",
@@ -71,7 +71,7 @@ var sectionOrder = []string{
 
 // singleSections hold one object, not a map of named objects, so they
 // cannot be split across files.
-var singleSections = map[string]bool{"release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
+var singleSections = map[string]bool{"stakeholdersComplete": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 
 // rootOnly are the keys that live only in the root file.
 var rootOnly = map[string]bool{"specarch": true, "info": true, "trustDomain": true, "timeZone": true, "stages": true, "sources": true}

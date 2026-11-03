@@ -12,7 +12,7 @@ file `specarch.yaml`, and one folder per life-cycle stage it keeps.
     spec/
       specarch.yaml                  the root: specarch, info, stages, sources
       specarch.md                    the hand-written explanation, with generated regions
-      requirements/                  stakeholders, needs, requirements, glossary, assumptions, constraints
+      requirements/                  stakeholders, stakeholdersComplete, needs, requirements, glossary, assumptions, constraints
       design/                        enums, entities, permissions, roles, paths, commands, channels, pages, algorithms, decisions
       implementation/<stack>/        <name>.<stack>.specarch-implementation.yaml, and its .md when it needs one
       tests/<name>/                  test.yaml, and the scenario's own input and expected-output files
@@ -37,8 +37,9 @@ The rules, each of which the validator checks under the rule `layout`:
   sub-folder per section and one object per file, named after the object
   in kebab-case (`design/entities/loan.yaml`, `design/decisions/ADR-001.yaml`),
   with the small sections (`permissions`, `roles`) in one file each. The
-  single-object sections (`release`, `rollback`, `handover`, `signoff`,
-  `backup`, `restore`) are one file each, `deployment/release.yaml`.
+  single-object sections (`stakeholdersComplete`, `release`, `rollback`,
+  `handover`, `signoff`, `backup`, `restore`) are one file each,
+  `deployment/release.yaml`.
 - Each test is a folder `tests/<name>/` holding `test.yaml`, the test
   itself, beside any input and expected-output files the scenario needs;
   the validator reads nothing in a test folder but `test.yaml`. A file
@@ -391,6 +392,29 @@ builds what is a choice of one implementation, not part of the design
 (ADR-046). An `ownedBy` that names no stakeholder is the error
 `stakeholder`.
 
+The stakeholder list is confirmed complete by a role, not by a rule
+(ADR-226). Until the root holds `stakeholdersComplete`, validate warns
+`stakeholders_unconfirmed` at the list, every generated document and the
+overview of the site carry a banner under their title, and `specarch
+approve` warns and goes on; writing order stays free, so the needs, the
+design and the rest are written before the list is confirmed. Once nobody
+with an interest in the system is missing, the stakeholder who confirms
+it writes, beside the stakeholders:
+
+```yaml
+stakeholdersComplete:
+  by: library-board
+  date: "2026-09-15"
+  source: desk-interview
+```
+
+`by` is a stakeholder (`stakeholder`), `source` a declared source
+(`source`), as a decision's `decidedBy` and `cites` are checked. A must
+question that blocks the stakeholders holds the warning, since the gap is
+then already asked about. The key is the refinement's own record, not an
+element of the system: `diff` and the comparison leave it out, and origin
+tracking asks it for no origin.
+
 ### The interface boundary
 
 The rule of thumb: if a client of the interface needs to know it, it is
@@ -645,7 +669,7 @@ does not care; a reader does. In a tree, each section is in its stage's
 folder and only the first four are in the root file.
 
 1. `specarch`, `info`, `stages`, `sources`
-2. `stakeholders`, `needs`, `requirements`, `glossary`, `assumptions`, `constraints`
+2. `stakeholders`, `stakeholdersComplete`, `needs`, `requirements`, `glossary`, `assumptions`, `constraints`
 3. `enums`
 4. `entities`
 5. `permissions`, `roles`, `session`
@@ -791,6 +815,7 @@ redefined.
 | `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |
 | `language` (on a source) | BCP 47 | the language subtag and the subtags after it; the tag names the vocabulary a document is read by |
 | `stakeholders`, `needs`, `requirements`, `statement`, `priority`, `status`, `acceptance`, `verification` | SpecArch, after ISO/IEC/IEEE 29148 | the requirements stage: the standard's stakeholders (5.2.2), needs (6.3), requirements (6.4) and attributes (5.2.8); priority after MoSCoW; verification methods after MIL-STD-961E |
+| `stakeholdersComplete`, `by`, `date`, `source` (of the confirmation) | SpecArch, after ISO/IEC/IEEE 29148 5.2.2 | the role that confirmed the stakeholder list is complete, when, and the declared source it rests on; until it is set, `stakeholders_unconfirmed` warns, every document carries a banner and approve warns (ADR-226) |
 | `glossary`, `assumptions`, `constraints` (top level) | SpecArch, after ISO/IEC/IEEE 29148 | 9.2.3, 9.5.19 and 9.6.16 of the standard; arc42 sections 2 and 12 |
 | `satisfies`, `verifies` | SpecArch, after SysML and 29148 6.5 | the satisfy and verify relations from a design element or a test to a requirement |
 | `why`, `cites`, `source`, `clause`, `says` | SpecArch | the rationale and the citations every element may carry; 29148 (5.2.8) names rationale and source as attributes |

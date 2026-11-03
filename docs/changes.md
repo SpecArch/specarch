@@ -4,6 +4,8 @@
 
 Version 1.4.0 of the specification: 14 change requests and 0 defects are recorded beside it, 0 items open. Open items come first, then the ones carried out, then the ones closed without a change. The register is made from the records in `records/changes/` and `records/defects/`: they say what was asked and decided, and the specification says what is true now. Under each open change request stands what it reaches in the specification as it is now, before anything changes.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Change requests
 
 | Change | Title | Status | Raised in | Type | Urgency | Impact | Cause | Release |

@@ -7,6 +7,8 @@ standardOutput: |+
 
   Decisions to take: system-owner 6.
 
+  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
   Elements by origin: 2 stated, 1 inferred, 0 decided, 0 without origin.
 
   ## 1. Design

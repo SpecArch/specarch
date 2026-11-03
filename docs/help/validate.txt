@@ -27,3 +27,14 @@ scenarios each subject needs, citations and traceability.
 An incomplete specification is still read: every gap is a problem, never
 a refusal to read the rest. Fix an error at the file and line it names,
 then run validate again.
+
+One warning stands until a person ends it: stakeholders_unconfirmed, at
+the stakeholders, while no role has confirmed that the list is complete.
+Every generated document carries a banner and approve warns the same
+way. Once nobody with an interest in the system is missing, the role that
+confirms it writes, beside the stakeholders:
+
+  stakeholdersComplete: { by: <stakeholder>, date: "YYYY-MM-DD", source: <source> }
+
+by is a stakeholder of the specification and source a declared source,
+such as the kickoff interview.

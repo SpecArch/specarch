@@ -36,7 +36,7 @@ func (c Change) String() string {
 
 // notCompared are the root keys that are not elements: the version always
 // changes, and the stages are layout.
-var notCompared = map[string]bool{"specarch": true, "info": true, "stages": true}
+var notCompared = map[string]bool{"specarch": true, "info": true, "stages": true, "stakeholdersComplete": true}
 
 // singleSections are the sections that are one object.
 var singleSections = map[string]bool{"session": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true}

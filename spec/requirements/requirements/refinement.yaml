@@ -294,3 +294,20 @@ requirements:
       - source: iso-29148
         clause: "6.4.3"
         says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
+  SA-120:
+    statement: A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - validate on a specification with stakeholders and no stakeholdersComplete warns stakeholders_unconfirmed at /stakeholders and exits 0; with stakeholdersComplete set by a declared stakeholder it prints nothing.
+      - stakeholdersComplete whose by is not a stakeholder is the error stakeholder at /stakeholdersComplete/by, and a source that is not declared is the error source at /stakeholdersComplete/source.
+      - Every document specarch document writes, and the overview of the HTML site, carries the Stakeholders unconfirmed banner while the key is not set, and none once it is.
+      - approve on such a specification writes the approval record, prints the warning on standard error and exits 0.
+    verification: test
+    needs: [NEED-1, NEED-8]
+    why: A stakeholder nobody listed is the one who objects first at acceptance, and the list is confirmed by a person, not by a rule; a warning that stands in every output until a role confirms it keeps the gap visible without stopping the work, which a compiler for specifications never does.
+    cites:
+      - source: iso-29148
+        clause: "5.2.2"
+        says: "The stakeholders of the system are identified, so that every class of stakeholder with a legitimate interest in the system is represented."

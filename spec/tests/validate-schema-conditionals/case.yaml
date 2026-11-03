@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:4:13: error: /sources/handbook: schema: kind is missing; add it here [schema@specarch.yaml#/sources/handbook]
   specarch.yaml:14:21: error: /entities/Loan/constraints/loan_checked: schema: kind is missing; add it here [schema@specarch.yaml#/entities/Loan/constraints/loan_checked]
   specarch.yaml:14:21: warning: /entities/Loan/constraints/loan_checked: test_golden_missing: Loan constraint loan_checked has no golden scenario; add one under tests, for example loan-checked-succeeds: { entity: Loan, constraint: loan_checked, scenario: golden, given: "...", when: "...", then: "it succeeds" } [test_golden_missing@specarch.yaml#/entities/Loan/constraints/loan_checked]

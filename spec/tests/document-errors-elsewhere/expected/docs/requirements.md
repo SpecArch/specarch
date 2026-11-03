@@ -4,7 +4,11 @@
 
 Version 1.0.0 of the specification: 0 stakeholders, 0 needs and 1 requirement. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** The specification has 2 errors, so it is invalid, and this document shows what could be read of it. None of them is in what this document covers. The problems file lists every problem, and specarch validate prints them.
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
+**Problems:** The specification has 2 errors, so it is invalid, and this document shows what could be read of it. 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
 
 ## 1. Purpose and scope
 

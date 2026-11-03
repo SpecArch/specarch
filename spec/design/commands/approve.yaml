@@ -50,9 +50,9 @@ commands:
     writes:
       - { path: "records/approvals/<version>.yaml", description: "The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced." }
     standardOutput: The errors of an invalid specification, and one line per configured document that is missing or differs.
-    standardError: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
+    standardError: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one line naming the record written.
     exitCodes:
-      "0": the approval was recorded
+      "0": the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete)
       "1": refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current
       "2": usage error, or a file that could not be read or written
     remedies:

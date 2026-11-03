@@ -4,6 +4,8 @@
 
 Version 1.4.0 of the specification: 0 tasks, 0 pages and 29 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 The `specarch` command: it validates SpecArch specifications and makes
 documents and code from them. This folder is the specification, with no
 language, library or build tool in it; how one stack implements it is in
@@ -92,11 +94,11 @@ It writes:
 
 On standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
 
-On standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
+On standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one line naming the record written.
 
 | Exit status | It means | What to do |
 |---|---|---|
-| 0 | the approval was recorded |   |
+| 0 | the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete) |   |
 | 1 | refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current | Run specarch gaps and specarch validate on the same paths and settle what they print, run specarch document for each document not current, then approve again. |
 | 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 

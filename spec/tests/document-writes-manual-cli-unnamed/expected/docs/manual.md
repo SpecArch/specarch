@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 0 tasks, 0 pages and 1 command. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Who uses it
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.

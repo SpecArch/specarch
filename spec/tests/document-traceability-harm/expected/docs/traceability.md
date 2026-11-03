@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 3 needs, 2 requirements, and 4 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 **Problems:** 5 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: need_unrefined: no requirement refines need NEED-2; add a requirement with needs: [NEED-2], or set the need's status to rejected [need_unrefined@specarch.yaml#/needs/NEED-2]

@@ -527,7 +527,7 @@ func sectionNames() []string {
 // single reports a section that is one object, not a mapping of named ones.
 func single(section string) bool {
 	switch section {
-	case "release", "rollback", "handover", "signoff", "backup", "restore", "accessibility", "theme":
+	case "stakeholdersComplete", "release", "rollback", "handover", "signoff", "backup", "restore", "accessibility", "theme":
 		return true
 	}
 	return false

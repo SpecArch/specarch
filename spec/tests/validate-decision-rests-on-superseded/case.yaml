@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:27:15: warning: /decisions/ADR-003/restsOn/0: decision_superseded: ADR-001 is superseded by ADR-002, so this decision rests on what no longer holds; supersede it with a decision that rests on ADR-002 [decision_superseded@specarch.yaml#/decisions/ADR-003/restsOn/0]

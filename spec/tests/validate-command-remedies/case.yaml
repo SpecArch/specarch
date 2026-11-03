@@ -1,5 +1,6 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:19:12: error: /commands/pack/remedies/0: exit_code: status 0 is success and needs no remedy; remove it, or key the remedy by the status it answers [exit_code@specarch.yaml#/commands/pack/remedies/0]
   specarch.yaml:21:12: error: /commands/pack/remedies/3: exit_code: 3 is not an exit status of pack; list it under exitCodes or key the remedy by one that is [exit_code@specarch.yaml#/commands/pack/remedies/3]

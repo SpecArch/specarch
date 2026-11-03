@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 2 environments, 3 settings and 1 migration. Secrets are named here with where their value comes from, never with a value.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 **Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Environments

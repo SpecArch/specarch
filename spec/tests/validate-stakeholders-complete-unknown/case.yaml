@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:11:29: error: /stakeholdersComplete/by: stakeholder: clerks is not a stakeholder of the specification; did you mean clerk? [stakeholder@specarch.yaml#/stakeholdersComplete/by]
+  specarch.yaml:11:65: error: /stakeholdersComplete/source: source: kick-off is not a source declared under sources; did you mean kickoff? [source@specarch.yaml#/stakeholdersComplete/source]

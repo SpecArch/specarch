@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification whose stakeholdersComplete is set by a declared stakeholder, with a date and a declared interview source"
+when: "validate is run"
+then: "it prints nothing and exits 0: the confirmation ends the stakeholders_unconfirmed warning"
+verifies: [SA-120]

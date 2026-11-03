@@ -4,6 +4,8 @@
 
 Version 1.4.0 of the specification: 21 releases are recorded beside it, newest first. Each lists what it includes, grouped as added, changed, removed and fixed, from the change and defect records in `records/`, each change with where it was raised and why the result was not what was wanted, and the changes counted by cause: omitted, wrong and unheard measure the requirements work, changed is normal change.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1.4.0, released 2026-10-31
 
 ### Added

@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:23:3: error: /tenant: tenant: tenant limits the rows of each role, and the specification has no roles, so no rule is derived and every tenant would reach every record; add the roles that call the system under roles, or take tenant out if the system serves one tenant [tenant@specarch.yaml#/tenant]

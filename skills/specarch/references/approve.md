@@ -55,10 +55,10 @@ The errors of an invalid specification, and one line per configured document tha
 
 ## Standard error
 
-A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
+A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one line naming the record written.
 
 ## Exit status
 
-- 0: the approval was recorded.
+- 0: the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete).
 - 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current. Then: Run specarch gaps and specarch validate on the same paths and settle what they print, run specarch document for each document not current, then approve again.
 - 2: usage error, or a file that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

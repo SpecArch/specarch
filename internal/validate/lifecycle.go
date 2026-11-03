@@ -42,7 +42,39 @@ func (c *checker) checkRequirementsStage(d *design) {
 			}
 		}
 	}
+	c.checkStakeholdersComplete(d)
 }
+
+// checkStakeholdersComplete warns while no role has confirmed that the
+// stakeholder list is complete (ADR-226): the warning stands at the list
+// until the root holds stakeholdersComplete, whose by is a stakeholder
+// and whose source, when given, is a declared source. A must question
+// that blocks the stakeholders holds the warning, since the gap is then
+// already asked about. Writing order stays free: the rest of the
+// specification is read as it is.
+func (c *checker) checkStakeholdersComplete(d *design) {
+	complete := source.Child(d.root, "stakeholdersComplete")
+	if complete == nil {
+		if !d.mustBlocked("stakeholders") {
+			c.warn(source.Key(d.root, "stakeholders"), "/stakeholders", RuleStakeholdersUnconfirmed, "%s", stakeholdersUnconfirmed)
+		}
+		return
+	}
+	if by := source.Child(complete, "by"); by != nil && by.Value != "" && d.stakeholders[by.Value] == nil {
+		c.add(by, "/stakeholdersComplete/by", RuleStakeholder, "%s is not a stakeholder of the specification%s", by.Value, suggest(by.Value, d.stakeholders))
+	}
+	if src := source.Child(complete, "source"); src != nil && src.Value != "" && d.sources[src.Value] == nil {
+		if len(d.sources) == 0 {
+			c.add(src, "/stakeholdersComplete/source", RuleSource, "%s is not a declared source: the specification declares none; add it under sources in %s", src.Value, spec.RootFile)
+		} else {
+			c.add(src, "/stakeholdersComplete/source", RuleSource, "%s is not a source declared under sources%s", src.Value, suggest(src.Value, d.sources))
+		}
+	}
+}
+
+// stakeholdersUnconfirmed is the one message of stakeholders_unconfirmed,
+// the same in both validators.
+const stakeholdersUnconfirmed = "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve"
 
 // checkDeploymentStage checks the links inside the deployment,
 // commissioning and operation stages, and that no secret carries a value.

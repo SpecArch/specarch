@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+given: "a specification with stakeholders and no stakeholdersComplete, and a configured requirements document"
+when: "document requirements is run"
+then: "the document carries the Stakeholders unconfirmed banner under its title and the warning marked as a problem, and the run exits 0"
+verifies: [SA-120]

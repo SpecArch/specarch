@@ -207,6 +207,7 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 	if everyone {
 		d.para("This document is for everyone: the person labels the records carry are left out, and so is what touches an internal element.")
 	}
+	d.stakeholdersNotice()
 
 	d.section("In time order")
 	if len(entries) == 0 {
@@ -438,6 +439,7 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 	if state.Withheld != nil {
 		d.para("This document is for everyone: what touches an internal element is left out.")
 	}
+	d.stakeholdersNotice()
 
 	d.section("Every event")
 	if len(events) == 0 {

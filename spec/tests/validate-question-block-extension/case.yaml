@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:4:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:30:14: error: /questions/Q-2/blocks/0: question_block: #/x-form/nothing/deeper does not point at anything in the specification; write the key in the x-form block, down to an empty mapping when only its name is known [question_block@specarch.yaml#/questions/Q-2/blocks/0]
   specarch.yaml:30:41: error: /questions/Q-2/blocks/1: question_block: #/x-other/values does not point at anything in the specification; the root file has no x-other block, so write it with that key, or name the element the values belong to [question_block@specarch.yaml#/questions/Q-2/blocks/1]
   specarch.yaml:30:61: error: /questions/Q-2/blocks/2: question_block: #/x-form/valeus does not point at anything in the specification; did you mean values? [question_block@specarch.yaml#/questions/Q-2/blocks/2]

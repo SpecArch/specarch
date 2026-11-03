@@ -54,7 +54,7 @@ var siteGroups = []struct {
 	title string
 	keys  []string
 }{
-	{"Requirements", []string{"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints", "sources"}},
+	{"Requirements", []string{"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints", "sources"}},
 	{"Data", []string{"enums", "entities", "views", "schemas"}},
 	{"Roles and permissions", []string{"permissions", "roles", "separationOfDuties", "session", "middlewares"}},
 	{"Operations", []string{"paths", "commands", "channels", "dependencies", "jobs", "processes", "errors"}},
@@ -69,13 +69,13 @@ var siteGroups = []struct {
 // oneObject are the sections that hold one object rather than named
 // elements; the overview shows the keys of the root file.
 var (
-	oneObject   = map[string]bool{"session": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
+	oneObject   = map[string]bool{"stakeholdersComplete": true, "session": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 	overviewKey = map[string]bool{"specarch": true, "info": true, "stages": true}
 )
 
 // sectionTitles are the headings of the sections.
 var sectionTitles = map[string]string{
-	"separationOfDuties": "Separation of duties", "paths": "HTTP operations",
+	"separationOfDuties": "Separation of duties", "stakeholdersComplete": "Stakeholder list confirmed", "paths": "HTTP operations",
 }
 
 // linkTo says, for a key, which sections a value under it names an
@@ -406,6 +406,9 @@ func (s *site) overview() {
 
 	if n := s.d.withheld.audienceNotice(); n != "" {
 		s.line(`<p class="notice">%s</p>`, bold(n))
+	}
+	if s.d.unconfirmedStakeholders {
+		s.line(`<p class="notice">%s</p>`, bold(StakeholdersBanner))
 	}
 	if ids := holding(s.d.questions, []string{"*"}); len(ids) > 0 {
 		s.line(`<p class="notice draft"><strong>Draft:</strong> %s hold up what this page shows (%s); see <a href="#%s">Open questions</a>.</p>`, esc(countText(len(ids), "must or should question", "must or should questions")), esc(strings.Join(ids, ", ")), esc(anchor("/questions")))

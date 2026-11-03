@@ -1,0 +1,11 @@
+# specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+entities:
+  Book:
+    description: A title the library owns.
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+    required: [id]
+    primaryKey: [id]

@@ -217,6 +217,8 @@ func (c *checker) checkOriginTracked(d *design) {
 			continue
 		}
 		switch name {
+		case "stakeholdersComplete":
+			// The confirmation is the refinement's own record, not an element with an origin.
 		case "release", "rollback", "handover", "signoff", "backup", "restore":
 			if source.Child(p.Value, "origin") == nil {
 				c.warn(p.Key, source.Pointer(name), RuleOriginMissing, "%s carries no origin, and the specification tracks origin; add origin: stated, inferred or decided", name)

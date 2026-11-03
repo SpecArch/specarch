@@ -61,6 +61,7 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 	d.para(summary)
 	d.para("Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs; a citation from a decision or a question does not count, since neither is compared, and a clause only a question cites is named as asked about.")
 	d.para(d.withheld.audienceNotice())
+	d.stakeholdersNotice()
 	d.problemsNotice("comparison")
 
 	d.section("Kept")
@@ -263,8 +264,8 @@ func namedElements(root *yaml.Node) []element {
 	ptrs := pointers(root)
 	for _, p := range source.Pairs(root) {
 		name := p.Key.Value
-		if _, isSection := spec.Sections[name]; !isSection || name == "decisions" || name == "questions" {
-			continue // the decisions and the questions are the refinement's own record, not elements of the system
+		if _, isSection := spec.Sections[name]; !isSection || name == "decisions" || name == "questions" || name == "stakeholdersComplete" {
+			continue // the decisions, the questions and the stakeholder list's confirmation are the refinement's own record, not elements of the system
 		}
 		switch name {
 		case "release", "rollback", "signoff", "handover", "backup", "restore":

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-fragment-requirements-1.0.schema.json",
   "title": "SpecArch requirements file, meta-model 1.0",
-  "description": "One file under the requirements/ folder of a SpecArch specification: a mapping of that stage's sections (stakeholders, needs, requirements, glossary, assumptions, constraints, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-1.0.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
+  "description": "One file under the requirements/ folder of a SpecArch specification: a mapping of that stage's sections (stakeholders, stakeholdersComplete, needs, requirements, glossary, assumptions, constraints, questions). A file under a sub-folder named after a section holds only that section. The validator merges every file of a tree into one document, which specarch-design-1.0.schema.json describes, and checks what spans files, such as references and names defined twice; this schema checks one file alone. Written by tools/fragment-schemas from that schema; do not edit, run it.",
   "type": "object",
   "properties": {
     "stakeholders": {
@@ -14,6 +14,10 @@
       "additionalProperties": {
         "$ref": "#/$defs/stakeholder"
       }
+    },
+    "stakeholdersComplete": {
+      "description": "SpecArch keyword. The confirmation that the stakeholder list is complete, set once by a stakeholder role when nobody with an interest in the system is missing from 'stakeholders'. Until it is set, validate warns stakeholders_unconfirmed at the list, every generated document carries a banner, and approve warns; writing order stays free, so the rest of the specification may be written first.",
+      "$ref": "#/$defs/stakeholdersComplete"
     },
     "needs": {
       "description": "SpecArch keyword. Raw stakeholder needs as gathered, before they are turned into requirements (ISO/IEC/IEEE 29148:2018, 5.2.3 and 6.3), keyed by ID such as NEED-1.",
@@ -225,6 +229,40 @@
       },
       "required": [
         "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stakeholdersComplete": {
+      "description": "SpecArch keyword. Who confirmed that the stakeholder list is complete, when, and on what: the three facts that make the confirmation traceable, as a decision names who decided, when and what it cites.",
+      "type": "object",
+      "properties": {
+        "by": {
+          "description": "The stakeholder who confirms the list is complete, by key; a role, never a person. It must be one of 'stakeholders' (the rule stakeholder).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "date": {
+          "description": "The day the list was confirmed, as YYYY-MM-DD.",
+          "type": "string",
+          "format": "date"
+        },
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml where the list was confirmed, such as an interview or a kickoff meeting; checked by the rule source.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        }
+      },
+      "required": [
+        "by",
+        "date"
       ],
       "propertyNames": {
         "not": {

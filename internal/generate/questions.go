@@ -23,7 +23,7 @@ var (
 // section.
 var documentReads = map[string][]string{
 	"techspec":      {"*"},
-	"requirements":  {"stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints"},
+	"requirements":  {"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints"},
 	"testplan":      {"tests", "requirements"},
 	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "processes", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
 	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "handover", "monitors", "backup", "restore"},
@@ -224,6 +224,7 @@ func holding(qs []question, sections []string) []string {
 func (d *doc) draftNotice(target string) {
 	defer d.problemsNotice(target)
 	d.para(d.withheld.audienceNotice())
+	d.stakeholdersNotice()
 	ids := holding(d.questions, documentReads[target])
 	if len(ids) == 0 {
 		return
@@ -346,6 +347,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		d.para(takers(qs))
 	}
 	d.para(d.withheld.audienceNotice())
+	d.stakeholdersNotice()
 	if str(info, "tracksOrigin") == "true" {
 		stated, inferred, decided, none := originCounts(root)
 		d.para(fmt.Sprintf("Elements by origin: %d stated, %d inferred, %d decided, %d without origin.", stated, inferred, decided, none))

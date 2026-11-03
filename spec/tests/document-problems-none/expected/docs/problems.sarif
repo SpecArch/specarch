@@ -7,11 +7,47 @@
         "driver": {
           "name": "specarch",
           "informationUri": "https://github.com/SpecArch/specarch",
-          "rules": []
+          "rules": [
+            {
+              "id": "stakeholders_unconfirmed"
+            }
+          ]
         }
       },
       "columnKind": "unicodeCodePoints",
-      "results": [],
+      "results": [
+        {
+          "ruleId": "stakeholders_unconfirmed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/stakeholders",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "stakeholders_unconfirmed@specarch.yaml#/stakeholders"
+          }
+        }
+      ],
       "properties": {
         "specification": "../project",
         "title": "Case",

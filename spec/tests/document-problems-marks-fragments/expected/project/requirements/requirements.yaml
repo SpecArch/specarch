@@ -1,5 +1,6 @@
 # The requirements of the case, kept by hand.
 stakeholders:
+  # specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
   owner: { description: The product owner. }
 
 requirements:
@@ -33,7 +34,7 @@ questions:
     priority: should
     decidedBy: owner
     options: ["14 days", "21 days"]
-    # specarch-problem: error: duplicate_key: key "blocks" is already defined on line 37 [duplicate_key@requirements/requirements.yaml#/questions/Q-1/blocks]
+    # specarch-problem: error: duplicate_key: key "blocks" is already defined on line 38 [duplicate_key@requirements/requirements.yaml#/questions/Q-1/blocks]
     blocks: [design]
     blocks: [design]
     why: The manual and the service differ.

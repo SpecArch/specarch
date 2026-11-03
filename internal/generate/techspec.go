@@ -66,18 +66,19 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *St
 // registry of sources; cited collects the ones its Notes name.
 type doc struct {
 	strings.Builder
-	sources   *yaml.Node
-	decisions *yaml.Node
-	cited     map[string]bool
-	sections  int                   // the sections numbered so far, for documents numbered as they go
-	questions []question            // the open questions, for Open paragraphs and draft notices
-	changes   []openChange          // the open change requests, shown at the elements they name
-	pointerOf map[*yaml.Node]string // every mapping's pointer, to find the questions about it
-	marks     []Mark                // the errors and warnings, for Problem paragraphs
-	placing   *placing              // where the marks stand, while the document is written twice
-	withheld  *Withheld             // for a document for everyone, what it left out
-	slugs     map[string]int        // the headings written so far by anchor, to make the next one unique
-	anchors   map[string]string     // section/name -> the anchor of the heading that describes the element
+	sources                 *yaml.Node
+	decisions               *yaml.Node
+	cited                   map[string]bool
+	sections                int                   // the sections numbered so far, for documents numbered as they go
+	questions               []question            // the open questions, for Open paragraphs and draft notices
+	changes                 []openChange          // the open change requests, shown at the elements they name
+	pointerOf               map[*yaml.Node]string // every mapping's pointer, to find the questions about it
+	marks                   []Mark                // the errors and warnings, for Problem paragraphs
+	placing                 *placing              // where the marks stand, while the document is written twice
+	withheld                *Withheld             // for a document for everyone, what it left out
+	unconfirmedStakeholders bool                  // the root holds no stakeholdersComplete, so every document carries the banner
+	slugs                   map[string]int        // the headings written so far by anchor, to make the next one unique
+	anchors                 map[string]string     // section/name -> the anchor of the heading that describes the element
 }
 
 // section starts the next numbered section of a document whose sections
@@ -92,7 +93,7 @@ func (d *doc) section(title string) {
 // root file and each implementation file, with their versions, and the
 // meta-model.
 func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) *doc {
-	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root)}
+	d := &doc{sources: get(root, "sources"), decisions: get(root, "decisions"), questions: questionsOf(root), pointerOf: pointers(root), unconfirmedStakeholders: get(root, "stakeholdersComplete") == nil}
 	if state != nil {
 		d.marks, d.placing, d.withheld = state.Marks, state.placing, state.Withheld
 		d.changes = openChangesOf(state)
@@ -115,6 +116,20 @@ func newDoc(target string, root *yaml.Node, relRoot string, impls []Implementati
 
 func (d *doc) line(format string, args ...any) { fmt.Fprintf(d, format+"\n", args...) }
 func (d *doc) blank()                          { d.WriteString("\n") }
+
+// StakeholdersBanner is the short banner every generated document and the
+// overview carry while the stakeholder list is not confirmed complete
+// (ADR-226): a role with an interest in the system may still be missing,
+// and the reader should know before relying on what the document shows.
+const StakeholdersBanner = "**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification."
+
+// stakeholdersNotice writes the banner while the list is unconfirmed.
+func (d *doc) stakeholdersNotice() {
+	if d.unconfirmedStakeholders {
+		d.para(StakeholdersBanner)
+	}
+}
+
 func (d *doc) para(s string) {
 	if s = strings.TrimSpace(s); s != "" {
 		d.WriteString(s + "\n\n")

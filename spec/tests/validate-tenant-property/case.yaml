@@ -1,4 +1,5 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:22:13: error: /tenant/property: tenant: organisation is not a property of the caller, so the tenant scope has nothing to compare organisationId with; its properties are organisationId [tenant@specarch.yaml#/tenant/property]

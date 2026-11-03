@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 0 monitors, 0 jobs, 0 dependencies and 0 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Where it runs
 
 The specification has no environments; each place the system runs, and the one a release is promoted to next, is written under environments.

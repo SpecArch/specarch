@@ -42,6 +42,8 @@ approves:
   specarch approve --by writer spec/
 
 It refuses a specification with errors, with an open must or should
-question, or whose documents differ from what it says now. The record
+question, or whose documents differ from what it says now, and warns,
+going ahead, while no role has confirmed that the stakeholder list is
+complete (stakeholdersComplete; specarch help validate). The record
 holds a digest of the files, so any later change voids it. generate runs
 only on an approved specification.

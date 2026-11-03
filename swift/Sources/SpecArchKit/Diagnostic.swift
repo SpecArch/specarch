@@ -68,6 +68,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case linkMissing = "link_missing"
     case need = "need"
     case stakeholder = "stakeholder"
+    case stakeholdersUnconfirmed = "stakeholders_unconfirmed"
     case source = "source"
     case sourceClause = "source_clause"
     case environment = "environment"

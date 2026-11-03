@@ -6,6 +6,8 @@ Version 1.0.0 of the specification: 3 open questions (2 must, 0 should, 1 could)
 
 Decisions to take: owner 2. Material to provide: owner 1.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Requirements
 
 ### Q-1 (must, decision)

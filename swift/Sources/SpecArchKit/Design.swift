@@ -432,6 +432,31 @@ extension Checker {
                     "\(n.value) is not a need of the specification\(suggest(n.value, d.needs))")
             }
         }
+        checkStakeholdersComplete(d)
+    }
+
+    /// Warns while no role has confirmed that the stakeholder list is
+    /// complete (ADR-226): the warning stands at the list until the root
+    /// holds stakeholdersComplete, whose by is a stakeholder and whose
+    /// source, when given, is a declared source. A must question that
+    /// blocks the stakeholders holds the warning.
+    func checkStakeholdersComplete(_ d: Design) {
+        guard let complete = d.root.child("stakeholdersComplete") else {
+            if !d.mustBlocked("stakeholders") {
+                warn(d.root.key("stakeholders"), "/stakeholders", .stakeholdersUnconfirmed, stakeholdersUnconfirmed)
+            }
+            return
+        }
+        if let by = complete.child("by"), !by.value.isEmpty, d.stakeholders[by.value] == nil {
+            add(by, "/stakeholdersComplete/by", .stakeholder, "\(by.value) is not a stakeholder of the specification\(suggest(by.value, d.stakeholders))")
+        }
+        if let src = complete.child("source"), !src.value.isEmpty, d.sources[src.value] == nil {
+            if d.sources.isEmpty {
+                add(src, "/stakeholdersComplete/source", .source, "\(src.value) is not a declared source: the specification declares none; add it under sources in \(rootFile)")
+            } else {
+                add(src, "/stakeholdersComplete/source", .source, "\(src.value) is not a source declared under sources\(suggest(src.value, d.sources))")
+            }
+        }
     }
 
     /// Checks the links inside the deployment, commissioning and operation
@@ -955,3 +980,6 @@ extension Checker {
         }
     }
 }
+
+/// The one message of stakeholders_unconfirmed, the same in both validators.
+let stakeholdersUnconfirmed = "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve"

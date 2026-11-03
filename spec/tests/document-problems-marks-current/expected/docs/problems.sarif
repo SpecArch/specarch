@@ -27,6 +27,9 @@
               "id": "question_stage"
             },
             {
+              "id": "stakeholders_unconfirmed"
+            },
+            {
               "id": "test_golden_missing"
             },
             {
@@ -131,6 +134,37 @@
           }
         },
         {
+          "ruleId": "stakeholders_unconfirmed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 4,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/stakeholders",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders"
+          }
+        },
+        {
           "ruleId": "need",
           "kind": "fail",
           "level": "error",
@@ -145,7 +179,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 24,
+                  "startLine": 25,
                   "startColumn": 9
                 }
               },
@@ -176,7 +210,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 30,
+                  "startLine": 31,
                   "startColumn": 3
                 }
               },
@@ -221,7 +255,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 30,
+                  "startLine": 31,
                   "startColumn": 3
                 }
               },
@@ -242,7 +276,7 @@
           "kind": "fail",
           "level": "error",
           "message": {
-            "text": "key \"blocks\" is already defined on line 37"
+            "text": "key \"blocks\" is already defined on line 38"
           },
           "locations": [
             {
@@ -252,7 +286,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 38,
+                  "startLine": 39,
                   "startColumn": 5
                 }
               },

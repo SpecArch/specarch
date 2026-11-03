@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:14:29: error: /entities/Loan/constraints/loan_member_known/expression: caller_property: the check: field access with . is only for the caller's properties, written caller.<property>; name a field directly [caller_property@specarch.yaml#/entities/Loan/constraints/loan_member_known/expression]
   specarch.yaml:18:33: error: /entities/Loan/constraints/loan_own_member/expression: caller_property: the check: caller.memberId names the caller, which only a role's row policy may name; write the rule under the role's rowPolicies (rows in a file on meta-model 0.3 or earlier) [caller_property@specarch.yaml#/entities/Loan/constraints/loan_own_member/expression]
   specarch.yaml:31:25: error: /roles/member/rowPolicies/Loan: caller_property: the row policy: caller.memberid is not a property of the caller; did you mean caller.memberId? [caller_property@specarch.yaml#/roles/member/rowPolicies/Loan]

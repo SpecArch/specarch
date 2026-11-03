@@ -1,0 +1,5 @@
+arguments: [approve, --by, clerk, --date, 2026-11-03, project]
+exitStatus: 0
+standardOutput: ""
+standardError: |
+  specarch approve: version 1.0.0 of project approved by clerk; records/approvals/1.0.0.yaml written beside it

@@ -4,9 +4,13 @@
 
 Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP operations, 1 dependency, 29 tests and 1 decision. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 **Draft:** 8 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see the open questions document, or run specarch gaps.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
 
 ## 1. Introduction and goals
 

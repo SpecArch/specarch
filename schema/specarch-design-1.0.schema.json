@@ -60,6 +60,10 @@
         "$ref": "#/$defs/stakeholder"
       }
     },
+    "stakeholdersComplete": {
+      "description": "SpecArch keyword. The confirmation that the stakeholder list is complete, set once by a stakeholder role when nobody with an interest in the system is missing from 'stakeholders'. Until it is set, validate warns stakeholders_unconfirmed at the list, every generated document carries a banner, and approve warns; writing order stays free, so the rest of the specification may be written first.",
+      "$ref": "#/$defs/stakeholdersComplete"
+    },
     "needs": {
       "description": "SpecArch keyword. Raw stakeholder needs as gathered, before they are turned into requirements (ISO/IEC/IEEE 29148:2018, 5.2.3 and 6.3), keyed by ID such as NEED-1.",
       "type": "object",
@@ -1179,6 +1183,40 @@
       },
       "required": [
         "description"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "stakeholdersComplete": {
+      "description": "SpecArch keyword. Who confirmed that the stakeholder list is complete, when, and on what: the three facts that make the confirmation traceable, as a decision names who decided, when and what it cites.",
+      "type": "object",
+      "properties": {
+        "by": {
+          "description": "The stakeholder who confirms the list is complete, by key; a role, never a person. It must be one of 'stakeholders' (the rule stakeholder).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "date": {
+          "description": "The day the list was confirmed, as YYYY-MM-DD.",
+          "type": "string",
+          "format": "date"
+        },
+        "source": {
+          "description": "The key of a source declared under 'sources' in specarch.yaml where the list was confirmed, such as an interview or a kickoff meeting; checked by the rule source.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        }
+      },
+      "required": [
+        "by",
+        "date"
       ],
       "propertyNames": {
         "not": {

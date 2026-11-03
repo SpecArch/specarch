@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:1:1: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:22:34: error: /clients/reporting/proof/token: proof: transaction is a transaction token, and a workload must not authenticate itself with one (the Transaction Tokens draft, section 13.12); name an access token [proof@specarch.yaml#/clients/reporting/proof/token]
   specarch.yaml:28:3: warning: /clients/gateway: client_unused: gateway is a service with no roles that no operation names in via, so nothing reaches it; give it roles, name it in via, or remove it [client_unused@specarch.yaml#/clients/gateway]
   specarch.yaml:31:12: error: /clients/gateway/proof: proof: a wimse proof is the workload's own identity and names no algorithm, covered components or token; remove them [proof@specarch.yaml#/clients/gateway/proof]

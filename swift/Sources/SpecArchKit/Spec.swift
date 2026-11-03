@@ -21,7 +21,7 @@ public let questionsSection = "questions"
 
 /// Every section and its stage.
 public let sections: [String: String] = [
-    "stakeholders": "requirements", "needs": "requirements", "requirements": "requirements",
+    "stakeholders": "requirements", "stakeholdersComplete": "requirements", "needs": "requirements", "requirements": "requirements",
     "glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
     "enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "signIn": "design", "middlewares": "design", "handshakes": "design", "paths": "design",
     "commands": "design", "channels": "design", "dependencies": "design", "jobs": "design", "processes": "design", "routes": "design", "gateways": "design", "workflows": "design", "errors": "design", "pages": "design", "menus": "design", "flows": "design", "accessibility": "design", "theme": "design", "algorithms": "design", "decisions": "design",
@@ -35,7 +35,7 @@ public let sections: [String: String] = [
 /// The order sections take in the merged document: life-cycle order, the
 /// questions last.
 let sectionOrder = [
-    "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
+    "stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints",
     "enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "routes", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
     "tests", "decisions",
     "environments", "configuration", "release", "rollback", "migrations", "handover",
@@ -46,7 +46,7 @@ let sectionOrder = [
 
 /// Sections that hold one object, not a map of named objects, so they
 /// cannot be split across files.
-let singleSections: Set<String> = ["release", "rollback", "handover", "signoff", "backup", "restore", "accessibility", "theme"]
+let singleSections: Set<String> = ["stakeholdersComplete", "release", "rollback", "handover", "signoff", "backup", "restore", "accessibility", "theme"]
 
 /// The keys that live only in the root file.
 let rootOnly: Set<String> = ["specarch", "info", "trustDomain", "timeZone", "stages", "sources"]

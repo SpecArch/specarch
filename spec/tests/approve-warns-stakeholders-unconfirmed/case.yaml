@@ -1,0 +1,6 @@
+arguments: [approve, --by, clerk, --date, 2026-11-03, project]
+exitStatus: 0
+standardOutput: ""
+standardError: |
+  specarch approve: warning: the stakeholder list of project is not confirmed complete (stakeholders_unconfirmed), so a role with an interest in the system may be missing from it and object first at acceptance; the approval goes ahead, and a stakeholder confirms the list with stakeholdersComplete (by, date, source) in the specification
+  specarch approve: version 1.0.0 of project approved by clerk; records/approvals/1.0.0.yaml written beside it

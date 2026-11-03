@@ -1,6 +1,7 @@
 arguments: [validate, .]
 exitStatus: 1
 standardOutput: |
+  specarch.yaml:4:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, date and source, which ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
   specarch.yaml:24:90: error: /roles/reader/home: role_home: member-view takes the route parameters memberId, and a home page is opened with none; name a page whose route takes none [role_home@specarch.yaml#/roles/reader/home]
   specarch.yaml:25:12: warning: /roles/remover: navigation: remover can open no menu entry, so a person holding it finds no page; grant it the permission of an entry's page, or add an entry it can open [navigation@specarch.yaml#/roles/remover]
   specarch.yaml:25:96: error: /roles/remover/home: role_home: remover cannot open its home member-form, which needs members.write; grant it to the role, or name a page the role can open [role_home@specarch.yaml#/roles/remover/home]

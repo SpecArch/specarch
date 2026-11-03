@@ -4,6 +4,8 @@
 
 Version 1.4.0 of the specification: 3 checks run on the installed system before it is handed over, and the sign-off sheet. Fill in the Result column as each step is run; the filled-in run is kept as a record under `records/commissioning/`, beside the specification, not in it.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
 ## 1. Checks in developer-machine
 
 ### installs-and-answers (smoke)

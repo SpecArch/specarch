@@ -7,6 +7,8 @@ standardOutput: |+
 
   Decisions to take: owner 1.
 
+  **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by, date, source) in the specification.
+
   ## 1. Extension blocks
 
   ### Q-1 (must, decision)

@@ -1,0 +1,11 @@
+arguments: [generate, deploy, --unapproved, --out, out, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:1:1: error: /: generator: settings.deployments of the deploy target names archive, which is not a deployment of project/case.go.specarch-implementation.yaml; name a deployment of the file [generator.4ccaabee@specarch.yaml#/]
+  project/specarch.yaml:1:1: error: /: generator: the deployment local of project/case.go.specarch-implementation.yaml names no form under settings.deployments.local.form of the deploy target; write compose, kubernetes or cloud-init, and the files of the deployment are written [generator.d7cb4ab1@specarch.yaml#/]
+  project/specarch.yaml:1:1: error: /: generator: settings.deployments.production.form of the deploy target is ansible, and specarch-gen-deploy writes compose, kubernetes and cloud-init; name one of them [generator.d34e90e8@specarch.yaml#/]
+  project/specarch.yaml:1:1: error: /: generator: settings.fresh of the deploy target names staging, whose form is kubernetes, and a fresh environment is written for a compose deployment alone, since a Compose project is built and torn down on one host with no provisioner; name a compose deployment, or leave staging out of fresh [generator.06704c99@specarch.yaml#/]
+  project/specarch.yaml:27:3: error: /configuration/dailyRate: generator: the setting dailyRate has no value in the deployment staging of project/case.go.specarch-implementation.yaml and no default; write it under deployments.staging.configuration.dailyRate, or give the setting a default [generator@specarch.yaml#/configuration/dailyRate]
+  project/specarch.yaml:1:1: error: /: generator: the server api of the deployment staging has no image under settings.images.api of the deploy target; name the image the server runs, with its tag or digest, and the server is written [generator.3f03ff03@specarch.yaml#/]
+  project/specarch.yaml:1:1: error: /: generator: the database server db of the deployment staging runs the sql target's dialect sqlserver, and specarch-gen-deploy runs postgresql and mariadb as containers; write the StatefulSet db by hand, beside this file [generator.9dad205a@specarch.yaml#/]
+plugins: [deploy]

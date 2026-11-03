@@ -1,0 +1,64 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  sql:
+    output: ../migrations
+    dialect: postgresql
+  seed:
+    output: ../seed
+  deploy:
+    output: ../deploy
+    settings:
+      deployments:
+        local: { form: compose }
+        staging: { form: kubernetes }
+        production: { form: cloud-init }
+      images:
+        api: localhost/case-desk-api:latest
+        db: docker.io/library/postgres:16
+      storage:
+        db: 20Gi
+      fresh: [local]
+tasks:
+  build: { run: podman build -t case-desk-api . }
+testing:
+  framework: go test
+  run: go test ./...
+  suites:
+    unit: { description: The service's own code., level: unit, run: go test ./..., implementationOnly: true }
+deployments:
+  local:
+    description: A developer's machine.
+    environment: development
+    servers:
+      - { name: api, url: "http://localhost:8080", description: The API. }
+      - { name: db, kind: database, url: "postgresql://localhost:5432", listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] }, description: A throwaway database. }
+    links:
+      - { from: api, to: db, port: 5432 }
+    configuration:
+      dailyRate: "0.50"
+  staging:
+    description: The staging cluster.
+    environment: staging
+    servers:
+      - { name: api, url: "https://staging.case.example", listens: [{ port: 8080, protocol: http }], description: The API. }
+      - { name: db, kind: database, url: "postgresql://db:5432", listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] }, description: The staging database. }
+      - { name: bus, dependency: eventBus, url: "amqps://bus.staging.case.example:5671", listens: [{ port: 5671, protocol: amqp }], description: The broker in this environment. }
+    links:
+      - { from: api, to: db, port: 5432 }
+      - { from: api, to: bus, port: 5671 }
+    configuration:
+      dailyRate: "0.50"
+      pageSize: 50
+  production:
+    description: The live hosts.
+    environment: production
+    servers:
+      - { name: api, url: "https://case.example", listens: [{ port: 8080, protocol: http }], description: The API host. }
+      - { name: db, kind: database, url: "postgresql://db.case.internal:5432", listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] }, description: The database host. }
+    links:
+      - { from: api, to: db, port: 5432 }
+    configuration:
+      dailyRate: "0.75"

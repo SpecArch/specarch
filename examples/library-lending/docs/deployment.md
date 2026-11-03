@@ -40,13 +40,18 @@ A developer's machine. Environment: development.
 
 ```mermaid
 flowchart LR
-  subgraph deployment_local["local, environment development"]
-    server_api["api, service, localhost:8080<br/>runs internal/api, internal/lending"]
-    server_db[("db, database, localhost:5432<br/>runs target sql")]
+  server_api["api, service, localhost:8080<br/>runs internal/api, internal/lending"]
+  server_db[("db, database, localhost:5432<br/>runs target sql")]
+  server_api -->|"5432 postgresql"| server_db
+  subgraph unreached_local["not a server of local"]
+    dependency_eventBus[["eventBus"]]
+    dependency_feeLedger["feeLedger"]
   end
 ```
 
-The deployment declares no links between its servers, so the diagram draws none.
+The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.
+
+Installed with podman compose 5.4, from ../../../deploy/local. The Compose project the deploy target writes; fresh.sh beside it builds a throwaway copy, loads the migrations and the seed, runs the suites and takes it down.
 
 | Setting | Value |
 |---|---|
@@ -66,13 +71,18 @@ The staging host the librarians try a release on. Environment: staging.
 
 ```mermaid
 flowchart LR
-  subgraph deployment_staging["staging, environment staging"]
-    server_api["api, service, staging.library.example<br/>runs internal/api, internal/lending"]
-    server_db[("db, database, db.staging.library.internal:5432<br/>runs target sql")]
+  server_api["api, service, staging.library.example<br/>runs internal/api, internal/lending"]
+  server_db[("db, database, db.staging.library.internal:5432<br/>runs target sql")]
+  server_api -->|"5432 postgresql"| server_db
+  subgraph unreached_staging["not a server of staging"]
+    dependency_eventBus[["eventBus"]]
+    dependency_feeLedger["feeLedger"]
   end
 ```
 
-The deployment declares no links between its servers, so the diagram draws none.
+The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.
+
+Installed with kubectl 1.33, from ../../../deploy/staging. The manifests the deploy target writes, applied into the namespace library-lending-staging; the Secret library-lending-secrets is made from the vendor's secret store before the first apply.
 
 | Setting | Value |
 |---|---|
@@ -134,7 +144,7 @@ The build is bit-for-bit reproducible, so the digest of the library's image equa
 
 The software bill of materials of the build, and its scan for known vulnerabilities, are written by `syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json` (the task sbom); the customer runs it on their build and compares the result with the vendor's.
 
-Installed with podman-compose 1.4, from ../../../deploy/compose. The compose file runs the API image by digest beside a PostgreSQL 16 container; the image digest and the settings are the only lines that change between releases.
+Installed with cloud-init 24.4, from ../../../deploy/production. One cloud-init file per host, which the deploy target writes; each host installs podman and runs its image under systemd, reading the settings from the file the deploy target writes and the secrets from /etc/library-lending/secrets.env, which the library's IT staff write on the host; the image reference and the settings are the only lines that change between releases.
 
 | Resource | What the hosts must provide |
 |---|---|

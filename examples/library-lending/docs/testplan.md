@@ -31,6 +31,14 @@ System and acceptance tests are design tests, written in the specification and r
 
 The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the operation and command tests that have none; it drafts no call for a page or any other subject.
 
+### Implementation: Library Lending in Go and PostgreSQL
+
+Framework: go test. Run: `go test ./...`.
+
+| Suite | Level | Runs | Command |
+|---|---|---|---|
+| service | unit | tests of this implementation only | `go test ./...` |
+
 ## 2. Test cases
 
 ### Operation approveFeeWaiver

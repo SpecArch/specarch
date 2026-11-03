@@ -599,6 +599,7 @@ ditulis darinya, bukan dengan tangan.
     specarch generate tests spec
     specarch generate ui spec
     specarch generate bpmn spec
+    specarch generate deploy spec
     specarch idioms spec
     specarch idioms diff type-rendering spec
     specarch generate ui --estate estate/specarch-estate.yaml estate/reading-room
@@ -614,8 +615,12 @@ MariaDB), `specarch-gen-seed` (baris pengembangan), `specarch-gen-sqlc`
 `specarch-gen-ui` (JavaScript polos), `specarch-gen-ui-typescript`
 (Next.js dan Carbon), `specarch-gen-ui-swiftui` (iPhone),
 `specarch-gen-ui-vue-htm` (web tanpa langkah build), `specarch-gen-bpmn`
-(setiap alur kerja sebagai BPMN dan SVG) dan `specarch-gen-register`
-(`registers`). Berkas implementasi di bawah `implementation/<stack>/`
+(setiap alur kerja sebagai BPMN dan SVG), `specarch-gen-register`
+(`registers`) dan `specarch-gen-deploy` (setiap deployment sebagai berkas
+Compose, manifest Kubernetes atau berkas cloud-init per host, runbook
+release, rollback dan migrasi, serta skrip environment fresh yang
+mem-build, memuat, menguji dan membongkar deployment Compose, setiap
+secret dirujuk dan tidak pernah ditulis). Berkas implementasi di bawah `implementation/<stack>/`
 menyebut stack, folder keluaran setiap target dan idiom yang
 ditimpanya; `specarch idioms` mendaftarnya dan `idioms diff` mencetak
 bagian-bagian idiom bawaan di samping penimpanya. `--estate` membawa

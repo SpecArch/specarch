@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with no approval record, three environments, a non-secret setting, a secret setting and one with a default, two migrations of which one has no rollback, a release and a rollback; an implementation file with a sql and a seed target, a build task, a test command, and three deployments, each with an api server and a database server, one with a server that is a dependency, whose deploy target names the form of each (compose, kubernetes, cloud-init), the images, the database's storage and the compose deployment under fresh; specarch-gen-deploy built from this repository on PATH"
+when: "generate deploy is run with --unapproved"
+then: "it writes the compose deployment as a Compose file with its env file and its fresh script, the kubernetes deployment as manifests with a NetworkPolicy from the link, the cloud-init deployment as one file per host, and the release, rollback and migration runbooks; every non-secret value is written, the setting with a default takes it where the deployment gives none, and the secret appears in every file only as a reference to the host's secret store, never with a value; and exits 0"
+verifies: [SA-121]

@@ -1790,6 +1790,87 @@ named in a warning. A CSV file has no comment, so the draft notice is in
 the workbook's title alone, and no problem is marked in these files. An
 entity another stakeholder owns is left out.
 
+## Deployment files
+
+`specarch generate deploy` writes, through `specarch-gen-deploy`, the
+files that put the system into each deployment of an implementation file
+(ADR-227), from the deployment stage (environments, configuration,
+migrations, release, rollback) and the file's `deployments` (servers with
+their kinds, ports and links, the settings' values, the build and the
+method). The deploy target's settings say how:
+
+| Setting | Holds |
+|---|---|
+| `deployments.<key>.form` | `compose`, `kubernetes` or `cloud-init`: the form the deployment is written in; a deployment with none, or with another word, is an error at the target and gets no file |
+| `images.<server>` | the image each server runs, with its tag or digest, as the file names it; a server with none is an error and is named in a comment where it would be |
+| `storage.<server>` | the size of a database server's volume claim on Kubernetes, such as `20Gi` |
+| `fresh` | the compose deployments a fresh environment's script is written for |
+
+A compose deployment is `<deployment>/compose.yaml` beside
+`<deployment>/<deployment>.env`: one service per server that runs
+something of the implementation, the database server as a container of
+the sql target's dialect (postgresql or mariadb; another dialect is an
+error at the target, and its service is written by hand) with a named
+volume, the ports it listens on published, the links from a server as
+`depends_on`, and the env file holding the value of every non-secret
+setting, the deployment's or the schema's default, as `DAILY_RATE=0.50`
+(a setting's variable is its key in upper snake case, in every form). A
+kubernetes deployment is `<deployment>/kubernetes.yaml`: a Namespace
+`<system>-<deployment>`, a ConfigMap of the values, a Deployment and a
+Service per service server, a StatefulSet with its volume claim and a
+Service per database server, and a NetworkPolicy for each server a link
+leads to, allowing those links on their ports and nothing else. A
+cloud-init deployment is one `<deployment>/<server>.cloud-init.yaml` per
+server that runs something of the implementation: the host installs
+podman and runs the server's image under systemd through a Quadlet unit
+(podman 4.4 or later), with the values in `/etc/<system>/<deployment>.env`.
+A server that is a dependency of the design is named in a comment with
+its URL and gets no container in any form.
+
+A secret is referenced where each form reads it from the host, and never
+written: in Compose as `${NAME:?reason}`, a variable of the environment
+Compose runs in that it refuses to run without; on Kubernetes as a
+`secretKeyRef` into the Secret `<system>-secrets`, which the operator
+makes; in cloud-init as `/etc/<system>/secrets.env`, which the operator
+writes on the host and whose variables the unit checks before it starts,
+naming each one it misses. A database's password is such a secret too,
+`<SERVER>_PASSWORD`. The specification never holds a value for a secret
+and the validator refuses one in a deployment, so the generated file is
+the one place a value could have entered.
+
+The release, the rollback and each migration are written once, at the
+output's root, as `release.sh`, `rollback.sh` and
+`migrations/<name>.sh`: a runbook that prints each step with its action
+and its check, in the stage's order, and goes on only when the person
+running it answers yes; `--yes` answers every step for a run whose checks
+are made elsewhere, and a migration's `--rollback` runs its rollback
+steps, or is refused with the description that says why the migration
+cannot be reversed. A step of the stage is prose, so the runbook holds
+the person to its order and its checks rather than guessing a command.
+
+For a compose deployment named under `fresh`, `<deployment>/fresh.sh`
+builds an environment from nothing and tears it down, so a full
+regression never runs on an environment an earlier test touched: it runs
+the build task (the deployment's `build.task`, or the task named
+`build`), starts the Compose project under a name made for the run
+alone, waits for the database, loads the sql target's migrations in
+order and the seed target's `seed.sql` into it through the container's
+own client, runs the implementation's `testing.run` with the settings'
+values in the environment, and on any exit takes the project down with
+its volumes. It takes the folder the tasks run in as its argument and
+reads the secrets of the run, the throwaway database's password among
+them, from the environment it runs in; `COMPOSE` names the compose
+command (`podman compose` when unset). A fresh environment is written
+for a compose deployment alone: a Compose project is built and torn down
+on one host with no provisioner, where a cluster or a set of hosts needs
+one, so a kubernetes or cloud-init deployment under `fresh` is an error
+at the target.
+
+Every file starts with the generated header and, in a draft, the draft
+notice; each element the file shows carries its pointer as a comment, an
+environment at the top, a setting above its value, a step above its
+line, and the problems are marked at them.
+
 ## Other formats
 
 Another DSL or configuration format is emitted on request, limited to what

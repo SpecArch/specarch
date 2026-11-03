@@ -216,7 +216,7 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has fifteen:
+Code targets are plug-ins on PATH. This repository has sixteen:
 `specarch-gen-openapi`, which `specarch generate openapi` runs to write the
 OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
 `specarch generate sql` runs to write its migrations in PostgreSQL, SQL
@@ -246,10 +246,16 @@ vue-htm to write the same screens for the web with no build step, on
 Vue's runtime-only build and htm, with the menus, pages and actions as
 data files and a vendor manifest, `specarch-gen-ui-swiftui`, which it runs
 for a `ui` target of platform iphone to write the same screens in SwiftUI
-into a Swift package, and `specarch-gen-bpmn`, which `specarch
+into a Swift package, `specarch-gen-bpmn`, which `specarch
 generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
-diagram, and the diagram as SVG. Install them at the same tag as
-`specarch`:
+diagram, and the diagram as SVG, `specarch-gen-register`, which `specarch
+generate register` runs to write each entity's register template, and
+`specarch-gen-deploy`, which `specarch generate deploy` runs to write
+each deployment as a Compose file, Kubernetes manifests or a cloud-init
+file per host, the release, rollback and migration runbooks, and the
+script of a fresh environment that builds, loads, tests and tears down
+a Compose deployment, every secret referenced and never written. Install
+them at the same tag as `specarch`:
 
     go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.4.0
@@ -266,6 +272,7 @@ diagram, and the diagram as SVG. Install them at the same tag as
     go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.4.0
     go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-deploy@v1.4.0
 
 The Swift build, for macOS, has the validate, model, upgrade, try and
 version verbs and gives the same output. With Swift 6:
@@ -451,7 +458,7 @@ it. Release 1.4.0 is the latest. The schemas, the tree layout and the seven stag
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`
-and the fifteen code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
+and the sixteen code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where
 each entry stands). The meta-model will change: the first real
 projects written in SpecArch are expected to find concepts it cannot
 express, and those gaps define the next version.

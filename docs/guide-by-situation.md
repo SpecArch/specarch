@@ -569,6 +569,7 @@ the development data are to be written from it rather than by hand.
     specarch generate tests spec
     specarch generate ui spec
     specarch generate bpmn spec
+    specarch generate deploy spec
     specarch idioms spec
     specarch idioms diff type-rendering spec
     specarch generate ui --estate estate/specarch-estate.yaml estate/reading-room
@@ -583,8 +584,12 @@ Each target is a plug-in on PATH, `specarch-gen-<target>` or
 the worked examples and the design tests), `specarch-gen-ui` (plain
 JavaScript), `specarch-gen-ui-typescript` (Next.js and Carbon),
 `specarch-gen-ui-swiftui` (the iPhone), `specarch-gen-ui-vue-htm` (the web
-with no build step), `specarch-gen-bpmn` (each workflow as BPMN and SVG)
-and `specarch-gen-register` (`registers`). The implementation file under
+with no build step), `specarch-gen-bpmn` (each workflow as BPMN and SVG),
+`specarch-gen-register` (`registers`) and `specarch-gen-deploy` (each
+deployment as a Compose file, Kubernetes manifests or a cloud-init file
+per host, the release, rollback and migration runbooks, and the script of
+a fresh environment that builds, loads, tests and tears down a Compose
+deployment, every secret referenced and never written). The implementation file under
 `implementation/<stack>/` names the stack, each target's output folder
 and the idioms it overrides; `specarch idioms` lists them and `idioms
 diff` prints a shipped idiom's parts beside the override's. `--estate`

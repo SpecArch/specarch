@@ -146,6 +146,21 @@ targets:
   bpmn:
     output: ../../../workflows
     description: Each workflow as a BPMN 2.0 file with its diagram, for a BPMN modeller or engine, and the diagram as SVG for the documents.
+  deploy:
+    output: ../../../deploy
+    description: "Each deployment as the files that put the system there: the developer's machine as a Compose project with the script of a fresh environment, staging as Kubernetes manifests, and the library's hosts as one cloud-init file each, running the images under systemd; every secret referenced, never written."
+    settings:
+      deployments:
+        local: { form: compose }
+        staging: { form: kubernetes }
+        production: { form: cloud-init }
+      images:
+        api: localhost/library-lending-api:latest
+        worker: localhost/library-lending-api:latest
+        db: docker.io/library/postgres:16
+      storage:
+        db: 20Gi
+      fresh: [local]
 
 tasks:
   generate: { run: go generate ./... }
@@ -157,13 +172,30 @@ tasks:
     run: syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json
     description: Writes the software bill of materials of the build and scans it; both files go with the release.
 
+testing:
+  framework: go test
+  run: go test ./...
+  suites:
+    service:
+      description: The service's own code, package by package; the design tests run through the tests target's output in internal/lending.
+      run: go test ./...
+      level: unit
+      implementationOnly: true
+      ci: true
+
 deployments:
   local:
     description: A developer's machine.
     environment: development
     servers:
-      - { name: api, url: "http://localhost:8080", runs: { packages: [internal/api, internal/lending] }, description: The API. }
-      - { name: db, kind: database, url: "postgresql://localhost:5432", runs: { targets: [sql] }, description: A PostgreSQL 16 container the developer starts. }
+      - { name: api, url: "http://localhost:8080", listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/api, internal/lending] }, description: The API. }
+      - { name: db, kind: database, url: "postgresql://localhost:5432", listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] }, description: A PostgreSQL 16 container the developer starts. }
+    links:
+      - { from: api, to: db, port: 5432 }
+    method:
+      tool: podman compose 5.4
+      files: ../../../deploy/local
+      description: The Compose project the deploy target writes; fresh.sh beside it builds a throwaway copy, loads the migrations and the seed, runs the suites and takes it down.
     configuration:
       dailyRate: "0.50"
       notificationChannelUrl: "http://localhost:8081/events"
@@ -171,8 +203,14 @@ deployments:
     description: The staging host the librarians try a release on.
     environment: staging
     servers:
-      - { name: api, url: "https://staging.library.example", runs: { packages: [internal/api, internal/lending] }, description: The API behind the staging screens. }
-      - { name: db, kind: database, url: "postgresql://db.staging.library.internal:5432", runs: { targets: [sql] }, description: The staging loans database. }
+      - { name: api, url: "https://staging.library.example", listens: [{ port: 8080, protocol: http }], runs: { packages: [internal/api, internal/lending] }, description: The API behind the staging screens. }
+      - { name: db, kind: database, url: "postgresql://db.staging.library.internal:5432", listens: [{ port: 5432, protocol: postgresql }], runs: { targets: [sql] }, description: The staging loans database. }
+    links:
+      - { from: api, to: db, port: 5432 }
+    method:
+      tool: kubectl 1.33
+      files: ../../../deploy/staging
+      description: The manifests the deploy target writes, applied into the namespace library-lending-staging; the Secret library-lending-secrets is made from the vendor's secret store before the first apply.
     configuration:
       dailyRate: "0.50"
       notificationChannelUrl: "https://notify-staging.library.example/events"
@@ -202,9 +240,9 @@ deployments:
       reproducible: The build is bit-for-bit reproducible, so the digest of the library's image equals the digest in the release notes when the same tag, toolchain and base images are used; a different digest means a different input, and the library compares the two software bills of materials to find it.
       sbom: sbom
     method:
-      tool: podman-compose 1.4
-      files: ../../../deploy/compose
-      description: The compose file runs the API image by digest beside a PostgreSQL 16 container; the image digest and the settings are the only lines that change between releases.
+      tool: cloud-init 24.4
+      files: ../../../deploy/production
+      description: One cloud-init file per host, which the deploy target writes; each host installs podman and runs its image under systemd, reading the settings from the file the deploy target writes and the secrets from /etc/library-lending/secrets.env, which the library's IT staff write on the host; the image reference and the settings are the only lines that change between releases.
     infrastructure:
       cpu: Two cores for the API host; four for the database host.
       memory: One gigabyte for the API host; four gigabytes for the database host.

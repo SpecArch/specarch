@@ -36,7 +36,14 @@ written by hand in files the target does not write: generate writes every
 file the plug-in answers (sqlc and scripts never write over a file they
 did not write). seed writes seed.sql, made-up development rows for the
 tables sql writes, the same bytes on every run from the seed target's
-settings.rows and settings.seed. generate --check reads a file without
+settings.rows and settings.seed. deploy writes each deployment of the
+implementation file as a Compose file, Kubernetes manifests or a
+cloud-init file per host (settings.deployments.<key>.form), the release,
+rollback and migration runbooks, and for a Compose deployment named under
+settings.fresh the script that builds a throwaway environment, loads the
+migrations and the seed, runs the test suite and tears it down; a secret
+is referenced where the form reads it from the host, never written.
+generate --check reads a file without
 the generated header as built by hand and says whether it matches the
 output but for the header. An element an implementation file marks ownedBy a
 stakeholder is generated nowhere.

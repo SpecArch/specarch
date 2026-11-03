@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: red
+given: "a specification as in generate-deploy; an implementation file whose deploy target leaves a deployment without a form, names a form that is not compose, kubernetes or cloud-init, names a deployment the file does not have, names under fresh a kubernetes deployment, gives no image for the api server, and whose sql target's dialect is sqlserver; and a deployment that gives no value for a setting without a default; specarch-gen-deploy built from this repository on PATH"
+when: "generate deploy is run with --unapproved"
+then: "it reports each at the target or the setting, the deployment without a form and the one with an unknown form get no file, the server without an image and the database of the dialect it does not run are left out of the manifests with a comment, the runbooks and the rest are written, and it exits 1"
+verifies: [SA-121]

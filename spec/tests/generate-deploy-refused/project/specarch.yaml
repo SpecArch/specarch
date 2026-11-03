@@ -1,0 +1,60 @@
+specarch: "1.0.0"
+info: { title: Case, name: case-desk, version: 1.0.0 }
+dependencies:
+  eventBus:
+    description: The message broker the system publishes its events to, run by another team.
+    timeout: PT1S
+    kind: messageBroker
+    protocol: amqp
+entities:
+  Book:
+    type: object
+    properties:
+      isbn: { title: ISBN, type: string }
+      title: { title: Title, type: string }
+    required: [isbn, title]
+    primaryKey: [isbn]
+environments:
+  development:
+    description: A developer's machine, with a throwaway database.
+    promotesTo: staging
+  staging:
+    description: The staging cluster a release is tried on.
+    promotesTo: production
+  production:
+    description: The live hosts.
+configuration:
+  dailyRate:
+    description: The late fee per day.
+    secret: false
+    schema: { type: string, format: decimal, precision: 10, scale: 2 }
+  databaseUrl:
+    description: Where the database is; it carries the password, so it comes from the host's secret store.
+    secret: true
+    schema: { type: string, format: uri }
+  pageSize:
+    description: Rows per page of a list.
+    secret: false
+    schema: { type: integer, format: int32, default: 20 }
+migrations:
+  add-shelf:
+    description: Every book gets a shelf; existing books go to the general shelf.
+    steps:
+      - { name: Add the column, action: "Add the shelf column to books, allowing null.", check: The column exists. }
+      - { name: Fill it, action: Set shelf to general for every book whose shelf is null., check: No book has a null shelf. }
+    rollback:
+      - { name: Drop the column, action: Drop the shelf column from books., check: The schema gate against the previous Book passes. }
+  merge-duplicates:
+    description: Two records of one book are merged into one; the copies' loans are moved, so it cannot be reversed.
+    steps:
+      - { name: Merge, action: Move every loan of the duplicate to the kept record and delete the duplicate., check: No duplicate remains. }
+release:
+  description: A release goes to staging first, then to production outside opening hours.
+  steps:
+    - { name: Build and test, action: Build the service from the tagged commit and run every suite., check: The build and every suite pass. }
+    - { name: Install on staging, action: Install the build on staging and run the commissioning checks there., check: Every check passed. }
+    - { name: Install on production, action: "Outside opening hours, apply the migrations to production and install the build.", check: The smoke check passes on production. }
+rollback:
+  description: The previous build is kept beside the new one, so a rollback is a switch.
+  steps:
+    - { name: Switch back, action: Point the service at the previous build and restart it., check: The version shown is the previous one. }

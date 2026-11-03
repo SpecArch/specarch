@@ -175,7 +175,7 @@ A release goes to staging first, where a librarian tries the desk tasks, then to
 
 How the vendor installs production (Library Lending in Go and PostgreSQL):
 
-Installed with podman-compose 1.4, from ../../../deploy/compose. The compose file runs the API image by digest beside a PostgreSQL 16 container; the image digest and the settings are the only lines that change between releases.
+Installed with cloud-init 24.4, from ../../../deploy/production. One cloud-init file per host, which the deploy target writes; each host installs podman and runs its image under systemd, reading the settings from the file the deploy target writes and the secrets from /etc/library-lending/secrets.env, which the library's IT staff write on the host; the image reference and the settings are the only lines that change between releases.
 
 ## 8. Rolling back
 

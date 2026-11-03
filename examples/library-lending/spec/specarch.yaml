@@ -3,6 +3,7 @@ specarch: "1.0.0"
 
 info:
   title: Library Lending
+  name: library-lending
   version: 0.1.0
   description: |
     A small public library lends books to its members. Members borrow a copy,

@@ -181,6 +181,13 @@ layout:
   internal/genregister:
     description: "Each entity's register template: the header row as CSV, the instructions as a table of fields in the English vocabulary's words, and a workbook holding both, written as the smallest Office Open XML package a spreadsheet program opens and internal/xlsx reads back (ADR-215)."
     dependsOn: [internal/ownership, internal/xlsx]
+  cmd/specarch-gen-deploy:
+    description: The plug-in behind generate deploy. Reads the request on standard input, answers each deployment's files and the runbooks on standard output, and never touches the disk.
+    implements: ["#/commands/generate"]
+    dependsOn: [internal/gendeploy]
+  internal/gendeploy:
+    description: "Each deployment of an implementation file as a Compose file with its env file, Kubernetes manifests or a cloud-init file per host, as the deploy target's settings name the form; the release, the rollback and each migration of the deployment stage as runbooks; and a fresh environment's script for a Compose deployment, which builds, loads the migrations and the seed, runs the test suite and tears the project down; every secret referenced where the form reads it from the host and never written (ADR-227)."
+    dependsOn: [internal/gensql, internal/mark]
   internal/genbpmn:
     description: Each workflow as a BPMN 2.0 process in the subset extract workflows reads, with BPMN DI laid out by a fixed rule, the same diagram as SVG, and the problems marked as XML comments before their elements.
     dependsOn: [internal/mark, internal/ownership]

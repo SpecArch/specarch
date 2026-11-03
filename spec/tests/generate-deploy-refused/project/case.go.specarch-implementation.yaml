@@ -1,0 +1,41 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  sql:
+    output: ../migrations
+    dialect: sqlserver
+  deploy:
+    output: ../deploy
+    settings:
+      deployments:
+        staging: { form: kubernetes }
+        production: { form: ansible }
+        archive: { form: compose }
+      images:
+        db: mcr.microsoft.com/mssql/server:2022-latest
+      fresh: [staging]
+tasks:
+  test: { run: go test ./... }
+deployments:
+  local:
+    description: A developer's machine.
+    environment: development
+    servers:
+      - { name: api, url: "http://localhost:8080", description: The API. }
+    configuration:
+      dailyRate: "0.50"
+  staging:
+    description: The staging cluster.
+    environment: staging
+    servers:
+      - { name: api, url: "https://staging.case.example", listens: [{ port: 8080, protocol: http }], description: The API. }
+      - { name: db, kind: database, url: "sqlserver://db:1433", listens: [{ port: 1433, protocol: tds }], runs: { targets: [sql] }, description: The staging database. }
+  production:
+    description: The live hosts.
+    environment: production
+    servers:
+      - { name: api, url: "https://case.example", description: The API host. }
+    configuration:
+      dailyRate: "0.75"

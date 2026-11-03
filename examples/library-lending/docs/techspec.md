@@ -1313,6 +1313,7 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | ui | ../../../web | platform web, framework plain-javascript |
 | tests | internal/lending |   |
 | bpmn | ../../../workflows |   |
+| deploy | ../../../deploy |   |
 
 #### Tasks
 
@@ -1322,6 +1323,14 @@ storage: github.com/jackc/pgx/v5. Money columns are `numeric(10,2)`.
 | test | `go test ./...` | yes |
 | build | `podman build --platform linux/amd64 -f Containerfile -t library-lending-api .` |   |
 | sbom | `syft dir:. -o syft-json=sbom.json && grype sbom:sbom.json` |   |
+
+#### Testing
+
+Framework: go test. Run: `go test ./...`.
+
+| Suite | Level | Runs | Command |
+|---|---|---|---|
+| service | unit | tests of this implementation only | `go test ./...` |
 
 #### Idioms
 
@@ -1347,31 +1356,37 @@ How this implementation does each recurring concern: the idioms SpecArch ships a
 
 #### Deployments
 
-local: A developer's machine. Environment: development. Servers: http://localhost:8080, postgresql://localhost:5432. Settings: dailyRate 0.50, notificationChannelUrl http://localhost:8081/events.
+local: A developer's machine. Environment: development. Servers: http://localhost:8080, postgresql://localhost:5432. Settings: dailyRate 0.50, notificationChannelUrl http://localhost:8081/events. Installed with podman compose 5.4 from ../../../deploy/local.
 
 ```mermaid
 flowchart LR
-  subgraph deployment_local["local, environment development"]
-    server_api["api, service, localhost:8080<br/>runs internal/api, internal/lending"]
-    server_db[("db, database, localhost:5432<br/>runs target sql")]
+  server_api["api, service, localhost:8080<br/>runs internal/api, internal/lending"]
+  server_db[("db, database, localhost:5432<br/>runs target sql")]
+  server_api -->|"5432 postgresql"| server_db
+  subgraph unreached_local["not a server of local"]
+    dependency_eventBus[["eventBus"]]
+    dependency_feeLedger["feeLedger"]
   end
 ```
 
-The deployment declares no links between its servers, so the diagram draws none.
+The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.
 
-staging: The staging host the librarians try a release on. Environment: staging. Servers: https://staging.library.example, postgresql://db.staging.library.internal:5432. Settings: dailyRate 0.50, notificationChannelUrl https://notify-staging.library.example/events.
+staging: The staging host the librarians try a release on. Environment: staging. Servers: https://staging.library.example, postgresql://db.staging.library.internal:5432. Settings: dailyRate 0.50, notificationChannelUrl https://notify-staging.library.example/events. Installed with kubectl 1.33 from ../../../deploy/staging.
 
 ```mermaid
 flowchart LR
-  subgraph deployment_staging["staging, environment staging"]
-    server_api["api, service, staging.library.example<br/>runs internal/api, internal/lending"]
-    server_db[("db, database, db.staging.library.internal:5432<br/>runs target sql")]
+  server_api["api, service, staging.library.example<br/>runs internal/api, internal/lending"]
+  server_db[("db, database, db.staging.library.internal:5432<br/>runs target sql")]
+  server_api -->|"5432 postgresql"| server_db
+  subgraph unreached_staging["not a server of staging"]
+    dependency_eventBus[["eventBus"]]
+    dependency_feeLedger["feeLedger"]
   end
 ```
 
-The deployment declares no links between its servers, so the diagram draws none.
+The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.
 
-production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example, http://worker.library.internal, postgresql://db.library.internal:5432, amqps://bus.library.internal:5671. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with podman-compose 1.4 from ../../../deploy/compose.
+production: The library's own hosts, which its IT staff build for and run. Environment: production. Servers: https://library.example, http://worker.library.internal, postgresql://db.library.internal:5432, amqps://bus.library.internal:5671. Settings: dailyRate 0.50, notificationChannelUrl https://notify.library.example/events. Built by the task build from 2 base images pinned by digest. Installed with cloud-init 24.4 from ../../../deploy/production.
 
 ```mermaid
 flowchart LR

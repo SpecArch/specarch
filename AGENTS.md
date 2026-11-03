@@ -421,6 +421,15 @@ Error codes of --json:
   exit 0: printed
   exit 2: usage error, a path could not be read, or a folder holds no
   specification, no implementation file and no estate
+- `specarch run <package> [--results <results>] [--base-url <base-url>] [--server <server>] [--callers <callers>] [--setup <setup>] [--dry-run]`
+  Run a test package against its environment and write the results as JUnit
+  XML.
+  exit 0: the results are written and no case failed or errored; a skipped
+  case does not change the status
+  exit 1: the results are written and a case failed or errored
+  exit 2: usage error, a package, callers file or setup program that could
+  not be read or found, no server chosen, or a results file that could not
+  be written
 - `specarch skill --out <out> [--check] [--dry-run]`
   Write an agent skill for SpecArch, in the Agent Skills format, from the
   program's own command definitions.

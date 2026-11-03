@@ -1,0 +1,12 @@
+operation: createNote
+level: system
+scenario: red
+covers: [missing text]
+given: "..."
+when: "createNote is called without text"
+then: "it is refused"
+origin: inferred
+why: "Written by specarch derive: users get this wrong often, so the case is written. A draft: complete the given, when and then, and remove what does not hold."
+fixture: { caller: writer }
+input: { id: "431b6775-3104-50eb-96e0-c69f62202f20" }
+expect: { status: 400 }

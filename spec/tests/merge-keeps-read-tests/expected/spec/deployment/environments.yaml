@@ -1,0 +1,4 @@
+environments:
+  # specarch-problem: warning: origin_missing: acceptance carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@deployment/environments.yaml#/environments/acceptance]
+  acceptance:
+    description: The customer's acceptance host.

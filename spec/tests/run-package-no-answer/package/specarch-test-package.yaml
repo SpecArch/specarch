@@ -1,0 +1,24 @@
+specarchTestPackage: 1.0.0
+specification:
+  title: Notice board
+  version: 0.1.0
+  metaModel: 1.0.0
+  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+environment: acceptance
+servers:
+  - deployment: acceptance
+    name: api
+    url: http://127.0.0.1:1
+cases:
+  - name: list-notices-succeeds
+    element: '#/tests/list-notices-succeeds'
+    subject: operation listNotices
+    scenario: golden
+    given: the board has notices
+    when: anyone lists them
+    then: it answers 200
+    request:
+      method: GET
+      path: /notices
+    expect:
+      status: 200

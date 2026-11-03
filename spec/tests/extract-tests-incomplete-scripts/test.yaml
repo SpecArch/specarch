@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title"
+when: "extract tests is run on both files"
+then: "it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out; and exits 0"
+verifies: [SA-131]

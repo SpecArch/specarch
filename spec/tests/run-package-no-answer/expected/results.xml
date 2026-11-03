@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Notice board 0.1.0, environment acceptance" tests="1" failures="0" errors="1" skipped="0">
+  <properties>
+    <property name="environment" value="acceptance"></property>
+    <property name="server" value="http://127.0.0.1:1"></property>
+    <property name="specification" value="0.1.0"></property>
+    <property name="digest" value="sha256:0000000000000000000000000000000000000000000000000000000000000000"></property>
+  </properties>
+  <testcase name="list-notices-succeeds" classname="operation listNotices">
+    <error message="GET http://127.0.0.1:1/notices got no answer: Get &#34;http://127.0.0.1:1/notices&#34;: dial tcp 127.0.0.1:1: connect: connection refused"></error>
+  </testcase>
+</testsuite>

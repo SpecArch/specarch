@@ -97,6 +97,10 @@ standardOutput: |
         Merge the partial specifications the readers wrote into one.
     specarch model <paths>...
         Print the specifications as one JSON document, for a program.
+    specarch run <package> [--results <results>] [--base-url <base-url>]
+      [--server <server>] [--callers <callers>] [--setup <setup>] [--dry-run]
+        Run a test package against its environment and write the results as
+        JUnit XML.
     specarch skill --out <out> [--check] [--dry-run]
         Write an agent skill for SpecArch, in the Agent Skills format, from
         the program's own command definitions.
@@ -118,7 +122,7 @@ standardOutput: |
     operations
   Extract sources: outline, database, router, documents, tables, openapi,
     permissions, pages, workflows, gateway, systemd, go, swift, javascript,
-    dart
+    dart, tests
 
   Plug-ins found on PATH
     none: put the specarch-gen-<target> executables on PATH to generate code.

@@ -12,13 +12,22 @@ specification that holds every element of them, following
 `docs/from-sources.md`, section 3.2. Each tree is checked on its own
 first: a tree that does not track origin, that validate reports an
 error in, that holds implementation files or records, or that holds
-a test other than the drafts specarch derive writes for that tree is
-refused. A test is one of those drafts when its name and values are
-those of the draft derive writes for the tree without its tests; the
-problem marks above its entries do not count. The drafts are left
-out, since they are derived from one tree alone, and the derivation
-runs again into the merged specification, as extract runs it
-(ADR-055).
+a test that is neither read from a test script nor one of the drafts
+specarch derive writes for that tree is refused. A test is one of
+those drafts when its name and values are those of the draft derive
+writes for the tree without its tests; the problem marks above its
+entries do not count. The drafts are left out, since they are
+derived from one tree alone, and the derivation runs again into the
+merged specification, as extract runs it (ADR-055).
+
+A test read from a test script, one that cites a source of its tree
+as `extract tests` writes it, is kept whole under
+`tests/<name>/test.yaml`, with `-2` and on after its name when a
+test of an earlier tree has it, a line naming each renamed; a
+question of its tree that blocks nothing but such tests is kept as
+it is, its pointers naming each test by its name in the merged
+specification, numbered with the trees' other questions (ADR-234).
+A line counts the tests kept.
 
 - The same element in two trees (an entry of a section by its name,
   an operation by its path and method, a field by its entity and

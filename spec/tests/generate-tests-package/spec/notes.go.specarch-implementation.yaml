@@ -1,0 +1,16 @@
+specarchImplementation: "1.0.0"
+info:
+  title: Note keeper in Go
+  version: 0.1.0
+implements:
+  file: specarch.yaml
+  version: 0.1.0
+stack:
+  language: { name: Go, version: "1.26" }
+deployments:
+  acceptance:
+    description: The customer's acceptance host.
+    environment: acceptance
+    servers:
+      - { name: api, url: "http://127.0.0.1:1" }
+      - { name: db, kind: database, url: "postgresql://127.0.0.1:5432" }

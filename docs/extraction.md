@@ -43,6 +43,7 @@ spec first.
 | algorithms | the code, with the numbers from an existing test or a real record | the record becomes the first worked example |
 | processes | the unit file the service manager runs, such as a systemd `.service` and its `.timer` | `specarch extract systemd`; what the unit leaves to the host's defaults is asked |
 | registers | the CSV, TSV or Excel files people fill in, one per period or per source, and the template with its instructions sheet | `specarch extract tables`; the types come from every value of every file, the fields from the template and the instructions, and what they do not settle is asked |
+| tests | the Gherkin feature files and the test sheets the team and the customer keep, complete or not | `specarch extract tests`; each scenario or row is a test inferred from the script, and its subject and every part the script leaves out are asked |
 | decisions | commit history, review threads, chat | the only surface that is written by hand |
 
 Where a surface has no reader yet, extraction is a manual method with this
@@ -51,7 +52,7 @@ project's repository. `specarch extract <source>`, the verb that goes from
 existing code or documents to a specification, is designed in
 `spec/design/commands/extract.yaml` and built one reader at a time in the
 steps of "Building extract" below. The Go build reads the sources
-`outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` and `dart`, and `specarch merge` joins their trees; a source not built yet is answered with status
+`outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript`, `dart` and `tests`, and `specarch merge` joins their trees; a source not built yet is answered with status
 2, and the Swift build has no extract or merge verb.
 
 ## Building extract
@@ -715,6 +716,31 @@ changes `extract.yaml` first.
     header is not its first row, a column of a form the rules do not name
     (a duration, a time of day), which is read as text, and the words of
     the instructions in another language, which a vocabulary file gives.
+
+24. Built. Test scripts, `extract tests` (ADR-235, SA-131): Gherkin
+    feature files and test sheets in CSV, TSV or Excel, complete or not,
+    read into tests inferred from them, each citing its line or its row's
+    range. A Scenario or Example is a test, the Background's Given steps
+    before its own, And and But continuing the step before; a Scenario
+    Outline is a test per row of its Examples. A sheet's columns are found
+    by the header's words (ID, title, operation, precondition, test data,
+    steps, expected result, type). A test is red when the script says
+    negative or its expected result names a refusal or an error. Each test
+    has a must question for its subject, blocking the whole test since the
+    subject decides its keys, and naming the request the script names; and
+    a must question for each given, step or expected result left out,
+    blocking that key. `merge` keeps a test that cites a source of its
+    tree whole, with the questions that block only such tests (ADR-235).
+    Once the questions are decided and the answers written, the test
+    joins the test package (`docs/test-generation.md`, The test package).
+    Cases `spec/tests/extract-tests-incomplete-scripts` and
+    `merge-keeps-read-tests`; `TestExtractedTestJoinsPackage` follows a
+    script from extract through merge, the decisions and the package to a
+    passing run. Left out: Gherkin in a language other than English, whose
+    `# language:` header changes every keyword; a script in a test
+    framework's code (a Postman collection, a JUnit class), which is code
+    and not a script a stakeholder reads; and a step definition's binding
+    to code, so a step is read as its text.
 
 An estate of many modules, read from an umbrella repository by a team
 that may not commit to the code, asked for dumps committed outside the

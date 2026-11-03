@@ -174,10 +174,22 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
+	args, packaged, isPackage, msg := packageArg(args)
+	if msg != "" {
+		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+		return 2
+	}
 	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved", "dry-run", "as-is"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
+	}
+	if isPackage {
+		if len(estates) > 0 || environment != "" || set["as-is"] {
+			fmt.Fprintf(stderr, "specarch generate: --package takes no --estate, --environment or --as-is; the package's environment is the one --package names, its requests go to that environment's servers, and no workflow's as-is changes a request\n")
+			return 2
+		}
+		return runTestPackage(target, packaged, out, check, set["unapproved"], set["dry-run"], paths, stdout, stderr)
 	}
 	if !builtGenerators[target] && !validTarget(target) {
 		fmt.Fprintf(stderr, "specarch generate: %q is not a target name; a target is kebab-case, such as openapi or sql\n", target)

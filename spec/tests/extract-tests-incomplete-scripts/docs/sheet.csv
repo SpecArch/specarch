@@ -1,0 +1,3 @@
+Test ID,Title,Precondition,Test Data,Steps,Expected Result
+TC-1,Delete a note,a kept note,,DELETE /notes/n1,it is refused
+TC-2,List notes,,,,

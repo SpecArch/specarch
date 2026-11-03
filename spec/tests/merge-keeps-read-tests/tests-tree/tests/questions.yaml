@@ -1,0 +1,101 @@
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which operation, command, page or other subject of the specification does test keep-a-note exercise? The script names POST /notes. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: Which operation, command, page or other subject of the specification does test keep-a-note exercise? The script names POST /notes.
+    kind: decision
+    priority: must
+    blocks: ['#/tests/keep-a-note']
+    decidedBy: system-owner
+    why: A test is about one subject of the specification, and a script names its own words for it, which only the specification the test is merged with can resolve.
+    cites:
+      - {source: notes, clause: line 7, says: 'Scenario: Keep a note When the writer sends POST /notes with a text Then it answers 201 with the note'}
+  # specarch-problem: question: open_question: (must, decision) Which operation, command, page or other subject of the specification does test keep-an-empty-note exercise? The script names POST /notes. Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which operation, command, page or other subject of the specification does test keep-an-empty-note exercise? The script names POST /notes.
+    kind: decision
+    priority: must
+    blocks: ['#/tests/keep-an-empty-note']
+    decidedBy: system-owner
+    why: A test is about one subject of the specification, and a script names its own words for it, which only the specification the test is merged with can resolve.
+    cites:
+      - {source: notes, clause: line 11, says: 'Scenario: Keep an empty note When the writer sends POST /notes with no text'}
+  # specarch-problem: question: open_question: (must, decision) What is the expected result of test keep-an-empty-note? Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: What is the expected result of test keep-an-empty-note?
+    kind: decision
+    priority: must
+    blocks: ['#/tests/keep-an-empty-note/then']
+    decidedBy: system-owner
+    why: notes.feature, line 11 gives no expected result for this test.
+    cites:
+      - {source: notes, clause: line 11, says: 'Scenario: Keep an empty note When the writer sends POST /notes with no text'}
+  # specarch-problem: question: open_question: (must, decision) Which operation, command, page or other subject of the specification does test read-a-note-1 exercise? The script names no operation, command or page it exercises. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
+  Q-4:
+    question: Which operation, command, page or other subject of the specification does test read-a-note-1 exercise? The script names no operation, command or page it exercises.
+    kind: decision
+    priority: must
+    blocks: ['#/tests/read-a-note-1']
+    decidedBy: system-owner
+    why: A test is about one subject of the specification, and a script names its own words for it, which only the specification the test is merged with can resolve.
+    cites:
+      - {source: notes, clause: line 14, says: 'Scenario Outline: Read a note Given a note n1 When the writer reads it Then it answers 200'}
+  # specarch-problem: question: open_question: (must, decision) Which operation, command, page or other subject of the specification does test read-a-note-2 exercise? The script names no operation, command or page it exercises. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
+  Q-5:
+    question: Which operation, command, page or other subject of the specification does test read-a-note-2 exercise? The script names no operation, command or page it exercises.
+    kind: decision
+    priority: must
+    blocks: ['#/tests/read-a-note-2']
+    decidedBy: system-owner
+    why: A test is about one subject of the specification, and a script names its own words for it, which only the specification the test is merged with can resolve.
+    cites:
+      - {source: notes, clause: line 14, says: 'Scenario Outline: Read a note Given a note n9 When the writer reads it Then it answers 404'}
+  # specarch-problem: question: open_question: (must, decision) Which operation, command, page or other subject of the specification does test tc-1-delete-a-note exercise? The script names DELETE /notes/n1. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
+  Q-6:
+    question: Which operation, command, page or other subject of the specification does test tc-1-delete-a-note exercise? The script names DELETE /notes/n1.
+    kind: decision
+    priority: must
+    blocks: ['#/tests/tc-1-delete-a-note']
+    decidedBy: system-owner
+    why: A test is about one subject of the specification, and a script names its own words for it, which only the specification the test is merged with can resolve.
+    cites:
+      - {source: sheet, clause: 'A2:F2', says: 'Test ID: TC-1; Title: Delete a note; Precondition: a kept note; Steps: DELETE /notes/n1; Expected Result: it is refused'}
+  # specarch-problem: question: open_question: (must, decision) Which operation, command, page or other subject of the specification does test tc-2-list-notes exercise? The script names no operation, command or page it exercises. Decided by system-owner. Answer with a decision record that names Q-7 under answers. [Q-7]
+  Q-7:
+    question: Which operation, command, page or other subject of the specification does test tc-2-list-notes exercise? The script names no operation, command or page it exercises.
+    kind: decision
+    priority: must
+    blocks: ['#/tests/tc-2-list-notes']
+    decidedBy: system-owner
+    why: A test is about one subject of the specification, and a script names its own words for it, which only the specification the test is merged with can resolve.
+    cites:
+      - {source: sheet, clause: 'A3:F3', says: 'Test ID: TC-2; Title: List notes'}
+  # specarch-problem: question: open_question: (must, decision) What is given before test tc-2-list-notes runs: the records that exist, who calls, and the test data it uses? Decided by system-owner. Answer with a decision record that names Q-8 under answers. [Q-8]
+  Q-8:
+    question: 'What is given before test tc-2-list-notes runs: the records that exist, who calls, and the test data it uses?'
+    kind: decision
+    priority: must
+    blocks: ['#/tests/tc-2-list-notes/given']
+    decidedBy: system-owner
+    why: sheet.csv, A3:F3 gives no precondition and no test data for this test.
+    cites:
+      - {source: sheet, clause: 'A3:F3', says: 'Test ID: TC-2; Title: List notes'}
+  # specarch-problem: question: open_question: (must, decision) What step does test tc-2-list-notes take? Decided by system-owner. Answer with a decision record that names Q-9 under answers. [Q-9]
+  Q-9:
+    question: What step does test tc-2-list-notes take?
+    kind: decision
+    priority: must
+    blocks: ['#/tests/tc-2-list-notes/when']
+    decidedBy: system-owner
+    why: sheet.csv, A3:F3 gives no step for this test.
+    cites:
+      - {source: sheet, clause: 'A3:F3', says: 'Test ID: TC-2; Title: List notes'}
+  # specarch-problem: question: open_question: (must, decision) What is the expected result of test tc-2-list-notes? Decided by system-owner. Answer with a decision record that names Q-10 under answers. [Q-10]
+  Q-10:
+    question: What is the expected result of test tc-2-list-notes?
+    kind: decision
+    priority: must
+    blocks: ['#/tests/tc-2-list-notes/then']
+    decidedBy: system-owner
+    why: sheet.csv, A3:F3 gives no expected result for this test.
+    cites:
+      - {source: sheet, clause: 'A3:F3', says: 'Test ID: TC-2; Title: List notes'}

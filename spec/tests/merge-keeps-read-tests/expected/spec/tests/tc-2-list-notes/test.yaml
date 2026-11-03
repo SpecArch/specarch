@@ -1,0 +1,6 @@
+level: system
+scenario: golden
+origin: inferred
+why: Read from sheet.csv, A3:F3 (TC-2 List notes). The level is system, as a script exercises the system from outside; the scenario is golden, since the script gives no expected result to tell, and the answer to the question about it may change it.
+cites:
+  - {source: sheet, clause: 'A3:F3', says: 'Test ID: TC-2; Title: List notes'}

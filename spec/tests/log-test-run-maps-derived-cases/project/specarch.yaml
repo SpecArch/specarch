@@ -1,0 +1,12 @@
+specarch: "1.0.0"
+
+info:
+  title: Note keeper
+  version: 0.1.0
+  profile: lean
+
+stages: [design, tests, deployment]
+
+stakeholders:
+  owner:
+    description: The one who keeps notes.

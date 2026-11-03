@@ -16,7 +16,7 @@ import (
 
 // extractSources are the surfaces this build reads, in the order the usage
 // text lists them.
-var extractSources = []string{"outline", "database", "router", "documents", "tables", "openapi", "permissions", "pages", "workflows", "gateway", "systemd", "go", "swift", "javascript", "dart"}
+var extractSources = []string{"outline", "database", "router", "documents", "tables", "openapi", "permissions", "pages", "workflows", "gateway", "systemd", "go", "swift", "javascript", "dart", "tests"}
 
 var entityName = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
 
@@ -150,6 +150,9 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 	case entity != "" && !entityName.MatchString(entity):
 		fmt.Fprintf(stderr, "specarch extract tables: --entity %s is not an entity name; write it in PascalCase, such as Loan\n", entity)
 		return 2
+	case source == "tests" && key != "" && len(paths) != 1:
+		fmt.Fprintf(stderr, "specarch extract tests: --source-key names the source of one file, and %d files were given; each is a source under its file's name\n", len(paths))
+		return 2
 	case source == "tables" && key != "" && len(paths) != 1:
 		fmt.Fprintf(stderr, "specarch extract tables: --source-key names the source of one file, and %d files were given; each is a source under its file's name\n", len(paths))
 		return 2
@@ -181,7 +184,7 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch extract openapi reads one OpenAPI document, and was given %d paths; one source is written per document file\n", len(paths))
 		return 2
 	}
-	if key == "" && source != "documents" && source != "openapi" && source != "tables" {
+	if key == "" && source != "documents" && source != "openapi" && source != "tables" && source != "tests" {
 		key = "code"
 	}
 	var vocab *vocabulary.Vocabulary
@@ -228,6 +231,8 @@ func runExtract(args []string, stdout, stderr io.Writer) int {
 		res, err = extract.JavaScript(paths[0], out, key, implementation)
 	case "dart":
 		res, err = extract.Dart(paths[0], out, key, implementation)
+	case "tests":
+		res, err = extract.Tests(paths, out, key)
 	}
 	if err != nil {
 		var refusal *extract.Refusal

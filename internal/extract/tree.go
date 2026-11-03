@@ -308,6 +308,12 @@ func (t *Tree) anchor(text string) string {
 // element is the element of a section the tree writes, in whichever of
 // its files holds it: a section may be spread over files, one per element.
 func (t *Tree) element(section, name string) *yaml.Node {
+	// A test is a folder of its own, its file the test itself.
+	if section == "tests" {
+		if e := t.files["tests/"+name+"/test.yaml"]; e != nil {
+			return e
+		}
+	}
 	for _, file := range t.files {
 		if e := source.Child(child(file, section), name); e != nil {
 			return e

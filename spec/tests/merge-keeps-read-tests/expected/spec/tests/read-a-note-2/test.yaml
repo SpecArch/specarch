@@ -1,0 +1,9 @@
+level: system
+scenario: red
+given: a signed-in writer; a note n9
+when: the writer reads it
+then: it answers 404
+origin: inferred
+why: Read from notes.feature, line 14 (Read a note 2). The level is system, as a script exercises the system from outside; the scenario is red, since the expected result names a refusal or an error.
+cites:
+  - {source: notes, clause: line 14, says: 'Scenario Outline: Read a note Given a note n9 When the writer reads it Then it answers 404'}

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: log test-run
+level: system
+scenario: golden
+given: "a specification of a kept note with the test keep-note-ok, and the JUnit XML a test package's run wrote under records/evidence/, whose testcases are keep-note-ok and two derived cases no test covers, create-note-missing-id and create-note-missing-text (failed), named as derive names them"
+when: "log test-run is run on the file with the environment, the instant and the role"
+then: "it writes records/test-runs/TR-1.yaml with keep-note-ok mapped to its test and each derived case naming the path of its operation, #/paths/~1notes, under element; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0"
+verifies: [SA-128]

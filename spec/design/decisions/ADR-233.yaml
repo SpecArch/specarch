@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-233:
+    title: A test package is data that the specarch program makes with generate tests --package <environment> and runs with specarch run; it holds every test and every derived case no test covers as a request to the environment's servers, holds back a test an open question holds up, holds no credential, and its JUnit XML results map back through log test-run
+    status: proposed
+    date: "2026-11-04"
+    context: |
+      The tests target writes a stack's tests, which run through a
+      harness the project writes: they insert records, sign a caller in
+      and send a request from inside the project. A system delivered to a
+      customer is accepted in the customer's environment, run by people
+      who have neither the project's code nor its harness, and who are
+      asked to show which paths of the specification work there: the
+      golden paths, the red paths and the paths no test covers yet.
+      Their answer is usually a spreadsheet of manual checks. The
+      specification already holds what such a run needs: each test's
+      input and expected answer in the design's vocabulary, and, for a
+      case no test covers, the draft derive writes with the call the
+      design fixes (ADR-213). A deployment of an implementation file
+      names, per environment, the servers and their addresses (ADR-136).
+    decision: |
+      specarch generate tests --package <environment> --out <folder>
+      writes one file, specarch-test-package.yaml, built into the program
+      and through no plug-in, since a package belongs to no stack. Its
+      cases are every test of the specification and every chosen derived
+      case no test covers, drafted as derive drafts it and named as derive
+      names it, each with its element: the test, or for a derived case
+      the element of its subject. A case is a request, the method, the
+      path with its path parameters written in, the query, the header and
+      cookie parameters and the JSON body, with the caller's role, the
+      fixture's records and the status and body fields expected; or the
+      reason it cannot run from outside: no request the specification
+      gives, a command or a page, a handshake's envelope, a streamed file,
+      a caller with properties of its own, an outcome only the state
+      after shows, a denied case with no caller, or an API served in the
+      dxlib dialect. A body's properties are named as info.wireNames puts
+      them on the wire (ADR-062). The state after and the messages emitted are named as
+      not checked. The servers are those of the deployments in that
+      environment that answer requests. A question that blocks only tests
+      holds back those tests, listed under held, and every other gate is
+      the target's own.
+
+      specarch run <package> --results <file> runs the cases in order
+      against --base-url, the server --server names, or the package's one
+      server. A role signs in with the headers a --callers file gives it;
+      a case that needs records runs the program --setup names first,
+      with the records as JSON on its standard input. A case without
+      what it needs is skipped, naming what is missing. The results are
+      JUnit XML, one testcase per case named as the case, with no time,
+      and specarch log test-run maps a derived case's name to its
+      subject's element.
+    consequences: |
+      A customer's tester runs the specification's paths with one program
+      and two files of their own: the callers file and, when a case needs
+      records, the setup program. Nothing of theirs goes into the package,
+      and nothing of the specification but what the run needs goes to
+      them. A case the package cannot run is in the results as skipped
+      with its reason, so the results say what was not shown and why. A
+      derived case runs as derive drafts it, so its result shows what the
+      design fixes before anyone writes the test; once a person writes the
+      test under the same name, the same result maps to it. The package is
+      as current as the specification it was made from, and generate
+      --check compares it as every target's output.
+    why: |
+      The package is data run by the specarch program rather than a
+      script of its own, because a script needs an interpreter on the
+      customer's host and a request with a JSON body checked field by
+      field needs a parser: a POSIX shell with curl has none, and Python
+      or a Go source file needs a runtime the customer's hosts may not
+      allow, while the specarch program is one static binary already
+      released for each platform. It is built in, because a plug-in is
+      looked up by the stack of an implementation file and a package that
+      runs from outside belongs to none. Derived cases are run, not only
+      listed, because the request asked that every derived path run, and
+      a draft's call is what the design fixes (ADR-213); a draft whose
+      call derive does not draft is skipped with that reason. No
+      credential goes into the package because it is handed to people
+      outside the team and kept beside the results; the callers file and
+      the setup program stay with whoever runs the environment. The
+      results are JUnit XML, the format log test-run reads (ADR-230).
+      JUnit XML has no published standard; Ant's schema, the one most
+      tools follow, requires time, timestamp and hostname, to show how
+      long each test took and when and where the suite ran. The file
+      leaves them out: the instant is what log test-run records with its
+      offset (--at), which Ant's timestamp lacks; the host is no
+      environment of the specification; and the durations are on the
+      progress lines. Without them the file changes only with the
+      outcomes and the answers, so a conformance case can compare it and
+      its digest in the test-run record says what was shown; the readers
+      it is for, log test-run and the CI servers that show JUnit XML,
+      read a file without them. The derived cases of rank other are
+      listed as left out, with why, and not run, as the test plan lists
+      them: running every case of every subject is the exhaustive testing
+      the sampling by risk exists to avoid (ISO/IEC/IEEE 29119-1, 4.1.6). A held test is listed rather than run as
+      far as it goes, because a test with a part still undecided would
+      show a result for a path nobody has agreed on.
+    satisfies: [SA-128]
+    restsOn: [ADR-062, ADR-213, ADR-230]
+    cites:
+      - source: iso-29119-3
+        clause: "8"
+        says: "Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome."

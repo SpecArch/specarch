@@ -771,6 +771,19 @@ specification, and an operation stage with monitors. Built in this order:
    requirement run by run (`spec/tests/document-writes-testruns`), and the
    runs in the timeline (`document-writes-timeline-test-runs`). Built,
    unreleased.
+10. the test package (ADR-233, ADR-235): `specarch generate tests
+   --package <environment>`, every test and every derived case no test
+   covers as requests to an environment's servers, a test an open question
+   holds up held back until it is answered
+   (`spec/tests/generate-tests-package`); `specarch run`, which runs it
+   with the callers' headers and a setup program and writes JUnit XML
+   (`run-package-skips`, `run-package-no-answer` and its refusals); `log
+   test-run` mapping a derived case to its subject's element
+   (`log-test-run-maps-derived-cases`); and `specarch extract tests`,
+   Gherkin feature files and test sheets read into tests with a question
+   for each part left out, which merge keeps
+   (`extract-tests-incomplete-scripts`, `merge-keeps-read-tests`). Built,
+   unreleased.
 
 ## Not planned
 

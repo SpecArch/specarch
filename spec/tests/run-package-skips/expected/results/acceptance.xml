@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Note keeper 0.1.0, environment acceptance" tests="9" failures="0" errors="0" skipped="9">
+  <properties>
+    <property name="environment" value="acceptance"></property>
+    <property name="server" value="http://127.0.0.1:1"></property>
+    <property name="specification" value="0.1.0"></property>
+    <property name="digest" value="sha256:a92f2da2e6b1c4cb9797203ea73ec8e1602a70eb56d225e2ea2e5eb8414a3d28"></property>
+  </properties>
+  <testcase name="keep-note-ok" classname="operation createNote">
+    <skipped message="the case signs in as role writer, and the run was given no headers for it; add writer to the file --callers names, with the headers that sign that role in"></skipped>
+  </testcase>
+  <testcase name="read-note-ok" classname="operation readNote">
+    <skipped message="the case signs in as role writer, and the run was given no headers for it; add writer to the file --callers names, with the headers that sign that role in"></skipped>
+  </testcase>
+  <testcase name="create-note-missing-id" classname="operation createNote">
+    <skipped message="the case signs in as role writer, and the run was given no headers for it; add writer to the file --callers names, with the headers that sign that role in"></skipped>
+  </testcase>
+  <testcase name="create-note-missing-text" classname="operation createNote">
+    <skipped message="the case signs in as role writer, and the run was given no headers for it; add writer to the file --callers names, with the headers that sign that role in"></skipped>
+  </testcase>
+  <testcase name="create-note-id-not-a-valid-uuid" classname="operation createNote">
+    <skipped message="the case signs in as role writer, and the run was given no headers for it; add writer to the file --callers names, with the headers that sign that role in"></skipped>
+  </testcase>
+  <testcase name="create-note-denied-without-notes-write" classname="operation createNote">
+    <skipped message="the case covers denied without notes.write and names no caller, and a request with no caller is refused as not signed in, which is another case; name a role without notes.write under fixture.caller, or declare one, and make the package again"></skipped>
+  </testcase>
+  <testcase name="read-note-note-id-not-a-valid-uuid" classname="operation readNote">
+    <skipped message="no test covers this case, and derive drafts no request for it, since the design does not fix the call (a value derive cannot make, a record it cannot name, or no role to call with); write the test with its fixture, input and expect, and make the package again"></skipped>
+  </testcase>
+  <testcase name="read-note-not-found-note-id" classname="operation readNote">
+    <skipped message="the case signs in as role writer, and the run was given no headers for it; add writer to the file --callers names, with the headers that sign that role in"></skipped>
+  </testcase>
+  <testcase name="read-note-denied-without-notes-write" classname="operation readNote">
+    <skipped message="no test covers this case, and derive drafts no request for it, since the design does not fix the call (a value derive cannot make, a record it cannot name, or no role to call with); write the test with its fixture, input and expect, and make the package again"></skipped>
+  </testcase>
+</testsuite>

@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-235:
+    title: specarch extract tests reads Gherkin feature files and test sheets, complete or not, into tests inferred from them, with a must question for each test's subject and for each given, step or expected result the script leaves out; merge keeps such tests and the questions that block only them
+    status: proposed
+    date: "2026-11-04"
+    context: |
+      Teams that deliver to a customer already have test cases, written
+      as Gherkin scenarios or as rows of a test sheet with a precondition,
+      steps, test data and an expected result. They are often incomplete:
+      a row with no expected result, a scenario that never says Then, a
+      sheet whose test data column is empty. Each says what a stakeholder
+      expects of the system, in the stakeholder's words, and none of it
+      reaches the specification, so the derived cases and the written
+      cases live apart. Gherkin (the Cucumber project's language) gives a
+      scenario Given, When and Then steps, which are the three parts a
+      design test has. merge took only the drafts derive writes from a
+      reader's tree, since every reader before this one read design, not
+      tests (ADR-055).
+    decision: |
+      extract tests reads one or more feature files and CSV, TSV or Excel
+      test sheets of one repository at a commit. Each Scenario or Example
+      is a test, the Background's Given steps before its own, And and But
+      continuing the step before; a Scenario Outline is a test per row of
+      its Examples. Each row of a sheet is a test, its columns found by
+      the header's words: the ID and title, the operation, the
+      precondition, the test data, the steps, the expected result and the
+      type. A test is level system, red when the script says negative or
+      its expected result names a refusal or an error, golden otherwise,
+      origin inferred with why, and cites its line or its row's range. A
+      script names what it exercises in its own words, so each test has a
+      must question for its subject, which blocks the whole test since
+      the subject decides the rest of its keys; and one must question for
+      each part the script leaves out, its given, its step or its
+      expected result, which blocks that key. merge keeps a test that
+      cites a source of its tree whole, renamed with -2 when an earlier
+      tree has its name, and keeps a question that blocks only such tests
+      with its pointers renamed. The test package holds a test back while
+      those questions are open (ADR-233).
+    consequences: |
+      An incomplete test script becomes tests a person completes one
+      question at a time, with specarch decide, and each joins the test
+      package once its questions are answered and the answers written. A
+      test's words stay the script's words, cited to the line or the row,
+      so a reviewer reads what the stakeholder wrote beside what was
+      decided. A test is never given a part the script does not say, so
+      a red scenario inferred from a missing result is golden until the
+      question about it is answered. Steps written in a step-definition
+      language of a project's own (Cucumber expressions bound to code) are
+      read as their text, not run.
+    why: |
+      The subject question blocks the whole test rather than its
+      operation key, because a test names its subject by one of eleven
+      keys and the schema asks for exactly one; a question on one key
+      would leave the others reported missing, while a question on the
+      element covers what the subject decides, as a field's type does
+      (docs/conventions.md, Open questions). A question's names key, which
+      lets merge write a name at a key once another tree declares it,
+      blocks one key only, so it is not used here; the subject question
+      names the request the script names in its text. Every missing part
+      is its own question rather than one per test, because each is a
+      separate decision a different person may take, and the request
+      asked for one per missing input, step or expected result. Tests are
+      inferred, not stated, because the scenario and the level are
+      inferred from the script's words. Gherkin is read by its keywords
+      as the Cucumber project defines them (Feature, Rule, Background,
+      Scenario, Example, Scenario Outline, Examples, the step keywords,
+      doc strings and data tables, tags), English keywords only, since a
+      feature file's language header changes every keyword and a reader
+      of every language is a larger piece of work. merge keeps read tests
+      whole rather than merging two of them, because two scripts that
+      name one test are two tests a person reads side by side, and a
+      merge of their steps would invent a third.
+    satisfies: [SA-131]
+    restsOn: [ADR-055, ADR-233]

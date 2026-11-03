@@ -1,0 +1,11 @@
+operation: createNote
+level: system
+scenario: golden
+given: "a caller with notes.write"
+when: "createNote is called with values inside every limit"
+then: "it answers 201: The note is kept."
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+fixture: { caller: writer }
+input: { id: "431b6775-3104-50eb-96e0-c69f62202f20", text: "text" }
+expect: { status: 201 }

@@ -116,3 +116,37 @@ requirements:
     verification: test
     needs: [NEED-9, NEED-3]
     why: A case left out is a decision, and a decision the reader cannot see is one nobody can question.
+  SA-128:
+    statement: specarch generate tests --package <environment> shall write a test package of one specification for one of its environments - every test, and every chosen derived case no test covers drafted as derive drafts it, each as a request to the environment's servers with what its answer must show, or with the reason it cannot run from outside - holding back a test an open must or should question holds up until it is answered, and holding no credential; specarch run shall run the package against the environment, signing each role in with headers it is given and putting a case's records in place through a program it is given, and write the results as JUnit XML that specarch log test-run maps back to each test, or to a derived case's subject.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - generate tests --package with an environment of the specification, --out and --unapproved writes specarch-test-package.yaml with the generated header, the environment's servers that answer requests and one case per test and per chosen derived case no test covers, a derived case marked derived with its subject's element, and lists a test a must question blocks under held, naming the question.
+      - A case whose test gives no request, is about a command or a page, or expects only the state after is in the package with the reason it cannot run from outside, and no case holds a credential.
+      - run with the package, --base-url of a fixture service, --callers and --results writes JUnit XML with one testcase per case, named as the case, passed when the answer has the status and the body fields expected, failed naming the status or field that differs, and skipped with the reason for a case the package marks so, a role --callers does not give, or records with no --setup; it exits 0 when no case failed or errored and 1 otherwise.
+      - log test-run on that JUnit XML maps each testcase to its test, and each derived case to its subject's element, with no unmapped result.
+      - generate tests --package refuses another target, no --out and an environment the specification does not have with status 2; run refuses a package with several servers and neither --base-url nor --server, naming them, with status 2.
+    verification: test
+    needs: [NEED-9, NEED-10]
+    why: The tests a specification implies are only worth what a run of them in the customer's environment shows, and that environment is run by people who have neither the specification nor the project's harness; a package that holds the cases as data, run by the program that made it, needs nothing on their host but that program, and its results come back as a file the specification's own test-run record maps case by case (ADR-233).
+    cites:
+      - source: iso-29119-3
+        clause: "8"
+        says: "Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome."
+  SA-131:
+    statement: specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - extract tests on a feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a sheet with a row missing its test data and a row with nothing but its ID and title writes one test per scenario, example and row, each origin inferred with why and a citation of its line or range, and one must question per test for its subject plus one per given, step or expected result left out, each blocking that test or that key; the tree passes validate.
+      - merge of a design tree and that tree keeps each read test whole under tests/ with the questions that block only it, and a line counts them.
+      - After decide answers each question of a read test and the answer's keys are written, generate tests --package lists the test among the cases instead of under held, and run passes it against a service that answers as the test expects.
+    verification: test
+    needs: [NEED-8, NEED-9]
+    why: A team that already has test scripts has the test cases a stakeholder wrote down, often with a step or a result missing; reading them into the specification, with a question for each missing part instead of a guess, puts that knowledge where the derived cases are, and the test joins the package once a person settles what is missing (ADR-235).
+    cites:
+      - source: iso-29119-3
+        clause: "8"
+        says: "Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome."

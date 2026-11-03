@@ -21,7 +21,9 @@ idempotency key, validity, sessions and guards, with their derived cases.
 And the seventh: the Swift and Dart test plug-ins, Dart serving Flutter.
 And the eighth: the drafts carry the call the design fixes, `--fill` adds
 it to tests that have none, and the test plan counts the bodies still
-written by hand. The items are listed at the end.
+written by hand. And the ninth: the test package that runs every path in a
+customer's environment, and test scripts read into the specification. The
+items are listed at the end.
 
 The standards are ISO/IEC/IEEE 29119-4:2021 for the techniques and their
 coverage measures, and ISO/IEC/IEEE 29119-1:2022 for why a test set is a
@@ -439,6 +441,64 @@ it requires, the other answers it declares, its failure and the caller's
 time limit, one file per module called (ADR-226, `docs/generators.md`,
 Integration tests across an estate).
 
+## The test package
+
+The tests above run inside the project, through its harness. A system
+delivered to a customer is accepted in the customer's environment, by
+people who have neither the code nor the harness, and who are asked which
+paths of the specification work there: the golden paths, the red paths
+and the ones no test covers yet. The test package is those paths as data,
+made for one environment and run from outside (ADR-233):
+
+    specarch generate tests --package acceptance --out package spec
+    specarch run --callers callers.yaml --setup ./put-records --results records/evidence/TR-4-junit.xml package
+    specarch log test-run --results records/evidence/TR-4-junit.xml --environment acceptance --at 2026-11-04T10:00:00+07:00 --by customer-it spec
+
+`generate tests --package <environment>` writes one file,
+`specarch-test-package.yaml`, built into `specarch`, since a package
+belongs to no stack. Its cases are every test of the specification and
+every chosen derived case no test covers, drafted as `specarch derive`
+drafts it and named as derive names it, so the paths no test covers run
+too. A case is a request, the method, the path with its path parameters
+written in, the query, the header and cookie parameters and the JSON body,
+with the caller's role, the records the fixture needs and the status and
+body fields its answer must show, a body's properties named as
+`info.wireNames` puts them on the wire; or the reason it cannot run from
+outside: no request the specification gives, a command or a page, a
+handshake's envelope, a streamed file, a caller with properties of its
+own, an outcome only the state shows, a denied case derive drafts no
+caller for, or an API served in the dxlib dialect, whose envelope the
+package does not write. What a request from outside cannot see, the state after and
+the messages emitted, is named as not checked. The servers are those of
+the environment's deployments that answer requests, from the
+implementation files. A test an open must or should question holds up is
+left out, listed with its questions, and joins the package once they are
+answered; every other open question and the approval gate the package as
+they gate every target. The derived cases of rank other are listed under
+`leftOut` with why, as the test plan lists them, and not run: the package
+runs the sample chosen by risk, not every case. The results carry no
+time, timestamp or host name, which Ant's JUnit schema asks for: the
+instant is what `log test-run --at` records with its offset, and the
+durations are on the progress lines (ADR-233).
+
+`specarch run` reads the package, never the specification, so it runs
+where the specification is not. A role signs in with the headers a
+callers file gives it, and a case that needs records runs a setup program
+first, with the records as JSON on its standard input; neither goes into
+the package or the results, and a case without what it needs is skipped
+with that reason. The results are JUnit XML, one testcase per case, which
+`log test-run` maps back to its test, or for a derived case to its
+subject's element, so the testruns document counts it there.
+
+| Stack-neutral, in the package | Given when it runs, never in the package |
+|---|---|
+| the requests, the expected statuses and body fields, the records a case needs, the roles | the address, when not the deployment's; the headers that sign each role in; the program that puts records in place |
+
+A test that comes from a script the team already had, read by `specarch
+extract tests` with a question for each part the script leaves out
+(`docs/extraction.md`, step 24), is held back the same way until its
+questions are decided, then runs with the rest.
+
 ## Traceability
 
 Nothing new is needed: a derived test carries `verifies` from its
@@ -512,3 +572,14 @@ validator builds where it adds a rule, and the conformance cases.
    transition, a workflow, a job, a flow or a requirement; giving it one
    is the next item, since it changes the harness each plug-in asks the
    project for.
+9. Built. The test package and its run (ADR-233, SA-128): `generate tests
+   --package <environment>`, `specarch run`, and `log test-run` mapping a
+   derived case to its subject's element; with `extract tests` and
+   merge's read tests (ADR-235, SA-131), a test script the team already
+   had joins the package once its questions are decided. Cases
+   `spec/tests/generate-tests-package`, `run-package-skips`,
+   `run-package-no-answer`, `run-package-servers`, `run-usage-error` and
+   `log-test-run-maps-derived-cases`; `TestTestPackageRuns` runs a
+   package against a fixture service. Left out: a run of a command, a
+   page or a handshake from outside, and the state after, which only the
+   project's own suite checks.

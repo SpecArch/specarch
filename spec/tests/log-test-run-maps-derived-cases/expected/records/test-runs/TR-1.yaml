@@ -1,0 +1,20 @@
+# Written by specarch log test-run from records/evidence/TR-1-junit.xml. Edit it as any record.
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: acceptance
+at: "2026-11-04T10:00:00+07:00"
+by: owner
+evidence:
+  - {path: evidence/TR-1-junit.xml, mediaType: application/xml, sha256: 'sha256:0b31bd0737edd86e2915af4b96b6cccf4152d232f0ccd896c2fd959541f0e280'}
+results:
+  - name: keep-note-ok
+    test: keep-note-ok
+    outcome: passed
+  - name: create-note-missing-id
+    element: "#/paths/~1notes"
+    outcome: passed
+  - name: create-note-missing-text
+    element: "#/paths/~1notes"
+    outcome: failed
+    message: 'answered 201, and the test expects 400; the body: {}'

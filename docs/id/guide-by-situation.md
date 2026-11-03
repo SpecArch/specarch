@@ -699,6 +699,92 @@ bila keduanya dibangun: keduanya mencetak keluaran yang sama.
 **Lebih dalam.** `docs/sync-gates.md`, `scripts/landing-check.sh` (setiap
 pemeriksaan yang dijalankan repositori ini), `specarch help check`.
 
+<!-- situation: test-scripts -->
+## Memakai test script yang sudah dimiliki tim
+
+**Kapan terjadi.** Tim, atau customer, sudah punya test case: file
+feature Gherkin, atau test sheet yang tiap row-nya berisi precondition,
+step, test data dan expected result. Ada row yang belum punya expected
+result, ada scenario yang berhenti sebelum Then, dan semuanya belum masuk
+ke spesifikasi.
+
+**Apa yang dijalankan.** Commit dulu script-nya, lalu baca ke dalam
+sebuah tree dan merge dengan tree yang lain:
+
+    specarch extract tests --out trees/tests scripts/notes.feature scripts/regression.xlsx
+    specarch merge --out spec trees/code trees/openapi trees/tests
+    specarch gaps --next spec
+
+`extract tests` menulis satu test per scenario, example atau row, dengan
+level system, red kalau script-nya bilang negative atau expected
+result-nya menyebut penolakan atau error, `origin: inferred`, dan cites ke
+baris atau row asalnya. Setiap test dapat satu must question untuk
+subject yang di-test, dengan menyebut request yang disebut script
+(`POST /notes`), dan satu must question untuk setiap given, step atau
+expected result yang belum ditulis di script. `merge` menyimpan test ini
+utuh bersama question-nya. Jawab satu per satu dengan `specarch decide`,
+tulis apa yang diputuskan ke test-nya, dan test itu masuk ke test package.
+
+**Contoh.** Scenario tanpa Then dan row sheet yang hanya berisi ID dan
+title (`spec/tests/extract-tests-incomplete-scripts`):
+
+    read notes.feature: 4 tests
+    read sheet.csv: 2 tests
+    wrote 6 tests and 10 questions: one per subject a test exercises, which a script cannot name in the specification's words, 1 for a test with no given, 1 with no step and 2 with no expected result
+
+**Yang perlu diperhatikan.** Test tidak pernah diisi bagian yang tidak
+ditulis di script-nya: scenario tanpa expected result tetap golden sampai
+question-nya dijawab. Question untuk subject mem-block seluruh test,
+jadi test itu ditahan dari package sampai dijawab. Hanya keyword Gherkin
+bahasa Inggris yang dibaca; file feature dengan header `# language:`
+dibaca sebagai teks tanpa step.
+
+**Lebih dalam.** `docs/extraction.md` (Test scripts), `specarch help
+extract`, ADR-235.
+
+<!-- situation: test-package -->
+## Menjalankan test di environment milik customer
+
+**Kapan terjadi.** Customer yang menjalankan environment acceptance,
+tidak memegang code maupun test harness project, dan ingin tahu path mana
+dari spesifikasi yang jalan di sana: golden path, red path, dan path yang
+belum ter-cover test.
+
+**Apa yang dijalankan.** Buat package untuk environment itu, serahkan,
+dan biarkan yang menjalankan environment-nya me-run dengan credential
+mereka sendiri:
+
+    specarch generate tests --package acceptance --out package spec
+    specarch run --callers callers.yaml --setup ./put-records --results records/evidence/TR-4-junit.xml package
+    specarch log test-run --results records/evidence/TR-4-junit.xml --environment acceptance --at 2026-11-04T10:00:00+07:00 --by customer-it spec
+
+Package-nya, `specarch-test-package.yaml`, berisi semua test dan semua
+derived case yang belum ter-cover test, masing-masing sebagai request ke
+server di environment itu beserta apa yang harus ada di jawabannya, atau
+beserta alasan kenapa tidak bisa dijalankan dari luar. `callers.yaml`
+memetakan setiap role ke header untuk sign in; setup program menyiapkan
+record yang dibutuhkan sebuah case. Keduanya tidak masuk ke package
+maupun ke hasil. JUnit XML-nya di-map balik lewat `log test-run`, derived
+case ke elemen subject-nya.
+
+**Contoh.** Package untuk catatan yang disimpan
+(`spec/tests/generate-tests-package`), dan run-nya terhadap server yang
+tidak menjawab (`spec/tests/run-package-no-answer`):
+
+    specarch generate: held back keep-note-seen, which Q-1 holds up; it joins the package once answered
+    error: list-notices-succeeds: GET http://127.0.0.1:1/notices got no answer: Get "http://127.0.0.1:1/notices": dial tcp 127.0.0.1:1: connect: connection refused
+
+**Yang perlu diperhatikan.** Case dengan role yang tidak ada di file
+callers, atau yang butuh record tanpa setup program, di-skip dengan
+alasannya, bukan dianggap gagal. Test yang masih ditahan open question
+tidak dimasukkan sampai question-nya dijawab. State setelahnya dan
+message yang di-emit tidak dicek dari luar; suite milik project yang
+mengeceknya. Kalau environment-nya punya beberapa server, pilih satu
+dengan `--server` atau berikan `--base-url`.
+
+**Lebih dalam.** `docs/test-generation.md` (The test package),
+`specarch help run`, ADR-233.
+
 <!-- situation: test-results -->
 ## Menyimpan hasil test setiap build
 
@@ -740,7 +826,7 @@ dan di `docs/testruns.md`, setelah run kedua:
 Testcase yang test-nya belum ada di spesifikasi tetap disimpan, tidak
 dibuang (`spec/tests/log-test-run-writes-record`):
 
-    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples
+    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples, nor a case no test covers as a test package names it
 
 **Yang perlu diperhatikan.** Testcase di-map lewat nama yang ditulis oleh
 generator test (`TestReturnLate`, `testReturnLate()`, `return-late: ...`),

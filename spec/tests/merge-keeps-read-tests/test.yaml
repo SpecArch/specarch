@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: merge
+level: system
+scenario: golden
+given: "a design tree of a kept note that tracks origin, and the tree extract tests wrote from a feature file and a test sheet, with six tests read from them and ten must questions, each blocking a test or one of its keys"
+when: "merge is run on both"
+then: "it keeps each read test whole under tests/ with its citation, keeps the ten questions with their pointers, numbered with the trees' other questions, prints a line counting the tests kept, derives the design's own drafts into the merged specification, and exits 0"
+verifies: [SA-131]

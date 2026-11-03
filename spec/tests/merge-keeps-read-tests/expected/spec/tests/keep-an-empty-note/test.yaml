@@ -1,0 +1,8 @@
+level: system
+scenario: golden
+given: a signed-in writer
+when: the writer sends POST /notes with no text
+origin: inferred
+why: Read from notes.feature, line 11 (Keep an empty note). The level is system, as a script exercises the system from outside; the scenario is golden, since the script gives no expected result to tell, and the answer to the question about it may change it.
+cites:
+  - {source: notes, clause: line 11, says: 'Scenario: Keep an empty note When the writer sends POST /notes with no text'}

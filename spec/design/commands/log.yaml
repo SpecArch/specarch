@@ -177,7 +177,10 @@ commands:
       name (`algorithm <name>`, or `mapping of <operation>'s call to
       <call>`) and a colon or a space; the element is
       `#/algorithms/<name>`, or the path of the operation,
-      `#/paths/<path>`. A testcase that maps to no test and no element,
+      `#/paths/<path>`. A testcase that maps to neither, and whose name is
+      the name `specarch derive` gives a chosen case no test covers, as a
+      test package names such a case, names the element of that case's
+      subject under `element` (ADR-233). A testcase that maps to no test and no element,
       or to two of them, is kept in the record without either and
       printed as a line `unmapped: <name>: <why>` on standard output,
       under `log.unmapped` with `--json`; the validator warns
@@ -269,7 +272,7 @@ commands:
     remedies:
       "1": "Read the lines on standard output and the reason on standard error: give each missing option, move the results file under records/, or correct the value named, and run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-125]
+    satisfies: [SA-125, SA-128]
     why: |
       A results file is written by a CI job and thrown away, and with it
       the answer to which requirement was shown met on which build. Kept

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: run
+level: system
+scenario: red
+covers: [usage error]
+given: "a test package"
+when: "run is run on it without --results"
+then: "it prints that run needs --results with the usage, writes nothing and exits 2"
+verifies: [SA-128]

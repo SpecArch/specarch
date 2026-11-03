@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: run
+level: system
+scenario: red
+covers: [exit 1]
+given: "a test package with one server and one public case whose server does not answer"
+when: "run is run on it with --results and no --base-url"
+then: "it sends the request to the package's one server, gets no answer, writes the case as an error naming the request and what the client said, prints the case as errored, and exits 1"
+verifies: [SA-128]

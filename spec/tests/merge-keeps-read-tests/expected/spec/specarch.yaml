@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.4.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+info:
+  title: Merge of 2 trees
+  version: 0.1.0
+  description: |
+    The elements of these trees, merged in this order: Note keeper; Tests in notes.feature, sheet.csv. Every element cites where it was read; where the trees disagree, or the documents and the code do, a question asks which is right.
+  tracksOrigin: true
+stages: [requirements, design, tests, deployment]
+sources:
+  notes:
+    kind: document
+    title: Keeping notes
+    edition: 3712f73908ce4c79711352a7aae1720294a61275
+    url: ../docs/notes.feature
+    clauses:
+      - {clause: line 11, title: Keep an empty note}
+      - {clause: line 14, title: Read a note}
+      - {clause: line 7, title: Keep a note}
+  sheet:
+    kind: document
+    title: sheet.csv
+    edition: 3712f73908ce4c79711352a7aae1720294a61275
+    url: ../docs/sheet.csv
+    clauses:
+      - {clause: 'A2:F2', title: TC-1 Delete a note}
+      - {clause: 'A3:F3', title: TC-2 List notes}

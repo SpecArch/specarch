@@ -1,0 +1,3 @@
+environments:
+  acceptance:
+    description: The customer's acceptance host.

@@ -1,0 +1,9 @@
+arguments: [merge, --out, spec, design-tree, tests-tree]
+exitStatus: 0
+standardOutput: |
+  tree design-tree: Note keeper, on the documents side: 7 elements and 0 questions
+  tree tests-tree: Tests in notes.feature, sheet.csv, on the documents side: 1 element and 10 questions
+  merged 8 elements, each an entry of a section or an operation: 0 in more than one tree, and 0 keys the trees disagree on
+  wrote 10 questions: 10 from the trees, numbered again in the order the trees are given, and 0 the merge asked
+  kept 6 tests read from test scripts, each as its tree has it, with the questions that block nothing else
+  derived 9 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

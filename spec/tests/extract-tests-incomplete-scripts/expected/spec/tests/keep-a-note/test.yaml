@@ -1,0 +1,9 @@
+level: system
+scenario: golden
+given: a signed-in writer
+when: the writer sends POST /notes with a text
+then: it answers 201 with the note
+origin: inferred
+why: Read from notes.feature, line 7 (Keep a note). The level is system, as a script exercises the system from outside; the scenario is golden, since the script says which.
+cites:
+  - {source: notes, clause: line 7, says: 'Scenario: Keep a note When the writer sends POST /notes with a text Then it answers 201 with the note'}

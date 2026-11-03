@@ -1,0 +1,9 @@
+level: system
+scenario: red
+given: a kept note
+when: DELETE /notes/n1
+then: it is refused
+origin: inferred
+why: Read from sheet.csv, A2:F2 (TC-1 Delete a note). The level is system, as a script exercises the system from outside; the scenario is red, since the expected result names a refusal or an error.
+cites:
+  - {source: sheet, clause: 'A2:F2', says: 'Test ID: TC-1; Title: Delete a note; Precondition: a kept note; Steps: DELETE /notes/n1; Expected Result: it is refused'}

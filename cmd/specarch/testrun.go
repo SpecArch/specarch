@@ -21,6 +21,7 @@ import (
 	"github.com/SpecArch/specarch/internal/gentests"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/testpackage"
 )
 
 // logUnmapped is a test case of a results file that maps to no test of
@@ -137,9 +138,12 @@ func readJUnit(data []byte) ([]junitCase, error) {
 // name and a colon. It runs an algorithm's or a call mapping's worked
 // examples when that cut name is a function a generator writes for them,
 // or the name is or begins with the display name the Swift and Dart
-// tests give them, followed by a colon or a space. When none, or more
-// than one test or worked example matches, it says why instead (ADR-230).
-func mapTestCase(name string, tests []string, worked []gentests.Worked) (test, element, why string) {
+// tests give them, followed by a colon or a space. A name no test has
+// that is the name derive gives a case no test covers, as a test package
+// names such a case, maps to its subject's element (ADR-233). When none,
+// or more than one test or worked example matches, it says why instead
+// (ADR-230).
+func mapTestCase(name string, tests []string, worked []gentests.Worked, derived []testpackage.Draft) (test, element, why string) {
 	base, _, _ := strings.Cut(name, "/")
 	if open := strings.Index(base, "("); open > 0 && strings.HasSuffix(base, ")") {
 		base = base[:open]
@@ -163,11 +167,18 @@ func mapTestCase(name string, tests []string, worked []gentests.Worked) (test, e
 			element = w.Element
 		}
 	}
+	if len(found) == 0 {
+		for _, d := range derived {
+			if name == d.Name {
+				return "", d.Element, ""
+			}
+		}
+	}
 	switch len(found) {
 	case 1:
 		return test, element, ""
 	case 0:
-		return "", "", "no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples"
+		return "", "", "no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples, nor a case no test covers as a test package names it"
 	}
 	return "", "", "it maps to " + strings.Join(found, " and ") + ", more than one test or worked example"
 }
@@ -354,11 +365,12 @@ func logTestRun(args []string, stdout, stderr io.Writer, kept **logResult) int {
 	tests := sortedPairKeys(testsNode)
 	specification, _ := l.spec.Value.(map[string]any)
 	worked := gentests.WorkedTests(specification)
+	derived, _ := packageDrafts(root, l.given)
 	mapped := make([]string, len(cases))
 	elements := make([]string, len(cases))
 	failedTests := map[string]bool{}
 	for i, c := range cases {
-		t, el, why := mapTestCase(c.name, tests, worked)
+		t, el, why := mapTestCase(c.name, tests, worked, derived)
 		mapped[i], elements[i] = t, el
 		if t == "" && el == "" {
 			result.Unmapped = append(result.Unmapped, logUnmapped{Name: c.name, Why: why})

@@ -1,0 +1,4 @@
+arguments: [run, --results, results.xml, package]
+exitStatus: 1
+standardOutput: |
+  error: list-notices-succeeds: GET http://127.0.0.1:1/notices got no answer: Get "http://127.0.0.1:1/notices": dial tcp 127.0.0.1:1: connect: connection refused

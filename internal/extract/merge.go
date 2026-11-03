@@ -38,6 +38,11 @@ type mergeTree struct {
 	// How its code sources were read: printed by the running system or
 	// parsed from source, when they all say the same; "" otherwise.
 	reading string
+	// read are the tests a reader read from a test script, which merge
+	// keeps as they are (ADR-235), and readName their names in the merged
+	// specification.
+	read     []source.Pair
+	readName map[string]string
 }
 
 // element is one element of the merged specification: an entry of a
@@ -115,6 +120,7 @@ func Merge(specs []*spec.Spec, out string, vocabularies []*vocabulary.Vocabulary
 	m.resolveReferences()
 	m.readValueObjects()
 	m.removeDisputed()
+	m.readTestNames()
 	m.treeQuestions()
 	asked := m.disputeQuestions()
 	asked += m.namespaceQuestions()
@@ -245,9 +251,10 @@ func checkTree(s *spec.Spec) (*mergeTree, error) {
 	if source.Str(source.Child(source.Child(s.Root, "info"), "tracksOrigin")) != "true" {
 		return nil, refuse("%s does not track origin (info.tracksOrigin); merge takes the trees the readers write, in which every element says where it was read", s.Dir)
 	}
+	read := readTests(s.Root)
 	switch {
 	case source.Child(s.Root, "tests") != nil && notDerived(s.Root) != "":
-		return nil, refuse("%s holds %s; a reader's tree holds only the drafts specarch derive writes for it, which merge leaves out and derives again for the merged specification, so write that test in the merged specification", s.Dir, notDerived(s.Root))
+		return nil, refuse("%s holds %s; a reader's tree holds the tests it read from a test script, each citing it, and the drafts specarch derive writes for it, which merge leaves out and derives again for the merged specification, so write that test in the merged specification", s.Dir, notDerived(s.Root))
 	case len(s.Implementations) > 0:
 		return nil, refuse("%s holds an implementation file, which no reader writes; merge the trees the readers wrote, then write the implementation file", s.Dir)
 	case len(s.Records) > 0:
@@ -260,7 +267,7 @@ func checkTree(s *spec.Spec) (*mergeTree, error) {
 	if err != nil {
 		return nil, err
 	}
-	t := &mergeTree{s: s, dir: dir, title: source.Str(source.Child(source.Child(s.Root, "info"), "title")), side: codeSide}
+	t := &mergeTree{s: s, dir: dir, title: source.Str(source.Child(source.Child(s.Root, "info"), "title")), side: codeSide, read: read, readName: map[string]string{}}
 	sources := source.Pairs(source.Child(s.Root, "sources"))
 	if len(sources) == 0 {
 		t.side = documentsSide
@@ -1308,6 +1315,9 @@ func (m *merger) treeQuestions() {
 		for _, p := range source.Pairs(source.Child(t.s.Root, spec.QuestionsSection)) {
 			q := copyNode(p.Value)
 			blocks := source.Items(source.Child(q, "blocks"))
+			if m.readTestQuestion(t, q) {
+				continue
+			}
 			if m.registered(ti, t, p.Key.Value, q) {
 				continue
 			}
@@ -1853,6 +1863,49 @@ func questionFile(q *yaml.Node) string {
 		}
 	}
 	return stage + "/" + spec.QuestionsSection + ".yaml"
+}
+
+// readTestQuestion keeps a question that blocks nothing but tests a
+// reader read, as it is, its pointers naming each test by its name in the
+// merged specification: such a test is kept whole, so what the question
+// blocks is there.
+func (m *merger) readTestQuestion(t *mergeTree, q *yaml.Node) bool {
+	blocks := source.Items(source.Child(q, "blocks"))
+	if len(blocks) == 0 {
+		return false
+	}
+	for _, b := range blocks {
+		parsed, ok := spec.ParseBlock(b.Value)
+		if !ok || len(parsed.Tokens) < 2 || parsed.Tokens[0] != "tests" || t.readName[parsed.Tokens[1]] == "" {
+			return false
+		}
+	}
+	for _, b := range blocks {
+		parsed, _ := spec.ParseBlock(b.Value)
+		parsed.Tokens[1] = t.readName[parsed.Tokens[1]]
+		b.Value = "#" + source.Pointer(parsed.Tokens...)
+	}
+	m.addQuestion(q, "tests/"+spec.QuestionsSection+".yaml")
+	return true
+}
+
+// readTestNames names each read test in the merged specification: its own
+// name, or with -2, -3 when a test of an earlier tree has it.
+func (m *merger) readTestNames() {
+	taken := map[string]bool{}
+	for _, t := range m.trees {
+		for _, p := range t.read {
+			name := p.Key.Value
+			for n := 2; taken[name]; n++ {
+				name = fmt.Sprintf("%s-%d", p.Key.Value, n)
+			}
+			if name != p.Key.Value {
+				m.res.say("renamed: test %s of %s is %s, since a test of an earlier tree is named %s", p.Key.Value, t.s.Dir, name, p.Key.Value)
+			}
+			taken[name] = true
+			t.readName[p.Key.Value] = name
+		}
+	}
 }
 
 func (m *merger) addQuestion(q *yaml.Node, file string) {
@@ -2699,6 +2752,18 @@ func (m *merger) write(asked int) (*Result, error) {
 		m.stages[strings.SplitN(file, "/", 2)[0]] = true
 		m.res.Tree.put(file, orderSections(n))
 	}
+	// A test read from a script is kept whole, each in its folder.
+	read := 0
+	for _, t := range m.trees {
+		for _, p := range t.read {
+			m.res.Tree.put("tests/"+t.readName[p.Key.Value]+"/test.yaml", copyNode(p.Value))
+			m.stages["tests"] = true
+			read++
+		}
+	}
+	if read > 0 {
+		m.res.say("kept %s read from test scripts, each as its tree has it, with the questions that block nothing else", plural(read, "test"))
+	}
 	var stages []string
 	for _, s := range spec.Stages {
 		if m.stages[s] {
@@ -2866,11 +2931,30 @@ func withoutTests(root *yaml.Node) *yaml.Node {
 	return out
 }
 
-// notDerived names the first test of a tree that is not the draft
-// specarch derive writes for the tree without its tests, or "" when every
-// test is one. A test is compared by its values, so the problem marks
-// above its entries do not count.
+// readTests are the tests of a tree a reader read from a test script:
+// those that cite a source of the tree, which a derive draft never does.
+func readTests(root *yaml.Node) []source.Pair {
+	var out []source.Pair
+	for _, p := range source.Pairs(source.Child(root, "tests")) {
+		for _, c := range source.Items(source.Child(p.Value, "cites")) {
+			if source.Child(source.Child(root, "sources"), source.Str(source.Child(c, "source"))) != nil {
+				out = append(out, p)
+				break
+			}
+		}
+	}
+	return out
+}
+
+// notDerived names the first test of a tree that is neither read from a
+// test script nor the draft specarch derive writes for the tree without its
+// tests, or "" when every test is one or the other. A test is compared by
+// its values, so the problem marks above its entries do not count.
 func notDerived(root *yaml.Node) string {
+	read := map[string]bool{}
+	for _, p := range readTests(root) {
+		read[p.Key.Value] = true
+	}
 	drafts := map[string]any{}
 	for _, dr := range validate.Drafts(withoutTests(root), nil) {
 		var v any
@@ -2879,6 +2963,9 @@ func notDerived(root *yaml.Node) string {
 		}
 	}
 	for _, p := range source.Pairs(source.Child(root, "tests")) {
+		if read[p.Key.Value] {
+			continue
+		}
 		want, ok := drafts[p.Key.Value]
 		if !ok {
 			return fmt.Sprintf("test %s, which is not a draft specarch derive writes for it", p.Key.Value)

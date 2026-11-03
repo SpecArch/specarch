@@ -1,0 +1,13 @@
+operation: readNote
+level: system
+scenario: golden
+given: "a caller with notes.write"
+when: "readNote is called with values inside every limit"
+then: "it answers 200: The note."
+origin: inferred
+why: "Written by specarch derive: every subject needs a golden path, and this is the success the design gives. A draft: complete the given, when and then, and remove what does not hold."
+fixture:
+  caller: writer
+  Note: [{ id: "5a71890f-42a7-546d-b776-2ea2014238d7" }]
+input: { noteId: "5a71890f-42a7-546d-b776-2ea2014238d7" }
+expect: { status: 200 }

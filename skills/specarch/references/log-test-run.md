@@ -44,7 +44,10 @@ and `Sent` or `Kept`), or its name is or begins with their display
 name (`algorithm <name>`, or `mapping of <operation>'s call to
 <call>`) and a colon or a space; the element is
 `#/algorithms/<name>`, or the path of the operation,
-`#/paths/<path>`. A testcase that maps to no test and no element,
+`#/paths/<path>`. A testcase that maps to neither, and whose name is
+the name `specarch derive` gives a chosen case no test covers, as a
+test package names such a case, names the element of that case's
+subject under `element` (ADR-233). A testcase that maps to no test and no element,
 or to two of them, is kept in the record without either and
 printed as a line `unmapped: <name>: <why>` on standard output,
 under `log.unmapped` with `--json`; the validator warns

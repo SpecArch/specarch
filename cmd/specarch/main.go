@@ -5,6 +5,8 @@
 //	specarch validate <folder or file>...
 //	specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] <folder>...
 //	specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--as-is] [--estate <file>] <folder>...
+//	specarch generate tests --package <environment> --out <folder> [--check | --dry-run] [--unapproved] <folder>
+//	specarch run --results <file> [--base-url <url> | --server <name>] [--callers <file>] [--setup <program>] [--dry-run] <package>
 //	specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--entity <name>] [--template <file>] [--instructions <file>] [--table] [--dry-run] --out <folder> <path>...
 //	specarch merge [--vocabulary <file>]... [--dry-run] --out <folder> <tree>...
 //	specarch log [options] <folder>
@@ -61,10 +63,18 @@ const usage = `usage:
                                             record that the documents were read and the specification is approved
   specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--as-is] [--estate <file>] <folder>...
                                             write code or data from an approved specification
+  specarch generate tests --package <environment> --out <folder> [--check | --dry-run] [--unapproved] <folder>
+                                            write a test package: every test and every derived case no test
+                                            covers, as requests to the environment's servers; a test an open
+                                            question holds up is left out until it is answered
+  specarch run --results <file> [--base-url <url> | --server <name>] [--callers <file>] [--setup <program>] [--dry-run] <package>
+                                            run a test package against its environment and write the results
+                                            as JUnit XML; --callers names the headers that sign each role in,
+                                            --setup the program that puts a case's records in place
   specarch extract <source> [--source-key <key>] [--implementation <file>] [--implementation-out <file>] [--facts <dump>] [--routes <dump>] [--language <tag>] [--vocabulary <file>] [--given-outside] [--entity <name>] [--template <file>] [--instructions <file>] [--table] [--dry-run] --out <folder> <path>...
                                             write a specification from one surface of existing code or
                                             documents; the sources are outline, database, router, documents, tables, openapi,
-                                            permissions, pages, workflows, gateway, systemd, go, swift, javascript and dart; go, swift,
+                                            permissions, pages, workflows, gateway, systemd, go, swift, javascript, dart and tests; go, swift,
                                             javascript, dart and pages read the permission checks the implementation
                                             file names, pages reads Next.js and Nuxt files' code through --facts, and
                                             permissions gives each route of the route table --routes its permission;
@@ -74,7 +84,8 @@ const usage = `usage:
                                             register named by --entity, its header row by --template and its
                                             rules by --instructions, a table of fields;
                                             workflows reads a BPMN 2.0 XML file, or with --table a workflow table;
-                                            gateway reads a gateway table; systemd reads service and timer units
+                                            gateway reads a gateway table; systemd reads service and timer units; tests reads Gherkin feature files
+                                            and test sheets into tests, asking for each part a script leaves out
   specarch facts [--dry-run] <language> <folder> <dump>
                                             write the code-facts dump extract reads of a committed folder;
                                             the languages are javascript, swift and dart
@@ -151,6 +162,7 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"idioms":       runIdioms,
 	"decision":     runDecision,
 	"try":          runTry,
+	"run":          runRun,
 	"facts":        runFacts,
 	"model":        runModel,
 	"version":      runVersionCommand,

@@ -1681,6 +1681,37 @@ The sources this build reads:
   A setting is read where `String`, `int` or `bool.fromEnvironment`
   or `Platform.environment` names it by a literal, with its type and
   its `defaultValue`, and written as extract javascript writes one.
+- `tests`: existing test scripts and test sheets, complete or not
+  (ADR-234): Gherkin feature files (`.feature`) and test sheets in
+  CSV, TSV or Excel, one or more files in one repository, each a
+  document source under its file's name, cited by line for a
+  feature file and by the row's range for a sheet. Each Scenario or
+  Example of a feature file is a test, its Given steps, after the
+  Background's (a Rule's own after the Feature's), its given, its
+  When steps its when and its Then steps its then, And and But
+  continuing the step before, a doc string or a table row joined to
+  its step; a Scenario Outline is one test per row of its Examples
+  blocks, each block read under its own header row, the row's values
+  written in for the placeholders. Each row of a sheet that holds any text is a
+  test, its columns found by the header row's words: an ID and a
+  title (its name), the operation or endpoint it exercises, a
+  precondition (its given), test data (written into its given),
+  steps (its when), an expected result (its then) and a type
+  (positive or negative); a table whose header names none of a
+  title, steps, an expected result, a precondition or test data is
+  named in a line and not read. A test is named after its title in
+  kebab-case, `-2` and on for a name taken, at level `system` and
+  `scenario: red` when the script says negative or the expected
+  result names a refusal or an error, `golden` otherwise, and it is
+  `origin: inferred`, its `why` saying where it was read and why the
+  level and the scenario, and cites its line or row with the test as
+  the script writes it. A script names its subject in its own words,
+  so each test has a must question for its subject that blocks the
+  whole test, naming the request the script names (such as `POST
+  /notes`) when it names one; and one must question for each part
+  the script leaves out, the given (no precondition or test data),
+  the step and the expected result, each blocking that key. A test
+  is never given a part the script does not say.
 
 Every reader follows these rules:
 
@@ -1693,7 +1724,9 @@ Every reader follows these rules:
   `printed` for router, database and permissions, which read a list
   the running system printed, and `parsed` for go, swift, javascript and dart,
   which read the source itself (ADR-075).
-- Every element is `origin: stated` and cites where it was read.
+- Every element is `origin: stated` and cites where it was read;
+  a test read by `tests` is `origin: inferred`, since its scenario
+  and level are inferred from the script, and cites it too.
   What the surface does not say is a question, never a value: a
   constraint's message, which no catalogue holds, a check the
   expression subset cannot say, and an operation's summary and
@@ -1770,8 +1803,8 @@ Every reader follows these rules:
 
 ## Arguments
 
-- `<source>` (required): The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`.
-- `<paths>` (required; one or more): What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump.
+- `<source>` (required): The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript`, `dart` or `tests`.
+- `<paths>` (required; one or more): What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump; for tests, one or more Gherkin feature files (.feature) and test sheets in CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) in one repository.
 
 ## Options
 

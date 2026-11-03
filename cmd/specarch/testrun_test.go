@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/gentests"
+	"github.com/SpecArch/specarch/internal/testpackage"
 )
 
 // TestMapTestCase checks each way a test case's name maps to a test or to
@@ -39,19 +40,29 @@ func TestMapTestCase(t *testing.T) {
 		{"TestRenewal", "", "", "no test of the specification is named so"},
 		{"loanLimit", "", "", "no test of the specification is named so"},
 	} {
-		test, element, why := mapTestCase(c.name, tests, worked)
+		test, element, why := mapTestCase(c.name, tests, worked, nil)
 		if test != c.test || element != c.element || !strings.HasPrefix(why, c.why) {
 			t.Errorf("mapTestCase(%q) = %q, %q, %q; want %q, %q, a why starting %q", c.name, test, element, why, c.test, c.element, c.why)
 		}
 	}
+	// A derived case no test covers, as a test package names it, maps to
+	// its subject's element; once a test of that name is written, to it.
+	derived := []testpackage.Draft{{Name: "create-loan-missing-member-id", Element: "#/paths/~1loans"}}
+	if test, element, why := mapTestCase("create-loan-missing-member-id", tests, worked, derived); test != "" || element != "#/paths/~1loans" || why != "" {
+		t.Errorf("a derived case's name gave %q, %q, %q", test, element, why)
+	}
+	written := append([]string{"create-loan-missing-member-id"}, tests...)
+	if test, element, _ := mapTestCase("create-loan-missing-member-id", written, worked, derived); test != "create-loan-missing-member-id" || element != "" {
+		t.Errorf("a derived case's name with its test written gave %q, %q", test, element)
+	}
 	// A spec test whose Pascal name is a generated algorithm test's name
 	// is two matches, so neither is taken.
 	clash := []string{"algorithm-late-fee"}
-	_, _, why := mapTestCase("TestAlgorithmLateFee", clash, worked)
+	_, _, why := mapTestCase("TestAlgorithmLateFee", clash, worked, nil)
 	if why != "it maps to algorithm-late-fee and the worked examples of algorithm late-fee, more than one test or worked example" {
 		t.Errorf("a name matching a test and an algorithm's examples gave %q", why)
 	}
-	if test, _, why := mapTestCase("algorithm-late-fee: its own display name", clash, worked); test != "algorithm-late-fee" || why != "" {
+	if test, _, why := mapTestCase("algorithm-late-fee: its own display name", clash, worked, nil); test != "algorithm-late-fee" || why != "" {
 		t.Errorf("the test's own display name gave %q, %q", test, why)
 	}
 }

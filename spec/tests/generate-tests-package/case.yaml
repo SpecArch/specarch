@@ -1,0 +1,3 @@
+arguments: [generate, tests, --package, acceptance, --unapproved, --out, package, spec]
+exitStatus: 0
+standardOutput: ""

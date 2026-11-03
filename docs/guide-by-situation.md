@@ -665,6 +665,89 @@ the Go one when both are built: they print the same output.
 **Deeper.** `docs/sync-gates.md`, `scripts/landing-check.sh` (every check
 this repository runs), `specarch help check`.
 
+<!-- situation: test-scripts -->
+## Bringing in the test scripts a team already has
+
+**When it happens.** The team, or the customer, already has test cases:
+Gherkin feature files, or a test sheet with a precondition, steps, test
+data and an expected result per row. Some rows have no expected result,
+some scenarios stop before their Then, and none of it is in the
+specification.
+
+**What to run.** Commit the scripts, then read them into a tree and merge
+it with the others:
+
+    specarch extract tests --out trees/tests scripts/notes.feature scripts/regression.xlsx
+    specarch merge --out spec trees/code trees/openapi trees/tests
+    specarch gaps --next spec
+
+`extract tests` writes one test per scenario, example or row, at level
+system, red when the script says negative or its expected result names a
+refusal or an error, `origin: inferred` and citing its line or its row.
+Each test gets a must question for the subject it exercises, naming the
+request the script names (`POST /notes`), and one must question for each
+given, step or expected result the script leaves out. `merge` keeps these
+tests whole with their questions. Answer each with `specarch decide`,
+write what the answer settles into the test, and the test joins the test
+package.
+
+**A worked example.** A scenario with no Then and a sheet row with nothing
+but its ID and title (`spec/tests/extract-tests-incomplete-scripts`):
+
+    read notes.feature: 4 tests
+    read sheet.csv: 2 tests
+    wrote 6 tests and 10 questions: one per subject a test exercises, which a script cannot name in the specification's words, 1 for a test with no given, 1 with no step and 2 with no expected result
+
+**What to watch for.** A test is never given a part its script does not
+say: a scenario with no expected result stays golden until the question
+about it is answered. The subject question blocks the whole test, so the
+test is held back from the package until it is answered. Only English
+Gherkin keywords are read; a feature file with a `# language:` header is
+read as text with no steps.
+
+**Deeper.** `docs/extraction.md` (Test scripts), `specarch help extract`,
+ADR-235.
+
+<!-- situation: test-package -->
+## Running the tests in a customer's environment
+
+**When it happens.** The customer runs the acceptance environment, has
+neither the code nor the project's test harness, and asks which paths of
+the specification work there: the golden paths, the red paths and the
+ones no test covers yet.
+
+**What to run.** Make the package for that environment, hand it over, and
+let whoever runs the environment run it with their own credentials:
+
+    specarch generate tests --package acceptance --out package spec
+    specarch run --callers callers.yaml --setup ./put-records --results records/evidence/TR-4-junit.xml package
+    specarch log test-run --results records/evidence/TR-4-junit.xml --environment acceptance --at 2026-11-04T10:00:00+07:00 --by customer-it spec
+
+The package, `specarch-test-package.yaml`, holds every test and every
+derived case no test covers, each as a request to the environment's
+servers with what its answer must show, or with the reason it cannot run
+from outside. `callers.yaml` maps each role to the headers that sign it
+in; the setup program puts a case's records in place. Neither goes into
+the package or the results. The JUnit XML maps back through `log
+test-run`, a derived case to its subject's element.
+
+**A worked example.** The package of a kept note
+(`spec/tests/generate-tests-package`), and its run against a server that
+does not answer (`spec/tests/run-package-no-answer`):
+
+    specarch generate: held back keep-note-seen, which Q-1 holds up; it joins the package once answered
+    error: list-notices-succeeds: GET http://127.0.0.1:1/notices got no answer: Get "http://127.0.0.1:1/notices": dial tcp 127.0.0.1:1: connect: connection refused
+
+**What to watch for.** A case with a role the callers file does not give,
+or records and no setup program, is skipped with that reason, not failed.
+A test an open question holds up is left out until it is answered. The
+state after and the messages emitted are not checked from outside; the
+project's own suite checks them. With several servers in the
+environment, name one with `--server` or give `--base-url`.
+
+**Deeper.** `docs/test-generation.md` (The test package),
+`specarch help run`, ADR-233.
+
 <!-- situation: test-results -->
 ## Keeping the test results of each build
 
@@ -704,7 +787,7 @@ and in `docs/testruns.md`, after the second run:
 A testcase the specification has no test for is kept, not dropped
 (`spec/tests/log-test-run-writes-record`):
 
-    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples
+    unmapped: TestRenewal: no test of the specification is named so, nor Test or test and its name in Pascal case, nor does the name begin with a test's name and a colon; nor is it a test the generators write for an algorithm's or a call mapping's worked examples, nor a case no test covers as a test package names it
 
 **What to watch for.** A testcase maps by the names the test generators
 write (`TestReturnLate`, `testReturnLate()`, `return-late: ...`), and the

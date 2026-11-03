@@ -1,0 +1,11 @@
+operation: readNote
+level: system
+scenario: golden
+given: a kept note
+when: the writer reads it
+then: it answers 200 with the note
+fixture:
+  caller: writer
+  Note: [{ id: "6f1c2b9e-0000-4000-8000-000000000002", text: kept }]
+input: { noteId: "6f1c2b9e-0000-4000-8000-000000000002" }
+expect: { status: 200, body: { text: kept } }

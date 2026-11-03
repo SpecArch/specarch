@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: run
+level: system
+scenario: red
+covers: [exit 2]
+given: "a test package whose environment has two servers that answer requests"
+when: "run is run on it with --results and neither --base-url nor --server"
+then: "it names both servers with their deployment and address, says to choose one with --server or give --base-url, makes no request, writes nothing and exits 2"
+verifies: [SA-128]

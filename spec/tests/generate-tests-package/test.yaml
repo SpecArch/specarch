@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification of one kept note with an environment acceptance whose deployment has an API server and a database server, a golden test of keeping a note, a test of reading a note that needs a record in place, a test whose expected result a must question blocks, and derived cases no test covers"
+when: "generate tests --package acceptance --unapproved --out package is run"
+then: "it writes package/specarch-test-package.yaml with the generated header and the draft notice, the API server and not the database, one case per test with its request, its caller, its records and what its answer must show, one case per derived case no test covers, marked derived with its subject's element, the derived case whose call derive does not draft skipped with why, the blocked test under held naming its question, and the derived cases of rank other under leftOut with why; prints the held test and the counts, and exits 0"
+verifies: [SA-128]

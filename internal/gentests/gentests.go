@@ -83,6 +83,10 @@ func Decode(data []byte) (*Request, error) {
 	return &r, nil
 }
 
+// RelRoot is the root file's path as seen from the output folder, as
+// every generated header names it; the test package's header names it so.
+func RelRoot(root, output string) string { return relRoot(root, output) }
+
 // relRoot is the root file's path as seen from the output folder, so the
 // header reads the same wherever specarch was run from.
 // The plug-in runs in specarch's working folder, so both resolve from it.

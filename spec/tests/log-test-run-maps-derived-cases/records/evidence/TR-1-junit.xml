@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Note keeper 0.1.0, environment acceptance" tests="3" failures="1" errors="0" skipped="0">
+  <testcase name="keep-note-ok" classname="operation createNote"></testcase>
+  <testcase name="create-note-missing-id" classname="operation createNote"></testcase>
+  <testcase name="create-note-missing-text" classname="operation createNote">
+    <failure message="answered 201, and the test expects 400; the body: {}"></failure>
+  </testcase>
+</testsuite>

@@ -1,0 +1,12 @@
+arguments: [extract, tests, --out, spec, docs/notes.feature, docs/sheet.csv]
+repository:
+  folder: docs
+  commits:
+    - [notes.feature, sheet.csv]
+exitStatus: 0
+standardOutput: |
+  commit 3712f73908ce4c79711352a7aae1720294a61275: the last change to notes.feature, sheet.csv
+  read notes.feature: 4 tests
+  read sheet.csv: 2 tests
+  wrote 6 tests and 10 questions: one per subject a test exercises, which a script cannot name in the specification's words, 1 for a test with no given, 1 with no step and 2 with no expected result
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

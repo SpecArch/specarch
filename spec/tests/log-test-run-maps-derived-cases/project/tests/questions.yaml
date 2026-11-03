@@ -1,0 +1,7 @@
+questions:
+  Q-1:
+    question: What does the writer see after keeping the note?
+    kind: decision
+    priority: must
+    blocks: ["#/tests/keep-note-seen/then"]
+    decidedBy: owner

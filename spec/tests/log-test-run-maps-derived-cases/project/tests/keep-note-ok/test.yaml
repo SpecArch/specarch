@@ -1,0 +1,9 @@
+operation: createNote
+level: system
+scenario: golden
+given: a writer
+when: the writer keeps a note
+then: it answers 201 with the note
+fixture: { caller: writer }
+input: { id: "6f1c2b9e-0000-4000-8000-000000000001", text: hello }
+expect: { status: 201, body: { text: hello } }

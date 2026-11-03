@@ -1,0 +1,4 @@
+arguments: [log, test-run, --results, records/evidence/TR-1-junit.xml, --environment, acceptance, --at, "2026-11-04T10:00:00+07:00", --by, owner, project]
+exitStatus: 0
+standardOutput: |
+  records/test-runs/TR-1.yaml

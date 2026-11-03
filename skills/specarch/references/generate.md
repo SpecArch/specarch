@@ -1,7 +1,7 @@
 # specarch generate
 
 ```
-specarch generate <target> [--out <out>] [--check] [--estate <estate>]... [--environment <environment>] [--unapproved] [--dry-run] [--as-is] <paths>...
+specarch generate <target> [--out <out>] [--check] [--estate <estate>]... [--environment <environment>] [--unapproved] [--dry-run] [--package <package>] <paths>...
 ```
 
 Write code or data from a specification.
@@ -62,8 +62,7 @@ can name the build; ADR-083), `environment` and `trace` (the
 environment given with `--environment`, and whether its entry says
 the build shows the trace; ADR-222), `target`, `root` (the root
 file's path), `specification` (the merged, validated specification as plain
-values, each workflow its to-be with no asIs, or its as-is with
-`--as-is`), `implementations` (each implementation file as `file`,
+values), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms
 it uses, each with its `name`, `version`, how it applies (`as`:
 shipped, overridden, project or excluded), the `content` of the idiom
@@ -199,6 +198,57 @@ tests target, which checks rather than builds, keeps it (ADR-046). The gate does
 at the mark, so a question that blocks an owned element still holds
 the target up.
 
+`generate tests --package <environment>` writes a test package in
+place of a stack's tests, built in and through no plug-in, since it
+belongs to no stack (ADR-233). It takes one specification, `--out`
+and the key of one of its environments, and refuses with status 2
+another target, no `--out`, an environment the specification does
+not have (naming the ones it has), several specifications, and
+`--estate` or `--environment`. It writes one file,
+`specarch-test-package.yaml`, with the generated header and, for a
+draft, the draft notice as comment lines, then: the format version;
+the specification's title, version, meta-model, digest and draft
+notice; the environment; the servers that answer requests in it,
+each server of a deployment of an implementation file whose
+`environment` is that one, of kind service or of no kind, no
+dependency, with an http or https address, by deployment, name and
+address; and the cases. Each test of the specification is a case,
+named after it, with its element `#/tests/<name>`; each chosen case
+no test covers is a case too, drafted as `specarch derive` drafts it,
+named as derive names it, marked derived, with the element of its
+subject. A case carries its subject, scenario, covers, given, when
+and then, and either the reason it cannot run from outside, or its
+request: the method, the path with the path parameters of its input
+written in, the query parameters as the query, the header and cookie
+parameters as headers, the other fields as the JSON body when the
+operation takes one, each property at every depth named as
+`info.wireNames` puts it on the wire while a parameter keeps its
+name (ADR-062); the caller's role; the fixture's records as
+JSON; the status and the body fields expected, with the fields to
+compare as numbers; and the state and messages expected, named as
+not checked. A case cannot run from outside when its test does not
+apply, gives no request (a derived case whose call derive does not
+draft says so), is about a command or a page, travels in a
+handshake, streams a file, gives the caller's properties, expects
+only what is left behind, covers a denied case with no caller (a
+request with none is refused as not signed in), or calls an API
+served in the dxlib dialect, whose envelope a package does not
+write. No credential and no address
+other than the deployment's goes into the package.
+
+An open must or should question that blocks nothing but tests holds
+back those tests alone: each is left out of the cases and listed
+under `held` with the questions, and on standard error, and joins
+the package once they are answered. The derived cases of rank
+other no test covers, which the test plan lists as left out, are
+listed under `leftOut` with their subject, case and reason, and not
+run. Every other open question, and
+the approval, gate the package as they gate every target, and
+`--unapproved` makes it a draft. Prints one line per test held back
+and the counts: the cases, how many are derived, how many run, how
+many are skipped with a reason, how many tests are held back and how
+many derived cases are left out.
+
 ## Arguments
 
 - `<target>` (required): A code or data target, built in or offered by a plug-in; kebab-case.
@@ -212,7 +262,7 @@ the target up.
 - `--environment <environment>`: The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, section's, field's, column's and action's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds: a build for an environment that shows the trace is refused with status 2 unless `--out` names its folder, since the two cannot share one folder under `--check`; the refusal names the environment and the folder it would have written into.
 - `--unapproved`: Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why.
 - `--dry-run`: Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check.
-- `--as-is`: Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-236).
+- `--package <package>`: With the tests target and --out: write a test package for this environment of the specification, every test and every derived case no test covers as a request to its servers, in place of a stack's tests (ADR-233).
 
 ## Reads
 

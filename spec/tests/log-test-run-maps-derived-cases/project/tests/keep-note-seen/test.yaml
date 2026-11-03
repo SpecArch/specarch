@@ -1,0 +1,5 @@
+operation: createNote
+level: system
+scenario: golden
+given: a writer
+when: the writer keeps a note

@@ -1,0 +1,4 @@
+stakeholders:
+  # specarch-problem: warning: origin_missing: owner carries no origin, and the specification tracks origin; add origin: stated, inferred or decided [origin_missing@requirements/stakeholders.yaml#/stakeholders/owner]
+  owner:
+    description: The one who keeps notes.

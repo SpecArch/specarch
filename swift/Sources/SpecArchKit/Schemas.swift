@@ -20125,7 +20125,7 @@ let recordSchemaJSON = #"""
           ]
         },
         "effort": {
-          "description": "The effort the change takes, in hours, as the team recorded it: estimatedHours when it is analysed, spentHours once it is done. A change whose effort records neither as a positive number is shown as missing in the progress document, never filled in (ADR-235).",
+          "description": "The effort the change takes, in hours, as the team recorded it: estimatedHours when it is analysed, spentHours once it is done. A change whose effort records neither as a positive number is shown as missing in the progress document, never filled in (ADR-237).",
           "type": "object",
           "properties": {
             "estimatedHours": {

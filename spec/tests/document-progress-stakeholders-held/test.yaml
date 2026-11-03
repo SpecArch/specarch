@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification with two stakeholders, no stakeholdersComplete, and an open must question Q-1 that blocks the stakeholders"
 when: "document progress is run"
 then: "it writes progress.md with no stakeholders banner, whose stakeholder list says the list is not confirmed and that Q-1 holds it up until it is answered, and exits 0"
-verifies: [SA-130]
+verifies: [SA-132]

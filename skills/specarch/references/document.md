@@ -217,7 +217,7 @@ test; then each run's results. It is never a draft. The timeline
 places each test run at its instant.
 
 The progress target writes `progress.md` from the specification and
-the records (ADR-235): the elements of each stage by section; the
+the records (ADR-237): the elements of each stage by section; the
 open questions by priority and by the role that decides them, a
 priority that is not must, should or could counted in a column of its
 own and named with the value as written, and a question with no

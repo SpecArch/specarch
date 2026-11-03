@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "three change records: one with estimatedHours 2.5 and spentHours 3, one with an empty effort, and one with effort in days and zero hours spent"
 when: "validate is run"
 then: "the first passes, the empty effort and the days key and the zero hours are schema errors at their keys, and it exits 1"
-verifies: [SA-130]
+verifies: [SA-132]

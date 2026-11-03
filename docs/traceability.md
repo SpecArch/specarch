@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.4.0 of the specification: 10 needs, 128 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.4.0 of the specification: 10 needs, 127 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -18,12 +18,12 @@ Version 1.4.0 of the specification: 10 needs, 128 requirements, and 1 gap. Each 
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
-| NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-125, SA-118 |
+| NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118 |
 | NEED-6 | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-51 |
-| NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
-| NEED-10 | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-125, SA-108, SA-57, SA-100 |
+| NEED-8 | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-51 |
+| NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
+| NEED-10 | accepted | SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100 |
 
 ## 2. Requirements to design and verification
 
@@ -153,10 +153,9 @@ Version 1.4.0 of the specification: 10 needs, 128 requirements, and 1 gap. Each 
 | SA-125 | NEED-5, NEED-10 | enums DocumentTarget; commands document; commands log test-run; decisions ADR-230 | tests document-writes-testruns; tests document-writes-testruns-external; tests document-writes-timeline-test-runs; tests log-test-run-asks-missing; tests log-test-run-defect-not-failed; tests log-test-run-maps-worked-examples; tests log-test-run-nameless-testcase; tests log-test-run-not-junit; tests log-test-run-results-outside; tests log-test-run-usage-error; tests log-test-run-writes-record; tests validate-test-run-ref |
 | SA-126 | NEED-1, NEED-6 | enums Rule; decisions ADR-231 | tests validate-idiom-override-technologies; tests validate-technology-approved; tests validate-technology-decided; tests validate-technology-decision-incomplete; tests validate-technology-decision-missing; tests validate-technology-standard-library; tests validate-technology-unjustified |
 | SA-127 | NEED-2, NEED-6 | commands compare; decisions ADR-232 | tests compare-marks-gaps; tests compare-refuses-input-outside-records; tests compare-refuses-unknown-name; tests compare-two-implementations; tests compare-usage-error |
-| SA-128 | NEED-9, NEED-10 | commands generate; commands log test-run; commands run; decisions ADR-233 | tests generate-tests-package; tests log-test-run-maps-derived-cases; tests run-package-no-answer; tests run-package-servers; tests run-package-skips; tests run-usage-error |
 | SA-129 | NEED-1, NEED-8 | enums Rule; decisions ADR-234 | tests approve-stakeholders-complete; tests approve-warns-stakeholders-unconfirmed; tests document-stakeholders-banner; tests document-stakeholders-complete; tests document-stakeholders-held; tests document-testruns-stakeholders-banner; tests validate-stakeholders-complete; tests validate-stakeholders-complete-unknown; tests validate-stakeholders-earlier-meta-model; tests validate-stakeholders-none; tests validate-stakeholders-unconfirmed; tests validate-stakeholders-unconfirmed-held |
 | SA-130 | NEED-1, NEED-5 | commands diff; commands document; commands generate; decisions ADR-236 | tests diff-lists-transition; tests document-changes-transition; tests generate-bpmn-as-is; tests generate-bpmn-to-be; tests validate-workflow-as-is; tests validate-workflow-as-is-refused |
-| SA-131 | NEED-8, NEED-9 | commands extract; commands merge; decisions ADR-235 | tests extract-tests-incomplete-scripts; tests merge-keeps-read-tests |
+| SA-132 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-237 | tests document-progress-effort-not-counted; tests document-progress-for-everyone; tests document-progress-stakeholders-held; tests document-progress-uncounted-entries; tests document-writes-progress; tests validate-change-effort |
 
 ## 3. Gaps
 

@@ -181,7 +181,7 @@ requirements:
       - source: iso-29148
         clause: "6.4.3"
         says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
-  SA-130:
+  SA-132:
     statement: SpecArch shall write a progress document from a specification and the records beside it, counting only what they hold - the specification's size as its elements by stage and section, the open questions by priority and by the role that decides them, the roles warned unheard, whether a role has confirmed the stakeholder list complete, the effort recorded on each change request with the change requests that record none counted and named as missing, and a burn-up of the elements the change requests of each release name, approved and generated, cumulative from release to release - and shall invent no estimate.
     kind: functional
     priority: should
@@ -195,7 +195,7 @@ requirements:
       - The progress document is never a draft, and with --audience external it leaves the elements and questions of the internal elements out of its counts.
     verification: test
     needs: [NEED-5, NEED-10]
-    why: A team that delivers from a specification is asked how big it is, what is still open and with whom, and how far it has come; answered from what the specification and its records hold, the answer is the same for everyone who asks, and an effort nobody recorded shows as missing instead of being guessed (ADR-235).
+    why: A team that delivers from a specification is asked how big it is, what is still open and with whom, and how far it has come; answered from what the specification and its records hold, the answer is the same for everyone who asks, and an effort nobody recorded shows as missing instead of being guessed (ADR-237).
   SA-125:
     statement: A specification shall keep beside it, as records in records/test-runs/, each run of its tests - the environment, the version, the build, the specification's digest, the instant with its offset, the role that ran it, the results file as evidence and each result with the test it maps to, its outcome, its message and the defect it opened - and specarch log test-run shall write one from a JUnit XML file, mapping each testcase to a test by the names the test generators write, keeping and reporting a testcase that maps to no test, and opening a defect for a failure only for a test it is told to; the validator shall check the record in both builds, and the testruns document shall write the runs and the failures per element and per requirement, run by run.
     kind: functional

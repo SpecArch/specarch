@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 1018 design tests, 513 golden and 505 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 1016 design tests, 511 golden and 505 red, about 31 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 1018 design tests, 513 golden and 505 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1014 |
+| system | 1012 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -25,7 +25,7 @@ Framework: go test. Run: `go test ./...`.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command try, command run, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command try, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -1167,6 +1167,38 @@ Scenario: golden; level: system; verifies SA-51.
 - When: document problems is run
 - Then: it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0
 
+#### document-progress-effort-not-counted
+
+Scenario: red; level: system; covers exit 1; verifies SA-132.
+
+- Given: three change records: one with estimatedHours -4 and spentHours 1e-1, one whose effort holds only an extension key, and one with estimatedHours as the text "4" and spentHours as a list
+- When: document progress is run
+- Then: it prints the schema errors, writes progress.md where the refused values are shown as written and marked not counted, sums only the 0.1 hours spent, names the extension-key and refused-only requests as missing, and exits 1
+
+#### document-progress-for-everyone
+
+Scenario: golden; level: system; verifies SA-132.
+
+- Given: a specification with a requirement for everyone and an internal one, an open question about each, and an approved change request that names both requirements and a pointer inside the internal one, in a planned release
+- When: document progress is run with --audience external
+- Then: it writes progress.md that says the internal elements and the questions only about them are not counted, sizes the requirements as 1, counts 1 open question, and gives the release 1 element approved, and exits 0
+
+#### document-progress-stakeholders-held
+
+Scenario: golden; level: system; verifies SA-132.
+
+- Given: a specification with two stakeholders, no stakeholdersComplete, and an open must question Q-1 that blocks the stakeholders
+- When: document progress is run
+- Then: it writes progress.md with no stakeholders banner, whose stakeholder list says the list is not confirmed and that Q-1 holds it up until it is answered, and exits 0
+
+#### document-progress-uncounted-entries
+
+Scenario: red; level: system; covers exit 1; verifies SA-132.
+
+- Given: a specification whose stakeholdersComplete names auditor, who is not a stakeholder, whose open question Q-3 has the priority "Could" and no decidedBy, and a change request in the one release that names under affects a requirement of the specification, an ID it does not hold, an entity, the whole entities section, a question, an extension key under entities and an entity it does not hold
+- When: document progress is run
+- Then: it prints the schema errors, writes progress.md whose stakeholder list gives the confirmation as written with the stakeholder error marked under it, where Q-3 is counted under Other priority on a row for no role named, named below the table with its priority as written, the rows add up to the total, and the burn-up counts the requirement and the entity and names the five other references with why they are not counted, and exits 1
+
 #### document-sequence-diagram
 
 Scenario: golden; level: system.
@@ -1574,6 +1606,14 @@ Scenario: golden; level: system; verifies SA-90.
 - Given: two environments, a deployment with a named and an unnamed host and a watched monitor, a monitor with a response and one without, a job on a schedule keeping an item apart with a deadLetter naming a role, a place and three steps, and one keeping an item apart with no deadLetter, a job on a channel dropping after its retries and every hour with none, a carried channel and the system's own, a workflow publishing a message, a dependency an operation and a job call and one that carries a channel, a setting and a secret, and a backup with no restore or rollback
 - When: document operations is run
 - Then: it writes operations.md with the environments and the deployment's hosts, a checklist row per monitor, job and dependency, each monitor with how it is watched and its response or a sentence naming response, the jobs' triggers, roles and retries, with the role a kept item goes to, the place, role and steps of each kept item or a sentence naming deadLetter, each message's carrier, its publishers among operations, jobs and workflows, and its consumers, each dependency's users, the endpoints with their warnings under them, the settings, the backup, and a sentence each for restore and rollback, and exits 0
+
+#### document-writes-progress
+
+Scenario: golden; level: system; verifies SA-132.
+
+- Given: a specification with stakeholders, requirements, an entity, a page and three open questions, a communication record that hears the librarian alone while an accepted requirement relies on the member too, four change requests, one with an estimate and the hours spent, one with an estimate that names a requirement by its ID and by its pointer and a property inside the entity, one with no effort, and one withdrawn after its approval with an estimate written with an exponent, and two releases
+- When: document progress is run
+- Then: it writes progress.md with the elements of each stage, the open questions by priority and deciding role, the member warned unheard, the stakeholder list not confirmed, the effort table with the exponent read as 0.1 and the change request without effort counted and named as missing, and a burn-up of two points that counts the requirement named two ways and the property as the elements they name, once, and adds nothing for the withdrawn request, and exits 0
 
 #### document-writes-questions
 
@@ -2601,14 +2641,6 @@ Scenario: golden; level: system; verifies SA-113.
 - When: extract tables is run on both with --entity Loan
 - Then: it writes one entity citing both files, with the column only the second has kept under a must question, the column with blanks left out of required under a should question, the new status value kept in the enum under a should question, and exits 0
 
-#### extract-tests-incomplete-scripts
-
-Scenario: golden; level: system; verifies SA-131.
-
-- Given: a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then, a Scenario Outline of two examples, two scenarios of one title that an Outline's numbered names already take, and an Outline whose Examples rows lack a column and leave cells blank, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title
-- When: extract tests is run on both files
-- Then: it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out and per part whose placeholder its Examples row gives no value, that placeholder kept as written; each test under a name of its own, the first number free for a name taken; and exits 0
-
 #### extract-usage-error
 
 Scenario: red; level: system; covers usage error, exit 2.
@@ -3623,14 +3655,6 @@ Scenario: golden; level: system; verifies SA-31.
 - When: generate tests is run with --unapproved
 - Then: it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0
 
-#### generate-tests-package
-
-Scenario: golden; level: system; verifies SA-128.
-
-- Given: a specification of one kept note with an environment acceptance whose deployment has an API server and a database server, a golden test of keeping a note, a test of reading a note that needs a record in place, a test whose expected result a must question blocks, and derived cases no test covers
-- When: generate tests --package acceptance --unapproved --out package is run
-- Then: it writes package/specarch-test-package.yaml with the generated header and the draft notice, the API server and not the database, one case per test with its request, its caller, its records and what its answer must show, one case per derived case no test covers, marked derived with its subject's element, the derived case whose call derive does not draft skipped with why, the blocked test under held naming its question, and the derived cases of rank other under leftOut with why; prints the held test and the counts, and exits 0
-
 #### generate-tests-routes
 
 Scenario: golden; level: system; verifies SA-114.
@@ -4317,14 +4341,6 @@ Scenario: red; level: system; covers exit 1; verifies SA-125.
 - When: log test-run is run with --open-defect member-key
 - Then: it refuses, saying no result of the run maps to member-key and failed or errored, writes neither the run nor a defect and exits 1
 
-#### log-test-run-maps-derived-cases
-
-Scenario: golden; level: system; verifies SA-128.
-
-- Given: a specification of a kept note with the test keep-note-ok, and the JUnit XML a test package's run wrote under records/evidence/, whose testcases are keep-note-ok and two derived cases no test covers, create-note-missing-id and create-note-missing-text (failed), named as derive names them
-- When: log test-run is run on the file with the environment, the instant and the role
-- Then: it writes records/test-runs/TR-1.yaml with keep-note-ok mapped to its test and each derived case naming the path of its operation, #/paths/~1notes, under element; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0
-
 #### log-test-run-maps-worked-examples
 
 Scenario: golden; level: system; verifies SA-125.
@@ -4480,14 +4496,6 @@ Scenario: golden; level: system; verifies SA-45.
 - Given: the tree of a route table and the tree of a permission table, each asking with must what the same three permissions allow, the permission table with two could questions on one role and each with a could question on one permission, each about something its reader could not hold
 - When: merge is run on the two trees
 - Then: it leaves out the permission table's must question as asked twice, keeps every could question, the two on one role and the two on one permission, and exits 0
-
-#### merge-keeps-read-tests
-
-Scenario: golden; level: system; verifies SA-131.
-
-- Given: a design tree of a kept note that tracks origin, and the tree extract tests wrote from a feature file and a test sheet, with six tests read from them and ten must questions, each blocking a test or one of its keys
-- When: merge is run on both
-- Then: it keeps each read test whole under tests/ with its citation, keeps the ten questions with their pointers, numbered with the trees' other questions, prints a line counting the tests kept, derives the design's own drafts into the merged specification, and exits 0
 
 #### merge-map-open-then-typed
 
@@ -4818,40 +4826,6 @@ Scenario: golden; level: system; verifies SA-74.
 - Given: a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage
 - When: model is run on it
 - Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0
-
-### Command run
-
-#### run-package-no-answer
-
-Scenario: red; level: system; covers exit 1; verifies SA-128.
-
-- Given: a test package with one server and one public case whose server does not answer
-- When: run is run on it with --results and no --base-url
-- Then: it sends the request to the package's one server, gets no answer, writes the case as an error naming the request and what the client said, prints the case as errored, and exits 1
-
-#### run-package-servers
-
-Scenario: red; level: system; covers exit 2; verifies SA-128.
-
-- Given: a test package whose environment has two servers that answer requests
-- When: run is run on it with --results and neither --base-url nor --server
-- Then: it names both servers with their deployment and address, says to choose one with --server or give --base-url, makes no request, writes nothing and exits 2
-
-#### run-package-skips
-
-Scenario: golden; level: system; verifies SA-128.
-
-- Given: the test package of a kept note, whose cases each sign in as a role, need a record in place or cannot run from outside, and no callers file or setup program
-- When: run is run on it with --base-url and --results results/acceptance.xml
-- Then: it makes no request, writes results/acceptance.xml as JUnit XML with one testcase per case, named as the case, each skipped with its reason (the role --callers does not give, the records and --setup, or the package's own reason), prints the test the package holds back and the counts, and exits 0
-
-#### run-usage-error
-
-Scenario: red; level: system; covers usage error; verifies SA-128.
-
-- Given: a test package
-- When: run is run on it without --results
-- Then: it prints that run needs --results with the usage, writes nothing and exits 2
 
 ### Command skill
 
@@ -5476,6 +5450,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-23.
 - Given: an approved change without a decision, and a rejected change whose decision's outcome is approved
 - When: validate is run
 - Then: it reports change_decision for each and exits 1
+
+#### validate-change-effort
+
+Scenario: red; level: system; covers exit 1; verifies SA-132.
+
+- Given: three change records: one with estimatedHours 2.5 and spentHours 3, one with an empty effort, and one with effort in days and zero hours spent
+- When: validate is run
+- Then: the first passes, the empty effort and the days key and the zero hours are schema errors at their keys, and it exits 1
 
 #### validate-change-log-warning
 
@@ -8257,7 +8239,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-594 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+592 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8289,14 +8271,6 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-21 | acceptance 4 | golden | SA-21 names no harm |
 | requirement SA-22 | acceptance 1 | golden | SA-22 names no harm |
 | requirement SA-22 | acceptance 2 | golden | SA-22 names no harm |
-| requirement SA-128 | acceptance 1 | golden | SA-128 names no harm |
-| requirement SA-128 | acceptance 2 | golden | SA-128 names no harm |
-| requirement SA-128 | acceptance 3 | golden | SA-128 names no harm |
-| requirement SA-128 | acceptance 4 | golden | SA-128 names no harm |
-| requirement SA-128 | acceptance 5 | golden | SA-128 names no harm |
-| requirement SA-131 | acceptance 1 | golden | SA-131 names no harm |
-| requirement SA-131 | acceptance 2 | golden | SA-131 names no harm |
-| requirement SA-131 | acceptance 3 | golden | SA-131 names no harm |
 | requirement SA-33 | acceptance 1 | golden | SA-33 names no harm |
 | requirement SA-33 | acceptance 2 | golden | SA-33 names no harm |
 | requirement SA-33 | acceptance 3 | golden | SA-33 names no harm |
@@ -8704,6 +8678,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-117 | acceptance 5 | golden | SA-117 names no harm |
 | requirement SA-117 | acceptance 6 | golden | SA-117 names no harm |
 | requirement SA-117 | acceptance 7 | golden | SA-117 names no harm |
+| requirement SA-132 | acceptance 1 | golden | SA-132 names no harm |
+| requirement SA-132 | acceptance 2 | golden | SA-132 names no harm |
+| requirement SA-132 | acceptance 3 | golden | SA-132 names no harm |
+| requirement SA-132 | acceptance 4 | golden | SA-132 names no harm |
+| requirement SA-132 | acceptance 5 | golden | SA-132 names no harm |
+| requirement SA-132 | acceptance 6 | golden | SA-132 names no harm |
 | requirement SA-125 | acceptance 1 | golden | SA-125 names no harm |
 | requirement SA-125 | acceptance 2 | golden | SA-125 names no harm |
 | requirement SA-125 | acceptance 3 | golden | SA-125 names no harm |

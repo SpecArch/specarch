@@ -4,6 +4,7 @@ timeZone: Asia/Jakarta
 stakeholders:
   owner: { description: The product owner. }
   tester: { description: Runs the tests of each build. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }
 requirements:
   CASE-1:
     statement: A member shall borrow at most five books at once.

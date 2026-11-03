@@ -1,0 +1,97 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+timeZone: Asia/Jakarta
+stakeholders:
+  owner: { description: The product owner. }
+  tester: { description: Runs the tests of each build. }
+requirements:
+  CASE-1:
+    statement: A member shall borrow at most five books at once.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A sixth loan is refused.]
+  CASE-2:
+    statement: A member shall be known by an opaque id.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [Two members never share an id.]
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+    constraints:
+      loan_once:
+        kind: unique
+        fields: [memberId, id]
+        message: This loan is already recorded.
+    satisfies: [CASE-1]
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      email: { type: string, maxLength: 200 }
+    required: [id, email]
+    primaryKey: [id]
+    constraints:
+      member_email_unique:
+        kind: unique
+        fields: [email]
+        message: This email belongs to another member.
+    satisfies: [CASE-2]
+algorithms:
+  loanCap:
+    description: Whether a member with this many open loans may borrow one more.
+    inputs:
+      loansOpen: { type: integer, format: int32, minimum: 0, description: The member's loans not yet returned. }
+    output: { type: boolean }
+    table:
+      hitPolicy: first
+      rules:
+        - when: { loansOpen: "< 5" }
+          then: true
+        - then: false
+          note: CASE-1's limit is reached.
+    examples:
+      - name: four open loans
+        inputs: { loansOpen: 4 }
+        expected: true
+    pseudocode: |
+      function loanCap(loansOpen):
+          return loansOpen < 5
+    satisfies: [CASE-1]
+environments:
+  staging: { description: "The build under test, before release." }
+tests:
+  loan-limit:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: red
+    given: a member with five loans
+    when: a sixth loan is saved
+    then: the sixth loan is refused and the five stay
+    verifies: [CASE-1]
+  loan-return:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: golden
+    given: a member with one loan
+    when: the loan is returned
+    then: the member has no loan
+    verifies: [CASE-1]
+  member-key:
+    entity: Member
+    constraint: member_email_unique
+    level: system
+    scenario: golden
+    given: two members saved
+    when: their ids are read
+    then: the ids differ
+    verifies: [CASE-2]

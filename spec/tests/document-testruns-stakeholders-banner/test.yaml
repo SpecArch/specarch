@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+given: "a specification with stakeholders and no stakeholdersComplete, and two test runs recorded beside it"
+when: document testruns is run
+then: "docs/testruns.md carries the Stakeholders unconfirmed banner under its summary, the test runs read as they do with the list confirmed, and the run exits 0"
+verifies: [SA-126]

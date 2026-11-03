@@ -155,6 +155,7 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			c.passed, c.failed, c.errored, c.skipped, c.unmapped, oneOrMany(c.unmapped, "maps", "map"))
 	}
 	d.para(intro + ". The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies, or the algorithm or operation whose worked examples it ran.")
+	d.stakeholdersNotice()
 
 	d.section("Test runs")
 	if len(runs) == 0 {

@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification whose stakeholdersComplete is set by a declared stakeholder, and a configured requirements document"
 when: "document requirements is run"
 then: "the document carries no Stakeholders unconfirmed banner and no problem, and the run prints nothing and exits 0"
-verifies: [SA-120]
+verifies: [SA-126]

@@ -294,7 +294,7 @@ requirements:
       - source: iso-29148
         clause: "6.4.3"
         says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
-  SA-120:
+  SA-126:
     statement: A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed.
     kind: functional
     priority: must

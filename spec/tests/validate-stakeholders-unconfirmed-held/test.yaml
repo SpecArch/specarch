@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification with stakeholders, no stakeholdersComplete, and a must question that blocks the stakeholders"
 when: "validate is run"
 then: "it prints no stakeholders_unconfirmed, only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0: the must question holds stakeholders_unconfirmed, since the gap is already asked about"
-verifies: [SA-120]
+verifies: [SA-126]

@@ -71,7 +71,7 @@ decisions:
       twice. An incomplete
       specification stays readable: the key missing is a warning at the
       list and a banner, and nothing else changes.
-    satisfies: [SA-120]
+    satisfies: [SA-126]
     restsOn: [ADR-129, ADR-220]
     cites:
       - source: iso-29148

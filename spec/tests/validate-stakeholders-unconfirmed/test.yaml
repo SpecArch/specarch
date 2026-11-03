@@ -5,4 +5,4 @@ scenario: red
 given: "a specification with stakeholders and no stakeholdersComplete, so no role has confirmed that the list is complete"
 when: "validate is run"
 then: "it warns stakeholders_unconfirmed at /stakeholders, naming the key that ends the warning, and exits 0, since a warning is not an error"
-verifies: [SA-120]
+verifies: [SA-126]

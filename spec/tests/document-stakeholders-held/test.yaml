@@ -5,4 +5,4 @@ scenario: red
 given: "a specification with stakeholders, no stakeholdersComplete and an open must question that blocks the stakeholders, and a configured requirements document"
 when: "document requirements is run"
 then: "the document carries the Draft notice naming the question and no Stakeholders unconfirmed banner, since the question already marks the gap, and the run exits 0"
-verifies: [SA-120]
+verifies: [SA-126]

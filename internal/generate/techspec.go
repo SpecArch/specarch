@@ -119,7 +119,7 @@ func (d *doc) blank()                          { d.WriteString("\n") }
 
 // StakeholdersBanner is the short banner every generated document and the
 // overview carry while the stakeholder list is not confirmed complete
-// (ADR-226): a role with an interest in the system may still be missing,
+// (ADR-231): a role with an interest in the system may still be missing,
 // and the reader should know before relying on what the document shows.
 // It is held by the must question that holds the validator's warning,
 // as validate.StakeholdersUnconfirmed says, so one gap gets one mark.

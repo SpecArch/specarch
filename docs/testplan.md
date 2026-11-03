@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 960 design tests, 480 golden and 480 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 961 design tests, 480 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 960 design tests, 480 golden and 480 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 956 |
+| system | 957 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2896,8 +2896,8 @@ Scenario: golden; level: system; verifies SA-93.
 Scenario: golden; level: system; verifies SA-57.
 
 - Given: a specification with operations over an entity, and an environment staging whose entry says trace true
-- When: generate go-dxlib is run with --unapproved and --environment staging
-- Then: it writes the service with each handler setting the header Specarch-Element to the pointer of its operation, and exits 0
+- When: generate go-dxlib is run with --unapproved, --environment staging and --out
+- Then: it writes the service under --out with each handler setting the header Specarch-Element to the pointer of its operation, and exits 0
 
 #### generate-go-dxlib-value-objects
 
@@ -3459,6 +3459,14 @@ Scenario: golden; level: system; verifies SA-31, SA-50.
 - When: generate tests is run with --unapproved
 - Then: it writes each value object as an object value with its parts, a location inside an address with its own, and the phones as a list value with an object per item, each part with the type its schema gives, and exits 0
 
+#### generate-trace-without-out
+
+Scenario: red; level: system; covers usage error; verifies SA-57.
+
+- Given: a specification whose environment staging says trace true, and an implementation file naming the output folder of ui
+- When: generate ui is run with --environment staging and no --out
+- Then: it refuses, naming the environment and the output folder the build would have gone into and that --out takes a build that shows the trace, writes nothing and exits 2
+
 #### generate-ui
 
 Scenario: golden; level: system; verifies SA-43.
@@ -3640,8 +3648,8 @@ Scenario: golden; level: system; verifies SA-49, SA-78.
 Scenario: golden; level: system; verifies SA-57.
 
 - Given: a specification with a list page and a form page, and an environment staging whose entry says trace true
-- When: generate ui is run with --unapproved and --environment staging
-- Then: it writes the screens with data-specarch-element on each page, its column headers and its form controls, the overlay trace.js naming the environment, version and digest, and exits 0
+- When: generate ui is run with --unapproved, --environment staging and --out
+- Then: it writes the screens under --out with data-specarch-element on each page, its column headers, its form controls, its view fields and its links and actions, the overlay trace.js naming the environment, version and digest, and exits 0
 
 #### generate-ui-typescript
 

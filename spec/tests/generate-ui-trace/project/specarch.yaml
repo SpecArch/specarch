@@ -174,9 +174,12 @@ pages:
     entity: Member
     permission: members.read
     source: getMember
-    fields: [fullName, email]
+    sections:
+      - { title: Identity, fields: [fullName, email] }
     fieldConditions:
       email: { hiddenUnless: members.write }
+    actions:
+      - { label: Register another, kind: navigate, target: member-form, permission: members.write }
 menus:
   members:
     title: Members

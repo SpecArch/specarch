@@ -3,6 +3,6 @@ command: generate
 level: system
 scenario: golden
 given: "a specification with a list page and a form page, and an environment staging whose entry says trace true"
-when: "generate ui is run with --unapproved and --environment staging"
-then: "it writes the screens with data-specarch-element on each page, its column headers and its form controls, the overlay trace.js naming the environment, version and digest, and exits 0"
+when: "generate ui is run with --unapproved, --environment staging and --out"
+then: "it writes the screens under --out with data-specarch-element on each page, its column headers, its form controls, its view fields and its links and actions, the overlay trace.js naming the environment, version and digest, and exits 0"
 verifies: [SA-57]

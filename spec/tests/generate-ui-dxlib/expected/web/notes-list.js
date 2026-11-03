@@ -219,6 +219,9 @@ function table() {
           link.textContent = action.label;
           link.setAttribute("aria-label", label);
           link.dataset.key = `${action.page} ${row.note_id}`;
+          if (action.element) {
+            link.dataset.specarchElement = action.element;
+          }
           cell.append(link);
           continue;
         }
@@ -227,6 +230,9 @@ function table() {
         button.textContent = action.label;
         button.setAttribute("aria-label", label);
         button.dataset.key = `${action.operation} ${row.note_id}`;
+        if (action.element) {
+          button.dataset.specarchElement = action.element;
+        }
         button.addEventListener("click", () => run(action, row, button));
         cell.append(button);
       }

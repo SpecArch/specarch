@@ -536,6 +536,9 @@ type action struct {
 	// navigate is the page the action leads to once it succeeds; link is
 	// set instead on an action that opens a page and runs nothing.
 	navigate, link *link
+	// element is the action's pointer into the specification, carried in the
+	// page data in a build that shows the trace, and "" otherwise.
+	element string
 	// signIn is true for an action that leaves for the identity provider's
 	// sign-in once it succeeds (ADR-182).
 	signIn bool
@@ -666,7 +669,7 @@ func (g *gen) page(name string, pg map[string]any) *page {
 			switch {
 			case !ok:
 			case row:
-				p.actions = append(p.actions, action{label: l.label, link: &l, when: l.when})
+				p.actions = append(p.actions, action{label: l.label, link: &l, when: l.when, element: g.tracePointer(at)})
 			default:
 				p.links = append(p.links, l)
 			}
@@ -1320,6 +1323,18 @@ func (g *gen) traceAttr(pointer string) string {
 	return " data-specarch-element=" + quoted(pointer)
 }
 
+// tracePointer is the pointer a piece of page data names its element by,
+// in a build for an environment that shows the trace, and "" otherwise.
+func (g *gen) tracePointer(pointer string) string {
+	if !g.trace || pointer == "" {
+		return ""
+	}
+	if !strings.HasPrefix(pointer, "#") {
+		pointer = "#" + pointer
+	}
+	return pointer
+}
+
 // traceJS is the overlay a build for an environment with trace true loads
 // on every page: the pointer of the element under the focus or the
 // pointer, the build's environment, version and digest, and a button that
@@ -1369,7 +1384,7 @@ copy.addEventListener("click", async () => {
     "  version: " + build.version,
     "  digest: " + build.digest,
     "  environment: " + build.environment,
-    'seenAt: ["' + current + '"]',
+    ...(current ? ['seenAt: ["' + current + '"]'] : []),
     "observed: ",
     "expected: ",
     "type: ",

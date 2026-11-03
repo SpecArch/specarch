@@ -127,12 +127,18 @@ export function view(page) {
         const link = document.createElement("a");
         link.href = href(action.page, action.with(current, given));
         link.textContent = action.label;
+        if (action.element) {
+          link.dataset.specarchElement = action.element;
+        }
         bar.append(link);
         continue;
       }
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = action.label;
+      if (action.element) {
+        button.dataset.specarchElement = action.element;
+      }
       button.addEventListener("click", () => run(action, button));
       bar.append(button);
     }

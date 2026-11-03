@@ -41,7 +41,7 @@ func (g *gen) operationAction(at string, am, props map[string]any, key string, f
 	if len(given) > 0 {
 		parameters = "(" + record + ") => ({ " + strings.Join(given, ", ") + " })"
 	}
-	a := action{label: label, operation: target, target: g.targetMembers(op, target, method, path), parameters: parameters,
+	a := action{label: label, element: g.tracePointer(at), operation: target, target: g.targetMembers(op, target, method, path), parameters: parameters,
 		confirm: text(am["confirm"]), refusals: refusals(op, failed)}
 	if body := g.bodySchema(op); body != nil {
 		name := text(am["reason"])
@@ -146,6 +146,9 @@ func actionJS(w func(string), a action, indent, record string) {
 	w(indent + "{")
 	in := indent + "  "
 	w(in + "label: " + jsString(a.label) + ",")
+	if a.element != "" {
+		w(in + "element: " + jsString(a.element) + ",")
+	}
 	if a.link != nil {
 		w(in + "page: " + jsString(a.link.page) + ",")
 		w(in + "with: " + a.link.with + ",")

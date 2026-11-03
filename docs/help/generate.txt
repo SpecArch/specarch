@@ -19,12 +19,14 @@ implementation file names for the target).
   --environment <key>
                 build for that environment of the specification. One whose
                 entry says trace: true shows the trace to its testers: the
-                web UI names each page, field and column's element in
-                data-specarch-element and draws an overlay with the
-                element under the focus, the build's version and digest
-                and a remark to copy as a change request; the Go server
-                answers with the header Specarch-Element. Give --out for
-                a traced build: the output folder holds the untraced one.
+                web UI names each page, section, field, column and
+                action's element in data-specarch-element and draws an
+                overlay with the element under the focus, the build's
+                version and digest and a remark to copy as a change
+                request; the Go server answers with the header
+                Specarch-Element. Such a build needs --out: the output
+                folder holds the untraced one, and without --out it is
+                refused, naming the folder.
 
 What generation does not promise: a plug-in writes what its target covers
 from the specification, marks each entry it could not write at its place,

@@ -10,6 +10,7 @@ import 'specarch_design.dart';
 import 'specarch_harness.dart';
 
 void main() {
+  // specarch: #/tests/add-item
   test('add-item: operation addItem, golden scenario', () async {
     // Given a clerk and a red lamp in stock
     // When addItem is called for a green lamp
@@ -25,6 +26,7 @@ void main() {
     await expectEmitted(h, ['items/ItemAdded']);
   });
 
+  // specarch: #/tests/add-item-twice
   test('add-item-twice: operation addItem, red scenario', () async {
     // Given a clerk and a lamp
     // When addItem is called for a lamp again
@@ -37,6 +39,7 @@ void main() {
     await expectEmitted(h, []);
   });
 
+  // specarch: #/tests/count-shelves
   test('count-shelves: command count, golden scenario', () async {
     // Given two shelves
     // When count is run on both for red
@@ -47,6 +50,7 @@ void main() {
     expectOutput(got, ['2 items']);
   });
 
+  // specarch: #/tests/item-reserved-within-stock
   test('item-reserved-within-stock: Item constraint reserved_within_stock, red scenario', () async {
     // Given an item with 1 in stock
     // When 2 are reserved
@@ -57,6 +61,7 @@ void main() {
 
   // item-view-offline is not applicable: The page is served with the API and has no offline mode.
 
+  // specarch: #/tests/item-view-opened
   test('item-view-opened: page item-view, golden scenario', () async {
     // Given an item
     // When the page opens

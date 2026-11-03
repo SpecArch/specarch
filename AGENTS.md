@@ -344,7 +344,8 @@ Error codes of --json:
   checked), or with `--check` the output differs
   exit 2: usage error, no generator for the target (not built in and no
   plug-in on PATH), the plug-in failed or answered badly, no output folder
-  in any specification given, or a file that could not be read or written
+  in any specification given, a build for an environment that shows the
+  trace without `--out`, or a file that could not be read or written
 - `specarch guide [--agent]`
   Print the order of work, for a person or, with --agent, for an agent.
   exit 0: printed

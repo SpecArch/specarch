@@ -294,15 +294,17 @@ it.
    error, and `docs/maintenance.md` names the two exceptions to the rule
    that the specification never points back at a record; the case
    `validate-change-answered`.
-4. **The trace in generated output** (Go only): the pointer in SQL, the
-   Go server, OpenAPI and the Go tests, and the version and digest in
-   every generated header (`docs/generators.md`, rule 1).
+4. **The trace in generated output**: the pointer in SQL, the Go server,
+   OpenAPI and the Go, Dart and Swift tests (the pointer under a failure
+   in the Go tests alone), and the version and digest in every generated
+   header (`docs/generators.md`, rule 1).
 5. **The trace shown in an acceptance build**: `trace` on an environment,
-   `generate --environment`, the data attributes and the overlay in the
-   plain web UI, the answer header in the Go server, and the warning
-   `environment_trace` for a last environment that shows it; the cases
-   `generate-ui-trace`, `generate-go-dxlib-trace`,
-   `generate-environment-unknown` and `validate-environment-trace`.
+   `generate --environment` with `--out`, the data attributes and the
+   overlay in the plain web UI, the answer header in the Go server, and
+   the warning `environment_trace` for a last environment that shows it;
+   the cases `generate-ui-trace`, `generate-go-dxlib-trace`,
+   `generate-environment-unknown`, `generate-trace-without-out` and
+   `validate-environment-trace`.
 6. **Reach and marks of open changes**: the reach of section 4 in the
    `changes` document, and an open change request shown at its element in
    every document, beside the open questions; the case
@@ -318,8 +320,10 @@ it.
 Not in these steps, and open: the pointer in the screens the TypeScript,
 Vue and SwiftUI stacks draw, whose page schema is data read by
 hand-written runtimes (a member of that schema and a change in each
-runtime), the native accessibility identifiers, the header on a message
-and the pointer in a request's log line, which no generator writes yet.
+runtime), the native accessibility identifiers, the pointer under a
+failure in the Dart and Swift tests, the problem type's pointer on a
+refusal from the Go server, the header on a message and the pointer in a
+request's log line, which no generator writes yet.
 
 ## 8. What the owner decided
 

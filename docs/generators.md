@@ -28,7 +28,8 @@ a step, the emitter stops at that tool's input and lets it do the rest.
    and handler and each entity's table entry, OpenAPI
    `x-specarch-element` on each operation, and the Go tests a
    `// specarch: #/tests/<name>` comment on each test and the pointer in
-   the log of a failed one. The web UI carries the pointer in its data
+   the log of a failed one; the Dart and Swift tests carry the same
+   comment on each test. The web UI carries the pointer in its data
    attributes only in a build for an environment that shows the trace
    (section Plain JavaScript for the web).
 2. Generated output is never edited by hand. A change goes into the spec and
@@ -878,15 +879,19 @@ screen in a real project and has to reproduce it before it is accepted.
 
 A build for an environment whose entry says `trace: true`
 (`specarch generate ui --environment <key>`, `docs/acceptance.md`) carries
-the trace: `data-specarch-element` on each page's `main`, on each form
-control and on each list column header, with the pointer into the
-specification of what it draws, and `trace.js`, an overlay on every page
-that shows the pointer under the focus or the mouse, the build's
-environment, version and digest, and copies a remark as the start of a
-change request record. Without `--environment`, or for an environment
-without `trace`, none of it is written, since the HTML goes to every
-browser; that untraced output is what the output folder holds, and a
-traced build goes under `--out`.
+the trace: `data-specarch-element` on each page's `main`, on each section
+of a view, on each form control and view field, on each list column
+header, on each link above a list and on each action a list row or a view
+draws (the action's pointer travels as `element` in the page data, and the
+runtime sets the attribute), with the pointer into the specification of
+what it draws, and `trace.js`, an overlay on every page that shows the
+pointer under the focus or the mouse, the build's environment, version
+and digest, and copies a remark as the start of a change request record,
+with `seenAt` only when an element is under it. Without `--environment`,
+or for an environment without `trace`, none of it is written, since the
+HTML goes to every browser; that untraced output is what the output
+folder holds, and a build that shows the trace is refused unless `--out`
+names its folder.
 
 `specarch-gen-ui` writes, for a `ui` target of platform `web` and
 framework `plain-javascript`, each list page as `<page>.html` and

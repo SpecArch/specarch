@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: red
+covers: [usage error]
+given: "a specification whose environment staging says trace true, and an implementation file naming the output folder of ui"
+when: "generate ui is run with --environment staging and no --out"
+then: "it refuses, naming the environment and the output folder the build would have gone into and that --out takes a build that shows the trace, writes nothing and exits 2"
+verifies: [SA-57]

@@ -29,15 +29,20 @@ type viewPage struct {
 type viewSection struct {
 	title  string
 	fields []viewField
+	// at is the section's pointer when the page declares sections, and ""
+	// when it lists fields.
+	at string
 }
 
 // viewField is a field a view shows, or a part of a value it holds.
 type viewField struct {
 	name, label, hiddenWhen string
+	// at is the pointer of a field of the page, and "" for a part of a value.
+	at string
 	// hiddenUnless is the permission without which the field is hidden.
 	hiddenUnless string
 	list         bool
-	parts                   []viewField
+	parts        []viewField
 }
 
 // sectionsOf are a page's sections, each with its title and fields;
@@ -157,6 +162,9 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 	conditions := obj0(pg["fieldConditions"])
 	for i, s := range sectionsOf(pg) {
 		section := viewSection{title: s.title}
+		if pg["sections"] != nil {
+			section.at = fmt.Sprintf("%s/sections/%d", at, i)
+		}
 		for j, f := range s.fields {
 			prop, ok := obj(props[f.name])
 			if !ok {
@@ -164,6 +172,7 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 				continue
 			}
 			field := g.viewField(f.name, prop, nil)
+			field.at = fieldAt(at, pg, i, j)
 			field.hiddenUnless = g.unless(at+"/fieldConditions/"+f.name+"/hiddenUnless", f.name, "hiddenUnless", text(obj0(conditions[f.name])["hiddenUnless"]))
 			if e := text(obj0(conditions[f.name])["hiddenWhen"]); e != "" {
 				rule, ok := g.rule(e, at+"/fieldConditions/"+f.name+"/hiddenWhen", "the field's hiddenWhen", props)
@@ -204,7 +213,7 @@ func (g *gen) view(name string, pg map[string]any) *viewPage {
 				continue
 			}
 		}
-		v.actions = append(v.actions, action{label: label, link: &l, when: l.when})
+		v.actions = append(v.actions, action{label: label, link: &l, when: l.when, element: g.tracePointer(ptr)})
 	}
 	return v
 }
@@ -229,11 +238,11 @@ func (v *viewPage) html(g *gen) string {
 	for i, s := range v.sections {
 		if s.title != "" {
 			id := fmt.Sprintf("section-%d", i)
-			out = append(out, `<section aria-labelledby="`+id+`">`, `<h2 id="`+id+`">`+html.EscapeString(s.title)+"</h2>")
+			out = append(out, `<section aria-labelledby="`+id+`"`+g.traceAttr(s.at)+`>`, `<h2 id="`+id+`">`+html.EscapeString(s.title)+"</h2>")
 		} else {
-			out = append(out, "<section>")
+			out = append(out, "<section"+g.traceAttr(s.at)+">")
 		}
-		out = append(out, placesHTML(s.fields)...)
+		out = append(out, g.placesHTML(s.fields)...)
 		out = append(out, "</section>")
 	}
 	out = append(out, "</div>", `<div id="actions"></div>`, "</main>", "</body>", "</html>")
@@ -241,12 +250,13 @@ func (v *viewPage) html(g *gen) string {
 }
 
 // placesHTML writes fields as a description list: each label, and the
-// place of its value; a value's parts inside its place, a list's item as
-// the template of its entries.
-func placesHTML(fields []viewField) []string {
+// place of its value, with the field's pointer in a build that shows the
+// trace; a value's parts inside its place, a list's item as the template
+// of its entries.
+func (g *gen) placesHTML(fields []viewField) []string {
 	out := []string{"<dl>"}
 	for _, f := range fields {
-		start := "<div><dt>" + html.EscapeString(f.label) + "</dt><dd data-field=" + quoted(f.name)
+		start := "<div><dt>" + html.EscapeString(f.label) + "</dt><dd data-field=" + quoted(f.name) + g.traceAttr(f.at)
 		switch {
 		case f.list:
 			out = append(out, start+" data-list>", "<ul></ul>", "<template>")
@@ -254,13 +264,13 @@ func placesHTML(fields []viewField) []string {
 				out = append(out, "<li data-item></li>")
 			} else {
 				out = append(out, "<li data-item>")
-				out = append(out, placesHTML(f.parts)...)
+				out = append(out, g.placesHTML(f.parts)...)
 				out = append(out, "</li>")
 			}
 			out = append(out, "</template>", "</dd></div>")
 		case f.parts != nil:
 			out = append(out, start+">")
-			out = append(out, placesHTML(f.parts)...)
+			out = append(out, g.placesHTML(f.parts)...)
 			out = append(out, "</dd></div>")
 		default:
 			out = append(out, start+"></dd></div>")

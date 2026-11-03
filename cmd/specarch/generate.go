@@ -248,6 +248,24 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		}
 		groups[i] = g
 	}
+	// A build that shows the trace never goes into the output folder the
+	// implementation file names: that folder holds the untraced build, the
+	// one generate --check compares, and the two cannot share it (ADR-222).
+	if out == "" {
+		for i, l := range specs {
+			if !traces[i] {
+				continue
+			}
+			for _, g := range groups[i] {
+				folder, status := outputFolder(loaded{spec: l.spec, impls: g.impls, covered: l.covered}, target, "", stderr)
+				if status != 0 {
+					return status
+				}
+				fmt.Fprintf(stderr, "specarch generate: %s is an environment of %s whose entry says trace: true, and its build would go into %s, the output folder the implementation file names; that folder holds the untraced build, the one generate --check compares, so a build that shows the trace goes under --out: give --out <folder> and run it again\n", environment, l.spec.Dir, folder)
+				return 2
+			}
+		}
+	}
 	// A value typed by another specification's element cannot be written
 	// from this one alone; each is refused at its entry (ADR-112).
 	refused := false

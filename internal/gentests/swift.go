@@ -76,6 +76,7 @@ func swiftTest(w *writer, t Test) {
 		w.line(in+"// %s is not applicable: %s", t.Name, t.NotApplicable)
 		return
 	}
+	w.line(in+"// specarch: #/tests/%s", mark.Escape(t.Name))
 	w.line(in+"@Test(%s)", swiftString(t.Name+": "+t.Subject+", "+t.Scenario+" scenario"))
 	w.line(in+"func test%s() async throws {", pascal(t.Name))
 	w.line(in+"    // Given %s", t.Given)

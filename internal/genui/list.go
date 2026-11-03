@@ -53,7 +53,7 @@ func (p *page) html(g *gen) string {
 	if len(p.links) > 0 {
 		w(`<p id="links">`)
 		for _, l := range p.links {
-			w("<a href=" + quoted(l.page+".html") + ">" + html.EscapeString(l.label) + "</a>")
+			w("<a href=" + quoted(l.page+".html") + g.traceAttr(l.at) + ">" + html.EscapeString(l.label) + "</a>")
 		}
 		w("</p>")
 	}
@@ -416,6 +416,9 @@ function table() {
           link.textContent = action.label;
           link.setAttribute("aria-label", label);
           link.dataset.key = ` + "`${action.page} ${{{ID}}}`" + `;
+          if (action.element) {
+            link.dataset.specarchElement = action.element;
+          }
           cell.append(link);
           continue;
         }
@@ -424,6 +427,9 @@ function table() {
         button.textContent = action.label;
         button.setAttribute("aria-label", label);
         button.dataset.key = ` + "`${action.operation} ${{{ID}}}`" + `;
+        if (action.element) {
+          button.dataset.specarchElement = action.element;
+        }
         button.addEventListener("click", () => run(action, row, button));
         cell.append(button);
       }

@@ -3,6 +3,8 @@ info:
   title: Shop
   version: 1.0.0
   description: A small shop that takes orders and payments.
+stakeholders:
+  owner: { description: The owner of the shop. }
 requirements:
   SHOP-1:
     statement: A clerk shall be able to take payment for an open order, after which the order is paid.
@@ -83,3 +85,5 @@ pages:
     columns: [customerId, state, total]
     actions:
       - { label: Pay, kind: operation, target: payOrder, permission: orders.pay }
+environments:
+  production: { description: The live shop. }

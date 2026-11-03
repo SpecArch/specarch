@@ -173,6 +173,7 @@ enum SpecArch {
 extension SpecArch {
     @Suite("Stockroom: design tests and worked examples")
     struct DesignTests {
+        // specarch: #/tests/add-item
         @Test("add-item: operation addItem, golden scenario")
         func testAddItem() async throws {
             // Given a clerk and a red lamp in stock
@@ -189,6 +190,7 @@ extension SpecArch {
             try await expectEmitted(h, ["items/ItemAdded"])
         }
 
+        // specarch: #/tests/add-item-twice
         @Test("add-item-twice: operation addItem, red scenario")
         func testAddItemTwice() async throws {
             // Given a clerk and a lamp
@@ -202,6 +204,7 @@ extension SpecArch {
             try await expectEmitted(h, [])
         }
 
+        // specarch: #/tests/count-shelves
         @Test("count-shelves: command count, golden scenario")
         func testCountShelves() async throws {
             // Given two shelves
@@ -213,6 +216,7 @@ extension SpecArch {
             expectOutput(got, ["2 items"])
         }
 
+        // specarch: #/tests/item-reserved-within-stock
         @Test("item-reserved-within-stock: Item constraint reserved_within_stock, red scenario")
         func testItemReservedWithinStock() async throws {
             // Given an item with 1 in stock
@@ -224,6 +228,7 @@ extension SpecArch {
 
         // item-view-offline is not applicable: The page is served with the API and has no offline mode.
 
+        // specarch: #/tests/item-view-opened
         @Test("item-view-opened: page item-view, golden scenario")
         func testItemViewOpened() async throws {
             // Given an item

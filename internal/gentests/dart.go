@@ -100,6 +100,7 @@ func dartTest(w *writer, t Test) {
 		w.line("  // %s is not applicable: %s", t.Name, t.NotApplicable)
 		return
 	}
+	w.line("  // specarch: #/tests/%s", mark.Escape(t.Name))
 	w.line("  test(%s, () async {", dartString(t.Name+": "+t.Subject+", "+t.Scenario+" scenario"))
 	w.line("    // Given %s", t.Given)
 	w.line("    // When %s", t.When)

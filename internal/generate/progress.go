@@ -35,6 +35,7 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 	if state.Withheld != nil {
 		d.para("This document is for everyone: the internal elements, and the questions only about them, are not counted.")
 	}
+	d.stakeholdersNotice()
 
 	d.section("Size")
 	d.para("The elements of each stage, a section of named elements counted by its entries and a section that holds one thing, such as the release, as one. The open questions are counted under Open work, not here.")
@@ -67,7 +68,7 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 	}
 
 	d.section("Stakeholder list")
-	d.para(fmt.Sprintf("Not confirmed: the specification records no role confirming the list of %s complete, so a role nobody has named yet may still be missing.", countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders")))
+	d.progressStakeholderList(root, state)
 
 	d.section("Effort")
 	d.progressEffort(state)
@@ -75,6 +76,62 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 	d.section("Burn-up")
 	d.progressBurnUp(root, state, total)
 	return d.String()
+}
+
+// progressStakeholderList says whether a role has confirmed the stakeholder
+// list complete, as stakeholdersComplete records it (ADR-234): who, on what
+// day and, when it names one, in what source, as written, with each problem
+// the validator marks on the key; or, with no key, that it is not confirmed,
+// naming the open must questions that hold the list up, since the validator
+// does not warn while one does.
+func (d *doc) progressStakeholderList(root *yaml.Node, state *State) {
+	list := countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders")
+	if complete := get(root, "stakeholdersComplete"); complete != nil {
+		line := fmt.Sprintf("Confirmed: %s confirmed the list of %s complete on %s", orNone(str(complete, "by"), "no role named"), list, orNone(str(complete, "date"), "no date written"))
+		if src := str(complete, "source"); src != "" {
+			line += ", recorded in the source " + src
+		}
+		d.para(line + ".")
+		var marks []Mark
+		for _, m := range state.Marks {
+			if m.Pointer == "/stakeholdersComplete" || strings.HasPrefix(m.Pointer, "/stakeholdersComplete/") {
+				marks = append(marks, m)
+			}
+		}
+		if len(marks) > 0 {
+			d.para(fmt.Sprintf("The validator marks the confirmation with %s:", countText(len(marks), "problem", "problems")))
+			for _, m := range marks {
+				d.line("- %s %s: %s [%s]", m.Severity, m.Pointer, m.Message, m.ID)
+			}
+			d.blank()
+		}
+		return
+	}
+	var holding []string
+	for _, q := range d.questions {
+		if q.priority != "must" {
+			continue
+		}
+		for _, b := range q.blocks {
+			if !b.IsPointer() && (b.Section == "stakeholders" || b.Section == "" && b.Stage == spec.Sections["stakeholders"]) {
+				holding = append(holding, q.id)
+				break
+			}
+		}
+	}
+	if len(holding) > 0 {
+		d.para(fmt.Sprintf("Not confirmed: the open must %s %s %s up the list of %s until %s answered, so a role nobody has named yet may still be missing.",
+			pick(len(holding) == 1, "question", "questions"), strings.Join(holding, ", "), pick(len(holding) == 1, "holds", "hold"), list, pick(len(holding) == 1, "it is", "they are")))
+		return
+	}
+	d.para(fmt.Sprintf("Not confirmed: the specification records no role confirming the list of %s complete, so a role nobody has named yet may still be missing.", list))
+}
+
+func orNone(s, none string) string {
+	if s == "" {
+		return none
+	}
+	return s
 }
 
 // stageSize is one row of the size table.

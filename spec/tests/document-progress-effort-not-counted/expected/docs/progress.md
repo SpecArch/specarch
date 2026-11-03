@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 1 element, 0 open questions, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
+
 ## 1. Size
 
 The elements of each stage, a section of named elements counted by its entries and a section that holds one thing, such as the release, as one. The open questions are counted under Open work, not here.

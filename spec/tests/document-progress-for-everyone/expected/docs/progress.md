@@ -6,6 +6,8 @@ Version 1.1.0 of the specification: 3 elements, 1 open question, from the specif
 
 This document is for everyone: the internal elements, and the questions only about them, are not counted.
 
+**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
+
 ## 1. Size
 
 The elements of each stage, a section of named elements counted by its entries and a section that holds one thing, such as the release, as one. The open questions are counted under Open work, not here.

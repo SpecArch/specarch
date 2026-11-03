@@ -11,7 +11,7 @@ reason: The desk looks a member's loans up one by one.
 cause: omitted
 affects:
   adds: [CASE-2, OTHER-7]
-  changes: ["#/entities/Loan", "#/questions/Q-1", "#/entities/x-note", "#/entities/Fine"]
+  changes: ["#/entities/Loan", "#/entities", "#/questions/Q-1", "#/entities/x-note", "#/entities/Fine"]
 impact: minor
 effort: { estimatedHours: 2 }
 decision:

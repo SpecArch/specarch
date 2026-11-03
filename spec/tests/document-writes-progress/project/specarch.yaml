@@ -4,6 +4,7 @@ stakeholders:
   owner: { description: The product owner. }
   librarian: { description: Runs the lending desk. }
   member: { description: Borrows books. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }
 needs:
   NEED-1:
     statement: Members may not take more than they bring back.

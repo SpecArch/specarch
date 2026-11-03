@@ -222,8 +222,11 @@ open questions by priority and by the role that decides them, a
 priority that is not must, should or could counted in a column of its
 own and named with the value as written, and a question with no
 decidedBy on a row that says so, so the rows add up to the total; each
-role the validator warns unheard, with the warning; the line that
-no role's confirmation of the stakeholder list is recorded; each
+role the validator warns unheard, with the warning; whether a role
+has confirmed the stakeholder list complete, as stakeholdersComplete
+records it with each problem marked on it, or that it is not
+confirmed, naming the open must questions that hold it up, with the
+stakeholders banner while nothing holds it; each
 change request with the hours estimated and spent that it records,
 missing where it records none, a value that is not a number above 0
 shown as written and marked not counted, the sums of each column over

@@ -3,7 +3,7 @@ command: document
 level: system
 scenario: red
 covers: [exit 1]
-given: "a specification whose open question Q-3 has the priority \"Could\" and no decidedBy, and a change request in the one release that names under affects a requirement of the specification, an ID it does not hold, an entity, a question, an extension key under entities and an entity it does not hold"
+given: "a specification whose stakeholdersComplete names auditor, who is not a stakeholder, whose open question Q-3 has the priority \"Could\" and no decidedBy, and a change request in the one release that names under affects a requirement of the specification, an ID it does not hold, an entity, the whole entities section, a question, an extension key under entities and an entity it does not hold"
 when: "document progress is run"
-then: "it prints the schema errors, writes progress.md where Q-3 is counted under Other priority on a row for no role named, named below the table with its priority as written, the rows add up to the total, and the burn-up counts the requirement and the entity and names the four other references with why they are not counted, and exits 1"
+then: "it prints the schema errors, writes progress.md whose stakeholder list gives the confirmation as written with the stakeholder error marked under it, where Q-3 is counted under Other priority on a row for no role named, named below the table with its priority as written, the rows add up to the total, and the burn-up counts the requirement and the entity and names the five other references with why they are not counted, and exits 1"
 verifies: [SA-130]

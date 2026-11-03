@@ -2,7 +2,7 @@
 
 # Case: progress
 
-Version 1.1.0-rc.1 of the specification: 8 elements, 3 open questions, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing.
+Version 1.1.0-rc.1 of the specification: 9 elements, 3 open questions, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing.
 
 ## 1. Size
 
@@ -10,13 +10,13 @@ The elements of each stage, a section of named elements counted by its entries a
 
 | Stage | Elements | Sections |
 |---|---|---|
-| requirements | 6 | stakeholders 3, needs 1, requirements 2 |
+| requirements | 7 | stakeholders 3, stakeholdersComplete 1, needs 1, requirements 2 |
 | design | 1 | entities 1 |
 | tests | 0 | none |
 | deployment | 1 | environments 1 |
 | commissioning | 0 | none |
 | operation | 0 | none |
-| Total | 8 | |
+| Total | 9 | |
 
 ## 2. Open work
 
@@ -36,7 +36,7 @@ The elements of each stage, a section of named elements counted by its entries a
 
 ## 4. Stakeholder list
 
-Not confirmed: the specification records no role confirming the list of 3 stakeholders complete, so a role nobody has named yet may still be missing.
+Confirmed: owner confirmed the list of 3 stakeholders complete on 2026-11-03.
 
 ## 5. Effort
 
@@ -51,10 +51,10 @@ Not confirmed: the specification records no role confirming the list of 3 stakeh
 
 ## 6. Burn-up
 
-One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 8 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
+One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 9 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
 
 | Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |
 |---|---|---|---|---|---|---|
-| 1.0.0 | released | 2026-10-04 | CR-1 | 2 | 2 | 8 |
-| 1.1.0 | planned | not yet | CR-2, CR-3, CR-4 | 3 | 2 | 8 |
+| 1.0.0 | released | 2026-10-04 | CR-1 | 2 | 2 | 9 |
+| 1.1.0 | planned | not yet | CR-2, CR-3, CR-4 | 3 | 2 | 9 |
 

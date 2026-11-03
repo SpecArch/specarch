@@ -33,10 +33,17 @@ decisions:
       3. Unheard roles: each role the validator warns unheard, with the
          warning's text, taken from the warnings so the document and the
          validator cannot disagree.
-      4. The stakeholder list: the number of stakeholders and the line
-         that no role's confirmation of the list is recorded. The
-         meta-model has no key that records the confirmation, so the
-         document reads none and claims none.
+      4. The stakeholder list: the number of stakeholders and whether a
+         role has confirmed the list complete, read from
+         stakeholdersComplete (ADR-234): the role, the date and, when it
+         names one, the source, as written, with each problem the
+         validator marks on the key listed under it; with no key, the line
+         that the list is not confirmed, naming the open must questions
+         that block the stakeholders when there are any, since the
+         validator does not warn while one holds the list up. While the
+         list is unconfirmed and no must question holds it, the document
+         carries the stakeholders banner, as every generated document
+         does.
       5. Effort: each change request, in a document for everyone too, as
          the change register lists it, with its status and the hours
          recorded on it, estimated and spent in two columns, and the word
@@ -103,4 +110,4 @@ decisions:
         clause: "6.4.3"
         says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
     satisfies: [SA-130]
-    restsOn: [ADR-220, ADR-223]
+    restsOn: [ADR-220, ADR-223, ADR-234]

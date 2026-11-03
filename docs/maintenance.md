@@ -123,6 +123,7 @@ raised during development or in production.
 | `questions` | the open questions the analysis wrote, by ID; checked to be questions of the specification while the change is proposed or analysed |
 | `affects` | what it changes, by stage: `adds`, `changes` and `removes`, each a list of references into the specification (requirement IDs, `#/` pointers such as `#/entities/Loan`, test names, environment and setting keys) |
 | `impact` | `major`, `minor` or `patch`, by the version rule below |
+| `effort` | optional: the hours the change takes, as the team recorded them, `estimatedHours` once it is analysed and `spentHours` once it is done, each a positive number and at least one given; the `progress` document sums each over the changes that record it and names the ones that record none as missing, never filling a figure in (ADR-227) |
 | `decision` | `by` (a role), `date`, `outcome` (approved or rejected) and `why` |
 | `release` | the version it shipped in, once released |
 | `status` | below |
@@ -597,6 +598,18 @@ Five targets join `DocumentTarget`, after the first set of documents:
   test; then each run's results. With `--audience external` a result
   whose test, that test's element, or whose element is internal is left
   out and counted, and the unmapped results are counted, not named. The timeline places each run at its instant.
+- `progress`: the progress report, from the specification and the records
+  (ADR-227). The elements of each stage by section; the open questions by
+  priority and by the role that decides them; each role warned unheard;
+  whether a role has confirmed the stakeholder list complete; each change
+  request with the hours estimated and spent it records, `missing` where
+  it records none, each column summed over the requests that record it
+  and the requests with no effort named; and a burn-up, one point per
+  release in version order, of the distinct elements the included change
+  requests name under `affects` adds and changes, cumulative, approved
+  once the request is approved and generated once it is implemented or
+  released, beside the elements the specification holds now. It makes no
+  average, forecast or filled-in figure.
 
 All five read the records beside the specification, name the records folder
 in their generated-from header, and are never drafts: an open question is

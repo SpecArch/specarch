@@ -118,8 +118,8 @@ standardOutput: |
 
   Document targets: techspec, requirements, testplan, traceability,
     deployment, commissioning, handover, questions, problems, comparison,
-    changes, releases, communications, timeline, testruns, html, manual,
-    operations
+    changes, releases, communications, timeline, testruns, progress, html,
+    manual, operations
   Extract sources: outline, database, router, documents, tables, openapi,
     permissions, pages, workflows, gateway, systemd, go, swift, javascript,
     dart, tests

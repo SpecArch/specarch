@@ -216,6 +216,27 @@ the element or the requirement; then the results that map to no
 test; then each run's results. It is never a draft. The timeline
 places each test run at its instant.
 
+The progress target writes `progress.md` from the specification and
+the records (ADR-227): the elements of each stage by section; the
+open questions by priority and by the role that decides them; each
+role the validator warns unheard, with the warning; the line that
+no role's confirmation of the stakeholder list is recorded; each
+change request with the hours estimated and spent that it records,
+missing where it records none, a value that is not a number above 0
+shown as written and marked not counted, the sums of each column over
+the requests that record it, and the requests with no counted figure
+named as missing; and a burn-up, one point per release in version
+order, of the distinct elements the change requests it includes name
+under affects adds and changes, each reference counted as the
+element it names (a requirement by its ID or its pointer once, a
+pointer inside an element as that element), cumulative, approved
+once the request's decision approves it and it is not withdrawn or
+rejected, and generated once it is implemented or released, beside
+the elements the specification holds now. It invents no figure: no average,
+forecast or filled-in effort. A document for everyone counts no
+internal element and no question only about one. It is never a
+draft.
+
 The problems target writes `problems.txt` and `problems.sarif`
 (ADR-065), for an invalid specification too. `problems.txt` starts
 with a line naming the specification, its version and the counts of
@@ -322,7 +343,7 @@ and the html page in place of what satisfies and verifies it.
 
 ## Arguments
 
-- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
+- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `progress`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
 - `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
 
 ## Options
@@ -336,7 +357,7 @@ and the html page in place of what satisfies and verifies it.
 
 - `{paths}`: The specifications and their implementation files.
 - `specarch.md`: The hand-written document beside each root file, when there is one.
-- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets; the test-run and defect records, for the testruns target.
+- `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications, timeline and progress targets; the test-run and defect records, for the testruns target.
 - `{out}`: The current output, with `--check`.
 
 ## Writes

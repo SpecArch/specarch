@@ -213,6 +213,27 @@ commands:
       test; then each run's results. It is never a draft. The timeline
       places each test run at its instant.
 
+      The progress target writes `progress.md` from the specification and
+      the records (ADR-227): the elements of each stage by section; the
+      open questions by priority and by the role that decides them; each
+      role the validator warns unheard, with the warning; the line that
+      no role's confirmation of the stakeholder list is recorded; each
+      change request with the hours estimated and spent that it records,
+      missing where it records none, a value that is not a number above 0
+      shown as written and marked not counted, the sums of each column over
+      the requests that record it, and the requests with no counted figure
+      named as missing; and a burn-up, one point per release in version
+      order, of the distinct elements the change requests it includes name
+      under affects adds and changes, each reference counted as the
+      element it names (a requirement by its ID or its pointer once, a
+      pointer inside an element as that element), cumulative, approved
+      once the request's decision approves it and it is not withdrawn or
+      rejected, and generated once it is implemented or released, beside
+      the elements the specification holds now. It invents no figure: no average,
+      forecast or filled-in effort. A document for everyone counts no
+      internal element and no question only about one. It is never a
+      draft.
+
       The problems target writes `problems.txt` and `problems.sarif`
       (ADR-065), for an invalid specification too. `problems.txt` starts
       with a line naming the specification, its version and the counts of
@@ -343,7 +364,7 @@ commands:
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "specarch.md", description: "The hand-written document beside each root file, when there is one." }
-      - { path: "records/ beside each specification's folder", description: "The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets; the test-run and defect records, for the testruns target." }
+      - { path: "records/ beside each specification's folder", description: "The change, defect and release records, for the changes and releases targets; every record, for the communications, timeline and progress targets; the test-run and defect records, for the testruns target." }
       - { path: "{out}", description: "The current output, with `--check`." }
     writes:
       - { path: "{out}/<target>.md", description: "The document. Nothing is written with `--check`." }
@@ -367,7 +388,7 @@ commands:
       "1": "Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86, SA-111, SA-117, SA-57, SA-125, SA-130]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86, SA-111, SA-117, SA-121, SA-57, SA-125, SA-130]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

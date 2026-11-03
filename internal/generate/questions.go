@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "html", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "html": true, "manual": true, "operations": true}
+	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "progress", "html", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true}
 )
 
 // documentReads says which sections each document reads, so that a

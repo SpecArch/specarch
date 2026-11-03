@@ -348,7 +348,7 @@ Error codes of --json:
   exit 1: at least one must or should question is open, or a specification
   or an estate has an error
   exit 2: usage error, or a path that could not be read
-- `specarch generate <target> [--out <out>] [--check] [--estate <estate>]... [--environment <environment>] [--unapproved] [--dry-run] [--as-is] <paths>...`
+- `specarch generate <target> [--out <out>] [--check] [--estate <estate>]... [--environment <environment>] [--unapproved] [--dry-run] [--as-is] [--package <package>] <paths>...`
   Write code or data from a specification.
   exit 0: written, a draft included, or with `--check` the output is current
   exit 1: a specification has an error, an open question blocks what the

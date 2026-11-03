@@ -1,7 +1,7 @@
 # specarch generate
 
 ```
-specarch generate <target> [--out <out>] [--check] [--estate <estate>]... [--environment <environment>] [--unapproved] [--dry-run] [--package <package>] <paths>...
+specarch generate <target> [--out <out>] [--check] [--estate <estate>]... [--environment <environment>] [--unapproved] [--dry-run] [--as-is] [--package <package>] <paths>...
 ```
 
 Write code or data from a specification.
@@ -62,7 +62,8 @@ can name the build; ADR-083), `environment` and `trace` (the
 environment given with `--environment`, and whether its entry says
 the build shows the trace; ADR-222), `target`, `root` (the root
 file's path), `specification` (the merged, validated specification as plain
-values), `implementations` (each implementation file as `file`,
+values, each workflow its to-be with no asIs, or its as-is with
+`--as-is`), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms
 it uses, each with its `name`, `version`, how it applies (`as`:
 shipped, overridden, project or excluded), the `content` of the idiom
@@ -263,7 +264,8 @@ many derived cases are left out.
 - `--environment <environment>`: The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, section's, field's, column's and action's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds: a build for an environment that shows the trace is refused with status 2 unless `--out` names its folder, since the two cannot share one folder under `--check`; the refusal names the environment and the folder it would have written into.
 - `--unapproved`: Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why.
 - `--dry-run`: Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check.
-- `--package <package>`: With the tests target and --out: write a test package for this environment of the specification, every test and every derived case no test covers as a request to its servers, in place of a stack's tests (ADR-233).
+- `--as-is`: Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-236).
+- `--package <package>`: With the tests target and --out: write a test package for this environment of the specification, every test and every derived case no test covers as a request to its servers, in place of a stack's tests (ADR-233). Not with --estate, --environment or --as-is.
 
 ## Reads
 

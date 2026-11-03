@@ -331,6 +331,7 @@ func TestTestPackageRefusals(t *testing.T) {
 		{[]string{"generate", "sql", "--package", "acceptance", "--out", pkg, specDir}, 2, "--package is a package of tests"},
 		{[]string{"generate", "tests", "--package", "acceptance", specDir}, 2, "--package needs --out"},
 		{[]string{"generate", "tests", "--package", "production", "--out", pkg, specDir}, 2, "production is not an environment of"},
+		{[]string{"generate", "tests", "--package", "acceptance", "--as-is", "--out", pkg, specDir}, 2, "--package takes no --estate, --environment or --as-is"},
 		{[]string{"generate", "tests", "--package", "acceptance", "--out", pkg, specDir}, 1, "is not approved"},
 	} {
 		var out, errb bytes.Buffer

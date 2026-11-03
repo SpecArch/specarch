@@ -207,6 +207,72 @@ func TestLibraryLendingDartAnalyzes(t *testing.T) {
 	}
 }
 
+// TestHandWrittenBodiesDartAnalyzes generates the Dart tests of a
+// specification whose design tests all leave their body to be written by
+// hand, and analyzes them as TestLibraryLendingDartAnalyzes does, with
+// infos fatal: no test names a value or a check, so the test file must not
+// import the library, which dart analyze would warn of as unused. With
+// every test not applicable, main runs nothing and imports nothing.
+func TestHandWrittenBodiesDartAnalyzes(t *testing.T) {
+	const folder = "../../spec/tests/generate-tests-dart-hand-written-bodies/project"
+	library := "import '" + DartLibraryFile + "';"
+	harness := "import '" + DartHarnessFile + "';"
+	framework := "import '" + dartFrameworks["package:test"] + "';"
+
+	t.Run("none applies", func(t *testing.T) {
+		r, _ := requestFor(t, folder, func(content map[string]any) {
+			tests, _ := content["tests"].(map[string]any)
+			for _, v := range tests {
+				if m, ok := v.(map[string]any); ok {
+					m["notApplicable"] = "Not built yet."
+				}
+			}
+		}, nil)
+		files := generated(t, GenerateDart(r), DartLibraryFile, DartTestFile)
+		for _, imp := range []string{library, harness, framework} {
+			if strings.Contains(files[DartTestFile], imp) {
+				t.Errorf("the test file runs no test but has %s:\n%s", imp, files[DartTestFile])
+			}
+		}
+		mustContain(t, files[DartTestFile], "void main() {\n  // add-item-denied-without-items-write is not applicable: Not built yet.")
+	})
+
+	r, out := requestFor(t, folder, nil, nil)
+	files := generated(t, GenerateDart(r), DartLibraryFile, DartTestFile)
+	if strings.Contains(files[DartTestFile], library) {
+		t.Errorf("no test names the library, but the test file imports it:\n%s", files[DartTestFile])
+	}
+	mustContain(t, files[DartTestFile], framework, harness, "await bodyItemReservedWithinStock(h);")
+
+	if testing.Short() {
+		t.Skip("analyzing a Dart package is not short")
+	}
+	dart, err := exec.LookPath("dart")
+	if err != nil {
+		t.Skip("no dart on PATH to analyze the generated files with")
+	}
+	var b strings.Builder
+	b.WriteString(dartStub)
+	for _, n := range bodies(files[DartTestFile], dartBodyCall) {
+		fmt.Fprintf(&b, "\nFuture<void> body%s(Harness h) async {}\n", n)
+	}
+	write(t, out, map[string]string{
+		"framework/pubspec.yaml":      "name: test\nenvironment:\n  sdk: ^3.5.0\n",
+		"framework/lib/test.dart":     dartFramework,
+		"app/pubspec.yaml":            "name: desk\npublish_to: none\nenvironment:\n  sdk: ^3.5.0\ndev_dependencies:\n  test:\n    path: ../framework\n",
+		"app/test/" + DartLibraryFile: files[DartLibraryFile],
+		"app/test/" + DartTestFile:    files[DartTestFile],
+		"app/test/" + DartHarnessFile: b.String(),
+	})
+	for _, args := range [][]string{{"pub", "get", "--offline"}, {"analyze", "--fatal-infos"}} {
+		cmd := exec.Command(dart, args...)
+		cmd.Dir = filepath.Join(out, "app")
+		if b, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("dart %s: %v\n%s", strings.Join(args, " "), err, b)
+		}
+	}
+}
+
 // TestFrameworkRefused checks that a framework the plug-in does not write
 // for is refused by name, with nothing written.
 func TestFrameworkRefused(t *testing.T) {

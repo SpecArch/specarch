@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 964 design tests, 483 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 965 design tests, 484 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 964 design tests, 483 golden and 481 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 960 |
+| system | 961 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3418,6 +3418,14 @@ Scenario: golden; level: system; verifies SA-31.
 - Given: the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH
 - When: generate tests is run with --unapproved
 - Then: it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0
+
+#### generate-tests-dart-hand-written-bodies
+
+Scenario: golden; level: system; verifies SA-31.
+
+- Given: a specification whose design tests on an operation and a constraint all leave their body to be written by hand, one signing a caller in and none storing a record, and one test that does not apply; an implementation file in Dart whose testing framework is package:test; specarch-gen-tests-dart built from this repository on PATH
+- When: generate tests is run with --unapproved
+- Then: the test file imports package:test and the project's harness but not the library of values, harness and checks, which none of its tests names, so dart analyze finds no unused import in it; the library is written as for any specification, and it exits 0
 
 #### generate-tests-framework-refused
 

@@ -1536,7 +1536,10 @@ name with nothing written.
   them, importing `specarch_design.dart`, with
   `Future<Harness> newHarness()` and
   `Future<void> body<TestName>(Harness h)` for each test the design gives
-  no call for. A check fails the test where it stands.
+  no call for. A check fails the test where it stands. The test file
+  imports the framework, the library and the harness file only when its
+  tests name something of each, so `dart analyze --fatal-infos` finds no
+  unused import in it, even when every test has a body written by hand.
 
 The harness methods are asynchronous and may throw on both stacks, since
 a harness talks to a server, a database or a widget tree; one that does

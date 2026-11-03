@@ -93,9 +93,21 @@ func TestLibraryLendingCompiles(t *testing.T) {
 // another stack.
 func libraryLending(t *testing.T, change func(content map[string]any)) (*Request, string) {
 	t.Helper()
-	s := spec.Load("../../examples/library-lending/spec")
+	return requestFor(t, "../../examples/library-lending/spec", nil, change)
+}
+
+// requestFor is the request specarch makes for the tests of the
+// specification in folder, as libraryLending; changeSpec edits the
+// specification first, and may be nil.
+func requestFor(t *testing.T, folder string, changeSpec, change func(content map[string]any)) (*Request, string) {
+	t.Helper()
+	s := spec.Load(folder)
 	if len(s.Problems) > 0 {
-		t.Fatalf("the example does not load: %v", s.Problems)
+		t.Fatalf("%s does not load: %v", folder, s.Problems)
+	}
+	if changeSpec != nil {
+		m, _ := s.Value.(map[string]any)
+		changeSpec(m)
 	}
 	out := t.TempDir()
 	req := map[string]any{

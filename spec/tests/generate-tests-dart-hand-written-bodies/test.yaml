@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification whose design tests on an operation and a constraint all leave their body to be written by hand, one signing a caller in and none storing a record, and one test that does not apply; an implementation file in Dart whose testing framework is package:test; specarch-gen-tests-dart built from this repository on PATH"
+when: "generate tests is run with --unapproved"
+then: "the test file imports package:test and the project's harness but not the library of values, harness and checks, which none of its tests names, so dart analyze finds no unused import in it; the library is written as for any specification, and it exits 0"
+verifies: [SA-31]

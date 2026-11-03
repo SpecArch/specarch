@@ -54,6 +54,38 @@ func GenerateDart(r *Request) Response {
 		lib.b.WriteString("\n" + dartMappingPrelude + "\n")
 	}
 
+	// main is written first, so the imports above it can be only those
+	// it uses: dart analyze warns of an unused import, which fails a
+	// project's strict run on a file it cannot change.
+	body := &writer{}
+	var u dartUses
+	body.line("void main() {")
+	first := true
+	for _, t := range s.Tests {
+		if !first {
+			body.line("")
+		}
+		first = false
+		body.marks(s, "/tests/"+mark.Escape(t.Name), "  ")
+		dartTest(body, t, &u)
+	}
+	for _, a := range s.Algorithms {
+		if !first {
+			body.line("")
+		}
+		first = false
+		body.marks(s, "/algorithms/"+mark.Escape(a.Name), "  ")
+		dartAlgorithm(body, a, &u)
+	}
+	for _, m := range s.Mappings {
+		if !first {
+			body.line("")
+		}
+		first = false
+		dartMapping(body, m, &u)
+	}
+	body.line("}")
+
 	w := &writer{}
 	w.line("%s", header)
 	w.head(s, true)
@@ -61,45 +93,42 @@ func GenerateDart(r *Request) Response {
 	w.line("// The design tests and worked examples of %s, run through the", s.Title)
 	w.line("// Harness the project gives them in newHarness, in %s.", DartHarnessFile)
 	w.line("")
-	w.line("import '%s';", imp)
-	w.line("")
-	w.line("import '%s';", DartLibraryFile)
-	w.line("import '%s';", DartHarnessFile)
-	w.line("")
-	w.line("void main() {")
-	first := true
-	for _, t := range s.Tests {
-		if !first {
-			w.line("")
-		}
-		first = false
-		w.marks(s, "/tests/"+mark.Escape(t.Name), "  ")
-		dartTest(w, t)
+	if u.framework {
+		w.line("import '%s';", imp)
+		w.line("")
 	}
-	for _, a := range s.Algorithms {
-		if !first {
-			w.line("")
-		}
-		first = false
-		w.marks(s, "/algorithms/"+mark.Escape(a.Name), "  ")
-		dartAlgorithm(w, a)
+	if u.library {
+		w.line("import '%s';", DartLibraryFile)
 	}
-	for _, m := range s.Mappings {
-		if !first {
-			w.line("")
-		}
-		first = false
-		dartMapping(w, m)
+	if u.harness {
+		w.line("import '%s';", DartHarnessFile)
 	}
-	w.line("}")
+	if u.library || u.harness {
+		w.line("")
+	}
+	w.b.WriteString(body.b.String())
 	return Response{Files: []File{{Path: DartLibraryFile, Content: lib.b.String()}, {Path: DartTestFile, Content: w.b.String()}}, Diagnostics: []Diagnostic{}}
 }
 
-func dartTest(w *writer, t Test) {
+// dartUses is what the test file's main names from each import: test and
+// group from the framework, newHarness and the bodies from the project's
+// harness, and Value, the checks and mappingHarness from the library.
+type dartUses struct{ framework, harness, library bool }
+
+// record notes a record or an input written as a map of values, which
+// names Value when it has a field.
+func (u *dartUses) record(fields []Field) {
+	if len(fields) > 0 {
+		u.library = true
+	}
+}
+
+func dartTest(w *writer, t Test, u *dartUses) {
 	if t.NotApplicable != "" {
 		w.line("  // %s is not applicable: %s", t.Name, t.NotApplicable)
 		return
 	}
+	u.framework, u.harness = true, true
 	w.line("  // specarch: #/tests/%s", mark.Escape(t.Name))
 	w.line("  test(%s, () async {", dartString(t.Name+": "+t.Subject+", "+t.Scenario+" scenario"))
 	w.line("    // Given %s", t.Given)
@@ -110,6 +139,7 @@ func dartTest(w *writer, t Test) {
 		w.line("    await h.signIn(%s);", dartString(t.Caller))
 	}
 	for _, s := range t.Inserts {
+		u.record(s.Record)
 		w.line("    await h.insert(%s, %s);", dartString(s.Mapping), dartRecord(s.Record))
 	}
 	c := t.Call
@@ -127,10 +157,15 @@ func dartTest(w *writer, t Test) {
 	}
 	switch c.Kind {
 	case "request":
+		u.record(c.Input)
 		w.line("    %sawait h.request(%s, %s, %s, %s);", got, dartString(c.Mapping), dartString(c.Method), dartString(c.Path), dartRecord(c.Input))
 	case "run":
 		var parts []string
+		u.record(c.Options)
 		for _, a := range c.Arguments {
+			if len(a.Values) > 0 {
+				u.library = true
+			}
 			var vs []string
 			for _, v := range a.Values {
 				vs = append(vs, dartValue(v))
@@ -139,9 +174,13 @@ func dartTest(w *writer, t Test) {
 		}
 		w.line("    %sawait h.run(%s, %s, {%s}, %s);", got, dartString(c.Mapping), dartString(c.Command), strings.Join(parts, ", "), dartRecord(c.Options))
 	case "open":
+		u.record(c.Input)
 		w.line("    %sawait h.open(%s, %s, %s, %s);", got, dartString(c.Mapping), dartString(c.Page), dartString(c.Route), dartRecord(c.Input))
 	}
 	e := t.Expect
+	if e.Checked() || len(e.State) > 0 || len(e.Emits) > 0 || e.EmitsNothing {
+		u.library = true // a check of the library
+	}
 	if e.Status != "" {
 		w.line("    expectStatus(got, %s);", e.Status)
 	}
@@ -166,9 +205,11 @@ func dartTest(w *writer, t Test) {
 	w.line("  });")
 }
 
-func dartAlgorithm(w *writer, a Algorithm) {
+func dartAlgorithm(w *writer, a Algorithm, u *dartUses) {
+	u.framework = true
 	w.line("  group(%s, () {", dartString("algorithm "+a.Name))
 	for _, ex := range a.Examples {
+		u.harness, u.library = true, true
 		w.line("    test(%s, () async {", dartString(ex.Label))
 		w.line("      final h = await newHarness();")
 		w.line("      expectValue(await h.compute(%s, %s), %s);", dartString(a.Mapping), dartRecord(ex.Input), dartValue(ex.Expected))
@@ -177,9 +218,11 @@ func dartAlgorithm(w *writer, a Algorithm) {
 	w.line("  });")
 }
 
-func dartMapping(w *writer, m Mapping) {
+func dartMapping(w *writer, m Mapping, u *dartUses) {
+	u.framework = true
 	w.line("  group(%s, () {", dartString("mapping of "+m.Operation+"'s call to "+m.Call))
 	for _, ex := range m.Examples {
+		u.harness, u.library = true, true
 		w.line("    test(%s, () async {", dartString(ex.Label))
 		w.line("      final h = mappingHarness(await newHarness());")
 		if ex.HasSent {

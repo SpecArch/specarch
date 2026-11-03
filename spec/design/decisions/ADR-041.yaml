@@ -24,8 +24,12 @@ decisions:
       specarch_design.dart with the types, the Harness and the checks,
       and specarch_design_test.dart with the tests, which imports the
       project's specarch_harness.dart for newHarness and the bodies; a
-      check fails the test where it stands. The harness methods are
-      asynchronous and may throw, in both. The implementation file's
+      check fails the test where it stands. The test file writes each
+      import only when its main names something of it, so a
+      specification whose tests all have bodies written by hand gets no
+      import of the library, since dart analyze warns of an unused
+      import and a project's strict run fails on it. The harness methods
+      are asynchronous and may throw, in both. The implementation file's
       testing framework picks the import: Swift Testing for Swift, and
       package:test or flutter_test for Dart, package:test when the file
       names none; any other is refused by name. Decimals and numbers are

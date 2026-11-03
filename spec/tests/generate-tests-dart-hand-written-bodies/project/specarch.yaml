@@ -1,0 +1,71 @@
+specarch: "0.1"
+info: { title: Front desk, version: 1.0.0 }
+stages: [implementation]
+stakeholders:
+  owner: { description: The product owner. }
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 40 }
+      stock: { type: integer, format: int32 }
+      reserved: { type: integer, format: int32 }
+    required: [id, name]
+    primaryKey: [id]
+    constraints:
+      reserved_within_stock:
+        kind: check
+        expression: reserved <= stock
+        message: No more can be reserved than is in stock.
+permissions:
+  items.write: { description: Add items. }
+roles:
+  clerk: { description: Staff., permissions: [items.write] }
+paths:
+  /items:
+    post:
+      operationId: addItem
+      summary: Add an item
+      permission: items.write
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Item" }
+      responses:
+        "201":
+          description: Added.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Item" }
+tests:
+  add-item-succeeds:
+    operation: addItem
+    level: system
+    scenario: golden
+    given: a clerk
+    when: addItem is called with values inside every limit
+    then: "it answers 201: Added."
+    fixture: { caller: clerk }
+  add-item-denied-without-items-write:
+    operation: addItem
+    level: system
+    scenario: red
+    covers: [denied without items.write]
+    given: a caller without items.write
+    when: addItem is called
+    then: it is refused as not allowed
+  item-reserved-within-stock:
+    entity: Item
+    constraint: reserved_within_stock
+    level: system
+    scenario: red
+    given: "an item with 1 in stock"
+    when: "2 are reserved"
+    then: it is refused
+  add-item-missing-name:
+    operation: addItem
+    level: system
+    scenario: red
+    covers: [missing name]
+    notApplicable: The desk's form cannot be sent without a name.

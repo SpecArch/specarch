@@ -1006,3 +1006,17 @@ Expected: no open alert, or only dismissed ones, each with its reason recorded.
 To repeat: `gh api --paginate 'repos/SpecArch/specarch/dependabot/alerts?state=open&per_page=100'` and `gh api 'repos/SpecArch/specarch/code-scanning/alerts?state=open'`.
 
 Fix: each fixture names the latest release of its framework's line, `next` 16.4.4, `next` 15.5.28 and `nuxt` 4.6.4, each at or above the highest first-patched version the alerts name (16.4.1, 15.5.28 and 4.6.2), so every alert's range is left. The cases keep testing what they did: the router is read from the dependency's name, never its version. The fixture commit each case's expected output names changed with the manifest, and the `facts.json` of `extract-pages-next-api-facts` names that commit too, so the three cases were recorded again and the dump's commit set to the new one. Dependabot closes its alerts by itself once the manifests on `main` are outside the ranges. The CodeQL alert was dismissed as "won't fix" with the reason: the copy is upstream's `typescript/v7.0.2`, the only release upstream has; upstream `main` has the same `jsnum.go`; nothing in the copy is edited by hand, so the finding is upstream's to fix and a later pull takes its fix.
+
+## BUG-070 — generate tests in Dart imports the library unused when every design test has a body written by hand
+
+- Reported: 2026-11-04, found while analyzing the Dart tests an estate's module is given, against 1.4.0
+- Closed: 2026-11-04, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-070`
+
+`specarch-gen-tests-dart` wrote `import 'specarch_design.dart';` into `specarch_design_test.dart` whatever its tests named. When every design test leaves its body to be written by hand and stores no record, as the reading room's in `examples/estate` do, no line of the file names a value, a check or `mappingHarness`, and `dart analyze --fatal-infos` failed on the generated file with `warning - test/specarch_design_test.dart:8:8 - Unused import: 'specarch_design.dart'`. A project cannot change a generated file, so its strict analyzer run failed until it left the file out.
+
+Expected: the generated test file has no unused import, and `dart analyze --fatal-infos` is clean on it for any specification.
+
+To repeat: built before this fix, run `specarch generate tests --unapproved` on `spec/tests/generate-tests-dart-hand-written-bodies/project` and `dart analyze --fatal-infos` on the output beside a harness file.
+
+Fix: `GenerateDart` (`internal/gentests/dart.go`) writes `main` first and notes what each of its lines names: `test` and `group` from the framework, `newHarness` and the bodies from the harness file, and `Value`, the checks and `mappingHarness` from the library. Each import is written only when its code is named, so a file whose tests all have hand-written bodies imports the framework and the harness alone, and one whose tests all do not apply imports nothing. ADR-041 says so. The conformance case `generate-tests-dart-hand-written-bodies` shows the file, and `TestHandWrittenBodiesDartAnalyzes` analyzes it with infos fatal, and the file of a specification whose tests all do not apply.

@@ -1,0 +1,9 @@
+level: system
+scenario: golden
+given: a signed-in writer
+when: the writer shares it with <reader> at <time>
+then: it answers <status>
+origin: inferred
+why: Read from notes.feature, line 32 (Share a note 2). The level is system, as a script exercises the system from outside; the scenario is golden, since the expected result names no refusal or error, and the answer to the question about its placeholder may change it.
+cites:
+  - {source: notes, clause: line 32, says: 'Scenario Outline: Share a note When the writer shares it with <reader> at <time> Then it answers <status>'}

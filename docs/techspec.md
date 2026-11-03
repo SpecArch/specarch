@@ -3462,7 +3462,10 @@ The sources this build reads:
   continuing the step before, a doc string or a table row joined to
   its step; a Scenario Outline is one test per row of its Examples
   blocks, each block read under its own header row, the row's values
-  written in for the placeholders. Each row of a sheet that holds any text is a
+  written in for the placeholders; a placeholder the row has no
+  column for, or leaves blank, keeps its text in the step and is a
+  must question on that key, since a blank cell may be an empty value
+  on purpose or one left out. Each row of a sheet that holds any text is a
   test, its columns found by the header row's words: an ID and a
   title (its name), the operation or endpoint it exercises, a
   precondition (its given), test data (written into its given),
@@ -3470,7 +3473,8 @@ The sources this build reads:
   (positive or negative); a table whose header names none of a
   title, steps, an expected result, a precondition or test data is
   named in a line and not read. A test is named after its title in
-  kebab-case, `-2` and on for a name taken, at level `system` and
+  kebab-case, the first of `-2`, `-3` and on that is free for a name
+  taken by an earlier test, at level `system` and
   `scenario: red` when the script says negative or the expected
   result names a refusal or an error, `golden` otherwise, and it is
   `origin: inferred`, its `why` saying where it was read and why the
@@ -3480,7 +3484,8 @@ The sources this build reads:
   whole test, naming the request the script names (such as `POST
   /notes`) when it names one; and one must question for each part
   the script leaves out, the given (no precondition or test data),
-  the step and the expected result, each blocking that key. A test
+  the step and the expected result, and each part an Outline's
+  placeholder is left unfilled in, each blocking that key. A test
   is never given a part the script does not say.
 
 Every reader follows these rules:
@@ -4019,14 +4024,15 @@ and then, and either the reason it cannot run from outside, or its
 request: the method, the path with the path parameters of its input
 written in, the query parameters as the query, the header and cookie
 parameters as headers, the other fields as the JSON body when the
-operation takes one, each property at every depth named as
+operation takes one, and named as not sent when it takes none, each property at every depth named as
 `info.wireNames` puts it on the wire while a parameter keeps its
 name (ADR-062); the caller's role; the fixture's records as
 JSON; the status and the body fields expected, with the fields to
 compare as numbers; and the state and messages expected, named as
 not checked. A case cannot run from outside when its test does not
 apply, gives no request (a derived case whose call derive does not
-draft says so), is about a command or a page, travels in a
+draft says so), leaves a path parameter of its path without a value
+(its answer would be the server's for a path it does not serve), is about a command or a page, travels in a
 handshake, streams a file, gives the caller's properties, expects
 only what is left behind, covers a denied case with no caller (a
 request with none is refused as not signed in), or calls an API
@@ -18427,7 +18433,8 @@ Decision: extract tests reads one or more feature files and CSV, TSV or Excel
 test sheets of one repository at a commit. Each Scenario or Example
 is a test, the Background's Given steps before its own, And and But
 continuing the step before; a Scenario Outline is a test per row of
-its Examples. Each row of a sheet is a test, its columns found by
+its Examples, a placeholder the row has no column for or leaves
+blank kept as written in the step. Each row of a sheet is a test, its columns found by
 the header's words: the ID and title, the operation, the
 precondition, the test data, the steps, the expected result and the
 type. A test is level system, red when the script says negative or
@@ -18437,7 +18444,10 @@ script names what it exercises in its own words, so each test has a
 must question for its subject, which blocks the whole test since
 the subject decides the rest of its keys; and one must question for
 each part the script leaves out, its given, its step or its
-expected result, which blocks that key. merge keeps a test that
+expected result, or a placeholder of it its Examples row leaves
+unfilled, which blocks that key. A test is named after its title,
+with the first of -2, -3 and on that is free when an earlier test of
+the read has the name. merge keeps a test that
 cites a source of its tree whole, renamed with -2 when an earlier
 tree has its name, and keeps a question that blocks only such tests
 with its pointers renamed. The test package holds a test back while
@@ -18454,7 +18464,7 @@ question about it is answered. Steps written in a step-definition
 language of a project's own (Cucumber expressions bound to code) are
 read as their text, not run.
 
-**Insight:** The subject question blocks the whole test rather than its operation key, because a test names its subject by one of eleven keys and the schema asks for exactly one; a question on one key would leave the others reported missing, while a question on the element covers what the subject decides, as a field's type does (docs/conventions.md, Open questions). A question's names key, which lets merge write a name at a key once another tree declares it, blocks one key only, so it is not used here; the subject question names the request the script names in its text. Every missing part is its own question rather than one per test, because each is a separate decision a different person may take, and the request asked for one per missing input, step or expected result. Tests are inferred, not stated, because the scenario and the level are inferred from the script's words. Gherkin is read by its keywords as the Cucumber project defines them (Feature, Rule, Background, Scenario, Example, Scenario Outline, Examples, the step keywords, doc strings and data tables, tags), English keywords only, since a feature file's language header changes every keyword and a reader of every language is a larger piece of work. merge keeps read tests whole rather than merging two of them, because two scripts that name one test are two tests a person reads side by side, and a merge of their steps would invent a third.
+**Insight:** The subject question blocks the whole test rather than its operation key, because a test names its subject by one of eleven keys and the schema asks for exactly one; a question on one key would leave the others reported missing, while a question on the element covers what the subject decides, as a field's type does (docs/conventions.md, Open questions). A question's names key, which lets merge write a name at a key once another tree declares it, blocks one key only, so it is not used here; the subject question names the request the script names in its text. Every missing part is its own question rather than one per test, because each is a separate decision a different person may take, and the request asked for one per missing input, step or expected result. An Outline placeholder its row leaves out or blank keeps its text rather than becoming an empty string: an empty step reads as complete and would join the test package unasked, while a blank cell may be an empty value on purpose, which only a person can tell. A name taken is renamed to the first number that is free, as merge renames, because a title may itself end in a number and an earlier test written under a name is never written over. Tests are inferred, not stated, because the scenario and the level are inferred from the script's words. Gherkin is read by its keywords as the Cucumber project defines them (Feature, Rule, Background, Scenario, Example, Scenario Outline, Examples, the step keywords, doc strings and data tables, tags), English keywords only, since a feature file's language header changes every keyword and a reader of every language is a larger piece of work. merge keeps read tests whole rather than merging two of them, because two scripts that name one test are two tests a person reads side by side, and a merge of their steps would invent a third.
 
 ## 10. Quality requirements
 
@@ -18770,7 +18780,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-tables-round-trip | command extract | system | golden | a repository holding the register template and the instructions specarch generate register wrote for an entity with a UUID key, an email and a 64-bit integer, the template filled with two members | extract tables is run on the filled file with the instructions | it writes the entity back with the stated types (uuid, email, a string of format int64), the required list and the description the instructions give, a must question for the primary key alone, and no question about a type word, and exits 0 |
 | extract-tables-template | command extract | system | golden | a repository holding a register template, a workbook with the header row and an instructions sheet giving each column its type, whether it is required, its sensitivity, its allowed values and its description, and a filled CSV copy with a column the template lacks, a blank in a required column, a status outside the allowed values and a count that is not an integer | extract tables is run on the filled file with --template | it writes the entity stated by the template and the instructions, with the descriptions, sensitivities, required list and allowed values they give, and a must question for each difference of the filled file: the extra column, the blank, the value outside the list and the value not of the type, each citing the cells, and exits 0 |
 | extract-tables-two-periods | command extract | system | golden | a repository holding two period files of one register, the second with a column the first lacks, blanks in a column the first fills, and a status value the first does not hold | extract tables is run on both with --entity Loan | it writes one entity citing both files, with the column only the second has kept under a must question, the column with blanks left out of required under a should question, the new status value kept in the enum under a should question, and exits 0 |
-| extract-tests-incomplete-scripts | command extract | system | golden | a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title | extract tests is run on both files | it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out; and exits 0 |
+| extract-tests-incomplete-scripts | command extract | system | golden | a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then, a Scenario Outline of two examples, two scenarios of one title that an Outline's numbered names already take, and an Outline whose Examples rows lack a column and leave cells blank, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title | extract tests is run on both files | it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out and per part whose placeholder its Examples row gives no value, that placeholder kept as written; each test under a name of its own, the first number free for a name taken; and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | extract-workflows-asks-unread-end | command extract | system | red | a repository holding a hand-written loan.bpmn whose wait returned has a timer that goes to an end event named Approved, and whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at the one named Approved | extract workflows is run on the file | it reads the otherwise branch as ending approved, writes the Rejected branch with no end and the wait with no onDeadline, asks how a request ends at end-rejected in a question that blocks that branch and what happens at the wait's deadline in one that blocks its onDeadline, says each in a not-held line naming the end event, and exits 0 |
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |

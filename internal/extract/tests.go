@@ -27,7 +27,13 @@ type scriptTest struct {
 	subject  string // what the script names as the thing exercised, or ""
 	scenario string // golden or red, when the script says which; "" otherwise
 	says     string // the test as the script writes it, on one line
+	// unfilled is, for given, when and then, each Outline placeholder its
+	// Examples row gives no value for.
+	unfilled map[string][]gap
 }
+
+// gap is a placeholder an Examples row gives no value for, and why.
+type gap struct{ name, why string }
 
 type scriptFile struct {
 	Name  string // the file's name
@@ -124,17 +130,19 @@ func writeTests(res *Result, out string, r *Read, files []*scriptFile, tests []*
 			"cites", []*yaml.Node{cite},
 		))
 	}
-	used := map[string]int{}
+	taken := map[string]bool{}
 	cited := map[string][]*yaml.Node{}
 	seenClause := map[string]bool{}
 	missing := map[string]int{}
 	for _, t := range tests {
-		name := testName(t.title, t.file.Key)
-		used[name]++
-		if used[name] > 1 {
-			name = fmt.Sprintf("%s-%d", name, used[name])
-			used[name]++
+		// A name taken by an earlier test, even one renamed to it, gets
+		// the first number from 2 that is free, as merge names tests.
+		base := testName(t.title, t.file.Key)
+		name := base
+		for n := 2; taken[name]; n++ {
+			name = fmt.Sprintf("%s-%d", base, n)
 		}
+		taken[name] = true
 		cite := citation(t.file.Key, t.clause, t.says)
 		if !seenClause[t.file.Key+"\x00"+t.clause] {
 			seenClause[t.file.Key+"\x00"+t.clause] = true
@@ -153,6 +161,9 @@ func writeTests(res *Result, out string, r *Read, files []*scriptFile, tests []*
 			scenario, scenarioWhy = "red", "the expected result names a refusal or an error"
 		default:
 			scenario, scenarioWhy = "golden", "the expected result names no refusal or error"
+		}
+		if t.scenario == "" && len(t.unfilled["then"]) > 0 {
+			scenarioWhy += ", and the answer to the question about its placeholder may change it"
 		}
 		set(test, "scenario", scenario)
 		if len(t.given) > 0 {
@@ -191,9 +202,21 @@ func writeTests(res *Result, out string, r *Read, files []*scriptFile, tests []*
 				fmt.Sprintf("%s gives no expected result for this test.", where), cite)
 			missing["then"]++
 		}
+		for _, part := range []string{"given", "when", "then"} {
+			if len(t.unfilled[part]) == 0 {
+				continue
+			}
+			var names, whys []string
+			for _, g := range t.unfilled[part] {
+				names, whys = append(names, g.name), append(whys, g.why)
+			}
+			ask(fmt.Sprintf("What value does test %s take for %s in its %s?", name, strings.Join(names, " and "), part), ptr+"/"+part,
+				fmt.Sprintf("%s: %s, so the step keeps the placeholder as written.", where, strings.Join(whys, "; ")), cite)
+			missing["placeholder"]++
+		}
 	}
-	res.say("wrote %s and %s: one per subject a test exercises, which a script cannot name in the specification's words, %d for a test with no given, %d with no step and %d with no expected result",
-		plural(len(tests), "test"), plural(next, "question"), missing["given"], missing["when"], missing["then"])
+	res.say("wrote %s and %s: one per subject a test exercises, which a script cannot name in the specification's words, %d for a test with no given, %d with no step, %d with no expected result and %d for a part whose Examples row gives a placeholder no value",
+		plural(len(tests), "test"), plural(next, "question"), missing["given"], missing["when"], missing["then"], missing["placeholder"])
 	res.Tree.put("tests/questions.yaml", mapping("questions", questions))
 	res.Tree.put("requirements/requirements.yaml", mapping("stakeholders", ownerStakeholder()))
 	sources := &yaml.Node{Kind: yaml.MappingNode}
@@ -217,6 +240,9 @@ var refusal = regexp.MustCompile(`(?i)\b(refuse[sd]?|reject(s|ed)?|den(y|ies|ied
 
 // operationText is a request the script names, such as POST /notes.
 var operationText = regexp.MustCompile(`\b(GET|POST|PUT|PATCH|DELETE)\s+(/[^\s"'<>,;]*)`)
+
+// placeholder is an Outline's placeholder in a step, such as <id>.
+var placeholder = regexp.MustCompile(`<([^<>\n]+)>`)
 
 // testName is a test's folder name from its title: kebab-case with a
 // letter first, the source key in front when the title gives none.
@@ -256,7 +282,10 @@ func oneLineText(s string) string { return strings.Join(strings.Fields(s), " ") 
 // row, And and But continuing the step before, and a doc string or a data
 // table joined to the step it follows.
 func readFeature(f *scriptFile, text string) ([]*scriptTest, error) {
-	type exampleRow struct{ header, row []string }
+	type exampleRow struct {
+		header, row []string
+		line        int
+	}
 	var out []*scriptTest
 	var featureBackground, background []string
 	var cur *scriptTest
@@ -274,13 +303,40 @@ func readFeature(f *scriptFile, text string) ([]*scriptTest, error) {
 			for i, ex := range examples {
 				t := *cur
 				t.title = fmt.Sprintf("%s %d", cur.title, i+1)
-				sub := func(s string) string {
-					for j, h := range ex.header {
-						if j < len(ex.row) {
-							s = strings.ReplaceAll(s, "<"+h+">", ex.row[j])
-						}
+				// A placeholder the row has no column for, or leaves blank,
+				// keeps its text in the step and is asked about: a blank
+				// cell may be an empty value on purpose or one left out,
+				// and only a person can tell which.
+				values, columns := map[string]string{}, map[string]bool{}
+				for j, h := range ex.header {
+					columns[h] = true
+					if j < len(ex.row) {
+						values[h] = ex.row[j]
 					}
-					return s
+				}
+				sub := func(s string) string {
+					return placeholder.ReplaceAllStringFunc(s, func(m string) string {
+						if v := values[m[1:len(m)-1]]; strings.TrimSpace(v) != "" {
+							return v
+						}
+						return m
+					})
+				}
+				t.unfilled = map[string][]gap{}
+				for part, lines := range map[string][]string{"given": cur.given, "when": cur.when, "then": cur.then} {
+					seen := map[string]bool{}
+					for _, m := range placeholder.FindAllStringSubmatch(strings.Join(lines, "\n"), -1) {
+						h := m[1]
+						if seen[h] || strings.TrimSpace(values[h]) != "" {
+							continue
+						}
+						seen[h] = true
+						why := fmt.Sprintf("the Examples row on line %d has no column for <%s>", ex.line, h)
+						if columns[h] {
+							why = fmt.Sprintf("the Examples row on line %d leaves <%s> blank, which may be an empty value on purpose or one left out", ex.line, h)
+						}
+						t.unfilled[part] = append(t.unfilled[part], gap{"<" + h + ">", why})
+					}
 				}
 				t.given, t.when, t.then = mapStrings(cur.given, sub), mapStrings(cur.when, sub), mapStrings(cur.then, sub)
 				t.subject, t.says = sub(cur.subject), sub(cur.says)
@@ -357,7 +413,7 @@ func readFeature(f *scriptFile, text string) ([]*scriptTest, error) {
 			case section == "examples" && header == nil:
 				header = cells
 			case section == "examples":
-				examples = append(examples, exampleRow{header, cells})
+				examples = append(examples, exampleRow{header, cells, i + 1})
 			default:
 				sep := ""
 				if inTable {

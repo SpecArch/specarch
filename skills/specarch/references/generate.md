@@ -221,14 +221,15 @@ and then, and either the reason it cannot run from outside, or its
 request: the method, the path with the path parameters of its input
 written in, the query parameters as the query, the header and cookie
 parameters as headers, the other fields as the JSON body when the
-operation takes one, each property at every depth named as
+operation takes one, and named as not sent when it takes none, each property at every depth named as
 `info.wireNames` puts it on the wire while a parameter keeps its
 name (ADR-062); the caller's role; the fixture's records as
 JSON; the status and the body fields expected, with the fields to
 compare as numbers; and the state and messages expected, named as
 not checked. A case cannot run from outside when its test does not
 apply, gives no request (a derived case whose call derive does not
-draft says so), is about a command or a page, travels in a
+draft says so), leaves a path parameter of its path without a value
+(its answer would be the server's for a path it does not serve), is about a command or a page, travels in a
 handshake, streams a file, gives the caller's properties, expects
 only what is left behind, covers a denied case with no caller (a
 request with none is refused as not signed in), or calls an API

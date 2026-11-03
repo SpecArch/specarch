@@ -1,0 +1,9 @@
+level: system
+scenario: golden
+given: a signed-in writer
+when: the writer reads a note by its title
+then: it answers 200
+origin: inferred
+why: Read from notes.feature, line 24 (Read a note). The level is system, as a script exercises the system from outside; the scenario is golden, since the expected result names no refusal or error.
+cites:
+  - {source: notes, clause: line 24, says: 'Scenario: Read a note When the writer reads a note by its title Then it answers 200'}

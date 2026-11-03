@@ -22,7 +22,8 @@ decisions:
       test sheets of one repository at a commit. Each Scenario or Example
       is a test, the Background's Given steps before its own, And and But
       continuing the step before; a Scenario Outline is a test per row of
-      its Examples. Each row of a sheet is a test, its columns found by
+      its Examples, a placeholder the row has no column for or leaves
+      blank kept as written in the step. Each row of a sheet is a test, its columns found by
       the header's words: the ID and title, the operation, the
       precondition, the test data, the steps, the expected result and the
       type. A test is level system, red when the script says negative or
@@ -32,7 +33,10 @@ decisions:
       must question for its subject, which blocks the whole test since
       the subject decides the rest of its keys; and one must question for
       each part the script leaves out, its given, its step or its
-      expected result, which blocks that key. merge keeps a test that
+      expected result, or a placeholder of it its Examples row leaves
+      unfilled, which blocks that key. A test is named after its title,
+      with the first of -2, -3 and on that is free when an earlier test of
+      the read has the name. merge keeps a test that
       cites a source of its tree whole, renamed with -2 when an earlier
       tree has its name, and keeps a question that blocks only such tests
       with its pointers renamed. The test package holds a test back while
@@ -60,7 +64,14 @@ decisions:
       names the request the script names in its text. Every missing part
       is its own question rather than one per test, because each is a
       separate decision a different person may take, and the request
-      asked for one per missing input, step or expected result. Tests are
+      asked for one per missing input, step or expected result. An
+      Outline placeholder its row leaves out or blank keeps its text
+      rather than becoming an empty string: an empty step reads as
+      complete and would join the test package unasked, while a blank
+      cell may be an empty value on purpose, which only a person can tell.
+      A name taken is renamed to the first number that is free, as merge
+      renames, because a title may itself end in a number and an earlier
+      test written under a name is never written over. Tests are
       inferred, not stated, because the scenario and the level are
       inferred from the script's words. Gherkin is read by its keywords
       as the Cucumber project defines them (Feature, Rule, Background,

@@ -2539,9 +2539,9 @@ Scenario: golden; level: system; verifies SA-113.
 
 Scenario: golden; level: system; verifies SA-129.
 
-- Given: a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title
+- Given: a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then, a Scenario Outline of two examples, two scenarios of one title that an Outline's numbered names already take, and an Outline whose Examples rows lack a column and leave cells blank, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title
 - When: extract tests is run on both files
-- Then: it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out; and exits 0
+- Then: it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out and per part whose placeholder its Examples row gives no value, that placeholder kept as written; each test under a name of its own, the first number free for a name taken; and exits 0
 
 #### extract-usage-error
 

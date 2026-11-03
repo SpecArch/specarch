@@ -68,3 +68,41 @@ func TestBuildSkipsTheDxlibDialect(t *testing.T) {
 		t.Errorf("the dxlib dialect's case: %+v", p.Cases)
 	}
 }
+
+// TestBuildSaysWhatTheInputDoesNotCover checks that a case whose input
+// leaves a path parameter out is skipped with that reason rather than
+// sent to the path with the parameter's name in it, and that an input
+// field an operation with no body has no parameter for is named as not
+// sent rather than dropped.
+func TestBuildSaysWhatTheInputDoesNotCover(t *testing.T) {
+	r, err := gentests.Decode([]byte(`{"specification": {
+		"info": {"title": "Notes", "version": "0.1.0"},
+		"entities": {"Note": {"properties": {"text": {"type": "string"}}}},
+		"paths": {"/notes/{noteId}": {"get": {"operationId": "readNote",
+			"parameters": [{"name": "noteId", "in": "path", "schema": {"type": "string"}}],
+			"responses": {"200": {"description": "The note.", "content": {"application/json": {"schema": {"$ref": "#/entities/Note"}}}}}}}},
+		"tests": {
+			"read-note-no-key": {"operation": "readNote", "scenario": "golden", "given": "a note", "when": "it is read", "then": "it answers 200",
+				"input": {"colour": "red"}, "expect": {"status": 200}},
+			"read-note-colour": {"operation": "readNote", "scenario": "golden", "given": "a note", "when": "it is read", "then": "it answers 200",
+				"input": {"noteId": "n1", "colour": "red"}, "expect": {"status": 200}}}
+	}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := Build(Input{Request: r, Environment: "acceptance"})
+	got := map[string]Case{}
+	for _, c := range p.Cases {
+		got[c.Name] = c
+	}
+	if c := got["read-note-no-key"]; c.Request != nil || !strings.Contains(c.Skip, "the path parameter {noteId} of GET /notes/{noteId} is not written in") {
+		t.Errorf("a case with no path parameter: %+v", c)
+	}
+	c := got["read-note-colour"]
+	if c.Skip != "" || c.Request == nil || c.Request.Path != "/notes/n1" || c.Request.Body != "" {
+		t.Errorf("a case with a field the operation does not take: %+v", c)
+	}
+	if strings.Join(c.Unchecked, "; ") != "the input's colour, which GET /notes/{noteId} takes neither as a parameter nor in a body, so the request does not send it" {
+		t.Errorf("a field not sent is not named: %q", c.Unchecked)
+	}
+}

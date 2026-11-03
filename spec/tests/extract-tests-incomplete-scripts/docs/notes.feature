@@ -20,3 +20,20 @@ Feature: Keeping notes
       | id | status |
       | n1 | 200    |
       | n9 | 404    |
+
+  Scenario: Read a note
+    When the writer reads a note by its title
+    Then it answers 200
+
+  Scenario: Read a note
+    When the writer reads a note kept by another writer
+    Then it answers 403
+
+  Scenario Outline: Share a note
+    When the writer shares it with <reader> at <time>
+    Then it answers <status>
+
+    Examples:
+      | reader | status |
+      | ann    | 201    |
+      |        |        |

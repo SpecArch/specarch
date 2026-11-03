@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -222,12 +223,13 @@ func cases(specification map[string]any, tests map[string]any, elements map[stri
 			c.Covers = append(c.Covers, text(v))
 		}
 		c.Skip = skip(t, c.Derived)
+		// Every case skip lets through makes a request, and in the dxlib
+		// dialect none of them can be written, whatever its input gives.
+		if c.Skip == "" && dialect == "dxlib" {
+			c.Skip = "the API is served in the dxlib dialect, every operation one POST with its parameters and body in the dialect's envelope, which a test package does not write; run this test with the project's own suite"
+		}
 		if c.Skip == "" {
 			fill(&c, t, raw, own)
-		}
-		if c.Skip == "" && dialect == "dxlib" && c.Request != nil {
-			c.Skip = "the API is served in the dxlib dialect, every operation one POST with its parameters and body in the dialect's envelope, which a test package does not write; run this test with the project's own suite"
-			c.Caller, c.Records, c.Request, c.Expect, c.Unchecked = "", "", nil, nil, nil
 		}
 		// A request with no caller is refused as not signed in, which is
 		// another case than a caller without the permission.
@@ -300,7 +302,8 @@ func fill(c *Case, t gentests.Test, raw, specification map[string]any) {
 	}
 	query := url.Values{}
 	body := map[string]any{}
-	var cookies []string
+	var cookies, unsent []string
+	_, takesBody := op["requestBody"]
 	for _, k := range sortedKeys(input) {
 		v := input[k]
 		switch params[k] {
@@ -318,8 +321,20 @@ func fill(c *Case, t gentests.Test, raw, specification map[string]any) {
 		case "cookie":
 			cookies = append(cookies, k+"="+text(v))
 		default:
-			body[k] = v
+			if takesBody {
+				body[k] = v
+			} else {
+				unsent = append(unsent, k)
+			}
 		}
+	}
+	// A path parameter the input gives no value for would send the
+	// request to a path the server does not serve, and its answer (a 404,
+	// most likely) would read as the case's outcome.
+	if open := pathParameter.FindAllString(req.Path, -1); len(open) > 0 {
+		c.Skip = fmt.Sprintf("the path parameter %s of %s %s is not written in, as the test's input gives no value for it or the operation declares no path parameter of that name, so the request has no path to go to; give it under the input, or declare it, and make the package again", strings.Join(open, " and "), t.Call.Method, t.Call.Path)
+		c.Caller, c.Records = "", ""
+		return
 	}
 	if len(cookies) > 0 {
 		if req.Headers == nil {
@@ -360,7 +375,14 @@ func fill(c *Case, t gentests.Test, raw, specification map[string]any) {
 	if t.Expect.EmitsNothing {
 		c.Unchecked = append(c.Unchecked, "that no message is emitted")
 	}
+	for _, k := range unsent {
+		c.Unchecked = append(c.Unchecked, fmt.Sprintf("the input's %s, which %s %s takes neither as a parameter nor in a body, so the request does not send it", k, t.Call.Method, t.Call.Path))
+	}
 }
+
+// pathParameter is a path parameter not written into a path, such as
+// {noteId}.
+var pathParameter = regexp.MustCompile(`\{[^{}/]+\}`)
 
 // wired is a body with every property named as it goes on the wire,
 // at every depth, by the specification's info.wireNames (ADR-062).

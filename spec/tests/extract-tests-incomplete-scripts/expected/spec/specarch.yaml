@@ -4,23 +4,26 @@ info:
   title: Tests in notes.feature, sheet.csv
   version: 0.1.0
   description: |
-    The tests in notes.feature, sheet.csv, read at commit 3712f73908ce4c79711352a7aae1720294a61275: each scenario of a feature file and each row of a test sheet is a test, inferred from the script, its precondition and test data as given, its steps as when and its expected result as then; each part the script leaves out, and the subject each test exercises, is a question.
+    The tests in notes.feature, sheet.csv, read at commit 7257318b85acbd4a9c6d525eb1df17f4da745faa: each scenario of a feature file and each row of a test sheet is a test, inferred from the script, its precondition and test data as given, its steps as when and its expected result as then; each part the script leaves out, and the subject each test exercises, is a question.
   tracksOrigin: true
 stages: [requirements, tests]
 sources:
   notes:
     kind: document
     title: Keeping notes
-    edition: 3712f73908ce4c79711352a7aae1720294a61275
+    edition: 7257318b85acbd4a9c6d525eb1df17f4da745faa
     url: ../docs/notes.feature
     clauses:
       - {clause: line 7, title: Keep a note}
       - {clause: line 11, title: Keep an empty note}
       - {clause: line 14, title: Read a note}
+      - {clause: line 24, title: Read a note}
+      - {clause: line 28, title: Read a note}
+      - {clause: line 32, title: Share a note}
   sheet:
     kind: document
     title: sheet.csv
-    edition: 3712f73908ce4c79711352a7aae1720294a61275
+    edition: 7257318b85acbd4a9c6d525eb1df17f4da745faa
     url: ../docs/sheet.csv
     clauses:
       - {clause: 'A2:F2', title: TC-1 Delete a note}

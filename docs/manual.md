@@ -2924,7 +2924,10 @@ The sources this build reads:
   continuing the step before, a doc string or a table row joined to
   its step; a Scenario Outline is one test per row of its Examples
   blocks, each block read under its own header row, the row's values
-  written in for the placeholders. Each row of a sheet that holds any text is a
+  written in for the placeholders; a placeholder the row has no
+  column for, or leaves blank, keeps its text in the step and is a
+  must question on that key, since a blank cell may be an empty value
+  on purpose or one left out. Each row of a sheet that holds any text is a
   test, its columns found by the header row's words: an ID and a
   title (its name), the operation or endpoint it exercises, a
   precondition (its given), test data (written into its given),
@@ -2932,7 +2935,8 @@ The sources this build reads:
   (positive or negative); a table whose header names none of a
   title, steps, an expected result, a precondition or test data is
   named in a line and not read. A test is named after its title in
-  kebab-case, `-2` and on for a name taken, at level `system` and
+  kebab-case, the first of `-2`, `-3` and on that is free for a name
+  taken by an earlier test, at level `system` and
   `scenario: red` when the script says negative or the expected
   result names a refusal or an error, `golden` otherwise, and it is
   `origin: inferred`, its `why` saying where it was read and why the
@@ -2942,7 +2946,8 @@ The sources this build reads:
   whole test, naming the request the script names (such as `POST
   /notes`) when it names one; and one must question for each part
   the script leaves out, the given (no precondition or test data),
-  the step and the expected result, each blocking that key. A test
+  the step and the expected result, and each part an Outline's
+  placeholder is left unfilled in, each blocking that key. A test
   is never given a part the script does not say.
 
 Every reader follows these rules:
@@ -3512,14 +3517,15 @@ and then, and either the reason it cannot run from outside, or its
 request: the method, the path with the path parameters of its input
 written in, the query parameters as the query, the header and cookie
 parameters as headers, the other fields as the JSON body when the
-operation takes one, each property at every depth named as
+operation takes one, and named as not sent when it takes none, each property at every depth named as
 `info.wireNames` puts it on the wire while a parameter keeps its
 name (ADR-062); the caller's role; the fixture's records as
 JSON; the status and the body fields expected, with the fields to
 compare as numbers; and the state and messages expected, named as
 not checked. A case cannot run from outside when its test does not
 apply, gives no request (a derived case whose call derive does not
-draft says so), is about a command or a page, travels in a
+draft says so), leaves a path parameter of its path without a value
+(its answer would be the server's for a path it does not serve), is about a command or a page, travels in a
 handshake, streams a file, gives the caller's properties, expects
 only what is left behind, covers a denied case with no caller (a
 request with none is refused as not signed in), or calls an API

@@ -5,8 +5,8 @@ repository:
     - [notes.feature, sheet.csv]
 exitStatus: 0
 standardOutput: |
-  commit 3712f73908ce4c79711352a7aae1720294a61275: the last change to notes.feature, sheet.csv
-  read notes.feature: 4 tests
+  commit 7257318b85acbd4a9c6d525eb1df17f4da745faa: the last change to notes.feature, sheet.csv
+  read notes.feature: 8 tests
   read sheet.csv: 2 tests
-  wrote 6 tests and 10 questions: one per subject a test exercises, which a script cannot name in the specification's words, 1 for a test with no given, 1 with no step and 2 with no expected result
+  wrote 10 tests and 17 questions: one per subject a test exercises, which a script cannot name in the specification's words, 1 for a test with no given, 1 with no step, 2 with no expected result and 3 for a part whose Examples row gives a placeholder no value
   derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

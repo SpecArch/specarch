@@ -98,9 +98,19 @@ func TestGuideBySituation(t *testing.T) {
 	for _, f := range []metamodel.Format{metamodel.Design, metamodel.Implementation, metamodel.Record, metamodel.Idiom, metamodel.Estate, metamodel.Vocabulary} {
 		features = append(features, "`"+f.Key+"`")
 	}
+	// A feature counts only when named on its own: a longer feature that
+	// begins with it (specarch-gen-sqlc for specarch-gen-sql, specarch
+	// idioms diff for specarch idioms) is blanked first, and the name must
+	// end at a character that is not a letter, digit or hyphen.
 	for name, text := range guides {
 		for _, feature := range features {
-			if !strings.Contains(text, feature) {
+			own := text
+			for _, longer := range features {
+				if longer != feature && strings.HasPrefix(longer, feature) {
+					own = strings.ReplaceAll(own, longer, " ")
+				}
+			}
+			if !regexp.MustCompile(regexp.QuoteMeta(feature) + `([^a-z0-9-]|$)`).MatchString(own) {
 				t.Errorf("%s names no situation for %s; add it to the situation it belongs to, in both guides", name, feature)
 			}
 		}

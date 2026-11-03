@@ -91,7 +91,8 @@ adalah tata letak berkas; `specarch help conventions` kata kuncinya.
     notes/specarch.yaml
     specarch init: next, run specarch validate notes after each edit; specarch help start shows a first entity and operation that validate
     $ specarch validate notes
-    specarch: 1 input checked: 0 errors, 0 warnings
+    notes/specarch.yaml:7:12: warning: /info/profile: profile: the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests [profile@specarch.yaml#/info/profile]
+    specarch: 1 input checked: 0 errors, 1 warning
 
 **Yang perlu diperhatikan.** Tulis pemangku kepentingan lebih dulu,
 menurut peran, karena setiap pertanyaan menyebut siapa yang memutuskan dan

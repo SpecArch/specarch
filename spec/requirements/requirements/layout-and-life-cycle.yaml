@@ -125,11 +125,11 @@ requirements:
     statement: SpecArch shall explain every feature by the situation it is for, in one guide organised by situation rather than by command, for people and for agents, in English and in Indonesian, each situation saying when it happens, what to run, a worked example with the output the program prints, what to watch for and where the deeper document is; the installed program shall print the same situations as a help topic; and every command, document target, extract source, plug-in, help topic and format shall appear in at least one situation, checked by the build's tests so the guide cannot drift from the program.
     kind: interface
     priority: should
-    status: accepted
+    status: proposed
     acceptance:
       - specarch help situations prints one entry per situation, each with its id, when it happens, what to run and the topic or command that explains it, within 80 columns, and names the full guide's file.
       - docs/guide-by-situation.md and docs/id/guide-by-situation.md hold the same situation ids in the same order, and the help topic holds the same ids in the same order.
-      - Every command the specification defines, every document target, every extract source, every plug-in in the repository, every help topic and every format the program reads is named in both guides; a feature named in neither fails the build's tests, as does a situation in one guide and not the other.
+      - Every command the specification defines, every document target, every extract source, every plug-in in the repository, every help topic and every format the program reads is named in both guides; a feature missing from either guide fails the build's tests, as does a situation in one guide and not the other.
       - specarch guide and specarch guide --agent name specarch help situations as the way to find the feature for a situation.
     verification: test
     needs: [NEED-7]

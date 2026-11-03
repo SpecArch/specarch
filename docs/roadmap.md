@@ -168,7 +168,7 @@ is the same guide in Indonesian under the same situation ids; `specarch
 help situations` is the index built into the program, named by `guide` and
 `guide --agent`; and a test fails when the three hold different situations
 or when a command, document target, extract source, plug-in, help topic or
-format is named in neither guide (ADR-225, SA-119,
+format is missing from either guide (ADR-225, SA-119,
 `spec/tests/help-situations`, `cmd/specarch/situations_test.go`): built on
 main, in no release yet.
 

@@ -32,7 +32,7 @@ decisions:
       when the ids differ or are in another order, and when a command the
       specification defines, a document target, an extract source, a
       plug-in in the repository, a help topic or a format the program
-      reads is named in neither guide.
+      reads is missing from either guide.
     consequences: |
       A feature added to the program has to be given a situation, in both
       languages, before the build passes; a situation added to one guide

@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a specification with stakeholders, a need and a requirement that refines it, and no other stage"
 when: "validate is run"
-then: "it prints nothing and exits 0"
+then: "it prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0"
 verifies: [SA-12]

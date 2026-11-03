@@ -425,10 +425,11 @@ pemangku kepentingan spesifikasi dan tidak pernah nama, dan agen
 menanyakan kepada analis persis apa yang dikatakan setiap baris `missing`.
 Berkas bukti yang berubah setelah dicatat gagal validasi dengan hash yang
 dimilikinya sekarang. Telepon tanpa notula tetap catatan, ditandai sebagai
-dicatat tanpa bukti. Begitu catatan semacam itu disimpan, validate
-memperingatkan `unheard` pada pemangku kepentingan yang dibutuhkan
-kebutuhan yang diterima dan tidak ada catatan yang memperlihatkan ia
-pernah didengar (`absent-user-objects`).
+dicatat tanpa bukti. Sejak hari pertama, validate memperingatkan
+`unheard` pada pemangku kepentingan yang dibutuhkan kebutuhan yang
+diterima dan tidak ada catatan yang memperlihatkan ia pernah didengar
+(`absent-user-objects`); selama belum ada catatan sama sekali,
+peringatannya menyarankan untuk mulai dengan mencatat percakapan pertama.
 
 **Lebih dalam.** `docs/maintenance.md` (Communications, sessions, test
 sessions and deploys), `specarch help asking` (mencatat apa yang

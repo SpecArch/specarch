@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 962 design tests, 481 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 964 design tests, 483 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 962 design tests, 481 golden and 481 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 958 |
+| system | 960 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5187,7 +5187,7 @@ Scenario: golden; level: system; verifies SA-13.
 
 - Given: elements that carry why and citations of declared sources
 - When: validate is run
-- Then: it prints nothing and exits 0
+- Then: it prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0
 
 #### validate-column-block-and-unicode
 
@@ -6379,7 +6379,7 @@ Scenario: golden; level: system; verifies SA-12.
 
 - Given: a need with status rejected that no requirement refines, beside a need a requirement refines
 - When: validate is run
-- Then: it does not warn need_unrefined for the rejected need, prints nothing and exits 0
+- Then: it does not warn need_unrefined for the rejected need, prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0
 
 #### validate-number-type-name
 
@@ -6915,7 +6915,7 @@ Scenario: golden; level: system; verifies SA-12.
 
 - Given: a specification with stakeholders, a need and a requirement that refines it, and no other stage
 - When: validate is run
-- Then: it prints nothing and exits 0
+- Then: it prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0
 
 #### validate-role-names
 
@@ -7435,7 +7435,7 @@ Scenario: golden; level: system; verifies SA-10, SA-11.
 
 - Given: a tree with four stages, one object per file, an implementation file under implementation/go/, and a test folder whose data holds a decoy specarch.yaml
 - When: validate is run on the root folder
-- Then: it reads the tree as one specification, ignores the test data, prints nothing and exits 0
+- Then: it reads the tree as one specification, ignores the test data, prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0
 
 #### validate-trigger
 
@@ -7476,6 +7476,22 @@ Scenario: golden; level: system; verifies SA-117.
 - Given: a specification that keeps a session record, approved for its version, with an accepted requirement needed by the board and the desk, a proposed one needed by the auditor, a page whose permission the desk and reader roles hold, a decision by the owner, and a session the reader attended and the desk did not
 - When: validate is run
 - Then: it warns unheard at the board, needed by the requirement, and at the desk, needed by the requirement and the page, names neither the auditor (its requirement is proposed), the reader (present in the session) nor the owner (decided), and exits 0
+
+#### validate-unheard-no-records
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: a specification with stakeholders and no records beside it, with an accepted requirement needed by the board and the desk, a proposed one needed by the auditor, a page whose permission the desk and reader roles hold, and a decision by the owner
+- When: validate is run
+- Then: it warns unheard at the board and at the desk, each naming the requirement and adding that no communication, session or test session record is kept yet, names neither the auditor (its requirement is proposed), the reader (the specification is not approved, so its page relies on nobody) nor the owner (decided), and exits 0
+
+#### validate-unheard-one-heard
+
+Scenario: golden; level: system; verifies SA-117.
+
+- Given: the specification of validate-unheard-no-records with one communication record beside it, from the desk to the owner
+- When: validate is run
+- Then: it warns unheard at the board alone, without the note that no record is kept yet, since the record clears the desk and no other role, and exits 0
 
 #### validate-unique-where
 

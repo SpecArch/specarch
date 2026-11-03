@@ -6,7 +6,7 @@ Version 1.0.0 of the specification: 2 requirements and 1 entity. The chapters fo
 
 **Audience:** everyone; 3 internal elements are left out (1 in needs, 1 in requirements, 1 in entities), with the problems and open questions that concern only them.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@desk.go.specarch-implementation.yaml#/specarchImplementation]
 
@@ -22,6 +22,10 @@ Loans of books to members.
 |---|---|---|
 | librarian | Staff at the desk. |   |
 | card-issuer | The team that runs the card service. |   |
+
+**Problem on librarian:** warning: unheard: librarian was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement LD-1 and requirement LD-3 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/librarian]
+
+**Problem on card-issuer:** warning: unheard: card-issuer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement LD-3 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/card-issuer]
 
 ## 5. Building blocks
 

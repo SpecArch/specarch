@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 2 stakeholders, 2 needs and 2 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Purpose and scope
 
@@ -16,6 +16,8 @@ A small shop that takes orders.
 |---|---|---|
 | clerk | Staff at the till. | Every sale is quick; A receipt is never wrong |
 | owner | Owns the shop. |   |
+
+**Problem on clerk:** warning: unheard: clerk was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SHOP-1 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/clerk]
 
 **Insight on clerk:** The clerk uses the system all day, so their time sets the design.
 

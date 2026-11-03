@@ -174,13 +174,16 @@ func eitherOf(items []string) string {
 	return strings.Join(items[:len(items)-1], ", ") + " or " + items[len(items)-1]
 }
 
-// checkUnheard warns, once the specification keeps who was heard, of a
-// stakeholder that an accepted requirement needs, or that an approved
-// specification's page is for, while no communication, session, interview
-// or decision shows it was ever heard (ADR-220).
+// checkUnheard warns of a stakeholder that an accepted requirement needs,
+// or that an approved specification's page is for, while no communication,
+// session, interview or decision shows it was ever heard (ADR-220). A
+// specification that keeps no communication, session or test session
+// record has heard nobody yet, and the warning says to log the first
+// conversation.
 func (rc *recordChecks) checkUnheard(c *checker) {
+	hint := ""
 	if len(rc.set["communication"])+len(rc.set["session"])+len(rc.set["test-session"]) == 0 {
-		return
+		hint = unheardFirstHint
 	}
 	heard := map[string]bool{}
 	for _, r := range rc.set["communication"] {
@@ -246,9 +249,13 @@ func (rc *recordChecks) checkUnheard(c *checker) {
 	}
 	sort.Strings(roles)
 	for _, role := range roles {
-		c.warn(rc.d.stakeholders[role], source.Pointer("stakeholders", role), RuleUnheard, "%s was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while %s %s on it; hear it before acceptance, and record what it said with specarch log", role, joinAnd(relies[role]), relyVerb(len(relies[role])))
+		c.warn(rc.d.stakeholders[role], source.Pointer("stakeholders", role), RuleUnheard, "%s was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while %s %s on it; hear it before acceptance, and record what it said with specarch log%s", role, joinAnd(relies[role]), relyVerb(len(relies[role])), hint)
 	}
 }
+
+// unheardFirstHint ends the unheard warning of a specification that keeps
+// no communication, session or test session record yet.
+const unheardFirstHint = "; no communication, session or test session record is kept yet, so start by logging the first conversation"
 
 func relyVerb(n int) string {
 	if n == 1 {

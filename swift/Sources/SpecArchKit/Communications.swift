@@ -126,13 +126,15 @@ extension RecordChecks {
         }
     }
 
-    /// Warns, once the specification keeps who was heard, of a stakeholder
-    /// that an accepted requirement needs, or that an approved
-    /// specification's page is for, while no communication, session,
-    /// interview or decision shows it was ever heard (ADR-220).
+    /// Warns of a stakeholder that an accepted requirement needs, or that
+    /// an approved specification's page is for, while no communication,
+    /// session, interview or decision shows it was ever heard (ADR-220). A
+    /// specification that keeps no communication, session or test session
+    /// record has heard nobody yet, and the warning says to log the first
+    /// conversation.
     func checkUnheard(_ c: Checker) {
         let kept = (set["communication"]?.count ?? 0) + (set["session"]?.count ?? 0) + (set["test-session"]?.count ?? 0)
-        if kept == 0 { return }
+        let hint = kept == 0 ? "; no communication, session or test session record is kept yet, so start by logging the first conversation" : ""
         var heard: Set<String> = []
         for (_, r) in set["communication"] ?? [:] {
             heard.insert(r.str("from"))
@@ -177,7 +179,7 @@ extension RecordChecks {
         }
         for role in relies.keys.sorted(by: byteLess) {
             let what = relies[role]!
-            c.warn(d.stakeholders[role], pointer("stakeholders", role), .unheard, "\(role) was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while \(joinAnd(what)) \(what.count == 1 ? "relies" : "rely") on it; hear it before acceptance, and record what it said with specarch log")
+            c.warn(d.stakeholders[role], pointer("stakeholders", role), .unheard, "\(role) was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while \(joinAnd(what)) \(what.count == 1 ? "relies" : "rely") on it; hear it before acceptance, and record what it said with specarch log\(hint)")
         }
     }
 }

@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "elements that carry why and citations of declared sources"
 when: "validate is run"
-then: "it prints nothing and exits 0"
+then: "it prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0"
 verifies: [SA-13]

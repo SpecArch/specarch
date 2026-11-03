@@ -1,0 +1,5 @@
+arguments: [validate, project]
+exitStatus: 0
+standardOutput: |
+  project/specarch.yaml:5:9: warning: /stakeholders/desk: unheard: desk was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement CASE-1 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/desk]
+  project/specarch.yaml:7:10: warning: /stakeholders/board: unheard: board was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement CASE-1 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/board]

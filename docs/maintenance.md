@@ -434,14 +434,17 @@ in the specification's `timeZone`.
 
 The validator checks the links (`record_ref`), the evidence files and
 their hashes (`evidence`), the records a citation names (`record_cited`)
-and, once such records are kept, warns at a stakeholder nobody heard
+and, from the first day, warns at a stakeholder nobody heard
 (`unheard`): a role an accepted requirement needs, through its needs or
 `ownedBy`, or that a page of an approved specification is for, while no
 communication names it as `from` or `to`, no session or test session
 lists it `present`, no interview source lists it among its `participants`
 and no decision is `decidedBy` it. The warning names the role and the
 requirements and pages, so the risk of that role objecting first at the
-user acceptance test shows early.
+user acceptance test shows early. While no communication, session or
+test session record is kept yet, every such role is unheard, and the
+warning adds that none is kept yet and to start by logging the first
+conversation.
 
 ## Stack-neutral and stack-specific
 

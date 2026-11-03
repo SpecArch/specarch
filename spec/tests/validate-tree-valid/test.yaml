@@ -4,5 +4,5 @@ level: system
 scenario: golden
 given: "a tree with four stages, one object per file, an implementation file under implementation/go/, and a test folder whose data holds a decoy specarch.yaml"
 when: "validate is run on the root folder"
-then: "it reads the tree as one specification, ignores the test data, prints nothing and exits 0"
+then: "it reads the tree as one specification, ignores the test data, prints only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0"
 verifies: [SA-10, SA-11]

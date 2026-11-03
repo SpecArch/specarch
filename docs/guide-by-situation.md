@@ -404,9 +404,10 @@ or an offset is asked back, a role is one of the specification's
 stakeholders and never a name, and the agent asks the analyst exactly what
 each `missing` line says. An evidence file changed after it was recorded
 fails validate with the hash it has now. A call with no minutes is still a
-record, marked as recorded without evidence. Once such records are kept,
+record, marked as recorded without evidence. From the first day,
 validate warns `unheard` at a stakeholder an accepted requirement needs
-that no record shows was heard (`absent-user-objects`).
+that no record shows was heard (`absent-user-objects`); while no record is
+kept yet, the warning says to start by logging the first conversation.
 
 **Deeper.** `docs/maintenance.md` (Communications, sessions, test sessions
 and deploys), `specarch help asking` (Recording what the analyst reports

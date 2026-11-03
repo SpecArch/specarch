@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 3 requirements, 19 tests and 1 environment. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Introduction and goals
 
 A daemon that asks a registry for new releases of a host's services and
@@ -15,6 +17,8 @@ under systemd; their unit files are in ../sources/units.
 | Stakeholder | Who they are | Concerns |
 |---|---|---|
 | host-owner | The person who runs the host and its services. |   |
+
+**Problem on host-owner:** warning: unheard: host-owner was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement RW-1, requirement RW-2 and requirement RW-3 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/requirements.yaml#/stakeholders/host-owner]
 
 ## 6. Runtime view
 

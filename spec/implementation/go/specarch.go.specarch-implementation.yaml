@@ -93,7 +93,7 @@ libraries:
 layout:
   cmd/specarch:
     description: The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status.
-    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/idioms", "#/commands/idioms diff", "#/commands/decision why", "#/commands/decision rests", "#/commands/try", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
+    implements: ["#/commands/validate", "#/commands/gaps", "#/commands/document", "#/commands/decide", "#/commands/approve", "#/commands/generate", "#/commands/extract", "#/commands/merge", "#/commands/diff", "#/commands/check", "#/commands/derive", "#/commands/compare", "#/commands/idioms", "#/commands/idioms diff", "#/commands/decision why", "#/commands/decision rests", "#/commands/try", "#/commands/model", "#/commands/version", "#/entities/SpecFile", "#/entities/GeneratedFile", "#/algorithms/exitStatus", "#/algorithms/checkStatus"]
     dependsOn: [internal/approval, internal/canonical, internal/diff, internal/extract, internal/facts, internal/genbpmn, internal/generate, internal/genscreens, internal/gensql, internal/genui, internal/literal, internal/mark, internal/problems, internal/refine, internal/semver, internal/source, internal/spec, internal/validate, internal/xref]
   schema:
     description: The JSON Schemas, embedded into the binary from the files editors use.

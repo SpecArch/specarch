@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: compare
+level: system
+scenario: golden
+given: "a specification with two implementation files, lending.go with a JUnit XML results file and lending.swift with nothing: no test run, no results, no scan and no measurements"
+when: "compare is run on both implementation files with --results for lending.go only and no --out"
+then: "it prints the table as Markdown with every cell lending.swift has no input for, and every measured value of lending.go, written gap with its reason, lists each gap with the option that fills it, and exits 0"
+verifies: [SA-127]

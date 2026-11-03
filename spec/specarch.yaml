@@ -38,6 +38,12 @@ sources:
     edition: "2021"
     author: ISO, IEC and IEEE
     url: https://www.iso.org/standard/79429.html
+  cvss-3-1:
+    kind: standard
+    title: Common Vulnerability Scoring System v3.1, Specification Document
+    edition: "3.1"
+    author: FIRST
+    url: https://www.first.org/cvss/v3.1/specification-document
   iso-29119-4:
     kind: standard
     title: ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques

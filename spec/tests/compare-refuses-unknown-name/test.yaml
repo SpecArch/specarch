@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: compare
+level: system
+scenario: red
+covers: [exit 1]
+given: "a specification with two implementation files, lending.go and lending.swift"
+when: "compare is run on lending.go alone with --test-run naming lending.swift, which is not among the files given"
+then: "it refuses, naming lending.swift and the names given, writes nothing, and exits 1"
+verifies: [SA-127]

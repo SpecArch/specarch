@@ -717,6 +717,55 @@ it changes.
 **Deeper.** `docs/maintenance.md` (Test runs), `specarch help log test-run`,
 ADR-230.
 
+<!-- situation: comparing-implementations -->
+## Choosing between two implementations
+
+**When it happens.** A team builds two implementations of one design, two
+stacks or two libraries for one stack, and must pick one. The evidence is
+in CI logs, scan reports and what people remember of each build, and the
+decision that picks one cites none of it.
+
+**What to run.** Keep each build's inputs under `records/`: its test run
+(`specarch log test-run`) or its JUnit XML file, the grype or osv-scanner
+JSON of its software bill of materials, and a measurements file, JSON with
+`buildSeconds`, `linesOfCode`, `deploySteps` and, per requirement,
+`latency` and `throughput` as `{value, unit, how}`. Then:
+
+    specarch compare --test-run lending.go=TR-3 --results lending.swift=records/evidence/swift-junit.xml --scan lending.go=records/evidence/go-grype.json --scan lending.swift=records/evidence/swift-osv.json --measurements lending.go=records/evidence/go-measurements.json --measurements lending.swift=records/evidence/swift-measurements.json --out records/comparisons/lending spec spec/implementation/go/lending.go.specarch-implementation.yaml spec/implementation/swift/lending.swift.specarch-implementation.yaml
+
+Each option names an implementation by its file name without
+`.specarch-implementation.yaml`. `compare` writes one table, one column
+per implementation: the derived cases passed, the results, the scan
+findings by severity, the libraries with their licences, the build time,
+the lines of code and the deploy steps; then a row per derived case, per
+measured requirement beside its statement, per library and per finding;
+the inputs with their SHA-256; and the gaps. With `--out` it writes
+`comparison.md` and `comparison.json` and prints the `sources` entry a
+decision cites it by.
+
+**A worked example.** `spec/tests/compare-two-implementations`:
+
+    | Summary | lending.go | lending.swift |
+    |---|---|---|
+    | Derived cases passed | 0 of 2 | 1 of 2 |
+    | Build time | 74 s | gap: not measured |
+
+and on standard output:
+
+    to cite the comparison from a decision, declare it under sources in specarch.yaml:
+      comparison-lending: {kind: "document", title: "Comparison of lending.go and lending.swift", edition: "sha256:...", url: "../records/comparisons/lending/comparison.md"}
+
+**What to watch for.** A missing result is a gap, never a zero: it is
+written `gap` in its cell and listed with the option or key that fills
+it, so read the Gaps section before the summary. Latency and throughput
+stand beside the requirement's words, not judged against them. A test run
+names no implementation, so you say which run is whose each time. An
+input that is given but wrong is refused with exit 1, not shown as a
+gap. The edition is the SHA-256 of `comparison.json`: run `compare`
+again after an input changes, and update the entry.
+
+**Deeper.** `specarch help compare`, ADR-232.
+
 <!-- situation: small-change -->
 ## A small change
 

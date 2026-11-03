@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="LendingTests" tests="2">
+    <testcase name="loan-limit: a sixth loan is refused" classname="LendingTests"/>
+    <testcase name="loan-return: the loan is returned" classname="LendingTests"><skipped message="needs a database"/></testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,18 @@
+# Written by specarch log test-run from records/evidence/swift-junit.xml. Edit it as any record.
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: staging
+build: lending.swift at 9c1d2e0
+at: "2026-11-04T10:00:00+07:00"
+by: tester
+evidence:
+  - {path: evidence/swift-junit.xml, mediaType: application/xml, sha256: 'sha256:9eb6d47ce539e4d007e4ca0c6b6aca545e50b9c847a71fb0e388bc7c3f462e14'}
+results:
+  - name: 'loan-limit: a sixth loan is refused'
+    test: loan-limit
+    outcome: passed
+  - name: 'loan-return: the loan is returned'
+    test: loan-return
+    outcome: skipped
+    message: needs a database

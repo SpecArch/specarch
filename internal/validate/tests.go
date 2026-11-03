@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -305,6 +306,48 @@ func StatePaths(root *yaml.Node) map[string][]string {
 			for _, dc := range s.cases {
 				out[e.Key.Value] = append(out[e.Key.Value], dc.name)
 			}
+		}
+	}
+	return out
+}
+
+// CaseTests is a derived case a test must cover, or one a test covers
+// although it was left out, with the tests that cover it by name, sorted.
+type CaseTests struct {
+	Subject  string // "operation createItem"
+	Case     string // "name longer than 40 characters"
+	Scenario string // golden or red
+	Tests    []string
+}
+
+// CoveredCases lists the derived cases of a specification that are chosen
+// or that a test covers, by subject in document order, each with the tests
+// that cover it; a chosen case no test covers has none. specarch compare
+// counts the results of an implementation per case by them (ADR-232).
+func CoveredCases(root *yaml.Node, given Given) []CaseTests {
+	d := newDesign(root).withIdentity(given)
+	covering := map[string]map[string][]string{}
+	for _, p := range source.Pairs(source.Child(d.root, "tests")) {
+		key := testSubjectKey(p.Value)
+		if covering[key] == nil {
+			covering[key] = map[string][]string{}
+		}
+		for _, item := range source.Items(source.Child(p.Value, "covers")) {
+			covering[key][item.Value] = append(covering[key][item.Value], p.Key.Value)
+		}
+	}
+	var out []CaseTests
+	for _, s := range d.subjects() {
+		seen := map[string]bool{}
+		for _, dc := range s.cases {
+			tests := covering[s.yamlKey][dc.name]
+			if seen[dc.name] || len(tests) == 0 && !s.chosen(dc.name) {
+				continue
+			}
+			seen[dc.name] = true
+			sorted := append([]string(nil), tests...)
+			sort.Strings(sorted)
+			out = append(out, CaseTests{Subject: s.label, Case: dc.name, Scenario: dc.scenario, Tests: sorted})
 		}
 	}
 	return out

@@ -117,6 +117,7 @@ var commandFiles = map[string][]string{
 	"decide.go":   {"decide"},
 	"decision.go": {"decision why", "decision rests"},
 	"derive.go":   {"derive"},
+	"compare.go":  {"compare"},
 	"diff.go":     {"diff"},
 	"document.go": {"document", "generate"},
 	"extract.go":  {"extract"},
@@ -466,6 +467,7 @@ func TestDryRunWritesNothing(t *testing.T) {
 		{name: "generate sql", from: "../../spec/tests/generate-sql", plugins: []string{"sql"}, args: []string{"generate", "sql", "--unapproved", "project"}},
 		{name: "facts", from: "../../spec/tests/facts-javascript", git: true, args: []string{"facts", "javascript", "repo/app", "repo/facts.json"}},
 		{name: "skill", from: "../../spec/tests/init-writes-specification", args: []string{"skill", "--out", "skills"}},
+		{name: "compare", from: compareCase, args: compareArgs("records/comparisons/lending")},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

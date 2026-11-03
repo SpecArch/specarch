@@ -754,6 +754,58 @@ berkas itu berubah.
 **Lebih dalam.** `docs/maintenance.md` (Test runs), `specarch help log test-run`,
 ADR-230.
 
+<!-- situation: comparing-implementations -->
+## Memilih di antara dua implementasi
+
+**Kapan terjadi.** Tim membangun dua implementasi dari satu design, dua
+stack atau dua library untuk satu stack, lalu harus memilih salah satu.
+Evidence-nya tersebar di log CI, laporan scan, dan ingatan orang tentang
+masing-masing build, sehingga decision yang dipilih belum men-cite satu
+pun dari itu.
+
+**Apa yang dijalankan.** Simpan input setiap build di bawah `records/`:
+test run-nya (`specarch log test-run`) atau berkas JUnit XML-nya, JSON
+grype atau osv-scanner dari software bill of materials-nya, dan berkas
+measurements, JSON berisi `buildSeconds`, `linesOfCode`, `deploySteps`
+dan, per requirement, `latency` dan `throughput` sebagai
+`{value, unit, how}`. Lalu:
+
+    specarch compare --test-run lending.go=TR-3 --results lending.swift=records/evidence/swift-junit.xml --scan lending.go=records/evidence/go-grype.json --scan lending.swift=records/evidence/swift-osv.json --measurements lending.go=records/evidence/go-measurements.json --measurements lending.swift=records/evidence/swift-measurements.json --out records/comparisons/lending spec spec/implementation/go/lending.go.specarch-implementation.yaml spec/implementation/swift/lending.swift.specarch-implementation.yaml
+
+Setiap option menyebut implementasi dengan nama berkasnya tanpa
+`.specarch-implementation.yaml`. `compare` menulis satu tabel, satu kolom
+per implementasi: derived case yang passed, hasil test, temuan scan per
+severity, library beserta licence-nya, waktu build, jumlah baris kode dan
+langkah deploy; lalu satu baris per derived case, per requirement yang
+diukur di samping statement-nya, per library dan per temuan; input beserta
+SHA-256-nya; dan gap-nya. Dengan `--out` perintah ini menulis
+`comparison.md` dan `comparison.json`, lalu mencetak entri `sources` yang
+dipakai decision untuk men-cite-nya.
+
+**Contoh.** `spec/tests/compare-two-implementations`:
+
+    | Summary | lending.go | lending.swift |
+    |---|---|---|
+    | Derived cases passed | 0 of 2 | 1 of 2 |
+    | Build time | 74 s | gap: not measured |
+
+dan di standard output:
+
+    to cite the comparison from a decision, declare it under sources in specarch.yaml:
+      comparison-lending: {kind: "document", title: "Comparison of lending.go and lending.swift", edition: "sha256:...", url: "../records/comparisons/lending/comparison.md"}
+
+**Yang perlu diperhatikan.** Hasil yang belum ada ditulis sebagai gap,
+bukan nol: di sel-nya tertulis `gap`, dan gap itu ada di daftar beserta
+option atau key yang bisa mengisinya, jadi baca bagian Gaps dulu sebelum
+summary. Latency dan throughput ditaruh di samping kalimat requirement-nya,
+tidak dinilai otomatis. Test run tidak menyebut implementasi, jadi Anda
+yang menentukan run mana milik implementasi mana setiap kali menjalankan.
+Input yang diberikan tapi salah ditolak dengan exit 1, tidak ditampilkan
+sebagai gap. Edition-nya adalah SHA-256 dari `comparison.json`: jalankan
+`compare` lagi kalau ada input yang berubah, lalu update entri-nya.
+
+**Lebih dalam.** `specarch help compare`, ADR-232.
+
 <!-- situation: small-change -->
 ## Perubahan kecil
 

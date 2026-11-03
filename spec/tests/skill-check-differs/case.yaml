@@ -5,6 +5,7 @@ standardOutput: |
   skills/specarch/references/approve.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/capabilities.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/check.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/compare.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/decide.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/decision-rests.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/decision-why.md: missing; run specarch skill --out skills without --check

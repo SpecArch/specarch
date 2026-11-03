@@ -188,6 +188,15 @@ Error codes of --json:
   catalogue dump with no implementation file to compare it through, or with
   one whose tables cannot be written for PostgreSQL; or a revision git does
   not know
+- `specarch compare <folder> [--test-run <test-run>]... [--results <results>]... [--scan <scan>]... [--measurements <measurements>]... [--out <out>] [--dry-run] <implementations>...`
+  Compare alternative implementation files of one specification in one
+  table, from their test results, scan findings and measurements.
+  exit 0: the table is written or printed, its gaps marked in their cells
+  and listed
+  exit 1: nothing written, since an implementation file, an option's name or
+  a test-run record is not the specification's, or an input file is refused;
+  or written, while the specification has errors
+  exit 2: usage error, or a folder or file that could not be read or written
 - `specarch decide <question> <folder> --by <by> --answer <answer> [--source <source>] [--record <record>] [--date <date>] [--dry-run]`
   Answer an open question with a decision record and take the question out.
   exit 0: the record is written and the question taken out
@@ -427,6 +436,7 @@ Protocol.
 - [approve](references/approve.md): Record that the documents were read and the specification is approved.
 - [capabilities](references/capabilities.md): List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads.
 - [check](references/check.md): Compare a specification with the dumps of the running code, for a CI gate.
+- [compare](references/compare.md): Compare alternative implementation files of one specification in one table, from their test results, scan findings and measurements.
 - [decide](references/decide.md): Answer an open question with a decision record and take the question out.
 - [decision rests](references/decision-rests.md): Print the decisions that rest on a decision, nearest first.
 - [decision why](references/decision-why.md): Print the chain of decisions a decision rests on, earliest first.

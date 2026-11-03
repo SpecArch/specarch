@@ -1,0 +1,9 @@
+{
+  "linesOfCode": 3880,
+  "deploySteps": 5,
+  "requirements": {
+    "CASE-3": {
+      "latency": {"value": 185, "unit": "ms", "how": "the 90th percentile of 6000 saves at 100 a second"}
+    }
+  }
+}

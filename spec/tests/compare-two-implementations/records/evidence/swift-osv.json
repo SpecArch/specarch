@@ -1,0 +1,10 @@
+{
+  "results": [
+    {"source": {"path": "Package.resolved", "type": "lockfile"},
+     "packages": [
+       {"package": {"name": "swift-nio", "version": "2.81.0", "ecosystem": "SwiftURL"},
+        "vulnerabilities": [{"id": "GHSA-0000-0000-0002"}, {"id": "CVE-2026-0002"}],
+        "groups": [{"ids": ["GHSA-0000-0000-0002", "CVE-2026-0002"], "max_severity": "9.1"}]}
+     ]}
+  ]
+}

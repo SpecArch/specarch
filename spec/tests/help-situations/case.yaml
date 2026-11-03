@@ -92,6 +92,12 @@ standardOutput: |
     kept and warned. specarch document testruns writes the failures per
     element and per requirement, run by run. Topic: log test-run.
 
+  [comparing-implementations] Choosing between two implementations
+    specarch compare writes one table of implementation files from their
+    test runs or JUnit XML, scans and measurements under records/, each
+    missing result a gap; --out writes comparison.md and comparison.json
+    and prints the sources entry a decision cites. Topic: compare.
+
   [small-change] A small change
     A change record with its affects and impact, the edit, specarch
     validate, specarch generate --check, specarch diff against the approved

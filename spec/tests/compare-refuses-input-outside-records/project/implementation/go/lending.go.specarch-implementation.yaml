@@ -1,0 +1,7 @@
+specarchImplementation: "1.0.0"
+info: { title: Lending in Go, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+libraries:
+  github.com/go-chi/chi/v5: { version: 5.2.1, licence: MIT, purpose: The HTTP router. }
+  github.com/jackc/pgx/v5: { version: 5.7.2, licence: MIT, purpose: The PostgreSQL driver. }

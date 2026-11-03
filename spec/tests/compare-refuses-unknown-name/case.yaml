@@ -1,0 +1,5 @@
+arguments: [compare, --test-run, lending.swift=TR-1, project, project/implementation/go/lending.go.specarch-implementation.yaml]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch compare: --test-run names lending.swift, which is no implementation file given; the names are lending.go; nothing written

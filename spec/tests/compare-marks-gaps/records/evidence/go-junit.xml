@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="lending" tests="3">
+    <testcase name="TestLoanLimit" classname="lending"><failure message="the sixth loan was saved"/></testcase>
+    <testcase name="TestLoanReturn" classname="lending"/>
+    <testcase name="TestMemberKey" classname="lending"/>
+  </testsuite>
+</testsuites>

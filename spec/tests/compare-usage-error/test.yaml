@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: compare
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "no specification and no implementation file"
+when: "compare is run with only --out"
+then: "it prints that it needs the specification's folder and an implementation file, with the usage, and exits 2"
+verifies: [SA-127]

@@ -1,0 +1,7 @@
+specarchImplementation: "1.0.0"
+info: { title: Lending in Swift, version: 1.0.0 }
+implements: { file: ../../specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Swift, version: "6.2" } }
+libraries:
+  swift-nio: { version: 2.81.0, licence: Apache-2.0, purpose: The network layer. }
+  swift-testing: { version: 6.2.0, licence: Apache-2.0, purpose: The test framework., scope: test }

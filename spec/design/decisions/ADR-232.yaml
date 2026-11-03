@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-232:
+    title: specarch compare writes one table of alternative implementation files from their test results, scans and measurements, each input paired with its implementation on the command line, every missing result a gap in its cell, and the comparison cited by a decision as a document source
+    status: proposed
+    date: "2026-11-04"
+    context: |
+      A specification may have several implementation files, one per
+      stack or one per alternative of a stack, and a team often builds
+      two before choosing one. The choice is a decision, and its evidence
+      is scattered: the test results of each build, the scan of each
+      software bill of materials, the libraries and their licences, and
+      what only a person or a CI job measures, such as the build time,
+      the lines of code, the steps of a deploy and the latency and
+      throughput under load. A test-run record (ADR-230) names its
+      environment and build but not an implementation file. No element of
+      the meta-model states a latency or a throughput as a number: a
+      requirement of kind quality states it in words, a monitor's
+      objective is a sentence, and an implementation file's
+      testing.performance is prose. A decision cites a source declared
+      under sources, or a communication record (ADR-220, ADR-221).
+    decision: |
+      specarch compare <folder> <implementation>... reads implementation
+      files of the specification, each named by its file name without
+      .specarch-implementation.yaml, and for each the inputs its options
+      give as <name>=<value>, once per implementation: --test-run, a
+      test-run record, or --results, a JUnit XML file mapped as log
+      test-run maps it; --scan, grype's or osv-scanner's JSON; and
+      --measurements, a JSON file holding buildSeconds, linesOfCode,
+      deploySteps and, per requirement, latency and throughput as a value,
+      a unit and how it was measured. Every input file is under records/,
+      and the comparison keeps the path and SHA-256 of each. The table
+      has a summary, then one row per derived case that is chosen or
+      covered (failed over passed over skipped, from the results of the
+      tests covering it), per measured requirement and quantity with the
+      requirement's statement, per library, per scan finding, then the
+      inputs and the gaps. A missing result is a gap: written gap in its
+      cell, with its reason, and listed with the option that fills it; it
+      never stops the command. An input that is given but wrong (outside
+      records/, not of its format, naming what the specification does not
+      have) is refused with exit 1, as log test-run refuses it. Without
+      --out the Markdown goes to standard output; with --out the command
+      writes comparison.md and comparison.json and prints the sources
+      entry, kind document, with the SHA-256 of comparison.json as its
+      edition, that a decision's cites names.
+    consequences: |
+      A choice between implementations rests on one table whose every
+      cell names where it came from, and whose empty cells say what is
+      missing instead of reading as zero. The decision cites the
+      comparison like any document; its edition, the SHA-256 of the JSON,
+      tells a reader whether the file beside the specification is the one
+      the decision read. The validator does not check that hash, nor
+      that the url names a file: a comparison is a document, and a
+      document source is checked as one. Latency and throughput are shown
+      beside the requirement's statement, not judged against it: a person
+      reads the two. A test-run record names no implementation, so the
+      person running compare says which run belongs to which
+      implementation each time.
+    why: |
+      The inputs are paired on the command line, by the implementation's
+      name, rather than through a new key in the test-run record or a new
+      record kind: either is a change to the record format, checked by
+      both validator builds, for a link only the comparison reads, and a
+      test run of one build may be compared again later with a third
+      implementation. The name is the file's own, unique among a
+      specification's implementation files (one folder per stack, the
+      stack in the name), so the option and the column say the same
+      thing. The test-run record is read first and JUnit XML is the
+      fallback, as the request asked, through the same mapping log
+      test-run uses, so a testcase maps to the same test either way. A
+      derived case comes from the validator's own derivation, the cases
+      the tests' covers name, so the comparison and the test plan count
+      the same cases. A failure wins over a pass in a case's cell, since
+      one failing test of a case means the case is not shown met. The
+      measurements are a plain JSON file read only by this command, with
+      every key fixed and no other read, rather than a versioned format
+      or a record kind: they are an input of one command, and a value of
+      a person's own measuring; the command definition holds the shape.
+      JSON and not YAML, because every YAML file under records/ is read
+      as a record and would fail the validator, and a CI job writes JSON
+      as readily.
+      Latency and throughput are not parsed from a requirement's words
+      into a threshold, because a parse that misreads a sentence makes a
+      verdict that reads as a fact; the value stands beside the
+      statement. A scan is read in the two formats the release scan
+      already writes, grype's and osv-scanner's JSON; osv-scanner gives a
+      CVSS score, read into the qualitative scale of CVSS v3.1 so both
+      columns speak the same words. The comparison is cited as a source of
+      kind document rather than as a record: a citation of a record is
+      for what a stakeholder said (ADR-220), and docs/maintenance.md
+      allows the specification to point back at records only there and
+      for a change request a decision answers (ADR-221); a comparison is
+      evidence written from records, which is what a document source is.
+      A given input that is wrong is refused, not shown as a gap, because
+      a wrong file read as missing would hide the mistake behind a mark
+      the reader takes as known.
+    satisfies: [SA-127]
+    restsOn: [ADR-230, ADR-221]
+    cites:
+      - source: cvss-3-1
+        clause: "5"
+        says: "The qualitative severity rating scale: None 0.0, Low 0.1 to 3.9, Medium 4.0 to 6.9, High 7.0 to 8.9, Critical 9.0 to 10.0."

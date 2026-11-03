@@ -1,0 +1,277 @@
+{
+  "specarchComparison": "1.0.0",
+  "title": "Lending",
+  "version": "1.0.0",
+  "implementations": [
+    {
+      "name": "lending.go",
+      "file": "project/implementation/go/lending.go.specarch-implementation.yaml",
+      "version": "1.0.0",
+      "sha256": "sha256:fcfbe8a564f19cc16658a5552c368d2e65c785c05bb0289e4c6c278b2f764de8",
+      "inputs": [
+        {
+          "option": "results",
+          "path": "records/evidence/go-junit.xml",
+          "sha256": "sha256:0f1cb4ecee80892e1550e0e9155ebf63e49333f8ab00252545caa05ac15e280b"
+        },
+        {
+          "option": "scan",
+          "path": "records/evidence/go-grype.json",
+          "sha256": "sha256:29de6bf430547397c07b861a339c6863643497ade22b3626b307fbe0490f3e25"
+        },
+        {
+          "option": "measurements",
+          "path": "records/evidence/go-measurements.json",
+          "sha256": "sha256:e83044ec0891457b36b58a5ab04ad30ecbb5003aa890cc42d0c4cd0f8d7bf26b"
+        }
+      ],
+      "results": {
+        "passed": 2,
+        "failed": 1,
+        "errored": 0,
+        "skipped": 0,
+        "unmapped": 0
+      },
+      "cases": {
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0,
+        "gaps": 1
+      },
+      "findings": {
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 1,
+        "negligible": 0,
+        "unknown": 0
+      },
+      "libraries": 2,
+      "buildSeconds": 74,
+      "linesOfCode": 4210,
+      "deploySteps": 3
+    },
+    {
+      "name": "lending.swift",
+      "file": "project/implementation/swift/lending.swift.specarch-implementation.yaml",
+      "version": "1.0.0",
+      "sha256": "sha256:4428aba8160b7977f6fcc921fce7c92838c145528da706b7cb9430c0155c63ce",
+      "inputs": [
+        {
+          "option": "test-run",
+          "path": "records/test-runs/TR-1.yaml",
+          "sha256": "sha256:882eeb2b5eab8917bcc32681881b95c7e73223cf09fc1ba6000ddc84c1d236b9"
+        },
+        {
+          "option": "scan",
+          "path": "records/evidence/swift-osv.json",
+          "sha256": "sha256:d7b75ea8403faad53fce1ea4e7dfd9a3409aeb4d3523fd252ddc26a14ccacfa9"
+        },
+        {
+          "option": "measurements",
+          "path": "records/evidence/swift-measurements.json",
+          "sha256": "sha256:6502f4f427ca184baa1edb4ce64663a06861a7b23c062f17bfbcbc51ba7f601b"
+        }
+      ],
+      "results": {
+        "passed": 1,
+        "failed": 0,
+        "errored": 0,
+        "skipped": 1,
+        "unmapped": 0
+      },
+      "cases": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "gaps": 1
+      },
+      "findings": {
+        "critical": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "negligible": 0,
+        "unknown": 0
+      },
+      "libraries": 2,
+      "buildSeconds": null,
+      "linesOfCode": 3880,
+      "deploySteps": 5
+    }
+  ],
+  "cases": [
+    {
+      "subject": "Loan constraint loan_once",
+      "case": "duplicate loan_once",
+      "scenario": "red",
+      "tests": [
+        "loan-limit"
+      ],
+      "cells": [
+        {
+          "outcome": "failed"
+        },
+        {
+          "outcome": "passed"
+        }
+      ]
+    },
+    {
+      "subject": "Member constraint member_email_unique",
+      "case": "duplicate member_email_unique",
+      "scenario": "red",
+      "tests": [
+        "member-email-taken"
+      ],
+      "cells": [
+        {
+          "gap": "not run"
+        },
+        {
+          "gap": "not run"
+        }
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "requirement": "CASE-3",
+      "statement": "A loan shall be saved within 200 ms for nine calls in ten, at 100 loans a second.",
+      "quantity": "latency",
+      "cells": [
+        {
+          "value": 140,
+          "unit": "ms",
+          "how": "the 90th percentile of 6000 saves at 100 a second"
+        },
+        {
+          "value": 185,
+          "unit": "ms",
+          "how": "the 90th percentile of 6000 saves at 100 a second"
+        }
+      ]
+    },
+    {
+      "requirement": "CASE-3",
+      "statement": "A loan shall be saved within 200 ms for nine calls in ten, at 100 loans a second.",
+      "quantity": "throughput",
+      "cells": [
+        {
+          "value": 310,
+          "unit": "saves per second"
+        },
+        {
+          "gap": "not measured"
+        }
+      ]
+    }
+  ],
+  "libraries": [
+    {
+      "name": "github.com/go-chi/chi/v5",
+      "cells": [
+        {
+          "version": "5.2.1",
+          "licence": "MIT",
+          "scope": "runtime"
+        },
+        null
+      ]
+    },
+    {
+      "name": "github.com/jackc/pgx/v5",
+      "cells": [
+        {
+          "version": "5.7.2",
+          "licence": "MIT",
+          "scope": "runtime"
+        },
+        null
+      ]
+    },
+    {
+      "name": "swift-nio",
+      "cells": [
+        null,
+        {
+          "version": "2.81.0",
+          "licence": "Apache-2.0",
+          "scope": "runtime"
+        }
+      ]
+    },
+    {
+      "name": "swift-testing",
+      "cells": [
+        null,
+        {
+          "version": "6.2.0",
+          "licence": "Apache-2.0",
+          "scope": "test"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "GHSA-0000-0000-0002",
+      "package": "swift-nio",
+      "cells": [
+        null,
+        {
+          "severity": "critical",
+          "version": "2.81.0"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-0000-0000-0001",
+      "package": "github.com/jackc/pgx/v5",
+      "cells": [
+        {
+          "severity": "high",
+          "version": "5.7.2"
+        },
+        null
+      ]
+    },
+    {
+      "id": "GO-2026-0001",
+      "package": "golang.org/x/net",
+      "cells": [
+        {
+          "severity": "low",
+          "version": "0.40.0"
+        },
+        null
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "implementation": "lending.go",
+      "row": "Member constraint member_email_unique: duplicate member_email_unique",
+      "reason": "no result of its tests, member-email-taken, is in the run",
+      "fill": "a run that holds them"
+    },
+    {
+      "implementation": "lending.swift",
+      "row": "Member constraint member_email_unique: duplicate member_email_unique",
+      "reason": "no result of its tests, member-email-taken, is in the run",
+      "fill": "a run that holds them"
+    },
+    {
+      "implementation": "lending.swift",
+      "row": "build time",
+      "reason": "its measurements file records/evidence/swift-measurements.json does not give buildSeconds",
+      "fill": "buildSeconds in records/evidence/swift-measurements.json"
+    },
+    {
+      "implementation": "lending.swift",
+      "row": "CASE-3 throughput",
+      "reason": "its measurements file records/evidence/swift-measurements.json does not give requirements.CASE-3.throughput",
+      "fill": "requirements.CASE-3.throughput in records/evidence/swift-measurements.json"
+    }
+  ]
+}

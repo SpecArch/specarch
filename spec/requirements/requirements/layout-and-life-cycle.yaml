@@ -201,3 +201,17 @@ requirements:
       - source: iso-29119-3
         clause: "8"
         says: "Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome."
+  SA-127:
+    statement: specarch compare shall write, for alternative implementation files of one specification, one table as Markdown and JSON from each implementation's test-run record or JUnit XML results file, the scan of its software bill of materials and a measurements file - the derived cases passed, the latency and throughput beside the requirements a measurement names, the libraries with their licences, the scan findings, the build time, the lines of code and the deploy steps - marking every missing result as a gap in its cell and in a list of gaps rather than stopping, and printing the source entry by which a decision cites the comparison.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - compare with two implementation files of the specification, each with a JUnit XML results file or a test-run record, a scan and a measurements file under records/, prints the table as Markdown with one column per implementation in the order given, and with --out writes comparison.md and comparison.json and prints their paths and the sources entry, and exits 0.
+      - A derived case shows failed when a result of a test that covers it failed or errored, passed when one passed, skipped when one was skipped, and gap with no test or not run otherwise; a requirement a measurements file names shows each implementation's value and unit beside the requirement's statement.
+      - An implementation with no results, no scan or no measurements, or a measurements file that leaves out a key another gives, is written gap in each cell it leaves empty, with the reason, and listed under Gaps with the option that fills it, and compare exits 0.
+      - compare refuses, with exit 1 and nothing written, an implementation file that is not the specification's, an option whose name is no implementation given, --test-run and --results for one implementation, a test-run record the records do not hold, and an input file outside records/, unreadable or not of its format.
+      - A decision that cites the comparison through the sources entry compare printed validates without an error.
+    verification: test
+    needs: [NEED-2, NEED-6]
+    why: Choosing between two implementations of one design is a decision taken from CI logs, scan reports and what people remember of the build; one table built from the kept inputs, every missing result marked rather than left blank and the comparison cited by the decision as a source, makes the choice quick to take and to review and keeps it traceable to its evidence (ADR-232).

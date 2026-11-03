@@ -12,6 +12,7 @@
 //	specarch diff <old> <new>
 //	specarch check [--allowlist <file>] [--since <revision>] <specification> <dump>...
 //	specarch derive [--fill] [--dry-run] <folder>...
+//	specarch compare [--test-run|--results|--scan|--measurements <name>=<value>]... [--out <folder>] [--dry-run] <folder> <implementation file>...
 //	specarch idioms [diff <idiom>] <folder>...
 //	specarch decision why|rests <decision> <folder>
 //	specarch try <algorithm or operation> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
@@ -89,6 +90,10 @@ const usage = `usage:
                                             write a draft test for every derived case no test covers;
                                             --fill also adds the fixture, input and expect the design
                                             fixes to each test that has none
+  specarch compare [--test-run <name>=TR-<n> | --results <name>=<file>]... [--scan <name>=<file>]... [--measurements <name>=<file>]... [--out <folder>] [--dry-run] <folder> <implementation file>...
+                                            compare implementation files of one specification in one table, from
+                                            their test results, scans and measurements under records/, each missing
+                                            result a gap; --out writes comparison.md and comparison.json to cite
   specarch upgrade [--dry-run] [--to <version>] <folder or file>...
                                             move specifications and their files to the newest version of each format
   specarch idioms <folder>...               list the idioms each implementation file uses, and how
@@ -141,6 +146,7 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"diff":         runDiff,
 	"check":        runCheck,
 	"derive":       runDerive,
+	"compare":      runCompare,
 	"upgrade":      runUpgrade,
 	"idioms":       runIdioms,
 	"decision":     runDecision,

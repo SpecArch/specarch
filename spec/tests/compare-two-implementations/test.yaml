@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: compare
+level: system
+scenario: golden
+given: "a specification with two implementation files, lending.go and lending.swift, the Go build's JUnit XML file with the loan-limit test failed, the Swift build's test run TR-1 with loan-limit passed and loan-return skipped, a grype scan of the Go build and an osv-scanner scan of the Swift build, and a measurements file for each, the Swift one without the build time and the throughput of CASE-3"
+when: "compare is run on both implementation files with --results, --test-run, --scan and --measurements for each and --out records/comparisons/lending"
+then: "it writes records/comparisons/lending/comparison.md and comparison.json, one column per implementation in the order given: duplicate loan_once failed for lending.go and passed for lending.swift, duplicate member_email_unique a gap, not run, in both; CASE-3's latency for both and its throughput for lending.go beside the requirement's statement; the four libraries, each not used in the other; the three findings by severity, the osv-scanner group read as critical from its CVSS score 9.1; the inputs with their SHA-256; and the gaps, each with the option or key that fills it; prints the two paths and the sources entry to cite the comparison, and exits 0"
+verifies: [SA-127]

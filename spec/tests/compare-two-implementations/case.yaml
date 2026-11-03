@@ -1,0 +1,10 @@
+arguments: [compare, --results, lending.go=records/evidence/go-junit.xml, --test-run, lending.swift=TR-1, --scan, lending.go=records/evidence/go-grype.json, --scan, lending.swift=records/evidence/swift-osv.json, --measurements, lending.go=records/evidence/go-measurements.json, --measurements, lending.swift=records/evidence/swift-measurements.json, --out, records/comparisons/lending, project, project/implementation/go/lending.go.specarch-implementation.yaml, project/implementation/swift/lending.swift.specarch-implementation.yaml]
+exitStatus: 0
+standardOutput: |
+  records/comparisons/lending/comparison.md
+  records/comparisons/lending/comparison.json
+  to cite the comparison from a decision, declare it under sources in specarch.yaml:
+    comparison-lending: {kind: "document", title: "Comparison of lending.go and lending.swift", edition: "sha256:5372d489c6dcd7b484d567f94f249d580928a6aeec405ef28713aff862757acd", url: "../records/comparisons/lending/comparison.md"}
+  and cite it in the decision: cites: [{source: comparison-lending, clause: <the section, such as Derived cases>, says: <what it shows>}]
+standardError: |
+  specarch compare: 2 derived cases, 2 measured quantities, 4 libraries, 3 scan findings and 4 gaps; written to records/comparisons/lending/comparison.md and records/comparisons/lending/comparison.json

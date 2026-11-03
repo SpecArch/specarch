@@ -1,5 +1,4 @@
 arguments: [validate, .]
 exitStatus: 0
 standardOutput: |
-  specarch.yaml:5:3: warning: /stakeholders: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
-  specarch.yaml:32:3: warning: /pages/home: test_red_missing: page home has no red scenario; add one under tests, for example home-refused: { page: home, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/pages/home]
+  specarch.yaml:33:3: warning: /pages/home: test_red_missing: page home has no red scenario; add one under tests, for example home-refused: { page: home, scenario: red, given: "...", when: "...", then: "it is refused" } [test_red_missing@specarch.yaml#/pages/home]

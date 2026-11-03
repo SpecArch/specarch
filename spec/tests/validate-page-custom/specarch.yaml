@@ -3,6 +3,7 @@ info: { title: Writing desk, version: 1.0.0 }
 stages: [tests]
 stakeholders:
   owner: { description: The desk's owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }
 session: { idleTimeout: PT30M, absoluteTimeout: PT12H }
 permissions:
   public: { description: Open to everyone. }

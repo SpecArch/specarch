@@ -568,8 +568,8 @@ Five targets join `DocumentTarget`, after the first set of documents:
   decision and element's.
 - `timeline`: every event in one table in time order, from the records and
   the specification's decisions: communications, sessions, test sessions,
-  deploys, releases, commissioning runs, incidents, defects, change
-  requests raised and decided, ideas raised and decided, decisions and
+  test runs, deploys, releases, commissioning runs, incidents, defects,
+  change requests raised and decided, ideas raised and decided, decisions and
   approvals, each with its instant or date, what it says and what it
   links; then the same events by stakeholder, by requirement, decision
   and element, and by release. An event with a date alone is placed at

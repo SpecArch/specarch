@@ -33,7 +33,8 @@ decisions:
          that no role's confirmation of the list is recorded. The
          meta-model has no key that records the confirmation, so the
          document reads none and claims none.
-      5. Effort: each change request with its status and the hours
+      5. Effort: each change request, in a document for everyone too, as
+         the change register lists it, with its status and the hours
          recorded on it, estimated and spent in two columns, and the word
          missing where it records none; a value that is not a number above
          0, which the schema refuses, shown as written and marked not

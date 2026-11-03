@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-233:
+    title: A workflow keeps the as-is under asIs beside the to-be while a business process changes, checked by the workflow's rules, listed as a transition by the changes document and specarch diff, and generated only with --as-is
+    status: proposed
+    date: "2026-11-04"
+    context: |
+      A business process changes over weeks or months. While the team
+      builds the new process (the to-be), people still work by the old
+      one (the as-is), and both have to be read, reviewed and sometimes
+      built. A specification held one workflow under each name, so the
+      as-is lived in an older version or in prose, and what the move
+      adds, changes and removes, the steps, the approvers, the operations,
+      the pages and the tests it reaches, was found by reading two
+      versions side by side, and often late, in acceptance.
+    decision: |
+      A workflow may hold asIs: the workflow as the business runs it
+      today, in the workflow's shape without asIs, so an as-is never
+      holds another. The workflow's own keys are the to-be. Both are
+      kept until the change is done; then asIs is removed.
+
+      The validator checks the as-is by the workflow's rules, in both
+      builds, at its own pointer under /workflows/<name>/asIs and naming
+      it "the as-is of workflow <name>": its trigger, subject, steps,
+      approvers, performers, permissions, operations, messages and the
+      messages it publishes. It names operations, roles, permissions,
+      messages and an entity of the same specification, so whatever the
+      to-be stops using stays declared while the as-is is kept, and a
+      permission only the as-is checks counts as used. The derived cases
+      and the success come from the to-be only. A reference elsewhere,
+      a test's workflow or an inbox page's workflow and step, means the
+      to-be.
+
+      The transition is listed from the specification as it is, per
+      workflow that keeps an as-is, by part: the workflow's trigger,
+      subject and messages; the steps added, removed and changed by
+      name, with the keys that differ, and the order of the steps both
+      keep when it changes; the approvers and performers added and
+      removed at each step; the operations it calls and no longer calls
+      (trigger, operation steps, compensatedBy); the forms that submit to
+      a trigger that changes and the inboxes of a step the to-be adds,
+      removes or changes; and the tests about the workflow or about an
+      operation it calls or no longer calls. specarch document changes
+      writes it as a section Transitions after the defects, only when a
+      workflow keeps an as-is; specarch diff prints it for the new
+      version after its change list, one line per part.
+
+      Every generator is given each workflow's to-be, with no asIs.
+      specarch generate --as-is gives each workflow's as-is in its
+      place; a workflow with no as-is is the same either way. The
+      documents describe the to-be, the technical specification saying
+      that the as-is is kept.
+    consequences: |
+      A specification with no asIs reads, validates, documents, diffs and
+      generates as before: the Transitions section and the transition
+      lines appear only when a workflow keeps an as-is. The schema has
+      one optional key on a workflow and one definition, workflowAsIs,
+      so a file of 1.0 that holds no asIs gets no new error. An inbox
+      page of a step only the as-is has is an error, as any inbox of a
+      step the workflow lacks, since the pages are built for the to-be;
+      the transition list names it. Moving the requests already waiting
+      in the as-is to the to-be is the engine's and the migration's work
+      and is not specified here.
+    why: |
+      The to-be is the workflow's own keys and the as-is is nested, rather
+      than two entries of one name each carrying variant: as-is or
+      to-be. A mapping holds one value per key, so two entries of one
+      name would live in two files, and the loader's rule that a name is
+      defined once in the whole specification, in both builds, would have
+      to give way; one of the two would then live outside the merged
+      document, where the schema, the reference table, specarch diff and
+      specarch facts do not look unless each is taught to; and every
+      reference by name, a test's workflow, an inbox page's workflow and
+      step, would become ambiguous. Nested, each element has one pointer,
+      a problem in the as-is is marked at its own place, diff compares the
+      as-is as part of the workflow with no new rule, and every reader of
+      workflows already reads the to-be. The to-be, and not the as-is, is
+      the workflow's own keys because it is what the team builds: the
+      generators, the derived tests and the pages follow it, and removing
+      asIs when the change is done leaves the workflow as it should stay.
+      BPMN 2.0 has no construct for two versions of one process: a model
+      is one process, and versions are an engine's deployment of a
+      definition, so generate writes one variant per run, as a BPMN file
+      of that process. The derived cases come from the to-be alone,
+      because the tests are written for what is built; the as-is runs
+      today and has its tests in the code that runs it.
+    satisfies: [SA-128]
+    restsOn: [ADR-054, ADR-198, ADR-186]
+    cites:
+      - source: bpmn-2-0
+        clause: "10"
+        says: "A process is one definition of the flow elements and sequence flows that make it up; the standard has no element for two versions of one process."

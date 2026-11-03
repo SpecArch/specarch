@@ -14,6 +14,9 @@ implementation file names for the target).
   --dry-run     list each file it would write; write nothing.
   --unapproved  generate from a specification not approved yet; every
                 file is marked a draft. Not for anything that is used.
+  --as-is       write each workflow's as-is, the process the business
+                runs today, where it keeps one under asIs; without it
+                every target writes the to-be.
   --estate      bring an estate's modules into the run, so references
                 into them resolve; tests then writes one integration
                 test per call into another module, a file per module.

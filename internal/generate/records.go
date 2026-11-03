@@ -8,6 +8,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/semver"
+	"github.com/SpecArch/specarch/internal/transition"
 	"github.com/SpecArch/specarch/internal/validate"
 )
 
@@ -179,6 +180,22 @@ func Changes(root *yaml.Node, relRoot string, impls []Implementation, state *Sta
 				lines = append(lines, "Fixed in "+rel+".")
 			}
 			d.para(strings.Join(lines, " "))
+		}
+	}
+
+	// A workflow that keeps its as-is beside the to-be while a business
+	// process changes: what moving to the to-be reaches (ADR-233). Left
+	// out when none does, so a register without one reads as before.
+	if ts := transition.Of(root); len(ts) > 0 {
+		d.section("Transitions")
+		d.para(fmt.Sprintf("%s the as-is beside the to-be while the business process changes. Under each stands what moving from the as-is to the to-be adds, changes and removes, from the specification as it is now: the workflow's trigger, subject and messages, its steps, the roles that approve them or do their tasks, the operations it calls, and the pages and tests that rest on it. The generators write the to-be, and the as-is with `specarch generate --as-is`.",
+			oneOrMany(len(ts), "One workflow keeps", fmt.Sprintf("%d workflows keep", len(ts)))))
+		for _, tr := range ts {
+			d.heading(3, "Workflow "+tr.Workflow)
+			for _, part := range tr.Parts {
+				d.line("- %s: %s.", capitalise(part.Name), strings.Join(part.Items, "; "))
+			}
+			d.blank()
 		}
 	}
 	return d.String()

@@ -893,7 +893,7 @@ redefined.
 | `token`, `calls`, `middlewares`, `refusals`, `dependency` on a gateway | SpecArch | as on an operation, a middleware and a server: the token verified, the dependencies called besides the forwards, the middlewares run first, the answers given in place of the service's, the dependency a row forwards to |
 | `menus`, `title`, `page`, `items` | SpecArch | the navigation: a tree whose leaves open pages |
 | `routes`, `serves`, `contentSecurityPolicy`, `caching`, `store`, `maxAgeSeconds`, `immutable` | SpecArch; the directives and sources CSP Level 3's, `nonce` for its per-response nonce, the caching words RFC 9111's and RFC 8246's | the fixed routes a server answers beside its operations: the application's document, the files of a folder, a health check, each with its path, permission, policy and caching (ADR-216) |
-| `workflows`, `trigger`, `subject`, `steps`, `approvers`, `performers`, `deadline`, `onDeadline`, `escalateTo`, `branches`, `onFailure`, `compensatedBy`, `after`, `at`, `message` | BPMN 2.0, a subset with no loops and no parallel paths | a request that finishes after people approve it or work on it: an approval or a task is a user task with its potential owners and a timer, an operation step a service task, a decision an exclusive gateway, a wait an intermediate catch event, a failure an error boundary event, `compensatedBy` a compensation handler |
+| `workflows`, `trigger`, `subject`, `steps`, `approvers`, `performers`, `deadline`, `onDeadline`, `escalateTo`, `branches`, `onFailure`, `compensatedBy`, `after`, `at`, `message`, `asIs` | BPMN 2.0, a subset with no loops and no parallel paths | a request that finishes after people approve it or work on it: an approval or a task is a user task with its potential owners and a timer, an operation step a service task, a decision an exclusive gateway, a wait an intermediate catch event, a failure an error boundary event, `compensatedBy` a compensation handler |
 | `views`, `from`, `path`, `count`, `rows` | SpecArch, after the SQL view of ISO/IEC 9075 | a read model: an entity's row with fields read through its relations, counts and the rows of a one-to-many relation added, never written |
 | `schemas` | OpenAPI 3, `components.schemas` | value objects: named object schemas with no key and no table, data passed around but not stored |
 | `errors`, `status`, `title`, `condition`, `remedy`, `type`, `problem` | RFC 9457, Problem Details for HTTP APIs | the catalogue of problem types; `condition` and `remedy`, what the person who meets the problem does next (ADR-160), are SpecArch's, the standard's other members are the document's own at run time |
@@ -2259,6 +2259,46 @@ operation step with `onFailure`, critical, each case where the request
 ends after a step with `compensatedBy` naming the operation that undoes
 it. Parallel approvals, a number of approvals out of a pool and loops are
 outside the subset; a workflow that needs one is written with a question.
+
+#### The as-is beside the to-be
+
+While a business process changes, the workflow keeps the process the
+business runs today under `asIs`, in the workflow's shape without `asIs`,
+and its own keys are the to-be, the process the team builds (ADR-233):
+
+    refund:
+      description: A large refund is approved by a manager; the funds are held, then paid.
+      trigger: askRefund
+      subject: Refund
+      steps:
+        - { name: route, kind: decision, branches: [{ when: "amountCents > 10000", to: approve }, { otherwise: true, to: hold }] }
+        - { name: approve, kind: approval, approvers: [manager], permission: refunds.approve, deadline: P2D, onDeadline: refuse }
+        - { name: hold, kind: operation, operation: holdFunds, compensatedBy: releaseFunds }
+        - { name: pay, kind: operation, operation: payRefund }
+      asIs:
+        description: A clerk checks every refund and approves it; it is paid, and a notice is faxed.
+        trigger: askRefund
+        subject: Refund
+        steps:
+          - { name: check, kind: task, performers: [clerk], permission: refunds.check }
+          - { name: approve, kind: approval, approvers: [clerk], permission: refunds.approve, deadline: P5D, onDeadline: refuse }
+          - { name: pay, kind: operation, operation: payRefund }
+          - { name: notify, kind: operation, operation: faxNotice }
+
+The validator checks the as-is by the workflow's rules, at its pointer
+under `/workflows/<name>/asIs`, and an `asIs` inside it is refused
+(`schema`). Its operations, roles, permissions, messages and subject are
+the specification's own, so what the to-be stops using stays declared
+until `asIs` is removed. The derived cases come from the to-be only, and
+a test's `workflow` or an inbox page's `workflow` and `step` mean the
+to-be. The changes document writes a section Transitions, and
+`specarch diff` a `transition` line per part, with what moving from the
+as-is to the to-be adds, changes and removes: the workflow's trigger,
+subject and messages, its steps, the approvers and performers at each
+step, the operations it calls, the forms and inboxes that rest on it and
+the tests about it or an operation it calls or no longer calls. Every
+generator writes the to-be; `specarch generate --as-is` writes the as-is.
+When the change is done, remove `asIs`.
 
 ### Maker-checker on a page
 

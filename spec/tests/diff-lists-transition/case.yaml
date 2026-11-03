@@ -1,0 +1,8 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 0
+standardOutput: |
+  patch changed #/workflows/refund
+  transition #/workflows/refund: workflow: publishes refunds/RefundPaid at its end
+  transition #/workflows/refund: steps: adds route (decision); adds hold (operation); removes check (task); removes notify (operation); changes approve (approvers, deadline)
+  transition #/workflows/refund: approvers and performers: adds manager as approver at approve; removes clerk as approver at approve; removes clerk as performer at check
+  transition #/workflows/refund: operations: calls holdFunds; calls releaseFunds; no longer calls faxNotice

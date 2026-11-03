@@ -59,7 +59,8 @@ commands:
       environment given with `--environment`, and whether its entry says
       the build shows the trace; ADR-222), `target`, `root` (the root
       file's path), `specification` (the merged, validated specification as plain
-      values), `implementations` (each implementation file as `file`,
+      values, each workflow its to-be with no asIs, or its as-is with
+      `--as-is`), `implementations` (each implementation file as `file`,
       `content`, the target's `settings` from it, and `idioms`, the idioms
       it uses, each with its `name`, `version`, how it applies (`as`:
       shipped, overridden, project or excluded), the `content` of the idiom
@@ -238,6 +239,9 @@ commands:
       dry-run:
         description: Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check.
         schema: { type: boolean, default: false }
+      as-is:
+        description: Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-233).
+        schema: { type: boolean, default: false }
     reads:
       - { path: "{paths}", description: The specifications and their implementation files. }
       - { path: "records/approvals/<version>.yaml", description: "The approval of the specification's version, beside its folder." }
@@ -263,7 +267,7 @@ commands:
       "1": "Settle the errors, answer the questions that block the target, or approve the specification with specarch approve; with --check, run it once without --check to write the current output."
       "2": "Put the plug-in specarch-gen-<target> on PATH, name an output folder for the target in an implementation file, give --out for a build that shows the trace, or correct the command line, and run it again."
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-120, SA-46, SA-58, SA-59, SA-61, SA-65, SA-66, SA-102, SA-116, SA-57]
+    satisfies: [SA-7, SA-8, SA-14, SA-20, SA-31, SA-120, SA-46, SA-58, SA-59, SA-61, SA-65, SA-66, SA-102, SA-116, SA-57, SA-128]
     why: |
       One program with verbs, and generators as plug-ins found on PATH, is
       the pattern of protoc, git and kubectl: one name to learn and install,

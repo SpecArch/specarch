@@ -1,0 +1,15 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Route a refund by its amount and hold the funds before paying
+raisedBy: owner
+raised: "2026-11-02"
+phase: production
+type: perfective
+urgency: normal
+reason: A clerk checking every refund holds up the small ones, and a refund paid without a hold can be paid twice.
+cause: changed
+affects: { changes: ["#/workflows/refund"] }
+impact: minor
+decision: { by: owner, date: "2026-11-03", outcome: approved, why: The as-is stays beside the to-be until the desks have moved. }
+status: approved

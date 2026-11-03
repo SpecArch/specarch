@@ -3427,6 +3427,10 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "asIs": {
+          "description": "The workflow as the business runs it today, while it moves to this one: the as-is, kept beside the to-be until the change is done, then removed. It has the to-be's shape without asIs, and names operations, roles, permissions, messages and its subject in the same specification. The validator checks it as it checks the to-be, and derives no test cases from it; the generators write the to-be, or the as-is with specarch generate --as-is; the changes document and specarch diff list what moving from it to the to-be adds, changes and removes.",
+          "$ref": "#/$defs/workflowAsIs"
+        },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
         },
@@ -3444,6 +3448,65 @@
         },
         "audience": {
           "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "description",
+        "trigger",
+        "subject",
+        "steps"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "workflowAsIs": {
+      "description": "A workflow as the business runs it before a change: the shape of a workflow without asIs, so an as-is never holds another.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "trigger": {
+          "description": "The operationId that starts the workflow. Its request body is the workflow's form, and it answers 202: the request is accepted and waits.",
+          "$ref": "#/$defs/memberName"
+        },
+        "subject": {
+          "description": "The entity that holds the request while it waits.",
+          "$ref": "#/$defs/typeName"
+        },
+        "steps": {
+          "description": "The steps in order, after BPMN 2.0: an approval or a task is a user task with its potential owners and a timer, an operation a service task, a decision an exclusive gateway, a wait an intermediate catch event. A refusal at an approval ends the request; a decision's branch or a failure goes on at a later step, never an earlier one.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workflowStep"
+          },
+          "minItems": 1
+        },
+        "emits": {
+          "description": "The channel messages the workflow publishes when it ends, approved or refused, as channel/Message, so a page waiting on it knows how the end is announced.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*/[A-Z][A-Za-z0-9]*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
         }
       },
       "required": [

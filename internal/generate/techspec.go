@@ -1977,6 +1977,9 @@ func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
 	if emits := strs(w, "emits"); len(emits) > 0 {
 		text += " When it ends it publishes " + joinAnd(emits) + "."
 	}
+	if get(w, "asIs") != nil {
+		text += " This is the to-be: the business runs the as-is, kept under asIs, until the change is done, and the changes document lists what moving to the to-be reaches."
+	}
 	d.para(text)
 }
 

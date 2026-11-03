@@ -841,8 +841,10 @@ func (c *checker) checkAccess(d *design) {
 		}
 	}
 	for _, w := range source.Pairs(source.Child(d.root, "workflows")) {
-		for i, st := range source.Items(source.Child(w.Value, "steps")) {
-			use(source.Child(st, "permission"), source.Pointer("workflows", w.Key.Value, "steps", fmt.Sprint(i), "permission"), "workflow "+w.Key.Value)
+		for _, v := range workflowVariants(w) {
+			for i, st := range source.Items(source.Child(v.node, "steps")) {
+				use(source.Child(st, "permission"), source.Pointer(append(append([]string{}, v.base...), "steps", fmt.Sprint(i), "permission")...), v.label)
+			}
 		}
 	}
 	for name, r := range d.roles {

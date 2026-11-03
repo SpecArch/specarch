@@ -27,6 +27,7 @@ import (
 	"github.com/SpecArch/specarch/internal/problems"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/transition"
 	"github.com/SpecArch/specarch/internal/validate"
 	"github.com/SpecArch/specarch/internal/xref"
 )
@@ -173,7 +174,7 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
-	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved", "dry-run"}, args)
+	target, out, check, paths, set, msg := parseTargetArgs("generate", nil, []string{"unapproved", "dry-run", "as-is"}, args)
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
@@ -306,6 +307,10 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprintf(stderr, "specarch generate: %d of %d: running %s for %s into %s\n", step, runs, g.name, l.spec.Dir, folder)
 			}
 			req, notes := newPluginRequest(l, target, folder, g.impls)
+			if set["as-is"] {
+				// Each workflow's as-is in its place (ADR-233).
+				req.Specification = transition.Select(metamodel.Normalized(l.spec.Value), true)
+			}
 			for _, n := range notes {
 				fmt.Fprintf(stderr, "specarch generate: %s\n", n)
 			}
@@ -549,9 +554,11 @@ func stackName(impl *yaml.Node) string {
 // newPluginRequest is the request a plug-in gets for one specification and
 // the implementation files that reach it, and the files it could not read
 // for it, each with why and what the plug-in is not told.
+// The specification it carries has each workflow's to-be, with no asIs:
+// the generators write the to-be unless told otherwise (ADR-233).
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) (pluginRequest, []string) {
 	existing, notes := existingFiles(folder)
-	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Digest: specDigest(l.spec.Dir), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: metamodel.Normalized(l.spec.Value), Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
+	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Digest: specDigest(l.spec.Dir), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: transition.Select(metamodel.Normalized(l.spec.Value), false), Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
 	req.APIDialect, req.APIEnvelopes = apiDialectOf(l.spec)
 	for dep, other := range validate.GivenDependencies(l.spec, readGiven(l, target)) {
 		if req.Dependencies == nil {

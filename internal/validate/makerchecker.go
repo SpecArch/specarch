@@ -42,9 +42,11 @@ func (c *checker) checkMakerChecker(d *design) {
 	workflows := map[string]*yaml.Node{}
 	for _, w := range source.Pairs(source.Child(d.root, "workflows")) {
 		workflows[w.Key.Value] = w.Value
-		for i, e := range source.Items(source.Child(w.Value, "emits")) {
-			if d.message(e.Value) == nil {
-				c.add(e, source.Pointer("workflows", w.Key.Value, "emits", fmt.Sprint(i)), RuleEmits, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", e.Value)
+		for _, v := range workflowVariants(w) {
+			for i, e := range source.Items(source.Child(v.node, "emits")) {
+				if d.message(e.Value) == nil {
+					c.add(e, source.Pointer(append(append([]string{}, v.base...), "emits", fmt.Sprint(i))...), RuleEmits, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", e.Value)
+				}
 			}
 		}
 	}

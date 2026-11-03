@@ -17,6 +17,12 @@ after it. The impact follows Semantic Versioning: an element inside
 the system is patch whatever happens to it; on the public interface
 an addition is minor, a removal major, and a change the largest of
 its changes, a change that cannot be shown safe counting as major.
+After the change list, for each workflow of the new version that
+keeps its as-is under asIs, one line per part the move from the
+as-is to the to-be reaches, as `transition <pointer>: <part>:
+<items>`, the items joined by semicolons: the parts workflow, steps,
+approvers and performers, operations, pages and tests, the same
+list the changes document writes (ADR-233).
 
 Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
@@ -46,7 +52,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 
 ## Standard output
 
-The errors of an invalid specification, one line each, then the change list, then one line per failed check.
+The errors of an invalid specification, one line each, then the change list, then the transition lines of each workflow that keeps an as-is, then one line per failed check.
 
 ## Standard error
 

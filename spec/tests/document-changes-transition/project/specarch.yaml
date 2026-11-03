@@ -1,0 +1,109 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0, profile: lean }
+requirements:
+  CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
+entities:
+  Refund:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      amountCents: { type: integer, format: int32 }
+    required: [id, amountCents]
+    primaryKey: [id]
+    satisfies: [CASE-1]
+channels:
+  refunds:
+    description: What the payment service says of a refund.
+    messages:
+      RefundPaid: { summary: A refund reached the member's account., payload: { $ref: "#/entities/Refund" } }
+    satisfies: [CASE-1]
+workflows:
+  refund:
+    description: A large refund is approved by a manager; the funds are held, then paid.
+    trigger: askRefund
+    subject: Refund
+    steps:
+      - name: route
+        kind: decision
+        branches:
+          - { when: "amountCents > 10000", to: approve }
+          - { otherwise: true, to: hold }
+      - { name: approve, kind: approval, approvers: [manager], permission: refunds.approve, deadline: P2D, onDeadline: refuse }
+      - { name: hold, kind: operation, operation: holdFunds, compensatedBy: releaseFunds }
+      - { name: pay, kind: operation, operation: payRefund }
+    emits: [refunds/RefundPaid]
+    asIs:
+      description: A clerk checks every refund and approves it; it is paid, and a notice is faxed.
+      trigger: askRefund
+      subject: Refund
+      steps:
+        - { name: check, kind: task, performers: [clerk], permission: refunds.check }
+        - { name: approve, kind: approval, approvers: [clerk], permission: refunds.approve, deadline: P5D, onDeadline: refuse }
+        - { name: pay, kind: operation, operation: payRefund }
+        - { name: notify, kind: operation, operation: faxNotice }
+    satisfies: [CASE-1]
+paths:
+  /refunds:
+    post:
+      operationId: askRefund
+      summary: Ask for a refund
+      permission: refunds.ask
+      responses:
+        "202": { description: The request waits. }
+      satisfies: [CASE-1]
+    get:
+      operationId: listRefunds
+      summary: The refunds waiting for approval
+      permission: refunds.approve
+      listOf:
+        entity: Refund
+        pageSize: { default: 20, maximum: 50 }
+      responses:
+        "200":
+          description: The waiting refunds.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Refund" } }
+      satisfies: [CASE-1]
+  /refunds/hold:
+    post: { operationId: holdFunds, summary: Hold the funds, permission: refunds.pay, responses: { "200": { description: Held. } }, satisfies: [CASE-1] }
+  /refunds/release:
+    post: { operationId: releaseFunds, summary: Release the funds, permission: refunds.pay, responses: { "200": { description: Released. } }, satisfies: [CASE-1] }
+  /refunds/pay:
+    post: { operationId: payRefund, summary: Pay the refund, permission: refunds.pay, responses: { "200": { description: Paid. } }, satisfies: [CASE-1] }
+  /refunds/fax:
+    post: { operationId: faxNotice, summary: Fax the refund's notice, permission: refunds.pay, responses: { "200": { description: Faxed. } }, satisfies: [CASE-1] }
+permissions:
+  refunds.ask: { description: Ask for a refund. }
+  refunds.approve: { description: Approve a refund. }
+  refunds.check: { description: Check a refund. }
+  refunds.pay: { description: Pay a refund. }
+roles:
+  desk: { description: The desk., permissions: [refunds.ask] }
+  clerk: { description: The clerk., permissions: [refunds.approve, refunds.check] }
+  manager: { description: The manager., permissions: [refunds.approve] }
+  payments: { description: The payment service., permissions: [refunds.pay] }
+pages:
+  refund-form:
+    kind: form
+    title: Ask for a refund
+    route: /refunds/new
+    entity: Refund
+    permission: refunds.ask
+    submit: askRefund
+    fields: [amountCents]
+    onSubmitted: { navigate: refunds-inbox, message: Sent for approval. }
+    satisfies: [CASE-1]
+  refunds-inbox:
+    kind: list
+    title: Refunds to approve
+    route: /refunds
+    entity: Refund
+    permission: refunds.approve
+    source: listRefunds
+    inbox: { workflow: refund, step: approve }
+    columns: [amountCents]
+    satisfies: [CASE-1]
+tests:
+  refund-succeeds: { workflow: refund, level: system, scenario: golden, given: "a caller with refunds.ask", when: "a request is made through askRefund and is approved at approve", then: "it answers 202, then holdFunds and payRefund is called, and the request ends approved" }
+  fax-notice-succeeds: { operation: faxNotice, level: system, scenario: golden, given: "a caller with refunds.pay", when: "faxNotice is called", then: "it answers 200: Faxed." }

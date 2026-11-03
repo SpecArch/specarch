@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "a specification with no approval record whose workflow keeps its as-is; specarch-gen-bpmn built from this repository on PATH"
+when: "generate bpmn is run with --unapproved and --as-is"
+then: "it writes refund.bpmn and refund.svg of the as-is in the workflow's place, with the clerk's check and approval, the payment and the notice, and nothing of the to-be's decision or hold; and exits 0"
+verifies: [SA-128]

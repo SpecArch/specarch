@@ -944,8 +944,10 @@ extension Checker {
             }
         }
         for w in pairs(d.root.child("workflows")) {
-            for (i, st) in items(w.value.child("steps")).enumerated() {
-                use(st.child("permission"), pointer("workflows", w.key.value, "steps", "\(i)", "permission"), "workflow " + w.key.value)
+            for v in workflowVariants(w) {
+                for (i, st) in items(v.node.child("steps")).enumerated() {
+                    use(st.child("permission"), pointer(v.base + ["steps", "\(i)", "permission"]), v.label)
+                }
             }
         }
         for (name, r) in d.roles {

@@ -821,6 +821,12 @@ after it. The impact follows Semantic Versioning: an element inside
 the system is patch whatever happens to it; on the public interface
 an addition is minor, a removal major, and a change the largest of
 its changes, a change that cannot be shown safe counting as major.
+After the change list, for each workflow of the new version that
+keeps its as-is under asIs, one line per part the move from the
+as-is to the to-be reaches, as `transition <pointer>: <part>:
+<items>`, the items joined by semicolons: the parts workflow, steps,
+approvers and performers, operations, pages and tests, the same
+list the changes document writes (ADR-233).
 
 Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
@@ -860,7 +866,7 @@ It reads:
 
 It writes no file.
 
-On standard output: The errors of an invalid specification, one line each, then the change list, then one line per failed check.
+On standard output: The errors of an invalid specification, one line each, then the change list, then the transition lines of each workflow that keeps an as-is, then one line per failed check.
 
 On standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -1042,7 +1048,13 @@ as it is now: the elements its pointers name, the tests about them,
 the pages, operations, commands and channels that read an entity or
 enum among them, the code targets whose reads take a section it
 touches, the documents that show one, and the approval it voids
-(ADR-083). Every document made from the specification shows an open
+(ADR-083). When a workflow keeps its as-is under asIs, a section
+Transitions follows the defects: per workflow, what moving from the
+as-is to the to-be adds, changes and removes in its trigger,
+subject and messages, its steps, the approvers and performers at
+each step, the operations it calls, the forms and inboxes that rest
+on it and the tests about it or an operation it calls or no longer
+calls (ADR-233). Every document made from the specification shows an open
 change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was
@@ -3320,7 +3332,8 @@ can name the build; ADR-083), `environment` and `trace` (the
 environment given with `--environment`, and whether its entry says
 the build shows the trace; ADR-222), `target`, `root` (the root
 file's path), `specification` (the merged, validated specification as plain
-values), `implementations` (each implementation file as `file`,
+values, each workflow its to-be with no asIs, or its as-is with
+`--as-is`), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms
 it uses, each with its `name`, `version`, how it applies (`as`:
 shipped, overridden, project or excluded), the `content` of the idiom
@@ -3461,7 +3474,7 @@ the target up.
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
 ```
-specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--environment <environment>] [--unapproved] [--dry-run]
+specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--environment <environment>] [--unapproved] [--dry-run] [--as-is]
 ```
 
 Anyone who has the program runs it.
@@ -3479,6 +3492,7 @@ Anyone who has the program runs it.
 | `--environment <environment>` | The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, section's, field's, column's and action's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds: a build for an environment that shows the trace is refused with status 2 unless `--out` names its folder, since the two cannot share one folder under `--check`; the refusal names the environment and the folder it would have written into. |  |
 | `--unapproved` | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |  |
 | `--dry-run` | Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check. |  |
+| `--as-is` | Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-233). |  |
 
 It reads:
 

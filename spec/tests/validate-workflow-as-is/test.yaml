@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on the lean profile whose workflow refund, the to-be, routes by amount, has a manager approve, holds the funds and pays, and keeps under asIs the as-is, where a clerk checks, approves, pays and faxes a notice, each naming operations, roles and permissions of the same specification"
+when: "validate is run"
+then: "it reports no error at either variant, derives the workflow's cases from the to-be only, and exits 0"
+verifies: [SA-128]

@@ -15,6 +15,7 @@ import (
 	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/transition"
 	"github.com/SpecArch/specarch/internal/validate"
 )
 
@@ -67,6 +68,13 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 	changes := diff.Compare(oldSpec.Root, newSpec.Root)
 	for _, c := range changes {
 		fmt.Fprintln(stdout, c.String())
+	}
+	// What moving each workflow of the new version from its as-is to its
+	// to-be reaches, one line per part (ADR-233).
+	for _, t := range transition.Of(newSpec.Root) {
+		for _, line := range t.Lines() {
+			fmt.Fprintf(stdout, "transition #%s: %s\n", t.Pointer, line)
+		}
 	}
 	var problems []string
 	warnings := 0

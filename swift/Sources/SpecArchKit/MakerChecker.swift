@@ -48,8 +48,10 @@ extension Checker {
         var workflows: [String: YNode] = [:]
         for w in pairs(d.root.child("workflows")) {
             workflows[w.key.value] = w.value
-            for (i, e) in items(w.value.child("emits")).enumerated() where d.message(e.value) == nil {
-                add(e, pointer("workflows", w.key.value, "emits", "\(i)"), .emits, "\(e.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
+            for v in workflowVariants(w) {
+                for (i, e) in items(v.node.child("emits")).enumerated() where d.message(e.value) == nil {
+                    add(e, pointer(v.base + ["emits", "\(i)"]), .emits, "\(e.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
+                }
             }
         }
         let triggers = d.workflowTriggers()

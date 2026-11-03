@@ -4,108 +4,117 @@ import Foundation
 // subset of BPMN 2.0 (docs/meta-model-0.2.md, Workflows).
 
 extension Checker {
-    /// Checks that a workflow starts from an operation that answers 202,
-    /// holds its request in an entity, and that its steps name roles that
-    /// grant the approval's permission, operations that exist and later
-    /// approvals to escalate to, each step under its own name.
+    /// Checks each workflow, and the as-is a workflow keeps beside it
+    /// during a transition, by the same rules at its own pointer
+    /// (ADR-233).
     func checkWorkflows(_ d: Design) {
         var opNames: [String: YNode] = [:]
         for (id, o) in d.operations { opNames[id] = o.node }
         for w in pairs(d.root.child("workflows")) {
-            let name = w.key.value
-            var triggerPerm = ""
-            if let t = w.value.child("trigger") {
-                if let o = d.operations[t.value] {
-                    // With no responses at all, the operation's answers are
-                    // not known yet, which the missing key itself reports.
-                    if let responses = o.node.child("responses"), responses.child("202") == nil {
-                        add(t, pointer("workflows", name, "trigger"), .workflow, "operation \(t.value) does not answer 202; a workflow's trigger accepts the request and answers 202 while it waits for approval")
-                    } else {
-                        triggerPerm = str(o.node.child("permission"))
-                    }
+            for v in workflowVariants(w) {
+                checkWorkflow(d, opNames, v.node, v.base, v.label)
+            }
+        }
+    }
+
+    /// Checks that a workflow starts from an operation that answers 202,
+    /// holds its request in an entity, and that its steps name roles that
+    /// grant the approval's permission, operations that exist and later
+    /// approvals to escalate to, each step under its own name. base is the
+    /// workflow's pointer, label how a message names it.
+    func checkWorkflow(_ d: Design, _ opNames: [String: YNode], _ wf: YNode, _ base: [String], _ label: String) {
+        var triggerPerm = ""
+        if let t = wf.child("trigger") {
+            if let o = d.operations[t.value] {
+                // With no responses at all, the operation's answers are
+                // not known yet, which the missing key itself reports.
+                if let responses = o.node.child("responses"), responses.child("202") == nil {
+                    add(t, pointer(base + ["trigger"]), .workflow, "operation \(t.value) does not answer 202; a workflow's trigger accepts the request and answers 202 while it waits for approval")
                 } else {
-                    add(t, pointer("workflows", name, "trigger"), .workflow, "\(t.value) is not an operationId of the specification\(suggest(t.value, opNames))")
+                    triggerPerm = str(o.node.child("permission"))
                 }
+            } else {
+                add(t, pointer(base + ["trigger"]), .workflow, "\(t.value) is not an operationId of the specification\(suggest(t.value, opNames))")
             }
-            if let s = w.value.child("subject"), d.entities[s.value] == nil {
-                add(s, pointer("workflows", name, "subject"), .workflow, "\(s.value) is not an entity of the specification\(suggest(s.value, d.entities))")
+        }
+        if let s = wf.child("subject"), d.entities[s.value] == nil {
+            add(s, pointer(base + ["subject"]), .workflow, "\(s.value) is not an entity of the specification\(suggest(s.value, d.entities))")
+        }
+        let steps = items(wf.child("steps"))
+        let env = d.subjectEnv(wf)
+        var seen = Set<String>()
+        for (i, st) in steps.enumerated() {
+            let at = base + ["steps", "\(i)"]
+            let stepName = st.child("name")
+            if let stepName {
+                if seen.contains(stepName.value) {
+                    add(stepName, pointer(at + ["name"]), .workflow, "\(stepName.value) names two steps of \(label); give each step its own name")
+                }
+                seen.insert(stepName.value)
             }
-            let steps = items(w.value.child("steps"))
-            let env = d.subjectEnv(w.value)
-            var seen = Set<String>()
-            for (i, st) in steps.enumerated() {
-                let at = ["workflows", name, "steps", "\(i)"]
-                let stepName = st.child("name")
-                if let stepName {
-                    if seen.contains(stepName.value) {
-                        add(stepName, pointer(at + ["name"]), .workflow, "\(stepName.value) names two steps of workflow \(name); give each step its own name")
-                    }
-                    seen.insert(stepName.value)
+            if let op = st.child("operation"), d.operations[op.value] == nil {
+                add(op, pointer(at + ["operation"]), .workflow, "\(op.value) is not an operationId of the specification\(suggest(op.value, opNames))")
+            }
+            let later = Array(steps[(i + 1)...])
+            switch str(st.child("kind")) {
+            case "approval":
+                checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the approval")
+                let perm = st.child("permission")
+                if let perm, !triggerPerm.isEmpty, perm.value == triggerPerm {
+                    add(perm, pointer(at + ["permission"]), .workflow, "\(perm.value) is the permission of the trigger too, so whoever may ask may also approve; give the approval a permission of its own")
                 }
-                if let op = st.child("operation"), d.operations[op.value] == nil {
-                    add(op, pointer(at + ["operation"]), .workflow, "\(op.value) is not an operationId of the specification\(suggest(op.value, opNames))")
+                if let perm, !triggerPerm.isEmpty, perm.value != triggerPerm {
+                    checkWorkflowSeparation(d, perm, pointer(at + ["permission"]), triggerPerm)
                 }
-                let later = Array(steps[(i + 1)...])
-                switch str(st.child("kind")) {
-                case "approval":
-                    checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the approval")
-                    let perm = st.child("permission")
-                    if let perm, !triggerPerm.isEmpty, perm.value == triggerPerm {
-                        add(perm, pointer(at + ["permission"]), .workflow, "\(perm.value) is the permission of the trigger too, so whoever may ask may also approve; give the approval a permission of its own")
-                    }
-                    if let perm, !triggerPerm.isEmpty, perm.value != triggerPerm {
-                        checkWorkflowSeparation(d, perm, pointer(at + ["permission"]), triggerPerm)
-                    }
-                    checkStepRoles(d, st, at, "approvers", "the approval", "approver")
-                    if let to = st.child("escalateTo"), !laterStep(later, "approval", to.value) {
-                        add(to, pointer(at + ["escalateTo"]), .workflow, "\(to.value) is not an approval step after \(str(stepName)); escalate to a later approval of the workflow")
-                    }
-                case "task":
-                    checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the task")
-                    checkStepRoles(d, st, at, "performers", "the task", "performer")
-                    if let to = st.child("escalateTo"), !laterStep(later, "task", to.value) {
-                        add(to, pointer(at + ["escalateTo"]), .workflow, "\(to.value) is not a task step after \(str(stepName)); escalate to a later task of the workflow")
-                    }
-                case "operation":
-                    if let comp = st.child("compensatedBy"), d.operations[comp.value] == nil {
-                        add(comp, pointer(at + ["compensatedBy"]), .workflow, "\(comp.value) is not an operationId of the specification\(suggest(comp.value, opNames))")
-                    }
-                    checkOneOf(st.child("onFailure"), at + ["onFailure"], "a failure goes on at a later step or ends the request", ["to", "end"])
-                    if let to = st.child("onFailure")?.child("to"), !laterStep(later, "", to.value) {
-                        add(to, pointer(at + ["onFailure", "to"]), .workflow, "\(to.value) is not a step after \(str(stepName)); a failure goes on at a later step of the workflow, or ends it with end: failed")
-                    }
-                case "decision":
-                    let branches = items(st.child("branches"))
-                    for (j, br) in branches.enumerated() {
-                        let bat = at + ["branches", "\(j)"]
-                        checkOneOf(br, bat, "a branch has a condition or is taken otherwise", ["when", "otherwise"])
-                        checkOneOf(br, bat, "a branch goes on at a later step or ends the request", ["to", "end"])
-                        if let env {
-                            checkCondition(br.child("when"), pointer(bat + ["when"]), "the branch's condition", env)
-                        }
-                        if let o = br.child("otherwise"), j != branches.count - 1 {
-                            add(o, pointer(bat + ["otherwise"]), .workflow, "otherwise is on branch \(j + 1) of \(branches.count) of \(str(stepName)); only the last branch is taken when none holds, so move it to the end")
-                        }
-                        if j == branches.count - 1, br.child("otherwise") == nil, let when = br.child("when") {
-                            add(when, pointer(bat + ["when"]), .workflow, "the last branch of \(str(stepName)) has a condition, so a request none of them holds for has nowhere to go; write otherwise: true in its place, or add a branch with otherwise")
-                        }
-                        if let to = br.child("to"), !laterStep(later, "", to.value) {
-                            add(to, pointer(bat + ["to"]), .workflow, "\(to.value) is not a step after \(str(stepName)); a branch goes on at a later step of the workflow, or ends it with end")
-                        }
-                    }
-                case "wait":
-                    checkOneOf(st, at, "a wait waits for one thing", ["message", "after", "at"])
-                    checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the wait")
-                    if let m = st.child("message"), d.message(m.value) == nil {
-                        add(m, pointer(at + ["message"]), .workflow, "\(m.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
-                    }
-                    if let moment = st.child("at"), moment.kind == .scalar, let env {
-                        let required = items(d.entities[str(w.value.child("subject"))]?.child("required")).map { $0.value }
-                        checkMoment(moment, pointer(at + ["at"]), env, required)
-                    }
-                default:
-                    break
+                checkStepRoles(d, st, at, "approvers", "the approval", "approver")
+                if let to = st.child("escalateTo"), !laterStep(later, "approval", to.value) {
+                    add(to, pointer(at + ["escalateTo"]), .workflow, "\(to.value) is not an approval step after \(str(stepName)); escalate to a later approval of the workflow")
                 }
+            case "task":
+                checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the task")
+                checkStepRoles(d, st, at, "performers", "the task", "performer")
+                if let to = st.child("escalateTo"), !laterStep(later, "task", to.value) {
+                    add(to, pointer(at + ["escalateTo"]), .workflow, "\(to.value) is not a task step after \(str(stepName)); escalate to a later task of the workflow")
+                }
+            case "operation":
+                if let comp = st.child("compensatedBy"), d.operations[comp.value] == nil {
+                    add(comp, pointer(at + ["compensatedBy"]), .workflow, "\(comp.value) is not an operationId of the specification\(suggest(comp.value, opNames))")
+                }
+                checkOneOf(st.child("onFailure"), at + ["onFailure"], "a failure goes on at a later step or ends the request", ["to", "end"])
+                if let to = st.child("onFailure")?.child("to"), !laterStep(later, "", to.value) {
+                    add(to, pointer(at + ["onFailure", "to"]), .workflow, "\(to.value) is not a step after \(str(stepName)); a failure goes on at a later step of the workflow, or ends it with end: failed")
+                }
+            case "decision":
+                let branches = items(st.child("branches"))
+                for (j, br) in branches.enumerated() {
+                    let bat = at + ["branches", "\(j)"]
+                    checkOneOf(br, bat, "a branch has a condition or is taken otherwise", ["when", "otherwise"])
+                    checkOneOf(br, bat, "a branch goes on at a later step or ends the request", ["to", "end"])
+                    if let env {
+                        checkCondition(br.child("when"), pointer(bat + ["when"]), "the branch's condition", env)
+                    }
+                    if let o = br.child("otherwise"), j != branches.count - 1 {
+                        add(o, pointer(bat + ["otherwise"]), .workflow, "otherwise is on branch \(j + 1) of \(branches.count) of \(str(stepName)); only the last branch is taken when none holds, so move it to the end")
+                    }
+                    if j == branches.count - 1, br.child("otherwise") == nil, let when = br.child("when") {
+                        add(when, pointer(bat + ["when"]), .workflow, "the last branch of \(str(stepName)) has a condition, so a request none of them holds for has nowhere to go; write otherwise: true in its place, or add a branch with otherwise")
+                    }
+                    if let to = br.child("to"), !laterStep(later, "", to.value) {
+                        add(to, pointer(bat + ["to"]), .workflow, "\(to.value) is not a step after \(str(stepName)); a branch goes on at a later step of the workflow, or ends it with end")
+                    }
+                }
+            case "wait":
+                checkOneOf(st, at, "a wait waits for one thing", ["message", "after", "at"])
+                checkTimeout(st.child("deadline"), pointer(at + ["deadline"]), .workflow, "the wait")
+                if let m = st.child("message"), d.message(m.value) == nil {
+                    add(m, pointer(at + ["message"]), .workflow, "\(m.value) does not name a channel and one of its messages; write channel/Message for a message declared under channels")
+                }
+                if let moment = st.child("at"), moment.kind == .scalar, let env {
+                    let required = items(d.entities[str(wf.child("subject"))]?.child("required")).map { $0.value }
+                    checkMoment(moment, pointer(at + ["at"]), env, required)
+                }
+            default:
+                break
             }
         }
     }
@@ -194,6 +203,24 @@ extension Checker {
 /// What follows when a step's deadline passes: refused when onDeadline says
 /// refuse, the escalation when it says escalate, and, while a question holds
 /// onDeadline open, where it goes.
+/// A workflow as one variant: the to-be, which is the workflow's entry, or
+/// the as-is it keeps under asIs during a transition.
+struct WorkflowVariant {
+    let node: YNode
+    let base: [String]  // its pointer
+    let label: String  // how a message names it
+}
+
+/// A workflow's to-be, then its as-is when it keeps one.
+func workflowVariants(_ w: Pair) -> [WorkflowVariant] {
+    let name = w.key.value
+    var out = [WorkflowVariant(node: w.value, base: ["workflows", name], label: "workflow " + name)]
+    if let asIs = w.value.child("asIs"), asIs.kind == .mapping {
+        out.append(WorkflowVariant(node: asIs, base: ["workflows", name, "asIs"], label: "the as-is of workflow " + name))
+    }
+    return out
+}
+
 private func deadlinePassed(_ st: YNode, _ refused: String) -> String {
     switch str(st.child("onDeadline")) {
     case "escalate": return "the request moves on to " + str(st.child("escalateTo"))

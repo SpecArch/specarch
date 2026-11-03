@@ -174,7 +174,13 @@ as it is now: the elements its pointers name, the tests about them,
 the pages, operations, commands and channels that read an entity or
 enum among them, the code targets whose reads take a section it
 touches, the documents that show one, and the approval it voids
-(ADR-083). Every document made from the specification shows an open
+(ADR-083). When a workflow keeps its as-is under asIs, a section
+Transitions follows the defects: per workflow, what moving from the
+as-is to the to-be adds, changes and removes in its trigger,
+subject and messages, its steps, the approvers and performers at
+each step, the operations it calls, the forms and inboxes that rest
+on it and the tests about it or an operation it calls or no longer
+calls (ADR-233). Every document made from the specification shows an open
 change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was

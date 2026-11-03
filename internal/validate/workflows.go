@@ -14,107 +14,136 @@ import (
 // Workflows: requests that finish after people approve them, a sequential
 // subset of BPMN 2.0 (docs/meta-model-0.2.md, Workflows).
 
-// checkWorkflows checks that a workflow starts from an operation that
-// answers 202, holds its request in an entity, and that its steps name
-// roles that grant the approval's permission, operations that exist and
-// later approvals to escalate to, each step under its own name.
+// checkWorkflows checks each workflow, and the as-is a workflow keeps
+// beside it during a transition, by the same rules at its own pointer
+// (ADR-233).
 func (c *checker) checkWorkflows(d *design) {
 	opNames := map[string]*yaml.Node{}
 	for id, o := range d.operations {
 		opNames[id] = o.node
 	}
 	for _, w := range source.Pairs(source.Child(d.root, "workflows")) {
-		name := w.Key.Value
-		triggerPerm := ""
-		if t := source.Child(w.Value, "trigger"); t != nil {
-			o, ok := d.operations[t.Value]
-			switch {
-			case !ok:
-				c.add(t, source.Pointer("workflows", name, "trigger"), RuleWorkflow, "%s is not an operationId of the specification%s", t.Value, suggest(t.Value, opNames))
-			case source.Child(o.node, "responses") != nil && source.Child(source.Child(o.node, "responses"), "202") == nil:
-				// With no responses at all, the operation's answers are not
-				// known yet, which the missing key itself reports.
-				c.add(t, source.Pointer("workflows", name, "trigger"), RuleWorkflow, "operation %s does not answer 202; a workflow's trigger accepts the request and answers 202 while it waits for approval", t.Value)
-			default:
-				triggerPerm = source.Str(source.Child(o.node, "permission"))
-			}
+		for _, v := range workflowVariants(w) {
+			c.checkWorkflow(d, opNames, v.node, v.base, v.label)
 		}
-		if s := source.Child(w.Value, "subject"); s != nil && d.entities[s.Value] == nil {
-			c.add(s, source.Pointer("workflows", name, "subject"), RuleWorkflow, "%s is not an entity of the specification%s", s.Value, suggest(s.Value, d.entities))
+	}
+}
+
+// workflowVariant is a workflow as one variant: the to-be, which is the
+// workflow's entry, or the as-is it keeps under asIs during a transition.
+type workflowVariant struct {
+	node  *yaml.Node
+	base  []string // its pointer
+	label string   // how a message names it
+}
+
+// workflowVariants lists a workflow's to-be, then its as-is when it keeps
+// one.
+func workflowVariants(w source.Pair) []workflowVariant {
+	name := w.Key.Value
+	out := []workflowVariant{{w.Value, []string{"workflows", name}, "workflow " + name}}
+	if asIs := source.Deref(source.Child(w.Value, "asIs")); asIs != nil && asIs.Kind == yaml.MappingNode {
+		out = append(out, workflowVariant{asIs, []string{"workflows", name, "asIs"}, "the as-is of workflow " + name})
+	}
+	return out
+}
+
+// checkWorkflow checks that a workflow starts from an operation that
+// answers 202, holds its request in an entity, and that its steps name
+// roles that grant the approval's permission, operations that exist and
+// later approvals to escalate to, each step under its own name. base is
+// the workflow's pointer, label how a message names it.
+func (c *checker) checkWorkflow(d *design, opNames map[string]*yaml.Node, wf *yaml.Node, base []string, label string) {
+	under := func(keys ...string) []string { return append(append([]string{}, base...), keys...) }
+	triggerPerm := ""
+	if t := source.Child(wf, "trigger"); t != nil {
+		o, ok := d.operations[t.Value]
+		switch {
+		case !ok:
+			c.add(t, source.Pointer(under("trigger")...), RuleWorkflow, "%s is not an operationId of the specification%s", t.Value, suggest(t.Value, opNames))
+		case source.Child(o.node, "responses") != nil && source.Child(source.Child(o.node, "responses"), "202") == nil:
+			// With no responses at all, the operation's answers are not
+			// known yet, which the missing key itself reports.
+			c.add(t, source.Pointer(under("trigger")...), RuleWorkflow, "operation %s does not answer 202; a workflow's trigger accepts the request and answers 202 while it waits for approval", t.Value)
+		default:
+			triggerPerm = source.Str(source.Child(o.node, "permission"))
 		}
-		steps := source.Items(source.Child(w.Value, "steps"))
-		env := d.subjectEnv(w.Value)
-		seen := map[string]bool{}
-		for i, st := range steps {
-			at := []string{"workflows", name, "steps", fmt.Sprint(i)}
-			stepName := source.Child(st, "name")
-			if stepName != nil {
-				if seen[stepName.Value] {
-					c.add(stepName, source.Pointer(append(at, "name")...), RuleWorkflow, "%s names two steps of workflow %s; give each step its own name", stepName.Value, name)
-				}
-				seen[stepName.Value] = true
+	}
+	if s := source.Child(wf, "subject"); s != nil && d.entities[s.Value] == nil {
+		c.add(s, source.Pointer(under("subject")...), RuleWorkflow, "%s is not an entity of the specification%s", s.Value, suggest(s.Value, d.entities))
+	}
+	steps := source.Items(source.Child(wf, "steps"))
+	env := d.subjectEnv(wf)
+	seen := map[string]bool{}
+	for i, st := range steps {
+		at := under("steps", fmt.Sprint(i))
+		stepName := source.Child(st, "name")
+		if stepName != nil {
+			if seen[stepName.Value] {
+				c.add(stepName, source.Pointer(append(at, "name")...), RuleWorkflow, "%s names two steps of %s; give each step its own name", stepName.Value, label)
 			}
-			if op := source.Child(st, "operation"); op != nil && d.operations[op.Value].node == nil {
-				c.add(op, source.Pointer(append(at, "operation")...), RuleWorkflow, "%s is not an operationId of the specification%s", op.Value, suggest(op.Value, opNames))
+			seen[stepName.Value] = true
+		}
+		if op := source.Child(st, "operation"); op != nil && d.operations[op.Value].node == nil {
+			c.add(op, source.Pointer(append(at, "operation")...), RuleWorkflow, "%s is not an operationId of the specification%s", op.Value, suggest(op.Value, opNames))
+		}
+		later := steps[i+1:]
+		switch source.Str(source.Child(st, "kind")) {
+		case "approval":
+			c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the approval")
+			perm := source.Child(st, "permission")
+			if perm != nil && triggerPerm != "" && perm.Value == triggerPerm {
+				c.add(perm, source.Pointer(append(at, "permission")...), RuleWorkflow, "%s is the permission of the trigger too, so whoever may ask may also approve; give the approval a permission of its own", perm.Value)
 			}
-			later := steps[i+1:]
-			switch source.Str(source.Child(st, "kind")) {
-			case "approval":
-				c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the approval")
-				perm := source.Child(st, "permission")
-				if perm != nil && triggerPerm != "" && perm.Value == triggerPerm {
-					c.add(perm, source.Pointer(append(at, "permission")...), RuleWorkflow, "%s is the permission of the trigger too, so whoever may ask may also approve; give the approval a permission of its own", perm.Value)
+			if perm != nil && triggerPerm != "" && perm.Value != triggerPerm {
+				c.checkWorkflowSeparation(d, perm, source.Pointer(append(at, "permission")...), triggerPerm)
+			}
+			c.checkStepRoles(d, st, at, "approvers", "the approval", "approver")
+			if to := source.Child(st, "escalateTo"); to != nil && !laterStep(later, "approval", to.Value) {
+				c.add(to, source.Pointer(append(at, "escalateTo")...), RuleWorkflow, "%s is not an approval step after %s; escalate to a later approval of the workflow", to.Value, source.Str(stepName))
+			}
+		case "task":
+			c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the task")
+			c.checkStepRoles(d, st, at, "performers", "the task", "performer")
+			if to := source.Child(st, "escalateTo"); to != nil && !laterStep(later, "task", to.Value) {
+				c.add(to, source.Pointer(append(at, "escalateTo")...), RuleWorkflow, "%s is not a task step after %s; escalate to a later task of the workflow", to.Value, source.Str(stepName))
+			}
+		case "operation":
+			if comp := source.Child(st, "compensatedBy"); comp != nil && d.operations[comp.Value].node == nil {
+				c.add(comp, source.Pointer(append(at, "compensatedBy")...), RuleWorkflow, "%s is not an operationId of the specification%s", comp.Value, suggest(comp.Value, opNames))
+			}
+			c.checkOneOf(source.Child(st, "onFailure"), append(append([]string{}, at...), "onFailure"), "a failure goes on at a later step or ends the request", "to", "end")
+			if to := source.Child(source.Child(st, "onFailure"), "to"); to != nil && !laterStep(later, "", to.Value) {
+				c.add(to, source.Pointer(append(at, "onFailure", "to")...), RuleWorkflow, "%s is not a step after %s; a failure goes on at a later step of the workflow, or ends it with end: failed", to.Value, source.Str(stepName))
+			}
+		case "decision":
+			branches := source.Items(source.Child(st, "branches"))
+			for j, br := range branches {
+				bat := append(append([]string{}, at...), "branches", fmt.Sprint(j))
+				c.checkOneOf(br, bat, "a branch has a condition or is taken otherwise", "when", "otherwise")
+				c.checkOneOf(br, bat, "a branch goes on at a later step or ends the request", "to", "end")
+				if env != nil {
+					c.checkCondition(source.Child(br, "when"), source.Pointer(append(bat, "when")...), "the branch's condition", env)
 				}
-				if perm != nil && triggerPerm != "" && perm.Value != triggerPerm {
-					c.checkWorkflowSeparation(d, perm, source.Pointer(append(at, "permission")...), triggerPerm)
+				if o := source.Child(br, "otherwise"); o != nil && j != len(branches)-1 {
+					c.add(o, source.Pointer(append(bat, "otherwise")...), RuleWorkflow, "otherwise is on branch %d of %d of %s; only the last branch is taken when none holds, so move it to the end", j+1, len(branches), source.Str(stepName))
 				}
-				c.checkStepRoles(d, st, at, "approvers", "the approval", "approver")
-				if to := source.Child(st, "escalateTo"); to != nil && !laterStep(later, "approval", to.Value) {
-					c.add(to, source.Pointer(append(at, "escalateTo")...), RuleWorkflow, "%s is not an approval step after %s; escalate to a later approval of the workflow", to.Value, source.Str(stepName))
+				if j == len(branches)-1 && source.Child(br, "otherwise") == nil && source.Child(br, "when") != nil {
+					c.add(source.Child(br, "when"), source.Pointer(append(bat, "when")...), RuleWorkflow, "the last branch of %s has a condition, so a request none of them holds for has nowhere to go; write otherwise: true in its place, or add a branch with otherwise", source.Str(stepName))
 				}
-			case "task":
-				c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the task")
-				c.checkStepRoles(d, st, at, "performers", "the task", "performer")
-				if to := source.Child(st, "escalateTo"); to != nil && !laterStep(later, "task", to.Value) {
-					c.add(to, source.Pointer(append(at, "escalateTo")...), RuleWorkflow, "%s is not a task step after %s; escalate to a later task of the workflow", to.Value, source.Str(stepName))
+				if to := source.Child(br, "to"); to != nil && !laterStep(later, "", to.Value) {
+					c.add(to, source.Pointer(append(bat, "to")...), RuleWorkflow, "%s is not a step after %s; a branch goes on at a later step of the workflow, or ends it with end", to.Value, source.Str(stepName))
 				}
-			case "operation":
-				if comp := source.Child(st, "compensatedBy"); comp != nil && d.operations[comp.Value].node == nil {
-					c.add(comp, source.Pointer(append(at, "compensatedBy")...), RuleWorkflow, "%s is not an operationId of the specification%s", comp.Value, suggest(comp.Value, opNames))
-				}
-				c.checkOneOf(source.Child(st, "onFailure"), append(append([]string{}, at...), "onFailure"), "a failure goes on at a later step or ends the request", "to", "end")
-				if to := source.Child(source.Child(st, "onFailure"), "to"); to != nil && !laterStep(later, "", to.Value) {
-					c.add(to, source.Pointer(append(at, "onFailure", "to")...), RuleWorkflow, "%s is not a step after %s; a failure goes on at a later step of the workflow, or ends it with end: failed", to.Value, source.Str(stepName))
-				}
-			case "decision":
-				branches := source.Items(source.Child(st, "branches"))
-				for j, br := range branches {
-					bat := append(append([]string{}, at...), "branches", fmt.Sprint(j))
-					c.checkOneOf(br, bat, "a branch has a condition or is taken otherwise", "when", "otherwise")
-					c.checkOneOf(br, bat, "a branch goes on at a later step or ends the request", "to", "end")
-					if env != nil {
-						c.checkCondition(source.Child(br, "when"), source.Pointer(append(bat, "when")...), "the branch's condition", env)
-					}
-					if o := source.Child(br, "otherwise"); o != nil && j != len(branches)-1 {
-						c.add(o, source.Pointer(append(bat, "otherwise")...), RuleWorkflow, "otherwise is on branch %d of %d of %s; only the last branch is taken when none holds, so move it to the end", j+1, len(branches), source.Str(stepName))
-					}
-					if j == len(branches)-1 && source.Child(br, "otherwise") == nil && source.Child(br, "when") != nil {
-						c.add(source.Child(br, "when"), source.Pointer(append(bat, "when")...), RuleWorkflow, "the last branch of %s has a condition, so a request none of them holds for has nowhere to go; write otherwise: true in its place, or add a branch with otherwise", source.Str(stepName))
-					}
-					if to := source.Child(br, "to"); to != nil && !laterStep(later, "", to.Value) {
-						c.add(to, source.Pointer(append(bat, "to")...), RuleWorkflow, "%s is not a step after %s; a branch goes on at a later step of the workflow, or ends it with end", to.Value, source.Str(stepName))
-					}
-				}
-			case "wait":
-				c.checkOneOf(st, at, "a wait waits for one thing", "message", "after", "at")
-				c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the wait")
-				if m := source.Child(st, "message"); m != nil && d.message(m.Value) == nil {
-					c.add(m, source.Pointer(append(at, "message")...), RuleWorkflow, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", m.Value)
-				}
-				if moment := source.Child(st, "at"); moment != nil && source.IsScalar(moment) && env != nil {
-					required := itemValues(source.Child(d.entities[source.Str(source.Child(w.Value, "subject"))], "required"))
-					c.checkMoment(moment, source.Pointer(append(at, "at")...), env, required)
-				}
+			}
+		case "wait":
+			c.checkOneOf(st, at, "a wait waits for one thing", "message", "after", "at")
+			c.checkTimeout(source.Child(st, "deadline"), source.Pointer(append(at, "deadline")...), RuleWorkflow, "the wait")
+			if m := source.Child(st, "message"); m != nil && d.message(m.Value) == nil {
+				c.add(m, source.Pointer(append(at, "message")...), RuleWorkflow, "%s does not name a channel and one of its messages; write channel/Message for a message declared under channels", m.Value)
+			}
+			if moment := source.Child(st, "at"); moment != nil && source.IsScalar(moment) && env != nil {
+				required := itemValues(source.Child(d.entities[source.Str(source.Child(wf, "subject"))], "required"))
+				c.checkMoment(moment, source.Pointer(append(at, "at")...), env, required)
 			}
 		}
 	}

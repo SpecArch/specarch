@@ -671,6 +671,20 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-5]
     why: The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.
+  SA-128:
+    statement: A workflow shall be able to keep, under asIs, the workflow as the business runs it today beside the to-be it is moving to, both kept until the change is done; specarch validate shall check the as-is by the workflow's rules in both builds, the changes document and specarch diff shall list what moving from the as-is to the to-be adds, changes and removes, and the generators shall write the to-be unless specarch generate is given --as-is.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - An as-is in the workflow's shape, without asIs, that names operations, roles, permissions, messages and an entity of the same specification is valid; a reference it names that does not resolve, two of its steps of one name, and an asIs inside it are reported at their pointer under /workflows/<name>/asIs, naming the as-is of the workflow, the same in both builds.
+      - The workflow's derived cases and its success come from the to-be only; a permission only the as-is's steps check counts as used.
+      - specarch document changes writes a section Transitions, after the defects and only when a workflow keeps an as-is, listing per workflow the changes to its trigger, subject and messages, the steps added, removed and changed by name with the keys that differ, the order of the steps both keep when it changes, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the forms that submit to a trigger that changes, the inboxes of a step the to-be adds, removes or changes, and the tests about the workflow or about an operation it calls or no longer calls.
+      - specarch diff prints the same list for the new version after its change list, one line per part as transition #/workflows/<name>: <part>: <items>, and nothing for a version with no as-is.
+      - Every generator gets each workflow's to-be, with no asIs; specarch generate --as-is gives it each workflow's as-is in its place, and a workflow with no as-is the same in both.
+    verification: test
+    needs: [NEED-1, NEED-5]
+    why: A business process changes over weeks or months, and during that time the team builds the new process while people still work by the old one; written only as the new one, what the move adds, changes and removes is found by reading two versions side by side, and the pages, approvers and tests the move reaches are found late, in acceptance.
   SA-104:
     statement: An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it.
     kind: functional

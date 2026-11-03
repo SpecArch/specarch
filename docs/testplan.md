@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 1004 design tests, 503 golden and 501 red, about 31 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 1010 design tests, 508 golden and 502 red, about 31 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.4.0 of the specification: 1004 design tests, 503 golden and 501 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1000 |
+| system | 1006 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -749,6 +749,14 @@ Scenario: golden; level: system; verifies SA-25.
 - When: diff is run on the old and the new folder
 - Then: it lists the three elements as minor with the field that decided, minor and patch, finds the minor step enough and every element named, and exits 0
 
+#### diff-lists-transition
+
+Scenario: golden; level: system; verifies SA-130.
+
+- Given: an old version whose workflow refund is the clerk's process, and a new version 1.1.0 whose refund is the to-be and keeps the old process under asIs, with a planned release whose change names the workflow
+- When: diff is run on the old and the new folder
+- Then: it lists the workflow as a patch change, then one transition line per part the move from the as-is to the to-be reaches: the workflow's messages, the steps, the approvers and performers, and the operations; finds the release covers it, and exits 0
+
 #### diff-map-values
 
 Scenario: golden; level: system; verifies SA-25.
@@ -854,6 +862,14 @@ Scenario: red; level: system; covers usage error; verifies SA-67.
 - Given: --audience internal, a value it does not have
 - When: document is run
 - Then: it prints the usage error naming external as the one value and exits 2 without reading the folder
+
+#### document-changes-transition
+
+Scenario: golden; level: system; verifies SA-130.
+
+- Given: a specification whose workflow keeps its as-is, with an inbox page at an approval step the to-be changes, a test about the workflow and a test about an operation only the as-is calls, and no records
+- When: document changes is run
+- Then: it writes changes.md with a section Transitions after the defects that lists, for the workflow, the messages it publishes, the steps added, removed and changed, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the inbox page and the two tests; and exits 0
 
 #### document-check-current
 
@@ -2895,6 +2911,14 @@ Scenario: golden; level: system; verifies SA-58.
 - When: generate bpmn is run
 - Then: it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0
 
+#### generate-bpmn-as-is
+
+Scenario: golden; level: system; verifies SA-130.
+
+- Given: a specification with no approval record whose workflow keeps its as-is, with an open question blocking a step of each; specarch-gen-bpmn built from this repository on PATH
+- When: generate bpmn is run with --unapproved and --as-is
+- Then: it writes refund.bpmn and refund.svg of the as-is in the workflow's place, with the clerk's check and approval, the payment and the notice, and nothing of the to-be's decision or hold; the open question that blocks the as-is step notify is marked at notify, and the one that blocks the to-be step hold is marked nowhere in the files; and exits 0
+
 #### generate-bpmn-step-kinds
 
 Scenario: golden; level: system; verifies SA-103.
@@ -2902,6 +2926,14 @@ Scenario: golden; level: system; verifies SA-103.
 - Given: a specification with no approval record and a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment; specarch-gen-bpmn built from this repository on PATH
 - When: generate bpmn is run with --unapproved
 - Then: it writes refund.bpmn with the decision as an exclusive gateway whose flows carry its conditions in the language urn:specarch:expression and whose default is its otherwise, the tasks as user tasks with their performers, the message wait as a receive task with a timer, the other waits as intermediate timer catch events, each onFailure as an error boundary event, compensatedBy as a compensation boundary event associated with a service task marked isForCompensation, and refused and failed ends that compensate; and refund.svg with the same; and exits 0
+
+#### generate-bpmn-to-be
+
+Scenario: golden; level: system; verifies SA-130.
+
+- Given: a specification with no approval record whose workflow keeps its as-is, with an open question blocking a step of each; specarch-gen-bpmn built from this repository on PATH
+- When: generate bpmn is run with --unapproved
+- Then: it writes refund.bpmn and refund.svg of the to-be only, with its decision, the manager's approval, the hold undone by releaseFunds and the payment, and nothing of the as-is's check or notice; the open question that blocks the to-be step hold is marked at hold, and the one that blocks the as-is step notify is marked nowhere in the files; and exits 0
 
 #### generate-deploy
 
@@ -8003,6 +8035,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-47.
 - When: validate is run
 - Then: it reports workflow eleven times and permission_undeclared once, and exits 1
 
+#### validate-workflow-as-is
+
+Scenario: golden; level: system; verifies SA-130.
+
+- Given: a specification on the lean profile whose workflow refund, the to-be, routes by amount, has a manager approve, holds the funds and pays, and keeps under asIs the as-is, where a clerk checks, approves, pays and faxes a notice, each naming operations, roles and permissions of the same specification
+- When: validate is run
+- Then: it reports no error at either variant, derives the workflow's cases from the to-be only, and exits 0
+
+#### validate-workflow-as-is-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-130.
+
+- Given: a workflow whose as-is names a performer that is not a role, two steps of one name, an operation that does not exist, a message no channel declares, and holds an asIs of its own
+- When: validate is run
+- Then: it reports each as workflow, emits or schema at its pointer under /workflows/refund/asIs, naming the as-is of the workflow, the same in both builds, and exits 1
+
 #### validate-workflow-deadline-undoes
 
 Scenario: red; level: system; verifies SA-103.
@@ -8143,7 +8191,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-581 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+586 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8427,6 +8475,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-103 | acceptance 3 | golden | SA-103 names no harm |
 | requirement SA-103 | acceptance 4 | golden | SA-103 names no harm |
 | requirement SA-103 | acceptance 5 | golden | SA-103 names no harm |
+| requirement SA-130 | acceptance 1 | golden | SA-130 names no harm |
+| requirement SA-130 | acceptance 2 | golden | SA-130 names no harm |
+| requirement SA-130 | acceptance 3 | golden | SA-130 names no harm |
+| requirement SA-130 | acceptance 4 | golden | SA-130 names no harm |
+| requirement SA-130 | acceptance 5 | golden | SA-130 names no harm |
 | requirement SA-104 | acceptance 1 | golden | SA-104 names no harm |
 | requirement SA-104 | acceptance 2 | golden | SA-104 names no harm |
 | requirement SA-104 | acceptance 3 | golden | SA-104 names no harm |

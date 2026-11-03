@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 125 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 126 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -48,11 +48,11 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-129, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-129, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-125, SA-118 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-125, SA-118 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-51 |
@@ -117,6 +117,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-99 | functional | must | proposed | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. |
 | SA-102 | functional | should | proposed | A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports. |
 | SA-103 | functional | should | proposed | A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them. |
+| SA-130 | functional | should | proposed | A workflow shall be able to keep, under asIs, the workflow as the business runs it today beside the to-be it is moving to, both kept until the change is done; specarch validate shall check the as-is by the workflow's rules in both builds, the changes document and specarch diff shall list what moving from the as-is to the to-be adds, changes and removes, and the generators shall write the to-be unless specarch generate is given --as-is. |
 | SA-104 | functional | should | proposed | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. |
 | SA-105 | functional | should | proposed | A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them. |
 | SA-106 | functional | should | proposed | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. |
@@ -1076,6 +1077,22 @@ Acceptance criteria:
 - Both builds print the same lines for every case.
 
 **Insight:** The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.
+
+### SA-130
+
+A workflow shall be able to keep, under asIs, the workflow as the business runs it today beside the to-be it is moving to, both kept until the change is done; specarch validate shall check the as-is by the workflow's rules in both builds, the changes document and specarch diff shall list what moving from the as-is to the to-be adds, changes and removes, and the generators shall write the to-be unless specarch generate is given --as-is.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-1, NEED-5.
+
+Acceptance criteria:
+
+- An as-is in the workflow's shape, without asIs, that names operations, roles, permissions, messages and an entity of the same specification is valid; a reference it names that does not resolve, two of its steps of one name, and an asIs inside it are reported at their pointer under /workflows/<name>/asIs, naming the as-is of the workflow, the same in both builds.
+- The workflow's derived cases and its success come from the to-be only; a permission only the as-is's steps check counts as used.
+- specarch document changes writes a section Transitions, after the defects and only when a workflow keeps an as-is, listing per workflow the changes to its trigger, subject and messages, the steps added, removed and changed by name with the keys that differ, the order of the steps both keep when it changes, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the forms that submit to a trigger that changes, the inboxes of a step the to-be adds, removes or changes, and the tests about the workflow or about an operation it calls or no longer calls.
+- specarch diff prints the same list for the new version after its change list, one line per part as transition #/workflows/<name>: <part>: <items>, and nothing for a version with no as-is.
+- Every generator gets each workflow's to-be, with no asIs; specarch generate --as-is gives it each workflow's as-is in its place, and a workflow with no as-is the same in both.
+
+**Insight:** A business process changes over weeks or months, and during that time the team builds the new process while people still work by the old one; written only as the new one, what the move adds, changes and removes is found by reading two versions side by side, and the pages, approvers and tests the move reaches are found late, in acceptance.
 
 ### SA-104
 

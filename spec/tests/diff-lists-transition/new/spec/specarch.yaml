@@ -1,5 +1,6 @@
 specarch: "1.0.0"
 info: { title: Case, version: 1.1.0, profile: lean }
+stakeholdersComplete: { by: owner, date: "2026-11-02" }
 stakeholders:
   owner: { description: The product owner. }
 requirements:

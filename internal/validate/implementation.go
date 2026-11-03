@@ -17,7 +17,7 @@ import (
 // file each is reported as design_key instead of an unknown key.
 var designKeys = map[string]bool{
 	"specarch": true, "stages": true, "sources": true,
-	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true,
+	"stakeholders": true, "stakeholdersComplete": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true,
 	"enums": true, "entities": true, "permissions": true, "roles": true, "paths": true, "commands": true,
 	"channels": true, "dependencies": true, "session": true, "caller": true, "clients": true, "tokens": true, "securityEvents": true, "pages": true, "algorithms": true, "tests": true,
 	"environments": true, "release": true, "rollback": true, "migrations": true, "handover": true, "checks": true, "signoff": true,

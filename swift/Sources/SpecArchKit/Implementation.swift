@@ -4,7 +4,7 @@ import Foundation
 /// reported as design_key instead of an unknown key.
 let designKeys: Set<String> = [
     "specarch", "stages", "sources",
-    "stakeholders", "needs", "requirements", "glossary", "assumptions",
+    "stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions",
     "enums", "entities", "permissions", "roles", "paths", "commands",
     "channels", "dependencies", "session", "caller", "clients", "tokens", "securityEvents", "pages", "algorithms", "tests",
     "environments", "release", "rollback", "migrations", "handover", "checks", "signoff",

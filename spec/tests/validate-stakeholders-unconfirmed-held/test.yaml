@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification with stakeholders, no stakeholdersComplete, and a must question that blocks the stakeholders"
+when: "validate is run"
+then: "it prints nothing and exits 0: the must question holds stakeholders_unconfirmed, since the gap is already asked about"
+verifies: [SA-120]

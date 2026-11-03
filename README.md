@@ -31,7 +31,7 @@ stage is a folder of its name beside the root, in life-cycle order:
 
 | Folder | Holds |
 |---|---|
-| `requirements/` | stakeholders, needs, requirements with acceptance criteria, glossary, assumptions, constraints |
+| `requirements/` | stakeholders, the confirmation that their list is complete, needs, requirements with acceptance criteria, glossary, assumptions, constraints |
 | `design/` | enums, entities, permissions, roles, session, endpoints, fixed routes, commands, channels, dependencies, jobs, processes, workflows, problem types, pages, menus, algorithms, decisions |
 | `implementation/<stack>/` | one implementation file per stack: how that stack builds the design |
 | `tests/<name>/` | one folder per test: `test.yaml` with given, when and then, beside the scenario's own input and expected-output files |

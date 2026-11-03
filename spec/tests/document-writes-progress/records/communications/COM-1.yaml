@@ -1,0 +1,13 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: librarian
+to: owner
+at: "2026-10-01T10:00:00+07:00"
+channel: meeting
+type: information
+words: { form: summary, text: "The desk refuses a sixth loan by hand today." }
+recordedBy: owner
+links:
+  elements: [CASE-1]

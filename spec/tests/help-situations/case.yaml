@@ -138,8 +138,8 @@ standardOutput: |
   [release] Release and release notes
     A planned release record, the pre-release tag dropped on release,
     specarch diff between the tagged versions, specarch document releases,
-    deployment, commissioning, handover, manual and timeline; a deploy is a
-    record. Topic: diff.
+    deployment, commissioning, handover, manual, timeline and progress; a
+    deploy is a record. Topic: diff.
 
   [formats-move] A release of SpecArch moves the formats
     specarch version names what it reads; specarch upgrade --dry-run lists

@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-3
+title: Remind a member before a loan is due
+raisedBy: member
+raised: "2026-10-07"
+phase: development
+type: additive
+urgency: normal
+reason: Members forget the due date.
+status: proposed

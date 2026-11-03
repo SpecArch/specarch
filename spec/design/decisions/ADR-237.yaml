@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-237:
+    title: A progress document counts the specification's size, the open work, the unheard roles, the stakeholder list's confirmation, the effort the change requests record and a burn-up per release, from the specification and its records alone; effort is an optional estimatedHours and spentHours on a change record, and missing effort is shown as missing
+    status: proposed
+    date: "2026-11-03"
+    context: |
+      A team that delivers from a specification is asked, every week, how
+      big the specification is, what is still open and who must answer
+      it, whether every role was heard, how much the change requests cost
+      and how far the delivery has come. The questions document lists each
+      open question, the validator warns of each unheard role, and the
+      release notes list what each release carries, but nothing counts
+      them in one place, and nothing records how much effort a change
+      request took. A tracker outside the specification can answer, and
+      then its figures drift from what the specification says; a figure
+      filled in by a tool where nobody recorded one is a guess presented
+      as a fact.
+    decision: |
+      The document target progress writes progress.md from the
+      specification and the records beside it, a document made from the
+      records as the release notes are, never a draft. It holds:
+
+      1. Size: the elements of each stage, by section, a section of named
+         elements counted by its entries and a single section as one.
+      2. Open work: the open questions by priority (must, should, could)
+         and by the role that decides them, as a table of roles against
+         priorities.
+      3. Unheard roles: each role the validator warns unheard, with the
+         warning's text, taken from the warnings so the document and the
+         validator cannot disagree.
+      4. The stakeholder list: confirmed complete by a role on a date when
+         the specification holds stakeholdersComplete, and otherwise the
+         line that no role has confirmed it.
+      5. Effort: each change request with its status and the hours
+         recorded on it, estimated and spent in two columns, and the word
+         missing where it records none; the sums of each column, each over
+         the change requests that record that figure, said as such; and
+         the change requests with no effort counted and named. No average,
+         forecast or filled-in figure is made.
+      6. Burn-up: one point per release, in version order, each the
+         cumulative count of distinct elements (requirement IDs and #/
+         pointers) the change requests it includes name under affects adds
+         and changes: approved once the request's decision approves it,
+         generated once its status is implemented or released; and beside
+         them the elements the specification holds now, as the scope line.
+
+      A change record takes an optional effort mapping with estimatedHours
+      and spentHours, each a positive number of hours and at least one of
+      them given.
+    why: |
+      Every figure comes from a key a person wrote, so two readers who ask
+      get the same answer and a figure can be traced to the record that
+      gives it. Hours are the one unit: a day or a story point means a
+      different amount in each team, and a mapping with the unit in each
+      key's name cannot be read in the wrong unit. Estimated and spent are
+      two keys, not one with a kind, because a change request carries the
+      estimate taken at its analysis and the time spent after it is done,
+      and the two must never be added together. A change request with no
+      effort is shown as missing rather than as zero or as an average of
+      the others, since a guess in a progress report is read as a fact and
+      hides the gap the team must close. The burn-up counts elements, not
+      change requests, because a change request may touch one element or
+      twenty; it counts what the records name rather than a past
+      specification's size, since only the current specification is at
+      hand, and the scope line is today's size for that reason.
+    consequences: |
+      A release with no recorded change request is a point that does not
+      rise. A specification without records has a progress document with
+      its size, its open work and its unheard roles, and empty effort and
+      burn-up sections that say so.
+    cites:
+      - source: iso-29148
+        clause: "6.4.3"
+        says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
+    satisfies: [SA-121]
+    restsOn: [ADR-220, ADR-223]

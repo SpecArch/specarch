@@ -73,6 +73,10 @@ var sectionOrder = []string{
 // cannot be split across files.
 var singleSections = map[string]bool{"stakeholdersComplete": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 
+// IsSingleSection reports whether a section holds one object rather than
+// a map of named objects.
+func IsSingleSection(section string) bool { return singleSections[section] }
+
 // rootOnly are the keys that live only in the root file.
 var rootOnly = map[string]bool{"specarch": true, "info": true, "trustDomain": true, "timeZone": true, "stages": true, "sources": true}
 

@@ -1052,6 +1052,7 @@ it, how to roll it back and who signed it off.
     specarch document handover --out docs spec
     specarch document manual --out docs spec
     specarch document timeline --out docs spec
+    specarch document progress --out docs spec
 
 While a release is being built, `info.version` carries a pre-release tag
 (`0.2.0-dev`) and a release record with status planned exists for it; on
@@ -1065,6 +1066,12 @@ the commissioning procedure is the sign-off sheet; the handover document
 is for the engineers of a customer who runs an environment from the
 source; the user manual is for the people who use the system. A deploy is
 a record, `DEP-<n>`, one installation on one environment at one time.
+The progress report counts what the specification and the records hold:
+the elements by stage, the open questions by priority and deciding role,
+the unheard roles, whether the stakeholder list is confirmed, the hours a
+change request records in `effort` (`estimatedHours`, `spentHours`) with
+the ones that record none named as missing, and a burn-up of the elements
+approved and generated per release. It estimates nothing.
 
 **A worked example.** The library's release notes:
 

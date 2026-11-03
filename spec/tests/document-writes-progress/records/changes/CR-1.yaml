@@ -1,0 +1,22 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-1
+title: Show a member's open loans
+raisedBy: librarian
+raised: "2026-10-02"
+phase: development
+type: additive
+urgency: normal
+reason: The desk looks a member's loans up one by one.
+cause: omitted
+affects:
+  adds: [CASE-2]
+  changes: ["#/entities/Loan"]
+impact: minor
+effort: { estimatedHours: 2.5, spentHours: 3.25 }
+decision:
+  by: owner
+  date: "2026-10-03"
+  outcome: approved
+  why: The desk asks for it every day.
+status: implemented

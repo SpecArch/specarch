@@ -1,0 +1,21 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-2
+title: Refuse a sixth loan
+raisedBy: librarian
+raised: "2026-10-05"
+phase: development
+type: additive
+urgency: normal
+reason: The desk refuses it by hand today.
+cause: omitted
+affects:
+  changes: [CASE-1, "#/entities/Loan"]
+impact: minor
+effort: { estimatedHours: 4 }
+decision:
+  by: owner
+  date: "2026-10-06"
+  outcome: approved
+  why: The rule is the library's.
+status: approved

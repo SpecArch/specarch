@@ -1106,6 +1106,7 @@ memasangnya, cara mengembalikannya dan siapa yang menandatanganinya.
     specarch document handover --out docs spec
     specarch document manual --out docs spec
     specarch document timeline --out docs spec
+    specarch document progress --out docs spec
 
 Selagi rilis dibangun, `info.version` membawa tag pra-rilis
 (`0.2.0-dev`) dan catatan rilis berstatus planned ada untuknya; pada
@@ -1120,6 +1121,13 @@ commissioning adalah lembar tanda tangan; dokumen handover untuk para
 insinyur pelanggan yang menjalankan lingkungan dari sumber; manual
 pengguna untuk orang yang memakai sistem. Deploy adalah catatan,
 `DEP-<n>`, satu pemasangan pada satu lingkungan pada satu waktu.
+Laporan progress menghitung apa yang ada di spesifikasi dan catatannya:
+elemen per stage, open question per prioritas dan role yang memutuskan,
+role yang unheard, apakah daftar stakeholder sudah dikonfirmasi lengkap,
+jam yang dicatat sebuah change request di `effort` (`estimatedHours`,
+`spentHours`) dengan yang belum mencatat disebut sebagai missing, dan
+burn-up elemen yang approved dan generated per rilis. Tidak ada angka yang
+ditebak.
 
 **Contoh.** Catatan rilis perpustakaan:
 

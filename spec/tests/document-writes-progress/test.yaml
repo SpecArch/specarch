@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with stakeholders, requirements, an entity, a page and three open questions, a communication record that hears the librarian alone while an accepted requirement relies on the member too, three change requests, one with an estimate, one with an estimate and the hours spent and one with no effort, and two releases"
+when: "document progress is run"
+then: "it writes progress.md with the elements of each stage, the open questions by priority and deciding role, the member warned unheard, the stakeholder list not confirmed, the effort table with the change request without effort counted and named as missing, and a burn-up of two points, and exits 0"
+verifies: [SA-121]

@@ -139,6 +139,7 @@ a defect in the roadmap, not an accepted state.
 | `docs/problems.txt`, `problems.sarif` | every error, warning and open question of `spec/`, one compiler line each and as a SARIF 2.1.0 log |
 | `docs/changes.md`, `releases.md` | the change register and the release notes, generated from the records in `records/` |
 | `docs/communications.md`, `timeline.md` | the communication history and the timeline of every event, generated from the records in `records/` where a specification keeps them (`examples/library-lending/docs/`) |
+| `docs/progress.md` | the progress report: the size by stage, the open questions by priority and deciding role, the unheard roles, the stakeholder list's confirmation, the effort each change request records with the missing ones named, and a burn-up per release, generated from the specification and its records (`examples/library-lending/docs/`) |
 | `records/` | SpecArch's own records: its releases |
 | `swift/` | the Swift build of `specarch` |
 | `third_party/typescript-go/` | the TypeScript compiler's Go source that `specarch facts javascript` reads with, copied at a pinned release by `tools/typescript-go/pull.sh`, with its own LICENSE and NOTICE.txt |

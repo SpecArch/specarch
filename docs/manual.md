@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.4.0 of the specification: 0 tasks, 0 pages and 29 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.4.0 of the specification: 0 tasks, 0 pages and 30 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, compare, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, log, log test-run, mcp, merge, model, skill, try, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, compare, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, log, log test-run, mcp, merge, model, run, skill, try, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -821,12 +821,6 @@ after it. The impact follows Semantic Versioning: an element inside
 the system is patch whatever happens to it; on the public interface
 an addition is minor, a removal major, and a change the largest of
 its changes, a change that cannot be shown safe counting as major.
-After the change list, for each workflow of the new version that
-keeps its as-is under asIs, one line per part the move from the
-as-is to the to-be reaches, as `transition <pointer>: <part>:
-<items>`, the items joined by semicolons: the parts workflow, steps,
-approvers and performers, operations, pages and tests, the same
-list the changes document writes (ADR-236).
 
 Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
@@ -866,7 +860,7 @@ It reads:
 
 It writes no file.
 
-On standard output: The errors of an invalid specification, one line each, then the change list, then the transition lines of each workflow that keeps an as-is, then one line per failed check.
+On standard output: The errors of an invalid specification, one line each, then the change list, then one line per failed check.
 
 On standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -1048,13 +1042,7 @@ as it is now: the elements its pointers name, the tests about them,
 the pages, operations, commands and channels that read an entity or
 enum among them, the code targets whose reads take a section it
 touches, the documents that show one, and the approval it voids
-(ADR-083). When a workflow keeps its as-is under asIs, a section
-Transitions follows the defects: per workflow, what moving from the
-as-is to the to-be adds, changes and removes in its trigger,
-subject and messages, its steps, the approvers and performers at
-each step, the operations it calls, the forms and inboxes that rest
-on it and the tests about it or an operation it calls or no longer
-calls (ADR-236). Every document made from the specification shows an open
+(ADR-083). Every document made from the specification shows an open
 change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was
@@ -2925,6 +2913,37 @@ The sources this build reads:
   A setting is read where `String`, `int` or `bool.fromEnvironment`
   or `Platform.environment` names it by a literal, with its type and
   its `defaultValue`, and written as extract javascript writes one.
+- `tests`: existing test scripts and test sheets, complete or not
+  (ADR-234): Gherkin feature files (`.feature`) and test sheets in
+  CSV, TSV or Excel, one or more files in one repository, each a
+  document source under its file's name, cited by line for a
+  feature file and by the row's range for a sheet. Each Scenario or
+  Example of a feature file is a test, its Given steps, after the
+  Background's (a Rule's own after the Feature's), its given, its
+  When steps its when and its Then steps its then, And and But
+  continuing the step before, a doc string or a table row joined to
+  its step; a Scenario Outline is one test per row of its Examples
+  blocks, each block read under its own header row, the row's values
+  written in for the placeholders. Each row of a sheet that holds any text is a
+  test, its columns found by the header row's words: an ID and a
+  title (its name), the operation or endpoint it exercises, a
+  precondition (its given), test data (written into its given),
+  steps (its when), an expected result (its then) and a type
+  (positive or negative); a table whose header names none of a
+  title, steps, an expected result, a precondition or test data is
+  named in a line and not read. A test is named after its title in
+  kebab-case, `-2` and on for a name taken, at level `system` and
+  `scenario: red` when the script says negative or the expected
+  result names a refusal or an error, `golden` otherwise, and it is
+  `origin: inferred`, its `why` saying where it was read and why the
+  level and the scenario, and cites its line or row with the test as
+  the script writes it. A script names its subject in its own words,
+  so each test has a must question for its subject that blocks the
+  whole test, naming the request the script names (such as `POST
+  /notes`) when it names one; and one must question for each part
+  the script leaves out, the given (no precondition or test data),
+  the step and the expected result, each blocking that key. A test
+  is never given a part the script does not say.
 
 Every reader follows these rules:
 
@@ -2937,7 +2956,9 @@ Every reader follows these rules:
   `printed` for router, database and permissions, which read a list
   the running system printed, and `parsed` for go, swift, javascript and dart,
   which read the source itself (ADR-075).
-- Every element is `origin: stated` and cites where it was read.
+- Every element is `origin: stated` and cites where it was read;
+  a test read by `tests` is `origin: inferred`, since its scenario
+  and level are inferred from the script, and cites it too.
   What the surface does not say is a question, never a value: a
   constraint's message, which no catalogue holds, a check the
   expression subset cannot say, and an operation's summary and
@@ -3022,8 +3043,8 @@ Anyone who has the program runs it.
 
 | Argument | What to give | Required |
 |---|---|---|
-| `<source>` | The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`. | yes |
-| `<paths>` | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. One or more. | yes |
+| `<source>` | The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript`, `dart` or `tests`. | yes |
+| `<paths>` | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump; for tests, one or more Gherkin feature files (.feature) and test sheets in CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) in one repository. One or more. | yes |
 
 | Option | What it does | Required |
 |---|---|---|
@@ -3332,8 +3353,7 @@ can name the build; ADR-083), `environment` and `trace` (the
 environment given with `--environment`, and whether its entry says
 the build shows the trace; ADR-222), `target`, `root` (the root
 file's path), `specification` (the merged, validated specification as plain
-values, each workflow its to-be with no asIs, or its as-is with
-`--as-is`), `implementations` (each implementation file as `file`,
+values), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms
 it uses, each with its `name`, `version`, how it applies (`as`:
 shipped, overridden, project or excluded), the `content` of the idiom
@@ -3469,12 +3489,63 @@ tests target, which checks rather than builds, keeps it (ADR-046). The gate does
 at the mark, so a question that blocks an owned element still holds
 the target up.
 
+`generate tests --package <environment>` writes a test package in
+place of a stack's tests, built in and through no plug-in, since it
+belongs to no stack (ADR-233). It takes one specification, `--out`
+and the key of one of its environments, and refuses with status 2
+another target, no `--out`, an environment the specification does
+not have (naming the ones it has), several specifications, and
+`--estate` or `--environment`. It writes one file,
+`specarch-test-package.yaml`, with the generated header and, for a
+draft, the draft notice as comment lines, then: the format version;
+the specification's title, version, meta-model, digest and draft
+notice; the environment; the servers that answer requests in it,
+each server of a deployment of an implementation file whose
+`environment` is that one, of kind service or of no kind, no
+dependency, with an http or https address, by deployment, name and
+address; and the cases. Each test of the specification is a case,
+named after it, with its element `#/tests/<name>`; each chosen case
+no test covers is a case too, drafted as `specarch derive` drafts it,
+named as derive names it, marked derived, with the element of its
+subject. A case carries its subject, scenario, covers, given, when
+and then, and either the reason it cannot run from outside, or its
+request: the method, the path with the path parameters of its input
+written in, the query parameters as the query, the header and cookie
+parameters as headers, the other fields as the JSON body when the
+operation takes one, each property at every depth named as
+`info.wireNames` puts it on the wire while a parameter keeps its
+name (ADR-062); the caller's role; the fixture's records as
+JSON; the status and the body fields expected, with the fields to
+compare as numbers; and the state and messages expected, named as
+not checked. A case cannot run from outside when its test does not
+apply, gives no request (a derived case whose call derive does not
+draft says so), is about a command or a page, travels in a
+handshake, streams a file, gives the caller's properties, expects
+only what is left behind, covers a denied case with no caller (a
+request with none is refused as not signed in), or calls an API
+served in the dxlib dialect, whose envelope a package does not
+write. No credential and no address
+other than the deployment's goes into the package.
+
+An open must or should question that blocks nothing but tests holds
+back those tests alone: each is left out of the cases and listed
+under `held` with the questions, and on standard error, and joins
+the package once they are answered. The derived cases of rank
+other no test covers, which the test plan lists as left out, are
+listed under `leftOut` with their subject, case and reason, and not
+run. Every other open question, and
+the approval, gate the package as they gate every target, and
+`--unapproved` makes it a draft. Prints one line per test held back
+and the counts: the cases, how many are derived, how many run, how
+many are skipped with a reason, how many tests are held back and how
+many derived cases are left out.
+
 **Insight:** One program with verbs, and generators as plug-ins found on PATH, is the pattern of protoc, git and kubectl: one name to learn and install, one parser, one diagnostic format and one version shared by every target, and new targets added without changing the program. Letting the program write the files, as protoc does, keeps `--check` and the rule "only into its folder" true for every plug-in without each one having to implement them.
 
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
 
 ```
-specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--environment <environment>] [--unapproved] [--dry-run] [--as-is]
+specarch generate <target> <paths>... [--out <out>] [--check] [--estate <estate>] [--environment <environment>] [--unapproved] [--dry-run] [--package <package>]
 ```
 
 Anyone who has the program runs it.
@@ -3492,7 +3563,7 @@ Anyone who has the program runs it.
 | `--environment <environment>` | The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, section's, field's, column's and action's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds: a build for an environment that shows the trace is refused with status 2 unless `--out` names its folder, since the two cannot share one folder under `--check`; the refusal names the environment and the folder it would have written into. |  |
 | `--unapproved` | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |  |
 | `--dry-run` | Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check. |  |
-| `--as-is` | Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-236). |  |
+| `--package <package>` | With the tests target and --out: write a test package for this environment of the specification, every test and every derived case no test covers as a request to its servers, in place of a stack's tests (ADR-233). |  |
 
 It reads:
 
@@ -3894,7 +3965,10 @@ and `Sent` or `Kept`), or its name is or begins with their display
 name (`algorithm <name>`, or `mapping of <operation>'s call to
 <call>`) and a colon or a space; the element is
 `#/algorithms/<name>`, or the path of the operation,
-`#/paths/<path>`. A testcase that maps to no test and no element,
+`#/paths/<path>`. A testcase that maps to neither, and whose name is
+the name `specarch derive` gives a chosen case no test covers, as a
+test package names such a case, names the element of that case's
+subject under `element` (ADR-233). A testcase that maps to no test and no element,
 or to two of them, is kept in the record without either and
 printed as a line `unmapped: <name>: <why>` on standard output,
 under `log.unmapped` with `--json`; the validator warns
@@ -4063,13 +4137,22 @@ specification that holds every element of them, following
 `docs/from-sources.md`, section 3.2. Each tree is checked on its own
 first: a tree that does not track origin, that validate reports an
 error in, that holds implementation files or records, or that holds
-a test other than the drafts specarch derive writes for that tree is
-refused. A test is one of those drafts when its name and values are
-those of the draft derive writes for the tree without its tests; the
-problem marks above its entries do not count. The drafts are left
-out, since they are derived from one tree alone, and the derivation
-runs again into the merged specification, as extract runs it
-(ADR-055).
+a test that is neither read from a test script nor one of the drafts
+specarch derive writes for that tree is refused. A test is one of
+those drafts when its name and values are those of the draft derive
+writes for the tree without its tests; the problem marks above its
+entries do not count. The drafts are left out, since they are
+derived from one tree alone, and the derivation runs again into the
+merged specification, as extract runs it (ADR-055).
+
+A test read from a test script, one that cites a source of its tree
+as `extract tests` writes it, is kept whole under
+`tests/<name>/test.yaml`, with `-2` and on after its name when a
+test of an earlier tree has it, a line naming each renamed; a
+question of its tree that blocks nothing but such tests is kept as
+it is, its pointers naming each test by its name in the merged
+specification, numbered with the trees' other questions (ADR-234).
+A line counts the tests kept.
 
 - The same element in two trees (an entry of a section by its name,
   an operation by its path and method, a field by its entity and
@@ -4473,6 +4556,112 @@ On standard error: A usage message on a usage error, and the reason on a path th
 |---|---|---|
 | 0 | printed |   |
 | 2 | usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
+### specarch run
+
+Run a test package against its environment and write the results as JUnit XML.
+
+Reads a test package, the folder `specarch generate tests --package`
+wrote or its file `specarch-test-package.yaml`, and refuses with
+exit 2 a file that is not one, or one of another format version;
+it reads nothing of the specification, so the package runs where
+the specification is not (ADR-233).
+
+The requests go to `--base-url`, or to the server of the package
+that `--server` names, or to the package's one server; with several
+and neither option it refuses with exit 2, naming each server with
+its deployment and address, and so does a `--server` that names
+none. Each case runs in the package's order:
+
+- A case the package marks skipped (no request the specification
+  gives, a command, a page, a handshake, a streamed file, a caller
+  with properties of its own, or an outcome only the state shows)
+  is reported skipped with the package's reason.
+- A case whose caller is a role signs in with the headers the file
+  `--callers` gives that role, a YAML mapping of role to header
+  name and value, such as `librarian: { Authorization: Bearer
+  <token> }`; a role the file does not give, or no file, leaves the
+  case skipped, naming the role and the option. The headers are
+  never written anywhere.
+- A case that needs records runs the program `--setup` names first,
+  with the case's name as its one argument and on its standard
+  input a JSON object with the case, the caller and the records as
+  entity name to a list of records; exit 0 means the records are in
+  place. A program that exits otherwise errors the case, with its
+  exit status and standard error. Without `--setup` such a case is
+  skipped, naming the records and the option.
+- The request is the case's method and path, with its headers and,
+  when it has one, its JSON body and `Content-Type:
+  application/json`; `Accept: application/json` always. No answer
+  errors the case with what the client said. An answer whose status
+  is not the one expected fails the case, naming both and the start
+  of the body; a body that lacks a field expected, or holds another
+  value, fails it, naming the field and both values. Numbers compare
+  by value, and a field the case marks numeric compares by value
+  when both sides are text. Otherwise the case passes; the state
+  after and the messages emitted, which a request from outside does
+  not see, are named in its output as not checked.
+
+Writes the results to `--results` as JUnit XML: one `testsuite`
+named after the specification, its version and the environment,
+with the environment, the server, the version and the digest as
+properties, and one `testcase` per case named as the case is, so
+`specarch log test-run` maps each back to its test or, for a
+derived case, to its subject's element. A failure, an error or a
+skip carries its message, and a case's output its request and the
+answer. The file holds no time, timestamp or host name, which
+Ant's JUnit schema asks for: the run's instant is `log test-run
+--at`, with its offset, the host is no environment of the
+specification, and the duration of each case is in its progress
+line, so the file changes only with the outcomes and the answers. Prints one
+line per case on standard error as it ends, step N of M, with its
+outcome, its duration and its reason; one line per failed or
+errored case on standard output; then the tests the package holds
+back and the counts, with how to record the run. With `--dry-run`
+it makes no request, runs no setup program and writes nothing: it
+prints, for each case, the request it would make with the role and
+the setup it needs, or that it would skip it and why, then the
+results file it would write, and exits 0.
+
+**Insight:** The tests a specification derives are only worth what a run of them in the customer's environment shows, and that environment is run by people who have neither the specification nor the project's harness. A package that is data, run by the same program that made it, needs nothing on their host but that program, and its results come back as a file the specification's own test-run record maps case by case.
+
+```
+specarch run <package> [--results <results>] [--base-url <base-url>] [--server <server>] [--callers <callers>] [--setup <setup>] [--dry-run]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<package>` | The test package, its folder or its file specarch-test-package.yaml. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--results <results>` | The file the JUnit XML results are written to; a folder it names is made. |  |
+| `--base-url <base-url>` | The address the requests go to, such as https://staging.library.example, in place of the package's servers. |  |
+| `--server <server>` | The server of the package the requests go to, by its name in the deployment. |  |
+| `--callers <callers>` | A YAML file of the headers that sign each role in, such as librarian: { Authorization: Bearer <token> }; kept out of the package and the results. |  |
+| `--setup <setup>` | A program that puts a case's records in place, run before each case that needs records with the case's name as its argument and the records as JSON on its standard input. |  |
+| `--dry-run` | Make no request, run no setup program and write nothing; print what the run would do with each case, would request <method> <address> or would skip and why, and the results file it would write. |  |
+
+It reads:
+
+- `{package}`: The test package.
+- `{callers}`: The headers that sign each role in, with --callers.
+
+It writes:
+
+- `{results}`: The results, as JUnit XML.
+
+On standard output: One line per case that failed or errored, with the case's name and why; with --dry-run, one line per case saying what the run would do, and the results file it would write.
+
+On standard error: A usage message on a usage error, the reason a refusal, one progress line per case, the tests the package holds back, and the counts.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | the results are written and no case failed or errored; a skipped case does not change the status |   |
+| 1 | the results are written and a case failed or errored | Read the failed and errored lines, and each case's output in the results file: settle each failure with the people who own the system or its specification, and record the run with specarch log test-run. |
+| 2 | usage error, a package, callers file or setup program that could not be read or found, no server chosen, or a results file that could not be written | Read the usage message or the reason on standard error, correct the command line, the server or the path it names, and run it again. |
 
 ### specarch skill
 

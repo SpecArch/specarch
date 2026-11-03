@@ -2,13 +2,9 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 126 requirements, 5 entities, 29 commands, 7 algorithms, 1010 tests, 218 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 126 requirements, 5 entities, 30 commands, 7 algorithms, 1000 tests, 218 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
-
-**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
-
-**Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/stakeholders/stakeholders.yaml#/stakeholders]
+**Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Introduction and goals
 
@@ -74,7 +70,7 @@ The interfaces the system offers, as its clients see them.
 
 | Command | Summary | Permission | Exit statuses |
 |---|---|---|---|
-| approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete); 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
+| approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | capabilities | List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads | public | 0: printed; 2: usage error |
 | check | Compare a specification with the dumps of the running code, for a CI gate | public | 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since; 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in; 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know |
 | compare | Compare alternative implementation files of one specification in one table, from their test results, scan findings and measurements | public | 0: the table is written or printed, its gaps marked in their cells and listed; 1: nothing written, since an implementation file, an option's name or a test-run record is not the specification's, or an input file is refused; or written, while the specification has errors; 2: usage error, or a folder or file that could not be read or written |
@@ -98,6 +94,7 @@ The interfaces the system offers, as its clients see them.
 | mcp | Serve every command as a tool of the Model Context Protocol, over standard input and output | public | 0: standard input ended; 2: usage error, --json given, or standard input or output that could not be read or written |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
+| run | Run a test package against its environment and write the results as JUnit XML | public | 0: the results are written and no case failed or errored; a skipped case does not change the status; 1: the results are written and a case failed or errored; 2: usage error, a package, callers file or setup program that could not be read or found, no server chosen, or a results file that could not be written |
 | skill | Write an agent skill for SpecArch, in the Agent Skills format, from the program's own command definitions | public | 0: written, or with --check the skill on disk is current; 1: with --check, a file differs, is missing or is not the skill's; 2: usage error, a folder specarch under --out that this command did not write, or a file that could not be read or written |
 | try | Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
 | upgrade | Move a specification and its files to the newest version of each format, or list what moving them changes | public | 0: every change the move names was made, or with --dry-run can be made, and no step is left to the author; 1: a step is left to the author; 2: usage error, a path that could not be read or written, or a version --to names that this program does not write |
@@ -351,9 +348,8 @@ Primary key: path.
 | Rule | link | a deployment's link names no named server of the deployment as `from` or `to`, goes from a server to itself, or names a port the target does not listen on |
 | Rule | link_missing | as a warning, at a server of a deployment that declares links: its packages implement an operation or a job that calls a dependency, or a gateway that forwards to or calls one, or emits on or consumes from a channel a dependency carries, and no link leads from it to the server that is that dependency; or they implement an entity, or a job that reads or writes one, and no link leads from it to the deployment's database server that runs the `sql` target; an open must question that blocks the environment the deployment installs, the environments section or the deployment stage holds it (ADR-172) |
 | Rule | need | a requirement's `needs` names a need that does not exist |
-| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy`, an interview source's `participants`, the handover's `to` or the `by` of `stakeholdersComplete` names a stakeholder that does not exist |
-| Rule | stakeholders_unconfirmed | as a warning, at the stakeholders: no role has confirmed that the stakeholder list is complete, since the root holds no `stakeholdersComplete` (`by`, a stakeholder; `date`; `source`, when given, a declared source, checked by `source`); every generated document and the overview carry a banner and `specarch approve` warns until it is set; a must question that blocks the stakeholders holds the warning and the banner, since the gap is then asked about; a specification that lists no stakeholders is told to list them first; a file on a meta-model before 1.0.0, whose schema has no `stakeholdersComplete`, is not warned (ADR-234) |
-| Rule | source | a citation, or the `source` of `stakeholdersComplete`, names a source that is not declared under `sources` |
+| Rule | stakeholder | a need's `stakeholders`, a question's `decidedBy`, a requirement's `ownedBy`, a mapping's `ownedBy`, an interview source's `participants` or the handover's `to` names a stakeholder that does not exist |
+| Rule | source | a citation names a source that is not declared under `sources` |
 | Rule | source_clause | a citation of a source that lists its `clauses` names no clause, or one that is neither a listed clause nor a part of one, such as section 3.3.1 under 3.3 or file.go:14 under file.go (a warning) |
 | Rule | environment | a check, an environment's `promotesTo` or an implementation's deployment names an environment that does not exist, or a deployment names none when the specification declares them |
 | Rule | setting | an implementation's deployment gives a value to a setting the specification does not declare, or an operation, command or page is enabledBy a name that is not a boolean setting |
@@ -466,7 +462,7 @@ The packages of ../spec/implementation/go/specarch.go.specarch-implementation.ya
 
 ```mermaid
 flowchart LR
-  package_cmd_specarch["cmd/specarch, implements 23"]
+  package_cmd_specarch["cmd/specarch, implements 24"]
   package_schema["schema"]
   package_idioms["idioms"]
   package_internal_extract["internal/extract"]
@@ -515,6 +511,7 @@ flowchart LR
   package_cmd_specarch_gen_tests_swift["cmd/specarch-gen-tests-swift, implements 1"]
   package_cmd_specarch_gen_tests_dart["cmd/specarch-gen-tests-dart, implements 1"]
   package_internal_gentests["internal/gentests"]
+  package_internal_testpackage["internal/testpackage"]
   package_internal_semver["internal/semver"]
   package_internal_diff["internal/diff"]
   package_internal_approval["internal/approval"]
@@ -532,6 +529,7 @@ flowchart LR
   package_cmd_specarch --> package_internal_generate
   package_cmd_specarch --> package_internal_genscreens
   package_cmd_specarch --> package_internal_gensql
+  package_cmd_specarch --> package_internal_gentests
   package_cmd_specarch --> package_internal_genui
   package_cmd_specarch --> package_internal_literal
   package_cmd_specarch --> package_internal_mark
@@ -540,6 +538,7 @@ flowchart LR
   package_cmd_specarch --> package_internal_semver
   package_cmd_specarch --> package_internal_source
   package_cmd_specarch --> package_internal_spec
+  package_cmd_specarch --> package_internal_testpackage
   package_cmd_specarch --> package_internal_validate
   package_cmd_specarch --> package_internal_xref
   package_internal_extract --> package_idioms
@@ -620,6 +619,7 @@ flowchart LR
   package_cmd_specarch_gen_tests_swift --> package_internal_gentests
   package_cmd_specarch_gen_tests_dart --> package_internal_gentests
   package_internal_gentests --> package_internal_mark
+  package_internal_testpackage --> package_internal_gentests
   package_internal_diff --> package_internal_semver
   package_internal_diff --> package_internal_source
   package_internal_approval --> package_internal_source
@@ -707,7 +707,7 @@ Writes `records/approvals/<version>.yaml`: The approval record, beside the speci
 
 Standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
 
-Standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one line naming the record written.
+Standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, and one line naming the record written.
 
 ```mermaid
 sequenceDiagram
@@ -1376,12 +1376,6 @@ after it. The impact follows Semantic Versioning: an element inside
 the system is patch whatever happens to it; on the public interface
 an addition is minor, a removal major, and a change the largest of
 its changes, a change that cannot be shown safe counting as major.
-After the change list, for each workflow of the new version that
-keeps its as-is under asIs, one line per part the move from the
-as-is to the to-be reaches, as `transition <pointer>: <part>:
-<items>`, the items joined by semicolons: the parts workflow, steps,
-approvers and performers, operations, pages and tests, the same
-list the changes document writes (ADR-236).
 
 Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
@@ -1409,7 +1403,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 
 Reads `{old}`: The earlier specification; `{new}`: The later specification; `records/ beside {new}`: The release record of the new version and the change and defect records it includes.
 
-Standard output: The errors of an invalid specification, one line each, then the change list, then the transition lines of each workflow that keeps an as-is, then one line per failed check.
+Standard output: The errors of an invalid specification, one line each, then the change list, then one line per failed check.
 
 Standard error: A usage message on a usage error, and the reason on an unreadable path.
 
@@ -1595,13 +1589,7 @@ as it is now: the elements its pointers name, the tests about them,
 the pages, operations, commands and channels that read an entity or
 enum among them, the code targets whose reads take a section it
 touches, the documents that show one, and the approval it voids
-(ADR-083). When a workflow keeps its as-is under asIs, a section
-Transitions follows the defects: per workflow, what moving from the
-as-is to the to-be adds, changes and removes in its trigger,
-subject and messages, its steps, the approvers and performers at
-each step, the operations it calls, the forms and inboxes that rest
-on it and the tests about it or an operation it calls or no longer
-calls (ADR-236). Every document made from the specification shows an open
+(ADR-083). Every document made from the specification shows an open
 change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was
@@ -3463,6 +3451,37 @@ The sources this build reads:
   A setting is read where `String`, `int` or `bool.fromEnvironment`
   or `Platform.environment` names it by a literal, with its type and
   its `defaultValue`, and written as extract javascript writes one.
+- `tests`: existing test scripts and test sheets, complete or not
+  (ADR-234): Gherkin feature files (`.feature`) and test sheets in
+  CSV, TSV or Excel, one or more files in one repository, each a
+  document source under its file's name, cited by line for a
+  feature file and by the row's range for a sheet. Each Scenario or
+  Example of a feature file is a test, its Given steps, after the
+  Background's (a Rule's own after the Feature's), its given, its
+  When steps its when and its Then steps its then, And and But
+  continuing the step before, a doc string or a table row joined to
+  its step; a Scenario Outline is one test per row of its Examples
+  blocks, each block read under its own header row, the row's values
+  written in for the placeholders. Each row of a sheet that holds any text is a
+  test, its columns found by the header row's words: an ID and a
+  title (its name), the operation or endpoint it exercises, a
+  precondition (its given), test data (written into its given),
+  steps (its when), an expected result (its then) and a type
+  (positive or negative); a table whose header names none of a
+  title, steps, an expected result, a precondition or test data is
+  named in a line and not read. A test is named after its title in
+  kebab-case, `-2` and on for a name taken, at level `system` and
+  `scenario: red` when the script says negative or the expected
+  result names a refusal or an error, `golden` otherwise, and it is
+  `origin: inferred`, its `why` saying where it was read and why the
+  level and the scenario, and cites its line or row with the test as
+  the script writes it. A script names its subject in its own words,
+  so each test has a must question for its subject that blocks the
+  whole test, naming the request the script names (such as `POST
+  /notes`) when it names one; and one must question for each part
+  the script leaves out, the given (no precondition or test data),
+  the step and the expected result, each blocking that key. A test
+  is never given a part the script does not say.
 
 Every reader follows these rules:
 
@@ -3475,7 +3494,9 @@ Every reader follows these rules:
   `printed` for router, database and permissions, which read a list
   the running system printed, and `parsed` for go, swift, javascript and dart,
   which read the source itself (ADR-075).
-- Every element is `origin: stated` and cites where it was read.
+- Every element is `origin: stated` and cites where it was read;
+  a test read by `tests` is `origin: inferred`, since its scenario
+  and level are inferred from the script, and cites it too.
   What the surface does not say is a question, never a value: a
   constraint's message, which no catalogue holds, a check the
   expression subset cannot say, and an operation's summary and
@@ -3554,8 +3575,8 @@ Every reader follows these rules:
 
 | Argument or option | Type | Required | Description |
 |---|---|---|---|
-| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript` or `dart`. |
-| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump. |
+| `<source>` | string | yes | The surface to read: `outline`, `database`, `router`, `documents`, `tables`, `openapi`, `permissions`, `pages`, `workflows`, `gateway`, `systemd`, `go`, `swift`, `javascript`, `dart` or `tests`. |
+| `<paths>` | string, one or more | yes | What to read it from: for outline, files or folders in one repository; for database, one catalogue dump; for router, one route table; for documents, one Markdown, PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx) or email (.eml) file; for tables, one or more CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) files of one register, or of several when no template or instructions are given; for openapi, one OpenAPI document; for permissions, one permission table; for pages, one file-system router's root folder, such as app, pages or server; for workflows, one BPMN 2.0 XML file, or with --table one workflow table; for gateway, one gateway table; for systemd, one or more .service and .timer unit files in one repository; for go, files or folders of Go source in one repository; for swift, javascript and dart, one code-facts dump; for tests, one or more Gherkin feature files (.feature) and test sheets in CSV (.csv), TSV (.tsv, .tab) or Excel (.xlsx) in one repository. |
 | `--out` | string | yes | The folder the specification is written into; it becomes the specification's root folder. |
 | `--implementation` | string |   | For go, swift, javascript and dart, and for pages with --facts, an implementation file whose `bindings.http.permissionChecks` name the project's permission checks, which the reader reads routes' permissions through, and whose `clientChecks`, `signatureChecks`, `applicationChecks`, `callerChecks`, `audienceChecks` and `eventWriters` name its gates; for pages, with or without --facts, its `bindings.ui.schemaFile` names the file a page's schema is read from. |
 | `--facts` | string |   | For pages, a code-facts dump of JavaScript and TypeScript, made by specarch facts javascript of a folder that holds the router's folder, through which the Next.js files' code is read. |
@@ -3839,8 +3860,7 @@ can name the build; ADR-083), `environment` and `trace` (the
 environment given with `--environment`, and whether its entry says
 the build shows the trace; ADR-222), `target`, `root` (the root
 file's path), `specification` (the merged, validated specification as plain
-values, each workflow its to-be with no asIs, or its as-is with
-`--as-is`), `implementations` (each implementation file as `file`,
+values), `implementations` (each implementation file as `file`,
 `content`, the target's `settings` from it, and `idioms`, the idioms
 it uses, each with its `name`, `version`, how it applies (`as`:
 shipped, overridden, project or excluded), the `content` of the idiom
@@ -3976,6 +3996,57 @@ tests target, which checks rather than builds, keeps it (ADR-046). The gate does
 at the mark, so a question that blocks an owned element still holds
 the target up.
 
+`generate tests --package <environment>` writes a test package in
+place of a stack's tests, built in and through no plug-in, since it
+belongs to no stack (ADR-233). It takes one specification, `--out`
+and the key of one of its environments, and refuses with status 2
+another target, no `--out`, an environment the specification does
+not have (naming the ones it has), several specifications, and
+`--estate` or `--environment`. It writes one file,
+`specarch-test-package.yaml`, with the generated header and, for a
+draft, the draft notice as comment lines, then: the format version;
+the specification's title, version, meta-model, digest and draft
+notice; the environment; the servers that answer requests in it,
+each server of a deployment of an implementation file whose
+`environment` is that one, of kind service or of no kind, no
+dependency, with an http or https address, by deployment, name and
+address; and the cases. Each test of the specification is a case,
+named after it, with its element `#/tests/<name>`; each chosen case
+no test covers is a case too, drafted as `specarch derive` drafts it,
+named as derive names it, marked derived, with the element of its
+subject. A case carries its subject, scenario, covers, given, when
+and then, and either the reason it cannot run from outside, or its
+request: the method, the path with the path parameters of its input
+written in, the query parameters as the query, the header and cookie
+parameters as headers, the other fields as the JSON body when the
+operation takes one, each property at every depth named as
+`info.wireNames` puts it on the wire while a parameter keeps its
+name (ADR-062); the caller's role; the fixture's records as
+JSON; the status and the body fields expected, with the fields to
+compare as numbers; and the state and messages expected, named as
+not checked. A case cannot run from outside when its test does not
+apply, gives no request (a derived case whose call derive does not
+draft says so), is about a command or a page, travels in a
+handshake, streams a file, gives the caller's properties, expects
+only what is left behind, covers a denied case with no caller (a
+request with none is refused as not signed in), or calls an API
+served in the dxlib dialect, whose envelope a package does not
+write. No credential and no address
+other than the deployment's goes into the package.
+
+An open must or should question that blocks nothing but tests holds
+back those tests alone: each is left out of the cases and listed
+under `held` with the questions, and on standard error, and joins
+the package once they are answered. The derived cases of rank
+other no test covers, which the test plan lists as left out, are
+listed under `leftOut` with their subject, case and reason, and not
+run. Every other open question, and
+the approval, gate the package as they gate every target, and
+`--unapproved` makes it a draft. Prints one line per test held back
+and the counts: the cases, how many are derived, how many run, how
+many are skipped with a reason, how many tests are held back and how
+many derived cases are left out.
+
 **Insight:** One program with verbs, and generators as plug-ins found on PATH, is the pattern of protoc, git and kubectl: one name to learn and install, one parser, one diagnostic format and one version shared by every target, and new targets added without changing the program. Letting the program write the files, as protoc does, keeps `--check` and the rule "only into its folder" true for every plug-in without each one having to implement them.
 
 **Note:** From Protocol buffers compiler plug-in protocol, plugin.proto, 2024: A plug-in reads a CodeGeneratorRequest from standard input and writes a CodeGeneratorResponse to standard output; the file names it answers are relative to the output directory, and protoc writes them. <https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto>
@@ -3990,7 +4061,7 @@ the target up.
 | `--environment` | string |   | The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, section's, field's, column's and action's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds: a build for an environment that shows the trace is refused with status 2 unless `--out` names its folder, since the two cannot share one folder under `--check`; the refusal names the environment and the folder it would have written into. |
 | `--unapproved` | bool |   | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |
 | `--dry-run` | bool |   | Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check. |
-| `--as-is` | bool |   | Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-236). |
+| `--package` | string |   | With the tests target and --out: write a test package for this environment of the specification, every test and every derived case no test covers as a request to its servers, in place of a stack's tests (ADR-233). |
 
 Reads `{paths}`: The specifications and their implementation files; `records/approvals/<version>.yaml`: The approval of the specification's version, beside its folder; `{estate}`: The estate whose modules the run reads, with `--estate`, and each module's specification and implementation files; `{out}`: The current output, with `--check`; `specarch-gen-{target} on PATH`: The plug-in for a target that is not built in.
 
@@ -4345,7 +4416,10 @@ and `Sent` or `Kept`), or its name is or begins with their display
 name (`algorithm <name>`, or `mapping of <operation>'s call to
 <call>`) and a colon or a space; the element is
 `#/algorithms/<name>`, or the path of the operation,
-`#/paths/<path>`. A testcase that maps to no test and no element,
+`#/paths/<path>`. A testcase that maps to neither, and whose name is
+the name `specarch derive` gives a chosen case no test covers, as a
+test package names such a case, names the element of that case's
+subject under `element` (ADR-233). A testcase that maps to no test and no element,
 or to two of them, is kept in the record without either and
 printed as a line `unmapped: <name>: <why>` on standard output,
 under `log.unmapped` with `--json`; the validator warns
@@ -4498,13 +4572,22 @@ specification that holds every element of them, following
 `docs/from-sources.md`, section 3.2. Each tree is checked on its own
 first: a tree that does not track origin, that validate reports an
 error in, that holds implementation files or records, or that holds
-a test other than the drafts specarch derive writes for that tree is
-refused. A test is one of those drafts when its name and values are
-those of the draft derive writes for the tree without its tests; the
-problem marks above its entries do not count. The drafts are left
-out, since they are derived from one tree alone, and the derivation
-runs again into the merged specification, as extract runs it
-(ADR-055).
+a test that is neither read from a test script nor one of the drafts
+specarch derive writes for that tree is refused. A test is one of
+those drafts when its name and values are those of the draft derive
+writes for the tree without its tests; the problem marks above its
+entries do not count. The drafts are left out, since they are
+derived from one tree alone, and the derivation runs again into the
+merged specification, as extract runs it (ADR-055).
+
+A test read from a test script, one that cites a source of its tree
+as `extract tests` writes it, is kept whole under
+`tests/<name>/test.yaml`, with `-2` and on after its name when a
+test of an earlier tree has it, a line naming each renamed; a
+question of its tree that blocks nothing but such tests is kept as
+it is, its pointers naming each test by its name in the merged
+specification, numbered with the trees' other questions (ADR-234).
+A line counts the tests kept.
 
 - The same element in two trees (an entry of a section by its name,
   an operation by its path and method, a field by its entity and
@@ -4892,6 +4975,102 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read each estate's modules, at their location
   P-->>U: exit status 0, 2
+```
+
+### Command run
+
+Reads a test package, the folder `specarch generate tests --package`
+wrote or its file `specarch-test-package.yaml`, and refuses with
+exit 2 a file that is not one, or one of another format version;
+it reads nothing of the specification, so the package runs where
+the specification is not (ADR-233).
+
+The requests go to `--base-url`, or to the server of the package
+that `--server` names, or to the package's one server; with several
+and neither option it refuses with exit 2, naming each server with
+its deployment and address, and so does a `--server` that names
+none. Each case runs in the package's order:
+
+- A case the package marks skipped (no request the specification
+  gives, a command, a page, a handshake, a streamed file, a caller
+  with properties of its own, or an outcome only the state shows)
+  is reported skipped with the package's reason.
+- A case whose caller is a role signs in with the headers the file
+  `--callers` gives that role, a YAML mapping of role to header
+  name and value, such as `librarian: { Authorization: Bearer
+  <token> }`; a role the file does not give, or no file, leaves the
+  case skipped, naming the role and the option. The headers are
+  never written anywhere.
+- A case that needs records runs the program `--setup` names first,
+  with the case's name as its one argument and on its standard
+  input a JSON object with the case, the caller and the records as
+  entity name to a list of records; exit 0 means the records are in
+  place. A program that exits otherwise errors the case, with its
+  exit status and standard error. Without `--setup` such a case is
+  skipped, naming the records and the option.
+- The request is the case's method and path, with its headers and,
+  when it has one, its JSON body and `Content-Type:
+  application/json`; `Accept: application/json` always. No answer
+  errors the case with what the client said. An answer whose status
+  is not the one expected fails the case, naming both and the start
+  of the body; a body that lacks a field expected, or holds another
+  value, fails it, naming the field and both values. Numbers compare
+  by value, and a field the case marks numeric compares by value
+  when both sides are text. Otherwise the case passes; the state
+  after and the messages emitted, which a request from outside does
+  not see, are named in its output as not checked.
+
+Writes the results to `--results` as JUnit XML: one `testsuite`
+named after the specification, its version and the environment,
+with the environment, the server, the version and the digest as
+properties, and one `testcase` per case named as the case is, so
+`specarch log test-run` maps each back to its test or, for a
+derived case, to its subject's element. A failure, an error or a
+skip carries its message, and a case's output its request and the
+answer. The file holds no time, timestamp or host name, which
+Ant's JUnit schema asks for: the run's instant is `log test-run
+--at`, with its offset, the host is no environment of the
+specification, and the duration of each case is in its progress
+line, so the file changes only with the outcomes and the answers. Prints one
+line per case on standard error as it ends, step N of M, with its
+outcome, its duration and its reason; one line per failed or
+errored case on standard output; then the tests the package holds
+back and the counts, with how to record the run. With `--dry-run`
+it makes no request, runs no setup program and writes nothing: it
+prints, for each case, the request it would make with the role and
+the setup it needs, or that it would skip it and why, then the
+results file it would write, and exits 0.
+
+**Insight:** The tests a specification derives are only worth what a run of them in the customer's environment shows, and that environment is run by people who have neither the specification nor the project's harness. A package that is data, run by the same program that made it, needs nothing on their host but that program, and its results come back as a file the specification's own test-run record maps case by case.
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<package>` | string | yes | The test package, its folder or its file specarch-test-package.yaml. |
+| `--results` | string |   | The file the JUnit XML results are written to; a folder it names is made. |
+| `--base-url` | string |   | The address the requests go to, such as https://staging.library.example, in place of the package's servers. |
+| `--server` | string |   | The server of the package the requests go to, by its name in the deployment. |
+| `--callers` | string |   | A YAML file of the headers that sign each role in, such as librarian: { Authorization: Bearer <token> }; kept out of the package and the results. |
+| `--setup` | string |   | A program that puts a case's records in place, run before each case that needs records with the case's name as its argument and the records as JSON on its standard input. |
+| `--dry-run` | bool |   | Make no request, run no setup program and write nothing; print what the run would do with each case, would request <method> <address> or would skip and why, and the results file it would write. |
+
+Reads `{package}`: The test package; `{callers}`: The headers that sign each role in, with --callers.
+
+Writes `{results}`: The results, as JUnit XML.
+
+Standard output: One line per case that failed or errored, with the case's name and why; with --dry-run, one line per case saying what the run would do, and the results file it would write.
+
+Standard error: A usage message on a usage error, the reason a refusal, one progress line per case, the tests the package holds back, and the counts.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: run <package>
+  P->>F: read {package}
+  P->>F: read {callers}
+  P->>F: write {results}
+  P-->>U: exit status 0, 1, 2
 ```
 
 ### Command skill
@@ -5330,10 +5509,10 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 
 | Path | Holds | Implements |
 |---|---|---|
-| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/compare, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/try, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
+| cmd/specarch | The command line. Argument handling, finding the specifications under folders, running plug-ins, printing the diagnostics and the exit status. | #/commands/validate, #/commands/gaps, #/commands/document, #/commands/decide, #/commands/approve, #/commands/generate, #/commands/extract, #/commands/merge, #/commands/diff, #/commands/check, #/commands/derive, #/commands/compare, #/commands/idioms, #/commands/idioms diff, #/commands/decision why, #/commands/decision rests, #/commands/try, #/commands/run, #/commands/model, #/commands/version, #/entities/SpecFile, #/entities/GeneratedFile, #/algorithms/exitStatus, #/algorithms/checkStatus |
 | schema | The JSON Schemas, embedded into the binary from the files editors use. |   |
 | idioms | The shipped idioms, one folder per concern, embedded into the binary; a release fixes the set. |   |
-| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the documents reader taking Markdown, PDF, Word, PowerPoint, Excel and email messages, each format read into the same blocks (ADR-212), the tables reader of CSV, TSV and Excel registers with the dialect detected, the types inferred from every value, the template and the instructions read as the fields' statement and the questions where the files disagree (ADR-215), the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, and an operation a printed and a parsed tree do not both give asked about; and specarch check's comparison of a route table, a permission table, a catalogue dump and a register file with a specification, each difference with its rule and subject (ADR-124). |   |
+| internal/extract | The readers of specarch extract: the commit read (git, run with no user or system configuration), the outline, database, router, documents, OpenAPI, permissions, pages and workflows readers, the documents reader taking Markdown, PDF, Word, PowerPoint, Excel and email messages, each format read into the same blocks (ADR-212), the tables reader of CSV, TSV and Excel registers with the dialect detected, the types inferred from every value, the template and the instructions read as the fields' statement and the questions where the files disagree (ADR-215), the Go reader on the standard library's go/parser with dxlib's registration calls and the rule that maps dxlib_module's privilege names, the Swift reader of a code-facts dump with the property lists, build settings and Core Data models it reads as data, the JavaScript and TypeScript reader of a code-facts dump with the message catalogues it reads as data, the Dart reader of a code-facts dump, the tests reader of Gherkin feature files and test sheets (ADR-234), the subset of TypeScript a page schema is read in, the subset of BPMN 2.0 a workflow is read in, the workflow table read into the same workflows (ADR-118), the check of a dump against the commit it names, the translation of SQL checks into the expression subset, and the tree writer; and the merge of their trees, with the newest commit of a repository read at several found by git's ancestry, a requirement that gives a number of days joined to the one check that names it, a question another tree answers, by giving a key or an element the asking tree gives only by name, or a question kept before it asks left out, the name a question gives written at the key it blocks once another tree declares it, a placeholder source reported, a permission granted and checked by nothing reported, an operation a printed and a parsed tree do not both give asked about, and a test read from a test script kept whole with the questions that block only it; and specarch check's comparison of a route table, a permission table, a catalogue dump and a register file with a specification, each difference with its rule and subject (ADR-124). |   |
 | internal/ooxml | The parts of an Office Open XML package (ISO/IEC 29500): its parts by name, an XML part decoded, a part's relationships with their targets resolved, and the package's title; shared by the Word, PowerPoint and Excel readers. |   |
 | internal/xlsx | An Excel workbook's cells (.xlsx): every worksheet in the workbook's order with its cells' references, values and kinds (text, number, boolean, a date as ISO 8601, an error), a formula's last value, and a sheet's rectangles of touching cells; for the documents reader and any reader of a workbook. It reads values, never computes a formula, and writes nothing. |   |
 | internal/facts | specarch facts: the git checks of a committed folder, its tracked files and the repository key of a dump in another repository; the JavaScript and TypeScript reader on the TypeScript compiler of third_party/typescript-go, which builds one program over the files it is given, a .vue file's script blocks among them, and writes the facts specarch extract javascript reads as a code-facts dump (ADR-089, ADR-116); the Vue reader, which splits a single-file component into its blocks and parses its template as Vue 3's compiler-sfc does; and the Swift and Dart readers written from the binary into the user's cache, built there and run. |   |
@@ -5379,6 +5558,7 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | cmd/specarch-gen-tests-swift | The plug-in behind generate tests for a Swift implementation file. Reads the request on standard input, answers the Swift Testing file on standard output, and never touches the disk. | #/commands/generate |
 | cmd/specarch-gen-tests-dart | The plug-in behind generate tests for a Dart implementation file, a Flutter app's included. Reads the request on standard input, answers the Dart library and test file on standard output, and never touches the disk. | #/commands/generate |
 | internal/gentests | The tests a specification implies, as the three test plug-ins write them. The specification is read once into a model of tests and worked examples, and written in Go, in Swift for Swift Testing, or in Dart for package:test or flutter_test, each with the Harness the project implements beside it; design tests become tests through it, worked examples unit tests of the algorithm's mapping. |   |
+| internal/testpackage | The test package of generate tests --package and its run by specarch run (ADR-233): the cases read through the model of internal/gentests, each test and each derived case drafted as derive drafts it written as a request with what its answer must show or the reason it cannot run from outside, the package's YAML file, the run against one server with the callers' headers and a setup program, the comparison of an answer's status and body fields, and the results as JUnit XML. |   |
 | internal/semver | Semantic Versioning 2.0.0 versions, their precedence, and the step one needs from another, with the step before 1.0.0; the release rules and diff measure a release with it. |   |
 | internal/diff | Compares two merged specifications element by element, finds the public interface, and classifies each difference by the version step it needs. |   |
 | internal/approval | The approval record beside a specification, its digest of the specification's files, and where a version's approval stands against the files now. |   |
@@ -5410,6 +5590,7 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | #/commands/extract | main.runExtract | Runs the reader of the source, extract.Outline, extract.Database, extract.Router or extract.Documents, after extract.Open has named the commit read and refused what no commit names; extract.Tree writes the tree from ordered YAML nodes. |
 | #/commands/merge | main.runMerge | Loads each tree with spec.Load and refuses one validate.CheckSpec reports an error in; extract.Merge joins the sources, the elements and the questions, and extract.Tree writes the result. |
 | #/commands/derive | main.runDerive | Writes validate.Drafts, the drafts of the cases the warnings name. |
+| #/commands/run | main.runRun | Reads the package with testpackage.Read, chooses the server with testpackage.Address, runs the cases with testpackage.Run and writes testpackage.JUnit. |
 | #/commands/idioms | main.runIdioms | Prints validate.IdiomUses, the idioms each implementation file resolves to. |
 | #/commands/idioms diff | main.runIdiomsDiff |   |
 | #/commands/decision why | main.runDecision | Walks restsOn from the decision in the merged document; the chain is each decision after the ones it rests on. |
@@ -5470,7 +5651,7 @@ Stand-ins: None. Every test runs the real program on real files.
 
 | Suite | Level | Runs | Command |
 |---|---|---|---|
-| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command try, command version | `go test ./cmd/specarch` |
+| conformance | system | every design test of command validate, command gaps, command document, command decide, command approve, command generate, command extract, command merge, command idioms, command idioms diff, command decision why, command decision rests, command try, command run, command version | `go test ./cmd/specarch` |
 | shipped-idioms | unit | tests of this implementation only | `go test ./internal/validate` |
 | generated-sql | unit | tests of this implementation only | `go test ./internal/gensql` |
 | generated-openapi | unit | tests of this implementation only | `go test ./internal/genopenapi` |
@@ -18156,127 +18337,124 @@ implementation each time.
 
 **Note:** From Common Vulnerability Scoring System v3.1, Specification Document, 3.1, clause 5: The qualitative severity rating scale: None 0.0, Low 0.1 to 3.9, Medium 4.0 to 6.9, High 7.0 to 8.9, Critical 9.0 to 10.0. <https://www.first.org/cvss/v3.1/specification-document>
 
-### ADR-234: The stakeholder list is confirmed complete by a role, under stakeholdersComplete, and until then the validator warns, every document carries a banner and approve warns
-
-Status: proposed, 2026-11-03.
-
-Rests on: [ADR-129](#adr-129-an-environment-says-who-runs-it-and-one-the-customer-runs-is-handed-over-as-source-with-a-handover-section-and-a-handover-document), [ADR-220](#adr-220-who-said-what-and-when-is-kept-as-records-beside-the-specification-a-communication-a-session-a-test-session-and-a-deploy-each-with-an-instant-and-its-offset-and-evidence-hashed-with-sha-256-a-citation-names-a-communication-record-specarch-log-writes-one-from-options-alone-and-asks-for-what-is-missing-the-validator-warns-of-a-role-nobody-heard-and-two-documents-the-communication-history-and-the-timeline-are-written-from-the-records).
-
-Context: A stakeholder nobody listed objects first at the acceptance test,
-when the change is dearest. The validator checks that every role a
-need, a question or a handover names is a stakeholder, and warns
-unheard of a role no record ever heard, but nothing says whether
-the list itself is complete, and nothing can: who has an interest
-in the system is a human finding, taken at a kickoff or an
-interview, not a rule a program can check. A specification is
-written in any order, and most start with the needs and the
-design long before every stakeholder is known.
-
-Decision: The root holds stakeholdersComplete, a single section of the
-requirements stage beside the stakeholders, with by, the
-stakeholder who confirms that the list is complete, date, and, when
-a declared source records the confirmation, source, that source,
-such as the kickoff interview. by must be a stakeholder (the rule
-stakeholder) and source, when given, a declared source (the rule
-source), as a decision's decidedBy and cites are checked. Until the key is set, validate
-warns stakeholders_unconfirmed at /stakeholders, every document
-specarch document writes and the overview of the HTML site carry
-the banner Stakeholders unconfirmed under their title, and
-specarch approve prints the same warning on standard error, writes
-the approval record and exits 0. A must question that blocks the
-stakeholders holds the warning and the banner alike, since the
-gap is then already asked about and the documents name the
-question. A specification that lists no stakeholders is told to
-list them first, since by names one of them. A file on a meta-model
-before 1.0.0 gets neither the warning nor the banner, since its
-schema has no stakeholdersComplete and its meta_model_version
-warning already tells it to upgrade. The key is the refinement's own record, not an
-element of the system: diff and the comparison leave it out, and
-origin tracking does not ask it for an origin.
-
-Consequences: Every specification on meta-model 1.0 without the key warns once, in validate and
-in each document, until a role confirms the list; the examples of
-this repository and its own specification show the warning until
-their lists are confirmed. The confirmation is one small object
-written once, and a role that was forgotten after it is a change
-request, not a reason to unset it.
-
-**Insight:** A warning rather than an error, because the list's completeness is a decision only a person can take, and a compiler for specifications reads what it is given and marks what is missing rather than refusing it; writing order stays free, as it does for every other gap. The banner on every document rather than on the requirements document alone, because the reader of a technical specification or a handover who relies on it has the same risk of a missing role as the reader of the requirements, and the banner is the one place that reader looks. A declared source rather than free text, because the confirmation then rests on the same kind of evidence a decision rests on, and specarch gaps and the comparison can show it. by, date and source as plain keys rather than a cites list, because there is one confirmation, by one role, on one day; a citation object with a clause and what it says is more than the fact needs (the Low IQ Tax). source optional rather than required, because a small specification confirms its list at a talk it never declared as a source, as specarch decide asks for a declared source only where origin is tracked; when it is given, it is checked. Held, the warning and the banner alike, by a must question that blocks the stakeholders, because a question on the list is the same gap already tracked, with a stakeholder to answer it, and two marks for one gap are noise: the documents name the question in their Draft notice, and a banner beside it would say the same thing twice. An incomplete specification stays readable: the key missing is a warning at the list and a banner, and nothing else changes.
-
-**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: The stakeholders of the system are identified, so that every class of stakeholder with a legitimate interest in the system is represented. <https://www.iso.org/standard/72089.html>
-
-### ADR-236: A workflow keeps the as-is under asIs beside the to-be while a business process changes, checked by the workflow's rules, listed as a transition by the changes document and specarch diff, and generated only with --as-is
+### ADR-233: A test package is data that the specarch program makes with generate tests --package <environment> and runs with specarch run; it holds every test and every derived case no test covers as a request to the environment's servers, holds back a test an open question holds up, holds no credential, and its JUnit XML results map back through log test-run
 
 Status: proposed, 2026-11-04.
 
-Rests on: [ADR-054](#adr-054-a-request-that-finishes-after-people-approve-it-is-a-workflow-its-own-object-named-workflows-with-a-sequential-subset-of-bpmn-20-and-a-four-eyes-rule-on-every-approval), [ADR-198](#adr-198-a-workflow-step-may-be-a-decision-a-task-or-a-wait-an-operation-step-says-what-its-failure-does-and-which-operation-undoes-it-and-the-steps-still-run-forward-only), [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file).
+Rests on: [ADR-062](#adr-062-a-specification-names-how-its-properties-go-on-the-wire-with-one-rule-infowirenames-snake_case-which-the-validator-extract-openapi-merge-and-generate-openapi-all-apply-through-one-function), [ADR-213](#adr-213-specarch-derive-drafts-the-fixture-input-and-expect-the-design-fixes---fill-adds-them-to-tests-that-have-none-and-the-test-plan-counts-the-tests-generated-with-a-body), [ADR-230](#adr-230-a-test-run-is-a-record-beside-the-specification-with-each-result-mapped-to-a-test-of-the-specification-specarch-log-test-run-imports-a-junit-xml-file-under-records-as-its-evidence-keeps-a-result-that-maps-to-no-test-and-reports-it-and-opens-a-defect-for-a-failure-only-when-asked-the-testruns-document-writes-the-runs-and-the-failures-per-element-and-per-requirement-run-by-run).
 
-Context: A business process changes over weeks or months. While the team
-builds the new process (the to-be), people still work by the old
-one (the as-is), and both have to be read, reviewed and sometimes
-built. A specification held one workflow under each name, so the
-as-is lived in an older version or in prose, and what the move
-adds, changes and removes, the steps, the approvers, the operations,
-the pages and the tests it reaches, was found by reading two
-versions side by side, and often late, in acceptance.
+Context: The tests target writes a stack's tests, which run through a
+harness the project writes: they insert records, sign a caller in
+and send a request from inside the project. A system delivered to a
+customer is accepted in the customer's environment, run by people
+who have neither the project's code nor its harness, and who are
+asked to show which paths of the specification work there: the
+golden paths, the red paths and the paths no test covers yet.
+Their answer is usually a spreadsheet of manual checks. The
+specification already holds what such a run needs: each test's
+input and expected answer in the design's vocabulary, and, for a
+case no test covers, the draft derive writes with the call the
+design fixes (ADR-213). A deployment of an implementation file
+names, per environment, the servers and their addresses (ADR-136).
 
-Decision: A workflow may hold asIs: the workflow as the business runs it
-today, in the workflow's shape without asIs, so an as-is never
-holds another. The workflow's own keys are the to-be. Both are
-kept until the change is done; then asIs is removed.
+Decision: specarch generate tests --package <environment> --out <folder>
+writes one file, specarch-test-package.yaml, built into the program
+and through no plug-in, since a package belongs to no stack. Its
+cases are every test of the specification and every chosen derived
+case no test covers, drafted as derive drafts it and named as derive
+names it, each with its element: the test, or for a derived case
+the element of its subject. A case is a request, the method, the
+path with its path parameters written in, the query, the header and
+cookie parameters and the JSON body, with the caller's role, the
+fixture's records and the status and body fields expected; or the
+reason it cannot run from outside: no request the specification
+gives, a command or a page, a handshake's envelope, a streamed file,
+a caller with properties of its own, an outcome only the state
+after shows, a denied case with no caller, or an API served in the
+dxlib dialect. A body's properties are named as info.wireNames puts
+them on the wire (ADR-062). The state after and the messages emitted are named as
+not checked. The servers are those of the deployments in that
+environment that answer requests. A question that blocks only tests
+holds back those tests, listed under held, and every other gate is
+the target's own.
 
-The validator checks the as-is by the workflow's rules, in both
-builds, at its own pointer under /workflows/<name>/asIs and naming
-it "the as-is of workflow <name>": its trigger, subject, steps,
-approvers, performers, permissions, operations, messages and the
-messages it publishes. It names operations, roles, permissions,
-messages and an entity of the same specification, so whatever the
-to-be stops using stays declared while the as-is is kept, and a
-permission only the as-is checks counts as used. The derived cases
-and the success come from the to-be only. A reference elsewhere,
-a test's workflow or an inbox page's workflow and step, means the
-to-be.
+specarch run <package> --results <file> runs the cases in order
+against --base-url, the server --server names, or the package's one
+server. A role signs in with the headers a --callers file gives it;
+a case that needs records runs the program --setup names first,
+with the records as JSON on its standard input. A case without
+what it needs is skipped, naming what is missing. The results are
+JUnit XML, one testcase per case named as the case, with no time,
+and specarch log test-run maps a derived case's name to its
+subject's element.
 
-The transition is listed from the specification as it is, per
-workflow that keeps an as-is, by part: the workflow's trigger,
-subject and messages; the steps added, removed and changed by
-name, with the keys that differ, and the order of the steps both
-keep when it changes; the approvers and performers added and
-removed at each step; the operations it calls and no longer calls
-(trigger, operation steps, compensatedBy); the forms that submit to
-a trigger that changes and the inboxes of a step the to-be adds,
-removes or changes; and the tests about the workflow or about an
-operation it calls or no longer calls. specarch document changes
-writes it as a section Transitions after the defects, only when a
-workflow keeps an as-is; specarch diff prints it for the new
-version after its change list, one line per part.
+Consequences: A customer's tester runs the specification's paths with one program
+and two files of their own: the callers file and, when a case needs
+records, the setup program. Nothing of theirs goes into the package,
+and nothing of the specification but what the run needs goes to
+them. A case the package cannot run is in the results as skipped
+with its reason, so the results say what was not shown and why. A
+derived case runs as derive drafts it, so its result shows what the
+design fixes before anyone writes the test; once a person writes the
+test under the same name, the same result maps to it. The package is
+as current as the specification it was made from, and generate
+--check compares it as every target's output.
 
-Every generator is given each workflow's to-be, with no asIs, and
-a problem inside an as-is is not marked in its output. specarch
-generate --as-is gives each workflow's as-is in its place, with the
-workflow's own satisfies, audience and decidedIn, and the problems
-at the pointers the plug-in sees: one of the as-is at the
-workflow's own pointer, one inside the to-be not marked; a
-diagnostic it answers names the as-is's line. A workflow with no
-as-is is the same either way. Every problem not marked in an output
-is still in the problems file. The
-documents describe the to-be, the technical specification saying
-that the as-is is kept.
+**Insight:** The package is data run by the specarch program rather than a script of its own, because a script needs an interpreter on the customer's host and a request with a JSON body checked field by field needs a parser: a POSIX shell with curl has none, and Python or a Go source file needs a runtime the customer's hosts may not allow, while the specarch program is one static binary already released for each platform. It is built in, because a plug-in is looked up by the stack of an implementation file and a package that runs from outside belongs to none. Derived cases are run, not only listed, because the request asked that every derived path run, and a draft's call is what the design fixes (ADR-213); a draft whose call derive does not draft is skipped with that reason. No credential goes into the package because it is handed to people outside the team and kept beside the results; the callers file and the setup program stay with whoever runs the environment. The results are JUnit XML, the format log test-run reads (ADR-230). JUnit XML has no published standard; Ant's schema, the one most tools follow, requires time, timestamp and hostname, to show how long each test took and when and where the suite ran. The file leaves them out: the instant is what log test-run records with its offset (--at), which Ant's timestamp lacks; the host is no environment of the specification; and the durations are on the progress lines. Without them the file changes only with the outcomes and the answers, so a conformance case can compare it and its digest in the test-run record says what was shown; the readers it is for, log test-run and the CI servers that show JUnit XML, read a file without them. The derived cases of rank other are listed as left out, with why, and not run, as the test plan lists them: running every case of every subject is the exhaustive testing the sampling by risk exists to avoid (ISO/IEC/IEEE 29119-1, 4.1.6). A held test is listed rather than run as far as it goes, because a test with a part still undecided would show a result for a path nobody has agreed on.
 
-Consequences: A specification with no asIs reads, validates, documents, diffs and
-generates as before: the Transitions section and the transition
-lines appear only when a workflow keeps an as-is. The schema has
-one optional key on a workflow and one definition, workflowAsIs,
-so a file of 1.0 that holds no asIs gets no new error. An inbox
-page of a step only the as-is has is an error, as any inbox of a
-step the workflow lacks, since the pages are built for the to-be;
-the transition list names it. Moving the requests already waiting
-in the as-is to the to-be is the engine's and the migration's work
-and is not specified here.
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
 
-**Insight:** The to-be is the workflow's own keys and the as-is is nested, rather than two entries of one name each carrying variant: as-is or to-be. A mapping holds one value per key, so two entries of one name would live in two files, and the loader's rule that a name is defined once in the whole specification, in both builds, would have to give way; one of the two would then live outside the merged document, where the schema, the reference table, specarch diff and specarch facts do not look unless each is taught to; and every reference by name, a test's workflow, an inbox page's workflow and step, would become ambiguous. Nested, each element has one pointer, a problem in the as-is is marked at its own place, diff compares the as-is as part of the workflow with no new rule, and every reader of workflows already reads the to-be. The to-be, and not the as-is, is the workflow's own keys because it is what the team builds: the generators, the derived tests and the pages follow it, and removing asIs when the change is done leaves the workflow as it should stay. BPMN 2.0 names no construct for two versions of one process (its Process chapter defines one process by its flow elements): a model is one process, and versions are an engine's deployment of a definition, so generate writes one variant per run, as a BPMN file of that process. The derived cases come from the to-be alone, because the tests are written for what is built; the as-is runs today and has its tests in the code that runs it.
+### ADR-234: specarch extract tests reads Gherkin feature files and test sheets, complete or not, into tests inferred from them, with a must question for each test's subject and for each given, step or expected result the script leaves out; merge keeps such tests and the questions that block only them
 
-**Note:** From Business Process Model and Notation (BPMN), Version 2.0, with its XML schemas, 2011, clause 10: A process is one definition of the flow elements and sequence flows that make it up. <https://www.omg.org/spec/BPMN/2.0/>
+Status: proposed, 2026-11-04.
+
+Rests on: [ADR-055](#adr-055-meta-model-02-turns-a-derived-case-no-test-covers-into-an-error-except-where-an-open-question-holds-up-its-subject-and-reads-01-files-with-warnings-until-10), [ADR-233](#adr-233-a-test-package-is-data-that-the-specarch-program-makes-with-generate-tests---package-environment-and-runs-with-specarch-run-it-holds-every-test-and-every-derived-case-no-test-covers-as-a-request-to-the-environments-servers-holds-back-a-test-an-open-question-holds-up-holds-no-credential-and-its-junit-xml-results-map-back-through-log-test-run).
+
+Context: Teams that deliver to a customer already have test cases, written
+as Gherkin scenarios or as rows of a test sheet with a precondition,
+steps, test data and an expected result. They are often incomplete:
+a row with no expected result, a scenario that never says Then, a
+sheet whose test data column is empty. Each says what a stakeholder
+expects of the system, in the stakeholder's words, and none of it
+reaches the specification, so the derived cases and the written
+cases live apart. Gherkin (the Cucumber project's language) gives a
+scenario Given, When and Then steps, which are the three parts a
+design test has. merge took only the drafts derive writes from a
+reader's tree, since every reader before this one read design, not
+tests (ADR-055).
+
+Decision: extract tests reads one or more feature files and CSV, TSV or Excel
+test sheets of one repository at a commit. Each Scenario or Example
+is a test, the Background's Given steps before its own, And and But
+continuing the step before; a Scenario Outline is a test per row of
+its Examples. Each row of a sheet is a test, its columns found by
+the header's words: the ID and title, the operation, the
+precondition, the test data, the steps, the expected result and the
+type. A test is level system, red when the script says negative or
+its expected result names a refusal or an error, golden otherwise,
+origin inferred with why, and cites its line or its row's range. A
+script names what it exercises in its own words, so each test has a
+must question for its subject, which blocks the whole test since
+the subject decides the rest of its keys; and one must question for
+each part the script leaves out, its given, its step or its
+expected result, which blocks that key. merge keeps a test that
+cites a source of its tree whole, renamed with -2 when an earlier
+tree has its name, and keeps a question that blocks only such tests
+with its pointers renamed. The test package holds a test back while
+those questions are open (ADR-233).
+
+Consequences: An incomplete test script becomes tests a person completes one
+question at a time, with specarch decide, and each joins the test
+package once its questions are answered and the answers written. A
+test's words stay the script's words, cited to the line or the row,
+so a reviewer reads what the stakeholder wrote beside what was
+decided. A test is never given a part the script does not say, so
+a red scenario inferred from a missing result is golden until the
+question about it is answered. Steps written in a step-definition
+language of a project's own (Cucumber expressions bound to code) are
+read as their text, not run.
+
+**Insight:** The subject question blocks the whole test rather than its operation key, because a test names its subject by one of eleven keys and the schema asks for exactly one; a question on one key would leave the others reported missing, while a question on the element covers what the subject decides, as a field's type does (docs/conventions.md, Open questions). A question's names key, which lets merge write a name at a key once another tree declares it, blocks one key only, so it is not used here; the subject question names the request the script names in its text. Every missing part is its own question rather than one per test, because each is a separate decision a different person may take, and the request asked for one per missing input, step or expected result. Tests are inferred, not stated, because the scenario and the level are inferred from the script's words. Gherkin is read by its keywords as the Cucumber project defines them (Feature, Rule, Background, Scenario, Example, Scenario Outline, Examples, the step keywords, doc strings and data tables, tags), English keywords only, since a feature file's language header changes every keyword and a reader of every language is a larger piece of work. merge keeps read tests whole rather than merging two of them, because two scripts that name one test are two tests a person reads side by side, and a merge of their steps would invent a third.
 
 ## 10. Quality requirements
 
@@ -18287,9 +18465,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | approve-after-document-records-and-site | command approve | system | golden | a specification with change requests, releases and a defect in the records beside it, a stakeholder owner, and changes, releases and html documents that specarch document has just written | approve is run with --by owner and a date | it finds every document current, as document wrote it from the records, the problem marks and the site's parts, writes records/approvals/1.0.0.yaml naming the three documents, and exits 0 |
 | approve-refuses-open-question | command approve | system | red | a specification with an open should question | approve is run | it refuses, writes nothing and exits 1 |
 | approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now | approve is run | it names the document that differs, writes nothing and exits 1 |
-| approve-stakeholders-complete | command approve | system | golden | a specification whose stakeholdersComplete is set by a declared stakeholder, a current requirements document and a stakeholder clerk | approve is run with --by clerk and a date | it writes the approval record with no warning about the stakeholder list, and exits 0 |
 | approve-usage-error | command approve | system | red | no --by | approve is run without saying who approves | it prints how to use it and exits 2 |
-| approve-warns-stakeholders-unconfirmed | command approve | system | red | a specification with stakeholders and no stakeholdersComplete, a current requirements document and a stakeholder clerk | approve is run with --by clerk and a date | it warns on standard error that the stakeholder list is not confirmed complete, still writes the approval record, and exits 0 |
 | approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
 | capabilities-text | command capabilities | system | golden | the program, with no plug-in on PATH | capabilities is run | it prints the version, the formats, every command, the document targets and extract sources, no plug-in and the limits, and exits 0 |
 | capabilities-usage-error | command capabilities | system | red | the program | capabilities is run with an option it does not take | it prints how to use it and exits 2 |
@@ -18369,7 +18545,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-classifies-changes | command diff | system | golden | a new version that drops an enum value, requires a field it did not, and adds an optional query parameter, released as 2.0.0 by a major change naming them | diff is run | the enum and the entity are major with the reason, the operation minor, the major step passes, and it exits 0 |
 | diff-invalid-spec | command diff | system | red | a new version whose operation names a permission that is not declared | diff is run | it prints the error, compares what could be read, and exits 1 |
 | diff-lists-changes | command diff | system | golden | a new version that adds an operation and an optional field, rewords a requirement and an entity's description, and a planned release 1.1.0 whose change names each | diff is run on the old and the new folder | it lists the three elements as minor with the field that decided, minor and patch, finds the minor step enough and every element named, and exits 0 |
-| diff-lists-transition | command diff | system | golden | an old version whose workflow refund is the clerk's process, and a new version 1.1.0 whose refund is the to-be and keeps the old process under asIs, with a planned release whose change names the workflow | diff is run on the old and the new folder | it lists the workflow as a patch change, then one transition line per part the move from the as-is to the to-be reaches: the workflow's messages, the steps, the approvers and performers, and the operations; finds the release covers it, and exits 0 |
 | diff-map-values | command diff | system | golden | a new version in which one map's values change from boolean to string, a closed object comes to allow any member, a map of strings becomes a closed object, an object that said nothing of other members allows any, and a map open to any value comes to allow only dates, released as 2.0.0 by a major change naming them | diff is run | the changed value type, the closed object and the map narrowed to dates are major with the reason, the object that allows any member minor, the object that says the same as before a patch, the major step passes, and it exits 0 |
 | diff-no-release | command diff | system | red | a new version 1.1.0 with no release record beside it | diff is run | it lists the change, reports version for the missing record and exits 1 |
 | diff-not-covered | command diff | system | red | a release whose only change names the entity, while the requirement changed too | diff is run | it reports covered for the requirement and exits 1 |
@@ -18383,7 +18558,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-audience-needs-out | command document | system | red | --audience external with no --out | document is run | it prints the usage error saying a document for everyone is written beside the full documents, not over them, and exits 2 |
 | document-audience-problems-refused | command document | system | red | --audience external for the problems target | document is run | it prints the usage error saying the problems file holds every element and exits 2 |
 | document-audience-value-refused | command document | system | red | --audience internal, a value it does not have | document is run | it prints the usage error naming external as the one value and exits 2 without reading the folder |
-| document-changes-transition | command document | system | golden | a specification whose workflow keeps its as-is, with an inbox page at an approval step the to-be changes, a test about the workflow and a test about an operation only the as-is calls, and no records | document changes is run | it writes changes.md with a section Transitions after the defects that lists, for the workflow, the messages it publishes, the steps added, removed and changed, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the inbox page and the two tests; and exits 0 |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
 | document-check-invalid | command document | system | red | an invalid specification whose technical specification on disk is the one document writes for it | document techspec --check is run | it prints the error, finds the file current, writes nothing, and exits 1 because the specification has an error |
@@ -18422,9 +18596,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-problems-no-output-folder | command document | system | red | a specification whose implementation file names an output folder for requirements only, and no --out | document problems is run with --check | it warns at the file's targets, writes nothing and exits 2, since no specification given has a problems document |
 | document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
-| document-stakeholders-banner | command document | system | red | a specification with stakeholders and no stakeholdersComplete, and a configured requirements document | document requirements is run | the document carries the Stakeholders unconfirmed banner under its title and the warning marked as a problem, and the run exits 0 |
-| document-stakeholders-complete | command document | system | golden | a specification whose stakeholdersComplete is set by a declared stakeholder, and a configured requirements document | document requirements is run | the document carries no Stakeholders unconfirmed banner and no problem, and the run prints nothing and exits 0 |
-| document-stakeholders-held | command document | system | red | a specification with stakeholders, no stakeholdersComplete and an open must question that blocks the stakeholders, and a configured requirements document | document requirements is run | the document carries the Draft notice naming the question and no Stakeholders unconfirmed banner, since the question already marks the gap, and the run exits 0 |
 | document-state-diagram | command document | system | golden | a hand-written document with a stateDiagram Order marker | document techspec is run | the region holds the states of Order with a start and an end, and it exits 0 |
 | document-techspec-0-3-clients | command document | system | golden | the specification of validate-0-3-clients-valid | document techspec is run with --out | it writes the technical specification whose permissions matrix has a column per client with roles and marks the closed permission, a table of the clients with their kind, versions, roles and proof, and a table of who may call each route, and exits 0 |
 | document-techspec-0-3-tokens | command document | system | golden | the specification of validate-0-3-tokens-valid | document techspec is run with --out | it writes the technical specification with the tokens table, the access token's audience and the transaction token's header and trust domain, the delete's via in the accepted-by column, the chain drawn as a flowchart, and the security events table with the store and the alarm, and exits 0 |
@@ -18454,7 +18625,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-testplan-gateway | command document | system | golden | the specification of validate-gateway, whose three tests name the gateway api | document testplan is run | the gateway is a subject of its own, Gateway api, with its three tests beside the operation's, and its occasional and rare cases no test covers are listed among the derived cases left out |
 | document-testplan-left-out | command document | acceptance | golden | an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long | document testplan is run | it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0 |
 | document-testplan-state-machine | command document | system | golden | a Loan state machine with two paths and a test that walks one of them | document testplan is run | testplan.md has a State machines section with the Loan state diagram and a row per path naming the test that walks it, and exits 0 |
-| document-testruns-stakeholders-banner | command document | system | red | a specification with stakeholders and no stakeholdersComplete, and two test runs recorded beside it | document testruns is run | docs/testruns.md carries the Stakeholders unconfirmed banner under its summary, the test runs read as they do with the list confirmed, and the run exits 0 |
 | document-traceability-harm | command document | acceptance | golden | a specification with two requirements, one of which names two harms | document traceability is run | it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0 |
 | document-two-implementations | command document | system | golden | a specification with two implementation files, one of which names techspec's output folder | document techspec is run on it | chapter 7 has one part for each implementation, the header names both, and it exits 0 |
 | document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
@@ -18600,6 +18770,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | extract-tables-round-trip | command extract | system | golden | a repository holding the register template and the instructions specarch generate register wrote for an entity with a UUID key, an email and a 64-bit integer, the template filled with two members | extract tables is run on the filled file with the instructions | it writes the entity back with the stated types (uuid, email, a string of format int64), the required list and the description the instructions give, a must question for the primary key alone, and no question about a type word, and exits 0 |
 | extract-tables-template | command extract | system | golden | a repository holding a register template, a workbook with the header row and an instructions sheet giving each column its type, whether it is required, its sensitivity, its allowed values and its description, and a filled CSV copy with a column the template lacks, a blank in a required column, a status outside the allowed values and a count that is not an integer | extract tables is run on the filled file with --template | it writes the entity stated by the template and the instructions, with the descriptions, sensitivities, required list and allowed values they give, and a must question for each difference of the filled file: the extra column, the blank, the value outside the list and the value not of the type, each citing the cells, and exits 0 |
 | extract-tables-two-periods | command extract | system | golden | a repository holding two period files of one register, the second with a column the first lacks, blanks in a column the first fills, and a status value the first does not hold | extract tables is run on both with --entity Loan | it writes one entity citing both files, with the column only the second has kept under a must question, the column with blanks left out of required under a should question, the new status value kept in the enum under a should question, and exits 0 |
+| extract-tests-incomplete-scripts | command extract | system | golden | a repository holding a Gherkin feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a test sheet in CSV with one row that has no test data and one row with nothing but its ID and title | extract tests is run on both files | it writes one test per scenario, example and row, each with origin inferred, why and a citation of its line or its row's range, the Background's step in each given, the scenario red where the expected result names a refusal, and one must question per test for its subject, naming the request the script names, and one per given, step or expected result the script leaves out; and exits 0 |
 | extract-usage-error | command extract | system | red | no source | extract is run without arguments | it prints how to use it and exits 2 |
 | extract-workflows-asks-unread-end | command extract | system | red | a repository holding a hand-written loan.bpmn whose wait returned has a timer that goes to an end event named Approved, and whose decision check ends the request at an end event named Rejected when overdueCount > 2, and otherwise at the one named Approved | extract workflows is run on the file | it reads the otherwise branch as ending approved, writes the Rejected branch with no end and the wait with no onDeadline, asks how a request ends at end-rejected in a question that blocks that branch and what happens at the wait's deadline in one that blocks its onDeadline, says each in a not-held line naming the end event, and exits 0 |
 | extract-workflows-not-bpmn | command extract | system | red | a committed XML file that is a state chart, not BPMN 2.0 | extract workflows is run on it | it says the file is not a BPMN 2.0 XML file, writes nothing and exits 1 |
@@ -18638,9 +18809,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-usage-error | command gaps | system | red | no folder | gaps is run without arguments | it prints how to use it and exits 2 |
 | generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram and a lane set of three lanes, the system's holding the start, the gateways, the operation and the ends and one per approving role holding its approval and timer, and waiver.svg, with the same lanes and every element in a group whose id is the BPMN element's, data-step naming the step and data-role the lane's role, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
 | generate-bpmn-approved | command generate | system | golden | an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run | it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0 |
-| generate-bpmn-as-is | command generate | system | golden | a specification with no approval record whose workflow keeps its as-is, with an open question blocking a step of each; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved and --as-is | it writes refund.bpmn and refund.svg of the as-is in the workflow's place, with the clerk's check and approval, the payment and the notice, and nothing of the to-be's decision or hold; the open question that blocks the as-is step notify is marked at notify, and the one that blocks the to-be step hold is marked nowhere in the files; and exits 0 |
 | generate-bpmn-step-kinds | command generate | system | golden | a specification with no approval record and a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes refund.bpmn with the decision as an exclusive gateway whose flows carry its conditions in the language urn:specarch:expression and whose default is its otherwise, the tasks as user tasks with their performers, the message wait as a receive task with a timer, the other waits as intermediate timer catch events, each onFailure as an error boundary event, compensatedBy as a compensation boundary event associated with a service task marked isForCompensation, and refused and failed ends that compensate; and refund.svg with the same; and exits 0 |
-| generate-bpmn-to-be | command generate | system | golden | a specification with no approval record whose workflow keeps its as-is, with an open question blocking a step of each; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes refund.bpmn and refund.svg of the to-be only, with its decision, the manager's approval, the hold undone by releaseFunds and the payment, and nothing of the as-is's check or notice; the open question that blocks the to-be step hold is marked at hold, and the one that blocks the as-is step notify is marked nowhere in the files; and exits 0 |
 | generate-deploy | command generate | system | golden | a specification with no approval record, three environments, a non-secret setting, a secret setting and one with a default, two migrations of which one has no rollback, a release and a rollback; an implementation file with a sql and a seed target, a build task, a test command, and three deployments, each with an api server and a database server, one with a server that is a dependency, whose deploy target names the form of each (compose, kubernetes, cloud-init), the images, the database's storage and the compose deployment under fresh; specarch-gen-deploy built from this repository on PATH | generate deploy is run with --unapproved | it writes the compose deployment as a Compose file with its env file and its fresh script, the kubernetes deployment as manifests with a NetworkPolicy from the link, the cloud-init deployment as one file per host, and the release, rollback and migration runbooks; every non-secret value is written, the setting with a default takes it where the deployment gives none, and the secret appears in every file only as a reference to the host's secret store, never with a value; and exits 0 |
 | generate-deploy-refused | command generate | system | red | a specification as in generate-deploy; an implementation file whose deploy target leaves a deployment without a form, names a form that is not compose, kubernetes or cloud-init, names a deployment the file does not have, names under fresh a kubernetes deployment, gives no image for the api server, and whose sql target's dialect is sqlserver; and a deployment that gives no value for a setting without a default; specarch-gen-deploy built from this repository on PATH | generate deploy is run with --unapproved | it reports each at the target or the setting, the deployment without a form and the one with an unknown form get no file, the server without an image and the database of the dialect it does not run are left out of the manifests with a comment, the runbooks and the rest are written, and it exits 1 |
 | generate-draft-open-questions | command generate | system | golden | a specification with a must question that blocks an entity and a should question that blocks the paths, no approval, and specarch-gen-openapi on PATH | generate openapi --unapproved is run | it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0 |
@@ -18726,6 +18895,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-tests-estate-calls | command generate | system | golden | an estate of two modules, the stock module whose operation calls the pricing module's getPrice through a dependency with a time limit, getPrice needing a permission and a required query field and declaring a 422 and a 404, a golden design test of getPrice with its input, an implementation file in Go with a tests target, and specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved and --estate naming the estate file, on the stock module | it writes the design tests' file with the integration harness and one file of the calls into the pricing module, holding one test of the call that pins both modules and their versions, the dependency, the method, the path and the time limit, with the golden path on the golden test's input and the red paths denied without the permission, the required field left out answered 422, the 404 arranged, the module failing and the module not answering in time, and exits 0 |
 | generate-tests-framework-refused | command generate | system | red | the specification of generate-tests-go, and an implementation file in Swift whose testing framework is XCTest; specarch-gen-tests-swift built from this repository on PATH | generate tests is run with --unapproved | the plug-in refuses the framework by name, saying it writes Swift Testing; nothing is written, and it exits 1 |
 | generate-tests-go | command generate | system | golden | a specification with an operation, a command, a page, a check constraint and an algorithm, and design tests of each with fixtures, inputs and expected outcomes where the design gives a call; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0 |
+| generate-tests-package | command generate | system | golden | a specification of one kept note with an environment acceptance whose deployment has an API server and a database server, a golden test of keeping a note, a test of reading a note that needs a record in place, a test whose expected result a must question blocks, and derived cases no test covers | generate tests --package acceptance --unapproved --out package is run | it writes package/specarch-test-package.yaml with the generated header and the draft notice, the API server and not the database, one case per test with its request, its caller, its records and what its answer must show, one case per derived case no test covers, marked derived with its subject's element, the derived case whose call derive does not draft skipped with why, the blocked test under held naming its question, and the derived cases of rank other under leftOut with why; prints the held test and the counts, and exits 0 |
 | generate-tests-routes | command generate | system | golden | a specification with a files route and its tests, three naming the file under the prefix as input.file, one for a file that is there, one for a file that is not and one for a path that climbs out of the folder, and one naming no file; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes one Go test file: a GET at the prefix followed by the file for each test that names one, with its expected status, and a body to write by hand for the test that names none, saying that a files route needs a file under the prefix, and exits 0 |
 | generate-tests-swift | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Swift with a tests target and no testing framework named; specarch-gen-tests-swift built from this repository on PATH | generate tests is run with --unapproved | it writes one Swift Testing file: the same tests as in Go through SpecArch.Harness, async and throwing, a body to write by hand for the test with no call, the reason of the test that does not apply, the worked examples with decimals as decimals, and exits 0 |
 | generate-tests-value-objects | command generate | system | golden | a member whose address holds a location and whose phones are a list of schemas, and design tests that store a member with them, send them and expect them back; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes each value object as an object value with its parts, a location inside an address with its own, and the phones as a list value with an object per item, each part with the type its schema gives, and exits 0 |
@@ -18807,6 +18977,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | log-evidence-outside | command log | system | red | a specification and a records/ folder beside it | log is run naming the specification's own root file as evidence, which is not under records/ | it refuses, naming the file and where evidence lives, writes nothing and exits 1 |
 | log-test-run-asks-missing | command log test-run | system | red | a specification with the environment staging and the stakeholders owner and tester | log test-run is run with --open-defect alone | it prints one line per missing option, the results file, the environment with staging, the instant, the role with owner and tester, the severity and the phase with their values, writes nothing and exits 1 |
 | log-test-run-defect-not-failed | command log test-run | system | red | a JUnit XML file in which member-key passed | log test-run is run with --open-defect member-key | it refuses, saying no result of the run maps to member-key and failed or errored, writes neither the run nor a defect and exits 1 |
+| log-test-run-maps-derived-cases | command log test-run | system | golden | a specification of a kept note with the test keep-note-ok, and the JUnit XML a test package's run wrote under records/evidence/, whose testcases are keep-note-ok and two derived cases no test covers, create-note-missing-id and create-note-missing-text (failed), named as derive names them | log test-run is run on the file with the environment, the instant and the role | it writes records/test-runs/TR-1.yaml with keep-note-ok mapped to its test and each derived case naming the path of its operation, #/paths/~1notes, under element; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0 |
 | log-test-run-maps-worked-examples | command log test-run | system | golden | a specification with the test loan-limit and the algorithm loanCap with two worked examples, and a JUnit XML file under records/evidence/ whose testcases are the Go subtests TestAlgorithmLoanCap/four open loans and TestAlgorithmLoanCap/five open loans (failed), the Swift display name algorithm loanCap: worked examples, and TestLoanLimit | log test-run is run on the file with the environment, the instant and the role | it writes records/test-runs/TR-1.yaml with the three results of the worked examples naming the element #/algorithms/loanCap and no test, and TestLoanLimit mapped to loan-limit; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0 |
 | log-test-run-nameless-testcase | command log test-run | system | red | a JUnit XML file under records/evidence/ whose second of two testcases has no name attribute | log test-run is run on it with every required option | it refuses, saying testcase 2 of 2 has no name attribute so no test can be found for it, writes nothing and exits 1 |
 | log-test-run-not-junit | command log test-run | system | red | an XML file under records/evidence/ whose root element is report, not testsuites or testsuite | log test-run is run on it with every required option | it refuses, saying the file is not JUnit XML and naming the root element it has, writes nothing and exits 1 |
@@ -18829,6 +19000,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | merge-gateway-two-trees | command merge | system | golden | two trees extract go wrote of routers that each have a NoRoute handler, whose question blocks gateways alone, and the tree extract gateway wrote of a gateway table with one gateway | merge is run on the three, the two code trees first | the one gateway answers the first code tree's fallback question, which is left out with a line naming the gateway api, and the second code tree's stays open with a line saying no gateway is left for it, since one gateway table describes one gateway in front of one tree |
 | merge-joins-commits | command merge | system | golden | a repository whose first commit holds the migrations and whose second the router, a database tree read at the first that asks one question, and a router tree read at the second that asks two, both declaring the repository as the source code | merge is run on the two trees | it writes one specification with one source code at the second commit, whose clauses are both trees', every element of both trees, the stakeholder they share once and the three questions numbered again in the order the trees are given, says the migrations are unchanged up to the second commit, and exits 0 |
 | merge-keeps-could-questions | command merge | system | golden | the tree of a route table and the tree of a permission table, each asking with must what the same three permissions allow, the permission table with two could questions on one role and each with a could question on one permission, each about something its reader could not hold | merge is run on the two trees | it leaves out the permission table's must question as asked twice, keeps every could question, the two on one role and the two on one permission, and exits 0 |
+| merge-keeps-read-tests | command merge | system | golden | a design tree of a kept note that tracks origin, and the tree extract tests wrote from a feature file and a test sheet, with six tests read from them and ten must questions, each blocking a test or one of its keys | merge is run on both | it keeps each read test whole under tests/ with its citation, keeps the ten questions with their pointers, numbered with the trees' other questions, prints a line counting the tests kept, derives the design's own drafts into the merged specification, and exits 0 |
 | merge-map-open-then-typed | command merge | system | red | the two database trees of merge-map-typed-then-open: the map extra open to any value, with a should question on its values, in one and with boolean values in the other, and the map counts with string values in one and integer values in the other | merge is run on the two trees, the open one first | extra is merged with boolean values and no dispute, as when the typed tree comes first, and the open tree's question is left out as answered; counts keeps the first tree's value type, string, with a must question on it; the merged specification validates with no error; it exits 0 |
 | merge-map-typed-then-open | command merge | system | red | two database trees whose entity Holds gives the map extra with boolean values in the first and open to any value in the second, which asks in a should question what its values are, and the map counts with integer values in the first and string values in the second | merge is run on the two trees, the typed one first | extra is merged with boolean values and no dispute, and the second tree's question on its values is left out as answered by the first; counts keeps the first tree's value type with a must question on it, since two value types are a disagreement; the merged specification validates with no error; it exits 0 |
 | merge-map-values | command merge | system | red | two database trees whose entity Holds gives the map labels alike in both, the map counts with integer values in one and string values in the other, and the map extra open to any value, with no question on its values, in one and with boolean values in the other | merge is run on the two trees | labels is merged as both give it; counts keeps the first tree's value type so the field is read, with a must question on the values' type; extra is written with no additionalProperties and a must question on it, since the tree that writes it open asks nothing of its values and so says they may be anything, a claim the typed one disagrees with; the merged specification validates with no error; it exits 0 |
@@ -18870,6 +19042,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
+| run-package-no-answer | command run | system | red | a test package with one server and one public case whose server does not answer | run is run on it with --results and no --base-url | it sends the request to the package's one server, gets no answer, writes the case as an error naming the request and what the client said, prints the case as errored, and exits 1 |
+| run-package-servers | command run | system | red | a test package whose environment has two servers that answer requests | run is run on it with --results and neither --base-url nor --server | it names both servers with their deployment and address, says to choose one with --server or give --base-url, makes no request, writes nothing and exits 2 |
+| run-package-skips | command run | system | golden | the test package of a kept note, whose cases each sign in as a role, need a record in place or cannot run from outside, and no callers file or setup program | run is run on it with --base-url and --results results/acceptance.xml | it makes no request, writes results/acceptance.xml as JUnit XML with one testcase per case, named as the case, each skipped with its reason (the role --callers does not give, the records and --setup, or the package's own reason), prints the test the package holds back and the counts, and exits 0 |
+| run-usage-error | command run | system | red | a test package | run is run on it without --results | it prints that run needs --results with the usage, writes nothing and exits 2 |
 | skill-check-differs | command skill | system | red | a skills folder holding an earlier release's SKILL.md and no references | skill is run on it with --out and --check | it names SKILL.md as differing and each reference as missing, writes nothing, and exits 1 |
 | skill-lists-what-it-writes | command skill | system | golden | a skills folder holding the skill an earlier release wrote, with the reference of a command this release does not have and a text file beside the references | skill is run on it with --out and --dry-run | it lists SKILL.md and the reference of every command as files it would write, the reference no command has as one it would remove, and the text file not at all, writes nothing, and exits 0 |
 | skill-refuses-another-folder | command skill | system | red | a skills folder whose specarch folder holds files but no SKILL.md | skill is run on it with --out | it writes nothing there, says the folder is not a skill skill wrote, and exits 2 |
@@ -18978,7 +19154,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-derived-decision-table | command validate | system | golden | a check constraint copies >= 0 && (copies <= owned \|\| label == "spare") on a requirement with a harm, and only a golden test | validate is run | it warns for two decision-table cases, the first clause false alone and the two clauses of the \|\| false together, and exits 0 |
 | validate-derived-flow | command validate | system | golden | a Loan state machine with two paths, open to returned and open to overdue to returned, the move to overdue satisfying a requirement with a harm | validate is run | it warns for the path through overdue, leaves the other out, and exits 0 |
 | validate-derived-test-names | command validate | system | golden | requirements AB-1.2, AB-1_2 and AB-Shelf.Two, each with a harm, one acceptance criterion and no test | validate is run | the test it says to add for each is named from the requirement made a valid name, ab-1-2-acceptance-1, ab-1-2-2-acceptance-1 with a suffix since AB-1.2 gives ab-1-2 as well, and ab-shelf-two-acceptance-1, and it exits 0 |
-| validate-design-key | command validate | system | red | an implementation file with an entities key and a stakeholdersComplete key | validate is run | it reports design_key at each of the two keys and exits 1 |
+| validate-design-key | command validate | system | red | an implementation file with an entities key | validate is run | it reports design_key and exits 1 |
 | validate-design-ref | command validate | system | red | an implementation mapping that points at an entity the design does not have | validate is run | it reports design_ref and exits 1 |
 | validate-diagram-context | command validate | system | red | a dependency of a kind the meta-model does not have, a protocol in capitals, a file store with a specification, a channel carried by an undeclared dependency and by a file store, and one naming its carrier twice | validate is run | it reports the kind and the protocol as schema errors, the specification as dependency, each wrong carrier as channel with the dependency it may mean, and the repeat, and exits 1 |
 | validate-diagram-context-valid | command validate | system | golden | dependencies of kind system with a specification, messageBroker, fileStore and none, each with a protocol or none, and channels carried by the broker and by a system | validate is run | it reports nothing and exits 0 |
@@ -19202,12 +19378,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-source-reading | command validate | system | red | code sources read printed and parsed, a document source that says how it was read, and a code source whose reading is neither printed nor parsed | validate is run | it accepts both code sources, reports the document source's reading and the reading that is neither, and exits 1 |
 | validate-stack-key | command validate | system | red | a design file with an x-oapi-codegen key on an operation | validate is run | it reports stack_key and exits 1 |
 | validate-stakeholder | command validate | system | red | a need whose stakeholders name a stakeholder that does not exist | validate is run | it reports stakeholder and exits 1 |
-| validate-stakeholders-complete | command validate | system | golden | a specification whose stakeholdersComplete is set by a declared stakeholder, with a date and a declared interview source | validate is run | it prints nothing and exits 0: the confirmation ends the stakeholders_unconfirmed warning |
-| validate-stakeholders-complete-unknown | command validate | system | red | a specification whose stakeholdersComplete names a role that is not a stakeholder and a source that is not declared | validate is run | it reports stakeholder at /stakeholdersComplete/by and source at /stakeholdersComplete/source, each with the closest declared name, and exits 1 |
-| validate-stakeholders-earlier-meta-model | command validate | system | golden | a specification on meta-model 0.3, whose schema has no stakeholdersComplete, with stakeholders and no confirmation | validate is run | it gives the meta_model_version warning alone and no stakeholders_unconfirmed, since the file could not hold the key the remedy names, and exits 0 |
-| validate-stakeholders-none | command validate | system | red | a specification with no stakeholders section and no stakeholdersComplete | validate is run | it warns stakeholders_unconfirmed at /stakeholders, at line 1 of the root file since there is no list, telling the author to list the stakeholders first and then confirm the list, and exits 0 |
-| validate-stakeholders-unconfirmed | command validate | system | red | a specification with stakeholders and no stakeholdersComplete, so no role has confirmed that the list is complete | validate is run | it warns stakeholders_unconfirmed at /stakeholders, naming the key that ends the warning, and exits 0, since a warning is not an error |
-| validate-stakeholders-unconfirmed-held | command validate | system | golden | a specification with stakeholders, no stakeholdersComplete, and a must question that blocks the stakeholders | validate is run | it prints no stakeholders_unconfirmed, only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0: the must question holds stakeholders_unconfirmed, since the gap is already asked about |
 | validate-state-field | command validate | system | red | a state field that is not an enum | validate is run | it reports state_field and exits 1 |
 | validate-state-value | command validate | system | red | a transition to a value the enum does not have | validate is run | it reports state_value and exits 1 |
 | validate-stored-data | command validate | system | red | an audited entity with soft deletion that declares createdAt and deleted, an encrypted primary key without lookup hash, a lookup on a field that is not encrypted, an operation whose response carries a credential that is not writeOnly, and a public operation whose response carries a personal field | validate is run | it reports audited twice, at_rest twice and sensitivity_exposed for the credential, warns sensitivity_exposed for the personal field, and exits 1 |
@@ -19275,8 +19445,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-views-valid | command validate | system | golden | a view of a loan with its member's name and, through the member, its branch's name, a view of a member with a count of its loans and its loans as rows, and a list over the first view whose whitelists name both the view's fields and its entity's, answering the view's rows | validate is run | it reports no error, and exits 0 |
 | validate-wire-names | command validate | system | red | a specification whose wire names are snake_case, with two entity fields, two fields of a nested object, two fields of an array's items, a view's added field and its entity's, two fields of a message payload, two of a path parameter's schema and two of a request body each mapping to one wire name, acronyms and runs of capitals among them | validate is run | it reports wire_name seven times, at the second name of each pair, and exits 1 |
 | validate-workflow | command validate | system | red | a workflow whose subject is not an entity, whose approver does not grant the approval's permission or is not a role, whose approval checks the trigger's permission with a deadline of zero and escalates to a step that is not a later approval, with two steps of one name and an operation step naming no operation; a workflow started by an operation that does not answer 202 whose approval checks an undeclared permission; and one started by an operation that does not exist | validate is run | it reports workflow eleven times and permission_undeclared once, and exits 1 |
-| validate-workflow-as-is | command validate | system | golden | a specification on the lean profile whose workflow refund, the to-be, routes by amount, has a manager approve, holds the funds and pays, and keeps under asIs the as-is, where a clerk checks, approves, pays and faxes a notice, each naming operations, roles and permissions of the same specification | validate is run | it reports no error at either variant, derives the workflow's cases from the to-be only, and exits 0 |
-| validate-workflow-as-is-refused | command validate | system | red | a workflow whose as-is names a performer that is not a role, two steps of one name, an operation that does not exist, a message no channel declares, and holds an asIs of its own | validate is run | it reports each as workflow, emits or schema at its pointer under /workflows/refund/asIs, naming the as-is of the workflow, the same in both builds, and exits 1 |
 | validate-workflow-deadline-undoes | command validate | system | red | a workflow that holds the funds with hold, undone by releaseFunds, then waits for a clerk's task check and for the message of confirmed, each with a deadline that refuses | validate is run | it names the case of each deadline passing as the request ending refused, with releaseFunds undoing hold, as for an approval's refusal; and exits 1 |
 | validate-workflow-open-branch | command validate | system | red | the tree extract writes in the case extract-workflows-asks-unread-end: decision check's first branch has a condition and neither to nor end, a question blocking it, and the wait returned has a deadline with onDeadline held by a question | validate is run | it names the open branch's case as check takes branch 1, the request going where branch 1 of check goes, rather than a step with no name, names the case of the wait's deadline as the request going where onDeadline of returned goes rather than ending refused, reports no error, and exits 0 |
 | validate-workflow-step-kinds | command validate | system | golden | a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, one with retries that end it failed and one whose failure goes on at a later step, and waits for a message with a deadline, for a duration and for a moment of its subject, with no tests | validate is run | it reports no error but the missing tests, and names among them a case per branch of the decision, the deadline at each task and at the wait for a message, a task done without its permission, and each failure with its retries, the request undone by the compensating operation where it ends after the step; and exits 1 |
@@ -19339,6 +19507,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-27 | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. | functional | should | accepted | test | A fixture naming a field the entity does not have, a value of the wrong type, or a record a check constraint refuses is reported as test_data. An input naming a parameter the operation does not have, or an expected status that is not one of its responses, is reported as test_data. A test with input and an input/ folder beside it is reported as test_data. | NEED-9 |
 | SA-21 | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. | functional | must | accepted | test | An operation that satisfies no requirement with harm gets no warning for the boundary cases of its fields, and still gets one for a missing required field and for a caller without the permission. The same operation, once it satisfies a requirement with harm, gets a warning for every derived case no test covers. A field with mistakes rare loses the warnings for its cases, and a field with mistakes frequent gains them. A failing channel is warned about whatever the harm of the operation. | NEED-9 |
 | SA-22 | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. | functional | must | accepted | test | The test plan of a specification with an uncovered boundary case on a subject with no harm has a row for that case, and the row is gone once a test covers it. The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none. | NEED-9, NEED-3 |
+| SA-128 | specarch generate tests --package <environment> shall write a test package of one specification for one of its environments - every test, and every chosen derived case no test covers drafted as derive drafts it, each as a request to the environment's servers with what its answer must show, or with the reason it cannot run from outside - holding back a test an open must or should question holds up until it is answered, and holding no credential; specarch run shall run the package against the environment, signing each role in with headers it is given and putting a case's records in place through a program it is given, and write the results as JUnit XML that specarch log test-run maps back to each test, or to a derived case's subject. | functional | should | proposed | test | generate tests --package with an environment of the specification, --out and --unapproved writes specarch-test-package.yaml with the generated header, the environment's servers that answer requests and one case per test and per chosen derived case no test covers, a derived case marked derived with its subject's element, and lists a test a must question blocks under held, naming the question. A case whose test gives no request, is about a command or a page, or expects only the state after is in the package with the reason it cannot run from outside, and no case holds a credential. run with the package, --base-url of a fixture service, --callers and --results writes JUnit XML with one testcase per case, named as the case, passed when the answer has the status and the body fields expected, failed naming the status or field that differs, and skipped with the reason for a case the package marks so, a role --callers does not give, or records with no --setup; it exits 0 when no case failed or errored and 1 otherwise. log test-run on that JUnit XML maps each testcase to its test, and each derived case to its subject's element, with no unmapped result. generate tests --package refuses another target, no --out and an environment the specification does not have with status 2; run refuses a package with several servers and neither --base-url nor --server, naming them, with status 2. | NEED-9, NEED-10 |
+| SA-129 | specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package. | functional | should | proposed | test | extract tests on a feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a sheet with a row missing its test data and a row with nothing but its ID and title writes one test per scenario, example and row, each origin inferred with why and a citation of its line or range, and one must question per test for its subject plus one per given, step or expected result left out, each blocking that test or that key; the tree passes validate. merge of a design tree and that tree keeps each read test whole under tests/ with the questions that block only it, and a line counts them. After decide answers each question of a read test and the answer's keys are written, generate tests --package lists the test among the cases instead of under held, and run passes it against a service that answers as the test expects. | NEED-8, NEED-9 |
 | SA-33 | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. | functional | must | accepted | test | A credential field that a response can carry and that is not writeOnly is reported as sensitivity_exposed; a personal field in the response of a public operation is warned about. A lookup on a field that is not encrypted, and an encrypted key or unique field without lookup hash, are reported as at_rest. An audited entity that declares createdAt, createdBy, lastModifiedAt or lastModifiedBy, and one with soft deletion that declares deleted, is reported as audited. A list of an entity with soft deletion gets the case deleted record not listed, and a read by id the case deleted record read, answered as not found. | NEED-1, NEED-2 |
 | SA-34 | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. | functional | must | accepted | test | A list naming a field its entity lacks, an encrypted field to search or sort by or to filter by without a hash, or a default page above the maximum is reported as list_of. A rate over no time, or with a burst below its requests, is reported as limits. A response naming a problem type that is not under errors or has another status, and a 4xx or 5xx response that names none once errors exist, is reported as problem. A list gets the cases page beyond last, page size above the maximum, and sort and filter outside the lists; a limit gets request too large and rate exceeded. | NEED-1, NEED-2 |
 | SA-35 | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. | functional | must | accepted | test | A job acting as a role the specification lacks, reading or writing an entity it lacks, or consuming a message no channel declares is reported as job; a menu entry opening a page that does not exist is reported as menu. A test may name a job as its subject, and a job gets the cases runs twice, a dependency failing or timing out for each it calls, and an item failing every try when it retries. | NEED-1, NEED-5 |
@@ -19385,7 +19555,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-99 | A specification shall write every date-time as an instant with its offset, kept in the stack's zone-aware type; a wall-clock date and time shall be declared as such with its reason, shown in documents; a plain date and a time of day shall carry no zone; a specification shall declare its time zone once, an IANA Time Zone Database name, and a date or a wall-clock reading shall become an instant only in it; and the validator shall report a zoneless date-time without a reason, a zone that is no IANA name, and a date meeting the clock in a specification that declares no zone. | functional | must | proposed | test | An expression literal of an instant written without its offset is reported, as today, and a default or examples value of a date-time field written without its offset is reported at the value as a warning. A field of format local-date-time with why validates and the technical specification shows the reason beside the field; one without why is reported at the field as an error. A root timeZone that is a name of the IANA Time Zone Database validates; one that is not is reported at the key; a field of format time-zone whose default or example is no such name is reported at the value as an error. An at over a date, a validity bounded by a date and a date() of an instant are reported in a specification that declares no timeZone, the first as an error and the others as warnings; with timeZone, none is, and date() of an instant gives the date in timeZone, and in UTC when none is declared, in both builds. A job's schedule stays the five fields of cron in UTC, and the library lending example validates with no new line once it declares its timeZone. Both builds print the same lines for every case. | NEED-2 |
 | SA-102 | A specification shall say the page each role is shown first, a permission every signed-in caller holds, and a field's mode on a form or a view by a permission the caller holds; the validator shall report, in both builds, a home a role cannot open and, as warnings, the gaps in the navigation a person going through the screens meets; and the ui generators shall open each person's home and show each page, menu entry and field by the permissions the session reports. | functional | should | proposed | test | A role's home that is a page the role may open, with no route parameters, validates; one that is not a page, takes route parameters or needs a permission the role does not hold is reported as role_home at the key. signedIn, declared under permissions, opens a page, an operation or a command to every signed-in caller with no role granting it; a role that lists it is reported as reserved_name, a set of separationOfDuties or an implies naming it as for public, and its derived cases refuse a caller who is not signed in and one whose session has expired. fieldConditions.<field>.readOnlyUnless on a form and hiddenUnless on a form or a view name a declared permission; one that is not declared is reported as permission_undeclared, and one every caller who opens the page holds, or nobody, as form_field. With menus declared, a page nothing leads to that is neither public nor a role's home, a role a person holds that can open no menu entry, and a menu entry whose page no role can open are each reported as a navigation warning; so are an operation action on a page without states whose operation answers a problem type, and a form with no onSubmitted. Both builds print the same lines for every case. specarch-gen-ui, specarch-gen-ui-typescript and specarch-gen-ui-swiftui read the roles the session answers when the ui target's settings.session names them and open the home of the first role the session answers that has one; a page or a menu entry of signedIn is open to every signed-in person, and a field is read-only or hidden by the permissions the session answers; without a session they warn that what they cannot honour is left to the service. A task page's answer that navigates to callerHome validates when some role names a home, and its derived case leads to the caller's home; callerHome anywhere else, with with, or with no role naming a home is reported as flow at the event, in both builds, with the same words; a flow step whose answer leads to callerHome goes on at the actor's home. The three ui generators lead an answer to callerHome to the home of the first role the session answers once read again, and to the application's start when none of them has one (ADR-206). | NEED-1, NEED-10 |
 | SA-103 | A workflow shall be able to take a decision over its subject, give people a task that is not an approval, wait for a message, a duration or a moment, say what it does when an operation step fails and which operation undoes a step, all with BPMN 2.0's meanings and with no loops or parallel paths; specarch validate shall check each in both builds, and specarch generate bpmn and specarch extract workflows shall write and read them. | functional | should | proposed | test | A decision's branch whose condition names no field of the subject or gives no true or false, an otherwise that is not the last branch, a last branch with a condition, and a branch or a failure that goes on at a step that is not later are each reported at the key, as expression_name, expression_type or workflow. A task's performer that is not a role or does not grant the task's permission, and a task's escalation to a step that is not a later task, are reported as workflow; a wait's message that is not a channel message, and an at that gives no instant or date, may be null, or gives a date with no timeZone, are reported as workflow, expression_type or time_zone. A workflow gets a case per branch of each decision, the deadline at each task and each wait for a message, a task done without its permission, and the failure of each operation step with onFailure, critical whatever the harm; a case where the request ends after a step with compensatedBy names the operation that undoes it, the latest step first. specarch generate bpmn writes a decision as an exclusive gateway with a condition on each flow and its otherwise as the default flow, a task as a user task, a wait as an intermediate catch event, a failure as an error boundary event, and compensatedBy as a compensation boundary event with its handler; specarch extract workflows reads each back, so the file generate writes gives the workflow it was written from. Both builds print the same lines for every case. | NEED-1, NEED-5 |
-| SA-130 | A workflow shall be able to keep, under asIs, the workflow as the business runs it today beside the to-be it is moving to, both kept until the change is done; specarch validate shall check the as-is by the workflow's rules in both builds, the changes document and specarch diff shall list what moving from the as-is to the to-be adds, changes and removes, and the generators shall write the to-be unless specarch generate is given --as-is. | functional | should | proposed | test | An as-is in the workflow's shape, without asIs, that names operations, roles, permissions, messages and an entity of the same specification is valid; a reference it names that does not resolve, two of its steps of one name, and an asIs inside it are reported at their pointer under /workflows/<name>/asIs, naming the as-is of the workflow, the same in both builds. The workflow's derived cases and its success come from the to-be only; a permission only the as-is's steps check counts as used. specarch document changes writes a section Transitions, after the defects and only when a workflow keeps an as-is, listing per workflow the changes to its trigger, subject and messages, the steps added, removed and changed by name with the keys that differ, the order of the steps both keep when it changes, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the forms that submit to a trigger that changes, the inboxes of a step the to-be adds, removes or changes, and the tests about the workflow or about an operation it calls or no longer calls. specarch diff prints the same list for the new version after its change list, one line per part as transition #/workflows/<name>: <part>: <items>, and nothing for a version with no as-is. Every generator gets each workflow's to-be, with no asIs; specarch generate --as-is gives it each workflow's as-is in its place, and a workflow with no as-is the same in both. | NEED-1, NEED-5 |
 | SA-104 | An algorithm shall be able to give its computation as a decision table, after DMN 1.5, with a hit policy of unique or first; specarch validate shall check, in both builds, that its rules overlap only as the hit policy allows and leave no inputs unmatched, naming the inputs; each rule shall be a worked example, and specarch try shall evaluate the table on it. | functional | should | proposed | test | A table whose rules cover every input once, or in order under first, validates, and an algorithm with a table needs no examples; one that gives both formula and table is refused by the schema. Under unique, two rules that both match some inputs are reported as table_overlap at the later rule, naming the inputs; under first, a rule the earlier ones always match first is a table_overlap warning. Inputs no rule matches are reported as table_gap at the table, written as a when that can be added as a rule; an input's minimum and maximum bound the inputs asked about. A condition naming no input, a value or an operator that cannot be read, an input of a type a table does not test, and an output that cannot be read are reported as decision_table at the condition or the output. A worked example under examples is evaluated through the table, and one whose result differs, or that two rules match under unique or no rule matches, is reported as for a formula. specarch try evaluates each rule's example and each worked example, printing the rules tested and the rule that gives the output. Both builds print the same lines for every case. | NEED-1 |
 | SA-105 | A dependency shall be able to say how this system proves itself to it, with the secret kept in a configuration setting and never in the specification, how often it may be called, and, when it has no specification of its own, its operations one level deep; a call shall be able to say how our values map to theirs and back, the idempotency key sent, its retries, which of their answers become the operation's, and whether it waits for the answer; specarch validate shall check each in both builds and derive the cases they make, and the context diagram shall draw them. | functional | should | proposed | test | A dependency with auth, a credential naming a secret setting, a rate and operations, and calls that map, send a key, retry, map errors and call async or fire and forget, validates in both builds. An auth other than none with no credential, a credential naming no setting or one not secret, operations beside a specification, an operation of neither or both kinds, and a call naming an operation not declared are reported as integration or setting at the key. A mapping that sends a field their request lacks, leaves out one it requires, sends a value of the wrong type or of an unknown or shared name, or keeps a value in a field the record lacks, and retries or errors naming an answer that succeeds or is not declared, are reported as integration, expression_type or expression_name at the key; a post or patch retried with no idempotency key is an integration warning, and a value sent or kept that may be null where the field takes none an expression_type warning. An operation gets a case for each call's retries used up and for an answer its errors does not map, named by the operation called, and for a dependency's rate exceeded, each always written as a failing dependency's is; a timeout errors maps is answered as it maps it, and a call made fire and forget, or a dependency called only so, ends with the operation succeeding all the same. The context diagram writes a dependency's auth and rate on its node, and the technical specification lists each call's contract under the operation. Both builds print the same lines for every case. | NEED-1 |
 | SA-106 | A call's mapping shall be able to hold worked examples, each our values and what is sent from them, their answer and what is kept from it; specarch validate shall evaluate the mapping on each in both builds and report an example that does not hold, specarch try shall evaluate them under the operation's name and print each field's steps, and the test generators shall turn each into a test. | functional | should | proposed | test | A mapping whose examples hold validates in both builds; an example whose sent or kept value differs from what send or receive gives is reported as example_mismatch at the value, one the mapping cannot compute as example_error, a value that does not read at its field or a name not read or not given as example_input or example_expected, and kept on a call that does not wait or has no receive, or sent with no send, as integration at the key. specarch try on an operation prints a summary line per call, named by the dependency and the operation called, then each example with its inputs, each field's steps and its value beside the expected one, and exits 0 when all hold and 1 when one fails; the validator's lines of the examples it evaluates are not printed; a name that is both an algorithm and an operation is refused, naming both; --inputs and --file with an operation are refused. The Go, Swift and Dart test generators write a test per mapping example through MappingHarness, only when the specification holds one. Both builds print the same lines for every case. | NEED-1, NEED-10 |
@@ -19443,7 +19612,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-86 | specarch document comparison shall write the old documents against the refined specification, derived from the elements' origin, their citations and the decisions and from no other input - the stated elements kept from each source by clause, the inferred ones clarified with what they were concluded from, the decided ones added or corrected with their decision and its reason, and the clauses of each source's outline that no element cites - so that a reviewer sees what the refinement changed before approving. | functional | must | accepted | test | A specification whose manual lists five clauses, with two stated elements citing it, an inferred requirement, a decided requirement citing nothing, a decided entity citing the manual and a could question citing a clause gets a comparison with the stated elements under the manual by clause, the inferred requirement with its reason, the decided requirement as added and the decided entity as corrected with their decisions, the clause only the question cites as asked about, the clause nothing cites as dropped, and an element without origin listed with its warning. A decision's citation of a clause leaves the clause dropped when no element cites it, and a stated element whose citation names no source is listed under Kept with the validator's error at it. The comparison is never a draft, is not a row of the outputs table and is not among the documents an approval is of. | NEED-8 |
 | SA-97 | A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line. | functional | must | accepted | test | A decision whose restsOn names a decision the specification does not have is an error decision at that entry, naming the nearest ID; a decision whose restsOn chain comes back to it is an error decision_cycle at every restsOn entry on the cycle, each naming the chain from its decision; a decision that is not superseded resting on a superseded one is a warning decision_superseded at the entry, naming the successor; and a superseded decision resting on a superseded one warns nothing. decision why on the last of a chain of three prints that it rests on 2 decisions and the three lines earliest first, each with its ID, title, status, date and the decisions it rests on; decision rests on the first prints that 2 decisions rest on it, its own line and the two lines nearest first; and both exit 0. decision why and decision rests on an ID that is not a decision of the specification are refused, naming the decisions there are, and exit 1; without the ID or the folder they exit 2. | NEED-6 |
 | SA-118 | specarch log shall write one communication record from options alone, who said it to whom, when with its offset, by which channel, of which type, in which words and form, recorded by whom and touching what, guessing none of them - every missing one printed as a line saying what to ask the analyst and the option to give it with, and nothing written - and shall print, for an answer, the decide line that records it as the decision; and specarch decide shall take --record naming an answer record that links the question, writing the decision as stated and citing the record, in place of --source. | functional | must | proposed | test | log with every option of an answer writes records/communications/COM-<n>.yaml under the next number, with the words, the form, the evidence's path, media type and SHA-256 and the links as given, prints its path and the decide line with --record, and exits 0; --dry-run prints the record and writes nothing. log without the direction, the roles, the instant, the channel, the type, the words, the form or the recorder prints one line per missing option, saying what to ask and the values the specification offers, writes nothing and exits 1; with --json the same under log.missing; an answer naming no question is missing --question. log is refused, with nothing written, for a role that is not a stakeholder, an instant without its offset, a channel, type, form or direction outside their values, a question, decision, element, change, defect, idea, session or source the specification and its records do not have, a reply on a record that is not a question, and an evidence file that is not under records/. decide with --record on an answer record that links the question writes the decision stated, citing the record with the answer as what it says and no source, and exits 0; decide is refused for a record that is not a communication record, one that is not an answer, one that does not link the question, one said by another role than --by, and --source with --record together. | NEED-5, NEED-8 |
-| SA-129 | A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed. | functional | must | proposed | test | validate on a specification with stakeholders and no stakeholdersComplete warns stakeholders_unconfirmed at /stakeholders and exits 0; with stakeholdersComplete set by a declared stakeholder it prints nothing. stakeholdersComplete whose by is not a stakeholder is the error stakeholder at /stakeholdersComplete/by, and a source that is not declared is the error source at /stakeholdersComplete/source. Every document specarch document writes, and the overview of the HTML site, carries the Stakeholders unconfirmed banner while the key is not set, and none once it is. approve on such a specification writes the approval record, prints the warning on standard error and exits 0. A must question that blocks the stakeholders holds the warning and the banner alike, a specification that lists no stakeholders is told to list them first, and a file on a meta-model before 1.0.0 is not warned, since its schema has no stakeholdersComplete. | NEED-1, NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -19483,6 +19651,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-21:** From ISO/IEC/IEEE 29119-4, Software and systems engineering, Software testing, Part 4, Test techniques, 2021, clause 5.4.1: Error guessing designs test cases from knowledge of the mistakes that are commonly made.
 
 **Insight on SA-22:** A case left out is a decision, and a decision the reader cannot see is one nobody can question.
+
+**Insight on SA-128:** The tests a specification implies are only worth what a run of them in the customer's environment shows, and that environment is run by people who have neither the specification nor the project's harness; a package that holds the cases as data, run by the program that made it, needs nothing on their host but that program, and its results come back as a file the specification's own test-run record maps case by case (ADR-233).
+
+**Note on SA-128:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
+
+**Insight on SA-129:** A team that already has test scripts has the test cases a stakeholder wrote down, often with a step or a result missing; reading them into the specification, with a question for each missing part instead of a guess, puts that knowledge where the derived cases are, and the test joins the package once a person settles what is missing (ADR-234).
+
+**Note on SA-129:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
 
 **Insight on SA-33:** Which fields are personal, which are encrypted and whether a delete can be undone are facts a client, a tester and an auditor need; written in the design, they are checked where a mistake would leak data, and the tests follow from them.
 
@@ -19579,8 +19755,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-102:** A person meets an application through its pages, in the order they reach them, and the analyst writing the specification asks what each role sees first, what every person has whatever their role, and which fields a role may change or see; until each is written, the screens fall back on a menu nobody chose and a form that shows every field to everyone. A gap in the navigation is found by a check rather than by a reader, and is a question the walkthrough asks (ADR-197).
 
 **Insight on SA-103:** The workflows read since the sequential subset was taken route a request by its amount or kind, ask a clerk to check something before anyone approves, wait for a payment to arrive, and undo a reservation when a later step fails; written outside the workflow, none of them is checked against the subject, the roles or the operations, and none gets a test.
-
-**Insight on SA-130:** A business process changes over weeks or months, and during that time the team builds the new process while people still work by the old one; written only as the new one, what the move adds, changes and removes is found by reading two versions side by side, and the pages, approvers and tests the move reaches are found late, in acceptance.
 
 **Insight on SA-104:** A business states many rules as cases, and keeps them as a table; written as a formula the cases nobody decided are hidden, since the formula gives a value for them anyway. A table checked for overlap and gaps names those cases, so each is decided by a person, and each rule stays a test (ADR-199).
 
@@ -19713,10 +19887,6 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-118:** What a stakeholder said reaches the analyst in a chat or a call, and the agent that writes it down must not fill in who, when or what was answered, since a guessed fact reads as a fact; taking every field as an option and sending back the questions to ask keeps the record true to what the analyst reported, and the decision that follows cites the record rather than a source declared for every chat message (ADR-220).
 
 **Note on SA-118:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.4.3: Each requirement is traceable to its source: the stakeholder need or the document it comes from. <https://www.iso.org/standard/72089.html>
-
-**Insight on SA-129:** A stakeholder nobody listed is the one who objects first at acceptance, and the list is confirmed by a person, not by a rule; a warning that stands in every output until a role confirms it keeps the gap visible without stopping the work, which a compiler for specifications never does.
-
-**Note on SA-129:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: The stakeholders of the system are identified, so that every class of stakeholder with a legitimate interest in the system is represented. <https://www.iso.org/standard/72089.html>
 
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
@@ -19864,8 +20034,8 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-125 | enums DocumentTarget; commands document; commands log test-run; decisions ADR-230 | tests document-writes-testruns; tests document-writes-testruns-external; tests document-writes-timeline-test-runs; tests log-test-run-asks-missing; tests log-test-run-defect-not-failed; tests log-test-run-maps-worked-examples; tests log-test-run-nameless-testcase; tests log-test-run-not-junit; tests log-test-run-results-outside; tests log-test-run-usage-error; tests log-test-run-writes-record; tests validate-test-run-ref |
 | SA-126 | enums Rule; decisions ADR-231 | tests validate-idiom-override-technologies; tests validate-technology-approved; tests validate-technology-decided; tests validate-technology-decision-incomplete; tests validate-technology-decision-missing; tests validate-technology-standard-library; tests validate-technology-unjustified |
 | SA-127 | commands compare; decisions ADR-232 | tests compare-marks-gaps; tests compare-refuses-input-outside-records; tests compare-refuses-unknown-name; tests compare-two-implementations; tests compare-usage-error |
-| SA-129 | enums Rule; decisions ADR-234 | tests approve-stakeholders-complete; tests approve-warns-stakeholders-unconfirmed; tests document-stakeholders-banner; tests document-stakeholders-complete; tests document-stakeholders-held; tests document-testruns-stakeholders-banner; tests validate-stakeholders-complete; tests validate-stakeholders-complete-unknown; tests validate-stakeholders-earlier-meta-model; tests validate-stakeholders-none; tests validate-stakeholders-unconfirmed; tests validate-stakeholders-unconfirmed-held |
-| SA-130 | commands diff; commands document; commands generate; decisions ADR-236 | tests diff-lists-transition; tests document-changes-transition; tests generate-bpmn-as-is; tests generate-bpmn-to-be; tests validate-workflow-as-is; tests validate-workflow-as-is-refused |
+| SA-128 | commands generate; commands log test-run; commands run; decisions ADR-233 | tests generate-tests-package; tests log-test-run-maps-derived-cases; tests run-package-no-answer; tests run-package-servers; tests run-package-skips; tests run-usage-error |
+| SA-129 | commands extract; commands merge; decisions ADR-234 | tests extract-tests-incomplete-scripts; tests merge-keeps-read-tests |
 
 ## Sources
 

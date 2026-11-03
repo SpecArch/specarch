@@ -342,6 +342,7 @@ func compareInto(args []string, stdout, stderr io.Writer, kept **comparison) int
 	tests := sortedPairKeys(testsNode)
 	specification, _ := l.spec.Value.(map[string]any)
 	worked := gentests.WorkedTests(specification)
+	derived, _ := packageDrafts(root, l.given)
 	outcomes := make([]map[string][]string, len(names)) // test -> outcomes, per implementation
 	for i, name := range names {
 		im := &c.Implementations[i]
@@ -383,7 +384,7 @@ func compareInto(args []string, stdout, stderr io.Writer, kept **comparison) int
 			}
 			im.Inputs = append(im.Inputs, input)
 			for _, tc := range cases {
-				t, el, _ := mapTestCase(tc.name, tests, worked)
+				t, el, _ := mapTestCase(tc.name, tests, worked, derived)
 				results = append(results, compareOutcome{test: t, element: el, outcome: tc.outcome})
 			}
 		default:

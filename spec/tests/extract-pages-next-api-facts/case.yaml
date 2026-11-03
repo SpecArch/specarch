@@ -6,8 +6,8 @@ repository:
     - [facts.json]
 exitStatus: 0
 standardOutput: |
-  commit ca6b70e0078ed565818bb130017a6f3a9ce7a8da: the last change to web/package.json, web/pages, web/proxy.js
-  facts: the code-facts dump facts.json of web, made at commit ca6b70e0078ed565818bb130017a6f3a9ce7a8da, gives what the router's files say
+  commit 6dd2f56bb8eb7df0a03cb81784bbacc70eb09b3d: the last change to web/package.json, web/pages, web/proxy.js
+  facts: the code-facts dump facts.json of web, made at commit 6dd2f56bb8eb7df0a03cb81784bbacc70eb09b3d, gives what the router's files say
   checks: implementation/members.javascript.specarch-implementation.yaml names the permission checks src/auth.requirePermission and src/auth.withPermission
   router: the Pages Router of Next.js, since web/package.json names next among its dependencies
   counted 1 page file and 3 API route files: the tracked files under web/pages with the extension .tsx, .ts, .jsx or .js, those under web/pages/api API routes, each once

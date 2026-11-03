@@ -4,14 +4,14 @@ info:
   title: Pages of web/pages
   version: 0.1.0
   description: |
-    The pages and operations the file-system router rooted at web/pages serves, read from the files git tracks there at commit ca6b70e0078ed565818bb130017a6f3a9ce7a8da, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
+    The pages and operations the file-system router rooted at web/pages serves, read from the files git tracks there at commit 6dd2f56bb8eb7df0a03cb81784bbacc70eb09b3d, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: ca6b70e0078ed565818bb130017a6f3a9ce7a8da
+    edition: 6dd2f56bb8eb7df0a03cb81784bbacc70eb09b3d
     url: ../repo
     clauses:
       - {clause: web/package.json, title: The package that names the framework}

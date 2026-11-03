@@ -2,6 +2,6 @@
   "name": "members",
   "private": true,
   "dependencies": {
-    "next": "16.0.0"
+    "next": "16.4.4"
   }
 }

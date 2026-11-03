@@ -992,3 +992,17 @@ Expected: a record run of a passing suite leaves every case as it is committed, 
 To repeat: before this fix, run `SPECARCH_CONFORMANCE_RECORD=1 go test ./cmd/specarch -run TestConformance` and `git status`.
 
 Fix: the five hand-written documents hold `old text` between their markers, as `document-marker-unclosed` does, so `expected/project/specarch.md` is what the run writes and the record keeps it. `TestConformance` refuses an `expected/` file equal to the case's input of the same name, naming the file, why (a record run drops it) and the fix, so a record run of a passing suite is a no-op by construction: every expected file differs from its input and is written again, and every other file equals its input and is left out. The rule is in the Go implementation file's testing section.
+
+## BUG-069 — Open Dependabot and CodeQL alerts on the public repository: test-fixture next and nuxt versions, and a vendored typescript-go conversion
+
+- Reported: 2026-11-03 by the owner, from the repository's security tab, against 1.4.0
+- Closed: 2026-11-03, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-069`
+
+The repository showed 93 open Dependabot alerts (9 critical, 34 high, 41 medium, 9 low), every one for `next` or `nuxt` in three test-fixture manifests that `specarch extract pages` reads as input and that nothing installs or runs: `spec/tests/extract-pages-next-api-facts/repo/web/package.json` (`next` 16.0.0, 41 alerts), `spec/tests/extract-pages-next-pages-router/site/package.json` (`next` 15.5.4, 35 alerts) and `spec/tests/extract-pages-nuxt-pages/site/package.json` (`nuxt` 4.1.2, 17 alerts); and one open CodeQL warning, `go/incorrect-integer-conversion` (alert 6) in `third_party/typescript-go/jsnum/jsnum.go`, the copy of the TypeScript compiler that `tools/typescript-go/pull.sh` makes. None reaches the program, but a public repository with that many open alerts reads as unsafe to anyone who looks.
+
+Expected: no open alert, or only dismissed ones, each with its reason recorded.
+
+To repeat: `gh api --paginate 'repos/SpecArch/specarch/dependabot/alerts?state=open&per_page=100'` and `gh api 'repos/SpecArch/specarch/code-scanning/alerts?state=open'`.
+
+Fix: each fixture names the latest release of its framework's line, `next` 16.4.4, `next` 15.5.28 and `nuxt` 4.6.4, each at or above the highest first-patched version the alerts name (16.4.1, 15.5.28 and 4.6.2), so every alert's range is left. The cases keep testing what they did: the router is read from the dependency's name, never its version. The fixture commit each case's expected output names changed with the manifest, and the `facts.json` of `extract-pages-next-api-facts` names that commit too, so the three cases were recorded again and the dump's commit set to the new one. Dependabot closes its alerts by itself once the manifests on `main` are outside the ranges. The CodeQL alert was dismissed as "won't fix" with the reason: the copy is upstream's `typescript/v7.0.2`, the only release upstream has; upstream `main` has the same `jsnum.go`; nothing in the copy is edited by hand, so the finding is upstream's to fix and a later pull takes its fix.

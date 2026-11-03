@@ -4,14 +4,14 @@ info:
   title: Pages of pages
   version: 0.1.0
   description: |
-    The pages and operations the file-system router rooted at pages serves, read from the files git tracks there at commit 6af11c20b75576dfb8ca5a4967eb4e9eb6a0974d, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
+    The pages and operations the file-system router rooted at pages serves, read from the files git tracks there at commit 0ab6869b523860146028ddb503c86539089ef327, with the content of each page that has a schema file from that file. Every page and operation cites its file; what the files' places and the schemas do not say is a question, and so is what the meta-model cannot hold.
   tracksOrigin: true
 stages: [requirements, design]
 sources:
   code:
     kind: code
     title: The code repository
-    edition: 6af11c20b75576dfb8ca5a4967eb4e9eb6a0974d
+    edition: 0ab6869b523860146028ddb503c86539089ef327
     url: ../site
     clauses:
       - {clause: middleware/auth.global.ts, title: Middleware the router runs before the routes it covers}

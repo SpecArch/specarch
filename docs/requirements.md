@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 122 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 123 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 

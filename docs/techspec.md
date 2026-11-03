@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 122 requirements, 5 entities, 28 commands, 7 algorithms, 985 tests, 214 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 123 requirements, 5 entities, 28 commands, 7 algorithms, 987 tests, 215 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -491,6 +491,8 @@ flowchart LR
   package_cmd_specarch_gen_bpmn["cmd/specarch-gen-bpmn, implements 1"]
   package_cmd_specarch_gen_register["cmd/specarch-gen-register, implements 1"]
   package_internal_genregister["internal/genregister"]
+  package_cmd_specarch_gen_deploy["cmd/specarch-gen-deploy, implements 1"]
+  package_internal_gendeploy["internal/gendeploy"]
   package_internal_genbpmn["internal/genbpmn"]
   package_cmd_specarch_gen_ui["cmd/specarch-gen-ui, implements 1"]
   package_internal_genui["internal/genui"]
@@ -576,6 +578,9 @@ flowchart LR
   package_cmd_specarch_gen_register --> package_internal_genregister
   package_internal_genregister --> package_internal_ownership
   package_internal_genregister --> package_internal_xlsx
+  package_cmd_specarch_gen_deploy --> package_internal_gendeploy
+  package_internal_gendeploy --> package_internal_gensql
+  package_internal_gendeploy --> package_internal_mark
   package_internal_genbpmn --> package_internal_mark
   package_internal_genbpmn --> package_internal_ownership
   package_cmd_specarch_gen_ui --> package_internal_genui
@@ -5220,6 +5225,8 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | cmd/specarch-gen-bpmn | The plug-in behind generate bpmn. Reads the request on standard input, answers each workflow's BPMN file and SVG on standard output, and never touches the disk. | #/commands/generate |
 | cmd/specarch-gen-register | The plug-in behind generate register. Reads the request on standard input, answers each entity's register template on standard output, the workbook in base64, and never touches the disk. | #/commands/generate |
 | internal/genregister | Each entity's register template: the header row as CSV, the instructions as a table of fields in the English vocabulary's words, and a workbook holding both, written as the smallest Office Open XML package a spreadsheet program opens and internal/xlsx reads back (ADR-215). |   |
+| cmd/specarch-gen-deploy | The plug-in behind generate deploy. Reads the request on standard input, answers each deployment's files and the runbooks on standard output, and never touches the disk. | #/commands/generate |
+| internal/gendeploy | Each deployment of an implementation file as a Compose file with its env file, Kubernetes manifests or a cloud-init file per host, as the deploy target's settings name the form; the release, the rollback and each migration of the deployment stage as runbooks; and a fresh environment's script for a Compose deployment, which builds, loads the migrations and the seed, runs the test suite and tears the project down; every secret referenced where the form reads it from the host and never written (ADR-227). |   |
 | internal/genbpmn | Each workflow as a BPMN 2.0 process in the subset extract workflows reads, with BPMN DI laid out by a fixed rule, the same diagram as SVG, and the problems marked as XML comments before their elements. |   |
 | cmd/specarch-gen-ui | The plug-in behind generate ui. Reads the request on standard input, answers the screens on standard output, and never touches the disk. | #/commands/generate |
 | internal/genui | The list, view, form and task pages for the web in plain JavaScript, the navigation between them in pages.js with the menu on every page, the confirmation that asks for a reason in ask.js, the events they raise, and the theme as CSS custom properties; a form's fields are native controls in its HTML and form.js adds the checks, conditions, pickers, values, rows and what follows a success; view.js, form.js, ask.js and the functions of pages.js are files under runtime/, written as they are. |   |
@@ -17666,6 +17673,136 @@ plug-in, gets no integration tests, as it gets no design tests.
 
 **Note:** From RFC 9110, HTTP Semantics, 2022, clause 15.5.4: The 403 (Forbidden) status code indicates that the server understood the request but refuses to fulfill it. <https://www.rfc-editor.org/rfc/rfc9110>
 
+### ADR-227: generate deploy writes each deployment as a Compose file, Kubernetes manifests or a cloud-init file per host, the procedures of the deployment stage as runbooks, and a fresh environment's script for a Compose deployment, with every secret referenced and never written
+
+Status: proposed, 2026-11-03.
+
+Rests on: [ADR-129](#adr-129-an-environment-says-who-runs-it-and-one-the-customer-runs-is-handed-over-as-source-with-a-handover-section-and-a-handover-document), [ADR-136](#adr-136-a-server-of-a-deployment-has-a-name-a-kind-what-of-the-implementation-it-runs-or-the-dependency-it-is-in-that-environment-and-the-deployment-guide-and-technical-specification-draw-the-deployment-diagram-from-them), [ADR-137](#adr-137-a-server-says-its-zone-and-what-it-listens-on-a-deployment-lists-its-allowed-links-as-firewall-rules-the-validator-checks-every-declared-call-has-a-link-and-the-documents-draw-the-network-diagram-from-them), [ADR-086](#adr-086-generated-code-sql-openapi-tests-and-ui-carry-every-problem-at-its-entry-a-draft-is-written-while-questions-are-open-or-approval-is-missing-and-an-entry-a-target-cannot-express-is-marked-while-the-rest-is-written).
+
+Context: A specification says where the system is installed (environments),
+what it reads at run time (configuration, with which settings are
+secrets), what each release changes in stored data (migrations) and
+how it goes in and comes back out (release, rollback), and an
+implementation file says what each deployment is: its servers with
+their kinds, ports and links, the values of the settings there, how
+the build is made and how it is put on the hosts. A team writes all
+of it again by hand as a compose file, a set of manifests or a host
+image, and the copy drifts from the specification at the next
+setting, server or port. The full regression of a release is run on
+an environment an earlier test left behind, so a test passes or
+fails on what that test wrote, and a secret ends up in a file
+because the quickest way to run a thing is to write its password
+next to it.
+
+Decision: specarch generate deploy, through specarch-gen-deploy, writes the
+files that put the system into each deployment of an implementation
+file that names the deploy target. The target's settings say, under
+deployments.<key>.form, which form each deployment is written in,
+compose, kubernetes or cloud-init, under images.<server> the image
+each server runs, under storage.<server> the size of a database
+server's volume claim on Kubernetes, and under fresh the Compose
+deployments a fresh environment is written for. A deployment with
+no form, a form that is none of the three, a server with no image
+and a Kubernetes database with no storage are each an error at the
+target; the files of the other deployments are written, and the
+server left out is named in a comment where it would be.
+
+A compose deployment is <deployment>/compose.yaml beside
+<deployment>/<deployment>.env: one service per server that runs
+something of the implementation, the database server as a container
+of the sql target's dialect (postgresql or mariadb; any other
+dialect is an error at the target and its service is written by
+hand) with a named volume, the ports it listens on published, the
+links from a server as depends_on, and the env file holding the
+value of every non-secret setting, the deployment's or the schema's
+default. A kubernetes deployment is <deployment>/kubernetes.yaml: a
+Namespace <system>-<deployment>, a ConfigMap of the values, a
+Deployment and a Service per service server, a StatefulSet with a
+volume claim and a Service per database server, and a NetworkPolicy
+for each server a link leads to, allowing those links on their ports
+and nothing else. A cloud-init deployment is one
+<deployment>/<server>.cloud-init.yaml per server that runs something
+of the implementation: the host installs podman and runs the
+server's image under systemd through a Quadlet unit, with the values
+in /etc/<system>/<deployment>.env. A server that is a dependency of
+the design is named in a comment with its URL and gets no container
+in any form.
+
+A secret setting is referenced where each form reads it from the
+host and is never written: in Compose as ${NAME:?reason}, a variable
+of the environment Compose runs in that it refuses to run without;
+on Kubernetes as a secretKeyRef into the Secret <system>-secrets,
+which the operator makes; in cloud-init as /etc/<system>/secrets.env,
+which the operator writes on the host and whose variables the unit
+checks before it starts, naming each one it misses. A database's
+password is such a secret too, <SERVER>_PASSWORD in every form: the
+image reads its own variable (POSTGRES_PASSWORD,
+MARIADB_ROOT_PASSWORD), which Compose and Kubernetes set from it,
+and on a host the unit copies that one line of secrets.env under the
+image's name into /run/<system>/<server>.env, which root alone reads
+and the container's environment file is, before it starts. A
+setting's variable is its key in upper snake case, dailyRate as
+DAILY_RATE, in every form.
+
+The release, the rollback and each migration of the deployment stage
+are written once, at the output's root, as release.sh, rollback.sh
+and migrations/<name>.sh: a runbook that prints each step with its
+action and its check, in the stage's order, and goes on only when
+the person running it answers yes; --yes answers every step for a
+run whose checks are made elsewhere, and a migration's --rollback
+runs its rollback steps, or is refused with the description that
+says why the migration cannot be reversed.
+
+For a compose deployment named under fresh, <deployment>/fresh.sh
+builds an environment from nothing and tears it down: it runs the
+build task (the deployment's build.task, or the task named build),
+starts the Compose project under a name made for the run alone,
+waits for the database, creates on postgresql each role of the
+design as the database role the sql target's policies name, which
+no migration creates, loads the sql target's migrations in order
+and the seed target's seed.sql into it through the container's own
+client, runs the implementation's testing.run with the settings'
+values in the environment, and on any exit takes the project down
+with its volumes, an interrupt, a termination or a hang-up included:
+dash, /bin/sh on Debian and Ubuntu, runs no exit trap when a signal
+ends the shell, so the script turns each of those signals into an
+exit with the signal's status. The secrets of the run, and the throwaway
+database's password, come from the environment the script runs in.
+The script sits in the deployment's folder and names the migrations
+and the seed relative to it. The run publishes the deployment's own
+ports, as its Compose file does, so the suite reaches each server at
+localhost on its port, and one fresh run at a time fits on a host,
+not beside a running project of the deployment. A fresh environment is written for a compose deployment alone: a
+Compose project is built and torn down on one host with no
+provisioner, where a cluster or a set of hosts needs one; naming a
+kubernetes or cloud-init deployment under fresh is an error at the
+target.
+
+Every file starts with the generated header and, in a draft, the
+draft notice; each element the file shows carries its pointer as a
+comment (an environment, a setting, a step), and the problems are
+marked at them, so a remark from acceptance names the entry.
+
+Consequences: The implementation file is the one place a deployment is described,
+and generate --check reads a stale compose file or manifest as it
+reads a stale migration. The image, the form and the storage are
+settings of the target rather than keys of the deployment, since
+they are the deploy target's choices for its own output and no
+other target reads them. A database is run as a container in every
+form, on a host as well, so the three forms share one image set and
+no form installs an engine from packages; a dialect the plug-in does
+not run is written by hand beside the generated files. The runbooks
+run nothing by themselves: a step of the deployment stage is prose,
+and the script holds the person to its order and its checks rather
+than guessing a command for it. A fresh run needs a runner that can
+build the image and run Compose, and the secrets of the run in its
+environment; nothing of a run is kept, so a failure is read from the
+run's own output.
+
+**Insight:** The deployment is derived from the specification for the same reason the migrations and the OpenAPI document are: a copy by hand drifts, and a derived file is checked against its source in CI. The form is a setting and not read from method.tool because method.tool is prose for a reader (podman-compose 1.4, kubectl 1.33) and a generator that guessed from it would write the wrong form for a tool it does not know; one key, with three values, is cheaper to review. A secret is referenced rather than written because the specification never holds a value for it and the validator refuses one in a deployment, so the generated file is the one place a value could enter; each form has its own way to read one from the host, and each refuses to run without it, so a missing secret is a named refusal and not a service that starts with an empty password. The database's password keeps one name, <SERVER>_PASSWORD, in every form because an operator who moves a deployment from Compose to hosts writes the same secret store; the host form copies it under the image's name through a file in /run rather than a variable on the podman command line, since a command line is read by anyone on the host through ps, and the database's container reads that one line and not the services' secrets. A fresh run keeps the deployment's own ports rather than ephemeral ones because the suite reaches the database through a secret, such as a database URL, set before the run with its port, and an override file adds to a service's published ports rather than replacing them; a busy port is named by compose up itself. A fresh run creates the roles because they are cluster state, which the migrations leave to the operator, and a cluster built from nothing has none: the row policies of the migrations name them and the service sets them on each request. A fresh environment is torn down with its volumes because a full regression is only trusted on data no earlier test touched: the seed is the same bytes on every run, and the migrations are applied from nothing, so a failure is the release's and not a leftover's. The runbooks keep the stage's steps instead of a command per step because a step such as "install on staging" is a decision taken by a person at a moment, and a script that pretended to run it would hide the check behind an exit status; printing the check and waiting for yes keeps the person in the loop and the order fixed. An incomplete specification stays readable (docs/principles.md): a deployment without a form or a server without an image is marked and the rest is written, and a stage without a release or a migration gets no runbook and no error, since a stage is filled in as the project reaches it.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.10: The transition process establishes the capability to provide the service in its operational environment. <https://www.iso.org/standard/63712.html>
+
 ### ADR-230: A test run is a record beside the specification, with each result mapped to a test of the specification; specarch log test-run imports a JUnit XML file under records/ as its evidence, keeps a result that maps to no test and reports it, and opens a defect for a failure only when asked; the testruns document writes the runs and the failures per element and per requirement, run by run
 
 Status: proposed, 2026-11-03.
@@ -18169,6 +18306,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-bpmn | command generate | system | golden | a specification with no approval record, a workflow of two approvals, the first escalating to the second after a day, and an operation step, warnings at the workflow and its operations, and a could question on the second approval's deadline; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes waiver.bpmn, BPMN 2.0 with its diagram and a lane set of three lanes, the system's holding the start, the gateways, the operation and the ends and one per approving role holding its approval and timer, and waiver.svg, with the same lanes and every element in a group whose id is the BPMN element's, data-step naming the step and data-role the lane's role, both labelled as a draft, with each warning marked before the element it concerns and the question before the deadline's timer, and exits 0 |
 | generate-bpmn-approved | command generate | system | golden | an approved specification with a write-off workflow, an approval then an operation step, a reinstatement workflow whose one step is an approval, and a workflow of one operation step whose description holds & and angle brackets; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run | it writes one BPMN file and one SVG per workflow, with no draft label, each marking only its own workflow's warnings, the last approval's gateway ending the request approved or, by its default flow, refused, the operation-only workflow with no refused end and its description escaped, and exits 0 |
 | generate-bpmn-step-kinds | command generate | system | golden | a specification with no approval record and a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment; specarch-gen-bpmn built from this repository on PATH | generate bpmn is run with --unapproved | it writes refund.bpmn with the decision as an exclusive gateway whose flows carry its conditions in the language urn:specarch:expression and whose default is its otherwise, the tasks as user tasks with their performers, the message wait as a receive task with a timer, the other waits as intermediate timer catch events, each onFailure as an error boundary event, compensatedBy as a compensation boundary event associated with a service task marked isForCompensation, and refused and failed ends that compensate; and refund.svg with the same; and exits 0 |
+| generate-deploy | command generate | system | golden | a specification with no approval record, three environments, a non-secret setting, a secret setting and one with a default, two migrations of which one has no rollback, a release and a rollback; an implementation file with a sql and a seed target, a build task, a test command, and three deployments, each with an api server and a database server, one with a server that is a dependency, whose deploy target names the form of each (compose, kubernetes, cloud-init), the images, the database's storage and the compose deployment under fresh; specarch-gen-deploy built from this repository on PATH | generate deploy is run with --unapproved | it writes the compose deployment as a Compose file with its env file and its fresh script, the kubernetes deployment as manifests with a NetworkPolicy from the link, the cloud-init deployment as one file per host, and the release, rollback and migration runbooks; every non-secret value is written, the setting with a default takes it where the deployment gives none, and the secret appears in every file only as a reference to the host's secret store, never with a value; and exits 0 |
+| generate-deploy-refused | command generate | system | red | a specification as in generate-deploy; an implementation file whose deploy target leaves a deployment without a form, names a form that is not compose, kubernetes or cloud-init, names a deployment the file does not have, names under fresh a kubernetes deployment, gives no image for the api server, and whose sql target's dialect is sqlserver; and a deployment that gives no value for a setting without a default; specarch-gen-deploy built from this repository on PATH | generate deploy is run with --unapproved | it reports each at the target or the setting, the deployment without a form and the one with an unknown form get no file, the server without an image and the database of the dialect it does not run are left out of the manifests with a comment, the runbooks and the rest are written, and it exits 1 |
 | generate-draft-open-questions | command generate | system | golden | a specification with a must question that blocks an entity and a should question that blocks the paths, no approval, and specarch-gen-openapi on PATH | generate openapi --unapproved is run | it writes the document as a draft: the notice names both questions and the missing approval, the entity's schema carries the must question in x-specarch-marks, the document carries the should question, and it exits 0 |
 | generate-environment-unknown | command generate | system | red | a specification whose environments are staging and production | generate ui is run with --environment uat | it refuses, naming the environments the specification has, writes nothing and exits 2 |
 | generate-framework-plugin | command generate | system | golden | a specification whose implementation file is in Swift with a ui target of platform iphone and no framework, with specarch-gen-ui-swiftui, specarch-gen-ui-swift and specarch-gen-ui all on PATH | generate ui is run with --unapproved | it runs specarch-gen-ui-swiftui, the plug-in for the target's framework, swiftui by the platform's default, before the one for the file's language, writes its file into the output the implementation file names, and exits 0 |
@@ -18924,6 +19063,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-87 | specarch generate scripts shall write, for each guarded operation or command whose change the design says, by a keyword or by the guard's writes, a script that refuses unless the guard's precondition holds on exactly the records it names, makes the change only when told to apply it, checks the exact count of records changed, and changes nothing when it is run again; every other guarded change is left to be written by hand. | functional | should | accepted | test | A guarded entry that triggers transitions of the guard's entity with one to state, none of their from states, sets the state field to it, on the record by its key when the operation's path has one parameter, and otherwise on every record in a from state for which the precondition holds; a guarded PUT of the entity by one path parameter sets every column a caller may set; a guarded DELETE by one path parameter deletes the record, or sets its soft-delete flag; any other guarded entry whose guard has writes sets the fields it names, each to the value the operator gives or to a literal, beside a transition it triggers when there is one, or deletes the records, on the record by its key when the path has one parameter, and otherwise on every record for which the precondition holds that does not already hold every value set. The script counts the records the change would write, with the key, the from states, the precondition and the soft-delete flag in its condition, and refuses unless the count is recordsChanged; the change carries the same condition, and the script refuses unless it wrote recordsChanged records and a record changed by its key holds what was written. A variable the change needs that is not set is refused by name before anything is read, unless its column may be null, when leaving it out sets the column to NULL. Without the variable apply set to true, the script runs every check and rolls back, saying how many records would change; a record by its key that already holds what the change writes is reported as already applied and left as it is. A guarded POST, a guarded PATCH and a guarded command that triggers no transition, each with no writes, a writes that sets a field stored encrypted, transitions of one trigger with two to states, a transition back to the state it leaves, a keyed change whose recordsChanged is not 1, an entity whose key is not one field, a PUT that sets a field stored encrypted and a PUT that sets no column a caller may set are warnings at the guard, and their scripts are left to be written by hand. A dialect other than PostgreSQL or MariaDB is an error at the target, and a script in the output folder that the plug-in did not write is never overwritten. | NEED-2 |
 | SA-90 | specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, a monitor what the operator does when its objective is missed, and a job that keeps an item apart who handles a kept item, where it is kept and what they do with it. | functional | should | accepted | test | specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy. The manual has a section per command with its usage line from the program's name and the command's words, who runs it, its arguments and options, what it reads, writes and prints, and each exit status with what it means and its remedy. specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps. The operations guide writes, under the jobs, for each job that keeps an item apart, where a kept item is, the role that handles it and the steps to look at it, try it again or discard it, or one sentence naming deadLetter when the job has none. A specification with no pages, flows, commands, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document. A problem type without remedy, a command without remedies or a program name, and a monitor without response are read as before, with no error or warning, the same in both builds. A job's deadLetter whose role is not a role, or on a job whose retries do not keep an item apart, is refused as job, the same in both builds. A command's remedy keyed by status 0, or by a status its exitCodes does not list, is refused as exit_code, the same in both builds. | NEED-3, NEED-5 |
 | SA-116 | specarch generate seed shall write, through specarch-gen-seed, a development seed for the tables generate sql writes, made-up rows drawn from the entities with a fixed seed, so that the file is the same bytes on every run, loads into a database the migrations have just built, and holds nothing about a real person. | functional | should | proposed | test | seed.sql holds one INSERT per row, the tables in an order every foreign key can be satisfied in, the count of each entity from settings.rows (ten where it names none), a header naming the dialect, the type-rendering version and the seed, and the same bytes on every run with the same specification and settings; another seed gives other rows. Every value follows its field, as the type-rendering idiom renders the column; an integer, a number and a decimal lie within the field's minimum, maximum, exclusive bounds and multipleOf, at its precision and scale; text has its minLength and maxLength and names the field and the row, or holds the row's number padded to minLength where the field's words do not fit; a pattern gives a value matching it; an enum one of its values; a date, an instant, a time, a duration, a uuid and binary data each in the dialect's literal; an email, a URI, a host name and an address lie in the ranges reserved for documentation; a field's examples are the first rows' values, read from the design's field when the column keeps a value object as JSON, each member of an object example typed by the schema's part, and a key or unique counts on from after them, repeating none. A key and a unique constraint never repeat across the rows; a check constraint holds for every row, evaluated as a fixture's record is, a list given as its length; an optional field is NULL in some rows and given in others; a value object kept in columns is present or absent as a whole with its required parts set; one kept as JSON, a list and a map are JSON text, a list of scalars PostgreSQL's array; a foreign key points at a row of the file, an optional one at NULL in some rows, a relation to the entity itself at an earlier row, and a one-to-one relation at the row of the same rank, NULL beyond the other side's rows when it is optional; the audit columns hold a fixed instant and the actor seed, and the soft-delete flag is false; a generated default is written out, so a child's key names it. The dialect is the seed target's, the sql target's when it names none, PostgreSQL otherwise, and two that differ are an error at the target; a required field encrypted at rest, a required relation to an entity that gets no rows or that another stakeholder owns, a cycle of required relations, a required one-to-one relation with too few rows on the other side, and an entity no row of which satisfies its constraints in a hundred draws are errors at the entry, the entity gets no rows and the file says so, the rest is written, and the run exits 1; a field that is a key or unique whose values are fewer than the rows is an error at the field naming the count. An entity another stakeholder owns gets no rows; settings.rows naming an entity that is not one, or one another stakeholder owns, a count below zero or a seed that is not a whole number is an error at the target. The plug-in never truncates, deletes or runs against a database. | NEED-2, NEED-10 |
+| SA-121 | specarch generate deploy shall write, through specarch-gen-deploy, each deployment of an implementation file as a Compose file, Kubernetes manifests or a cloud-init file per host, as the deploy target's settings name the form, from the specification's environments, configuration, migrations, release and rollback and the deployment's servers, links and values; shall write the release, the rollback and each migration as a runbook; shall write, for a Compose deployment named under fresh, the script that builds an environment from nothing, loads the migrations and the seed, runs the implementation's test suite there and tears it down; and shall reference every secret where the form reads it from the host, never writing a value for it. | functional | should | proposed | test | A compose deployment is written as <deployment>/compose.yaml with one service per server that runs something of the implementation, the database server as a container of the sql target's dialect with a named volume, the ports it listens on published, the links from a server as depends_on, and <deployment>/<deployment>.env holding every non-secret setting's value, the deployment's or the schema's default; a kubernetes deployment as <deployment>/kubernetes.yaml with a Namespace, a ConfigMap of the values, a Deployment and a Service per service server, a StatefulSet with a volume claim of the size settings.storage names per database server, and a NetworkPolicy allowing the links into a server and nothing else; a cloud-init deployment as one <deployment>/<server>.cloud-init.yaml per host, installing podman and running the server's image under systemd through a Quadlet unit with the values in a file the unit reads. A secret setting appears in every file only as a reference, in Compose as ${NAME:?reason}, on Kubernetes as a secretKeyRef into the Secret <system>-secrets, in cloud-init as /etc/<system>/secrets.env, whose variables the unit checks before it starts; a database's password is referenced the same way as <SERVER>_PASSWORD in every form, the host unit copying that line of secrets.env under the image's own variable into /run/<system>/<server>.env before it starts; no file holds a value for either; and a setting's variable is its key in upper snake case in every form. release.sh, rollback.sh and migrations/<name>.sh print each step of the stage with its action and its check, in order, and go on only on yes; --yes answers every step; a migration's --rollback runs its rollback steps, and a migration without them refuses --rollback with its description. For a compose deployment named under settings.fresh, <deployment>/fresh.sh runs the build task, starts the Compose project under a name made for the run alone, waits for the database, creates on postgresql each role of the design as the database role the row policies name, loads the sql target's migrations in order and the seed target's seed.sql into it through the container's own client, runs testing.run with the values in the environment, and takes the project down with its volumes on any exit, an interrupt, a termination or a hang-up included; the secrets of the run come from the environment the script runs in, and the run publishes the deployment's own ports, so the suite reaches each server at localhost on its port. A deployment with no form or a form that is not compose, kubernetes or cloud-init, a deployment named in the settings that the file does not have, a kubernetes or cloud-init deployment named under fresh, a server with no image, a Kubernetes database with no storage, a database of a dialect other than postgresql or mariadb, and a setting with no value in a deployment and no default are each an error at the target or the setting, the server or value left out is named in a comment where it would be, the rest is written, and the run exits 1; a server that is a dependency of the design is named with its URL and gets no container. | NEED-3, NEED-10 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-11 | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. | functional | must | accepted | test | A tree whose root lists its stages and holds each stage's files under that folder validates. A file in the wrong folder, a section in the wrong file, a listed stage without a folder, and a folder that is not a stage are each reported as layout. | NEED-4 |
 | SA-12 | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. | functional | must | accepted | test | A specification with only a requirements stage validates with no error. A requirement no design element satisfies, a requirement no test, check or monitor verifies, and a need no requirement refines are reported as warnings once the later stage exists. | NEED-5 |
@@ -19133,6 +19273,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on SA-90:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.4.12: The operation process uses the system in its intended environment and supports its users. <https://www.iso.org/standard/63712.html>
 
 **Insight on SA-116:** A project writes the fake records its developers work against by hand, in SQL, and they drift from the specification at every change of a field, an enum or a relation; drawing them from the entities with a fixed seed keeps them in step and byte-identical, so generate --check reads a stale seed as it reads a stale migration.
+
+**Insight on SA-121:** A compose file, a set of manifests or a host image written by hand repeats what the implementation file's deployment already says and drifts from it at the next setting or port; a full regression run on an environment an earlier test left behind passes or fails on what that test wrote; and the quickest way to run a thing by hand is to write its password next to it, so the generated files leave every secret to the host (ADR-227).
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -19364,6 +19506,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-118 | commands decide; commands log; decisions ADR-220 | tests decide-cites-record; tests decide-record-refused; tests decide-record-unknown; tests decide-record-wrong-by; tests decide-source-and-record; tests log-answer-needs-question; tests log-asks-missing; tests log-asks-missing-json; tests log-dry-run; tests log-evidence-outside; tests log-unknown-role; tests log-usage-error; tests log-writes-record |
 | SA-119 | decisions ADR-225 | tests help-situations |
 | SA-120 | commands generate; decisions ADR-226 | tests generate-tests-estate-calls |
+| SA-121 | decisions ADR-227 | tests generate-deploy; tests generate-deploy-refused |
 | SA-125 | enums DocumentTarget; commands document; commands log test-run; decisions ADR-230 | tests document-writes-testruns; tests document-writes-testruns-external; tests document-writes-timeline-test-runs; tests log-test-run-asks-missing; tests log-test-run-defect-not-failed; tests log-test-run-maps-worked-examples; tests log-test-run-nameless-testcase; tests log-test-run-not-junit; tests log-test-run-results-outside; tests log-test-run-usage-error; tests log-test-run-writes-record; tests validate-test-run-ref |
 | SA-126 | enums Rule; decisions ADR-231 | tests validate-idiom-override-technologies; tests validate-technology-approved; tests validate-technology-decided; tests validate-technology-decision-incomplete; tests validate-technology-decision-missing; tests validate-technology-standard-library; tests validate-technology-unjustified |
 

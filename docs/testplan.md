@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 985 design tests, 495 golden and 490 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 987 design tests, 496 golden and 491 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 985 design tests, 495 golden and 490 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 981 |
+| system | 983 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2810,6 +2810,22 @@ Scenario: golden; level: system; verifies SA-103.
 - Given: a specification with no approval record and a workflow with a decision of three branches, an approval, two tasks with an escalation, an operation step undone by another operation, two with onFailure, and waits for a message with a deadline, a duration and a moment; specarch-gen-bpmn built from this repository on PATH
 - When: generate bpmn is run with --unapproved
 - Then: it writes refund.bpmn with the decision as an exclusive gateway whose flows carry its conditions in the language urn:specarch:expression and whose default is its otherwise, the tasks as user tasks with their performers, the message wait as a receive task with a timer, the other waits as intermediate timer catch events, each onFailure as an error boundary event, compensatedBy as a compensation boundary event associated with a service task marked isForCompensation, and refused and failed ends that compensate; and refund.svg with the same; and exits 0
+
+#### generate-deploy
+
+Scenario: golden; level: system; verifies SA-121.
+
+- Given: a specification with no approval record, three environments, a non-secret setting, a secret setting and one with a default, two migrations of which one has no rollback, a release and a rollback; an implementation file with a sql and a seed target, a build task, a test command, and three deployments, each with an api server and a database server, one with a server that is a dependency, whose deploy target names the form of each (compose, kubernetes, cloud-init), the images, the database's storage and the compose deployment under fresh; specarch-gen-deploy built from this repository on PATH
+- When: generate deploy is run with --unapproved
+- Then: it writes the compose deployment as a Compose file with its env file and its fresh script, the kubernetes deployment as manifests with a NetworkPolicy from the link, the cloud-init deployment as one file per host, and the release, rollback and migration runbooks; every non-secret value is written, the setting with a default takes it where the deployment gives none, and the secret appears in every file only as a reference to the host's secret store, never with a value; and exits 0
+
+#### generate-deploy-refused
+
+Scenario: red; level: system; verifies SA-121.
+
+- Given: a specification as in generate-deploy; an implementation file whose deploy target leaves a deployment without a form, names a form that is not compose, kubernetes or cloud-init, names a deployment the file does not have, names under fresh a kubernetes deployment, gives no image for the api server, and whose sql target's dialect is sqlserver; and a deployment that gives no value for a setting without a default; specarch-gen-deploy built from this repository on PATH
+- When: generate deploy is run with --unapproved
+- Then: it reports each at the target or the setting, the deployment without a form and the one with an unknown form get no file, the server without an image and the database of the dialect it does not run are left out of the manifests with a comment, the runbooks and the rest are written, and it exits 1
 
 #### generate-draft-open-questions
 
@@ -7987,7 +8003,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-566 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+571 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8363,6 +8379,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-116 | acceptance 3 | golden | SA-116 names no harm |
 | requirement SA-116 | acceptance 4 | golden | SA-116 names no harm |
 | requirement SA-116 | acceptance 5 | golden | SA-116 names no harm |
+| requirement SA-121 | acceptance 1 | golden | SA-121 names no harm |
+| requirement SA-121 | acceptance 2 | golden | SA-121 names no harm |
+| requirement SA-121 | acceptance 3 | golden | SA-121 names no harm |
+| requirement SA-121 | acceptance 4 | golden | SA-121 names no harm |
+| requirement SA-121 | acceptance 5 | golden | SA-121 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

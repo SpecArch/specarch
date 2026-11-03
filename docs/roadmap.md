@@ -304,6 +304,8 @@ implementation file uses and compares an override with the shipped idiom.
      TypeScript and SwiftUI screens (ADR-218, `docs/ui-vue-htm.md`,
      `spec/tests/generate-ui-vue-htm` and the cases beside it,
      `examples/library-lending/web-vue/`).
+   - Not built, accepted for later: a Flutter screen generator and a Go
+     generator for a framework other than dxlib (`docs/later-features.md`).
 5. Other DSL formats on request, limited to what that DSL can execute:
    a concept the target cannot represent is reported, not silently omitted.
    Built, 0.6.0: `specarch-gen-bpmn` writes each workflow as a BPMN 2.0

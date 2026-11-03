@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 127 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 129 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -55,9 +55,9 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-51 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
-| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-51 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
+| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100 |
 
 ## 4. Requirements
 
@@ -71,6 +71,8 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-27 | functional | should | accepted | A design test may carry its fixture, input and expected outcome as structured data in the design's own vocabulary, and the validator shall check that data against the design. |
 | SA-21 | functional | must | accepted | specarch validate shall rank every test case it derives as critical, frequent or other, from the harm of the requirements its subject satisfies and from how often users get its field wrong, and shall warn only for the critical and frequent cases no test covers. |
 | SA-22 | functional | must | accepted | specarch document shall list in the test plan, under Derived cases left out, every derived case of rank other that no test covers, with its subject and the reason it was left out, and shall show each requirement's harm in the traceability matrix once a requirement names one. |
+| SA-128 | functional | should | proposed | specarch generate tests --package <environment> shall write a test package of one specification for one of its environments - every test, and every chosen derived case no test covers drafted as derive drafts it, each as a request to the environment's servers with what its answer must show, or with the reason it cannot run from outside - holding back a test an open must or should question holds up until it is answered, and holding no credential; specarch run shall run the package against the environment, signing each role in with headers it is given and putting a case's records in place through a program it is given, and write the results as JUnit XML that specarch log test-run maps back to each test, or to a derived case's subject. |
+| SA-131 | functional | should | proposed | specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package. |
 | SA-33 | functional | must | accepted | A specification shall be able to say how sensitive a field is, that it is encrypted at rest and how it is still found, and that an entity is audited or deleted softly, and specarch validate shall check each against the design and derive the cases a soft delete implies. |
 | SA-34 | functional | must | accepted | A specification shall be able to say that an operation answers a page of an entity's records with the fields it searches, filters and sorts by and its page size, the limits a client keeps to, and the catalogue of problem types its refusals answer with, and specarch validate shall check each against the design and derive the cases each implies. |
 | SA-35 | functional | must | accepted | A specification shall be able to declare the jobs the system runs on its own, with what starts each, the role it acts as, what it reads, writes, calls and publishes, and how it retries, and the menus that lead to its pages; specarch validate shall check each against the design, and a job shall be a subject of tests with the cases it implies. |
@@ -316,6 +318,40 @@ Acceptance criteria:
 - The traceability matrix of a specification with a requirement that names a harm has a Harm column, and one without has none.
 
 **Insight:** A case left out is a decision, and a decision the reader cannot see is one nobody can question.
+
+### SA-128
+
+specarch generate tests --package <environment> shall write a test package of one specification for one of its environments - every test, and every chosen derived case no test covers drafted as derive drafts it, each as a request to the environment's servers with what its answer must show, or with the reason it cannot run from outside - holding back a test an open must or should question holds up until it is answered, and holding no credential; specarch run shall run the package against the environment, signing each role in with headers it is given and putting a case's records in place through a program it is given, and write the results as JUnit XML that specarch log test-run maps back to each test, or to a derived case's subject.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-9, NEED-10.
+
+Acceptance criteria:
+
+- generate tests --package with an environment of the specification, --out and --unapproved writes specarch-test-package.yaml with the generated header, the environment's servers that answer requests and one case per test and per chosen derived case no test covers, a derived case marked derived with its subject's element, and lists a test a must question blocks under held, naming the question.
+- A case whose test gives no request, is about a command or a page, or expects only the state after is in the package with the reason it cannot run from outside, and no case holds a credential.
+- run with the package, --base-url of a fixture service, --callers and --results writes JUnit XML with one testcase per case, named as the case, passed when the answer has the status and the body fields expected, failed naming the status or field that differs, and skipped with the reason for a case the package marks so, a role --callers does not give, or records with no --setup; it exits 0 when no case failed or errored and 1 otherwise.
+- log test-run on that JUnit XML maps each testcase to its test, and each derived case to its subject's element, with no unmapped result.
+- generate tests --package refuses another target, no --out and an environment the specification does not have with status 2; run refuses a package with several servers and neither --base-url nor --server, naming them, with status 2.
+
+**Insight:** The tests a specification implies are only worth what a run of them in the customer's environment shows, and that environment is run by people who have neither the specification nor the project's harness; a package that holds the cases as data, run by the program that made it, needs nothing on their host but that program, and its results come back as a file the specification's own test-run record maps case by case (ADR-233).
+
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
+
+### SA-131
+
+specarch extract tests shall read existing test scripts and test sheets, complete or not - Gherkin feature files and CSV, TSV or Excel sheets - into tests inferred from them, each citing where it was read, with one must question for the subject each exercises and one for each given, step or expected result the script leaves out, and specarch merge shall keep those tests and the questions that block only them, so that once the questions are decided and their answers written, each test joins the test package.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-8, NEED-9.
+
+Acceptance criteria:
+
+- extract tests on a feature file with a Background, a scenario with every step, one with no Then and a Scenario Outline of two examples, and a sheet with a row missing its test data and a row with nothing but its ID and title writes one test per scenario, example and row, each origin inferred with why and a citation of its line or range, and one must question per test for its subject plus one per given, step or expected result left out, each blocking that test or that key; the tree passes validate.
+- merge of a design tree and that tree keeps each read test whole under tests/ with the questions that block only it, and a line counts them.
+- After decide answers each question of a read test and the answer's keys are written, generate tests --package lists the test among the cases instead of under held, and run passes it against a service that answers as the test expects.
+
+**Insight:** A team that already has test scripts has the test cases a stakeholder wrote down, often with a step or a result missing; reading them into the specification, with a question for each missing part instead of a guess, puts that knowledge where the derived cases are, and the test joins the package once a person settles what is missing (ADR-235).
+
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
 
 ### SA-33
 

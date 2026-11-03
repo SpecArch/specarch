@@ -4,7 +4,7 @@
 # specification, of examples/library-lending, of examples/lending-desk and
 # of examples/release-watcher, the agent skill in skills/specarch,
 # the library lending example's generated code and data, and the reading
-# room's screens, generated across the estate in examples/estate. To settle a
+# room's screens and tests, generated across the estate in examples/estate. To settle a
 # conflict in one of these files, take either side, then run this script on
 # the merged tree and run scripts/landing-check.sh.
 set -u
@@ -29,7 +29,7 @@ step() {
 build_tools() {
 	mkdir -p "$bin" || return 1
 	go build -o "$bin/specarch" ./cmd/specarch || return 1
-	for generator in sql seed sqlc openapi ui ui-typescript ui-vue-htm ui-swiftui bpmn register; do
+	for generator in sql seed sqlc openapi ui ui-typescript ui-vue-htm ui-swiftui bpmn register tests-go; do
 		go build -o "$bin/specarch-gen-$generator" ./cmd/specarch-gen-$generator || return 1
 	done
 }
@@ -52,6 +52,7 @@ generated() {
 		PATH="$bin:$PATH" "$bin/specarch" generate $target --unapproved examples/library-lending || return 1
 	done
 	PATH="$bin:$PATH" "$bin/specarch" generate ui --unapproved --estate examples/estate/specarch-estate.yaml examples/estate/reading-room || return 1
+	PATH="$bin:$PATH" "$bin/specarch" generate tests --unapproved --estate examples/estate/specarch-estate.yaml examples/estate/reading-room || return 1
 }
 
 step "the fragment schemas and hint lines (go run ./tools/fragment-schemas)" go run ./tools/fragment-schemas

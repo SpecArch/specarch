@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: golden
+given: "an estate of two modules, the stock module whose operation calls the pricing module's getPrice through a dependency with a time limit, getPrice needing a permission and a required query field and declaring a 422 and a 404, a golden design test of getPrice with its input, an implementation file in Go with a tests target, and specarch-gen-tests-go built from this repository on PATH"
+when: "generate tests is run with --unapproved and --estate naming the estate file, on the stock module"
+then: "it writes the design tests' file with the integration harness and one file of the calls into the pricing module, holding one test of the call that pins both modules and their versions, the dependency, the method, the path and the time limit, with the golden path on the golden test's input and the red paths denied without the permission, the required field left out answered 422, the 404 arranged, the module failing and the module not answering in time, and exits 0"
+verifies: [SA-120]

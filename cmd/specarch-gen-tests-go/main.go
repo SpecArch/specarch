@@ -23,10 +23,12 @@ var capabilities = capability.Plugin{
 	Summary: "Writes the tests of the worked examples and the design tests, in Go.",
 	Generates: []string{
 		"specarch_design_test.go: one test per worked example and per design test, with given, when and then steps, calling a Harness interface",
+		"specarch_integration_<module>_test.go, given the estate: one test per call into that module, with its golden and red paths, calling an IntegrationHarness interface",
 	},
 	DoesNotGenerate: []string{
 		"newHarness, the project's file that signs a caller in, inserts records and calls operations",
 		"the body of a test whose sentences cannot be turned into code, left for a person to write",
+		"newIntegrationHarness, the project's file that calls the other module as this one does, and arranges, breaks or slows it",
 	},
 }
 

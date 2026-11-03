@@ -37,9 +37,10 @@ const pluginPrefix = "specarch-gen-"
 // estateTargets are the targets whose plug-ins read the specifications the
 // dependencies name, when the run gives them: a value typed by another
 // module's element, and for the UI targets a page or picker reading its
-// list (ADR-184). Every other target refuses such a reference at its entry
+// list (ADR-184), and for tests the integration tests of the calls into
+// them (ADR-226). Every other target refuses such a reference at its entry
 // whatever the run gives.
-var estateTargets = map[string]bool{"openapi": true, "sql": true, "seed": true, "go-dxlib": true, "ui": true}
+var estateTargets = map[string]bool{"openapi": true, "sql": true, "seed": true, "go-dxlib": true, "ui": true, "tests": true}
 
 // builtGenerators are the code targets this program has itself. None yet:
 // every target is a plug-in.

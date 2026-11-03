@@ -107,7 +107,107 @@ func GenerateDart(r *Request) Response {
 		w.line("")
 	}
 	w.b.WriteString(body.b.String())
-	return Response{Files: []File{{Path: DartLibraryFile, Content: lib.b.String()}, {Path: DartTestFile, Content: w.b.String()}}, Diagnostics: []Diagnostic{}}
+	in := BuildIntegration(r)
+	if in.Any() {
+		lib.b.WriteString("\n" + dartIntegrationPrelude + "\n")
+		for i, u := range in.Unwritten {
+			if i == 0 {
+				w.line("")
+			}
+			w.line("// The call %s at %s is not written: %s.", u.Reference, u.Place, u.Reason)
+		}
+	}
+	files := []File{{Path: DartLibraryFile, Content: lib.b.String()}, {Path: DartTestFile, Content: w.b.String()}}
+	for _, m := range in.Modules {
+		files = append(files, File{Path: DartIntegrationFile(m.Module), Content: dartIntegration(s, in, m, header, imp)})
+	}
+	return Response{Files: files, Diagnostics: []Diagnostic{}}
+}
+
+// DartIntegrationFile is the file of the integration tests of the calls
+// into one module (ADR-226).
+func DartIntegrationFile(module string) string {
+	return "specarch_integration_" + snake(module) + "_test.dart"
+}
+
+// dartIntegration writes the integration tests of the calls into one
+// module: one group per call, one test per path.
+func dartIntegration(s Suite, in Integration, m ModuleCalls, header, imp string) string {
+	w := &writer{}
+	w.line("%s", header)
+	if s.Draft != "" {
+		w.line("// %s", s.Draft)
+	}
+	w.line("")
+	w.line("// The integration tests of the calls %s %s makes into %s %s, through", in.Caller, in.CallerVersion, m.Module, m.Version)
+	w.line("// the IntegrationHarness the project gives them in newIntegrationHarness, in %s.", DartHarnessFile)
+	w.line("")
+	w.line("import '%s';", imp)
+	w.line("")
+	w.line("import '%s';", DartLibraryFile)
+	w.line("import '%s';", DartHarnessFile)
+	w.line("")
+	w.line("void main() {")
+	for i, c := range m.Calls {
+		if i > 0 {
+			w.line("")
+		}
+		timeout := c.Timeout
+		if timeout == "" {
+			timeout = "no time limit"
+		}
+		w.line("  // %s %s calls %s of %s %s, %s %s, through the dependency %s, within %s.", in.Caller, in.CallerVersion, c.Operation, c.Module, c.Version, c.Method, c.Path, c.Dependency, timeout)
+		w.line("  // specarch: %s", c.Pointer)
+		w.line("  // Called from %s.", strings.Join(c.Places, ", "))
+		w.line("  group(%s, () {", dartString(c.Name))
+		w.line("    const c = ModuleCall(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", dartString(in.Caller), dartString(in.CallerVersion), dartString(c.Dependency), dartString(c.Module),
+			dartString(c.Version), dartString(c.Operation), dartString(c.Method), dartString(c.Path), dartString(c.Timeout), dartStrings(c.Places))
+		if c.InputFrom != "" {
+			w.line("    // The input is that of %s.", c.InputFrom)
+		} else {
+			w.line("    // %s gives no golden input for %s; the harness fills every value the contract requires.", c.Module, c.Operation)
+		}
+		w.line("    const Fields input = %s;", dartRecord(c.Input))
+		for _, p := range c.Paths {
+			w.line("    test(%s, () async {", dartString(p.Name))
+			w.line("      final h = await newIntegrationHarness();")
+			if p.Arrange != "" {
+				w.line("      await h.arrange(c, %s);", p.Arrange)
+			}
+			if p.Break != "" {
+				w.line("      await h.breakCall(c, %s);", dartString(p.Break))
+			}
+			holding := "[]"
+			if p.Holding && c.Permission != "" {
+				holding = dartStrings([]string{c.Permission})
+			}
+			omit := ""
+			if p.Omit != "" {
+				omit = ", omit: " + dartString(p.Omit)
+			}
+			w.line("      final got = await h.call(c, const CallRequest(%s, input%s));", holding, omit)
+			at := dartString(c.Pointer)
+			switch p.Expect {
+			case "status":
+				w.line("      expectAnswer(got, %s, %s);", p.Status, at)
+			case "answered":
+				w.line("      expectAnswered(got, %s);", at)
+			case "refused":
+				w.line("      expectRefused(got, %s);", at)
+			case "failed":
+				w.line("      expectFailed(got, %s);", at)
+			case "late":
+				w.line("      expectGaveUp(got, %s);", at)
+			}
+			if len(p.Fields) > 0 {
+				w.line("      expectAnswerFields(got, %s, %s);", dartStrings(p.Fields), at)
+			}
+			w.line("    });")
+		}
+		w.line("  });")
+	}
+	w.line("}")
+	return w.b.String()
 }
 
 // dartUses is what the test file's main names from each import: test and
@@ -337,6 +437,109 @@ MappingHarness mappingHarness(Harness h) {
 void expectRecord(Fields got, Fields want) {
   if (!holds(got, want)) {
     fail('record $got does not hold $want');
+  }
+}`
+
+// dartIntegrationPrelude is the part of the library whose specification
+// calls another module: what the integration tests share (ADR-226).
+const dartIntegrationPrelude = `/// One call into another module of the estate, as the calling module's
+/// design makes it: the two modules with their versions, the dependency, the
+/// called operation, its method and path as the called module writes them,
+/// the calling module's time limit for the dependency (ISO 8601, '' for
+/// none) and the places of the calling design that make it.
+class ModuleCall {
+  const ModuleCall(this.caller, this.callerVersion, this.dependency, this.module, this.version, this.operation, this.method, this.path,
+      this.timeout, this.places);
+
+  final String caller;
+  final String callerVersion;
+  final String dependency;
+  final String module;
+  final String version;
+  final String operation;
+  final String method;
+  final String path;
+  final String timeout;
+  final List<String> places;
+}
+
+/// What one path of a call sends: the permissions the caller holds, none
+/// for a denied call; the values the design gives, the harness filling
+/// every other value the called contract requires; and a required field to
+/// leave out of the request, '' for none.
+class CallRequest {
+  const CallRequest(this.holding, this.input, {this.omit = ''});
+
+  final List<String> holding;
+  final Fields input;
+  final String omit;
+}
+
+/// What the call gave the caller: the status and body the called module
+/// answered, failed when no answer the caller could read came, and
+/// timedOut when the caller gave up at its time limit.
+class Answer {
+  const Answer(this.status, this.body, {this.failed = false, this.timedOut = false});
+
+  final int status;
+  final Value body;
+  final bool failed;
+  final bool timedOut;
+}
+
+/// What the project gives the integration tests, in specarch_harness.dart,
+/// through ` + "`Future<IntegrationHarness> newIntegrationHarness()`" + `: call makes the
+/// call as the calling module makes it, through its own client, to a
+/// running instance of the called module, as a caller holding the
+/// permissions given; arrange puts the called module in a state in which
+/// the call answers status; breakCall makes it fail ('fails') or answer
+/// later than the time limit ('times out') for the calls after.
+abstract interface class IntegrationHarness {
+  Future<Answer> call(ModuleCall c, CallRequest r);
+  Future<void> arrange(ModuleCall c, int status);
+  Future<void> breakCall(ModuleCall c, String how);
+}
+
+void expectAnswer(Answer a, int status, String pointer) {
+  if (a.failed || a.timedOut || a.status != status) {
+    fail('$pointer: answer ${a.status} (failed ${a.failed}, timed out ${a.timedOut}), want $status');
+  }
+}
+
+void expectAnswered(Answer a, String pointer) {
+  if (a.failed || a.timedOut || a.status < 200 || a.status > 299) {
+    fail('$pointer: answer ${a.status} (failed ${a.failed}, timed out ${a.timedOut}), want a success');
+  }
+}
+
+void expectRefused(Answer a, String pointer) {
+  if (a.failed || a.timedOut || a.status < 400 || a.status > 499) {
+    fail('$pointer: answer ${a.status} (failed ${a.failed}, timed out ${a.timedOut}), want a refusal');
+  }
+}
+
+void expectFailed(Answer a, String pointer) {
+  if (!a.failed && a.status < 500) {
+    fail('$pointer: answer ${a.status}, want the call to fail');
+  }
+}
+
+void expectGaveUp(Answer a, String pointer) {
+  if (!a.timedOut) {
+    fail('$pointer: answer ${a.status} (failed ${a.failed}), want the caller to give up at its time limit');
+  }
+}
+
+/// Checks that the answer's body holds every field named: the object
+/// answered, or each record of a list.
+void expectAnswerFields(Answer a, List<String> fields, String pointer) {
+  final records = a.body.kind == 'list' ? [for (final item in a.body.items) item.parts] : [a.body.parts];
+  for (var i = 0; i < records.length; i++) {
+    for (final f in fields) {
+      if (!records[i].containsKey(f)) {
+        fail('$pointer: record $i of the answer has no $f');
+      }
+    }
   }
 }`
 

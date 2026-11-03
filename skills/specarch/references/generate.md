@@ -132,7 +132,8 @@ does not give is refused as reference at its entry, with status 1
 and nothing written: a value typed by another specification's element
 (for sql and seed, a field of an entity or a view), and for ui a list page or
 a picker reading another specification's list; every other target
-refuses those whatever the run gives. A relation to another
+refuses those whatever the run gives; tests reads the specifications given
+for the integration tests below. A relation to another
 specification's entity is not refused: its via field is this
 specification's. Given the specification, openapi writes the
 element a field is typed by inline where the field is, with every
@@ -165,6 +166,29 @@ so a specification declares a module only where it names the module
 itself; a module there that the run does not give is an error at the
 entry that led to it, naming the module chain and the dependency
 that names the module, with its version (ADR-185).
+
+Given the specifications of the modules its dependencies name,
+tests writes, beside the design tests, one integration test per
+operation of another module the specification calls, through a
+calls entry of an operation, a job or a gateway, or the source of a
+list page or a picker, naming every place that calls it, the
+calling and the called module with their versions, the dependency,
+the method and path and the caller's time limit. Each test runs the
+golden path, with the operation's permission and the input of the
+called module's golden design test of the operation, the harness
+filling every required value it does not give, checking the
+success status and every field the answer requires, and the red
+paths the operation implies: denied without its permission, each
+required query, header or body field left out, each other answer
+it declares, the module failing, and the module not answering
+within the time limit; each checks the status the operation
+declares for it (403 denied, 400 or 422 for a missing field), or a
+refusal when it declares none. The tests of the calls into one
+module go into one file named after the module, and the harness
+they share into the file of the design tests, so a change in one
+module's contract changes that module's file only. A call into a
+module the run does not give is named, with its place and the
+module, in a comment of the design tests' file (ADR-226).
 
 An element whose mapping in the implementation file names a
 stakeholder under `ownedBy` is owned by that stakeholder: a plug-in

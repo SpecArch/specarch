@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 119 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.4.0 of the specification: 6 stakeholders, 10 needs and 120 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -52,7 +52,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-97 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-51 |
-| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
+| NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-102, SA-106, SA-58, SA-60, SA-116, SA-101, SA-117, SA-108, SA-57, SA-100 |
 
 ## 4. Requirements
@@ -60,6 +60,7 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | Requirement | Kind | Priority | Status | Statement |
 |---|---|---|---|---|
 | SA-31 | functional | should | accepted | specarch generate tests shall write, through the plug-in for an implementation file's stack, one test per design test and one per worked example, in Go, in Swift with Swift Testing, or in Dart with package:test or flutter_test, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated tests are the same on every project of that language. |
+| SA-120 | functional | should | proposed | specarch generate tests, given a module and the estate it belongs to, shall write one integration test per call the module makes into another module of the estate, pinning both modules by name and version, with the golden path and the red paths the called operation's contract implies, in the test language of the calling module's implementation file, the tests of the calls into one module in one file of their own. |
 | SA-29 | functional | must | accepted | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. |
 | SA-28 | functional | should | accepted | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. |
 | SA-111 | functional | should | proposed | specarch derive shall draft the fixture, input and expected outcome of a derived case wherever the design fixes them, shall add them on request to a test that has none, and the test plan shall say how many tests the tests target writes with their bodies. |
@@ -193,6 +194,22 @@ Acceptance criteria:
 - A Swift or Dart implementation file whose testing framework is not one the plug-in writes for is refused by name, and nothing is written.
 
 **Insight:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
+
+### SA-120
+
+specarch generate tests, given a module and the estate it belongs to, shall write one integration test per call the module makes into another module of the estate, pinning both modules by name and version, with the golden path and the red paths the called operation's contract implies, in the test language of the calling module's implementation file, the tests of the calls into one module in one file of their own.
+
+Kind: functional; priority: should; status: proposed; verified by test; refines NEED-9.
+
+Acceptance criteria:
+
+- generate tests --estate <estate> <module> writes one test per operation of another module the module calls through a calls entry, a list page or a picker, naming every place that calls it, the calling and the called module with their versions, the dependency, the method and path and the caller's time limit.
+- Each test runs the golden path with the operation's permission and the called module's golden input, the harness filling every required value that input does not give, checking the success status and every field the answer requires, and the red paths the called operation implies, each with the status it declares or else a refusal - denied without the permission, each required query, header or body field left out, each other answer it declares, the called module failing and the called module not answering within the time limit.
+- A change in one called module's contract changes only the file of the calls into that module.
+- A call into a module the run does not give is named in the generated design tests' file with its place and module, and the rest is written.
+- The Go, Swift and Dart integration tests of one module hold the same tests and checks.
+
+**Insight:** What breaks at the system integration test of an estate is most often a call between two modules owned by different teams; the two designs already say the request, the answers, the permission and the time limit, so a test of each call needs nothing but a harness that runs the two modules (ADR-226).
 
 ### SA-29
 

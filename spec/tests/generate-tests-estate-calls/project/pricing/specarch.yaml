@@ -1,0 +1,43 @@
+specarch: "1.0.0"
+info: { title: Pricing, version: 2.1.0, name: pricing }
+permissions:
+  prices.read: { description: Read the prices. }
+roles:
+  price-reader: { description: A service that reads the prices., permissions: [prices.read] }
+paths:
+  /prices/{sku}:
+    parameters:
+      - { name: sku, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 20 } }
+    get:
+      operationId: getPrice
+      summary: The price of one article
+      permission: prices.read
+      parameters:
+        - { name: currency, in: query, required: true, schema: { type: string, minLength: 3, maxLength: 3 } }
+      responses:
+        "200":
+          description: The price.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sku: { type: string, minLength: 1, maxLength: 20 }
+                  amount: { type: string, format: decimal, precision: 10, scale: 2 }
+                  currency: { type: string, minLength: 3, maxLength: 3 }
+                required: [sku, amount, currency]
+        "404": { description: No article has this sku. }
+        "422": { description: A value is missing or out of its limits. }
+tests:
+  get-price-succeeds:
+    level: system
+    operation: getPrice
+    scenario: golden
+    given: "a caller with prices.read"
+    when: "getPrice is called"
+    then: "it answers 200: The price."
+    fixture: { caller: price-reader }
+    input: { sku: A-1, currency: EUR }
+    expect: { status: 200 }
+  get-price-denied-without-prices-read: { level: system, operation: getPrice, scenario: red, covers: [denied without prices.read], given: "a caller without prices.read", when: "getPrice is called", then: "it is refused as not allowed" }
+  get-price-not-found-sku: { level: system, operation: getPrice, scenario: red, covers: [not found sku], given: "no article has that sku", when: "getPrice is called with that sku", then: "it is refused as not found" }

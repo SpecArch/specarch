@@ -49,6 +49,7 @@ paths:
       operationId: requestBook
       summary: Ask for a book to read in the room
       permission: requests.write
+      calls: ["catalogue#/paths/~1books~1{barcode}/get"]
       requestBody:
         required: true
         content:
@@ -86,5 +87,7 @@ tests:
   request-book-missing-barcode: { level: system, operation: requestBook, scenario: red, covers: [missing barcode], given: "a caller with requests.write", when: "requestBook is called without barcode", then: "it is refused" }
   request-book-missing-reader: { level: system, operation: requestBook, scenario: red, covers: [missing reader], given: "a caller with requests.write", when: "requestBook is called without reader", then: "it is refused" }
   request-book-not-found-barcode: { level: system, operation: requestBook, scenario: red, covers: [not found barcode], given: "no book record of the catalogue has that barcode", when: "requestBook is called with that barcode", then: "it is refused as not found" }
+  request-book-catalogue-fails: { level: system, operation: requestBook, scenario: red, covers: [dependency fails catalogue], given: "the catalogue service answers getBook with an error", when: "requestBook is called", then: "it is refused, and no request is kept" }
+  request-book-catalogue-times-out: { level: system, operation: requestBook, scenario: red, covers: [dependency times out catalogue], given: "the catalogue service does not answer getBook within PT2S", when: "requestBook is called", then: "it is refused, and no request is kept" }
   request-book-page-opens: { level: system, page: request-book, scenario: golden, given: "a caller with requests.write", when: "the page request-book is opened", then: "it shows the form, whose Book field offers the catalogue's book records by title and author" }
   request-book-page-denied-without-requests-write: { level: system, page: request-book, scenario: red, covers: [denied without requests.write], given: "a caller without requests.write", when: "the page request-book is opened", then: "it is refused as not allowed" }

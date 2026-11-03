@@ -432,6 +432,13 @@ in the language; a Flutter app's language is Dart. `docs/generators.md`
 has what each writes and what the project writes beside it, ADR-041 the
 reasons.
 
+Given the estate, the same target writes an integration test per call
+into another module, from the caller's side: the request and the answer
+the called module's design declares, the permission it needs, the fields
+it requires, the other answers it declares, its failure and the caller's
+time limit, one file per module called (ADR-226, `docs/generators.md`,
+Integration tests across an estate).
+
 ## Traceability
 
 Nothing new is needed: a derived test carries `verifies` from its

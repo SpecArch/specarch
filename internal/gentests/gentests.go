@@ -17,6 +17,7 @@ import (
 	"unicode"
 
 	"github.com/SpecArch/specarch/internal/mark"
+	"github.com/SpecArch/specarch/internal/xref"
 )
 
 // Request is what specarch writes on a plug-in's standard input.
@@ -35,6 +36,11 @@ type Request struct {
 	Draft string `json:"draft"`
 	// Problems are the problems to mark, in the order of the problems file.
 	Problems []mark.Problem `json:"problems"`
+	// Dependencies are the specifications of the run the dependencies
+	// name, by the dependency's key, as the estate gives its modules: the
+	// integration tests of the calls into them are written from them
+	// (ADR-226).
+	Dependencies map[string]xref.Dependency `json:"dependencies,omitempty"`
 }
 
 // Implementation is one implementation file in the request.

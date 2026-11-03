@@ -15,7 +15,8 @@ implementation file names for the target).
   --unapproved  generate from a specification not approved yet; every
                 file is marked a draft. Not for anything that is used.
   --estate      bring an estate's modules into the run, so references
-                into them resolve.
+                into them resolve; tests then writes one integration
+                test per call into another module, a file per module.
   --environment <key>
                 build for that environment of the specification. One whose
                 entry says trace: true shows the trace to its testers: the

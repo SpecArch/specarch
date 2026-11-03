@@ -1,0 +1,8 @@
+specarchEstate: "1.0.0"
+info:
+  title: Shop estate
+  version: 1.0.0
+  description: The modules of a shop, each specified by its own team.
+modules:
+  stock: { description: Keeps the stock and prices what it sells., location: stock, version: 1.0.0 }
+  pricing: { description: Sets the prices., location: pricing, version: 2.1.0 }

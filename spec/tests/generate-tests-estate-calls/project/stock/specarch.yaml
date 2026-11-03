@@ -1,0 +1,29 @@
+specarch: "1.0.0"
+info: { title: Stock, version: 1.0.0, name: stock }
+stages: [implementation]
+permissions:
+  stock.read: { description: Read the stock. }
+roles:
+  clerk: { description: A clerk of the shop., permissions: [stock.read] }
+dependencies:
+  pricing:
+    description: The pricing module, whose prices the stock list shows.
+    timeout: PT3S
+    specification: pricing
+    version: 2.1.0
+paths:
+  /articles/{sku}:
+    parameters:
+      - { name: sku, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 20 } }
+    get:
+      operationId: getArticle
+      summary: One article with its price
+      permission: stock.read
+      calls: ["pricing#/paths/~1prices~1{sku}/get"]
+      responses:
+        "200": { description: The article. }
+tests:
+  get-article-succeeds: { level: system, operation: getArticle, scenario: golden, given: "a caller with stock.read", when: "getArticle is called with values inside every limit", then: "it answers 200: The article." }
+  get-article-denied-without-stock-read: { level: system, operation: getArticle, scenario: red, covers: [denied without stock.read], given: "a caller without stock.read", when: "getArticle is called", then: "it is refused as not allowed" }
+  get-article-not-found-sku: { level: system, operation: getArticle, scenario: red, covers: [not found sku], given: "no article has that sku", when: "getArticle is called with that sku", then: "it is refused as not found" }
+  get-article-pricing-fails: { level: system, operation: getArticle, scenario: red, covers: [dependency fails pricing, dependency times out pricing], given: "pricing answers with an error, or does not answer within PT3S", when: "getArticle is called", then: "it is refused" }

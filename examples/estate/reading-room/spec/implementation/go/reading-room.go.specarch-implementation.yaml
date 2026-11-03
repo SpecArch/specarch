@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../../../../../schema/specarch-implementation-1.0.schema.json
+specarchImplementation: "1.0.0"
+info:
+  title: Reading Room service in Go
+  version: 0.1.0
+  description: The service behind the desk's screens, which takes a reader's request and looks the book up in the catalogue service first; its tests, the integration tests of its calls into the catalogue included, are generated across the estate.
+implements: { file: ../../specarch.yaml, version: 0.1.0 }
+stack: { language: { name: Go, version: "1.26" } }
+layout:
+  internal/requests:
+    description: Takes a reader's request for a book, after the catalogue service has the book's record.
+    implements: ["#/paths/~1requests/post"]
+targets:
+  tests:
+    # testdata keeps the generated tests out of this repository's own Go
+    # build: the reading room's service and its harness are not here.
+    output: ../../../testdata/specarchtests

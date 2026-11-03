@@ -24,9 +24,11 @@ var capabilities = capability.Plugin{
 	Generates: []string{
 		"specarch_design.dart: the values, the Harness interface and the checks",
 		"specarch_design_test.dart: one test per worked example and per design test",
+		"specarch_integration_<module>_test.dart, given the estate: one group per call into that module, a test per golden and red path",
 	},
 	DoesNotGenerate: []string{
 		"specarch_harness.dart with newHarness and each body<TestName> the design gives no call for, which the project writes",
+		"newIntegrationHarness in specarch_harness.dart, which calls the other module as this one does, and arranges, breaks or slows it",
 	},
 }
 

@@ -1,0 +1,93 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-226:
+    title: The tests target writes one integration test per call into another module the run gives, with its golden and red paths, in one file per called module
+    status: proposed
+    date: "2026-11-03"
+    context: |
+      An estate's modules are owned by different teams, and what breaks
+      at the system integration test is most often a call between two of
+      them: a request the called module no longer takes, an answer it no
+      longer gives, a permission the caller does not hold, a failure or a
+      time limit the caller does not expect. The design already says each
+      call: a calls entry of an operation, a job or a gateway naming
+      <dependency>#/paths/<path>/<method>, and a list page or a picker
+      whose source is such an operation, where the dependency names the
+      other module's specification and version. The called module's
+      design says the operation's request, its answers and its
+      permission; the caller's says the time limit. The tests target
+      writes the tests of one specification, and reads no other.
+    decision: |
+      tests becomes a target that reads the specifications the run gives
+      (ADR-184): with the module's folder and --estate <estate>, the
+      plug-in gets each dependency's specification and writes, beside the
+      design tests, one integration test per call into another module,
+      in the language of the calling module's implementation file. A
+      call is an operation of the other module, named by a calls entry
+      (an operation's, a job's or a gateway's) or by the source of a list
+      page or a picker; one operation called from several places is one
+      test, naming every place. Each test pins the calling module and the
+      called module with their info.name and info.version, the
+      dependency, the operation, its method and path, and the caller's
+      time limit, and runs these paths: the golden one, a caller holding
+      the operation's permission and the values of the called module's
+      golden design test of that operation, answered with its success
+      status and every field its answer requires; denied without the
+      permission; each required query, header or body field left out;
+      each other answer the operation declares, in a state the harness
+      arranges; the called module failing; and the called module not
+      answering within the time limit. When the called module's design
+      gives no golden input, or leaves out values the contract requires,
+      the harness fills every required value the input does not give, and
+      a field left out is named to the harness, which leaves it out of
+      the request it makes. The status checked is the one the
+      operation declares for the path, 403 for a denied call, 400 or 422
+      for a missing field (docs/test-generation.md, as derive drafts
+      them); when it declares none, the check is that the call is
+      refused. The tests of the calls into one module go into one file
+      named after that module, and what every file shares, the harness
+      and the checks, into the file of the design tests. A call into a
+      module the run does not give is not written, and the file of the
+      design tests names it, the place and the module, in a comment.
+    consequences: |
+      A contract change in one module changes only the file of the calls
+      into it, in every module that calls it, and the file's header names
+      the version it was written from, so a reviewer of the change sees
+      which callers it touches. The project writes one more harness,
+      IntegrationHarness, which makes the call as the caller makes it,
+      against a running instance of the called module, and arranges the
+      called module's state, failure and delay. The plug-in decides
+      nothing the two designs do not say: it does not test what the
+      caller does with an answer, which the caller's own design tests
+      check through its derived dependency cases. A module whose
+      implementation file has no tests target, or a stack with no tests
+      plug-in, gets no integration tests, as it gets no design tests.
+    why: |
+      The tests are generated from the caller's side because the caller
+      knows what it calls and with which time limit, and the called
+      module may not know its callers; a test generated in the called
+      module from every caller of the estate would put each caller's
+      test in a repository its team does not own. One file per called
+      module, rather than one file for all calls, is what keeps a change
+      in one module's contract to that module's file in the review: a
+      single file would change for every module's change and hide which
+      contract moved. The red paths are those the called module's design
+      implies and nothing more, the permission, the required fields, the
+      declared answers, failure and time limit, because a path the design
+      does not say is a guess, and a generated guess is a test someone
+      has to argue with (docs/principles.md, no placeholders). A path
+      parameter is not left out, since a request without it is another
+      path. The statuses follow derive's rule, so a derived case and an
+      integration test of the same call agree; 403 for a denied call is
+      RFC 9110's status for a caller who is known and not allowed. A call
+      into a module the run does not give is named in the output, not
+      dropped, since validate already counts the reference as unresolved
+      and the output marks it where the test would be (the compiler rule
+      of docs/principles.md); refusing the whole run would stop a module
+      alone from getting its design tests.
+    satisfies: [SA-120]
+    restsOn: [ADR-184, ADR-207, ADR-213]
+    cites:
+      - source: rfc-9110
+        clause: "15.5.4"
+        says: "The 403 (Forbidden) status code indicates that the server understood the request but refuses to fulfill it."

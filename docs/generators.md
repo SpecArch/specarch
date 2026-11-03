@@ -1556,6 +1556,59 @@ streaming to the harness, which the service writes: the test names the
 call, the harness establishes the handshake and seals the request, or
 streams the body (ADR-145, ADR-146).
 
+### Integration tests across an estate
+
+Run on a module with the estate it belongs to,
+`specarch generate tests --estate specarch-estate.yaml <module>`, the
+plug-in gets the specifications the module's dependencies name and writes,
+beside the design tests, one integration test per operation of another
+module the module calls (ADR-226). A call is a `calls` entry of an
+operation, a job or a gateway naming `<dependency>#/paths/<path>/<method>`,
+or the `source` of a list page or a picker naming one, through a
+dependency that names the other module's `specification`; an operation
+called from several places is one test, and its comment names every
+place. The test pins both modules by `info.name` and `info.version`, the
+dependency, the operation, its method and path, and the caller's
+`timeout`, and runs one path each:
+
+- `golden`: a caller holding the operation's permission, with the input of
+  the called module's golden design test of that operation, answered with
+  its success status and every field the answer requires (each record's,
+  for a list);
+- `denied without <permission>`: a caller holding none, answered 403 when
+  the operation declares it, else a refusal;
+- `missing <field>`: each required query, header or body field left out,
+  answered 400, or 422 when there is no 400, else a refusal; a path
+  parameter is not one;
+- `answers <status>`: each other status the operation declares, in a state
+  the harness arranges;
+- `fails` and `times out`: the called module broken, and slower than the
+  caller's time limit.
+
+When the called module's design gives no golden input, the input is empty
+and the harness fills every value the contract requires; a field to leave
+out is named to the harness. The tests of the calls into one module go
+into one file named after it, so a change in that module's contract
+changes that file alone:
+
+| Stack | File of the calls into a module | The harness the project writes |
+|---|---|---|
+| Go | `specarch_integration_<module>_test.go`, one test per call, a subtest per path | `func newIntegrationHarness(t *testing.T) IntegrationHarness` |
+| Swift | `SpecArchIntegration<Module>Tests.swift`, a suite per module, a test per path | `func makeIntegrationHarness() async throws -> any SpecArch.IntegrationHarness` |
+| Dart | `specarch_integration_<module>_test.dart`, a group per call, a test per path | `Future<IntegrationHarness> newIntegrationHarness()` in `specarch_harness.dart` |
+
+`IntegrationHarness` and what the tests share (`ModuleCall`,
+`CallRequest`, `Answer` and the checks) are declared in the design tests'
+file, or the Dart library, only when the specification calls another
+module. `Call` makes the call as the calling module makes it, through its
+own client, against a running instance of the called module, as a caller
+holding the permissions given, and answers what the caller received;
+`Arrange` puts the called module in a state in which the call answers the
+status; `Break` makes it fail or answer late. What the caller does with an
+answer is its own design tests' concern, through the derived dependency
+cases. A call into a module the run does not give is not written: the
+design tests' file names it, its place and the module in a comment.
+
 ## BPMN 2.0 workflows
 
 `specarch generate bpmn` writes each workflow as `<workflow>.bpmn`, a BPMN

@@ -196,7 +196,10 @@ iPhone app) is an error at the entry naming the module and the
 pointer, and the rest is written. Without the other specification,
 each code target refuses the reference at the field as `reference`.
 The techspec names each reference with the module and version it
-points at.
+points at. `generate tests` given the estate writes one integration test
+per call into another module, with the golden path and the red paths
+the called operation implies, in a file per module called, so a change
+in one module's contract changes that module's file alone (ADR-226).
 
 Compiler test: a reference the validator cannot resolve is a counted,
 listed gap and not an error, so a module alone is readable; an error

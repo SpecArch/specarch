@@ -23,9 +23,11 @@ var capabilities = capability.Plugin{
 	Summary: "Writes the tests of the worked examples and the design tests, for Swift Testing.",
 	Generates: []string{
 		"SpecArchDesignTests.swift: the values, the Harness protocol, the checks and one test per worked example and per design test",
+		"SpecArchIntegration<Module>Tests.swift, given the estate: one suite of the calls into that module, a test per golden and red path",
 	},
 	DoesNotGenerate: []string{
 		"makeHarness and each body<TestName> the design gives no call for, which the project writes",
+		"makeIntegrationHarness, which calls the other module as this one does, and arranges, breaks or slows it",
 		"tests for any framework but Swift Testing",
 	},
 }

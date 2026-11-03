@@ -13,6 +13,20 @@ requirements:
     verification: test
     needs: [NEED-9]
     why: A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
+  SA-120:
+    statement: specarch generate tests, given a module and the estate it belongs to, shall write one integration test per call the module makes into another module of the estate, pinning both modules by name and version, with the golden path and the red paths the called operation's contract implies, in the test language of the calling module's implementation file, the tests of the calls into one module in one file of their own.
+    kind: functional
+    priority: should
+    status: proposed
+    acceptance:
+      - generate tests --estate <estate> <module> writes one test per operation of another module the module calls through a calls entry, a list page or a picker, naming every place that calls it, the calling and the called module with their versions, the dependency, the method and path and the caller's time limit.
+      - Each test runs the golden path with the operation's permission and the called module's golden input, the harness filling every required value that input does not give, checking the success status and every field the answer requires, and the red paths the called operation implies, each with the status it declares or else a refusal - denied without the permission, each required query, header or body field left out, each other answer it declares, the called module failing and the called module not answering within the time limit.
+      - A change in one called module's contract changes only the file of the calls into that module.
+      - A call into a module the run does not give is named in the generated design tests' file with its place and module, and the rest is written.
+      - The Go, Swift and Dart integration tests of one module hold the same tests and checks.
+    verification: test
+    needs: [NEED-9]
+    why: What breaks at the system integration test of an estate is most often a call between two modules owned by different teams; the two designs already say the request, the answers, the permission and the time limit, so a test of each call needs nothing but a harness that runs the two modules (ADR-226).
   SA-29:
     statement: A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies.
     kind: functional

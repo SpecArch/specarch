@@ -201,6 +201,15 @@ func TestConformance(t *testing.T) {
 			if len(c.Repositories) > 0 {
 				inputs = readTree(t, work) // what the run must leave as it found it
 			}
+			for name, content := range expected {
+				// expected/ holds what the run changes or adds; a file equal
+				// to the case's input belongs with the inputs alone, since a
+				// record run writes expected/ afresh from what the run
+				// changed and would drop it.
+				if in, ok := inputs[name]; ok && bytes.Equal(in, content) {
+					t.Errorf("expected/%s equals the case's %s: expected/ holds only what the run changes or adds, and a record run (%s) drops a file equal to its input; make the input differ, or remove the file from expected/", name, name, recordVariable)
+				}
+			}
 			var built string
 			for _, target := range c.Plugins {
 				built = buildPlugin(t, target)

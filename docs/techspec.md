@@ -5154,7 +5154,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 
 Framework: go test. Run: `go test ./...`.
 
-Fixtures: The conformance suite is the tests stage of the specification, `spec/tests/`; each test folder holds the design test, the case's arguments and output in `case.yaml`, the input files and the expected output. The Go tests read it and add none of their own.
+Fixtures: The conformance suite is the tests stage of the specification, `spec/tests/`; each test folder holds the design test, the case's arguments and output in `case.yaml`, the input files and, in `expected/`, only the files the run changes or adds; a file equal to the case's input is refused there, since a record run writes `expected/` afresh from what the run changed and would drop it. The Go tests read it and add none of their own.
 
 Stand-ins: None. Every test runs the real program on real files.
 

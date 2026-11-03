@@ -359,7 +359,7 @@ testing:
   framework: go test
   run: go test ./...
   platforms: [linux/amd64, darwin/arm64]
-  fixtures: The conformance suite is the tests stage of the specification, `spec/tests/`; each test folder holds the design test, the case's arguments and output in `case.yaml`, the input files and the expected output. The Go tests read it and add none of their own.
+  fixtures: The conformance suite is the tests stage of the specification, `spec/tests/`; each test folder holds the design test, the case's arguments and output in `case.yaml`, the input files and, in `expected/`, only the files the run changes or adds; a file equal to the case's input is refused there, since a record run writes `expected/` afresh from what the run changed and would drop it. The Go tests read it and add none of their own.
   mocks: None. Every test runs the real program on real files.
   suites:
     conformance:
@@ -367,7 +367,11 @@ testing:
         Runs every test folder of `spec/tests/` that has a `case.yaml`
         through the program's own entry point, in a copy of that folder,
         and compares the exit status, the standard output and every file
-        written with the case's expected/ folder. It also checks that every
+        written with the case's expected/ folder. With
+        `SPECARCH_CONFORMANCE_RECORD` set it records each run into its
+        case instead, `case.yaml` and `expected/` written afresh from the
+        run, so an expected file equal to its input is refused in every
+        run: the record would drop it. It also checks that every
         test of a command has a `case.yaml` and that the validator's rules
         are exactly the specification's Rule enum.
       run: go test ./cmd/specarch

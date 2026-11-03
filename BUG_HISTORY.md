@@ -978,3 +978,17 @@ Expected: every inputSchema of the listing stands alone, an enum's values writte
 To repeat: built before this fix, run `specarch capabilities --json` and read `tools[name=document].inputSchema.properties.target`.
 
 Fix: the program embeds `spec/design/enums` beside the command definitions, and reading the definitions gives a schema that refers to an enum of the design that enum's type and values in place of the reference (`internal/capability/command.go`); a reference to an enum the folder does not hold fails the read, so the tests fail. The target argument of `spec/design/commands/document.yaml` has its description. `TestMCPToolsAreTheListing` fails on any `$ref` left in a tool's schema.
+
+## BUG-068 — conformance record run drops the expected hand-written document of five document cases
+
+- Reported: 2026-11-03, found while recording the cases of item 1693, against 1.4.0
+- Closed: 2026-11-03, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-068`
+
+A run of the Go conformance suite with `SPECARCH_CONFORMANCE_RECORD=1` deleted `expected/project/specarch.md` from `document-entity-diagram`, `document-pages-flowchart`, `document-permissions-table`, `document-sequence-diagram` and `document-state-diagram`, and `git status` showed the five files gone. The record writes `expected/` afresh with the files the run changed or added, and in those five cases the hand-written document's region already held the filled diagram or table, so the run rewrote the file to the bytes it had and the record left it out. The comparison passed either way, so the five tests never showed the region being filled, which is what their `then` says.
+
+Expected: a record run of a passing suite leaves every case as it is committed, and each of the five cases shows the run filling the region.
+
+To repeat: before this fix, run `SPECARCH_CONFORMANCE_RECORD=1 go test ./cmd/specarch -run TestConformance` and `git status`.
+
+Fix: the five hand-written documents hold `old text` between their markers, as `document-marker-unclosed` does, so `expected/project/specarch.md` is what the run writes and the record keeps it. `TestConformance` refuses an `expected/` file equal to the case's input of the same name, naming the file, why (a record run drops it) and the fix, so a record run of a passing suite is a no-op by construction: every expected file differs from its input and is written again, and every other file equals its input and is left out. The rule is in the Go implementation file's testing section.

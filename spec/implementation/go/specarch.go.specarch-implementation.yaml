@@ -371,9 +371,11 @@ testing:
         `SPECARCH_CONFORMANCE_RECORD` set it records each run into its
         case instead, `case.yaml` and `expected/` written afresh from the
         run, so an expected file equal to its input is refused in every
-        run: the record would drop it. It also checks that every
-        test of a command has a `case.yaml` and that the validator's rules
-        are exactly the specification's Rule enum.
+        run, before the case runs or is recorded: the case fails naming
+        the file and the record is skipped, since it would drop the file.
+        It also checks that every test of a command has a `case.yaml` and
+        that the validator's rules are exactly the specification's Rule
+        enum.
       run: go test ./cmd/specarch
       level: system
       designTestsOf:

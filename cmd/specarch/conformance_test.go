@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -164,146 +165,218 @@ func TestConformance(t *testing.T) {
 			continue
 		}
 		src := filepath.Join(conformanceDir, e.Name())
-		t.Run(e.Name(), func(t *testing.T) {
-			raw, err := os.ReadFile(filepath.Join(src, "case.yaml"))
-			if os.IsNotExist(err) {
-				t.Skip("not a test of a command")
+		t.Run(e.Name(), func(t *testing.T) { runCase(t, src) })
+	}
+}
+
+// runCase runs one case folder: it copies the inputs into a folder of its
+// own, runs the program there and compares the run with the case, or, with
+// recordVariable set, records the run into the case. An expected/ file
+// equal to the case's input of the same name is refused before anything
+// runs or is recorded: the case fails naming the file, and the run and the
+// record are skipped, so a record never writes expected/ without it.
+func runCase(t *testing.T, src string) {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join(src, "case.yaml"))
+	if os.IsNotExist(err) {
+		t.Skip("not a test of a command")
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	var c conformanceCase
+	if err := yaml.Unmarshal(raw, &c); err != nil {
+		t.Fatal(err)
+	}
+	inputs := readTree(t, src, "case.yaml", "test.yaml", "expected")
+	expected := readTree(t, filepath.Join(src, "expected"))
+	work := t.TempDir()
+	for name, content := range inputs {
+		p := filepath.Join(work, name)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		mode := os.FileMode(0o644)
+		if strings.HasPrefix(name, "plugins/") {
+			mode = 0o755 // a plug-in the case puts on PATH
+		}
+		if err := os.WriteFile(p, content, mode); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if c.Repository != nil {
+		c.Repositories = append([]*caseRepository{c.Repository}, c.Repositories...)
+	}
+	for _, r := range c.Repositories {
+		makeRepository(t, work, r)
+	}
+	if len(c.Repositories) > 0 {
+		inputs = readTree(t, work) // what the run must leave as it found it
+	}
+	refused := false
+	for name, content := range expected {
+		// expected/ holds what the run changes or adds; a file equal
+		// to the case's input belongs with the inputs alone, since a
+		// record run writes expected/ afresh from what the run
+		// changed and would drop it.
+		if in, ok := inputs[name]; ok && bytes.Equal(in, content) {
+			t.Errorf("expected/%s equals the case's %s: expected/ holds only what the run changes or adds, and a record run (%s) drops a file equal to its input; make the input differ, or remove the file from expected/", name, name, recordVariable)
+			refused = true
+		}
+	}
+	if refused {
+		return // neither run nor recorded: the record would rewrite expected/ without the file
+	}
+	var built string
+	for _, target := range c.Plugins {
+		built = buildPlugin(t, target)
+	}
+	gitDir := ""
+	if len(c.Repositories) > 0 {
+		gitPath, err := exec.LookPath("git")
+		if err != nil {
+			t.Fatal(err)
+		}
+		gitDir = filepath.Dir(gitPath)
+	}
+	caseDir, err := filepath.Abs(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(work)
+	switch _, err := os.Stat(filepath.Join(work, "plugins")); {
+	case err == nil:
+		t.Setenv("PATH", filepath.Join(work, "plugins")+string(os.PathListSeparator)+os.Getenv("PATH"))
+	case built != "":
+		t.Setenv("PATH", built)
+	default:
+		t.Setenv("PATH", filepath.Join(work, "no-plugins"))
+	}
+	if len(c.Repositories) > 0 {
+		// extract reads the case's repository with git; only git's
+		// own folder is added.
+		t.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+gitDir)
+	}
+	var stdout, stderr bytes.Buffer
+	input := ""
+	if c.StandardInput != nil {
+		input = *c.StandardInput
+	}
+	standardInput = strings.NewReader(input)
+	status := run(c.Arguments, &stdout, &stderr)
+	standardInput = os.Stdin
+	t.Logf("standard error:\n%s", stderr.String())
+	if os.Getenv(recordVariable) != "" {
+		recordCase(t, caseDir, raw, status, stdout.String(), stderr.String(), inputs, readTree(t, work), c.Removed)
+		return
+	}
+	if status != c.ExitStatus {
+		t.Errorf("exit status %d, want %d\nstandard error:\n%s", status, c.ExitStatus, stderr.String())
+	}
+	if got := stdout.String(); got != c.StandardOutput {
+		t.Errorf("standard output differs\ngot:\n%s\nwant:\n%s", got, c.StandardOutput)
+	}
+	if c.StandardError != nil && stderr.String() != *c.StandardError {
+		t.Errorf("standard error differs\ngot:\n%s\nwant:\n%s", stderr.String(), *c.StandardError)
+	}
+	after := readTree(t, work)
+	want := map[string][]byte{}
+	for k, v := range inputs {
+		want[k] = v
+	}
+	for k, v := range expected {
+		want[k] = v
+	}
+	for _, name := range c.Removed {
+		if _, ok := after[name]; ok {
+			t.Errorf("%s is still there, and the case expects the run to remove it", name)
+		}
+		delete(want, name)
+	}
+	for name, content := range after {
+		w, ok := want[name]
+		switch {
+		case !ok:
+			t.Errorf("%s was written, and expected/ does not hold it", name)
+		case !bytes.Equal(content, w):
+			t.Errorf("%s differs from what the case expects\ngot:\n%s", name, content)
+		}
+	}
+	for name := range want {
+		if _, ok := after[name]; !ok {
+			t.Errorf("%s is missing after the run", name)
+		}
+	}
+	for _, out := range treeOut(c) {
+		// A tree a command writes passes validate on its own, with no
+		// error: merge checks each tree before it merges it, a
+		// question's pointer never points below a key the tree does
+		// not have, where the trees disagree merge keeps one valid
+		// form and asks, derive names a draft from its subject made
+		// a valid name, and approve writes its record into a valid
+		// tree (ADR-122).
+		var vout, verr bytes.Buffer
+		if status := run([]string{"validate", out}, &vout, &verr); status != 0 {
+			t.Errorf("validate %s exits %d on the tree the case writes; every tree a command writes passes validate on its own\n%s%s", out, status, vout.String(), verr.String())
+		}
+	}
+}
+
+// caseVariable names a case folder for TestRecordRefusesExpectedEqualToInput
+// run again as a child process: that process runs the folder as a case
+// and nothing else.
+const caseVariable = "SPECARCH_CONFORMANCE_CASE"
+
+// TestRecordRefusesExpectedEqualToInput proves that a record run stops
+// before it records when an expected/ file equals the case's input: the
+// case fails, names the file, and leaves case.yaml and expected/ as they
+// were. A failed case fails the test that runs it, so the case runs in the
+// test binary started again as a child process, with the record variable
+// set and the case folder named in caseVariable; this test is that child
+// when caseVariable is set.
+func TestRecordRefusesExpectedEqualToInput(t *testing.T) {
+	if dir := os.Getenv(caseVariable); dir != "" {
+		runCase(t, dir)
+		return
+	}
+	dir := t.TempDir()
+	caseYAML := []byte("arguments: [version]\nexitStatus: 0\nstandardOutput: \"\"\n")
+	input := []byte("the same bytes\n")
+	files := map[string][]byte{
+		"case.yaml":          caseYAML,
+		"notes.txt":          input,
+		"expected/notes.txt": input,
+	}
+	for name, content := range files {
+		p := filepath.Join(dir, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, content, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=^TestRecordRefusesExpectedEqualToInput$", "-test.v")
+	cmd.Env = append(os.Environ(), caseVariable+"="+dir, recordVariable+"=1")
+	out, err := cmd.CombinedOutput()
+	var exit *exec.ExitError
+	if err == nil {
+		t.Errorf("the record run passed; it must fail, since expected/notes.txt equals notes.txt\n%s", out)
+	} else if !errors.As(err, &exit) {
+		t.Fatalf("cannot run the test binary again: %v\n%s", err, out)
+	}
+	want := "expected/notes.txt equals the case's notes.txt"
+	if !strings.Contains(string(out), want) {
+		t.Errorf("the record run does not name the file; want %q in:\n%s", want, out)
+	}
+	if got := readTree(t, dir); len(got) != len(files) {
+		t.Errorf("the record run changed the case's files: %d files, want %d", len(got), len(files))
+	} else {
+		for name, content := range files {
+			if !bytes.Equal(got[name], content) {
+				t.Errorf("the record run rewrote %s:\n%s", name, got[name])
 			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			var c conformanceCase
-			if err := yaml.Unmarshal(raw, &c); err != nil {
-				t.Fatal(err)
-			}
-			inputs := readTree(t, src, "case.yaml", "test.yaml", "expected")
-			expected := readTree(t, filepath.Join(src, "expected"))
-			work := t.TempDir()
-			for name, content := range inputs {
-				p := filepath.Join(work, name)
-				if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
-					t.Fatal(err)
-				}
-				mode := os.FileMode(0o644)
-				if strings.HasPrefix(name, "plugins/") {
-					mode = 0o755 // a plug-in the case puts on PATH
-				}
-				if err := os.WriteFile(p, content, mode); err != nil {
-					t.Fatal(err)
-				}
-			}
-			if c.Repository != nil {
-				c.Repositories = append([]*caseRepository{c.Repository}, c.Repositories...)
-			}
-			for _, r := range c.Repositories {
-				makeRepository(t, work, r)
-			}
-			if len(c.Repositories) > 0 {
-				inputs = readTree(t, work) // what the run must leave as it found it
-			}
-			for name, content := range expected {
-				// expected/ holds what the run changes or adds; a file equal
-				// to the case's input belongs with the inputs alone, since a
-				// record run writes expected/ afresh from what the run
-				// changed and would drop it.
-				if in, ok := inputs[name]; ok && bytes.Equal(in, content) {
-					t.Errorf("expected/%s equals the case's %s: expected/ holds only what the run changes or adds, and a record run (%s) drops a file equal to its input; make the input differ, or remove the file from expected/", name, name, recordVariable)
-				}
-			}
-			var built string
-			for _, target := range c.Plugins {
-				built = buildPlugin(t, target)
-			}
-			gitDir := ""
-			if len(c.Repositories) > 0 {
-				gitPath, err := exec.LookPath("git")
-				if err != nil {
-					t.Fatal(err)
-				}
-				gitDir = filepath.Dir(gitPath)
-			}
-			caseDir, err := filepath.Abs(src)
-			if err != nil {
-				t.Fatal(err)
-			}
-			t.Chdir(work)
-			switch _, err := os.Stat(filepath.Join(work, "plugins")); {
-			case err == nil:
-				t.Setenv("PATH", filepath.Join(work, "plugins")+string(os.PathListSeparator)+os.Getenv("PATH"))
-			case built != "":
-				t.Setenv("PATH", built)
-			default:
-				t.Setenv("PATH", filepath.Join(work, "no-plugins"))
-			}
-			if len(c.Repositories) > 0 {
-				// extract reads the case's repository with git; only git's
-				// own folder is added.
-				t.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+gitDir)
-			}
-			var stdout, stderr bytes.Buffer
-			input := ""
-			if c.StandardInput != nil {
-				input = *c.StandardInput
-			}
-			standardInput = strings.NewReader(input)
-			status := run(c.Arguments, &stdout, &stderr)
-			standardInput = os.Stdin
-			t.Logf("standard error:\n%s", stderr.String())
-			if os.Getenv(recordVariable) != "" {
-				recordCase(t, caseDir, raw, status, stdout.String(), stderr.String(), inputs, readTree(t, work), c.Removed)
-				return
-			}
-			if status != c.ExitStatus {
-				t.Errorf("exit status %d, want %d\nstandard error:\n%s", status, c.ExitStatus, stderr.String())
-			}
-			if got := stdout.String(); got != c.StandardOutput {
-				t.Errorf("standard output differs\ngot:\n%s\nwant:\n%s", got, c.StandardOutput)
-			}
-			if c.StandardError != nil && stderr.String() != *c.StandardError {
-				t.Errorf("standard error differs\ngot:\n%s\nwant:\n%s", stderr.String(), *c.StandardError)
-			}
-			after := readTree(t, work)
-			want := map[string][]byte{}
-			for k, v := range inputs {
-				want[k] = v
-			}
-			for k, v := range expected {
-				want[k] = v
-			}
-			for _, name := range c.Removed {
-				if _, ok := after[name]; ok {
-					t.Errorf("%s is still there, and the case expects the run to remove it", name)
-				}
-				delete(want, name)
-			}
-			for name, content := range after {
-				w, ok := want[name]
-				switch {
-				case !ok:
-					t.Errorf("%s was written, and expected/ does not hold it", name)
-				case !bytes.Equal(content, w):
-					t.Errorf("%s differs from what the case expects\ngot:\n%s", name, content)
-				}
-			}
-			for name := range want {
-				if _, ok := after[name]; !ok {
-					t.Errorf("%s is missing after the run", name)
-				}
-			}
-			for _, out := range treeOut(c) {
-				// A tree a command writes passes validate on its own, with no
-				// error: merge checks each tree before it merges it, a
-				// question's pointer never points below a key the tree does
-				// not have, where the trees disagree merge keeps one valid
-				// form and asks, derive names a draft from its subject made
-				// a valid name, and approve writes its record into a valid
-				// tree (ADR-122).
-				var vout, verr bytes.Buffer
-				if status := run([]string{"validate", out}, &vout, &verr); status != 0 {
-					t.Errorf("validate %s exits %d on the tree the case writes; every tree a command writes passes validate on its own\n%s%s", out, status, vout.String(), verr.String())
-				}
-			}
-		})
+		}
 	}
 }
 

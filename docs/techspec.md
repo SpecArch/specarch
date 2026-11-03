@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 120 requirements, 5 entities, 27 commands, 7 algorithms, 966 tests, 212 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 121 requirements, 5 entities, 28 commands, 7 algorithms, 978 tests, 213 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -89,6 +89,7 @@ The interfaces the system offers, as its clients see them.
 | idioms diff | Print a shipped idiom's parts beside each override's | public | 0: the overrides were printed, or there was none; 2: usage error, an idiom this program does not ship, a path that could not be read, or a specification with errors |
 | init | Write the smallest specification that validates into a new folder | public | 0: the specification was written, or with --dry-run would be; 2: usage error, a folder that already holds specarch.yaml, or a path that could not be written |
 | log | Record one communication with a stakeholder, from what the analyst reports in chat, as a record beside the specification | public | 0: the record is written; 1: nothing written, since a required option is missing or a value names what the specification does not have; or written, while the specification has errors; 2: usage error, or a file that could not be read or written |
+| log test-run | Record one run of the tests, from a JUnit XML results file, as a test-run record beside the specification, each result mapped to its test | public | 0: the record is written; a testcase that maps to no test is printed and kept, and does not change the status; 1: nothing written, since a required option is missing or a value names what the specification and its records do not have, or the results file is refused; or written, while the specification has errors; 2: usage error, or a file that could not be read or written |
 | mcp | Serve every command as a tool of the Model Context Protocol, over standard input and output | public | 0: standard input ended; 2: usage error, --json given, or standard input or output that could not be read or written |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
@@ -268,7 +269,8 @@ Primary key: path.
 | DocumentTarget | changes | the change and defect register, open items first, from the records beside the specification |
 | DocumentTarget | releases | release notes, newest first, each release's changes and fixes grouped as added, changed, removed and fixed, from the records |
 | DocumentTarget | communications | the communication history, from the records: every communication, session and test session in time order, then the history of each stakeholder and of each requirement, decision and element they touch, each record with who said what to whom, when, by which channel, verbatim or in summary, with its evidence or marked as recorded without any (ADR-220) |
-| DocumentTarget | timeline | every event in one time order, from the records and the specification: communications, sessions, test sessions, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals, each with its date or instant and what it links; then the same events by stakeholder, by requirement or element and by release (ADR-220) |
+| DocumentTarget | timeline | every event in one time order, from the records and the specification: communications, sessions, test sessions, test runs, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals, each with its date or instant and what it links; then the same events by stakeholder, by requirement or element and by release (ADR-220) |
+| DocumentTarget | testruns | the test runs and their trend, from the records: every test run oldest first with its environment, version, build and its passed, failed, errored, skipped and unmapped results, then the failures of the tests about each element, and of the worked examples results name an element for, and of the tests that verify each requirement, one column per run, with the open defects on each, then the results that map to no test, and each run's results; a document for everyone leaves out a result about an internal element and names no result that maps to nothing (ADR-230) |
 | DocumentTarget | html | index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark |
 | DocumentTarget | manual | user manual, for the people who use the system: the roles a person holds and the pages each opens, the menus, each flow as numbered steps, and each page with how it is reached, who opens it, its fields or columns, its actions, and for each problem it names the message, the condition and the remedy, and each command with its usage line, who runs it, its arguments, options, files and output, and each exit status with its meaning and remedy (ADR-160, ADR-165) |
 | DocumentTarget | operations | operations guide, for the people who run the live system: the environments and the hosts each implementation deploys there, a daily checklist of the monitors, jobs and dependencies, each monitor with how it is watched and the response when its objective is missed, the jobs, the channels with their carriers, publishers and consumers, the dependencies with what uses them, the endpoints with their permissions, the settings, and the backup, restore and rollback steps (ADR-160) |
@@ -352,7 +354,7 @@ Primary key: path.
 | Rule | secret_value | a setting marked secret carries a value, as a default or in a deployment |
 | Rule | monitor | an implementation's deployment watches a monitor the specification does not declare |
 | Rule | record_name | a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/` |
-| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release, commissioning run, session or test session that is not a record and not in a declared change-set or defect-set; or the environment of the build a change or defect from acceptance names under against is not an environment, a seenAt pointer of an open change or defect does not resolve, or a question a proposed or analysed change names is neither open nor answered by a decision; or an answer record links neither a question nor a change request; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model; a communication's, session's, test session's or deploy's links, session, source, version and roles are checked the same way, a question a decision answers counting as a question (ADR-220) |
+| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release, commissioning run, session or test session that is not a record and not in a declared change-set or defect-set; or the environment of the build a change or defect from acceptance names under against is not an environment, a seenAt pointer of an open change or defect does not resolve, or a question a proposed or analysed change names is neither open nor answered by a decision; or an answer record links neither a question nor a change request; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model; a communication's, session's, test session's or deploy's links, session, source, version and roles are checked the same way, a question a decision answers counting as a question (ADR-220); so are a test run's environment, version and role and each result's test, element and defect (ADR-230) |
 | Rule | change_applied | an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning |
 | Rule | change_decision | an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected |
 | Rule | change_answered | on a decision whose answers name a change request (a change record beside the specification, or an ID of a declared change tracker; every other ID under answers is a question's): an accepted decision answers a change whose decision is not approved, or the change's decision was taken by another role than the one decidedBy names (ADR-221) |
@@ -445,6 +447,7 @@ Primary key: path.
 | Rule | evidence | a record's evidence names a file that is not under records/, or one whose SHA-256 is not the one recorded, so the file changed since the record was written (ADR-220) |
 | Rule | record_cited | a citation names a communication record that does not exist, one whose type is neither answer nor information (a request, a question or an objection settles nothing by itself: cite the decision it led to, or the answer given), or, on a decision that answers questions, an answer record that links none of them or that was said by another role than the one decidedBy names (ADR-220) |
 | Rule | unheard | as a warning, at the stakeholder, from the first day: a role that no communication record names as from or to, no session or test session lists as present, no interview source lists among its participants and no decision names under decidedBy, while an accepted requirement needs it (through its needs or ownedBy) or, in an approved specification, a page's permission is granted to it; the warning names the role and the elements, so the risk of that role objecting first at acceptance shows early; while no communication, session or test session record is kept beside the specification, every such role is unheard and the warning adds that none is kept yet and to start by logging the first conversation (ADR-220) |
+| Rule | test_unmapped | as a warning, at the result: a result of a test-run record names no test and no element, since its testcase's name maps to no test of the specification and to no algorithm's or call mapping's worked examples, or to two; the result is kept, and the warning stays until test names the test it runs, element the algorithm or operation whose worked examples it runs, or the specification gains the test (ADR-230) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -1483,6 +1486,17 @@ A document for everyone (`--audience external`) leaves the person
 label and what touches an internal element out of both. Neither is
 ever a draft.
 
+The testruns target writes `testruns.md` from the test-run records
+(ADR-230): every run oldest first with its instant, environment,
+version, build and its passed, failed, errored, skipped and unmapped
+results; then the failures per element, the element each test is
+about, and per requirement, each test's verifies, one column per
+run holding the failed and errored results of those tests in that
+run, a dash when none of them ran, and the open defects that name
+the element or the requirement; then the results that map to no
+test; then each run's results. It is never a draft. The timeline
+places each test run at its instant.
+
 The problems target writes `problems.txt` and `problems.sarif`
 (ADR-065), for an invalid specification too. `problems.txt` starts
 with a line naming the specification, its version and the counts of
@@ -1600,7 +1614,7 @@ and the html page in place of what satisfies and verifies it.
 | `--audience` | string |   | external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target. |
 | `--dry-run` | bool |   | Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check. |
 
-Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets; `{out}`: The current output, with `--check`.
+Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications and timeline targets; the test-run and defect records, for the testruns target; `{out}`: The current output, with `--check`.
 
 Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `{out}/index.html`: The page, for the html target. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target; `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
 
@@ -4146,6 +4160,124 @@ sequenceDiagram
   P->>F: read {folder}
   P->>F: read records/<evidence path>
   P->>F: write records/communications/COM-<n>.yaml
+  P-->>U: exit status 0, 1, 2
+```
+
+### Command log test-run
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065). Reads
+the JUnit XML file `--results` names, which must be under
+`records/` beside the specification's folder (such as
+`records/evidence/`), a `testsuites` or a `testsuite` element
+holding `testcase` elements, and writes one test-run record,
+`records/test-runs/TR-<n>.yaml`, under the next number after the
+largest any test-run record carries: the environment
+(`--environment`), the version (`--version`, a release record), the
+build (`--build`) and the specification's digest (`--digest`) when
+known, the instant (`--at`, with its offset), the role that ran it
+(`--by`), the results file as evidence with its media type and
+SHA-256, and one result per testcase in the file's order, with the
+name as the file writes it, the outcome (passed, failed, error or
+skipped, from the testcase's failure, error or skipped child) and
+the failure's message. Nothing else is read from the file: its
+timestamp has no offset, and its hostname is no environment of the
+specification. Every one of the results file, the environment, the
+instant and the role that is not given comes back as a line on
+standard output saying what to ask, and nothing is written, with
+exit 1; with `--json` under `log.missing` (ADR-220).
+
+Each result names the test of the specification it maps to: the
+testcase's name, cut at the first `/` (a subtest) and with a
+trailing argument list such as `()` taken off, is the test's name,
+or `Test` or `test` followed by the name in Pascal case (the
+functions specarch-gen-tests-go and specarch-gen-tests-swift
+write), or begins with the name and a colon (the display name of
+the Swift and Dart tests). A testcase that runs the worked examples
+of an algorithm or of a call mapping, which no test names, names
+that element under `element` instead: its cut name is a function
+the generators write for them (`TestAlgorithm` or `testAlgorithm`
+and the algorithm's name in Pascal case; `TestMapping` and the
+operation and the call in Pascal case, or `testMapping` with them
+and `Sent` or `Kept`), or its name is or begins with their display
+name (`algorithm <name>`, or `mapping of <operation>'s call to
+<call>`) and a colon or a space; the element is
+`#/algorithms/<name>`, or the path of the operation,
+`#/paths/<path>`. A testcase that maps to no test and no element,
+or to two of them, is kept in the record without either and
+printed as a line `unmapped: <name>: <why>` on standard output,
+under `log.unmapped` with `--json`; the validator warns
+`test_unmapped` at it until its test or element is named
+(ADR-230).
+
+`--open-defect <test>`, repeatable, opens a defect for a test that
+failed or errored in the run, with `--severity` and `--phase`
+given: `records/defects/DEF-<n>.yaml`, status reported, reported by
+the run's role on the date of the run's instant, violating the
+requirements the test verifies, or the element the test is about
+when it verifies none (the path of its operation, or the command,
+page, job, process, route, gateway, workflow, flow, algorithm or
+entity it names, the element the testruns document counts it for), naming the test, observed from the first
+failure's message and expected from the test's then; for the
+acceptance and production phases its environment is the run's, and
+for acceptance its build is the run's version, digest and build.
+Each failed result of that test links the defect. A failure no
+`--open-defect` names opens nothing, and a worked example's
+failure, which names no test, opens none.
+
+Refuses, with exit 1 and nothing written, a results file that is
+not under `records/`, cannot be read, is not JUnit XML, holds no
+testcase or holds a testcase without a name; an environment, a version or a role the specification
+and its records do not have; a digest not written as sha256: and 64
+hexadecimal digits; an instant not written as RFC 3339 with its
+offset; an `--open-defect` for a test that is not one of the
+specification's or that did not fail in the run, one without
+`--severity` or `--phase`, a severity or phase outside their values,
+an acceptance defect without `--version`, and a test that verifies
+nothing and is about no element. Prints on standard output the
+unmapped lines, then the record's path and the path of each defect
+opened; with `--json` the record under `log.record` and `log.id`,
+the unmapped testcases under `log.unmapped` and the defects under
+`log.defects`. With `--dry-run` it prints the records it would write and
+writes nothing.
+
+**Insight:** A results file is written by a CI job and thrown away, and with it the answer to which requirement was shown met on which build. Kept under records/ as the evidence of a record that maps each testcase to its test, it ties the run to the requirements and elements the tests verify. The command maps by the names the generators write and keeps what it cannot map, rather than guessing a test or dropping the line, and opens a defect only for a failure the person running it names, since a test fails for a flaky host as well as for a fault.
+
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<folder>` | string | yes | The folder holding the specification; the record goes into records/test-runs/ beside it. |
+| `--results` | string |   | The JUnit XML file of the run, by its path under records/, such as records/evidence/TR-3-junit.xml; it becomes the record's evidence. |
+| `--environment` | string |   | The environment of the specification the tests ran in. |
+| `--version` | string |   | The version of the build, a release record, planned or released, when the build is one. |
+| `--build` | string |   | The build that was tested, such as a commit or an image tag with its digest. |
+| `--digest` | string |   | The digest of the specification the build was generated from, as sha256: and 64 hexadecimal digits, as the approval record keeps it. |
+| `--at` | timestamp |   | When the run started, an instant with its offset as RFC 3339 writes it, such as 2026-11-03T14:05:00+07:00. |
+| `--by` | string |   | The role that ran the tests, a stakeholder of the specification. |
+| `--open-defect` | list of string |   | A test that failed or errored in the run, by name, to open a defect for; repeatable. |
+| `--severity` | string |   | How badly the defects opened stop the system from meeting its requirements: critical, major, minor or cosmetic. |
+| `--phase` | string |   | Where the defects opened were found: development, acceptance or production. |
+| `--dry-run` | bool |   | Check everything and write nothing; print each record it would write. |
+
+Reads `{folder}`: The specification and its tests, and the records beside it: the test-run and defect records for the next IDs, and the releases; `records/<results path>`: The JUnit XML file, for its testcases and its SHA-256.
+
+Writes `records/test-runs/TR-<n>.yaml`: The test-run record, under the next number; refused when a file of that name exists; `records/defects/DEF-<n>.yaml`: One defect for each --open-defect, under the next numbers; refused when a file of that name exists.
+
+Standard output: The errors of an invalid specification; then, when something is missing, one line per missing option saying what to ask; or one unmapped line per testcase that maps to no test, the path of the record written and the path of each defect opened.
+
+Standard error: A usage message on a usage error, the reason a refusal, and one line naming the record written with its counts.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: log test-run <folder>
+  P->>F: read {folder}
+  P->>F: read records/<results path>
+  P->>F: write records/test-runs/TR-<n>.yaml
+  P->>F: write records/defects/DEF-<n>.yaml
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -17533,6 +17665,106 @@ plug-in, gets no integration tests, as it gets no design tests.
 
 **Note:** From RFC 9110, HTTP Semantics, 2022, clause 15.5.4: The 403 (Forbidden) status code indicates that the server understood the request but refuses to fulfill it. <https://www.rfc-editor.org/rfc/rfc9110>
 
+### ADR-230: A test run is a record beside the specification, with each result mapped to a test of the specification; specarch log test-run imports a JUnit XML file under records/ as its evidence, keeps a result that maps to no test and reports it, and opens a defect for a failure only when asked; the testruns document writes the runs and the failures per element and per requirement, run by run
+
+Status: proposed, 2026-11-03.
+
+Rests on: [ADR-220](#adr-220-who-said-what-and-when-is-kept-as-records-beside-the-specification-a-communication-a-session-a-test-session-and-a-deploy-each-with-an-instant-and-its-offset-and-evidence-hashed-with-sha-256-a-citation-names-a-communication-record-specarch-log-writes-one-from-options-alone-and-asks-for-what-is-missing-the-validator-warns-of-a-role-nobody-heard-and-two-documents-the-communication-history-and-the-timeline-are-written-from-the-records).
+
+Context: The tests of a specification say what is checked and which
+requirements each verifies; whether they pass is known only to the
+build that ran them, in a results file that a CI job writes and
+throws away. A team that delivers to a customer is asked which
+requirements were shown met on the build that went to acceptance,
+which elements keep failing from one build to the next, and where
+the defects sit, and answers from memory or a spreadsheet. A test
+session record (ADR-220) says a person tested a build and the
+session passed or failed, not which test failed; a defect record
+names the test that shows its fix, not the runs it failed in. Most
+test runners write, or can be made to write, a JUnit XML file:
+testsuites holding testsuite elements holding testcase elements,
+each with a name and a classname and a failure, error or skipped
+child when it did not pass.
+
+Decision: A test run, records/test-runs/TR-<n>.yaml, is one execution of the
+tests on one build: the environment, the version (a release record)
+when the build is one, the build (a commit or an image tag), the
+digest of the specification the build was generated from (as the
+approval and a defect's against keep it), at (an instant with its
+offset), by (the role that ran it), the results file as evidence
+(its path under records/, media type and SHA-256), and the results,
+one per testcase in the file's order: the name as the file writes
+it, the test of the specification it maps to, or the element whose
+worked examples it runs, the outcome (passed,
+failed, error, skipped), the failure's message, and the defect it
+opened. specarch log test-run --results <file> writes it from a
+JUnit XML file under records/, with --environment, --at and --by
+required and --version, --build and --digest when known; nothing
+is read from the file but the testcases, since its timestamp has no
+offset and its hostname is no environment of the specification. A
+testcase maps to a test when its name, cut at the first / (a
+subtest) and with a trailing argument list such as () taken off, is
+the test's name, or Test or test followed by the name in Pascal case
+(the functions specarch-gen-tests-go and specarch-gen-tests-swift
+write), or begins with the name and a colon (the display name the
+Swift and Dart generators write). The generators also write a test
+for the worked examples of each algorithm and of each call mapping,
+which no entry under tests names: a testcase whose cut name is one
+of those functions (TestAlgorithm or testAlgorithm and the
+algorithm's name in Pascal case; TestMapping and the operation and
+the call in Pascal case, or testMapping with them and Sent or Kept),
+or whose name is or begins with their display name (algorithm
+<name>, or mapping of <operation>'s call to <call>) and a colon or a
+space, names as its element the algorithm, #/algorithms/<name>, or
+the path of the operation, #/paths/<path>, and no test. A testcase
+that maps to no test and no element, or to two of them, stays in
+the record without either, is printed as a line saying why, under
+log.unmapped with --json, and is warned by the validator at the
+result (test_unmapped) until someone names its test or element. A
+failed
+or errored result opens a defect only when --open-defect names its
+test, with --severity and --phase given: the defect, reported, by
+the run's role on the run's date, violates the requirements the
+test verifies, or the element it is about when it verifies none,
+names the test, says what was observed with the failure's message
+and what was expected with the test's then; for acceptance its
+against is the run's version, digest and build; --open-defect names
+a test, so a worked example's failure opens none. The element a
+test is about is the path of its operation, or the command, page,
+job, process, route, gateway, workflow, flow, algorithm or entity it
+names, one function for the defect and the document. The validator
+checks the run's environment, version, role, evidence, each
+result's test, element and defect (record_ref). The testruns
+document lists the runs, oldest first, with their counts, then a
+table per element and per requirement with one column per run
+holding the failures of the tests about it in that run, and on an
+element's row of the results naming it as their element, and the
+open defects; then the results that map to no test, and each run's
+results. A document for everyone (--audience external) leaves out
+a result whose test, the element that test is about, or whose
+element is internal, and counts the results that map to nothing
+without naming them, since nothing tells whether one runs an
+internal element (ADR-119). The timeline places each run at its
+instant.
+
+Consequences: What a build showed is kept beside the specification and checked
+like the other records: a results file changed after the import
+fails validate with its new hash, a test renamed in the
+specification shows as record_ref at every result that named it,
+and a testcase the specification does not know is a warning, not a
+line lost. Which requirement was shown met on which build, and
+which element fails run after run, is read from the testruns
+document instead of from memory. A team whose runner names tests
+some other way edits test into the result by hand, or names its
+tests as the generators do; SpecArch does not learn a mapping file.
+A defect is never opened by a failure alone: a test fails for a
+flaky host as well as for a fault, and the person who runs the
+import decides which failures are defects and how severe.
+
+**Insight:** The results file is the evidence of the run, under records/ with its SHA-256, rather than a path outside the records, because a run that cannot be shown is a claim, and the existing evidence check then holds the file and the record together without a new rule. The option is --results, not --from as the request named it, because in specarch log --from is the role that said something, and one option meaning a role in one form and a file in another is two ways to read one word. The mapping follows the names the generators already write instead of a mapping file or a fuzzy match, because a fuzzy match that maps a testcase to the wrong test reads as a fact in every document after it, and a result kept unmapped and warned costs one edit. A worked example's result names its element rather than a test, since the example belongs to the algorithm or the call mapping and no test of the specification runs it; a warning on it would ask for a test nobody needs, and counting it for its element is what the trend asks. A name that matches a test and a worked example is ambiguous like one that matches two tests. A result is kept when it maps to nothing, in place of being dropped or refused, because a compiler for specifications never silently drops what it read (docs/principles.md), and a failure of a test the specification does not have yet is the first sign of a requirement nobody wrote. Several results may map to one test, since subtests and parameterised cases run one test many times; a result that maps to two tests is ambiguous and stays unmapped. JUnit XML is read rather than each runner's own format because it is the one most runners write or convert to; TAP and the others can be converted to it. Its timestamp is not read as the run's instant because it carries no offset, and specarch log guesses no instant (ADR-220). The digest is the specification's digest, the same as a defect's against and the approval keep, so a run is tied to the specification it was generated from; an image digest goes in build. The trend is counted per element and per requirement and not per test, because the question a team is asked is which part of the system keeps failing and which requirement is not yet shown met, and a test is the way it is asked.
+
+**Note:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -17719,7 +17951,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-writes-requirements | command document | system | golden | a specification whose elements have an Insight only, a Note only, both, several Notes and neither | document requirements is run | it writes requirements.md with an Insight for every why and a Note for every citation, after the table for a row, ends with the two sources cited, and exits 0 |
 | document-writes-techspec | command document | system | golden | a design file and an implementation file that names techspec's output folder | document techspec is run on both | it writes techspec/shop.techspec.md with every chapter the design fills, chapter 7 from the implementation file, and exits 0 |
 | document-writes-testplan | command document | system | golden | a specification with a golden and a red test of one entity constraint, one with a why | document testplan is run | it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0 |
+| document-writes-testruns | command document | system | golden | two test runs of one build line, TR-1 with loan-limit failed and TR-2 with loan-limit failed, loan-return errored, member-key skipped, TestRenewal mapping to no test and TestAlgorithmLoanCap/four open loans failed, naming the element #/algorithms/loanCap whose worked example it ran, and an open defect DEF-1 on CASE-1 from loan-limit | document testruns is run | it writes docs/testruns.md listing TR-1 then TR-2 with their counts, the failures per element with Loan at 1 in TR-1 and 2 in TR-2 and Member at 0 and a dash, the algorithm loanCap at a dash and 1, the failures per requirement with CASE-1 at 1 and 2 and CASE-2 at 0 and a dash, DEF-1 open on Loan and CASE-1, TestRenewal among the results that map to no test, and each run's results, and exits 0 |
+| document-writes-testruns-external | command document | system | golden | the two test runs of document-writes-testruns, with the entity Member marked internal, so the test member-key is about an internal element, and TR-2 holding TestRenewal, which maps to no test | document testruns is run with --audience external | it writes docs/testruns.md with Member left out of the failures per element, member-key's results left out of each run's results with a line counting what was left out, TestRenewal counted among the results that map to no test without its name or message, and the algorithm loanCap's worked example and the Loan tests shown as for the internal document, and exits 0 |
 | document-writes-timeline | command document | system | golden | a specification with a decision and records beside it: communications, a session, a test session, a deploy, a planned release, a change request, a defect and an idea, some with an instant and some with a date alone, and timeZone Asia/Jakarta | document timeline is run | it writes timeline.md with every event in one table in time order, a date-only event at the start of its day in Asia/Jakarta, then the events by stakeholder, by requirement, decision and element, and by release, and exits 0 |
+| document-writes-timeline-test-runs | command document | system | golden | two test runs, TR-1 and TR-2, a defect opened from the first and a planned release 1.0.0 | document timeline is run | it writes docs/timeline.md with each test run at its instant, its counts and build, the requirements its failed tests verify and the defects its results link, and the runs under release 1.0.0, and exits 0 |
 | document-writes-traceability | command document | system | golden | needs, two requirements, an entity that satisfies one and a test that verifies it, and a rejected need | document traceability is run | it writes traceability.md with both matrices and lists as gaps the unrefined need, the requirement without acceptance criteria and the one nothing satisfies or verifies, with no Harm column since no requirement names a harm, and exits 0 |
 | extract-dart-caller-checks | command extract | system | golden | a code-facts dump of a shelf_router server whose handlers are wrapped in checks nested one in another, admitting two clients named in a list literal at one route, checking the immediate caller against a list literal at one route and against a setting at another, admitting one application named as a string at a route whose permission two other routes check without it, wrapped there in an event writer, and at one more route two client checks in turn whose lists differ, the second given a reason string after the client it names; a dart_frog route whose folder's _middleware.dart checks the audience against a literal; and an implementation file naming each under permissionChecks, clientChecks, applicationChecks, callerChecks, audienceChecks and eventWriters, with the argument that carries the names | extract dart is run on the dump with the implementation file | it reads the gates as extract go does: writes the literal clients as the operation's callers and the literal service as the other's via, each with a must question to declare them that holds the errors at callers and via; asks for the via of the route whose names come from the setting, naming it; asks for the through the application check narrows, naming the two routes that check the same permission without it; asks at the tokens to write the literal audience the middleware checks as the const of aud; names the event writer and writes nothing from it; writes the clients both checks list as the callers of the route with two, asking which it is meant to admit; asks whether the string after the named argument is a name, writing it nowhere; reads every route's permission through the nested wrappers as before; and exits 0 |
 | extract-dart-flutter-screens | command extract | system | golden | a code-facts dump of a Flutter app whose GoRouter has a redirect and a StatefulShellRoute of two branches, with nested GoRoutes of a literal path, a parameter, a page builder, a wildcard and a widget of a package; whose screens have an AppBar with a literal title and one with a computed one, go and push calls with literal routes, and a Navigator.push to a screen no route serves; and a form whose TextFormFields save to a draft's properties, one with an empty test as its validator, one with another validator, and one with only a controller | extract dart is run on the dump | it writes one page per route whose builder shows a widget of the files read, named after the widget, with its route, its AppBar's literal title, its saved fields and a navigate action per go, push and Navigator.push call; a page for the screen Navigator opens with no route, its route asked; a menu entry for each branch, its title asked; asks a must question on each page's kind and the rest, its permission naming the redirect, each link's label and the widget of a package; asks a should question on the field with only a controller and on the validator it does not read; prints a line for the wildcard and for the empty test; and exits 0 |
@@ -18040,6 +18275,14 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | log-asks-missing-json | command log | system | red | a specification with the stakeholders owner and library-board and an open question Q-1 | log is run with --json and only --type answer | it prints one JSON object whose log.missing lists each missing option with the question to put and the choices, the question among them since an answer names one, writes nothing and exits 1 |
 | log-dry-run | command log | system | golden | a specification with an open question Q-1 and no communication record | log is run with every option of an answer and --dry-run | it prints the record it would write as would write, then the path and the decide line, writes nothing, and exits 0 |
 | log-evidence-outside | command log | system | red | a specification and a records/ folder beside it | log is run naming the specification's own root file as evidence, which is not under records/ | it refuses, naming the file and where evidence lives, writes nothing and exits 1 |
+| log-test-run-asks-missing | command log test-run | system | red | a specification with the environment staging and the stakeholders owner and tester | log test-run is run with --open-defect alone | it prints one line per missing option, the results file, the environment with staging, the instant, the role with owner and tester, the severity and the phase with their values, writes nothing and exits 1 |
+| log-test-run-defect-not-failed | command log test-run | system | red | a JUnit XML file in which member-key passed | log test-run is run with --open-defect member-key | it refuses, saying no result of the run maps to member-key and failed or errored, writes neither the run nor a defect and exits 1 |
+| log-test-run-maps-worked-examples | command log test-run | system | golden | a specification with the test loan-limit and the algorithm loanCap with two worked examples, and a JUnit XML file under records/evidence/ whose testcases are the Go subtests TestAlgorithmLoanCap/four open loans and TestAlgorithmLoanCap/five open loans (failed), the Swift display name algorithm loanCap: worked examples, and TestLoanLimit | log test-run is run on the file with the environment, the instant and the role | it writes records/test-runs/TR-1.yaml with the three results of the worked examples naming the element #/algorithms/loanCap and no test, and TestLoanLimit mapped to loan-limit; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0 |
+| log-test-run-nameless-testcase | command log test-run | system | red | a JUnit XML file under records/evidence/ whose second of two testcases has no name attribute | log test-run is run on it with every required option | it refuses, saying testcase 2 of 2 has no name attribute so no test can be found for it, writes nothing and exits 1 |
+| log-test-run-not-junit | command log test-run | system | red | an XML file under records/evidence/ whose root element is report, not testsuites or testsuite | log test-run is run on it with every required option | it refuses, saying the file is not JUnit XML and naming the root element it has, writes nothing and exits 1 |
+| log-test-run-results-outside | command log test-run | system | red | a JUnit XML file in notes/, outside the records/ folder beside the specification | log test-run is run on it with every required option | it refuses, saying the file is not under records/ and where to put it, writes nothing and exits 1 |
+| log-test-run-usage-error | command log test-run | system | red | the results file named with --from, the option of log that names who said something | log test-run is run with --from in place of --results | it prints that log test-run has no option --from, the options it has and how to use it, and exits 2 |
+| log-test-run-writes-record | command log test-run | system | golden | a specification with the tests loan-limit, loan-return and member-key, the environment staging, a planned release 1.0.0 and a JUnit XML file under records/evidence/ whose testcases are named TestLoanLimit (failed), TestMemberKey/opaque, a display name beginning loan-return:, testLoanLimit() (skipped) and TestRenewal (failed), a test the specification does not have | log test-run is run on the file with the environment, the version, the build, the instant, the role, and --open-defect loan-limit with a severity and a phase | it writes records/test-runs/TR-1.yaml with the file as evidence and one result per testcase in the file's order, the first four mapped to loan-limit, member-key, loan-return and loan-limit and TestRenewal kept without a test; writes records/defects/DEF-1.yaml violating CASE-1, naming the test, observed from the failure's message and expected from the test's then, linked from the failed loan-limit result; prints the unmapped line for TestRenewal, the record's path and the defect's path, and exits 0 |
 | log-unknown-role | command log | system | red | a specification whose stakeholders are owner and library-board | log is run with --from board, which is not a stakeholder | it refuses, naming the option, the value and the stakeholders there are, writes nothing and exits 1 |
 | log-usage-error | command log | system | red | an option log does not have | log is run with --nonsense | it prints how to use it and exits 2 |
 | log-writes-record | command log | system | golden | a specification with the stakeholders owner and library-board and an open question Q-1, no communication record yet, and a chat transcript under records/evidence/ | log is run with every option of an answer: the direction, the roles, a person label, the instant with its offset, the channel, the type, the words and their form, the recorder, the transcript as evidence, Q-1 and CASE-1 | it writes records/communications/COM-1.yaml with every value as given, the evidence with its media type and SHA-256 and the links, prints the record's path and the decide line with --record COM-1, and exits 0 |
@@ -18450,6 +18693,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-test-data-folder | command validate | system | red | a test with input and an input/ folder holding the request beside it | validate is run | it reports test_data at input, since the two say the same thing, and exits 1 |
 | validate-test-data-valid | command validate | system | golden | a test with a fixture, an input and an expected status, body, state and message, each naming what the design has with values of the right type | validate is run | it reports no test_data and exits 0 |
 | validate-test-name-capital-run | command validate | system | golden | two operations whose operationIds hold a run of capitals, uploadJSON at the end and listJSONUploads in the middle, and no tests | validate is run | each suggested test name keeps the run of capitals as one word, upload-json-succeeds and list-json-uploads-succeeds, the same from both builds |
+| validate-test-run-ref | command validate | system | red | a test-run record naming an environment, a version and a role the specification and its records do not have, a result whose test is misspelt and whose defect is not a record, a result with no test, a result whose element does not resolve, and one whose element does | validate is run | it reports record_ref at the environment, the version, the role, the misspelt test with the test it may mean, the defect and the element that does not resolve, warns test_unmapped at the result with neither test nor element and at no other, and exits 1, in the Go build and the Swift build alike |
 | validate-test-subject | command validate | system | red | a test about an operation that does not exist | validate is run | it reports test_subject and exits 1 |
 | validate-test-subject-no-state-machine | command validate | system | red | a test about entity Book alone, which has no transitions | validate is run | it reports test_subject, saying Book has no state machine path, and exits 1 |
 | validate-theme | command validate | system | red | a theme of design tokens with a dark mode and pairs of colours, at the AA target, holding a hex that is not its components, a hexadecimal component, a hex with a trailing line break, a colour outside srgb, an alias that leads back to itself and one to a token of another type, a dimension in a unit not taken, a token with no type, one of a type not taken, a misspelt $value, a mode naming a token that does not exist, pairs below the contrast their use asks for in the default and the dark mode, a translucent pair, a pair naming a dimension; besides components written .5 and 1e0, an alias of a bad colour, and an alias with no type and with extensions in a pair, which are right | validate is run | it reports theme fifteen times and schema once, and exits 1 |
@@ -18630,6 +18874,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-112 | An installed specarch shall offer every command to an agent's client as a tool of the Model Context Protocol over standard input and output, and shall write an agent skill in the Agent Skills format, both made from the command definitions it was built with, with no network and no prompts. | interface | should | proposed | test | specarch mcp answers initialize, ping, tools/list and tools/call over the stdio transport, one JSON-RPC 2.0 message per line on standard output and nothing else there, and exits 0 when standard input ends. Its tools/list holds exactly the tools capabilities --json lists but its own, each with the same name, title, description, inputSchema and annotations. Its tools/call runs the command with --json and answers with the object that run prints, exit status 2 marked as an error; an input the tool does not take, a required one left out or one of the wrong type is answered as an error naming it, before anything runs. specarch skill --out <folder> writes <folder>/specarch/SKILL.md, whose body is the agent guide up to the plug-ins, and one reference per command made from its definition; --check fails when a file differs; the repository holds the skill the program writes, and the build's tests fail when it differs. | NEED-7 |
 | SA-101 | The validator shall check, in both builds, the ideas kept beside a specification, one record each in records/ideas/, holding a proposal for the specification from a conversation, a table, an example, a document, code, a recording or a review, the element it is about, the text it proposes and its status as a person set it, against the record schema and the specification; and decision why and decision rests shall name, on each decision's line, the ideas that became it. | functional | must | proposed | test | Ideas in every status, proposed, discussed, accepted, rejected and question, each naming only what the specification and its records have, validate with nothing printed and exit 0; an open idea may be about an element the specification does not have yet under one it has or under a section of the meta-model. An idea naming a role, a source, a requirement, a pointer, a decision, a question, a change or a defect that the specification or its records do not have is reported as record_ref at the key; an accepted or rejected idea's about is not checked; a question a decision answers is still a question an idea may name. An accepted idea without a decision whose outcome is accepted, or a rejected one without a decision whose outcome is rejected, is reported as idea_decision; an idea whose status is question naming no question under became is reported as idea_question. The Go build and the Swift build print the same lines on each case. decision why and decision rests print "from idea" and the IDs of the ideas whose became names the decision on that decision's line. | NEED-5, NEED-10 |
 | SA-117 | A specification shall keep beside it, as records in records/, who said what to whom and when - a communication record for each thing a stakeholder said or was told, with its direction, roles, instant with offset, channel, type, words marked verbatim or summary, evidence hashed with SHA-256 or none, and the questions, decisions, elements, changes, defects and ideas it touches; a session record with its attendance by role; a test session record with its level, environment, version, build, attendance and result; and a deploy record with its version, environment, instant, actor and result - which the validator shall check in both builds, a citation shall be able to rest on, and the communications and timeline documents shall be written from. | functional | must | proposed | test | Communications of every type, an answer with evidence whose SHA-256 matches, a question with its reply, a request, information from a call with no evidence and an objection, a session and a test session with invited and present, a deploy, an interview source with at and participants, a decision citing the answer record and a requirement citing the information record, each naming only what the specification and the records have, validate with nothing printed and exit 0. A communication, session, test session or deploy record naming a role, a question, a decision, an element, a change, a defect, an idea, a session or a source that the specification or its records do not have is reported as record_ref at the key; a question a decision answers is still a question a record may link. Evidence naming a file that is not under records/, or whose SHA-256 is not the one recorded, is reported as evidence at the key, with the hash the file has now. A citation naming a communication record that does not exist, or one whose type is a request, a question or an objection, is reported as record_cited at the citation; so is a decision that answers questions citing an answer record that links none of them. A stakeholder that an accepted requirement needs, or that a page of an approved specification is for, while no communication names it, no session lists it present, no interview lists it and no decision is by it, is warned as unheard at the stakeholder, naming the requirements and pages; with no communication, session or test session record kept yet, every such stakeholder is warned, the warning adding that none is kept yet and to start by logging the first conversation, and one communication record naming a role clears that role alone. The Go build and the Swift build print the same lines on each case. document communications writes every communication, session and test session in time order and then per stakeholder and per element, a person label left out of a document for everyone; document timeline writes every event of the records and the specification in one time order, a date-only event at the start of its day in the specification's time zone, then by stakeholder, by element and by release; neither is a draft. | NEED-5, NEED-6, NEED-10 |
+| SA-125 | A specification shall keep beside it, as records in records/test-runs/, each run of its tests - the environment, the version, the build, the specification's digest, the instant with its offset, the role that ran it, the results file as evidence and each result with the test it maps to, its outcome, its message and the defect it opened - and specarch log test-run shall write one from a JUnit XML file, mapping each testcase to a test by the names the test generators write, keeping and reporting a testcase that maps to no test, and opening a defect for a failure only for a test it is told to; the validator shall check the record in both builds, and the testruns document shall write the runs and the failures per element and per requirement, run by run. | functional | should | proposed | test | log test-run with a JUnit XML file under records/, the environment, the instant and the role writes records/test-runs/TR-<n>.yaml under the next number, with the file as evidence with its SHA-256 and one result per testcase in the file's order, each mapped to its test by its name, Test or test and the name in Pascal case, or the name and a colon, and exits 0. A testcase whose name is a test the generators write for an algorithm's or a call mapping's worked examples names that algorithm or the path of the operation under element, with no test and no unmapped line, and counts for that element in the testruns document. A testcase whose name maps to no test and no element, or to two, is kept in the record without either, printed as an unmapped line naming it and why, and listed under log.unmapped with --json; validate warns test_unmapped at that result. log test-run without the results file, the environment, the instant or the role prints one line per missing option and writes nothing, with exit 1; it refuses a results file outside records/ or not JUnit XML, one with no testcase, an environment, version, role or digest the specification and its records do not have, and an --open-defect for a test that did not fail in the run, or without --severity and --phase. With --open-defect naming a failed test, it writes records/defects/DEF-<n>.yaml, reported, violating the requirements the test verifies or the element it is about, naming the test, observed from the failure's message and expected from the test's then, and links it from the result. A test-run record naming an environment, a version, a role, a test or a defect the specification or its records do not have is reported as record_ref at the key, in the Go build and the Swift build alike. document testruns lists the runs oldest first with their passed, failed, errored, skipped and unmapped counts, then the failures per element and per requirement with one column per run and the open defects, then the unmapped results; the timeline places each run at its instant. | NEED-5, NEED-10 |
 | SA-17 | A specification shall be able to say what it does not yet know as an open question that names what is asked, who decides, what it blocks and how urgent it is; and the validator shall accept a required key missing exactly where a must question says it is unknown, and nowhere else. | functional | must | accepted | test | An entity written as an empty mapping and blocked by a must question validates with no error, and its missing keys are listed under the question by specarch gaps. The same entity without the question is reported with the missing keys. A question whose blocks names nothing in the specification, whose decider is not a stakeholder, or which sits in another stage's folder, is reported. A question may block a key inside an element's x- block or a root x- block, the block and the keys on the way present and at most the last one missing; a pointer into a root x- block the file lacks, or below a key the block lacks, is reported, and the question is about no stage. An accepted decision that answers a question still present is reported. | NEED-8 |
 | SA-18 | Every element of a specification may say how it is known, stated, inferred or decided, and the validator shall check that a stated element cites a source, an inferred one says why, and a decided one names an accepted decision. | functional | must | accepted | test | An element with origin stated and no citation, one with origin inferred and no why, and one with origin decided naming no decision or a proposed one, are each reported. When the root file says the specification tracks origin, every element of a section without one is reported as a warning. | NEED-8 |
 | SA-19 | specarch gaps shall list the open questions by stage with what each blocks and who decides, and shall say for every document and code target whether it is ready, a draft or waiting; the same text shall be the document target questions, and every other document shall mark the open questions about its elements. | functional | must | accepted | test | A specification with two must questions in two stages prints them under their stages, lists the missing keys of a blocked element, and exits 1. A specification without open questions prints that it has none and exits 0. A requirements document whose requirement a question blocks starts with a Draft notice and shows the question under the requirement. | NEED-8, NEED-3 |
@@ -18861,6 +19106,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-117:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.4.3: Each requirement is traceable to its source: the stakeholder need or the document it comes from. <https://www.iso.org/standard/72089.html>
 
+**Insight on SA-125:** Whether the tests passed is known only to the build that ran them, in a results file a CI job throws away; kept as a record with each result tied to the test and so to the elements and requirements it verifies, the question of which requirement was shown met on which build and which element keeps failing is answered from the records, and a testcase the specification does not know shows instead of being lost (ADR-230).
+
+**Note on SA-125:** From ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation, 2021, clause 8: Actual results, test results and the test execution log are dynamic test documentation items: what was run, when, and with what outcome. <https://www.iso.org/standard/79429.html>
+
 **Insight on SA-17:** A placeholder looks like data and every tool downstream treats it as data; a question says in the specification itself that something is not known, so nothing can be built on it unseen.
 
 **Note on SA-17:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
@@ -19049,6 +19298,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-118 | commands decide; commands log; decisions ADR-220 | tests decide-cites-record; tests decide-record-refused; tests decide-record-unknown; tests decide-record-wrong-by; tests decide-source-and-record; tests log-answer-needs-question; tests log-asks-missing; tests log-asks-missing-json; tests log-dry-run; tests log-evidence-outside; tests log-unknown-role; tests log-usage-error; tests log-writes-record |
 | SA-119 | decisions ADR-225 | tests help-situations |
 | SA-120 | commands generate; decisions ADR-226 | tests generate-tests-estate-calls |
+| SA-125 | enums DocumentTarget; commands document; commands log test-run; decisions ADR-230 | tests document-writes-testruns; tests document-writes-testruns-external; tests document-writes-timeline-test-runs; tests log-test-run-asks-missing; tests log-test-run-defect-not-failed; tests log-test-run-maps-worked-examples; tests log-test-run-nameless-testcase; tests log-test-run-not-junit; tests log-test-run-results-outside; tests log-test-run-usage-error; tests log-test-run-writes-record; tests validate-test-run-ref |
 
 ## Sources
 

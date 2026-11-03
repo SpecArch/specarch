@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 966 design tests, 485 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 978 design tests, 490 golden and 488 red, about 30 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 966 design tests, 485 golden and 481 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 962 |
+| system | 974 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1507,6 +1507,22 @@ Scenario: golden; level: system; verifies SA-16.
 - When: document testplan is run
 - Then: it writes testplan.md with the count of each scenario, the levels, both test cases under their subject with given, when and then, and exits 0
 
+#### document-writes-testruns
+
+Scenario: golden; level: system; verifies SA-125.
+
+- Given: two test runs of one build line, TR-1 with loan-limit failed and TR-2 with loan-limit failed, loan-return errored, member-key skipped, TestRenewal mapping to no test and TestAlgorithmLoanCap/four open loans failed, naming the element #/algorithms/loanCap whose worked example it ran, and an open defect DEF-1 on CASE-1 from loan-limit
+- When: document testruns is run
+- Then: it writes docs/testruns.md listing TR-1 then TR-2 with their counts, the failures per element with Loan at 1 in TR-1 and 2 in TR-2 and Member at 0 and a dash, the algorithm loanCap at a dash and 1, the failures per requirement with CASE-1 at 1 and 2 and CASE-2 at 0 and a dash, DEF-1 open on Loan and CASE-1, TestRenewal among the results that map to no test, and each run's results, and exits 0
+
+#### document-writes-testruns-external
+
+Scenario: golden; level: system; verifies SA-125.
+
+- Given: the two test runs of document-writes-testruns, with the entity Member marked internal, so the test member-key is about an internal element, and TR-2 holding TestRenewal, which maps to no test
+- When: document testruns is run with --audience external
+- Then: it writes docs/testruns.md with Member left out of the failures per element, member-key's results left out of each run's results with a line counting what was left out, TestRenewal counted among the results that map to no test without its name or message, and the algorithm loanCap's worked example and the Loan tests shown as for the internal document, and exits 0
+
 #### document-writes-timeline
 
 Scenario: golden; level: system; verifies SA-117.
@@ -1514,6 +1530,14 @@ Scenario: golden; level: system; verifies SA-117.
 - Given: a specification with a decision and records beside it: communications, a session, a test session, a deploy, a planned release, a change request, a defect and an idea, some with an instant and some with a date alone, and timeZone Asia/Jakarta
 - When: document timeline is run
 - Then: it writes timeline.md with every event in one table in time order, a date-only event at the start of its day in Asia/Jakarta, then the events by stakeholder, by requirement, decision and element, and by release, and exits 0
+
+#### document-writes-timeline-test-runs
+
+Scenario: golden; level: system; verifies SA-125.
+
+- Given: two test runs, TR-1 and TR-2, a defect opened from the first and a planned release 1.0.0
+- When: document timeline is run
+- Then: it writes docs/timeline.md with each test run at its instant, its counts and build, the requirements its failed tests verify and the defects its results link, and the runs under release 1.0.0, and exits 0
 
 #### document-writes-traceability
 
@@ -4118,6 +4142,72 @@ Scenario: golden; level: system; verifies SA-118.
 - Given: a specification with the stakeholders owner and library-board and an open question Q-1, no communication record yet, and a chat transcript under records/evidence/
 - When: log is run with every option of an answer: the direction, the roles, a person label, the instant with its offset, the channel, the type, the words and their form, the recorder, the transcript as evidence, Q-1 and CASE-1
 - Then: it writes records/communications/COM-1.yaml with every value as given, the evidence with its media type and SHA-256 and the links, prints the record's path and the decide line with --record COM-1, and exits 0
+
+### Command log test-run
+
+#### log-test-run-asks-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-125.
+
+- Given: a specification with the environment staging and the stakeholders owner and tester
+- When: log test-run is run with --open-defect alone
+- Then: it prints one line per missing option, the results file, the environment with staging, the instant, the role with owner and tester, the severity and the phase with their values, writes nothing and exits 1
+
+#### log-test-run-defect-not-failed
+
+Scenario: red; level: system; covers exit 1; verifies SA-125.
+
+- Given: a JUnit XML file in which member-key passed
+- When: log test-run is run with --open-defect member-key
+- Then: it refuses, saying no result of the run maps to member-key and failed or errored, writes neither the run nor a defect and exits 1
+
+#### log-test-run-maps-worked-examples
+
+Scenario: golden; level: system; verifies SA-125.
+
+- Given: a specification with the test loan-limit and the algorithm loanCap with two worked examples, and a JUnit XML file under records/evidence/ whose testcases are the Go subtests TestAlgorithmLoanCap/four open loans and TestAlgorithmLoanCap/five open loans (failed), the Swift display name algorithm loanCap: worked examples, and TestLoanLimit
+- When: log test-run is run on the file with the environment, the instant and the role
+- Then: it writes records/test-runs/TR-1.yaml with the three results of the worked examples naming the element #/algorithms/loanCap and no test, and TestLoanLimit mapped to loan-limit; prints no unmapped line, the record's path, 0 unmapped in its counts, and exits 0
+
+#### log-test-run-nameless-testcase
+
+Scenario: red; level: system; covers exit 1; verifies SA-125.
+
+- Given: a JUnit XML file under records/evidence/ whose second of two testcases has no name attribute
+- When: log test-run is run on it with every required option
+- Then: it refuses, saying testcase 2 of 2 has no name attribute so no test can be found for it, writes nothing and exits 1
+
+#### log-test-run-not-junit
+
+Scenario: red; level: system; covers exit 1; verifies SA-125.
+
+- Given: an XML file under records/evidence/ whose root element is report, not testsuites or testsuite
+- When: log test-run is run on it with every required option
+- Then: it refuses, saying the file is not JUnit XML and naming the root element it has, writes nothing and exits 1
+
+#### log-test-run-results-outside
+
+Scenario: red; level: system; covers exit 1; verifies SA-125.
+
+- Given: a JUnit XML file in notes/, outside the records/ folder beside the specification
+- When: log test-run is run on it with every required option
+- Then: it refuses, saying the file is not under records/ and where to put it, writes nothing and exits 1
+
+#### log-test-run-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-125.
+
+- Given: the results file named with --from, the option of log that names who said something
+- When: log test-run is run with --from in place of --results
+- Then: it prints that log test-run has no option --from, the options it has and how to use it, and exits 2
+
+#### log-test-run-writes-record
+
+Scenario: golden; level: system; verifies SA-125.
+
+- Given: a specification with the tests loan-limit, loan-return and member-key, the environment staging, a planned release 1.0.0 and a JUnit XML file under records/evidence/ whose testcases are named TestLoanLimit (failed), TestMemberKey/opaque, a display name beginning loan-return:, testLoanLimit() (skipped) and TestRenewal (failed), a test the specification does not have
+- When: log test-run is run on the file with the environment, the version, the build, the instant, the role, and --open-defect loan-limit with a severity and a phase
+- Then: it writes records/test-runs/TR-1.yaml with the file as evidence and one result per testcase in the file's order, the first four mapped to loan-limit, member-key, loan-return and loan-limit and TestRenewal kept without a test; writes records/defects/DEF-1.yaml violating CASE-1, naming the test, observed from the failure's message and expected from the test's then, linked from the failed loan-limit result; prints the unmapped line for TestRenewal, the record's path and the defect's path, and exits 0
 
 ### Command mcp
 
@@ -7389,6 +7479,14 @@ Scenario: golden; level: system; verifies SA-28.
 - When: validate is run
 - Then: each suggested test name keeps the run of capitals as one word, upload-json-succeeds and list-json-uploads-succeeds, the same from both builds
 
+#### validate-test-run-ref
+
+Scenario: red; level: system; verifies SA-125.
+
+- Given: a test-run record naming an environment, a version and a role the specification and its records do not have, a result whose test is misspelt and whose defect is not a record, a result with no test, a result whose element does not resolve, and one whose element does
+- When: validate is run
+- Then: it reports record_ref at the environment, the version, the role, the misspelt test with the test it may mean, the defect and the element that does not resolve, warns test_unmapped at the result with neither test nor element and at no other, and exits 1, in the Go build and the Swift build alike
+
 #### validate-test-subject
 
 Scenario: red; level: system; covers exit 1.
@@ -7833,7 +7931,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-554 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+561 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8262,6 +8360,13 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-117 | acceptance 5 | golden | SA-117 names no harm |
 | requirement SA-117 | acceptance 6 | golden | SA-117 names no harm |
 | requirement SA-117 | acceptance 7 | golden | SA-117 names no harm |
+| requirement SA-125 | acceptance 1 | golden | SA-125 names no harm |
+| requirement SA-125 | acceptance 2 | golden | SA-125 names no harm |
+| requirement SA-125 | acceptance 3 | golden | SA-125 names no harm |
+| requirement SA-125 | acceptance 4 | golden | SA-125 names no harm |
+| requirement SA-125 | acceptance 5 | golden | SA-125 names no harm |
+| requirement SA-125 | acceptance 6 | golden | SA-125 names no harm |
+| requirement SA-125 | acceptance 7 | golden | SA-125 names no harm |
 | requirement SA-17 | acceptance 1 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 2 | golden | SA-17 names no harm |
 | requirement SA-17 | acceptance 3 | golden | SA-17 names no harm |

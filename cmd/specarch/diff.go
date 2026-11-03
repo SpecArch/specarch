@@ -70,7 +70,7 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, c.String())
 	}
 	// What moving each workflow of the new version from its as-is to its
-	// to-be reaches, one line per part (ADR-233).
+	// to-be reaches, one line per part (ADR-236).
 	for _, t := range transition.Of(newSpec.Root) {
 		for _, line := range t.Lines() {
 			fmt.Fprintf(stdout, "transition #%s: %s\n", t.Pointer, line)

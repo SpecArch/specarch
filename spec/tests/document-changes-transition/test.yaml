@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification whose workflow keeps its as-is, with an inbox page at an approval step the to-be changes, a test about the workflow and a test about an operation only the as-is calls, and no records"
 when: "document changes is run"
 then: "it writes changes.md with a section Transitions after the defects that lists, for the workflow, the messages it publishes, the steps added, removed and changed, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the inbox page and the two tests; and exits 0"
-verifies: [SA-128]
+verifies: [SA-130]

@@ -308,8 +308,10 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			}
 			req, notes := newPluginRequest(l, target, folder, g.impls)
 			if set["as-is"] {
-				// Each workflow's as-is in its place (ADR-233).
+				// Each workflow's as-is in its place, and the problems at
+				// the pointers the plug-in sees it under (ADR-236).
 				req.Specification = transition.Select(metamodel.Normalized(l.spec.Value), true)
+				req.Problems = asIsProblems(l.spec.Root, pluginProblems(l, folder))
 			}
 			for _, n := range notes {
 				fmt.Fprintf(stderr, "specarch generate: %s\n", n)
@@ -320,6 +322,9 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			resp, status := runPlugin(g.exe, g.name, req, stderr)
 			if status != 0 {
 				return status
+			}
+			if set["as-is"] {
+				asIsDiagnostics(l.spec.Root, resp.Diagnostics)
 			}
 			var own []mark.Problem
 			for _, d := range placePlugin(l.spec, resp.Diagnostics) {
@@ -334,9 +339,15 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 			// reported among the problems, so its files mark them with the
 			// ids given here, and an error makes the run exit 1 (ADR-086).
 			if len(own) > 0 {
+				if set["as-is"] {
+					own = asIsProblems(l.spec.Root, own)
+				}
 				req.Problems = append(req.Problems, own...)
 				if resp, status = runPlugin(g.exe, g.name, req, stderr); status != 0 {
 					return status
+				}
+				if set["as-is"] {
+					asIsDiagnostics(l.spec.Root, resp.Diagnostics)
 				}
 				// The second run reports what the first did; anything new
 				// is printed and counts as well.
@@ -393,6 +404,62 @@ func runGenerate(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return status
+}
+
+// asIsProblems moves the problems a plug-in given each workflow's as-is
+// is told of to the pointers it sees: a problem of the as-is to the
+// workflow's own pointer, and one inside a to-be the as-is output does
+// not hold to no pointer, so it is not marked there and the problems file
+// lists it (ADR-236).
+func asIsProblems(root *yaml.Node, ps []mark.Problem) []mark.Problem {
+	out := make([]mark.Problem, 0, len(ps))
+	for _, p := range ps {
+		p.Pointer, _ = transition.AsIsPointer(root, p.Pointer)
+		blocks := []string{}
+		for _, b := range p.Blocks {
+			if moved, ok := transition.AsIsPointer(root, b); ok {
+				blocks = append(blocks, moved)
+			}
+		}
+		if p.Blocks != nil {
+			p.Blocks = blocks
+		}
+		out = append(out, p)
+	}
+	return out
+}
+
+// toBeProblems leaves the problems inside a workflow's as-is at no
+// pointer, for a plug-in given the to-be: the output does not hold the
+// as-is, so they are not marked there and the problems file lists them
+// (ADR-236).
+func toBeProblems(root *yaml.Node, ps []mark.Problem) []mark.Problem {
+	out := make([]mark.Problem, 0, len(ps))
+	for _, p := range ps {
+		if transition.InAsIs(root, p.Pointer) {
+			p.Pointer = ""
+		}
+		if p.Blocks != nil {
+			blocks := []string{}
+			for _, b := range p.Blocks {
+				if !transition.InAsIs(root, b) {
+					blocks = append(blocks, b)
+				}
+			}
+			p.Blocks = blocks
+		}
+		out = append(out, p)
+	}
+	return out
+}
+
+// asIsDiagnostics moves what a plug-in given each workflow's as-is
+// answers back into the merged specification, so a diagnostic names the
+// as-is's own line.
+func asIsDiagnostics(root *yaml.Node, ds []pluginDiagnostic) {
+	for i := range ds {
+		ds[i].Path = transition.MergedPointer(root, ds[i].Path)
+	}
 }
 
 // pluginPointer is the pointer into the merged specification a placed
@@ -555,10 +622,11 @@ func stackName(impl *yaml.Node) string {
 // the implementation files that reach it, and the files it could not read
 // for it, each with why and what the plug-in is not told.
 // The specification it carries has each workflow's to-be, with no asIs:
-// the generators write the to-be unless told otherwise (ADR-233).
+// the generators write the to-be unless told otherwise (ADR-236).
 func newPluginRequest(l loaded, target, folder string, impls []generate.Implementation) (pluginRequest, []string) {
 	existing, notes := existingFiles(folder)
 	req := pluginRequest{Specarch: source.Str(source.Child(l.spec.Root, "specarch")), Digest: specDigest(l.spec.Dir), Target: target, Root: filepath.ToSlash(l.spec.RootFile), Specification: transition.Select(metamodel.Normalized(l.spec.Value), false), Output: filepath.ToSlash(folder), Implementations: []pluginImplementation{}, Existing: existing, Problems: pluginProblems(l, folder)}
+	req.Problems = toBeProblems(l.spec.Root, req.Problems)
 	req.APIDialect, req.APIEnvelopes = apiDialectOf(l.spec)
 	for dep, other := range validate.GivenDependencies(l.spec, readGiven(l, target)) {
 		if req.Dependencies == nil {

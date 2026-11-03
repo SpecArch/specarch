@@ -19,7 +19,7 @@ commands:
       as-is to the to-be reaches, as `transition <pointer>: <part>:
       <items>`, the items joined by semicolons: the parts workflow, steps,
       approvers and performers, operations, pages and tests, the same
-      list the changes document writes (ADR-233).
+      list the changes document writes (ADR-236).
 
       Then it checks the release of the new version, read from the
       records beside the new folder: that its version steps from the old
@@ -58,7 +58,7 @@ commands:
     remedies:
       "1": "Read the checks it prints as failing; write the release record for the new version or settle the change a check names, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-25, SA-57, SA-128]
+    satisfies: [SA-25, SA-57, SA-130]
     why: |
       The validator sees one version at a time, so it can check what a
       release record says but not whether the specification changed the

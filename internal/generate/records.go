@@ -184,7 +184,7 @@ func Changes(root *yaml.Node, relRoot string, impls []Implementation, state *Sta
 	}
 
 	// A workflow that keeps its as-is beside the to-be while a business
-	// process changes: what moving to the to-be reaches (ADR-233). Left
+	// process changes: what moving to the to-be reaches (ADR-236). Left
 	// out when none does, so a register without one reads as before.
 	if ts := transition.Of(root); len(ts) > 0 {
 		d.section("Transitions")

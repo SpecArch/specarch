@@ -2,7 +2,7 @@
 command: generate
 level: system
 scenario: golden
-given: "a specification with no approval record whose workflow keeps its as-is; specarch-gen-bpmn built from this repository on PATH"
+given: "a specification with no approval record whose workflow keeps its as-is, with an open question blocking a step of each; specarch-gen-bpmn built from this repository on PATH"
 when: "generate bpmn is run with --unapproved"
-then: "it writes refund.bpmn and refund.svg of the to-be only, with its decision, the manager's approval, the hold undone by releaseFunds and the payment, and nothing of the as-is's check or notice; and exits 0"
-verifies: [SA-128]
+then: "it writes refund.bpmn and refund.svg of the to-be only, with its decision, the manager's approval, the hold undone by releaseFunds and the payment, and nothing of the as-is's check or notice; the open question that blocks the to-be step hold is marked at hold, and the one that blocks the as-is step notify is marked nowhere in the files; and exits 0"
+verifies: [SA-130]

@@ -5,4 +5,4 @@ scenario: golden
 given: "an old version whose workflow refund is the clerk's process, and a new version 1.1.0 whose refund is the to-be and keeps the old process under asIs, with a planned release whose change names the workflow"
 when: "diff is run on the old and the new folder"
 then: "it lists the workflow as a patch change, then one transition line per part the move from the as-is to the to-be reaches: the workflow's messages, the steps, the approvers and performers, and the operations; finds the release covers it, and exits 0"
-verifies: [SA-128]
+verifies: [SA-130]

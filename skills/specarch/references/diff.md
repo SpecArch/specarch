@@ -22,7 +22,7 @@ keeps its as-is under asIs, one line per part the move from the
 as-is to the to-be reaches, as `transition <pointer>: <part>:
 <items>`, the items joined by semicolons: the parts workflow, steps,
 approvers and performers, operations, pages and tests, the same
-list the changes document writes (ADR-233).
+list the changes document writes (ADR-236).
 
 Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old

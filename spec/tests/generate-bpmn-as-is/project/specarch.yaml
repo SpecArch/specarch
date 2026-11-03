@@ -1,5 +1,7 @@
 specarch: "1.0.0"
 info: { title: Case, version: 1.0.0, profile: lean }
+stakeholders:
+  owner: { description: The product owner. }
 requirements:
   CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
 entities:
@@ -69,3 +71,16 @@ roles:
   clerk: { description: The clerk., permissions: [refunds.approve, refunds.check] }
   manager: { description: The manager., permissions: [refunds.approve] }
   payments: { description: The payment service., permissions: [refunds.pay] }
+questions:
+  Q-1:
+    question: Is the notice still faxed, or only mailed?
+    kind: decision
+    priority: could
+    blocks: ["#/workflows/refund/asIs/steps/3"]
+    decidedBy: owner
+  Q-2:
+    question: Is the hold released at once when the request is refused?
+    kind: decision
+    priority: could
+    blocks: ["#/workflows/refund/steps/2"]
+    decidedBy: owner

@@ -826,7 +826,7 @@ keeps its as-is under asIs, one line per part the move from the
 as-is to the to-be reaches, as `transition <pointer>: <part>:
 <items>`, the items joined by semicolons: the parts workflow, steps,
 approvers and performers, operations, pages and tests, the same
-list the changes document writes (ADR-233).
+list the changes document writes (ADR-236).
 
 Then it checks the release of the new version, read from the
 records beside the new folder: that its version steps from the old
@@ -1054,7 +1054,7 @@ as-is to the to-be adds, changes and removes in its trigger,
 subject and messages, its steps, the approvers and performers at
 each step, the operations it calls, the forms and inboxes that rest
 on it and the tests about it or an operation it calls or no longer
-calls (ADR-233). Every document made from the specification shows an open
+calls (ADR-236). Every document made from the specification shows an open
 change request at the element it names, beside the open questions. The releases target writes `releases.md`:
 the releases newest first, each with what it includes grouped as
 added, changed, removed and fixed, each change with where it was
@@ -3492,7 +3492,7 @@ Anyone who has the program runs it.
 | `--environment <environment>` | The key of the environment the build is for. When that environment's entry says `trace: true`, the output shows the trace to its testers (ADR-222): the web UI carries each page's, section's, field's, column's and action's pointer into the specification in `data-specarch-element` attributes and loads an overlay showing the pointer under the focus, the build's version and digest, and a remark to copy as the start of a change request; the Go server sends `Specarch-Element` on every answer. A key that is not an environment of a specification given is refused with status 2. Without it nothing shows the trace, and that untraced output is what the implementation file's output folder holds: a build for an environment that shows the trace is refused with status 2 unless `--out` names its folder, since the two cannot share one folder under `--check`; the refusal names the environment and the folder it would have written into. |  |
 | `--unapproved` | Write a draft from a specification that is not approved yet, because no approval record covers its files as they are or an open must or should question blocks what the target reads. The refusal is the default; with this, every file says it is a draft and why. |  |
 | `--dry-run` | Run the plug-in and write nothing; print each file it would write, as would write <path>. Not with --check. |  |
-| `--as-is` | Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-233). |  |
+| `--as-is` | Give the plug-in each workflow's as-is in the workflow's place, for a build of the process the business runs today while it moves to the to-be. Without it every plug-in gets each workflow's to-be, with no asIs; a workflow that keeps no as-is is the same either way (ADR-236). |  |
 
 It reads:
 

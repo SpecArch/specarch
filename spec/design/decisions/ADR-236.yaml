@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
 decisions:
-  ADR-233:
+  ADR-236:
     title: A workflow keeps the as-is under asIs beside the to-be while a business process changes, checked by the workflow's rules, listed as a transition by the changes document and specarch diff, and generated only with --as-is
     status: proposed
     date: "2026-11-04"
@@ -45,9 +45,15 @@ decisions:
       workflow keeps an as-is; specarch diff prints it for the new
       version after its change list, one line per part.
 
-      Every generator is given each workflow's to-be, with no asIs.
-      specarch generate --as-is gives each workflow's as-is in its
-      place; a workflow with no as-is is the same either way. The
+      Every generator is given each workflow's to-be, with no asIs, and
+      a problem inside an as-is is not marked in its output. specarch
+      generate --as-is gives each workflow's as-is in its place, with the
+      workflow's own satisfies, audience and decidedIn, and the problems
+      at the pointers the plug-in sees: one of the as-is at the
+      workflow's own pointer, one inside the to-be not marked; a
+      diagnostic it answers names the as-is's line. A workflow with no
+      as-is is the same either way. Every problem not marked in an output
+      is still in the problems file. The
       documents describe the to-be, the technical specification saying
       that the as-is is kept.
     consequences: |
@@ -78,15 +84,16 @@ decisions:
       the workflow's own keys because it is what the team builds: the
       generators, the derived tests and the pages follow it, and removing
       asIs when the change is done leaves the workflow as it should stay.
-      BPMN 2.0 has no construct for two versions of one process: a model
+      BPMN 2.0 names no construct for two versions of one process (its
+      Process chapter defines one process by its flow elements): a model
       is one process, and versions are an engine's deployment of a
       definition, so generate writes one variant per run, as a BPMN file
       of that process. The derived cases come from the to-be alone,
       because the tests are written for what is built; the as-is runs
       today and has its tests in the code that runs it.
-    satisfies: [SA-128]
+    satisfies: [SA-130]
     restsOn: [ADR-054, ADR-198, ADR-186]
     cites:
       - source: bpmn-2-0
         clause: "10"
-        says: "A process is one definition of the flow elements and sequence flows that make it up; the standard has no element for two versions of one process."
+        says: "A process is one definition of the flow elements and sequence flows that make it up."

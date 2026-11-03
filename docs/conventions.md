@@ -2264,7 +2264,7 @@ outside the subset; a workflow that needs one is written with a question.
 
 While a business process changes, the workflow keeps the process the
 business runs today under `asIs`, in the workflow's shape without `asIs`,
-and its own keys are the to-be, the process the team builds (ADR-233):
+and its own keys are the to-be, the process the team builds (ADR-236):
 
     refund:
       description: A large refund is approved by a manager; the funds are held, then paid.

@@ -2,7 +2,7 @@
 // the to-be while a business process changes, what moving from the as-is
 // to the to-be adds, changes and removes: its steps, the roles that
 // approve or do them, the operations it calls, the pages and the tests
-// that rest on it (ADR-233). The changes document and specarch diff print
+// that rest on it (ADR-236). The changes document and specarch diff print
 // the same list.
 package transition
 
@@ -335,8 +335,8 @@ func differentKeys(a, b *yaml.Node) []string {
 
 // Select gives the specification, as plain values, with each workflow as
 // one variant for the generators: the to-be, with no asIs, or with asIs
-// the as-is in the workflow's place, so a workflow that keeps none stays
-// as it is. The specification given is not changed.
+// the as-is in the workflow's place, with the workflow's own satisfies,
+// audience and decidedIn, so a workflow that keeps none stays as it is. The specification given is not changed.
 func Select(spec any, asIs bool) any {
 	root, ok := spec.(map[string]any)
 	if !ok {
@@ -354,7 +354,18 @@ func Select(spec any, asIs bool) any {
 			continue
 		}
 		if old, has := entry["asIs"].(map[string]any); has && asIs {
-			picked[name] = old
+			// The keys of the element itself, which an as-is has no
+			// place for, stay the workflow's.
+			moved := make(map[string]any, len(old)+3)
+			for k, v := range old {
+				moved[k] = v
+			}
+			for _, k := range []string{"satisfies", "audience", "decidedIn"} {
+				if v, ok := entry[k]; ok {
+					moved[k] = v
+				}
+			}
+			picked[name] = moved
 			continue
 		}
 		if _, has := entry["asIs"]; !has {
@@ -375,4 +386,54 @@ func Select(spec any, asIs bool) any {
 	}
 	out["workflows"] = picked
 	return out
+}
+
+// keepsAsIs reports whether the workflow of that pointer token keeps an
+// as-is.
+func keepsAsIs(root *yaml.Node, token string) bool {
+	asIs := source.Deref(source.Child(source.Child(source.Child(root, "workflows"), source.UnescapeToken(token)), "asIs"))
+	return asIs != nil && asIs.Kind == yaml.MappingNode
+}
+
+// AsIsPointer is where a pointer into the merged specification stands in
+// the specification Select gives with asIs true, so a problem is marked
+// at the as-is's own entry: /workflows/<name>/asIs/... becomes
+// /workflows/<name>/..., for a workflow that keeps an as-is. A pointer
+// inside that workflow's to-be gives false, since the as-is output does
+// not hold the entry; the workflow itself and every other pointer stay as
+// they are. A leading # is kept.
+func AsIsPointer(root *yaml.Node, ptr string) (string, bool) {
+	hash := strings.HasPrefix(ptr, "#")
+	tokens := strings.Split(strings.TrimPrefix(ptr, "#"), "/")
+	if len(tokens) < 4 || tokens[0] != "" || tokens[1] != "workflows" || !keepsAsIs(root, tokens[2]) {
+		return ptr, true
+	}
+	if tokens[3] != "asIs" {
+		return "", false
+	}
+	out := strings.Join(append(tokens[:3:3], tokens[4:]...), "/")
+	if hash {
+		out = "#" + out
+	}
+	return out, true
+}
+
+// MergedPointer is the other way: a pointer a plug-in given the as-is
+// answers with, back into the merged specification, so its diagnostic
+// names the as-is's line. /workflows/<name>/... becomes
+// /workflows/<name>/asIs/... for a workflow that keeps an as-is; the
+// workflow itself and every other pointer stay as they are.
+func MergedPointer(root *yaml.Node, ptr string) string {
+	tokens := strings.Split(ptr, "/")
+	if len(tokens) < 4 || tokens[0] != "" || tokens[1] != "workflows" || !keepsAsIs(root, tokens[2]) {
+		return ptr
+	}
+	return strings.Join(append(append(tokens[:3:3], "asIs"), tokens[3:]...), "/")
+}
+
+// InAsIs reports whether a pointer, with or without a leading #, leads
+// into the as-is of a workflow that keeps one.
+func InAsIs(root *yaml.Node, ptr string) bool {
+	tokens := strings.Split(strings.TrimPrefix(ptr, "#"), "/")
+	return len(tokens) >= 4 && tokens[0] == "" && tokens[1] == "workflows" && tokens[3] == "asIs" && keepsAsIs(root, tokens[2])
 }

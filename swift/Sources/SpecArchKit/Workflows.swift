@@ -6,7 +6,7 @@ import Foundation
 extension Checker {
     /// Checks each workflow, and the as-is a workflow keeps beside it
     /// during a transition, by the same rules at its own pointer
-    /// (ADR-233).
+    /// (ADR-236).
     func checkWorkflows(_ d: Design) {
         var opNames: [String: YNode] = [:]
         for (id, o) in d.operations { opNames[id] = o.node }

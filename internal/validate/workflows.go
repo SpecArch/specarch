@@ -16,7 +16,7 @@ import (
 
 // checkWorkflows checks each workflow, and the as-is a workflow keeps
 // beside it during a transition, by the same rules at its own pointer
-// (ADR-233).
+// (ADR-236).
 func (c *checker) checkWorkflows(d *design) {
 	opNames := map[string]*yaml.Node{}
 	for id, o := range d.operations {

@@ -6,6 +6,8 @@ Version 1.0.0 of the specification: 1 stakeholder, 1 need and 1 requirement. The
 
 **Draft:** 1 open question concerns this document (Q-1); see the open questions document, or run specarch gaps.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Purpose and scope
 
 ## 2. Stakeholders
@@ -13,6 +15,8 @@ Version 1.0.0 of the specification: 1 stakeholder, 1 need and 1 requirement. The
 | Stakeholder | Who they are | Concerns |
 |---|---|---|
 | clerk | Staff at the till. |   |
+
+**Problem on clerk:** warning: unheard: clerk was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement CASE-1 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/clerk]
 
 ## 3. Needs
 

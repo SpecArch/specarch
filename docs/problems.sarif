@@ -12,6 +12,9 @@
               "id": "requirement_unverified"
             },
             {
+              "id": "stakeholders_unconfirmed"
+            },
+            {
               "id": "unheard"
             }
           ]
@@ -51,6 +54,37 @@
           }
         },
         {
+          "ruleId": "stakeholders_unconfirmed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/stakeholders/stakeholders.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/stakeholders",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "stakeholders_unconfirmed@requirements/stakeholders/stakeholders.yaml#/stakeholders"
+          }
+        },
+        {
           "ruleId": "unheard",
           "kind": "fail",
           "level": "warning",
@@ -65,7 +99,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 5,
+                  "startLine": 6,
                   "startColumn": 5
                 }
               },
@@ -89,7 +123,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 10,
+                  "startLine": 11,
                   "startColumn": 9
                 }
               },
@@ -114,7 +148,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 15,
+                  "startLine": 16,
                   "startColumn": 5
                 }
               },
@@ -145,7 +179,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 21,
+                  "startLine": 22,
                   "startColumn": 5
                 }
               },
@@ -176,7 +210,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 27,
+                  "startLine": 28,
                   "startColumn": 5
                 }
               },
@@ -207,7 +241,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 33,
                   "startColumn": 5
                 }
               },

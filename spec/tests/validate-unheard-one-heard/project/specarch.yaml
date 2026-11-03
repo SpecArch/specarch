@@ -109,3 +109,4 @@ tests:
     when: the page members-list is opened
     then: it is refused as not allowed
     verifies: [CASE-1]
+stakeholdersComplete: { by: owner, date: "2026-11-04" }

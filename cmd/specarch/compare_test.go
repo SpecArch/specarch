@@ -160,7 +160,7 @@ func TestCompareRefusesInputs(t *testing.T) {
 }
 
 func TestCVSSSeverity(t *testing.T) {
-	for score, want := range map[string]string{"9.0": "critical", "10": "critical", "8.9": "high", "7.0": "high", "6.9": "medium", "4.0": "medium", "3.9": "low", "0.1": "low", "0": "unknown", "": "unknown", "CVSS:3.1/AV:N": "unknown"} {
+	for score, want := range map[string]string{"9.0": "critical", "10": "critical", "8.9": "high", "7.0": "high", "6.9": "medium", "4.0": "medium", "3.9": "low", "0.1": "low", "0": "negligible", "0.0": "negligible", "-1": "unknown", "": "unknown", "CVSS:3.1/AV:N": "unknown"} {
 		if got := cvssSeverity(score); got != want {
 			t.Errorf("cvssSeverity(%q) = %s, want %s", score, got, want)
 		}

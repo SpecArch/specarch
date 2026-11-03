@@ -366,7 +366,8 @@ given once per implementation at most (ADR-232):
   severity; an osv-scanner group of aliases is one finding, its
   severity read from its highest CVSS score by the CVSS v3.1
   qualitative scale (9.0 and above critical, 7.0 high, 4.0 medium,
-  above 0 low), unknown without one.
+  above 0 low, 0.0, None on that scale, negligible as grype words
+  it), unknown without one.
 - `--measurements <name>=<path>`: a JSON object in a file under
   `records/` (JSON, since every YAML file there is read as a
   record), with what only a person or a CI job measures, every key optional

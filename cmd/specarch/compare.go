@@ -882,7 +882,9 @@ func readScan(data []byte) ([]scanFinding, error) {
 }
 
 // cvssSeverity reads a CVSS base score into the qualitative scale of
-// CVSS v3.1, section 5; unknown when there is no score.
+// CVSS v3.1, section 5; unknown when there is no score. 0.0, None on that
+// scale, is negligible, grype's word for it, so both scanners' findings
+// are counted in one list of words (ADR-232).
 func cvssSeverity(score string) string {
 	v, err := strconv.ParseFloat(strings.TrimSpace(score), 64)
 	switch {
@@ -896,6 +898,8 @@ func cvssSeverity(score string) string {
 		return "medium"
 	case v > 0:
 		return "low"
+	case v == 0:
+		return "negligible"
 	}
 	return "unknown"
 }

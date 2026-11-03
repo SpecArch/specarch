@@ -4,7 +4,7 @@ standardOutput: |
   records/comparisons/lending/comparison.md
   records/comparisons/lending/comparison.json
   to cite the comparison from a decision, declare it under sources in specarch.yaml:
-    comparison-lending: {kind: "document", title: "Comparison of lending.go and lending.swift", edition: "sha256:5372d489c6dcd7b484d567f94f249d580928a6aeec405ef28713aff862757acd", url: "../records/comparisons/lending/comparison.md"}
+    comparison-lending: {kind: "document", title: "Comparison of lending.go and lending.swift", edition: "sha256:ffa8a72dfccc794699a0879097440331d80b6f1092e0c0898f12a42f4ac9d6a8", url: "../records/comparisons/lending/comparison.md"}
   and cite it in the decision: cites: [{source: comparison-lending, clause: <the section, such as Derived cases>, says: <what it shows>}]
 standardError: |
   specarch compare: 2 derived cases, 2 measured quantities, 4 libraries, 3 scan findings and 4 gaps; written to records/comparisons/lending/comparison.md and records/comparisons/lending/comparison.json

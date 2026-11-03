@@ -48,7 +48,7 @@ Each value stands beside the requirement's statement, which gives its target in 
 |---|---|---|---|
 | GHSA-0000-0000-0002 | swift-nio | not found | critical, 2.81.0 |
 | GHSA-0000-0000-0001 | github.com/jackc/pgx/v5 | high, 5.7.2 | not found |
-| GO-2026-0001 | golang.org/x/net | low, 0.40.0 | not found |
+| GHSA-0000-0000-0003 | golang.org/x/net | low, 0.40.0 | not found |
 
 ## Inputs
 
@@ -56,11 +56,11 @@ Each value stands beside the requirement's statement, which gives its target in 
 |---|---|---|---|
 | lending.go | implementation file | project/implementation/go/lending.go.specarch-implementation.yaml | sha256:fcfbe8a564f19cc16658a5552c368d2e65c785c05bb0289e4c6c278b2f764de8 |
 | lending.go | --results | records/evidence/go-junit.xml | sha256:0f1cb4ecee80892e1550e0e9155ebf63e49333f8ab00252545caa05ac15e280b |
-| lending.go | --scan | records/evidence/go-grype.json | sha256:29de6bf430547397c07b861a339c6863643497ade22b3626b307fbe0490f3e25 |
+| lending.go | --scan | records/evidence/go-grype.json | sha256:39b4631789f31a7366e9081775e09efaf29c1f6cc20234aee0e4396729a34bc6 |
 | lending.go | --measurements | records/evidence/go-measurements.json | sha256:e83044ec0891457b36b58a5ab04ad30ecbb5003aa890cc42d0c4cd0f8d7bf26b |
 | lending.swift | implementation file | project/implementation/swift/lending.swift.specarch-implementation.yaml | sha256:4428aba8160b7977f6fcc921fce7c92838c145528da706b7cb9430c0155c63ce |
 | lending.swift | --test-run | records/test-runs/TR-1.yaml | sha256:882eeb2b5eab8917bcc32681881b95c7e73223cf09fc1ba6000ddc84c1d236b9 |
-| lending.swift | --scan | records/evidence/swift-osv.json | sha256:d7b75ea8403faad53fce1ea4e7dfd9a3409aeb4d3523fd252ddc26a14ccacfa9 |
+| lending.swift | --scan | records/evidence/swift-osv.json | sha256:f7228ade1dc42d3b1a0128a5697e03f50c85f209126bbe13827e0d41999e66c2 |
 | lending.swift | --measurements | records/evidence/swift-measurements.json | sha256:6502f4f427ca184baa1edb4ce64663a06861a7b23c062f17bfbcbc51ba7f601b |
 
 ## Gaps

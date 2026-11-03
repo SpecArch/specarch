@@ -85,7 +85,10 @@ decisions:
       statement. A scan is read in the two formats the release scan
       already writes, grype's and osv-scanner's JSON; osv-scanner gives a
       CVSS score, read into the qualitative scale of CVSS v3.1 so both
-      columns speak the same words. The comparison is cited as a source of
+      columns speak the same words; its None, a score of 0.0, is written
+      negligible, grype's word for a finding of no practical severity,
+      because one list of words counts both scanners' findings and a
+      finding a scanner lists is still a row the reader sees. The comparison is cited as a source of
       kind document rather than as a record: a citation of a record is
       for what a stakeholder said (ADR-220), and docs/maintenance.md
       allows the specification to point back at records only there and

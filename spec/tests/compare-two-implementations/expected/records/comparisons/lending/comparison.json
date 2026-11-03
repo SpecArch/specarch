@@ -17,7 +17,7 @@
         {
           "option": "scan",
           "path": "records/evidence/go-grype.json",
-          "sha256": "sha256:29de6bf430547397c07b861a339c6863643497ade22b3626b307fbe0490f3e25"
+          "sha256": "sha256:39b4631789f31a7366e9081775e09efaf29c1f6cc20234aee0e4396729a34bc6"
         },
         {
           "option": "measurements",
@@ -65,7 +65,7 @@
         {
           "option": "scan",
           "path": "records/evidence/swift-osv.json",
-          "sha256": "sha256:d7b75ea8403faad53fce1ea4e7dfd9a3409aeb4d3523fd252ddc26a14ccacfa9"
+          "sha256": "sha256:f7228ade1dc42d3b1a0128a5697e03f50c85f209126bbe13827e0d41999e66c2"
         },
         {
           "option": "measurements",
@@ -237,7 +237,7 @@
       ]
     },
     {
-      "id": "GO-2026-0001",
+      "id": "GHSA-0000-0000-0003",
       "package": "golang.org/x/net",
       "cells": [
         {

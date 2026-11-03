@@ -1,7 +1,7 @@
 {
   "matches": [
     {"vulnerability": {"id": "GHSA-0000-0000-0001", "severity": "High"}, "artifact": {"name": "github.com/jackc/pgx/v5", "version": "5.7.2"}},
-    {"vulnerability": {"id": "GO-2026-0001", "severity": "Low"}, "artifact": {"name": "golang.org/x/net", "version": "0.40.0"}}
+    {"vulnerability": {"id": "GHSA-0000-0000-0003", "severity": "Low"}, "artifact": {"name": "golang.org/x/net", "version": "0.40.0"}}
   ],
   "descriptor": {"name": "grype", "version": "0.121.0"}
 }

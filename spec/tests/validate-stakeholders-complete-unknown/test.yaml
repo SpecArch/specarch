@@ -5,4 +5,4 @@ scenario: red
 given: "a specification whose stakeholdersComplete names a role that is not a stakeholder and a source that is not declared"
 when: "validate is run"
 then: "it reports stakeholder at /stakeholdersComplete/by and source at /stakeholdersComplete/source, each with the closest declared name, and exits 1"
-verifies: [SA-126]
+verifies: [SA-129]

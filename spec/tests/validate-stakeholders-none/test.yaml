@@ -5,4 +5,4 @@ scenario: red
 given: "a specification with no stakeholders section and no stakeholdersComplete"
 when: "validate is run"
 then: "it warns stakeholders_unconfirmed at /stakeholders, at line 1 of the root file since there is no list, telling the author to list the stakeholders first and then confirm the list, and exits 0"
-verifies: [SA-126]
+verifies: [SA-129]

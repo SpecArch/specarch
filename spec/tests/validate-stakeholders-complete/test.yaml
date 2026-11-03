@@ -5,4 +5,4 @@ scenario: golden
 given: "a specification whose stakeholdersComplete is set by a declared stakeholder, with a date and a declared interview source"
 when: "validate is run"
 then: "it prints nothing and exits 0: the confirmation ends the stakeholders_unconfirmed warning"
-verifies: [SA-126]
+verifies: [SA-129]

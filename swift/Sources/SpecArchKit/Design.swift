@@ -436,7 +436,7 @@ extension Checker {
     }
 
     /// Warns while no role has confirmed that the stakeholder list is
-    /// complete (ADR-231): the warning stands at the list until the root
+    /// complete (ADR-234): the warning stands at the list until the root
     /// holds stakeholdersComplete, whose by is a stakeholder and whose
     /// source, when given, is a declared source. A must question that
     /// blocks the stakeholders holds the warning. The warning is anchored

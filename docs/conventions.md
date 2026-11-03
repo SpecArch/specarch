@@ -393,7 +393,7 @@ builds what is a choice of one implementation, not part of the design
 `stakeholder`.
 
 The stakeholder list is confirmed complete by a role, not by a rule
-(ADR-231). Until the root holds `stakeholdersComplete`, validate warns
+(ADR-234). Until the root holds `stakeholdersComplete`, validate warns
 `stakeholders_unconfirmed` at the list, every generated document and the
 overview of the site carry a banner under their title, and `specarch
 approve` warns and goes on; writing order stays free, so the needs, the
@@ -821,7 +821,7 @@ redefined.
 | `stages`, `sources`, `givenOutside` | SpecArch | the root file's list of stage folders and its registry of cited sources, each marked when it was given to parties outside |
 | `language` (on a source) | BCP 47 | the language subtag and the subtags after it; the tag names the vocabulary a document is read by |
 | `stakeholders`, `needs`, `requirements`, `statement`, `priority`, `status`, `acceptance`, `verification` | SpecArch, after ISO/IEC/IEEE 29148 | the requirements stage: the standard's stakeholders (5.2.2), needs (6.3), requirements (6.4) and attributes (5.2.8); priority after MoSCoW; verification methods after MIL-STD-961E |
-| `stakeholdersComplete`, `by`, `date`, `source` (of the confirmation) | SpecArch, after ISO/IEC/IEEE 29148 5.2.2 | the role that confirmed the stakeholder list is complete, when, and the declared source it rests on, when there is one; until it is set, `stakeholders_unconfirmed` warns, every document carries a banner and approve warns (ADR-231) |
+| `stakeholdersComplete`, `by`, `date`, `source` (of the confirmation) | SpecArch, after ISO/IEC/IEEE 29148 5.2.2 | the role that confirmed the stakeholder list is complete, when, and the declared source it rests on, when there is one; until it is set, `stakeholders_unconfirmed` warns, every document carries a banner and approve warns (ADR-234) |
 | `glossary`, `assumptions`, `constraints` (top level) | SpecArch, after ISO/IEC/IEEE 29148 | 9.2.3, 9.5.19 and 9.6.16 of the standard; arc42 sections 2 and 12 |
 | `satisfies`, `verifies` | SpecArch, after SysML and 29148 6.5 | the satisfy and verify relations from a design element or a test to a requirement |
 | `why`, `cites`, `source`, `clause`, `says` | SpecArch | the rationale and the citations every element may carry; 29148 (5.2.8) names rationale and source as attributes |

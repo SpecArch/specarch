@@ -5,4 +5,4 @@ scenario: red
 given: "a specification with stakeholders and no stakeholdersComplete, and a configured requirements document"
 when: "document requirements is run"
 then: "the document carries the Stakeholders unconfirmed banner under its title and the warning marked as a problem, and the run exits 0"
-verifies: [SA-126]
+verifies: [SA-129]

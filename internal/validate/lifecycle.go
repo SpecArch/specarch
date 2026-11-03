@@ -46,7 +46,7 @@ func (c *checker) checkRequirementsStage(d *design) {
 }
 
 // checkStakeholdersComplete warns while no role has confirmed that the
-// stakeholder list is complete (ADR-231): the warning stands at the list
+// stakeholder list is complete (ADR-234): the warning stands at the list
 // until the root holds stakeholdersComplete, whose by is a stakeholder
 // and whose source, when given, is a declared source. A must question
 // that blocks the stakeholders holds the warning, since the gap is then
@@ -85,7 +85,7 @@ func (c *checker) checkStakeholdersComplete(d *design) {
 }
 
 // StakeholdersUnconfirmed reports whether a specification's stakeholder
-// list is unconfirmed as the validator sees it (ADR-231). The documents,
+// list is unconfirmed as the validator sees it (ADR-234). The documents,
 // the site and approve show the banner and the warning on the same
 // condition, so one gap gets one mark.
 func StakeholdersUnconfirmed(root *yaml.Node) bool {

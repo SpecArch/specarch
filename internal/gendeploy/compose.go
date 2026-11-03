@@ -2,7 +2,10 @@ package gendeploy
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/gensql"
 )
 
 // compose writes a deployment as a Compose file beside the file of its
@@ -112,22 +115,36 @@ func (g *gen) fresh(d *deployment) {
 	for _, sc := range secrets {
 		b.WriteString("; " + sc.env + ", the value of " + sc.key + " for this run")
 	}
-	if dbs.name != "" {
-		b.WriteString(". The database is reached on the project's network as " + dbs.name + ".")
+	b.WriteString(".\n")
+	var reached []string
+	for _, s := range d.servers {
+		if s.dependency == "" && s.image != "" {
+			for _, p := range s.ports {
+				reached = append(reached, fmt.Sprintf("%s at localhost:%d", s.name, p))
+			}
+		}
 	}
-	b.WriteString("\nset -eu\n")
-	b.WriteString("project=${1:?usage: fresh.sh <project>, the folder the implementation file's tasks run in}\n")
+	if len(reached) > 0 {
+		b.WriteString("# The run publishes the deployment's own ports, as compose.yaml does, so the suite reaches " + strings.Join(reached, ", ") + ", and the servers reach one another by name on the project's network. One fresh run at a time fits on a host, and not beside a running project of the deployment: the name keeps the data apart, not the ports.\n")
+	}
+	b.WriteString("set -eu\n")
+	// Each refusal's text is one single-quoted word: inside ${NAME:?text}
+	// the shell would read an apostrophe of the text as a quote.
+	b.WriteString("[ $# -ge 1 ] || { echo " + shQuote("usage: fresh.sh <project>, where <project> is the folder the implementation file's tasks run in") + " >&2; exit 2; }\n")
+	b.WriteString("project=$1\n")
 	b.WriteString("here=$(cd \"$(dirname \"$0\")\" && pwd)\n")
 	b.WriteString("compose_cmd=${COMPOSE:-podman compose}\n")
 	if dbs.name != "" {
 		pw := upperSnake(dbs.name) + "_PASSWORD"
-		b.WriteString(": \"${" + pw + ":?the throwaway database's password for this run; set it, and name it in the secret that reaches the database}\"\n")
+		b.WriteString("[ -n \"${" + pw + ":-}\" ] || { echo " + shQuote("fresh: "+pw+" is not set: the throwaway database's password for this run; set it, and name it in the secret that reaches the database") + " >&2; exit 2; }\n")
 	}
 	for _, sc := range secrets {
 		b.WriteString("# specarch: #" + sc.pointer + "\n")
-		b.WriteString(": \"${" + sc.env + ":?" + secretReason(sc) + "; set its value for this run}\"\n")
+		b.WriteString("[ -n \"${" + sc.env + ":-}\" ] || { echo " + shQuote("fresh: "+sc.env+" is not set: "+secretReason(sc)+"; set its value for this run") + " >&2; exit 2; }\n")
 	}
-	b.WriteString("run=$(date -u +%Y%m%dT%H%M%SZ)-$$\n")
+	// Compose takes a project name of lowercase letters, digits, hyphens
+	// and underscores alone.
+	b.WriteString("run=$(date -u +%Y%m%d-%H%M%S)-$$\n")
 	b.WriteString("name=" + g.sysName + "-fresh-$run\n")
 	b.WriteString("compose() { $compose_cmd -p \"$name\" -f \"$here/compose.yaml\" \"$@\"; }\n")
 	total := 6
@@ -146,6 +163,32 @@ func (g *gen) fresh(d *deployment) {
 		b.WriteString("done\n")
 		b.WriteString(fmt.Sprintf("echo \"fresh: 4 of %d: load the migrations and the seed into %s\"\n", total, dbs.name))
 		load := "compose exec -T " + dbs.name + " sh -c " + shQuote(db.load)
+		// The roles are cluster state, which no migration creates
+		// (docs/generators.md, sql), and a new cluster has none: the
+		// migrations' row policies name them and the service sets them on
+		// each request, so the run creates each before the migrations.
+		if d.dialect == "postgresql" {
+			roles := obj0(g.spec["roles"])
+			keys := make([]string, 0, len(roles))
+			for k := range roles {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			var names []string
+			for _, k := range keys {
+				if n := gensql.DBRole(d.impl, k); !contains(names, n) {
+					names = append(names, n)
+				}
+			}
+			if len(names) > 0 {
+				b.WriteString("echo \"fresh:   the database roles " + strings.Join(names, ", ") + ", which no migration creates\"\n")
+				b.WriteString(load + " <<'SQL'\n")
+				for _, n := range names {
+					b.WriteString("CREATE ROLE " + n + " NOLOGIN;\n")
+				}
+				b.WriteString("SQL\n")
+			}
+		}
 		if d.migrations != "" {
 			b.WriteString("for f in \"$here\"/" + d.migrations + "/*.sql; do\n")
 			b.WriteString("  [ -e \"$f\" ] || { echo \"fresh: no migration under $here/" + d.migrations + "; run specarch generate sql first\" >&2; exit 1; }\n")
@@ -166,7 +209,12 @@ func (g *gen) fresh(d *deployment) {
 		b.WriteString(fmt.Sprintf("echo \"fresh: 4 of %d: no database server in the deployment %s; nothing to load\"\n", total, d.key))
 	}
 	b.WriteString(fmt.Sprintf("printf 'fresh: 5 of %d: run the test suite in %%s with the settings of %s: %%s\\n' \"$project\" %s\n", total, d.key, shQuote(d.test)))
-	b.WriteString("set -a\n. \"$here/" + d.key + ".env\"\nset +a\n")
+	// The env file is NAME=value a line, as Compose reads it; each line is
+	// exported as it stands, since sourcing it would read a value as shell.
+	b.WriteString("while IFS= read -r line || [ -n \"$line\" ]; do\n")
+	b.WriteString("  case $line in '' | '#'*) continue ;; esac\n")
+	b.WriteString("  export \"$line\"\n")
+	b.WriteString("done <\"$here/" + d.key + ".env\"\n")
 	b.WriteString("(cd \"$project\" && " + d.test + ")\n")
 	b.WriteString("echo \"fresh: the suite passed on $name\"\n")
 	g.file(d.key+"/fresh.sh", b.String())

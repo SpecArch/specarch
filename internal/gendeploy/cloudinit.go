@@ -31,7 +31,7 @@ func (g *gen) cloudInit(d *deployment) {
 		unit.WriteString("[Container]\n")
 		unit.WriteString("Image=" + image + "\n")
 		unit.WriteString("ContainerName=" + s.name + "\n")
-		dbNote := ""
+		dbNote, dbEnv, mapPassword := "", "", ""
 		switch s.kind {
 		case "service":
 			unit.WriteString("EnvironmentFile=" + etc + "/" + d.key + ".env\n")
@@ -46,18 +46,29 @@ func (g *gen) cloudInit(d *deployment) {
 				dbNote = fmt.Sprintf("# the dialect %s is not run by %s: the environment and the volume of %s are written by hand\n", d.dialect, name, s.name)
 				break
 			}
-			unit.WriteString("EnvironmentFile=" + secretsFile + "\n")
+			// The operator writes <SERVER>_PASSWORD, as in every form, and
+			// the image reads its own variable: before the start, the unit
+			// copies that one line under the image's name into a file in
+			// /run that root alone reads, so the value never reaches a
+			// command line.
+			pw := upperSnake(s.name) + "_PASSWORD"
+			dbEnv = "/run/" + g.sysName + "/" + s.name + ".env"
+			mapPassword = "ExecStartPre=/bin/sh -c 'umask 077 && mkdir -p /run/" + g.sysName + " && sed -n \"s/^" + pw + "=/" + db.passwordVar + "=/p\" " + secretsFile + " >" + dbEnv + "'\n"
+			dbNote = "# The image reads the password as " + db.passwordVar + ": the unit copies the line " + pw + " of " + secretsFile + " under that name into " + dbEnv + ", which root alone reads, before it starts.\n"
+			unit.WriteString("EnvironmentFile=" + dbEnv + "\n")
 			unit.WriteString("Environment=" + db.databaseVar + "=" + dbName(g.sysName) + "\n")
 			unit.WriteString("Volume=" + s.name + "-data.volume:" + db.dataPath + "\n")
-			need = append(need, db.passwordVar)
+			need = append(need, pw)
 		}
 		for _, p := range s.ports {
 			unit.WriteString(fmt.Sprintf("PublishPort=%d:%d\n", p, p))
 		}
 		unit.WriteString("[Service]\n")
 		if len(need) > 0 {
-			unit.WriteString("ExecStartPre=/bin/sh -c 'for v in " + strings.Join(need, " ") + "; do grep -q \"^$v=\" " + secretsFile + " || { echo \"$v is not in " + secretsFile + ": write it there, from the secret store of the host\" >&2; exit 1; }; done'\n")
+			// systemd expands a $ on a command line itself; $$ hands one to sh.
+			unit.WriteString("ExecStartPre=/bin/sh -c 'for v in " + strings.Join(need, " ") + "; do grep -q \"^$${v}=\" " + secretsFile + " || { echo \"$${v} is not in " + secretsFile + ": write it there, from the secret store of the host\" >&2; exit 1; }; done'\n")
 		}
+		unit.WriteString(mapPassword)
 		unit.WriteString("Restart=always\n")
 		unit.WriteString("[Install]\nWantedBy=multi-user.target\n")
 

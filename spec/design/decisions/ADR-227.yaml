@@ -61,9 +61,14 @@ decisions:
       which the operator makes; in cloud-init as /etc/<system>/secrets.env,
       which the operator writes on the host and whose variables the unit
       checks before it starts, naming each one it misses. A database's
-      password is such a secret too, <SERVER>_PASSWORD. A setting's
-      variable is its key in upper snake case, dailyRate as DAILY_RATE, in
-      every form.
+      password is such a secret too, <SERVER>_PASSWORD in every form: the
+      image reads its own variable (POSTGRES_PASSWORD,
+      MARIADB_ROOT_PASSWORD), which Compose and Kubernetes set from it,
+      and on a host the unit copies that one line of secrets.env under the
+      image's name into /run/<system>/<server>.env, which root alone reads
+      and the container's environment file is, before it starts. A
+      setting's variable is its key in upper snake case, dailyRate as
+      DAILY_RATE, in every form.
 
       The release, the rollback and each migration of the deployment stage
       are written once, at the output's root, as release.sh, rollback.sh
@@ -78,13 +83,19 @@ decisions:
       builds an environment from nothing and tears it down: it runs the
       build task (the deployment's build.task, or the task named build),
       starts the Compose project under a name made for the run alone,
-      waits for the database, loads the sql target's migrations in order
+      waits for the database, creates on postgresql each role of the
+      design as the database role the sql target's policies name, which
+      no migration creates, loads the sql target's migrations in order
       and the seed target's seed.sql into it through the container's own
       client, runs the implementation's testing.run with the settings'
       values in the environment, and on any exit takes the project down
       with its volumes. The secrets of the run, and the throwaway
       database's password, come from the environment the script runs in.
-      A fresh environment is written for a compose deployment alone: a
+      The script sits in the deployment's folder and names the migrations
+      and the seed relative to it. The run publishes the deployment's own
+      ports, as its Compose file does, so the suite reaches each server at
+      localhost on its port, and one fresh run at a time fits on a host,
+      not beside a running project of the deployment. A fresh environment is written for a compose deployment alone: a
       Compose project is built and torn down on one host with no
       provisioner, where a cluster or a set of hosts needs one; naming a
       kubernetes or cloud-init deployment under fresh is an error at the
@@ -123,7 +134,22 @@ decisions:
       one in a deployment, so the generated file is the one place a value
       could enter; each form has its own way to read one from the host,
       and each refuses to run without it, so a missing secret is a named
-      refusal and not a service that starts with an empty password. A
+      refusal and not a service that starts with an empty password. The
+      database's password keeps one name, <SERVER>_PASSWORD, in every form
+      because an operator who moves a deployment from Compose to hosts
+      writes the same secret store; the host form copies it under the
+      image's name through a file in /run rather than a variable on the
+      podman command line, since a command line is read by anyone on the
+      host through ps, and the database's container reads that one line
+      and not the services' secrets. A fresh run keeps the deployment's
+      own ports rather than ephemeral ones because the suite reaches the
+      database through a secret, such as a database URL, set before the
+      run with its port, and an override file adds to a service's
+      published ports rather than replacing them; a busy port is named by
+      compose up itself. A fresh run creates the roles because they are
+      cluster state, which the migrations leave to the operator, and a
+      cluster built from nothing has none: the row policies of the
+      migrations name them and the service sets them on each request. A
       fresh environment is torn down with its volumes because a full
       regression is only trusted on data no earlier test touched: the
       seed is the same bytes on every run, and the migrations are applied

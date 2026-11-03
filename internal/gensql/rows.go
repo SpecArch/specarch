@@ -68,7 +68,15 @@ func (g *gen) callerColumns() map[string]callerColumn {
 // dbRole is the database role a role of the design is on this stack: the
 // mapping's "role <name>", or the role's name with underscores.
 func (g *gen) dbRole(role string) string {
-	target := text(obj0(obj0(g.impl.Content["mappings"])["#/roles/"+role])["target"])
+	return DBRole(g.impl.Content, role)
+}
+
+// DBRole is the database role a role of the design is on the stack of an
+// implementation file: the mapping of #/roles/<role>, "role <name>", or
+// the role's name with underscores. The deploy target creates the same
+// roles in a fresh environment, since no migration creates one.
+func DBRole(impl map[string]any, role string) string {
+	target := text(obj0(obj0(impl["mappings"])["#/roles/"+role])["target"])
 	if name, found := strings.CutPrefix(target, "role "); found && strings.TrimSpace(name) != "" {
 		return strings.TrimSpace(name)
 	}

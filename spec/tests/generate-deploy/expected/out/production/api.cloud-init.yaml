@@ -32,7 +32,7 @@ write_files:
       EnvironmentFile=/etc/case-desk/secrets.env
       PublishPort=8080:8080
       [Service]
-      ExecStartPre=/bin/sh -c 'for v in DATABASE_URL; do grep -q "^$v=" /etc/case-desk/secrets.env || { echo "$v is not in /etc/case-desk/secrets.env: write it there, from the secret store of the host" >&2; exit 1; }; done'
+      ExecStartPre=/bin/sh -c 'for v in DATABASE_URL; do grep -q "^$${v}=" /etc/case-desk/secrets.env || { echo "$${v} is not in /etc/case-desk/secrets.env: write it there, from the secret store of the host" >&2; exit 1; }; done'
       Restart=always
       [Install]
       WantedBy=multi-user.target

@@ -99,7 +99,8 @@ type deployment struct {
 	build string
 	test  string
 	// migrations and seed are the folders of the sql and seed targets,
-	// relative to the output folder, or "".
+	// relative to the deployment's own folder under the output, where
+	// fresh.sh is written, or "".
 	migrations string
 	seed       string
 	impl       map[string]any
@@ -215,7 +216,12 @@ func (g *gen) readDeployments(impl gensql.Implementation, target map[string]any)
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	named := make([]string, 0, len(forms))
 	for k := range forms {
+		named = append(named, k)
+	}
+	sort.Strings(named)
+	for _, k := range named {
 		if _, ok := deps[k]; !ok {
 			g.problem("/", "settings.deployments of the deploy target names %s, which is not a deployment of %s; name a deployment of the file", k, impl.File)
 		}
@@ -260,8 +266,11 @@ func (g *gen) readDeployments(impl gensql.Implementation, target map[string]any)
 		if dl := text(obj0(obj0(impl.Content["targets"])["sql"])["dialect"]); dl != "" {
 			d.dialect = dl
 		}
-		d.migrations = g.relOutput(impl.File, text(obj0(obj0(impl.Content["targets"])["sql"])["output"]))
-		d.seed = g.relOutput(impl.File, text(obj0(obj0(impl.Content["targets"])["seed"])["output"]))
+		// fresh.sh lives in <output>/<deployment>, and names the folders
+		// from there.
+		here := filepath.Join(filepath.FromSlash(g.req.Output), k)
+		d.migrations = relFolder(here, impl.File, text(obj0(obj0(impl.Content["targets"])["sql"])["output"]))
+		d.seed = relFolder(here, impl.File, text(obj0(obj0(impl.Content["targets"])["seed"])["output"]))
 		d.test = text(obj0(impl.Content["testing"])["run"])
 		buildTask := text(obj0(content["build"])["task"])
 		if buildTask == "" {
@@ -322,16 +331,16 @@ func (g *gen) readDeployments(impl gensql.Implementation, target map[string]any)
 	return out
 }
 
-// relOutput is another target's output folder, named relative to the
-// implementation file, written relative to this target's output folder;
-// "" when the target has none.
-func (g *gen) relOutput(implFile, output string) string {
+// relFolder is another target's output folder, named relative to the
+// implementation file, written relative to the folder from; "" when the
+// target has none.
+func relFolder(from, implFile, output string) string {
 	if output == "" {
 		return ""
 	}
 	to := filepath.Join(filepath.Dir(filepath.FromSlash(implFile)), filepath.FromSlash(output))
 	absTo, err1 := filepath.Abs(to)
-	absOut, err2 := filepath.Abs(filepath.FromSlash(g.req.Output))
+	absOut, err2 := filepath.Abs(from)
 	if err1 != nil || err2 != nil {
 		return filepath.ToSlash(to)
 	}

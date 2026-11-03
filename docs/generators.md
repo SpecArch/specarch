@@ -1834,7 +1834,12 @@ Compose runs in that it refuses to run without; on Kubernetes as a
 makes; in cloud-init as `/etc/<system>/secrets.env`, which the operator
 writes on the host and whose variables the unit checks before it starts,
 naming each one it misses. A database's password is such a secret too,
-`<SERVER>_PASSWORD`. The specification never holds a value for a secret
+`<SERVER>_PASSWORD` in every form: the image reads its own variable
+(`POSTGRES_PASSWORD`, `MARIADB_ROOT_PASSWORD`), which Compose and
+Kubernetes set from it, and on a host the unit copies that one line of
+`secrets.env` under the image's name into `/run/<system>/<server>.env`,
+which root alone reads, before it starts, so the value never reaches a
+command line and the database's container reads no other secret. The specification never holds a value for a secret
 and the validator refuses one in a deployment, so the generated file is
 the one place a value could have entered.
 
@@ -1853,14 +1858,22 @@ builds an environment from nothing and tears it down, so a full
 regression never runs on an environment an earlier test touched: it runs
 the build task (the deployment's `build.task`, or the task named
 `build`), starts the Compose project under a name made for the run
-alone, waits for the database, loads the sql target's migrations in
-order and the seed target's `seed.sql` into it through the container's
+alone, waits for the database, creates on postgresql each role of the
+design as the database role the sql target's row policies name (no
+migration creates one, and a cluster built from nothing has none), loads
+the sql target's migrations in order and the seed target's `seed.sql`
+into it through the container's
 own client, runs the implementation's `testing.run` with the settings'
 values in the environment, and on any exit takes the project down with
 its volumes. It takes the folder the tasks run in as its argument and
 reads the secrets of the run, the throwaway database's password among
 them, from the environment it runs in; `COMPOSE` names the compose
-command (`podman compose` when unset). A fresh environment is written
+command (`podman compose` when unset). The script names the migrations
+and the seed relative to its own folder, so it runs from anywhere. The
+run publishes the deployment's own ports, as its Compose file does: the
+suite reaches each server at localhost on its port, and one fresh run at
+a time fits on a host, not beside a running project of the deployment
+(the run's name keeps the data apart, not the ports). A fresh environment is written
 for a compose deployment alone: a Compose project is built and torn down
 on one host with no provisioner, where a cluster or a set of hosts needs
 one, so a kubernetes or cloud-init deployment under `fresh` is an error

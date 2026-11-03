@@ -3,15 +3,17 @@
 # Draft: the specification is not approved: there is no records/approvals/1.0.0.yaml beside the specification; this file is not the approved output.
 # A fresh environment: built from nothing under a project name of its own, loaded with the migrations and the seed, tested with the implementation's suite, and torn down with its volumes, so no run touches what an earlier one left.
 # Usage: fresh.sh <project>, where <project> is the folder the implementation file's tasks run in.
-# Read from the environment: COMPOSE, the compose command (podman compose when unset); DB_PASSWORD, the throwaway database's password for this run; DATABASE_URL, the value of databaseUrl for this run. The database is reached on the project's network as db.
+# Read from the environment: COMPOSE, the compose command (podman compose when unset); DB_PASSWORD, the throwaway database's password for this run; DATABASE_URL, the value of databaseUrl for this run.
+# The run publishes the deployment's own ports, as compose.yaml does, so the suite reaches api at localhost:8080, db at localhost:5432, and the servers reach one another by name on the project's network. One fresh run at a time fits on a host, and not beside a running project of the deployment: the name keeps the data apart, not the ports.
 set -eu
-project=${1:?usage: fresh.sh <project>, the folder the implementation file's tasks run in}
+[ $# -ge 1 ] || { echo 'usage: fresh.sh <project>, where <project> is the folder the implementation file'\''s tasks run in' >&2; exit 2; }
+project=$1
 here=$(cd "$(dirname "$0")" && pwd)
 compose_cmd=${COMPOSE:-podman compose}
-: "${DB_PASSWORD:?the throwaway database's password for this run; set it, and name it in the secret that reaches the database}"
+[ -n "${DB_PASSWORD:-}" ] || { echo 'fresh: DB_PASSWORD is not set: the throwaway database'\''s password for this run; set it, and name it in the secret that reaches the database' >&2; exit 2; }
 # specarch: #/configuration/databaseUrl
-: "${DATABASE_URL:?databaseUrl is a secret of the specification, never written here; set its value for this run}"
-run=$(date -u +%Y%m%dT%H%M%SZ)-$$
+[ -n "${DATABASE_URL:-}" ] || { echo 'fresh: DATABASE_URL is not set: databaseUrl is a secret of the specification, never written here; set its value for this run' >&2; exit 2; }
+run=$(date -u +%Y%m%d-%H%M%S)-$$
 name=case-desk-fresh-$run
 compose() { $compose_cmd -p "$name" -f "$here/compose.yaml" "$@"; }
 printf 'fresh: 1 of 6: build in %s: %s\n' "$project" 'podman build -t case-desk-api .'
@@ -27,16 +29,17 @@ until compose exec -T db sh -c 'pg_isready -U postgres' >/dev/null 2>&1; do
   sleep 1
 done
 echo "fresh: 4 of 6: load the migrations and the seed into db"
-for f in "$here"/../migrations/*.sql; do
-  [ -e "$f" ] || { echo "fresh: no migration under $here/../migrations; run specarch generate sql first" >&2; exit 1; }
+for f in "$here"/../../migrations/*.sql; do
+  [ -e "$f" ] || { echo "fresh: no migration under $here/../../migrations; run specarch generate sql first" >&2; exit 1; }
   echo "fresh:   $f"
   compose exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -q -U postgres -d case_desk' <"$f"
 done
-echo "fresh:   $here/../seed/seed.sql"
-compose exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -q -U postgres -d case_desk' <"$here/../seed/seed.sql"
+echo "fresh:   $here/../../seed/seed.sql"
+compose exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -q -U postgres -d case_desk' <"$here/../../seed/seed.sql"
 printf 'fresh: 5 of 6: run the test suite in %s with the settings of local: %s\n' "$project" 'go test ./...'
-set -a
-. "$here/local.env"
-set +a
+while IFS= read -r line || [ -n "$line" ]; do
+  case $line in '' | '#'*) continue ;; esac
+  export "$line"
+done <"$here/local.env"
 (cd "$project" && go test ./...)
 echo "fresh: the suite passed on $name"

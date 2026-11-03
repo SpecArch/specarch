@@ -276,7 +276,7 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 		b, _ := semver.Parse(str(releases[j], "version"))
 		return semver.Compare(a, b) < 0
 	})
-	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements (requirement IDs and #/ pointers) that the change requests it includes name under affects adds and changes: approved once the request's decision approves it, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
+	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements (requirement IDs and #/ pointers) that the change requests it includes name under affects adds and changes: approved once the request's decision approves it and it is not withdrawn, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
 		countText(scope, "element", "elements")))
 	if len(releases) == 0 {
 		d.para("No release is recorded.")
@@ -298,7 +298,7 @@ func (d *doc) progressBurnUp(state *State, scope int) {
 			}
 			ids = append(ids, id)
 			status := str(c, "status")
-			isApproved := str(get(c, "decision"), "outcome") == "approved" || status == "approved" || status == "implemented" || status == "released"
+			isApproved := status != "withdrawn" && status != "rejected" && (str(get(c, "decision"), "outcome") == "approved" || status == "approved" || status == "implemented" || status == "released")
 			isGenerated := status == "implemented" || status == "released"
 			affects := get(c, "affects")
 			for _, ref := range append(strs(affects, "adds"), strs(affects, "changes")...) {

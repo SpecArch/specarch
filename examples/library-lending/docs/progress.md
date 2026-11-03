@@ -42,7 +42,7 @@ Not confirmed: no role has confirmed the list of 4 stakeholders complete, so a r
 
 ## 6. Burn-up
 
-One point per release, oldest first. Each counts, from the first release to it, the distinct elements (requirement IDs and #/ pointers) that the change requests it includes name under affects adds and changes: approved once the request's decision approves it, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 338 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
+One point per release, oldest first. Each counts, from the first release to it, the distinct elements (requirement IDs and #/ pointers) that the change requests it includes name under affects adds and changes: approved once the request's decision approves it and it is not withdrawn, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 338 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
 
 | Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |
 |---|---|---|---|---|---|---|

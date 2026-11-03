@@ -197,3 +197,22 @@ func TestWorkedTestsNameWhatGeneratorsWrite(t *testing.T) {
 		return escaped
 	}())
 }
+
+// TestWorkedTestsReadsAWrongSpecification checks WorkedTests reads a
+// specification whose calls entries are neither a reference nor a map, as
+// specarch log test-run gives it whatever the validator could read.
+func TestWorkedTestsReadsAWrongSpecification(t *testing.T) {
+	spec := map[string]any{
+		"paths": map[string]any{"/loans": map[string]any{"post": map[string]any{
+			"operationId": "makeLoan",
+			"calls":       []any{json.Number("42"), map[string]any{"call": json.Number("7")}, map[string]any{"mapping": map[string]any{"examples": []any{map[string]any{"name": "x"}}}}},
+		}}},
+		"algorithms": map[string]any{"cap": "not a map"},
+	}
+	worked := WorkedTests(spec)
+	for _, w := range worked {
+		if w.Element != "#/paths/~1loans" {
+			t.Errorf("a worked test of the wrong specification maps to %q", w.Element)
+		}
+	}
+}

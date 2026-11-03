@@ -554,7 +554,8 @@ func (g *walker) callMappings() []Mapping {
 				if s, ok := c.(string); ok {
 					refs = append(refs, s)
 				} else {
-					refs = append(refs, str(c.(map[string]any), "call"))
+					entry, _ := c.(map[string]any)
+					refs = append(refs, str(entry, "call"))
 				}
 			}
 			names := callNames(refs)

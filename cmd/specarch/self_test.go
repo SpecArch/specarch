@@ -337,8 +337,9 @@ func TestPluginsAnswerCapabilities(t *testing.T) {
 		t.Fatal(err)
 	}
 	var dir string
+	built := newPlugins(t)
 	for _, d := range dirs {
-		dir = buildPlugin(t, strings.TrimPrefix(filepath.Base(d), "specarch-gen-"))
+		dir = built.build(t, strings.TrimPrefix(filepath.Base(d), "specarch-gen-"))
 	}
 	found := capability.Gather(dir, 30*time.Second)
 	if len(found) != len(dirs) {
@@ -435,7 +436,8 @@ func TestStartExampleIsACase(t *testing.T) {
 // dry run changed nothing and listed exactly the files the real run wrote.
 func TestDryRunWritesNothing(t *testing.T) {
 	// The plug-ins are built before PATH loses go.
-	pluginDir := map[string]string{"openapi": buildPlugin(t, "openapi"), "sql": buildPlugin(t, "sql")}
+	built := newPlugins(t)
+	pluginDir := map[string]string{"openapi": built.build(t, "openapi"), "sql": built.build(t, "sql")}
 	noPlugins(t)
 	cases := []struct {
 		name    string

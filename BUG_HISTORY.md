@@ -1020,3 +1020,17 @@ Expected: the generated test file has no unused import, and `dart analyze --fata
 To repeat: built before this fix, run `specarch generate tests --unapproved` on `spec/tests/generate-tests-dart-hand-written-bodies/project` and `dart analyze --fatal-infos` on the output beside a harness file.
 
 Fix: `GenerateDart` (`internal/gentests/dart.go`) writes `main` first and notes what each of its lines names: `test` and `group` from the framework, `newHarness` and the bodies from the harness file, and `Value`, the checks and `mappingHarness` from the library. Each import is written only when its code is named, so a file whose tests all have hand-written bodies imports the framework and the harness alone, and one whose tests all do not apply imports nothing. ADR-041 says so. The conformance case `generate-tests-dart-hand-written-bodies` shows the file, and `TestHandWrittenBodiesDartAnalyzes` analyzes it with infos fatal, and the file of a specification whose tests all do not apply.
+
+## BUG-071 — `go test ./cmd/specarch` leaves a specarch-plugins-* folder of about 120 MB in the temporary folder after every run
+
+- Reported: 2026-11-04, found on a self-hosted test runner whose disk filled, against 1.4.0
+- Closed: 2026-11-04, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-071`
+
+Every run of `go test ./cmd/specarch` left a `specarch-plugins-<n>` folder in the temporary folder (`/tmp` on Linux, `$TMPDIR` on macOS), holding every plug-in the run built, about 120 MB. Ten such folders, about 1.2 GB from one afternoon's runs, were among what filled a test runner's disk, and later runs there failed with `no space left on device`. The tests built the plug-ins once per run into a folder made with `os.MkdirTemp("", "specarch-plugins-")` in `buildPlugin` (`cmd/specarch/conformance_test.go`), and nothing removed it: not after a passing run, a failing one or a panic.
+
+Expected: a run, passed, failed or panicked, leaves no `specarch-plugins-*` folder behind.
+
+To repeat: before this fix, `ls -d "${TMPDIR:-/tmp}"/specarch-plugins-*`, then `go test ./cmd/specarch -count=1`, then the same `ls`: one folder more.
+
+Fix: each top-level test that runs plug-ins (`TestConformance`, `TestPluginsAnswerCapabilities`, `TestDryRunWritesNothing`, `TestStep2ReferenceComparesEqual` and the child run of `TestRecordRefusesExpectedEqualToInput`) makes its own plug-in folder with `newPlugins`, which registers its removal with `t.Cleanup` on that test, and passes it to the cases that build into it. Go runs the cleanups of a panicking test and of every test above it before the program stops, so a panic in any case removes the folder too. A single folder for the whole run, removed in `TestMain` after `m.Run`, was not taken: a panic never returns from `m.Run`. The folder keeps the `specarch-plugins-` prefix rather than taking `t.TempDir`'s name after the test, so a sweep of the temporary folder still finds one left by a run that timed out or was killed, the two cases that run no cleanups. The price is that each such test builds the plug-ins it needs again, a cached link of under a second each. `TestPluginFolderRemoved` runs the test binary again as a child with its own `TMPDIR`, once with a case that passes, once with one that fails and once with one that panics, and checks the folder the child built into is gone and no `specarch-plugins-*` folder is left; with the cleanup taken out it fails on all three. The conformance suite's description in the Go implementation file says so.

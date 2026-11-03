@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -110,40 +111,128 @@ func makeRepository(t *testing.T, work string, r *caseRepository) {
 	}
 }
 
-// builtPlugins is the folder the repository's own plug-ins are built into
-// for the cases that name them.
-var builtPlugins struct {
+// plugins builds the repository's own plug-ins for one top-level test, each
+// once, into a temporary folder of its own. The test that made it removes
+// the folder when it ends, passed, failed or panicked: Go runs the cleanups
+// of a panicking test and of every test above it before the program stops,
+// so a panic in any case of the test removes it too. A folder is made per
+// top-level test, never per run, because a folder shared by the whole run
+// could only be removed after m.Run returns, which a panic never reaches.
+// The folder keeps the specarch-plugins- prefix, so a sweep of the
+// temporary folder still finds one left by a run that timed out or was
+// killed, which runs no cleanups at all.
+type plugins struct {
 	sync.Mutex
 	dir   string
 	built map[string]bool
 }
 
-// buildPlugin builds cmd/specarch-gen-<target> once and returns its folder.
-// It runs before the case changes its working folder.
-func buildPlugin(t *testing.T, target string) string {
+// newPlugins makes the plug-in folder of the top-level test t and removes
+// it when t ends.
+func newPlugins(t *testing.T) *plugins {
 	t.Helper()
-	builtPlugins.Lock()
-	defer builtPlugins.Unlock()
-	if builtPlugins.dir == "" {
-		dir, err := os.MkdirTemp("", "specarch-plugins-")
-		if err != nil {
-			t.Fatal(err)
-		}
-		builtPlugins.dir, builtPlugins.built = dir, map[string]bool{}
+	dir, err := os.MkdirTemp("", "specarch-plugins-")
+	if err != nil {
+		t.Fatalf("cannot make the temporary folder the plug-ins are built into: %v", err)
 	}
-	if !builtPlugins.built[target] {
+	t.Cleanup(func() {
+		if err := os.RemoveAll(dir); err != nil {
+			t.Errorf("cannot remove %s, the folder the plug-ins were built into: %v; remove it by hand", dir, err)
+		}
+	})
+	return &plugins{dir: dir, built: map[string]bool{}}
+}
+
+// build builds cmd/specarch-gen-<target> once and returns the folder it is
+// in. It runs before the case changes its working folder.
+func (p *plugins) build(t *testing.T, target string) string {
+	t.Helper()
+	p.Lock()
+	defer p.Unlock()
+	if !p.built[target] {
 		src, err := filepath.Abs("../specarch-gen-" + target)
 		if err != nil {
 			t.Fatal(err)
 		}
-		cmd := exec.Command("go", "build", "-o", filepath.Join(builtPlugins.dir, "specarch-gen-"+target), ".")
+		cmd := exec.Command("go", "build", "-o", filepath.Join(p.dir, "specarch-gen-"+target), ".")
 		cmd.Dir = src
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("cannot build the plug-in for %s: %v\n%s", target, err, out)
 		}
-		builtPlugins.built[target] = true
+		p.built[target] = true
 	}
-	return builtPlugins.dir
+	return p.dir
+}
+
+// pluginEndVariable makes TestPluginFolderRemoved the child it starts: the
+// child builds a plug-in in a case, prints the folder, and then the case
+// passes, fails or panics, as the variable says.
+const pluginEndVariable = "SPECARCH_TEST_PLUGIN_FOLDER_END"
+
+// TestPluginFolderRemoved proves that the folder the plug-ins are built
+// into is gone once its test ends, whether its case passed, failed or
+// panicked. A failing or panicking case fails or stops the binary that runs
+// it, so each runs in the test binary started again as a child process,
+// with its own TMPDIR; afterwards the folder the child named, which must be
+// in that TMPDIR, is gone, and no specarch-plugins- folder is left there.
+func TestPluginFolderRemoved(t *testing.T) {
+	if end := os.Getenv(pluginEndVariable); end != "" {
+		built := newPlugins(t)
+		t.Run("case", func(t *testing.T) {
+			fmt.Printf("plug-in folder: %s\n", built.build(t, "register"))
+			switch end {
+			case "fail":
+				t.Fatal("the case fails, as asked")
+			case "panic":
+				panic("the case panics, as asked")
+			}
+		})
+		return
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	named := regexp.MustCompile(`plug-in folder: (\S+)`)
+	for _, c := range []struct {
+		end    string
+		status int // the child's exit status: 1 for a failed test, 2 for a panic
+	}{{"pass", 0}, {"fail", 1}, {"panic", 2}} {
+		t.Run(c.end, func(t *testing.T) {
+			tmp := t.TempDir()
+			cmd := exec.Command(exe, "-test.run=^TestPluginFolderRemoved$", "-test.v")
+			cmd.Env = append(os.Environ(), pluginEndVariable+"="+c.end, "TMPDIR="+tmp)
+			out, err := cmd.CombinedOutput()
+			status := 0
+			var exit *exec.ExitError
+			if errors.As(err, &exit) {
+				status = exit.ExitCode()
+			} else if err != nil {
+				t.Fatalf("cannot run the child test binary %s: %v", exe, err)
+			}
+			if status != c.status {
+				t.Fatalf("the child exited with status %d, want %d:\n%s", status, c.status, out)
+			}
+			m := named.FindSubmatch(out)
+			if m == nil {
+				t.Fatalf("the child named no plug-in folder:\n%s", out)
+			}
+			dir := string(m[1])
+			if !strings.HasPrefix(dir, tmp+string(filepath.Separator)) {
+				t.Fatalf("the child built into %s, outside its TMPDIR %s", dir, tmp)
+			}
+			if _, err := os.Stat(dir); !os.IsNotExist(err) {
+				t.Errorf("%s is still there after the child ended (stat: %v):\n%s", dir, err, out)
+			}
+			left, err := filepath.Glob(filepath.Join(tmp, "specarch-plugins-*"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(left) > 0 {
+				t.Errorf("the child left %s", strings.Join(left, ", "))
+			}
+		})
+	}
 }
 
 // The conformance suite is the tests stage of SpecArch's own specification:
@@ -160,12 +249,13 @@ func TestConformance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	built := newPlugins(t)
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue
 		}
 		src := filepath.Join(conformanceDir, e.Name())
-		t.Run(e.Name(), func(t *testing.T) { runCase(t, src) })
+		t.Run(e.Name(), func(t *testing.T) { runCase(t, src, built) })
 	}
 }
 
@@ -175,7 +265,7 @@ func TestConformance(t *testing.T) {
 // equal to the case's input of the same name is refused before anything
 // runs or is recorded: the case fails naming the file, and the run and the
 // record are skipped, so a record never writes expected/ without it.
-func runCase(t *testing.T, src string) {
+func runCase(t *testing.T, src string, builder *plugins) {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join(src, "case.yaml"))
 	if os.IsNotExist(err) {
@@ -229,7 +319,7 @@ func runCase(t *testing.T, src string) {
 	}
 	var built string
 	for _, target := range c.Plugins {
-		built = buildPlugin(t, target)
+		built = builder.build(t, target)
 	}
 	gitDir := ""
 	if len(c.Repositories) > 0 {
@@ -336,7 +426,7 @@ const caseVariable = "SPECARCH_CONFORMANCE_CASE"
 // when caseVariable is set.
 func TestRecordRefusesExpectedEqualToInput(t *testing.T) {
 	if dir := os.Getenv(caseVariable); dir != "" {
-		runCase(t, dir)
+		runCase(t, dir, newPlugins(t))
 		return
 	}
 	dir := t.TempDir()

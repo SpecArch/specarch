@@ -50,7 +50,7 @@ func TestStep2ReferenceComparesEqual(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	built := buildPlugin(t, "ui-typescript")
+	built := newPlugins(t).build(t, "ui-typescript")
 	t.Chdir(work)
 	t.Setenv("PATH", built)
 

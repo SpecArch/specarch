@@ -375,7 +375,12 @@ testing:
         the file and the record is skipped, since it would drop the file.
         It also checks that every test of a command has a `case.yaml` and
         that the validator's rules are exactly the specification's Rule
-        enum.
+        enum. The plug-ins a test runs are built into a temporary folder
+        named `specarch-plugins-*` that the top-level test owns and
+        removes when it ends, passed, failed or panicked, so a run leaves
+        none behind; only a run that times out or is killed, which runs
+        no cleanups, can leave one, and the prefix lets a sweep of the
+        temporary folder find it.
       run: go test ./cmd/specarch
       level: system
       designTestsOf:

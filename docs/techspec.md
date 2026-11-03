@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 119 requirements, 5 entities, 27 commands, 7 algorithms, 965 tests, 211 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 120 requirements, 5 entities, 27 commands, 7 algorithms, 966 tests, 212 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -3755,7 +3755,8 @@ does not give is refused as reference at its entry, with status 1
 and nothing written: a value typed by another specification's element
 (for sql and seed, a field of an entity or a view), and for ui a list page or
 a picker reading another specification's list; every other target
-refuses those whatever the run gives. A relation to another
+refuses those whatever the run gives; tests reads the specifications given
+for the integration tests below. A relation to another
 specification's entity is not refused: its via field is this
 specification's. Given the specification, openapi writes the
 element a field is typed by inline where the field is, with every
@@ -3788,6 +3789,29 @@ so a specification declares a module only where it names the module
 itself; a module there that the run does not give is an error at the
 entry that led to it, naming the module chain and the dependency
 that names the module, with its version (ADR-185).
+
+Given the specifications of the modules its dependencies name,
+tests writes, beside the design tests, one integration test per
+operation of another module the specification calls, through a
+calls entry of an operation, a job or a gateway, or the source of a
+list page or a picker, naming every place that calls it, the
+calling and the called module with their versions, the dependency,
+the method and path and the caller's time limit. Each test runs the
+golden path, with the operation's permission and the input of the
+called module's golden design test of the operation, the harness
+filling every required value it does not give, checking the
+success status and every field the answer requires, and the red
+paths the operation implies: denied without its permission, each
+required query, header or body field left out, each other answer
+it declares, the module failing, and the module not answering
+within the time limit; each checks the status the operation
+declares for it (403 denied, 400 or 422 for a missing field), or a
+refusal when it declares none. The tests of the calls into one
+module go into one file named after the module, and the harness
+they share into the file of the design tests, so a change in one
+module's contract changes that module's file only. A call into a
+module the run does not give is named, with its place and the
+module, in a comment of the design tests' file (ADR-226).
 
 An element whose mapping in the implementation file names a
 stakeholder under `ownedBy` is owned by that stakeholder: a plug-in
@@ -17438,6 +17462,77 @@ the examples; a stale line is corrected when the example changes.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.6: A complete set of requirements holds no to-be-defined, to-be-specified or to-be-resolved clause; resolving them is iterative, within a time set by risk and dependency. <https://www.iso.org/standard/72089.html>
 
+### ADR-226: The tests target writes one integration test per call into another module the run gives, with its golden and red paths, in one file per called module
+
+Status: proposed, 2026-11-03.
+
+Rests on: [ADR-184](#adr-184-generate-reads-the-modules-of-the-estate-a-specifications-dependencies-name-imports-the-schema-entity-or-enum-a-field-is-typed-by-under-its-own-name-and-writes-a-page-or-picker-over-another-modules-list-at-the-address-the-ui-targets-settings-give-the-dependency), [ADR-207](#adr-207-a-calls-mapping-holds-worked-examples-of-what-is-sent-and-what-is-kept-checked-by-validate-evaluated-by-specarch-try-under-the-operations-name-and-turned-into-tests-through-a-harness-of-their-own), [ADR-213](#adr-213-specarch-derive-drafts-the-fixture-input-and-expect-the-design-fixes---fill-adds-them-to-tests-that-have-none-and-the-test-plan-counts-the-tests-generated-with-a-body).
+
+Context: An estate's modules are owned by different teams, and what breaks
+at the system integration test is most often a call between two of
+them: a request the called module no longer takes, an answer it no
+longer gives, a permission the caller does not hold, a failure or a
+time limit the caller does not expect. The design already says each
+call: a calls entry of an operation, a job or a gateway naming
+<dependency>#/paths/<path>/<method>, and a list page or a picker
+whose source is such an operation, where the dependency names the
+other module's specification and version. The called module's
+design says the operation's request, its answers and its
+permission; the caller's says the time limit. The tests target
+writes the tests of one specification, and reads no other.
+
+Decision: tests becomes a target that reads the specifications the run gives
+(ADR-184): with the module's folder and --estate <estate>, the
+plug-in gets each dependency's specification and writes, beside the
+design tests, one integration test per call into another module,
+in the language of the calling module's implementation file. A
+call is an operation of the other module, named by a calls entry
+(an operation's, a job's or a gateway's) or by the source of a list
+page or a picker; one operation called from several places is one
+test, naming every place. Each test pins the calling module and the
+called module with their info.name and info.version, the
+dependency, the operation, its method and path, and the caller's
+time limit, and runs these paths: the golden one, a caller holding
+the operation's permission and the values of the called module's
+golden design test of that operation, answered with its success
+status and every field its answer requires; denied without the
+permission; each required query, header or body field left out;
+each other answer the operation declares, in a state the harness
+arranges; the called module failing; and the called module not
+answering within the time limit. When the called module's design
+gives no golden input, or leaves out values the contract requires,
+the harness fills every required value the input does not give, and
+a field left out is named to the harness, which leaves it out of
+the request it makes; a name required in two places, a query
+parameter and a body field, is one path, left out of every place,
+since two paths of one name would be two tests of one name, which
+Swift and Dart refuse. The status checked is the one the
+operation declares for the path, 403 for a denied call, 400 or 422
+for a missing field (docs/test-generation.md, as derive drafts
+them); when it declares none, the check is that the call is
+refused. The tests of the calls into one module go into one file
+named after that module, and what every file shares, the harness
+and the checks, into the file of the design tests. A call into a
+module the run does not give is not written, and the file of the
+design tests names it, the place and the module, in a comment.
+
+Consequences: A contract change in one module changes only the file of the calls
+into it, in every module that calls it, and the file's header names
+the version it was written from, so a reviewer of the change sees
+which callers it touches. The project writes one more harness,
+IntegrationHarness, which makes the call as the caller makes it,
+against a running instance of the called module, and arranges the
+called module's state, failure and delay. The plug-in decides
+nothing the two designs do not say: it does not test what the
+caller does with an answer, which the caller's own design tests
+check through its derived dependency cases. A module whose
+implementation file has no tests target, or a stack with no tests
+plug-in, gets no integration tests, as it gets no design tests.
+
+**Insight:** The tests are generated from the caller's side because the caller knows what it calls and with which time limit, and the called module may not know its callers; a test generated in the called module from every caller of the estate would put each caller's test in a repository its team does not own. One file per called module, rather than one file for all calls, is what keeps a change in one module's contract to that module's file in the review: a single file would change for every module's change and hide which contract moved. The red paths are those the called module's design implies and nothing more, the permission, the required fields, the declared answers, failure and time limit, because a path the design does not say is a guess, and a generated guess is a test someone has to argue with (docs/principles.md, no placeholders). A path parameter is not left out, since a request without it is another path. The statuses follow derive's rule, so a derived case and an integration test of the same call agree; 403 for a denied call is RFC 9110's status for a caller who is known and not allowed. A call into a module the run does not give is named in the output, not dropped, since validate already counts the reference as unresolved and the output marks it where the test would be (the compiler rule of docs/principles.md); refusing the whole run would stop a module alone from getting its design tests.
+
+**Note:** From RFC 9110, HTTP Semantics, 2022, clause 15.5.4: The 403 (Forbidden) status code indicates that the server understood the request but refuses to fulfill it. <https://www.rfc-editor.org/rfc/rfc9110>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -17863,6 +17958,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | generate-stack-plugin | command generate | system | golden | a specification whose implementation file is in Go, with specarch-gen-echo-go and specarch-gen-echo both on PATH | generate echo is run with --unapproved | it runs specarch-gen-echo-go, the plug-in for the file's stack, writes its file into the output the implementation file names, and exits 0 |
 | generate-tests-dart | command generate | system | golden | the specification of generate-tests-go, and an implementation file in Dart whose testing framework is flutter_test; specarch-gen-tests-dart built from this repository on PATH | generate tests is run with --unapproved | it writes the library of values, harness and checks and the test file beside it, both importing flutter_test: the same tests as in Go through Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a group per algorithm with a test per worked example, and exits 0 |
 | generate-tests-dart-hand-written-bodies | command generate | system | golden | a specification whose design tests on an operation and a constraint all leave their body to be written by hand, one signing a caller in and none storing a record, and one test that does not apply; an implementation file in Dart whose testing framework is package:test; specarch-gen-tests-dart built from this repository on PATH | generate tests is run with --unapproved | the test file imports package:test and the project's harness but not the library of values, harness and checks, which none of its tests names, so dart analyze finds no unused import in it; the library is written as for any specification, and it exits 0 |
+| generate-tests-estate-calls | command generate | system | golden | an estate of two modules, the stock module whose operation calls the pricing module's getPrice through a dependency with a time limit, getPrice needing a permission and a required query field and declaring a 422 and a 404, a golden design test of getPrice with its input, an implementation file in Go with a tests target, and specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved and --estate naming the estate file, on the stock module | it writes the design tests' file with the integration harness and one file of the calls into the pricing module, holding one test of the call that pins both modules and their versions, the dependency, the method, the path and the time limit, with the golden path on the golden test's input and the red paths denied without the permission, the required field left out answered 422, the 404 arranged, the module failing and the module not answering in time, and exits 0 |
 | generate-tests-framework-refused | command generate | system | red | the specification of generate-tests-go, and an implementation file in Swift whose testing framework is XCTest; specarch-gen-tests-swift built from this repository on PATH | generate tests is run with --unapproved | the plug-in refuses the framework by name, saying it writes Swift Testing; nothing is written, and it exits 1 |
 | generate-tests-go | command generate | system | golden | a specification with an operation, a command, a page, a check constraint and an algorithm, and design tests of each with fixtures, inputs and expected outcomes where the design gives a call; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes one Go test file: a test per design test through the Harness, a body to write by hand for the test with no call, the reason of the test that does not apply, a unit test per worked example with decimals as decimals, and exits 0 |
 | generate-tests-routes | command generate | system | golden | a specification with a files route and its tests, three naming the file under the prefix as input.file, one for a file that is there, one for a file that is not and one for a path that climbs out of the folder, and one naming no file; an implementation file in Go with a tests target; specarch-gen-tests-go built from this repository on PATH | generate tests is run with --unapproved | it writes one Go test file: a GET at the prefix followed by the file for each test that names one, with its expected status, and a body to write by hand for the test that names none, saying that a files route needs a file under the prefix, and exits 0 |
@@ -18447,6 +18543,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |
 |---|---|---|---|---|---|---|---|
 | SA-31 | specarch generate tests shall write, through the plug-in for an implementation file's stack, one test per design test and one per worked example, in Go, in Swift with Swift Testing, or in Dart with package:test or flutter_test, setting up the fixture, making the call and checking the expected outcome through a harness the project writes, so that the generated tests are the same on every project of that language. | functional | should | accepted | test | generate looks up specarch-gen-<target>-<stack> for an implementation file in Go before specarch-gen-<target>, and falls back to the second when the first is not on PATH. The tests generated from the library lending example compile beside a harness that does nothing and an empty body for each test the design gives no call for, in Go, in Swift and in Dart for both frameworks, and a worked example's expected decimal is compared as a decimal. The Go, Swift and Dart tests generated from one specification hold the same tests, calls and checks. A Swift or Dart implementation file whose testing framework is not one the plug-in writes for is refused by name, and nothing is written. | NEED-9 |
+| SA-120 | specarch generate tests, given a module and the estate it belongs to, shall write one integration test per call the module makes into another module of the estate, pinning both modules by name and version, with the golden path and the red paths the called operation's contract implies, in the test language of the calling module's implementation file, the tests of the calls into one module in one file of their own. | functional | should | proposed | test | generate tests --estate <estate> <module> writes one test per operation of another module the module calls through a calls entry, a list page or a picker, naming every place that calls it, the calling and the called module with their versions, the dependency, the method and path and the caller's time limit. Each test runs the golden path with the operation's permission and the called module's golden input, the harness filling every required value that input does not give, checking the success status and every field the answer requires, and the red paths the called operation implies, each with the status it declares or else a refusal - denied without the permission, each required query, header or body field left out, each other answer it declares, the called module failing and the called module not answering within the time limit. A change in one called module's contract changes only the file of the calls into that module. A call into a module the run does not give is named in the generated design tests' file with its place and module, and the rest is written. The Go, Swift and Dart integration tests of one module hold the same tests and checks. | NEED-9 |
 | SA-29 | A specification shall be able to declare the dependencies an operation calls with a time limit per call, an idempotency key on an operation, the validity of an entity's records, how a session ends, and a guard on a data change, and specarch validate shall check each against the design and derive the red cases each implies. | functional | must | accepted | test | A calls entry naming no declared dependency, an idempotency key naming no header parameter or sitting on a GET, a validity naming a field that is not a date, a timeout of zero, and a guard naming no entity are each reported under their rule. A guard's writes on a PUT of its entity by its key or on a DELETE by its key, a delete beside a transition the entry triggers, a set of a field the entity lacks, of its key or of its state field, and a value that is neither given nor a literal of the field's type are each reported under guard. An operation that calls a dependency gets the cases dependency fails and dependency times out, one with an idempotency key the repeated and reused cases, one taking a record of an entity with validity the expired case, one with a guard the concurrent write case, and every non-public subject the expired session case once a session is declared. | NEED-9 |
 | SA-28 | specarch derive shall write a draft test for every derived case that no test covers, and shall never overwrite a test or write one for a subject an open must or should question holds up. | functional | should | accepted | test | A specification with uncovered chosen cases gets one test folder per case, each marked origin inferred, and validates afterwards. A test folder that exists is kept as it is. A subject a must question blocks gets no test, and derive names it. Two subjects of different kinds that give the same name get drafts of different names, and a draft whose name is still taken is not written; derive names it and exits 1. | NEED-9 |
 | SA-111 | specarch derive shall draft the fixture, input and expected outcome of a derived case wherever the design fixes them, shall add them on request to a test that has none, and the test plan shall say how many tests the tests target writes with their bodies. | functional | should | proposed | test | A draft of an operation's case carries a caller, a valid value of every required parameter and body field, the records those values name and the status the case answers, when the operation declares that status: the success status, 403 denied, 404 not found, 401 not signed in, 400 or 422 for a missing field or a value of the wrong form or past a limit; a value test_data would refuse is never written. derive --fill adds that data at the end of each test that has none of fixture, input and expect, leaves a test of several cases whose data differ as it is and names it with the reason, and leaves a test with an input/ or expected/ folder as it is. The test plan says how many of the tests that apply are generated with their bodies and counts them by kind of subject. | NEED-9 |
@@ -18567,6 +18664,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-100 | specarch try shall evaluate one algorithm's formula, in both builds, on each of its worked examples or on inputs given on the command line, with the specification's definition of the algorithm or a proposed one read from a file in its place, and print for each evaluation its inputs, every operation and call of the formula with the value it gave, in the order they were computed, the result and, for an example, the expected value and whether it holds. | functional | must | proposed | test | specarch try on the library lending example's lateFee prints a summary line, then each of its four examples with its inputs, each sub-expression of the formula that was computed with its value, decimals at the scale the formula gives them, the result and the expected value, all four passing, and exits 0; the Go build and the Swift build print the same lines. An example whose expected value the formula does not give is printed as failing with the result beside the expected value, and an example the formula cannot compute is printed with the steps computed before the failure and the reason; either exits 1. The operand of && or \|\| that is not read and the branch of ?: that is not taken are not printed. --example prints one example by its name, and the validator's lines of the examples it does not evaluate are printed and exit 1; --inputs evaluates the inputs written as an example's inputs are and prints the result with no expected value; an input given there that does not fit its field is printed with the reason and exits 1. --file reads the algorithm from a fragment file in place of the specification's, each key it gives taking the place of the specification's key and the others kept, so a proposed formula is tried on the examples the specification holds; the specification's files are not changed. An algorithm the specification does not have is refused, naming the ones it has, and exits 1; a usage error, a folder or file that cannot be read, or --example with --inputs exits 2. With --json the Go build prints the evaluations as data beside the lines. | NEED-1, NEED-10 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
+
+**Insight on SA-120:** What breaks at the system integration test of an estate is most often a call between two modules owned by different teams; the two designs already say the request, the answers, the permission and the time limit, so a test of each call needs nothing but a harness that runs the two modules (ADR-226).
 
 **Insight on SA-29:** The red paths a specification could not express, a dependency down or slow, a retry, expired data, an expired session, two writers on one record, are the ones a tester forgets and a live system meets; once the design says them, the tests follow from it like every other case.
 
@@ -18949,6 +19048,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-117 | commands document; commands validate; decisions ADR-220 | tests document-communications-everyone; tests document-writes-communications; tests document-writes-timeline; tests validate-communication-ref; tests validate-communications-valid; tests validate-evidence; tests validate-record-cited; tests validate-unheard; tests validate-unheard-no-records; tests validate-unheard-one-heard |
 | SA-118 | commands decide; commands log; decisions ADR-220 | tests decide-cites-record; tests decide-record-refused; tests decide-record-unknown; tests decide-record-wrong-by; tests decide-source-and-record; tests log-answer-needs-question; tests log-asks-missing; tests log-asks-missing-json; tests log-dry-run; tests log-evidence-outside; tests log-unknown-role; tests log-usage-error; tests log-writes-record |
 | SA-119 | decisions ADR-225 | tests help-situations |
+| SA-120 | commands generate; decisions ADR-226 | tests generate-tests-estate-calls |
 
 ## Sources
 

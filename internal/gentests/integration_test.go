@@ -189,6 +189,40 @@ func TestRequiredFieldLeftOut(t *testing.T) {
 	}
 }
 
+// TestRequiredNameInTwoPlaces gives the called operation a required
+// query parameter and a required body field of one name: the call has
+// one path for it, so Swift and Dart get no two tests of one name.
+func TestRequiredNameInTwoPlaces(t *testing.T) {
+	r, _ := readingRoom(t, func(c map[string]any) {
+		op := mapAt(c, "paths", "/books/{barcode}", "get").(map[string]any)
+		op["parameters"] = []any{map[string]any{"name": "branch", "in": "query", "required": true, "schema": map[string]any{"type": "string"}}}
+		op["requestBody"] = map[string]any{"content": map[string]any{"application/json": map[string]any{"schema": map[string]any{
+			"type": "object", "required": []any{"branch"}, "properties": map[string]any{"branch": map[string]any{"type": "string"}}}}}}
+		op["responses"].(map[string]any)["422"] = map[string]any{"description": "A value is missing."}
+	}, nil)
+	var name string
+	for _, c := range BuildIntegration(r).Modules[0].Calls {
+		n := 0
+		for _, p := range c.Paths {
+			if p.Name == "missing branch" {
+				n++
+			}
+		}
+		if strings.HasSuffix(c.Name, "getBook") {
+			name = c.Name
+			if n != 1 {
+				t.Errorf("%s: want one path missing branch, got %d", c.Name, n)
+			}
+		}
+	}
+	if sw := byPath(GenerateSwift(r))[SwiftIntegrationFile("catalogue-service")]; strings.Count(sw, swiftString(name+": missing branch")) != 1 {
+		t.Errorf("Swift: want one test %s: missing branch:\n%s", name, sw)
+	}
+	if dt := byPath(GenerateDart(r))[DartIntegrationFile("catalogue-service")]; strings.Count(dt, "test("+dartString("missing branch")) != 1 {
+		t.Errorf("Dart: want one test missing branch:\n%s", dt)
+	}
+}
+
 // TestCallIntoModuleNotGiven runs without the estate: the call into the
 // catalogue is named in the design tests' file, and no file is written
 // for it.
@@ -299,19 +333,10 @@ Future<IntegrationHarness> newIntegrationHarness() async => StubIntegration();
 		if b, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("dart pub get: %v\n%s", err, b)
 		}
-		// The design tests' file of a specification whose tests check
-		// nothing imports the library unused, which analyze warns of; only
-		// what it finds in the files the integration tests add fails here.
-		cmd = exec.Command(bin, "analyze", "--no-fatal-warnings")
+		cmd = exec.Command(bin, "analyze", "--fatal-infos")
 		cmd.Dir = filepath.Join(dir, "app")
-		b2, err := cmd.CombinedOutput()
-		for _, f := range []string{DartLibraryFile + ":", DartIntegrationFile("catalogue-service") + ":"} {
-			if strings.Contains(string(b2), f) {
-				t.Fatalf("dart analyze finds problems in %s:\n%s", strings.TrimSuffix(f, ":"), b2)
-			}
-		}
-		if err != nil && !strings.Contains(string(b2), "issue") {
-			t.Fatalf("dart analyze: %v\n%s", err, b2)
+		if b, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("dart analyze --fatal-infos: %v\n%s", err, b)
 		}
 	})
 }

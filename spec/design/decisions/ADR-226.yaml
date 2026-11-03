@@ -40,7 +40,10 @@ decisions:
       gives no golden input, or leaves out values the contract requires,
       the harness fills every required value the input does not give, and
       a field left out is named to the harness, which leaves it out of
-      the request it makes. The status checked is the one the
+      the request it makes; a name required in two places, a query
+      parameter and a body field, is one path, left out of every place,
+      since two paths of one name would be two tests of one name, which
+      Swift and Dart refuse. The status checked is the one the
       operation declares for the path, 403 for a denied call, 400 or 422
       for a missing field (docs/test-generation.md, as derive drafts
       them); when it declares none, the check is that the call is

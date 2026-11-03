@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.4.0 of the specification: 965 design tests, 484 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.4.0 of the specification: 966 design tests, 485 golden and 481 red, about 29 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
@@ -13,7 +13,7 @@ Version 1.4.0 of the specification: 965 design tests, 484 golden and 481 red, ab
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 961 |
+| system | 962 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3426,6 +3426,14 @@ Scenario: golden; level: system; verifies SA-31.
 - Given: a specification whose design tests on an operation and a constraint all leave their body to be written by hand, one signing a caller in and none storing a record, and one test that does not apply; an implementation file in Dart whose testing framework is package:test; specarch-gen-tests-dart built from this repository on PATH
 - When: generate tests is run with --unapproved
 - Then: the test file imports package:test and the project's harness but not the library of values, harness and checks, which none of its tests names, so dart analyze finds no unused import in it; the library is written as for any specification, and it exits 0
+
+#### generate-tests-estate-calls
+
+Scenario: golden; level: system; verifies SA-120.
+
+- Given: an estate of two modules, the stock module whose operation calls the pricing module's getPrice through a dependency with a time limit, getPrice needing a permission and a required query field and declaring a 422 and a 404, a golden design test of getPrice with its input, an implementation file in Go with a tests target, and specarch-gen-tests-go built from this repository on PATH
+- When: generate tests is run with --unapproved and --estate naming the estate file, on the stock module
+- Then: it writes the design tests' file with the integration harness and one file of the calls into the pricing module, holding one test of the call that pins both modules and their versions, the dependency, the method, the path and the time limit, with the golden path on the golden test's input and the red paths denied without the permission, the required field left out answered 422, the 404 arranged, the module failing and the module not answering in time, and exits 0
 
 #### generate-tests-framework-refused
 
@@ -7825,7 +7833,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-549 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+554 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -7833,6 +7841,11 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-31 | acceptance 2 | golden | SA-31 names no harm |
 | requirement SA-31 | acceptance 3 | golden | SA-31 names no harm |
 | requirement SA-31 | acceptance 4 | golden | SA-31 names no harm |
+| requirement SA-120 | acceptance 1 | golden | SA-120 names no harm |
+| requirement SA-120 | acceptance 2 | golden | SA-120 names no harm |
+| requirement SA-120 | acceptance 3 | golden | SA-120 names no harm |
+| requirement SA-120 | acceptance 4 | golden | SA-120 names no harm |
+| requirement SA-120 | acceptance 5 | golden | SA-120 names no harm |
 | requirement SA-29 | acceptance 1 | golden | SA-29 names no harm |
 | requirement SA-29 | acceptance 2 | golden | SA-29 names no harm |
 | requirement SA-29 | acceptance 3 | golden | SA-29 names no harm |

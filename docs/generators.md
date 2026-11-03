@@ -1579,7 +1579,9 @@ dependency, the operation, its method and path, and the caller's
   the operation declares it, else a refusal;
 - `missing <field>`: each required query, header or body field left out,
   answered 400, or 422 when there is no 400, else a refusal; a path
-  parameter is not one;
+  parameter is not one, and a name required in two places (a query
+  parameter and a body field) is one path, the harness leaving the name
+  out of every place;
 - `answers <status>`: each other status the operation declares, in a state
   the harness arranges;
 - `fails` and `times out`: the called module broken, and slower than the

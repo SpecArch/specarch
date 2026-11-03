@@ -266,18 +266,28 @@ func moduleCall(dep, timeout string, d xref.Dependency, op map[string]any, path,
 
 // requiredFields are the fields a request of the operation may leave
 // out and must not: its required query and header parameters and the
-// required fields of its body, sorted. A path parameter is not one, since
-// a request without it is a request for another path, and a field the
-// server writes (readOnly) is not sent.
+// required fields of its body, sorted, each name once. A path parameter
+// is not one, since a request without it is a request for another path,
+// and a field the server writes (readOnly) is not sent. A name held in
+// two places (a query parameter and a body field) is one path, and the
+// harness leaves the name out of every place: two paths of one name
+// would be two tests of one name, which Swift and Dart refuse.
 func (g *walker) requiredFields(op map[string]any, path string) []string {
 	var out []string
+	seen := map[string]bool{}
+	add := func(f string) {
+		if !seen[f] {
+			seen[f] = true
+			out = append(out, f)
+		}
+	}
 	item, _ := mapAt(g.spec, "paths", path).(map[string]any)
 	for _, list := range []any{item["parameters"], op["parameters"]} {
 		params, _ := list.([]any)
 		for _, prm := range params {
 			pm, _ := prm.(map[string]any)
 			if in := str(pm, "in"); (in == "query" || in == "header") && pm["required"] == true {
-				out = append(out, str(pm, "name"))
+				add(str(pm, "name"))
 			}
 		}
 	}
@@ -289,7 +299,7 @@ func (g *walker) requiredFields(op map[string]any, path string) []string {
 		props := g.schemaFields(schema)
 		for _, f := range g.required(schema) {
 			if p := props[f]; p == nil || p["readOnly"] != true {
-				out = append(out, f)
+				add(f)
 			}
 		}
 		break

@@ -14,7 +14,7 @@ import (
 )
 
 // Progress writes the progress report from the specification and the
-// records beside it (ADR-227): its size by stage, the open questions by
+// records beside it (ADR-235): its size by stage, the open questions by
 // priority and deciding role, the unheard roles, the stakeholder list's
 // confirmation, the effort each change request records, and a burn-up of
 // the elements the change requests of each release name. Every figure is

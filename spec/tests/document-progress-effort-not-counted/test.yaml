@@ -6,4 +6,4 @@ covers: [exit 1]
 given: "three change records: one with estimatedHours -4 and spentHours 1e-1, one whose effort holds only an extension key, and one with estimatedHours as the text \"4\" and spentHours as a list"
 when: "document progress is run"
 then: "it prints the schema errors, writes progress.md where the refused values are shown as written and marked not counted, sums only the 0.1 hours spent, names the extension-key and refused-only requests as missing, and exits 1"
-verifies: [SA-121]
+verifies: [SA-130]

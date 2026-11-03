@@ -214,7 +214,7 @@ commands:
       places each test run at its instant.
 
       The progress target writes `progress.md` from the specification and
-      the records (ADR-227): the elements of each stage by section; the
+      the records (ADR-235): the elements of each stage by section; the
       open questions by priority and by the role that decides them, a
       priority that is not must, should or could counted in a column of its
       own and named with the value as written, and a question with no
@@ -394,7 +394,7 @@ commands:
       "1": "Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86, SA-111, SA-117, SA-121, SA-57, SA-125, SA-130]
+    satisfies: [SA-7, SA-8, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86, SA-111, SA-117, SA-132, SA-57, SA-125, SA-130]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

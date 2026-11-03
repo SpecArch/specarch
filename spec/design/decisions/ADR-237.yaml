@@ -102,5 +102,5 @@ decisions:
       - source: iso-29148
         clause: "6.4.3"
         says: "Each requirement is traceable to its source: the stakeholder need or the document it comes from."
-    satisfies: [SA-121]
+    satisfies: [SA-130]
     restsOn: [ADR-220, ADR-223]

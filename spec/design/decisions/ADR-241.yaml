@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-241:
+    title: document --language writes every document target in English or Indonesian from a catalog of the texts the code writes, the technical terms kept in English
+    status: accepted
+    date: "2026-11-04"
+    context: |
+      The owner asked (2026-11-03) that every document target can be
+      written in English or Indonesian, with the technical terms kept as
+      practitioners say them and English the default. The documents'
+      text is in the generators' code: about sixteen hundred headings,
+      table headers, sentences and fragments, each written as a Go string
+      and joined with the specification's names and values.
+    decision: |
+      Every text a document writes goes through one lookup in the
+      generators, keyed by the English text itself, a format with its
+      fmt verbs. English is the code's own text and needs no catalog;
+      each other language is a catalog embedded in the program,
+      internal/generate/languages/<tag>/, one YAML file per generator
+      file, that translates each English text or keeps it as it is (a
+      Mermaid keyword, a WCAG criterion's name), and a dynamic part for
+      the texts the code makes as it runs, such as a section title made
+      from its key. A translation may reorder the values with explicit
+      argument indexes and drop a word Indonesian does not say, such as
+      the copula, with a zero-width verb, but it formats the same values
+      with the same verbs. document takes --language en or id; a
+      language other than English needs --out, like a document for
+      everyone, and writes no region of specarch.md. What is not the
+      generators' text is written as it is: the specification's own
+      words, the validator's, the approval's and the derived cases'
+      messages, the problem lines of problems.txt and problems.sarif, the
+      generated-file header, the Mermaid keywords and the element names.
+      Indonesian follows how teams speak at work: requirement,
+      stakeholder, entity, field, endpoint, deploy, release, rollback,
+      test case and the priority words must, should and could stay in
+      English, and the rest is the Indonesian a colleague would say in a
+      meeting.
+    why: |
+      A key that is the English text keeps the English output byte for
+      byte the same, so every document check and approval stays as it
+      was, and a translator reads the sentence they translate, not an
+      identifier. Whole sentences are the unit, because Indonesian puts a
+      noun before its modifier and has no plural: a fragment translated
+      word by word reads wrong, so the generators write a sentence with
+      its values as one format, and a count says one form for one and
+      many. Gettext's message catalogs and ICU's MessageFormat solve the
+      same problem with a tool chain and plural rules the program does
+      not need for two languages; a YAML file per generator, checked by a
+      test, keeps the catalog beside the code it translates, and the test
+      refuses a text the code writes and the catalog lacks, a catalog
+      entry no code writes, and a translation whose verbs differ from the
+      English, so a mistranslation garbles no value. --out is required
+      because approve compares the English documents in the folder the
+      implementation files name, and an Indonesian document written over
+      them would read as stale. The problem lines stay English because
+      editors and the agent queue read their format, and the messages
+      are the validator's, shared with validate's output. Compiler test:
+      the language changes how a document is written, never what is
+      read; an incomplete or wrong specification gives the same problems
+      in every language, each marked at its entry.
+    consequences: |
+      A new language is one folder of catalog files and its tag in the
+      option's enum; TestCatalogsComplete names every text it still
+      lacks. A change to a generator's text changes its catalog entry in
+      the same commit, or the test fails. TestDocumentsInEveryLanguage
+      writes every target in every language from SpecArch's own
+      specification and the examples, and requires each to differ from
+      the English one, every text to come from the catalog and every link
+      to reach a heading.
+    satisfies: [SA-134]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1030 design tests, 517 golden and 513 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1033 design tests, 518 golden and 515 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1030 design tests, 517 golden and 513 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1026 |
+| system | 1029 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1038,6 +1038,30 @@ Scenario: red; level: system; covers exit 1.
 - Given: a design file with a relation to an entity that does not exist
 - When: document techspec is run
 - Then: it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1
+
+#### document-language-id
+
+Scenario: golden; level: system; verifies SA-134.
+
+- Given: the specification of document-audience-external, with an internal need and requirement, an entity, an open question and a requirement another stakeholder owns
+- When: document requirements is run with --language id and --out
+- Then: it writes requirements.md in Indonesian, its headings, table headers and sentences translated and requirement, stakeholder and the priority words kept, the specification's own words and the generated-file header as they are, and exits 0
+
+#### document-language-needs-out
+
+Scenario: red; level: system; covers usage error; verifies SA-134.
+
+- Given: --language id with no --out
+- When: document is run
+- Then: it prints the usage error saying a document in another language is written beside the English documents approve compares, not over them, writes nothing, and exits 2
+
+#### document-language-unknown
+
+Scenario: red; level: system; covers usage error; verifies SA-134.
+
+- Given: --language fr, a language SpecArch has no catalog for
+- When: document is run
+- Then: it prints the usage error naming the languages the documents are written in, en and id, writes nothing, and exits 2
 
 #### document-manual-content
 
@@ -8353,7 +8377,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-605 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+609 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8684,6 +8708,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-115 | acceptance 5 | golden | SA-115 names no harm |
 | requirement SA-115 | acceptance 6 | golden | SA-115 names no harm |
 | requirement SA-115 | acceptance 7 | golden | SA-115 names no harm |
+| requirement SA-134 | acceptance 1 | golden | SA-134 names no harm |
+| requirement SA-134 | acceptance 2 | golden | SA-134 names no harm |
+| requirement SA-134 | acceptance 3 | golden | SA-134 names no harm |
+| requirement SA-134 | acceptance 4 | golden | SA-134 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

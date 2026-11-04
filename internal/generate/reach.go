@@ -76,7 +76,7 @@ func (d *doc) openChanges(label string, n *yaml.Node) {
 	}
 	on := ""
 	if label != "" {
-		on = " on " + label
+		on = tr(" on ") + label
 	}
 	for _, c := range d.changes {
 		named := c.at(ptr)
@@ -92,10 +92,10 @@ func (d *doc) openChanges(label string, n *yaml.Node) {
 				}
 			}
 			if len(under) > 0 {
-				where = " at " + strings.Join(under, ", ")
+				where = tr(" at ") + strings.Join(under, ", ")
 			}
 		}
-		d.para(fmt.Sprintf("**Open change request %s%s%s:** %s %s", c.id, on, where, sentence(str(c.node, "title")), raisedLine(c.node)))
+		d.para(fmt.Sprintf(tr("**Open change request %s%s%s:** %s %s"), c.id, on, where, sentence(str(c.node, "title")), raisedLine(c.node)))
 	}
 }
 
@@ -103,16 +103,16 @@ func (d *doc) openChanges(label string, n *yaml.Node) {
 // and its cause: "Raised in acceptance by librarian on 2026-10-21;
 // approved; cause omitted."
 func raisedLine(c *yaml.Node) string {
-	line := "Raised in " + str(c, "phase")
+	line := tr("Raised in ") + str(c, "phase")
 	if by := str(c, "raisedBy"); by != "" {
-		line += " by " + by
+		line += tr(" by ") + by
 	}
 	if on := str(c, "raised"); on != "" {
-		line += " on " + on
+		line += tr(" on ") + on
 	}
 	line += "; " + str(c, "status")
 	if cause := str(c, "cause"); cause != "" {
-		line += "; cause " + cause
+		line += tr("; cause ") + cause
 	}
 	return line + "."
 }
@@ -141,10 +141,10 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 	}
 	var lines []string
 	if len(elements) > 0 {
-		lines = append(lines, "elements "+refList(withHash(sortedSet(elements))))
+		lines = append(lines, tr("elements ")+refList(withHash(sortedSet(elements))))
 	}
 	if len(unresolved) > 0 {
-		lines = append(lines, "nothing yet at "+refList(withHash(unresolved))+", which the change adds")
+		lines = append(lines, tr("nothing yet at ")+refList(withHash(unresolved))+tr(", which the change adds"))
 	}
 	var tests []string
 	for _, p := range pairs(root, "tests") {
@@ -161,7 +161,7 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 		}
 	}
 	if len(tests) > 0 {
-		lines = append(lines, "the "+oneOrMany(len(tests), "test", "tests")+" "+strings.Join(tests, ", "))
+		lines = append(lines, tr("the ")+oneOrMany(len(tests), tr("test"), tr("tests"))+" "+strings.Join(tests, ", "))
 	}
 	var readers []string
 	for _, p := range pairs(root, "pages") {
@@ -171,7 +171,7 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 		}
 		walkTypeRefs(p.Value, func(ref string) { reads[strings.TrimPrefix(ref, "#")] = true })
 		if readsAny(reads, elements) {
-			readers = append(readers, "the page "+p.Key.Value)
+			readers = append(readers, tr("the page ")+p.Key.Value)
 		}
 	}
 	for _, path := range pairs(root, "paths") {
@@ -182,7 +182,7 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 			reads := map[string]bool{}
 			walkTypeRefs(op.Value, func(ref string) { reads[strings.TrimPrefix(ref, "#")] = true })
 			if readsAny(reads, elements) {
-				readers = append(readers, "the operation "+str(op.Value, "operationId"))
+				readers = append(readers, tr("the operation ")+str(op.Value, "operationId"))
 			}
 		}
 	}
@@ -191,12 +191,12 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 			reads := map[string]bool{}
 			walkTypeRefs(p.Value, func(ref string) { reads[strings.TrimPrefix(ref, "#")] = true })
 			if readsAny(reads, elements) {
-				readers = append(readers, "the "+section.word+" "+p.Key.Value)
+				readers = append(readers, tr("the ")+section.word+" "+p.Key.Value)
 			}
 		}
 	}
 	if len(readers) > 0 {
-		lines = append(lines, strings.Join(readers, ", ")+", reading an entity or an enum it touches")
+		lines = append(lines, strings.Join(readers, ", ")+tr(", reading an entity or an enum it touches"))
 	}
 	var targets, every []string
 	for _, i := range impls {
@@ -205,7 +205,7 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 				continue
 			}
 			reads := strs(t.Value, "reads")
-			name := t.Key.Value + " of " + i.Rel
+			name := t.Key.Value + tr(" of ") + i.Rel
 			if len(reads) == 0 {
 				every = append(every, name)
 				continue
@@ -219,10 +219,10 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 		}
 	}
 	if len(targets) > 0 {
-		lines = append(lines, "the code "+oneOrMany(len(targets), "target", "targets")+" "+strings.Join(targets, ", ")+", whose reads take a section it touches")
+		lines = append(lines, tr("the code ")+oneOrMany(len(targets), tr("target"), tr("targets"))+" "+strings.Join(targets, ", ")+tr(", whose reads take a section it touches"))
 	}
 	if len(every) > 0 {
-		lines = append(lines, "the code "+oneOrMany(len(every), "target", "targets")+" "+strings.Join(every, ", ")+", reading every section")
+		lines = append(lines, tr("the code ")+oneOrMany(len(every), tr("target"), tr("targets"))+" "+strings.Join(every, ", ")+tr(", reading every section"))
 	}
 	var docs []string
 	for _, t := range DocumentTargets {
@@ -237,16 +237,16 @@ func (d *doc) reach(root *yaml.Node, impls []Implementation, state *State, c ope
 		}
 	}
 	if len(docs) > 0 {
-		lines = append(lines, "the "+oneOrMany(len(docs), "document", "documents")+" "+strings.Join(docs, ", "))
+		lines = append(lines, tr("the ")+oneOrMany(len(docs), tr("document"), tr("documents"))+" "+strings.Join(docs, ", "))
 	}
 	if state != nil {
 		if state.Approved {
-			lines = append(lines, "the approval it voids: the specification is "+state.Approval+", and any change to a file voids it")
+			lines = append(lines, tr("the approval it voids: the specification is ")+state.Approval+tr(", and any change to a file voids it"))
 		} else {
-			lines = append(lines, "no approval to void: "+state.Approval)
+			lines = append(lines, tr("no approval to void: ")+state.Approval)
 		}
 	}
-	d.para("Reaches, as the specification is now:")
+	d.para(tr("Reaches, as the specification is now:"))
 	for _, l := range lines {
 		d.line("- %s", sentence(l))
 	}

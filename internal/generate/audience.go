@@ -204,11 +204,11 @@ func (w *Withheld) audienceNotice() string {
 		return ""
 	}
 	if w.Total() == 0 {
-		return "**Audience:** everyone; the specification has no internal element."
+		return tr("**Audience:** everyone; the specification has no internal element.")
 	}
 	var parts []string
 	for _, s := range w.Sections {
-		parts = append(parts, fmt.Sprintf("%d in %s", w.Counts[s], s))
+		parts = append(parts, fmt.Sprintf(tr("%d in %s"), w.Counts[s], s))
 	}
-	return fmt.Sprintf("**Audience:** everyone; %s left out (%s), with the problems and open questions that concern only them.", countText(w.Total(), "internal element is", "internal elements are"), strings.Join(parts, ", "))
+	return fmt.Sprintf(tr("**Audience:** everyone; %s left out (%s), with the problems and open questions that concern only them."), countText(w.Total(), tr("internal element is"), tr("internal elements are")), strings.Join(parts, ", "))
 }

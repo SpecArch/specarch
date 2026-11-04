@@ -1,0 +1,7 @@
+translations:
+  "**Audience:** everyone; the specification has no internal element.": "**Audience:** semua orang; spesifikasi ini tidak punya elemen internal."
+  "%d in %s": "%d di %s"
+  "**Audience:** everyone; %s left out (%s), with the problems and open questions that concern only them.": "**Audience:** semua orang; %s tidak dimuat (%s), beserta masalah dan pertanyaan terbuka yang hanya menyangkut elemen tersebut."
+  "internal element is": "elemen internal"
+  "internal elements are": "elemen internal"
+  "mapping of ": "mapping "

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -185,11 +186,18 @@ func (l loaded) namedPlaces() map[string]string {
 // error or, with --check, a difference, 0 otherwise.
 func runDocument(args []string, stdout, stderr io.Writer) int {
 	everyone, args, msg := audienceArg(args)
+	language := generate.DefaultLanguage
+	if msg == "" {
+		language, args, msg = languageArg(args)
+	}
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
 	target, out, check, paths, set, msg := parseTargetArgs("document", documentTargets, []string{"dry-run"}, args)
+	if msg == "" && language != generate.DefaultLanguage && out == "" {
+		msg = fmt.Sprintf("specarch document --language %s needs --out: the folder the implementation files name holds the documents in English, which approve compares, and a document in another language is written beside them, not over them", language)
+	}
 	if msg == "" && everyone && target == "problems" {
 		msg = "specarch document problems has no --audience: the problems file and the marks are for the people who fix the specification, so they hold every element"
 	}
@@ -210,6 +218,12 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "specarch document: this build has no %s documentor; it has %s\n", target, strings.Join(built, ", "))
 		return 2
 	}
+	release, err := generate.UseLanguage(language)
+	if err != nil {
+		fmt.Fprintf(stderr, "specarch document: %v\n", err)
+		return 2
+	}
+	defer release()
 	w := disk.For(set["dry-run"], stdout)
 	if target == "problems" {
 		return runProblems(paths, out, check, w, stdout, stderr)
@@ -252,7 +266,9 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		}
 		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, st)
 		plan = append(plan, planned{path: filepath.Join(folder, generate.DocumentName(target)), content: text})
-		if target != "techspec" || everyone {
+		// A document for everyone or in another language writes no region
+		// of specarch.md, which is written in English for every element.
+		if target != "techspec" || everyone || language != generate.DefaultLanguage {
 			continue
 		}
 
@@ -294,6 +310,37 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return status
+}
+
+// languageArg takes --language out of the arguments: the language the
+// documents are written in, English when it is not given (ADR-241).
+func languageArg(args []string) (language string, rest []string, msg string) {
+	language = generate.DefaultLanguage
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		value, ok := "", false
+		switch {
+		case a == "--":
+			return language, append(rest, args[i:]...), ""
+		case a == "--language":
+			if i+1 >= len(args) {
+				return "", nil, "--language needs a value: " + strings.Join(generate.Languages(), " or ")
+			}
+			value, ok = args[i+1], true
+			i++
+		case strings.HasPrefix(a, "--language="):
+			value, ok = strings.TrimPrefix(a, "--language="), true
+		}
+		if !ok {
+			rest = append(rest, a)
+			continue
+		}
+		if !slices.Contains(generate.Languages(), value) {
+			return "", nil, fmt.Sprintf("--language has no value %q: the documents are written in %s; a tag for another language needs a catalog of its texts in SpecArch (docs/languages.md)", value, strings.Join(generate.Languages(), " or "))
+		}
+		language = value
+	}
+	return language, rest, ""
 }
 
 // audienceArg takes --audience out of the arguments: everyone is true for

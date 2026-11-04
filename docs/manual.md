@@ -1229,6 +1229,20 @@ name holds the documents with every element, writes no region of
 `specarch.md`, and is refused for the problems target, whose files
 are for the people who fix the specification.
 
+With `--language id` a document is written in Indonesian, English
+being the default (`--language en`), from the catalog of the
+language's texts SpecArch carries (ADR-241): the headings, tables
+and sentences the documents write are translated, and the technical
+terms practitioners say in English (requirement, stakeholder,
+entity, field, deploy, release, test case) stay as they are. The
+specification's own words, the validator's, the approval's and the
+derived cases' messages, the problem lines of problems.txt and
+problems.sarif, the generated-file header, the Mermaid keywords and
+the element names are written as they are in every language. Like a
+document for everyone, it needs `--out`, since approve compares the
+English documents in the folder the implementation files name, and
+it writes no region of `specarch.md`.
+
 A requirement another stakeholder owns (`ownedBy`) is held
 elsewhere: the traceability target lists it under Requirements held
 elsewhere with the stakeholder and the requirement that fulfils it,
@@ -1241,7 +1255,7 @@ and the html page in place of what satisfies and verifies it.
 **Note:** From arc42, the template for architecture documentation, 8.2: The twelve chapters of an architecture document, from introduction and goals to glossary. <https://arc42.org/overview>
 
 ```
-specarch document <target> <paths>... [--out <out>] [--check] [--audience <audience>] [--dry-run]
+specarch document <target> <paths>... [--out <out>] [--check] [--audience <audience>] [--language <language>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -1256,6 +1270,7 @@ Anyone who has the program runs it.
 | `--out <out>` | The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree. |  |
 | `--check` | Make the output in memory and fail when the files on disk differ. Writes nothing. |  |
 | `--audience <audience>` | external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target. One of: external. |  |
+| `--language <language>` | The language the documents are written in, en (the default) or id (Indonesian), with the technical terms practitioners say in English kept (ADR-241). A language other than en needs --out. One of: en, id. |  |
 | `--dry-run` | Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check. |  |
 
 It reads:
@@ -1286,7 +1301,7 @@ On standard error: A usage message on a usage error, the reason a file cannot be
 |---|---|---|
 | 0 | written, or with `--check` the output is current |   |
 | 1 | a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs | Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again. |
-| 2 | usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+| 2 | usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, --language with a value other than en or id, or other than en without --out, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch extract
 

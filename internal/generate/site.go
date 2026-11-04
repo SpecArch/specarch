@@ -204,7 +204,7 @@ func (s *site) id(ptr string) string {
 		}
 		s.shown[ptr] = true
 	}
-	return fmt.Sprintf(` id="%s"`, esc(anchor(ptr)))
+	return fmt.Sprintf(tr(` id="%s"`), esc(anchor(ptr)))
 }
 
 // href is a link to the element at ptr, at the deepest element shown
@@ -226,12 +226,12 @@ func (s *site) marks(ptr string) {
 	for _, p := range s.at[ptr] {
 		label := p.Severity
 		if p.Severity == "question" {
-			label = "open question"
+			label = tr("open question")
 		}
-		s.line(`<p class="mark %s"><a href="#%s">%s</a> %s</p>`, esc(p.Severity), esc(anchor("problem-"+p.ID)), esc(label), esc(markText(p)))
+		s.line(tr(`<p class="mark %s"><a href="#%s">%s</a> %s</p>`), esc(p.Severity), esc(anchor("problem-"+p.ID)), esc(label), esc(markText(p)))
 	}
 	for _, q := range s.asked[ptr] {
-		s.line(`<p class="mark question">Held open by <a href="%s">%s</a>: %s Decided by %s.</p>`, s.href(source.Pointer("questions", q.id)), esc(q.label()), esc(oneParagraph(str(q.node, "question"))), esc(str(q.node, "decidedBy")))
+		s.line(tr(`<p class="mark question">Held open by <a href="%s">%s</a>: %s Decided by %s.</p>`), s.href(source.Pointer("questions", q.id)), esc(q.label()), esc(oneParagraph(str(q.node, "question"))), esc(str(q.node, "decidedBy")))
 	}
 }
 
@@ -247,22 +247,22 @@ func (s *site) write() {
 	if title == "" {
 		title = "Specification"
 	}
-	s.line("<!doctype html>")
+	s.line(tr("<!doctype html>"))
 	s.line("%s", s.header)
-	s.line(`<html lang="en">`)
-	s.line("<head>")
-	s.line(`<meta charset="utf-8">`)
-	s.line(`<meta name="viewport" content="width=device-width, initial-scale=1">`)
-	s.line(`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">`)
-	s.line("<title>%s %s</title>", esc(title), esc(str(info, "version")))
-	s.line("<style>%s</style>", siteCSS)
-	s.line("</head>")
-	s.line("<body>")
-	s.line(`<header class="top"><a class="home" href="#overview">%s</a> <span class="version">version %s</span>`, esc(title), esc(str(info, "version")))
-	s.line(`<input id="search" type="search" placeholder="Search the specification" aria-label="Search the specification" autocomplete="off"> <span id="found" role="status" aria-live="polite"></span>`)
-	s.line(`<button id="theme" type="button" aria-label="Switch between light and dark">Light / dark</button></header>`)
+	s.line(tr(`<html lang="en">`))
+	s.line(tr("<head>"))
+	s.line(tr(`<meta charset="utf-8">`))
+	s.line(tr(`<meta name="viewport" content="width=device-width, initial-scale=1">`))
+	s.line(tr(`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">`))
+	s.line(tr("<title>%s %s</title>"), esc(title), esc(str(info, "version")))
+	s.line(tr("<style>%s</style>"), siteCSS)
+	s.line(tr("</head>"))
+	s.line(tr("<body>"))
+	s.line(tr(`<header class="top"><a class="home" href="#overview">%s</a> <span class="version">version %s</span>`), esc(title), esc(str(info, "version")))
+	s.line(tr(`<input id="search" type="search" placeholder="Search the specification" aria-label="Search the specification" autocomplete="off"> <span id="found" role="status" aria-live="polite"></span>`))
+	s.line(tr(`<button id="theme" type="button" aria-label="Switch between light and dark">Light / dark</button></header>`))
 	s.nav()
-	s.line("<main>")
+	s.line(tr("<main>"))
 	s.overview()
 	used := map[string]bool{}
 	for k := range overviewKey {
@@ -282,10 +282,10 @@ func (s *site) write() {
 		if g.title == "Tests and traceability" && len(keys) == 0 && len(pairs(s.root, "requirements")) == 0 {
 			continue
 		}
-		s.line(`<section class="group" id="%s">`, groupID(g.title))
-		s.line("<h2>%s</h2>", esc(g.title))
+		s.line(tr(`<section class="group" id="%s">`), groupID(g.title))
+		s.line(tr("<h2>%s</h2>"), esc(tr(g.title)))
 		if g.title == "Data" && len(pairs(s.root, "entities")) > 0 {
-			s.line(`<figure class="diagram">%s<figcaption>The entities and their relations; each box links to its entity.</figcaption></figure>`, s.entityDiagram())
+			s.line(tr(`<figure class="diagram">%s<figcaption>The entities and their relations; each box links to its entity.</figcaption></figure>`), s.entityDiagram())
 		}
 		if g.title == "Roles and permissions" {
 			s.permissionMatrix()
@@ -294,7 +294,7 @@ func (s *site) write() {
 			s.operationTable()
 		}
 		if g.title == "Pages and menus" && s.parts.NoPreviews != "" {
-			s.line(`<p class="note">No screen previews: %s</p>`, esc(s.parts.NoPreviews))
+			s.line(tr(`<p class="note">No screen previews: %s</p>`), esc(s.parts.NoPreviews))
 		}
 		for _, k := range keys {
 			s.section(k)
@@ -302,7 +302,7 @@ func (s *site) write() {
 		if g.title == "Tests and traceability" {
 			s.traceability()
 		}
-		s.line("</section>")
+		s.line(tr("</section>"))
 	}
 	var rest []string
 	for _, p := range source.Pairs(s.root) {
@@ -311,19 +311,19 @@ func (s *site) write() {
 		}
 	}
 	if len(rest) > 0 {
-		s.line(`<section class="group" id="other">`)
-		s.line("<h2>Other sections</h2>")
-		s.line("<p>Sections the meta-model does not know; the problems list says what is wrong with each.</p>")
+		s.line(tr(`<section class="group" id="other">`))
+		s.line(tr("<h2>Other sections</h2>"))
+		s.line(tr("<p>Sections the meta-model does not know; the problems list says what is wrong with each.</p>"))
 		for _, k := range rest {
 			s.section(k)
 		}
-		s.line("</section>")
+		s.line(tr("</section>"))
 	}
 	s.problems()
-	s.line("</main>")
-	s.line("<script>%s</script>", siteJS)
-	s.line("</body>")
-	s.line("</html>")
+	s.line(tr("</main>"))
+	s.line(tr("<script>%s</script>"), siteJS)
+	s.line(tr("</body>"))
+	s.line(tr("</html>"))
 }
 
 func groupID(title string) string {
@@ -332,14 +332,14 @@ func groupID(title string) string {
 
 func sectionTitle(key string) string {
 	if t, ok := sectionTitles[key]; ok {
-		return t
+		return tr(t)
 	}
-	return strings.ToUpper(key[:1]) + key[1:]
+	return tr(strings.ToUpper(key[:1]) + key[1:])
 }
 
 func (s *site) nav() {
-	s.line(`<nav class="side" aria-label="Contents"><ol>`)
-	s.line(`<li><a href="#overview">Overview</a></li>`)
+	s.line(tr(`<nav class="side" aria-label="Contents"><ol>`))
+	s.line(tr(`<li><a href="#overview">Overview</a></li>`))
 	for _, g := range siteGroups {
 		var keys []string
 		for _, k := range g.keys {
@@ -351,17 +351,17 @@ func (s *site) nav() {
 		if len(keys) == 0 && !trace {
 			continue
 		}
-		s.line(`<li><a href="#%s">%s</a><ol>`, groupID(g.title), esc(g.title))
+		s.line(tr(`<li><a href="#%s">%s</a><ol>`), groupID(g.title), esc(tr(g.title)))
 		for _, k := range keys {
-			s.line(`<li><a href="#%s">%s</a> <span class="count">%s</span></li>`, esc(anchor("/"+k)), esc(sectionTitle(k)), s.count(k))
+			s.line(tr(`<li><a href="#%s">%s</a> <span class="count">%s</span></li>`), esc(anchor("/"+k)), esc(sectionTitle(k)), s.count(k))
 		}
 		if trace {
-			s.line(`<li><a href="#traceability">Traceability</a></li>`)
+			s.line(tr(`<li><a href="#traceability">Traceability</a></li>`))
 		}
-		s.line("</ol></li>")
+		s.line(tr("</ol></li>"))
 	}
-	s.line(`<li><a href="#problems">Problems</a> <span class="count">%d</span></li>`, len(s.parts.Problems))
-	s.line("</ol></nav>")
+	s.line(tr(`<li><a href="#problems">Problems</a> <span class="count">%d</span></li>`), len(s.parts.Problems))
+	s.line(tr("</ol></nav>"))
 }
 
 // count is how many elements a section holds, or "" for one object.
@@ -386,35 +386,35 @@ func (s *site) count(key string) string {
 // stands, what it holds, and what is wrong with it.
 func (s *site) overview() {
 	info := get(s.root, "info")
-	s.line(`<section class="group" id="overview">`)
-	s.line("<h1>%s</h1>", esc(str(info, "title")))
+	s.line(tr(`<section class="group" id="overview">`))
+	s.line(tr("<h1>%s</h1>"), esc(str(info, "title")))
 	if desc := strings.TrimSpace(str(info, "description")); desc != "" {
 		s.paragraphs(desc)
 	}
 	var facts []string
-	facts = append(facts, "Version "+esc(str(info, "version")))
+	facts = append(facts, tr("Version ")+esc(str(info, "version")))
 	if v := str(s.root, "specarch"); v != "" {
-		facts = append(facts, "meta-model "+esc(v))
+		facts = append(facts, tr("meta-model ")+esc(v))
 	}
 	if st := strs(s.root, "stages"); len(st) > 0 {
-		facts = append(facts, "stages "+esc(strings.Join(st, ", ")))
+		facts = append(facts, tr("stages ")+esc(strings.Join(st, ", ")))
 	}
 	if owners := strs(info, "owners"); len(owners) > 0 {
-		facts = append(facts, "owners "+esc(strings.Join(owners, ", ")))
+		facts = append(facts, tr("owners ")+esc(strings.Join(owners, ", ")))
 	}
-	s.line("<p>%s.</p>", strings.Join(facts, "; "))
+	s.line(tr("<p>%s.</p>"), strings.Join(facts, "; "))
 
 	if n := s.d.withheld.audienceNotice(); n != "" {
-		s.line(`<p class="notice">%s</p>`, bold(n))
+		s.line(tr(`<p class="notice">%s</p>`), bold(n))
 	}
 	if s.d.unconfirmedStakeholders {
-		s.line(`<p class="notice">%s</p>`, bold(StakeholdersBanner))
+		s.line(tr(`<p class="notice">%s</p>`), bold(tr(StakeholdersBanner)))
 	}
 	if ids := holding(s.d.questions, []string{"*"}); len(ids) > 0 {
-		s.line(`<p class="notice draft"><strong>Draft:</strong> %s hold up what this page shows (%s); see <a href="#%s">Open questions</a>.</p>`, esc(countText(len(ids), "must or should question", "must or should questions")), esc(strings.Join(ids, ", ")), esc(anchor("/questions")))
+		s.line(tr(`<p class="notice draft"><strong>Draft:</strong> %s hold up what this page shows (%s); see <a href="#%s">Open questions</a>.</p>`), esc(countText(len(ids), tr("must or should question"), tr("must or should questions"))), esc(strings.Join(ids, ", ")), esc(anchor("/questions")))
 	}
 	if s.state.Approval != "" {
-		s.line(`<p class="notice"><strong>Approval:</strong> %s</p>`, esc(s.state.Approval))
+		s.line(tr(`<p class="notice"><strong>Approval:</strong> %s</p>`), esc(s.state.Approval))
 	}
 	errs, warns, qs := 0, 0, 0
 	for _, p := range s.parts.Problems {
@@ -428,11 +428,11 @@ func (s *site) overview() {
 		}
 	}
 	if errs > 0 {
-		s.line(`<p class="notice error"><strong>Invalid:</strong> the specification has %s; this page shows what could be read of it, and each error is marked at its entry.</p>`, esc(countText(errs, "error", "errors")))
+		s.line(tr(`<p class="notice error"><strong>Invalid:</strong> the specification has %s; this page shows what could be read of it, and each error is marked at its entry.</p>`), esc(countText(errs, tr("error"), tr("errors"))))
 	}
-	s.line(`<p><a href="#problems">%s, %s and %s</a>; each is listed under Problems and marked at the entry it concerns.</p>`, esc(countText(errs, "error", "errors")), esc(countText(warns, "warning", "warnings")), esc(countText(qs, "open question", "open questions")))
+	s.line(tr(`<p><a href="#problems">%s, %s and %s</a>; each is listed under Problems and marked at the entry it concerns.</p>`), esc(countText(errs, tr("error"), tr("errors"))), esc(countText(warns, tr("warning"), tr("warnings"))), esc(countText(qs, tr("open question"), tr("open questions"))))
 
-	s.line(`<table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>`)
+	s.line(tr(`<table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>`))
 	for _, g := range siteGroups {
 		for _, k := range g.keys {
 			if get(s.root, k) == nil {
@@ -442,12 +442,12 @@ func (s *site) overview() {
 			if c == "" {
 				c = "one"
 			}
-			s.line(`<tr><td><a href="#%s">%s</a></td><td>%s</td></tr>`, esc(anchor("/"+k)), esc(sectionTitle(k)), c)
+			s.line(tr(`<tr><td><a href="#%s">%s</a></td><td>%s</td></tr>`), esc(anchor("/"+k)), esc(sectionTitle(k)), c)
 		}
 	}
-	s.line("</tbody></table>")
-	s.line(`<p class="how">Every element carries its id, the pointer beside its name, such as <code>/entities/Name</code>. Link to it with <code>#</code> and the pointer after this page's address, and give the id when you report what you see, so the remark reaches the element it is about.</p>`)
-	s.line("</section>")
+	s.line(tr("</tbody></table>"))
+	s.line(tr(`<p class="how">Every element carries its id, the pointer beside its name, such as <code>/entities/Name</code>. Link to it with <code>#</code> and the pointer after this page's address, and give the id when you report what you see, so the remark reaches the element it is about.</p>`))
+	s.line(tr("</section>"))
 }
 
 // section writes one section: its elements as cards, its rows as a
@@ -455,8 +455,8 @@ func (s *site) overview() {
 func (s *site) section(key string) {
 	n := source.Deref(get(s.root, key))
 	ptr := "/" + key
-	s.line(`<section class="section"%s>`, s.id(ptr))
-	s.line(`<h3>%s <a class="ptr" href="%s">%s</a></h3>`, esc(sectionTitle(key)), s.href(ptr), esc(ptr))
+	s.line(tr(`<section class="section"%s>`), s.id(ptr))
+	s.line(tr(`<h3>%s <a class="ptr" href="%s">%s</a></h3>`), esc(sectionTitle(key)), s.href(ptr), esc(ptr))
 	s.marks(ptr)
 	switch {
 	case n == nil:
@@ -482,18 +482,18 @@ func (s *site) section(key string) {
 			s.card(key, name, item, source.Pointer(key, strconv.Itoa(i)))
 		}
 	}
-	s.line("</section>")
+	s.line(tr("</section>"))
 }
 
 // card writes one element: its name and id, its marks, what other
 // generators show of it, and its definition.
 func (s *site) card(key, name string, n *yaml.Node, ptr string) {
-	s.line(`<article class="element" data-search%s>`, s.id(ptr))
-	s.line(`<h4>%s <a class="ptr" href="%s">%s</a></h4>`, esc(s.title(key, name, n)), s.href(ptr), esc(ptr))
+	s.line(tr(`<article class="element" data-search%s>`), s.id(ptr))
+	s.line(tr(`<h4>%s <a class="ptr" href="%s">%s</a></h4>`), esc(s.title(key, name, n)), s.href(ptr), esc(ptr))
 	s.marks(ptr)
 	s.extras(key, name, n)
 	s.body(n, ptr, "")
-	s.line("</article>")
+	s.line(tr("</article>"))
 }
 
 // title is an element's heading: its name, and what it is for in a few
@@ -514,21 +514,21 @@ func (s *site) extras(key, name string, n *yaml.Node) {
 	switch key {
 	case "workflows":
 		if svg, ok := s.parts.Workflows[name]; ok {
-			s.line(`<figure class="diagram"><img alt="The workflow %s as BPMN 2.0" src="data:image/svg+xml;base64,%s"><figcaption>As specarch generate bpmn draws it.</figcaption></figure>`, esc(name), base64.StdEncoding.EncodeToString([]byte(svg)))
+			s.line(tr(`<figure class="diagram"><img alt="The workflow %s as BPMN 2.0" src="data:image/svg+xml;base64,%s"><figcaption>As specarch generate bpmn draws it.</figcaption></figure>`), esc(name), base64.StdEncoding.EncodeToString([]byte(svg)))
 		}
 	case "pages":
 		if screen, ok := s.parts.Previews[name]; ok {
-			s.line(`<figure class="preview"><iframe sandbox="" loading="lazy" title="The screen %s" srcdoc="%s"></iframe><figcaption>The screen as specarch generate ui writes it, without its scripts, so it shows no data.</figcaption></figure>`, esc(name), esc(screen))
+			s.line(tr(`<figure class="preview"><iframe sandbox="" loading="lazy" title="The screen %s" srcdoc="%s"></iframe><figcaption>The screen as specarch generate ui writes it, without its scripts, so it shows no data.</figcaption></figure>`), esc(name), esc(screen))
 		} else if why, ok := s.parts.NoPreview[name]; ok {
-			s.line(`<p class="note">No screen preview: %s</p>`, esc(why))
+			s.line(tr(`<p class="note">No screen preview: %s</p>`), esc(why))
 		}
 	case "requirements":
 		if held := heldElsewhere(n); held != "" {
-			s.line(`<p class="trace"><strong>Held elsewhere:</strong> %s.</p>`, esc(held))
+			s.line(tr(`<p class="trace"><strong>Held elsewhere:</strong> %s.</p>`), esc(held))
 			break
 		}
 		trace := s.trace()
-		s.line(`<p class="trace"><strong>Satisfied by:</strong> %s. <strong>Verified by:</strong> %s.</p>`, s.links(trace.satisfied[name], "nothing yet"), s.links(trace.verified[name], "nothing yet"))
+		s.line(tr(`<p class="trace"><strong>Satisfied by:</strong> %s. <strong>Verified by:</strong> %s.</p>`), s.links(trace.satisfied[name], tr("nothing yet")), s.links(trace.verified[name], tr("nothing yet")))
 	case "separationOfDuties":
 		cardinality := 2
 		if c, err := strconv.Atoi(num(n, "cardinality")); err == nil {
@@ -540,12 +540,12 @@ func (s *site) extras(key, name string, n *yaml.Node) {
 			for _, r := range c {
 				roles = append(roles, s.linkName("role", r))
 			}
-			combos = append(combos, strings.Join(roles, " with "))
+			combos = append(combos, strings.Join(roles, tr(" with ")))
 		}
 		if len(combos) == 0 {
-			s.line(`<p class="trace"><strong>Roles never given to one person:</strong> none; no roles together reach this set.</p>`)
+			s.line(tr(`<p class="trace"><strong>Roles never given to one person:</strong> none; no roles together reach this set.</p>`))
 		} else {
-			s.line(`<p class="trace"><strong>Roles never given to one person:</strong> %s.</p>`, strings.Join(combos, "; "))
+			s.line(tr(`<p class="trace"><strong>Roles never given to one person:</strong> %s.</p>`), strings.Join(combos, "; "))
 		}
 	}
 }
@@ -557,7 +557,7 @@ func (s *site) links(ptrs []string, none string) string {
 	}
 	var out []string
 	for _, p := range ptrs {
-		out = append(out, fmt.Sprintf(`<a href="%s">%s</a>`, s.href(p), esc(p)))
+		out = append(out, fmt.Sprintf(tr(`<a href="%s">%s</a>`), s.href(p), esc(p)))
 	}
 	return strings.Join(out, ", ")
 }
@@ -574,7 +574,7 @@ func (s *site) body(n *yaml.Node, ptr, key string) {
 		if strings.Contains(n.Value, "\n") || len(n.Value) > 120 {
 			s.paragraphs(n.Value)
 		} else {
-			s.line("<p>%s</p>", s.scalar(key, shown(n)))
+			s.line(tr("<p>%s</p>"), s.scalar(key, shown(n)))
 		}
 	case yaml.SequenceNode:
 		s.list(n, ptr, key)
@@ -586,7 +586,7 @@ func (s *site) body(n *yaml.Node, ptr, key string) {
 func (s *site) paragraphs(text string) {
 	for _, para := range strings.Split(strings.TrimSpace(text), "\n\n") {
 		if para = strings.TrimSpace(para); para != "" {
-			s.line("<p>%s</p>", esc(oneParagraph(para)))
+			s.line(tr("<p>%s</p>"), esc(oneParagraph(para)))
 		}
 	}
 }
@@ -597,13 +597,13 @@ var annotated = map[string]bool{"why": true, "cites": true, "origin": true}
 
 func (s *site) mapping(n *yaml.Node, ptr string) {
 	if o := s.d.origin(n); o != "" {
-		s.line(`<p class="origin">%s</p>`, bold(o))
+		s.line(tr(`<p class="origin">%s</p>`), bold(o))
 	}
 	if why := strings.TrimSpace(str(n, "why")); why != "" {
-		s.line(`<p class="insight"><strong>Insight:</strong> %s</p>`, esc(oneParagraph(why)))
+		s.line(tr(`<p class="insight"><strong>Insight:</strong> %s</p>`), esc(oneParagraph(why)))
 	}
 	for _, c := range items(n, "cites") {
-		s.line(`<p class="note"><strong>Note:</strong> %s</p>`, s.citation(c))
+		s.line(tr(`<p class="note"><strong>Note:</strong> %s</p>`), s.citation(c))
 	}
 	var rows []source.Pair
 	for _, p := range source.Pairs(n) {
@@ -615,42 +615,42 @@ func (s *site) mapping(n *yaml.Node, ptr string) {
 	if len(rows) == 0 {
 		return
 	}
-	s.line("<dl>")
+	s.line(tr("<dl>"))
 	for _, p := range rows {
 		v := source.Deref(p.Value)
 		child := ptr + "/" + source.EscapeToken(p.Key.Value)
-		s.line("<dt>%s</dt>", esc(p.Key.Value))
+		s.line(tr("<dt>%s</dt>"), esc(p.Key.Value))
 		switch {
 		case v == nil:
-			s.line("<dd></dd>")
+			s.line(tr("<dd></dd>"))
 		case v.Kind == yaml.ScalarNode && !strings.Contains(v.Value, "\n") && len(v.Value) <= 120:
-			s.line("<dd>%s</dd>", s.scalar(p.Key.Value, shown(v)))
+			s.line(tr("<dd>%s</dd>"), s.scalar(p.Key.Value, shown(v)))
 		case v.Kind == yaml.ScalarNode:
-			s.line("<dd>")
+			s.line(tr("<dd>"))
 			s.paragraphs(v.Value)
-			s.line("</dd>")
+			s.line(tr("</dd>"))
 		case v.Kind == yaml.MappingNode && p.Key.Value == "properties" && fieldsMode(v):
-			s.line("<dd%s>", s.id(child))
+			s.line(tr("<dd%s>"), s.id(child))
 			s.marks(child)
 			s.fields(v, child, strs(n, "required"))
-			s.line("</dd>")
+			s.line(tr("</dd>"))
 		case v.Kind == yaml.MappingNode && tableMode(v):
-			s.line("<dd%s>", s.id(child))
+			s.line(tr("<dd%s>"), s.id(child))
 			s.marks(child)
 			s.table(v, child, false)
-			s.line("</dd>")
+			s.line(tr("</dd>"))
 		case v.Kind == yaml.MappingNode:
-			s.line("<dd%s>", s.id(child))
+			s.line(tr("<dd%s>"), s.id(child))
 			s.marks(child)
 			s.mapping(v, child)
-			s.line("</dd>")
+			s.line(tr("</dd>"))
 		default:
-			s.line("<dd>")
+			s.line(tr("<dd>"))
 			s.list(v, child, p.Key.Value)
-			s.line("</dd>")
+			s.line(tr("</dd>"))
 		}
 	}
-	s.line("</dl>")
+	s.line(tr("</dl>"))
 }
 
 // list writes a list of scalars on one line, and any other list item by
@@ -667,18 +667,18 @@ func (s *site) list(n *yaml.Node, ptr, key string) {
 		for _, item := range n.Content {
 			out = append(out, s.scalar(key, shown(item)))
 		}
-		s.line("<p>%s</p>", strings.Join(out, ", "))
+		s.line(tr("<p>%s</p>"), strings.Join(out, ", "))
 		return
 	}
-	s.line(`<ol class="items">`)
+	s.line(tr(`<ol class="items">`))
 	for i, item := range n.Content {
 		child := ptr + "/" + strconv.Itoa(i)
-		s.line("<li%s>", s.id(child))
+		s.line(tr("<li%s>"), s.id(child))
 		s.marks(child)
 		s.body(item, child, key)
-		s.line("</li>")
+		s.line(tr("</li>"))
 	}
-	s.line("</ol>")
+	s.line(tr("</ol>"))
 }
 
 // tableMode reports whether a mapping of mappings reads best as a table:
@@ -726,13 +726,13 @@ var fieldKeys = map[string]bool{"type": true, "format": true, "$ref": true, "pre
 // fields writes a schema's properties as a table: the name, the type,
 // whether it is required, the title and description, and every other key.
 func (s *site) fields(n *yaml.Node, ptr string, required []string) {
-	s.line(`<div class="scroll"><table class="fields"><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Required</th><th scope="col">Title and description</th><th scope="col">Also</th></tr></thead><tbody>`)
+	s.line(tr(`<div class="scroll"><table class="fields"><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Required</th><th scope="col">Title and description</th><th scope="col">Also</th></tr></thead><tbody>`))
 	for _, p := range source.Pairs(n) {
 		row := ptr + "/" + source.EscapeToken(p.Key.Value)
 		v := source.Deref(p.Value)
-		s.line(`<tr%s><th scope="row">%s <a class="ptr" href="%s">%s</a>`, s.id(row), esc(p.Key.Value), s.href(row), esc(row))
+		s.line(tr(`<tr%s><th scope="row">%s <a class="ptr" href="%s">%s</a>`), s.id(row), esc(p.Key.Value), s.href(row), esc(row))
 		s.marks(row)
-		s.line("</th>")
+		s.line(tr("</th>"))
 		typ := esc(typeText(v))
 		if ref := str(v, "$ref"); ref != "" {
 			typ = s.scalar("$ref", ref)
@@ -754,9 +754,9 @@ func (s *site) fields(n *yaml.Node, ptr string, required []string) {
 				also = append(also, esc(c.Key.Value)+": "+s.cellValue(c.Key.Value, c.Value))
 			}
 		}
-		s.line("<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", typ, req, strings.Join(text, " "), strings.Join(also, "; "))
+		s.line(tr("<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"), typ, req, strings.Join(text, " "), strings.Join(also, "; "))
 	}
-	s.line("</tbody></table></div>")
+	s.line(tr("</tbody></table></div>"))
 }
 
 // cellValue is a value inside a cell: a scalar or a list of scalars with
@@ -812,27 +812,27 @@ func (s *site) table(n *yaml.Node, ptr string, searched bool) {
 			}
 		}
 	}
-	s.line(`<div class="scroll"><table><thead><tr><th scope="col">Name</th>`)
+	s.line(tr(`<div class="scroll"><table><thead><tr><th scope="col">Name</th>`))
 	for _, c := range columns {
-		s.line(`<th scope="col">%s</th>`, esc(c))
+		s.line(tr(`<th scope="col">%s</th>`), esc(c))
 	}
-	s.line("</tr></thead><tbody>")
+	s.line(tr("</tr></thead><tbody>"))
 	for _, p := range source.Pairs(n) {
 		row := ptr + "/" + source.EscapeToken(p.Key.Value)
 		attr := ""
 		if searched {
 			attr = " data-search"
 		}
-		s.line(`<tr%s%s><th scope="row">%s <a class="ptr" href="%s">%s</a>`, attr, s.id(row), esc(p.Key.Value), s.href(row), esc(row))
+		s.line(tr(`<tr%s%s><th scope="row">%s <a class="ptr" href="%s">%s</a>`), attr, s.id(row), esc(p.Key.Value), s.href(row), esc(row))
 		s.marks(row)
-		s.line("</th>")
+		s.line(tr("</th>"))
 		v := source.Deref(p.Value)
 		for _, c := range columns {
-			s.line("<td>%s</td>", s.cellValue(c, get(v, c)))
+			s.line(tr("<td>%s</td>"), s.cellValue(c, get(v, c)))
 		}
-		s.line("</tr>")
+		s.line(tr("</tr>"))
 	}
-	s.line("</tbody></table></div>")
+	s.line(tr("</tbody></table></div>"))
 }
 
 func allScalars(n *yaml.Node) bool {
@@ -861,7 +861,7 @@ func (s *site) scalar(key, v string) string {
 		if i := strings.Index(ptr, "#"); i >= 0 {
 			ptr = ptr[:i]
 		}
-		return fmt.Sprintf(`<a href="%s">%s</a>`, s.href(ptr), esc(v))
+		return fmt.Sprintf(tr(`<a href="%s">%s</a>`), s.href(ptr), esc(v))
 	}
 	if key != "" {
 		if link := s.linkName(key, v); link != esc(v) {
@@ -877,12 +877,12 @@ func (s *site) linkName(key, name string) string {
 	for _, section := range linkTo[key] {
 		if section == "operations" {
 			if ptr, ok := s.operations[name]; ok {
-				return fmt.Sprintf(`<a href="%s">%s</a>`, s.href(ptr), esc(name))
+				return fmt.Sprintf(tr(`<a href="%s">%s</a>`), s.href(ptr), esc(name))
 			}
 			continue
 		}
 		if s.exists[section][name] {
-			return fmt.Sprintf(`<a href="%s">%s</a>`, s.href(source.Pointer(section, name)), esc(name))
+			return fmt.Sprintf(tr(`<a href="%s">%s</a>`), s.href(source.Pointer(section, name)), esc(name))
 		}
 	}
 	return esc(name)
@@ -911,11 +911,11 @@ func (s *site) citation(c *yaml.Node) string {
 		from += ", " + e
 	}
 	if cl := str(c, "clause"); cl != "" {
-		from += ", clause " + cl
+		from += tr(", clause ") + cl
 	}
-	text := fmt.Sprintf(`From <a href="%s">%s</a>: %s`, s.href(source.Pointer("sources", key)), esc(from), esc(oneParagraph(str(c, "says"))))
+	text := fmt.Sprintf(tr(`From <a href="%s">%s</a>: %s`), s.href(source.Pointer("sources", key)), esc(from), esc(oneParagraph(str(c, "says"))))
 	if u := str(src, "url"); u != "" && !strings.HasSuffix(str(src, "kind"), "-set") && (strings.HasPrefix(u, "https://") || strings.HasPrefix(u, "http://")) {
-		text += fmt.Sprintf(` <a rel="noreferrer" href="%s">%s</a>`, esc(u), esc(u))
+		text += fmt.Sprintf(tr(` <a rel="noreferrer" href="%s">%s</a>`), esc(u), esc(u))
 	}
 	return text
 }
@@ -924,8 +924,8 @@ func (s *site) citation(c *yaml.Node) string {
 func (s *site) paths(n *yaml.Node) {
 	for _, route := range source.Pairs(n) {
 		rptr := source.Pointer("paths", route.Key.Value)
-		s.line(`<div class="route"%s>`, s.id(rptr))
-		s.line(`<h4 class="route-name">%s</h4>`, esc(route.Key.Value))
+		s.line(tr(`<div class="route"%s>`), s.id(rptr))
+		s.line(tr(`<h4 class="route-name">%s</h4>`), esc(route.Key.Value))
 		s.marks(rptr)
 		rest := &yaml.Node{Kind: yaml.MappingNode}
 		v := source.Deref(route.Value)
@@ -946,13 +946,13 @@ func (s *site) paths(n *yaml.Node) {
 			if id := str(p.Value, "operationId"); id != "" {
 				name += " (" + id + ")"
 			}
-			s.line(`<article class="element" data-search%s>`, s.id(optr))
-			s.line(`<h4>%s <a class="ptr" href="%s">%s</a></h4>`, esc(name), s.href(optr), esc(optr))
+			s.line(tr(`<article class="element" data-search%s>`), s.id(optr))
+			s.line(tr(`<h4>%s <a class="ptr" href="%s">%s</a></h4>`), esc(name), s.href(optr), esc(optr))
 			s.marks(optr)
 			s.body(p.Value, optr, "")
-			s.line("</article>")
+			s.line(tr("</article>"))
 		}
-		s.line("</div>")
+		s.line(tr("</div>"))
 	}
 }
 
@@ -963,17 +963,17 @@ func (s *site) operationTable() {
 	if len(ops) == 0 {
 		return
 	}
-	s.line(`<div class="scroll"><table class="overview"><caption>Every HTTP operation, the permission it needs, and what it does.</caption>`)
-	s.line(`<thead><tr><th scope="col">Method</th><th scope="col">Route</th><th scope="col">Operation</th><th scope="col">Permission</th><th scope="col">Summary</th></tr></thead><tbody>`)
+	s.line(tr(`<div class="scroll"><table class="overview"><caption>Every HTTP operation, the permission it needs, and what it does.</caption>`))
+	s.line(tr(`<thead><tr><th scope="col">Method</th><th scope="col">Route</th><th scope="col">Operation</th><th scope="col">Permission</th><th scope="col">Summary</th></tr></thead><tbody>`))
 	for _, o := range ops {
 		ptr := source.Pointer("paths", o.path, o.method)
 		id := o.id
 		if id == "" {
 			id = strings.ToUpper(o.method) + " " + o.path
 		}
-		s.line(`<tr><td>%s</td><td><code>%s</code></td><td><a href="%s">%s</a></td><td>%s</td><td>%s</td></tr>`, esc(strings.ToUpper(o.method)), esc(o.path), s.href(ptr), esc(id), s.linkName("permission", str(o.node, "permission")), esc(str(o.node, "summary")))
+		s.line(tr(`<tr><td>%s</td><td><code>%s</code></td><td><a href="%s">%s</a></td><td>%s</td><td>%s</td></tr>`), esc(strings.ToUpper(o.method)), esc(o.path), s.href(ptr), esc(id), s.linkName("permission", str(o.node, "permission")), esc(str(o.node, "summary")))
 	}
-	s.line("</tbody></table></div>")
+	s.line(tr("</tbody></table></div>"))
 }
 
 // permissionMatrix shows which role grants which permission.
@@ -983,25 +983,25 @@ func (s *site) permissionMatrix() {
 	if len(perms) == 0 || len(roles) == 0 {
 		return
 	}
-	s.line(`<div class="scroll"><table class="matrix"><caption>Which role grants which permission. Access is fail-closed: an operation, command or page needs the one permission it names.</caption><thead><tr><th scope="col">Permission</th>`)
+	s.line(tr(`<div class="scroll"><table class="matrix"><caption>Which role grants which permission. Access is fail-closed: an operation, command or page needs the one permission it names.</caption><thead><tr><th scope="col">Permission</th>`))
 	for _, r := range roles {
-		s.line(`<th scope="col">%s</th>`, s.linkName("role", r.Key.Value))
+		s.line(tr(`<th scope="col">%s</th>`), s.linkName("role", r.Key.Value))
 	}
-	s.line("</tr></thead><tbody>")
+	s.line(tr("</tr></thead><tbody>"))
 	for _, p := range perms {
-		s.line(`<tr><th scope="row">%s</th>`, s.linkName("permission", p.Key.Value))
+		s.line(tr(`<tr><th scope="row">%s</th>`), s.linkName("permission", p.Key.Value))
 		for _, r := range roles {
 			if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(s.root)); through != "" {
-				s.line(`<td class="yes">through %s</td>`, html.EscapeString(through))
+				s.line(tr(`<td class="yes">through %s</td>`), html.EscapeString(through))
 			} else if slices.Contains(strs(r.Value, "permissions"), p.Key.Value) {
-				s.line(`<td class="yes">yes</td>`)
+				s.line(tr(`<td class="yes">yes</td>`))
 			} else {
-				s.line("<td></td>")
+				s.line(tr("<td></td>"))
 			}
 		}
-		s.line("</tr>")
+		s.line(tr("</tr>"))
 	}
-	s.line("</tbody></table></div>")
+	s.line(tr("</tbody></table></div>"))
 }
 
 // traced is, per requirement, the elements that satisfy it and the ones
@@ -1052,10 +1052,10 @@ func (s *site) traceability() {
 		return
 	}
 	t := s.trace()
-	s.line(`<section class="section" id="traceability">`)
-	s.line("<h3>Traceability</h3>")
-	s.line("<p>Each requirement, the needs it refines, and the elements that satisfy and verify it. A requirement nothing satisfies or verifies is a gap.</p>")
-	s.line(`<div class="scroll"><table><thead><tr><th scope="col">Requirement</th><th scope="col">Needs</th><th scope="col">Satisfied by</th><th scope="col">Verified by</th></tr></thead><tbody>`)
+	s.line(tr(`<section class="section" id="traceability">`))
+	s.line(tr("<h3>Traceability</h3>"))
+	s.line(tr("<p>Each requirement, the needs it refines, and the elements that satisfy and verify it. A requirement nothing satisfies or verifies is a gap.</p>"))
+	s.line(tr(`<div class="scroll"><table><thead><tr><th scope="col">Requirement</th><th scope="col">Needs</th><th scope="col">Satisfied by</th><th scope="col">Verified by</th></tr></thead><tbody>`))
 	for _, r := range reqs {
 		var needs []string
 		for _, n := range strs(r.Value, "needs") {
@@ -1063,50 +1063,50 @@ func (s *site) traceability() {
 		}
 		gap := ""
 		if held := heldElsewhere(r.Value); held != "" {
-			s.line(`<tr data-search><th scope="row">%s</th><td>%s</td><td colspan="2">Held elsewhere: %s</td></tr>`, s.linkName("requirements", r.Key.Value), strings.Join(needs, ", "), esc(held))
+			s.line(tr(`<tr data-search><th scope="row">%s</th><td>%s</td><td colspan="2">Held elsewhere: %s</td></tr>`), s.linkName("requirements", r.Key.Value), strings.Join(needs, ", "), esc(held))
 			continue
 		}
 		if len(t.satisfied[r.Key.Value]) == 0 || len(t.verified[r.Key.Value]) == 0 {
 			gap = ` class="gap"`
 		}
-		s.line(`<tr data-search%s><th scope="row">%s</th><td>%s</td><td>%s</td><td>%s</td></tr>`, gap, s.linkName("requirements", r.Key.Value), strings.Join(needs, ", "), s.links(t.satisfied[r.Key.Value], "nothing"), s.links(t.verified[r.Key.Value], "nothing"))
+		s.line(tr(`<tr data-search%s><th scope="row">%s</th><td>%s</td><td>%s</td><td>%s</td></tr>`), gap, s.linkName("requirements", r.Key.Value), strings.Join(needs, ", "), s.links(t.satisfied[r.Key.Value], tr("nothing")), s.links(t.verified[r.Key.Value], tr("nothing")))
 	}
-	s.line("</tbody></table></div>")
-	s.line("</section>")
+	s.line(tr("</tbody></table></div>"))
+	s.line(tr("</section>"))
 }
 
 // problems lists every error, warning and open question as the problems
 // file does, each linked to the entry it marks.
 func (s *site) problems() {
-	s.line(`<section class="group" id="problems">`)
-	s.line("<h2>Problems</h2>")
+	s.line(tr(`<section class="group" id="problems">`))
+	s.line(tr("<h2>Problems</h2>"))
 	if len(s.parts.Problems) == 0 {
-		s.line("<p>The specification has no errors, no warnings and no open questions.</p>")
-		s.line("</section>")
+		s.line(tr("<p>The specification has no errors, no warnings and no open questions.</p>"))
+		s.line(tr("</section>"))
 		return
 	}
-	s.line("<p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>")
-	s.line(`<ol class="problems">`)
+	s.line(tr("<p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>"))
+	s.line(tr(`<ol class="problems">`))
 	for _, p := range s.parts.Problems {
-		s.line(`<li class="%s" data-search id="%s">`, esc(p.Severity), esc(anchor("problem-"+p.ID)))
-		s.line("<p><code>%s</code></p>", esc(p.Line))
+		s.line(tr(`<li class="%s" data-search id="%s">`), esc(p.Severity), esc(anchor("problem-"+p.ID)))
+		s.line(tr("<p><code>%s</code></p>"), esc(p.Line))
 		for _, n := range p.Notes {
-			s.line(`<p class="problem-note"><code>%s</code></p>`, esc(n))
+			s.line(tr(`<p class="problem-note"><code>%s</code></p>`), esc(n))
 		}
 		at, ok := deepestShown(s.shown, p.Pointer)
 		switch {
 		case s.collecting:
 		case ok:
-			s.line(`<p>Marked at <a href="#%s">%s</a>.</p>`, esc(anchor(at)), esc(at))
+			s.line(tr(`<p>Marked at <a href="#%s">%s</a>.</p>`), esc(anchor(at)), esc(at))
 		case p.Pointer == "" || p.Pointer == "/":
-			s.line("<p>Not at an entry of the specification; the file and line above say where it is.</p>")
+			s.line(tr("<p>Not at an entry of the specification; the file and line above say where it is.</p>"))
 		default:
-			s.line("<p>At <code>%s</code>, which this page does not show.</p>", esc(p.Pointer))
+			s.line(tr("<p>At <code>%s</code>, which this page does not show.</p>"), esc(p.Pointer))
 		}
-		s.line("</li>")
+		s.line(tr("</li>"))
 	}
-	s.line("</ol>")
-	s.line("</section>")
+	s.line(tr("</ol>"))
+	s.line(tr("</section>"))
 }
 
 // entityDiagram draws the entities and their relations as SVG: a box per
@@ -1141,8 +1141,8 @@ func (s *site) entityDiagram() string {
 	totalW := cols*(width+gapX) - gapX + 40
 	totalH := y - gapY + 20
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg class="er" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" role="img" aria-label="Entity relationship diagram">`, totalW, totalH, totalW, totalH)
-	b.WriteString(`<defs><marker id="er-head" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="er-head" d="M0,0 L10,5 L0,10 z"/></marker></defs>`)
+	fmt.Fprintf(&b, tr(`<svg class="er" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" role="img" aria-label="Entity relationship diagram">`), totalW, totalH, totalW, totalH)
+	b.WriteString(tr(`<defs><marker id="er-head" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="er-head" d="M0,0 L10,5 L0,10 z"/></marker></defs>`))
 	for i, e := range entities {
 		n := len(pairs(e.Value, "properties"))
 		if n > maxFields {
@@ -1172,27 +1172,27 @@ func (s *site) entityDiagram() string {
 			x1, y1 := from.x+width/2, from.y+from.h/2
 			x2, y2 := to.x+width/2, to.y+to.h/2
 			if e.Key.Value == target {
-				fmt.Fprintf(&b, `<path class="er-line" d="M%d,%d C%d,%d %d,%d %d,%d" marker-end="url(#er-head)"/>`, from.x+width, from.y+head, from.x+width+50, from.y+head, from.x+width+50, from.y+head+40, from.x+width, from.y+head+40)
-				fmt.Fprintf(&labels, `<text class="er-label" x="%d" y="%d">%s</text>`, from.x+width+8, from.y+head+24, esc(r.Key.Value+" ("+kind+")"))
+				fmt.Fprintf(&b, tr(`<path class="er-line" d="M%d,%d C%d,%d %d,%d %d,%d" marker-end="url(#er-head)"/>`), from.x+width, from.y+head, from.x+width+50, from.y+head, from.x+width+50, from.y+head+40, from.x+width, from.y+head+40)
+				fmt.Fprintf(&labels, tr(`<text class="er-label" x="%d" y="%d">%s</text>`), from.x+width+8, from.y+head+24, esc(r.Key.Value+" ("+kind+")"))
 				continue
 			}
 			sx, sy := clip(x1, y1, x2, y2, width/2, from.h/2)
 			ex, ey := clip(x2, y2, x1, y1, width/2, to.h/2)
-			fmt.Fprintf(&b, `<line class="er-line" x1="%d" y1="%d" x2="%d" y2="%d" marker-end="url(#er-head)"/>`, sx, sy, ex, ey)
-			fmt.Fprintf(&labels, `<text class="er-label" x="%d" y="%d" text-anchor="middle">%s</text>`, (sx+ex)/2, (sy+ey)/2-4, esc(r.Key.Value+" ("+kind+")"))
+			fmt.Fprintf(&b, tr(`<line class="er-line" x1="%d" y1="%d" x2="%d" y2="%d" marker-end="url(#er-head)"/>`), sx, sy, ex, ey)
+			fmt.Fprintf(&labels, tr(`<text class="er-label" x="%d" y="%d" text-anchor="middle">%s</text>`), (sx+ex)/2, (sy+ey)/2-4, esc(r.Key.Value+" ("+kind+")"))
 		}
 	}
 	for _, e := range entities {
 		bx := boxes[e.Key.Value]
-		fmt.Fprintf(&b, `<a href="%s"><rect class="er-box" x="%d" y="%d" width="%d" height="%d" rx="4"/>`, s.href(source.Pointer("entities", e.Key.Value)), bx.x, bx.y, width, bx.h)
-		fmt.Fprintf(&b, `<rect class="er-title" x="%d" y="%d" width="%d" height="%d" rx="4"/>`, bx.x, bx.y, width, head)
-		fmt.Fprintf(&b, `<text class="er-name" x="%d" y="%d">%s</text></a>`, bx.x+10, bx.y+18, esc(e.Key.Value))
+		fmt.Fprintf(&b, tr(`<a href="%s"><rect class="er-box" x="%d" y="%d" width="%d" height="%d" rx="4"/>`), s.href(source.Pointer("entities", e.Key.Value)), bx.x, bx.y, width, bx.h)
+		fmt.Fprintf(&b, tr(`<rect class="er-title" x="%d" y="%d" width="%d" height="%d" rx="4"/>`), bx.x, bx.y, width, head)
+		fmt.Fprintf(&b, tr(`<text class="er-name" x="%d" y="%d">%s</text></a>`), bx.x+10, bx.y+18, esc(e.Key.Value))
 		required := strs(e.Value, "required")
 		keys := strs(e.Value, "primaryKey")
 		for i, f := range pairs(e.Value, "properties") {
 			fy := bx.y + head + 14 + i*rowH
 			if i == maxFields {
-				fmt.Fprintf(&b, `<text class="er-field" x="%d" y="%d">and %d more</text>`, bx.x+10, fy, len(pairs(e.Value, "properties"))-maxFields)
+				fmt.Fprintf(&b, tr(`<text class="er-field" x="%d" y="%d">and %d more</text>`), bx.x+10, fy, len(pairs(e.Value, "properties"))-maxFields)
 				break
 			}
 			mark := ""
@@ -1201,12 +1201,12 @@ func (s *site) entityDiagram() string {
 			} else if !slices.Contains(required, f.Key.Value) {
 				mark = "?"
 			}
-			fmt.Fprintf(&b, `<text class="er-field" x="%d" y="%d">%s%s</text>`, bx.x+10, fy, esc(f.Key.Value), esc(mark))
-			fmt.Fprintf(&b, `<text class="er-type" x="%d" y="%d" text-anchor="end">%s</text>`, bx.x+width-10, fy, esc(typeLabel(f.Value)))
+			fmt.Fprintf(&b, tr(`<text class="er-field" x="%d" y="%d">%s%s</text>`), bx.x+10, fy, esc(f.Key.Value), esc(mark))
+			fmt.Fprintf(&b, tr(`<text class="er-type" x="%d" y="%d" text-anchor="end">%s</text>`), bx.x+width-10, fy, esc(typeLabel(f.Value)))
 		}
 	}
 	b.WriteString(labels.String())
-	b.WriteString("</svg>")
+	b.WriteString(tr("</svg>"))
 	return b.String()
 }
 

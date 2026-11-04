@@ -40,16 +40,16 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 	params := operationParameters(o)
 	body := get(o.node, "requestBody")
 	if len(params) == 0 && body == nil {
-		text := "Takes no parameters and no request body"
+		text := tr("Takes no parameters and no request body")
 		if get(o.node, "listOf") != nil {
-			text = "Declares no parameter beyond those of the list below, and no request body"
+			text = tr("Declares no parameter beyond those of the list below, and no request body")
 		}
 		d.openUnder(o, told, text, "parameters", "requestBody")
 		return
 	}
 	if len(params) > 0 {
-		d.para("Parameters:")
-		d.line("| Parameter | In | Type | Required | Limits | Description |")
+		d.para(tr("Parameters:"))
+		d.line(tr("| Parameter | In | Type | Required | Limits | Description |"))
 		d.line("|---|---|---|---|---|---|")
 		var rows []row
 		for _, p := range params {
@@ -61,22 +61,22 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 			d.line("| %s | %s | %s | %s | %s | %s |", cell(str(p, "name")), str(p, "in"), cell(d.linkedType(root, schema)), cell(req), cell(limits(schema)), cell(fieldDescription(p, schema)))
 			if !explained[p] {
 				explained[p] = true
-				rows = append(rows, row{"parameter " + str(p, "name"), p})
+				rows = append(rows, row{tr("parameter ") + str(p, "name"), p})
 			}
 		}
 		d.blank()
 		d.explainRows(rows)
 	}
 	if len(params) == 0 {
-		text := "Takes no parameters"
+		text := tr("Takes no parameters")
 		if get(get(o.node, "stream"), "parameters") != nil {
-			text = "Takes no path or query parameters"
+			text = tr("Takes no path or query parameters")
 		}
 		d.openUnder(o, told, text, "parameters")
 	}
 	if body == nil {
 		if bodyMethods[o.method] {
-			d.openUnder(o, told, "Takes no request body", "requestBody")
+			d.openUnder(o, told, tr("Takes no request body"), "requestBody")
 		}
 		return
 	}
@@ -84,9 +84,9 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		// The transport paragraph says the body is the file, streamed; the
 		// parameters sent beside it are listed here (ADR-162).
 		if ps := get(get(o.node, "stream"), "parameters"); ps != nil {
-			d.body(root, "Parameters, sent beside the file as one JSON object in a header the stack names", "upload parameters", ps)
+			d.body(root, tr("Parameters, sent beside the file as one JSON object in a header the stack names"), tr("upload parameters"), ps)
 		}
-		d.explainRows([]row{{"the request body", body}})
+		d.explainRows([]row{{tr("the request body"), body}})
 		return
 	}
 	need := "optional"
@@ -96,9 +96,9 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 	d.para(str(body, "description"))
 	content := pairs(body, "content")
 	for _, c := range content {
-		d.body(root, fmt.Sprintf("Request body, %s, %s", c.Key.Value, need), "request body", get(c.Value, "schema"))
+		d.body(root, fmt.Sprintf(tr("Request body, %s, %s"), c.Key.Value, need), tr("request body"), get(c.Value, "schema"))
 	}
-	d.explainRows([]row{{"the request body", body}})
+	d.explainRows([]row{{tr("the request body"), body}})
 }
 
 // operationResponses writes every response an operation declares: its
@@ -107,11 +107,11 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bool) {
 	responses := pairs(o.node, "responses")
 	if len(responses) == 0 {
-		d.openUnder(o, told, "Declares no response", "responses")
+		d.openUnder(o, told, tr("Declares no response"), "responses")
 		return
 	}
-	d.para("Responses:")
-	d.line("| Status | Meaning | Body |")
+	d.para(tr("Responses:"))
+	d.line(tr("| Status | Meaning | Body |"))
 	d.line("|---|---|---|")
 	var rows []row
 	for _, r := range responses {
@@ -130,13 +130,13 @@ func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bo
 			bodies = append(bodies, text)
 		}
 		if p := str(r.Value, "problem"); p != "" {
-			bodies = append(bodies, "the problem document "+p+" (RFC 9457)")
+			bodies = append(bodies, tr("the problem document ")+p+tr(" (RFC 9457)"))
 		}
 		if len(bodies) == 0 {
 			bodies = []string{"none"}
 		}
 		d.line("| %s | %s | %s |", cell(r.Key.Value), cell(str(r.Value, "description")), cell(strings.Join(bodies, "; ")))
-		rows = append(rows, row{"response " + r.Key.Value, r.Value})
+		rows = append(rows, row{tr("response ") + r.Key.Value, r.Value})
 	}
 	d.blank()
 	d.explainRows(rows)
@@ -146,11 +146,11 @@ func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bo
 			if len(bodyFields(schema)) == 0 {
 				continue
 			}
-			lead := "Body of the " + r.Key.Value + " response"
+			lead := tr("Body of the ") + r.Key.Value + tr(" response")
 			if c.Key.Value != "application/json" || len(pairs(r.Value, "content")) > 1 {
 				lead += ", " + c.Key.Value
 			}
-			d.body(root, lead, "response "+r.Key.Value, schema)
+			d.body(root, lead, tr("response ")+r.Key.Value, schema)
 		}
 	}
 }
@@ -160,9 +160,9 @@ func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bo
 func (d *doc) bodySummary(root *yaml.Node, schema *yaml.Node) string {
 	if len(bodyFields(schema)) > 0 {
 		if str(schema, "type") == "array" {
-			return withLimits("a list of objects, fields below", schema)
+			return withLimits(tr("a list of objects, fields below"), schema)
 		}
-		return "an object, fields below"
+		return tr("an object, fields below")
 	}
 	return withLimits(d.linkedType(root, schema), schema)
 }
@@ -193,11 +193,11 @@ func (d *doc) body(root *yaml.Node, lead, label string, schema *yaml.Node) {
 		return
 	}
 	if str(schema, "type") == "array" {
-		d.para(lead + ": " + withLimits("a list", schema) + ", each item with these fields:")
+		d.para(lead + ": " + withLimits(tr("a list"), schema) + tr(", each item with these fields:"))
 	} else {
 		d.para(lead + ":")
 	}
-	d.line("| Field | Type | Required | Limits | Description |")
+	d.line(tr("| Field | Type | Required | Limits | Description |"))
 	d.line("|---|---|---|---|---|")
 	var rows []row
 	for _, f := range fields {
@@ -206,7 +206,7 @@ func (d *doc) body(root *yaml.Node, lead, label string, schema *yaml.Node) {
 			req = "yes"
 		}
 		d.line("| %s | %s | %s | %s | %s |", cell(f.path), cell(d.linkedType(root, f.node)), cell(req), cell(limits(f.node)), cell(fieldDescription(f.node, f.node)))
-		rows = append(rows, row{label + " field " + f.path, f.node})
+		rows = append(rows, row{label + tr(" field ") + f.path, f.node})
 	}
 	d.blank()
 	d.explainRows(rows)
@@ -326,7 +326,7 @@ func slug(heading string) string {
 // operation or on the path. told holds the questions already written
 // under the operation.
 func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...string) {
-	words := map[string]string{"parameters": "what it takes", "requestBody": "the request body", "responses": "what it answers"}
+	words := map[string]string{"parameters": tr("what it takes"), "requestBody": tr("the request body"), "responses": tr("what it answers")}
 	var asked []question
 	var labels []string
 	named := map[string]bool{}
@@ -341,12 +341,12 @@ func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...
 			}
 		}
 		if len(ids) > 0 {
-			text += fmt.Sprintf("; %s is open in %s", label, joinAnd(ids))
+			text += fmt.Sprintf(tr("; %s is open in %s"), label, joinAnd(ids))
 		}
 	}
 	whole := wholeOperation(o)
-	name("the operation", func(q question) bool { return q.blocksAt(whole[:1]) })
-	name("the path", func(q question) bool { return q.blocksAt(whole[1:]) })
+	name(tr("the operation"), func(q question) bool { return q.blocksAt(whole[:1]) })
+	name(tr("the path"), func(q question) bool { return q.blocksAt(whole[1:]) })
 	for _, key := range keys {
 		ptrs := []string{source.Pointer("paths", o.path, o.method, key)}
 		if key == "parameters" {
@@ -358,7 +358,7 @@ func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...
 	for i, q := range asked {
 		if !told[q.id] {
 			told[q.id] = true
-			d.openParagraph(q, " on "+labels[i])
+			d.openParagraph(q, tr(" on ")+labels[i])
 		}
 	}
 }
@@ -369,7 +369,7 @@ func (d *doc) openUnder(o operation, told map[string]bool, text string, keys ...
 // operation open while what it answers is not settled.
 func (d *doc) openOperation(o operation, told map[string]bool) {
 	whole := wholeOperation(o)
-	for i, on := range []string{" on the operation", " on the path"} {
+	for i, on := range []string{tr(" on the operation"), tr(" on the path")} {
 		for _, q := range d.questions {
 			if !told[q.id] && q.blocksAt(whole[i:i+1]) {
 				told[q.id] = true

@@ -28,29 +28,29 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 		total += s.count
 	}
 
-	d.line("# %s: progress", str(info, "title"))
+	d.line(tr("# %s: progress"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s, %s, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing.",
-		str(info, "version"), countText(total, "element", "elements"), countText(len(d.questions), "open question", "open questions")))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s, %s, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing."),
+		str(info, "version"), countText(total, tr("element"), tr("elements")), countText(len(d.questions), tr("open question"), tr("open questions"))))
 	if state.Withheld != nil {
-		d.para("This document is for everyone: the internal elements, and the questions only about them, are not counted.")
+		d.para(tr("This document is for everyone: the internal elements, and the questions only about them, are not counted."))
 	}
 	d.stakeholdersNotice()
 
-	d.section("Size")
-	d.para("The elements of each stage, a section of named elements counted by its entries and a section that holds one thing, such as the release, as one. The open questions are counted under Open work, not here.")
-	d.line("| Stage | Elements | Sections |")
+	d.section(tr("Size"))
+	d.para(tr("The elements of each stage, a section of named elements counted by its entries and a section that holds one thing, such as the release, as one. The open questions are counted under Open work, not here."))
+	d.line(tr("| Stage | Elements | Sections |"))
 	d.line("|---|---|---|")
 	for _, s := range size {
 		d.line("| %s | %d | %s |", s.stage, s.count, cell(s.sections))
 	}
-	d.line("| Total | %d | |", total)
+	d.line(tr("| Total | %d | |"), total)
 	d.blank()
 
-	d.section("Open work")
+	d.section(tr("Open work"))
 	d.progressQuestions()
 
-	d.section("Unheard roles")
+	d.section(tr("Unheard roles"))
 	var unheard []Mark
 	for _, m := range state.Marks {
 		if m.Rule == "unheard" && strings.HasPrefix(m.Pointer, "/stakeholders/") {
@@ -58,22 +58,22 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 		}
 	}
 	if len(unheard) == 0 {
-		d.para("The validator warns no role unheard.")
+		d.para(tr("The validator warns no role unheard."))
 	} else {
-		d.para(fmt.Sprintf("%s the validator warns unheard: a role that something accepted relies on, while no record shows it was heard.", countText(len(unheard), "role", "roles")))
+		d.para(fmt.Sprintf(tr("%s the validator warns unheard: a role that something accepted relies on, while no record shows it was heard."), countText(len(unheard), tr("role"), tr("roles"))))
 		for _, m := range unheard {
-			d.line("- %s: %s [%s]", strings.TrimPrefix(m.Pointer, "/stakeholders/"), m.Message, m.ID)
+			d.line("- %s: %s [%s]", strings.TrimPrefix(m.Pointer, tr("/stakeholders/")), m.Message, m.ID)
 		}
 		d.blank()
 	}
 
-	d.section("Stakeholder list")
+	d.section(tr("Stakeholder list"))
 	d.progressStakeholderList(root, state)
 
-	d.section("Effort")
+	d.section(tr("Effort"))
 	d.progressEffort(state)
 
-	d.section("Burn-up")
+	d.section(tr("Burn-up"))
 	d.progressBurnUp(root, state, total)
 	return d.String()
 }
@@ -85,11 +85,11 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 // naming the open must questions that hold the list up, since the validator
 // does not warn while one does.
 func (d *doc) progressStakeholderList(root *yaml.Node, state *State) {
-	list := countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders")
+	list := countText(len(pairs(root, "stakeholders")), tr("stakeholder"), tr("stakeholders"))
 	if complete := get(root, "stakeholdersComplete"); complete != nil {
-		line := fmt.Sprintf("Confirmed: %s confirmed the list of %s complete on %s", orNone(str(complete, "by"), "no role named"), list, orNone(str(complete, "date"), "no date written"))
+		line := fmt.Sprintf(tr("Confirmed: %s confirmed the list of %s complete on %s"), orNone(str(complete, "by"), tr("no role named")), list, orNone(str(complete, "date"), tr("no date written")))
 		if src := str(complete, "source"); src != "" {
-			line += ", recorded in the source " + src
+			line += tr(", recorded in the source ") + src
 		}
 		d.para(line + ".")
 		var marks []Mark
@@ -99,7 +99,7 @@ func (d *doc) progressStakeholderList(root *yaml.Node, state *State) {
 			}
 		}
 		if len(marks) > 0 {
-			d.para(fmt.Sprintf("The validator marks the confirmation with %s:", countText(len(marks), "problem", "problems")))
+			d.para(fmt.Sprintf(tr("The validator marks the confirmation with %s:"), countText(len(marks), tr("problem"), tr("problems"))))
 			for _, m := range marks {
 				d.line("- %s %s: %s [%s]", m.Severity, m.Pointer, m.Message, m.ID)
 			}
@@ -120,11 +120,11 @@ func (d *doc) progressStakeholderList(root *yaml.Node, state *State) {
 		}
 	}
 	if len(holding) > 0 {
-		d.para(fmt.Sprintf("Not confirmed: the open must %s %s %s up the list of %s until %s answered, so a role nobody has named yet may still be missing.",
-			pick(len(holding) == 1, "question", "questions"), strings.Join(holding, ", "), pick(len(holding) == 1, "holds", "hold"), list, pick(len(holding) == 1, "it is", "they are")))
+		d.para(fmt.Sprintf(tr("Not confirmed: the open must %s %s %s up the list of %s until %s answered, so a role nobody has named yet may still be missing."),
+			pick(len(holding) == 1, tr("question"), tr("questions")), strings.Join(holding, ", "), pick(len(holding) == 1, tr("holds"), tr("hold")), list, pick(len(holding) == 1, tr("it is"), tr("they are"))))
 		return
 	}
-	d.para(fmt.Sprintf("Not confirmed: the specification records no role confirming the list of %s complete, so a role nobody has named yet may still be missing.", list))
+	d.para(fmt.Sprintf(tr("Not confirmed: the specification records no role confirming the list of %s complete, so a role nobody has named yet may still be missing."), list))
 }
 
 func orNone(s, none string) string {
@@ -203,7 +203,7 @@ func sectionSize(root *yaml.Node, section string) int {
 func (d *doc) progressQuestions() {
 	qs := d.questions
 	if len(qs) == 0 {
-		d.para("No question is open.")
+		d.para(tr("No question is open."))
 		return
 	}
 	const noRole = "no role named (decidedBy missing)"
@@ -228,7 +228,7 @@ func (d *doc) progressQuestions() {
 			if n := source.Deref(get(q.node, "priority")); n != nil {
 				written = valueText(n)
 			}
-			odd = append(odd, fmt.Sprintf("- %s: priority %s (not counted as must, should or could; one of them is expected)", q.id, cell(written)))
+			odd = append(odd, fmt.Sprintf(tr("- %s: priority %s (not counted as must, should or could; one of them is expected)"), q.id, cell(written)))
 		}
 		byRole[role][priority]++
 		totals[priority]++
@@ -240,16 +240,16 @@ func (d *doc) progressQuestions() {
 		}
 		return roles[i] < roles[j]
 	})
-	says := fmt.Sprintf("%s: %d must, %d should, %d could", countText(len(qs), "open question", "open questions"), totals["must"], totals["should"], totals["could"])
+	says := fmt.Sprintf(tr("%s: %d must, %d should, %d could"), countText(len(qs), tr("open question"), tr("open questions")), totals["must"], totals["should"], totals["could"])
 	if totals[other] > 0 {
-		says += fmt.Sprintf(", %d with another priority", totals[other])
+		says += fmt.Sprintf(tr(", %d with another priority"), totals[other])
 	}
-	d.para(says + ", by the role that decides each or must provide what it asks for. A must question holds up everything that reads what it blocks; a should question holds up code generation and approval; a could question holds up nothing. The questions document lists each one.")
+	d.para(says + tr(", by the role that decides each or must provide what it asks for. A must question holds up everything that reads what it blocks; a should question holds up code generation and approval; a could question holds up nothing. The questions document lists each one."))
 	if totals[other] > 0 {
-		d.line("| Decided by | Must | Should | Could | Other priority | Total |")
+		d.line(tr("| Decided by | Must | Should | Could | Other priority | Total |"))
 		d.line("|---|---|---|---|---|---|")
 	} else {
-		d.line("| Decided by | Must | Should | Could | Total |")
+		d.line(tr("| Decided by | Must | Should | Could | Total |"))
 		d.line("|---|---|---|---|---|")
 	}
 	row := func(label string, c map[string]int, total int) {
@@ -261,12 +261,16 @@ func (d *doc) progressQuestions() {
 	}
 	for _, r := range roles {
 		c := byRole[r]
-		row(cell(r), c, c["must"]+c["should"]+c["could"]+c[other])
+		label := r
+		if r == noRole {
+			label = tr("no role named (decidedBy missing)")
+		}
+		row(cell(label), c, c["must"]+c["should"]+c["could"]+c[other])
 	}
-	row("Total", totals, len(qs))
+	row(tr("Total"), totals, len(qs))
 	d.blank()
 	if len(odd) > 0 {
-		d.para(fmt.Sprintf("%s a priority that is not must, should or could:", countText(len(odd), "question has", "questions have")))
+		d.para(fmt.Sprintf(tr("%s a priority that is not must, should or could:"), countText(len(odd), tr("question has"), tr("questions have"))))
 		for _, l := range odd {
 			d.line("%s", l)
 		}
@@ -294,10 +298,10 @@ func (h *hours) add(n *yaml.Node) string {
 	var r big.Rat
 	tag := n.ShortTag()
 	if n.Kind != yaml.ScalarNode || tag != "!!int" && tag != "!!float" {
-		return fmt.Sprintf("%s (not counted: not a number; a positive number of hours is expected)", cell(valueText(n)))
+		return fmt.Sprintf(tr("%s (not counted: not a number; a positive number of hours is expected)"), cell(valueText(n)))
 	}
 	if _, ok := r.SetString(n.Value); !ok || r.Sign() <= 0 {
-		return fmt.Sprintf("%s (not counted: not above 0; a positive number of hours is expected)", cell(n.Value))
+		return fmt.Sprintf(tr("%s (not counted: not above 0; a positive number of hours is expected)"), cell(n.Value))
 	}
 	h.sum.Add(&h.sum, &r)
 	h.count++
@@ -311,9 +315,9 @@ func (h *hours) String() string { return ratText(&h.sum) }
 func valueText(n *yaml.Node) string {
 	switch n.Kind {
 	case yaml.SequenceNode:
-		return "a list"
+		return tr("a list")
 	case yaml.MappingNode:
-		return "a mapping"
+		return tr("a mapping")
 	}
 	if n.ShortTag() == "!!str" {
 		return fmt.Sprintf("%q", n.Value)
@@ -344,7 +348,7 @@ func ratText(r *big.Rat) string {
 func (d *doc) progressEffort(state *State) {
 	changes := recordsOf(state, "change")
 	if len(changes) == 0 {
-		d.para("No change request is recorded.")
+		d.para(tr("No change request is recorded."))
 		return
 	}
 	var estimated, spent hours
@@ -365,16 +369,16 @@ func (d *doc) progressEffort(state *State) {
 		rows = append(rows, r)
 	}
 	n := len(changes)
-	says := fmt.Sprintf("%s recorded beside the specification, with the effort each records in hours. ", countText(n, "change request is", "change requests are"))
-	says += sumText("Estimated", &estimated, n) + " " + sumText("Spent", &spent, n)
+	says := fmt.Sprintf(tr("%s recorded beside the specification, with the effort each records in hours. "), countText(n, tr("change request is"), tr("change requests are")))
+	says += sumText(tr("Estimated"), &estimated, n) + " " + sumText(tr("Spent"), &spent, n)
 	if len(missing) > 0 {
-		says += fmt.Sprintf(" %d of %d %s no effort and %s counted as missing: %s. No figure is filled in.",
-			len(missing), n, pick(len(missing) == 1, "records", "record"), pick(len(missing) == 1, "is", "are"), strings.Join(missing, ", "))
+		says += fmt.Sprintf(tr(" %d of %d %s no effort and %s counted as missing: %s. No figure is filled in."),
+			len(missing), n, pick(len(missing) == 1, tr("records"), tr("record")), pick(len(missing) == 1, tr("is"), tr("are")), strings.Join(missing, ", "))
 	} else {
-		says += " Every change request records its effort."
+		says += tr(" Every change request records its effort.")
 	}
 	d.para(says)
-	d.line("| Change request | Status | Estimated hours | Spent hours |")
+	d.line(tr("| Change request | Status | Estimated hours | Spent hours |"))
 	d.line("|---|---|---|---|")
 	for _, r := range rows {
 		d.line("| %s, %s | %s | %s | %s |", r.id, cell(r.title), r.status, r.estimated, r.spent)
@@ -384,9 +388,9 @@ func (d *doc) progressEffort(state *State) {
 
 func sumText(label string, h *hours, n int) string {
 	if h.count == 0 {
-		return label + ": no change request records it."
+		return label + tr(": no change request records it.")
 	}
-	return fmt.Sprintf("%s: %s hours over the %d of %d that record it.", label, h.String(), h.count, n)
+	return fmt.Sprintf(tr("%s: %s hours over the %d of %d that record it."), label, h.String(), h.count, n)
 }
 
 func pick(cond bool, yes, no string) string {
@@ -415,21 +419,21 @@ func elementOf(root *yaml.Node, ref string) (string, string) {
 	}
 	section := tokens[0]
 	if spec.Sections[section] == "" || spec.IsExtensionKey(section) {
-		return "", "names no section that Size counts"
+		return "", tr("names no section that Size counts")
 	}
 	if spec.IsSingleSection(section) || spec.IsElement(tokens[:1]) {
 		tokens = tokens[:1]
 	} else {
 		if len(tokens) < 2 {
-			return "", "names a whole section, not one element"
+			return "", tr("names a whole section, not one element")
 		}
 		if spec.IsExtensionKey(tokens[1]) {
-			return "", "names an extension key, not an element"
+			return "", tr("names an extension key, not an element")
 		}
 		tokens = tokens[:2]
 	}
 	if _, ok := source.Resolve(root, tokens); !ok {
-		return "", "names an element the specification does not hold"
+		return "", tr("names an element the specification does not hold")
 	}
 	return source.Pointer(tokens...), ""
 }
@@ -448,10 +452,10 @@ func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 		b, _ := semver.Parse(str(releases[j], "version"))
 		return semver.Compare(a, b) < 0
 	})
-	d.para(fmt.Sprintf("One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.",
-		countText(scope, "element", "elements")))
+	d.para(fmt.Sprintf(tr("One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds %s now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here."),
+		countText(scope, tr("element"), tr("elements"))))
 	if len(releases) == 0 {
-		d.para("No release is recorded.")
+		d.para(tr("No release is recorded."))
 		return
 	}
 	changes := map[string]*yaml.Node{}
@@ -461,7 +465,7 @@ func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 	approved, generated := map[string]bool{}, map[string]bool{}
 	seen := map[string]bool{}
 	var notCounted []string
-	d.line("| Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |")
+	d.line(tr("| Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |"))
 	d.line("|---|---|---|---|---|---|---|")
 	for _, r := range releases {
 		var ids []string
@@ -484,7 +488,7 @@ func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 					key := id + " " + ref
 					if !seen[key] {
 						seen[key] = true
-						notCounted = append(notCounted, fmt.Sprintf("- %s names %s: not counted, it %s.", id, cell(ref), why))
+						notCounted = append(notCounted, fmt.Sprintf(tr("- %s names %s: not counted, it %s."), id, cell(ref), why))
 					}
 					continue
 				}
@@ -498,7 +502,7 @@ func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 		}
 		date := str(r, "date")
 		if date == "" {
-			date = "not yet"
+			date = tr("not yet")
 		}
 		list := strings.Join(ids, ", ")
 		if list == "" {
@@ -508,7 +512,7 @@ func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 	}
 	d.blank()
 	if len(notCounted) > 0 {
-		d.para(fmt.Sprintf("%s under affects %s not counted, since Size does not count what %s:", countText(len(notCounted), "reference", "references"), pick(len(notCounted) == 1, "is", "are"), pick(len(notCounted) == 1, "it names", "they name")))
+		d.para(fmt.Sprintf(tr("%s under affects %s not counted, since Size does not count what %s:"), countText(len(notCounted), tr("reference"), tr("references")), pick(len(notCounted) == 1, tr("is"), tr("are")), pick(len(notCounted) == 1, tr("it names"), tr("they name"))))
 		for _, l := range notCounted {
 			d.line("%s", l)
 		}

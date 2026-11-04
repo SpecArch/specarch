@@ -982,6 +982,10 @@ open questions and problems that concern only them, and its summary counts what 
 section. Without the flag, a document holds everything and marks each
 internal element.
 
+`specarch document --language id --out <folder>` writes a document in
+Indonesian, the technical terms practitioners say in English kept
+(ADR-241, [`languages.md`](languages.md)); English is the default.
+
 ### Access control is fail-closed
 
 Every operation, command and page names exactly one `permission`. Leaving it out

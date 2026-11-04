@@ -1,0 +1,12 @@
+translations:
+  "**Audience%s:** internal, left out of a document for everyone.": "**Audience%s:** internal, tidak dimuat di dokumen untuk semua orang."
+  "**Origin:**": "**Asal:**"
+  "**Origin%s:**": "**Asal%s:**"
+  "**Insight%s:** %s": "**Insight%s:** %s"
+  "**Note%s:** %s": "**Catatan%s:** %s"
+  "owned by ": "dimiliki oleh "
+  ", fulfilled by ": ", dipenuhi oleh "
+  ", clause ": ", klausul "
+  "Every source a Note in this document cites.": "Setiap sumber yang dikutip oleh Catatan di dokumen ini."
+  "| Source | Title | Edition | Author | Where to read it |": "| Sumber | Judul | Edisi | Penulis | Tempat membacanya |"
+  "step %d, %s": "langkah %d, %s"

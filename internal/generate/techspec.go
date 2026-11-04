@@ -42,9 +42,9 @@ type IdiomUse struct {
 func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *State) string {
 	d := newDoc("techspec", root, relRoot, impls, state)
 	info := get(root, "info")
-	d.line("# %s: technical specification", str(info, "title"))
+	d.line(tr("# %s: technical specification"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s. The chapters follow arc42, and a chapter with nothing in the specification is left out.", str(info, "version"), contents(root)))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s. The chapters follow arc42, and a chapter with nothing in the specification is left out."), str(info, "version"), contents(root)))
 	d.draftNotice("techspec")
 
 	introduction(d, root)
@@ -54,11 +54,11 @@ func Techspec(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	runtime(d, root, impls)
 	deployment(d, root, impls)
 	crossCutting(d, root, state)
-	decisions(d, "9. Architecture decisions", root)
+	decisions(d, tr("9. Architecture decisions"), root)
 	qualityTests(d, root)
 	glossary(d, root)
 	requirements(d, root, impls)
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -128,7 +128,7 @@ const StakeholdersBanner = "**Stakeholders unconfirmed:** nobody has confirmed t
 // stakeholdersNotice writes the banner while the list is unconfirmed.
 func (d *doc) stakeholdersNotice() {
 	if d.unconfirmedStakeholders {
-		d.para(StakeholdersBanner)
+		d.para(tr(StakeholdersBanner))
 	}
 }
 
@@ -182,41 +182,41 @@ func contents(root *yaml.Node) string {
 			parts = append(parts, fmt.Sprintf("%d %s", n, many))
 		}
 	}
-	count(len(pairs(root, "requirements")), "requirement", "requirements")
-	count(len(pairs(root, "entities")), "entity", "entities")
-	count(len(pairs(root, "views")), "view", "views")
-	count(len(pairs(root, "schemas")), "schema", "schemas")
-	count(len(operations(root)), "HTTP operation", "HTTP operations")
-	count(len(pairs(root, "commands")), "command", "commands")
-	count(len(pairs(root, "channels")), "channel", "channels")
-	count(len(pairs(root, "dependencies")), "dependency", "dependencies")
-	count(len(pairs(root, "pages")), "page", "pages")
-	count(len(pairs(root, "flows")), "flow", "flows")
-	count(len(pairs(root, "workflows")), "workflow", "workflows")
-	count(len(pairs(root, "algorithms")), "algorithm", "algorithms")
-	count(len(pairs(root, "tests")), "test", "tests")
-	count(len(pairs(root, "decisions")), "decision", "decisions")
-	count(len(pairs(root, "environments")), "environment", "environments")
-	count(len(pairs(root, "checks")), "commissioning check", "commissioning checks")
+	count(len(pairs(root, "requirements")), tr("requirement"), tr("requirements"))
+	count(len(pairs(root, "entities")), tr("entity"), tr("entities"))
+	count(len(pairs(root, "views")), tr("view"), tr("views"))
+	count(len(pairs(root, "schemas")), tr("schema"), tr("schemas"))
+	count(len(operations(root)), tr("HTTP operation"), tr("HTTP operations"))
+	count(len(pairs(root, "commands")), tr("command"), tr("commands"))
+	count(len(pairs(root, "channels")), tr("channel"), tr("channels"))
+	count(len(pairs(root, "dependencies")), tr("dependency"), tr("dependencies"))
+	count(len(pairs(root, "pages")), tr("page"), tr("pages"))
+	count(len(pairs(root, "flows")), tr("flow"), tr("flows"))
+	count(len(pairs(root, "workflows")), tr("workflow"), tr("workflows"))
+	count(len(pairs(root, "algorithms")), tr("algorithm"), tr("algorithms"))
+	count(len(pairs(root, "tests")), tr("test"), tr("tests"))
+	count(len(pairs(root, "decisions")), tr("decision"), tr("decisions"))
+	count(len(pairs(root, "environments")), tr("environment"), tr("environments"))
+	count(len(pairs(root, "checks")), tr("commissioning check"), tr("commissioning checks"))
 	if len(parts) == 0 {
-		return "no objects yet"
+		return tr("no objects yet")
 	}
 	if len(parts) == 1 {
 		return parts[0]
 	}
-	return strings.Join(parts[:len(parts)-1], ", ") + " and " + parts[len(parts)-1]
+	return strings.Join(parts[:len(parts)-1], ", ") + tr(" and ") + parts[len(parts)-1]
 }
 
 func introduction(d *doc, root *yaml.Node) {
 	info := get(root, "info")
-	d.heading(2, "1. Introduction and goals")
+	d.heading(2, tr("1. Introduction and goals"))
 	d.para(str(info, "description"))
 	if owners := strs(info, "owners"); len(owners) > 0 {
-		d.para("Owners: " + strings.Join(owners, ", ") + ".")
+		d.para(tr("Owners: ") + strings.Join(owners, ", ") + ".")
 	}
 	if sh := pairs(root, "stakeholders"); len(sh) > 0 {
-		d.heading(3, "Stakeholders")
-		d.line("| Stakeholder | Who they are | Concerns |")
+		d.heading(3, tr("Stakeholders"))
+		d.line(tr("| Stakeholder | Who they are | Concerns |"))
 		d.line("|---|---|---|")
 		for _, s := range sh {
 			d.line("| %s | %s | %s |", s.Key.Value, cell(str(s.Value, "description")), cell(joinSentences(strs(s.Value, "concerns"))))
@@ -234,9 +234,9 @@ func constraints(d *doc, root *yaml.Node) {
 	if len(cons)+len(assume) == 0 {
 		return
 	}
-	d.heading(2, "2. Constraints")
+	d.heading(2, tr("2. Constraints"))
 	if len(cons) > 0 {
-		d.line("| Constraint | Kind | Statement |")
+		d.line(tr("| Constraint | Kind | Statement |"))
 		d.line("|---|---|---|")
 		for _, c := range cons {
 			d.line("| %s | %s | %s |", c.Key.Value, str(c.Value, "kind"), cell(str(c.Value, "statement")))
@@ -245,8 +245,8 @@ func constraints(d *doc, root *yaml.Node) {
 		d.explainRows(pairRows(root, "constraints"))
 	}
 	if len(assume) > 0 {
-		d.heading(3, "Assumptions")
-		d.line("| Assumption | Statement |")
+		d.heading(3, tr("Assumptions"))
+		d.line(tr("| Assumption | Statement |"))
 		d.line("|---|---|")
 		for _, a := range assume {
 			d.line("| %s | %s |", a.Key.Value, cell(str(a.Value, "statement")))
@@ -264,20 +264,20 @@ func context(d *doc, root *yaml.Node) {
 	if len(ops)+len(cmds)+len(chans)+len(deps) == 0 {
 		return
 	}
-	d.heading(2, "3. Context")
-	d.para("The interfaces the system offers, as its clients see them.")
+	d.heading(2, tr("3. Context"))
+	d.para(tr("The interfaces the system offers, as its clients see them."))
 	if usesContextKeys(root) {
 		// Drawn once a dependency has a kind or a protocol or a channel
 		// names its carrier, so a specification without the keys renders
 		// as before (ADR-134).
-		d.para("Who uses the system and what it reaches: a person per role, a system per calling service with the roles it holds, and the dependencies by kind with their protocol, each edge naming the operations and jobs that call it or the channel it carries.")
+		d.para(tr("Who uses the system and what it reaches: a person per role, a system per calling service with the roles it holds, and the dependencies by kind with their protocol, each edge naming the operations and jobs that call it or the channel it carries."))
 		d.block(contextDiagram(root))
 	}
 	if str(source.Child(root, "info"), "wireNames") == wirename.SnakeCase {
-		d.para("Every property goes on the wire in snake_case (info.wireNames): a field this specification names dueOn is due_on in a body, a parameter's schema and a message. A parameter's own name is written as it is on the wire.")
+		d.para(tr("Every property goes on the wire in snake_case (info.wireNames): a field this specification names dueOn is due_on in a body, a parameter's schema and a message. A parameter's own name is written as it is on the wire."))
 	}
 	if len(ops) > 0 {
-		d.heading(3, "HTTP operations")
+		d.heading(3, tr("HTTP operations"))
 		chains := false
 		for _, o := range ops {
 			chains = chains || get(o.node, "middlewares") != nil
@@ -285,10 +285,10 @@ func context(d *doc, root *yaml.Node) {
 		if chains {
 			// The middlewares each runs, once any operation names them
 			// (ADR-131).
-			d.line("| Method and path | Operation | Summary | Permission | Middlewares, in order |")
+			d.line(tr("| Method and path | Operation | Summary | Permission | Middlewares, in order |"))
 			d.line("|---|---|---|---|---|")
 		} else {
-			d.line("| Method and path | Operation | Summary | Permission |")
+			d.line(tr("| Method and path | Operation | Summary | Permission |"))
 			d.line("|---|---|---|---|")
 		}
 		for _, o := range ops {
@@ -301,8 +301,8 @@ func context(d *doc, root *yaml.Node) {
 		d.blank()
 	}
 	if len(cmds) > 0 {
-		d.heading(3, "Commands")
-		d.line("| Command | Summary | Permission | Exit statuses |")
+		d.heading(3, tr("Commands"))
+		d.line(tr("| Command | Summary | Permission | Exit statuses |"))
 		d.line("|---|---|---|---|")
 		for _, c := range cmds {
 			var codes []string
@@ -314,8 +314,8 @@ func context(d *doc, root *yaml.Node) {
 		d.blank()
 	}
 	if len(chans) > 0 {
-		d.heading(3, "Channels")
-		d.line("| Channel | Message | Summary |")
+		d.heading(3, tr("Channels"))
+		d.line(tr("| Channel | Message | Summary |"))
 		d.line("|---|---|---|")
 		var rows []row
 		for _, ch := range chans {
@@ -329,9 +329,9 @@ func context(d *doc, root *yaml.Node) {
 		d.explainRows(rows)
 	}
 	if len(deps) > 0 {
-		d.heading(3, "Dependencies")
-		d.para("External systems the operations call. A call that fails, or that does not answer within its time limit, is given up, and the operation answers as its failure response says.")
-		d.line("| Dependency | Time limit per call | Called by | Description |")
+		d.heading(3, tr("Dependencies"))
+		d.para(tr("External systems the operations call. A call that fails, or that does not answer within its time limit, is given up, and the operation answers as its failure response says."))
+		d.line(tr("| Dependency | Time limit per call | Called by | Description |"))
 		d.line("|---|---|---|---|")
 		for _, dep := range deps {
 			var callers []string
@@ -344,7 +344,7 @@ func context(d *doc, root *yaml.Node) {
 			}
 			for _, g := range pairs(root, "gateways") {
 				if contains(gatewayDependencies(g.Value), dep.Key.Value) {
-					callers = append(callers, "gateway "+g.Key.Value)
+					callers = append(callers, tr("gateway ")+g.Key.Value)
 				}
 			}
 			description := str(dep.Value, "description")
@@ -352,7 +352,7 @@ func context(d *doc, root *yaml.Node) {
 				description += " " + contract
 			}
 			if sp := str(dep.Value, "specification"); sp != "" {
-				description = fmt.Sprintf("Specified on its own as %s; the references were written against version %s. %s", sp, str(dep.Value, "version"), description)
+				description = fmt.Sprintf(tr("Specified on its own as %s; the references were written against version %s. %s"), sp, str(dep.Value, "version"), description)
 			}
 			d.line("| %s | %s | %s | %s |", dep.Key.Value, str(dep.Value, "timeout"), cell(strings.Join(callers, ", ")), cell(description))
 		}
@@ -378,7 +378,7 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 	if len(entities)+len(enums)+len(views)+len(schemas)+len(components) == 0 {
 		return
 	}
-	d.heading(2, "5. Building blocks")
+	d.heading(2, tr("5. Building blocks"))
 	d.block(entityDiagram(root))
 	for _, e := range entities {
 		d.headed("entities", e.Key.Value, d.heading(3, e.Key.Value))
@@ -388,7 +388,7 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 		for _, r := range strs(e.Value, "required") {
 			required[r] = true
 		}
-		d.line("| Field | Type | Required | Limits | Description |")
+		d.line(tr("| Field | Type | Required | Limits | Description |"))
 		d.line("|---|---|---|---|---|")
 		for _, f := range pairs(e.Value, "properties") {
 			req := ""
@@ -398,22 +398,22 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 			d.line("| %s | %s | %s | %s | %s |", f.Key.Value, cell(typeText(f.Value)), cell(req), cell(limits(f.Value)), cell(str(f.Value, "description")))
 		}
 		d.blank()
-		d.para("Primary key: " + strings.Join(strs(e.Value, "primaryKey"), ", ") + ".")
+		d.para(tr("Primary key: ") + strings.Join(strs(e.Value, "primaryKey"), ", ") + ".")
 		if v := get(e.Value, "validity"); v != nil {
 			if from := str(v, "from"); from != "" {
-				d.para(fmt.Sprintf("Validity: a record is current from its %s until its %s; outside that it is refused where it is used.", from, str(v, "until")))
+				d.para(fmt.Sprintf(tr("Validity: a record is current from its %s until its %s; outside that it is refused where it is used."), from, str(v, "until")))
 			} else {
-				d.para(fmt.Sprintf("Validity: a record is current until its %s; after that it is refused where it is used.", str(v, "until")))
+				d.para(fmt.Sprintf(tr("Validity: a record is current until its %s; after that it is refused where it is used."), str(v, "until")))
 			}
 		}
 		if str(e.Value, "audited") == "true" {
-			d.para("Audited: every record also carries createdAt, createdBy, lastModifiedAt and lastModifiedBy, set by the system and never by a caller (the audit-fields idiom).")
+			d.para(tr("Audited: every record also carries createdAt, createdBy, lastModifiedAt and lastModifiedBy, set by the system and never by a caller (the audit-fields idiom)."))
 		}
 		if str(e.Value, "deletion") == "soft" {
-			d.para("Deletion is soft: a deleted record keeps a deleted flag set by the system, is not listed, and reads as not found (the soft-delete idiom).")
+			d.para(tr("Deletion is soft: a deleted record keeps a deleted flag set by the system, is not listed, and reads as not found (the soft-delete idiom)."))
 		}
 		if rels := pairs(e.Value, "relations"); len(rels) > 0 {
-			d.line("| Relation | Kind | Target | Via | On delete |")
+			d.line(tr("| Relation | Kind | Target | Via | On delete |"))
 			d.line("|---|---|---|---|---|")
 			for _, r := range rels {
 				onDelete := str(r.Value, "onDelete")
@@ -426,12 +426,12 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 			d.explainRows(pairRows(e.Value, "relations"))
 		}
 		if cons := pairs(e.Value, "constraints"); len(cons) > 0 {
-			d.line("| Constraint | Rule | Message |")
+			d.line(tr("| Constraint | Rule | Message |"))
 			d.line("|---|---|---|")
 			for _, c := range cons {
-				rule := "check `" + str(c.Value, "expression") + "`"
+				rule := tr("check `") + str(c.Value, "expression") + "`"
 				if str(c.Value, "kind") == "unique" {
-					rule = "unique: " + strings.Join(strs(c.Value, "fields"), ", ")
+					rule = tr("unique: ") + strings.Join(strs(c.Value, "fields"), ", ")
 				}
 				d.line("| %s | %s | %s |", c.Key.Value, cell(rule), cell(str(c.Value, "message")))
 			}
@@ -440,38 +440,38 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 		}
 	}
 	if len(views) > 0 {
-		d.heading(3, "Views")
-		d.para("A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records, and so do rows.")
+		d.heading(3, tr("Views"))
+		d.para(tr("A view is a read model: one row per record of the entity it reads from, with every field of that entity and the fields below. It is never written. A path is null when a relation on it has no record; a count leaves out softly deleted records, and so do rows."))
 		for _, v := range views {
 			from := str(v.Value, "from")
 			d.headed("views", v.Key.Value, d.heading(4, v.Key.Value))
 			d.para(str(v.Value, "description"))
 			d.explain(v.Value)
-			d.line("| Field | Type | Read from | Description |")
+			d.line(tr("| Field | Type | Read from | Description |"))
 			d.line("|---|---|---|---|")
 			for _, p := range pairs(v.Value, "properties") {
-				typ, source := "integer, 64-bit", "count of "+from+"."+str(p.Value, "count")
+				typ, source := tr("integer, 64-bit"), tr("count of ")+from+"."+str(p.Value, "count")
 				if rows := str(p.Value, "rows"); rows != "" {
-					typ, source = "list of "+viewRowsTarget(root, from, rows), "rows of "+from+"."+rows
+					typ, source = tr("list of ")+viewRowsTarget(root, from, rows), tr("rows of ")+from+"."+rows
 				}
 				if path := str(p.Value, "path"); path != "" {
 					typ, source = "", from+"."+path
 					if f, optional := viewPathField(root, from, path); f != nil {
 						typ = typeText(f)
 						if optional && !strings.HasSuffix(typ, " or null") {
-							typ += " or null"
+							typ += tr(" or null")
 						}
 					}
 				}
 				d.line("| %s | %s | %s | %s |", p.Key.Value, cell(typ), cell(source), cell(str(p.Value, "description")))
 			}
 			d.blank()
-			d.para("Reads from: " + from + ".")
+			d.para(tr("Reads from: ") + from + ".")
 		}
 	}
 	if len(schemas) > 0 {
-		d.heading(3, "Schemas")
-		d.para("A schema is data passed around but not stored: it has no key and no table, and a request body, a response, a message or another schema carries it.")
+		d.heading(3, tr("Schemas"))
+		d.para(tr("A schema is data passed around but not stored: it has no key and no table, and a request body, a response, a message or another schema carries it."))
 		for _, v := range schemas {
 			d.headed("schemas", v.Key.Value, d.heading(4, v.Key.Value))
 			d.para(str(v.Value, "description"))
@@ -480,7 +480,7 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 			for _, r := range strs(v.Value, "required") {
 				required[r] = true
 			}
-			d.line("| Field | Type | Required | Limits | Description |")
+			d.line(tr("| Field | Type | Required | Limits | Description |"))
 			d.line("|---|---|---|---|---|")
 			for _, f := range pairs(v.Value, "properties") {
 				req := ""
@@ -493,11 +493,11 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 		}
 	}
 	if len(enums) > 0 {
-		anchor := d.heading(3, "Enums")
+		anchor := d.heading(3, tr("Enums"))
 		for _, e := range enums {
 			d.headed("enums", e.Key.Value, anchor)
 		}
-		d.line("| Enum | Value | Meaning |")
+		d.line(tr("| Enum | Value | Meaning |"))
 		d.line("|---|---|---|")
 		for _, e := range enums {
 			descs := get(e.Value, "valueDescriptions")
@@ -509,8 +509,8 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 		d.explainRows(pairRows(root, "enums"))
 	}
 	for _, i := range components {
-		d.heading(3, "Components: "+str(get(i.Node, "info"), "title"))
-		d.para(fmt.Sprintf("The packages of %s and which calls which, from its layout's dependsOn, with the libraries it uses apart.", i.Rel))
+		d.heading(3, tr("Components: ")+str(get(i.Node, "info"), "title"))
+		d.para(fmt.Sprintf(tr("The packages of %s and which calls which, from its layout's dependsOn, with the libraries it uses apart."), i.Rel))
 		d.block(componentsDiagram(i.Node))
 	}
 }
@@ -531,21 +531,21 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	if len(states)+len(ops)+len(cmds)+len(jobs)+len(procs)+len(workflows)+len(gateways)+len(pairs(root, "routes")) == 0 {
 		return
 	}
-	d.heading(2, "6. Runtime view")
+	d.heading(2, tr("6. Runtime view"))
 	for _, e := range states {
-		d.heading(3, "States of "+e)
+		d.heading(3, tr("States of ")+e)
 		diagram, _ := stateDiagram(root, e)
 		d.block(diagram)
 		var rows []row
 		for _, t := range items(get(get(root, "entities"), e), "transitions") {
-			rows = append(rows, row{fmt.Sprintf("%s to %s", str(t, "from"), str(t, "to")), t})
+			rows = append(rows, row{fmt.Sprintf(tr("%s to %s"), str(t, "from"), str(t, "to")), t})
 		}
 		d.explainRows(rows)
 	}
 	if errs := pairs(root, "errors"); len(errs) > 0 {
-		d.heading(3, "Problem types")
-		d.para("Every refusal is an RFC 9457 problem document of one of these types; each operation below names the ones it answers with.")
-		d.line("| Problem type | Status | Title | When |")
+		d.heading(3, tr("Problem types"))
+		d.para(tr("Every refusal is an RFC 9457 problem document of one of these types; each operation below names the ones it answers with."))
+		d.line(tr("| Problem type | Status | Title | When |"))
 		d.line("|---|---|---|---|")
 		for _, e := range errs {
 			d.line("| %s | %s | %s | %s |", e.Key.Value, str(e.Value, "status"), cell(str(e.Value, "title")), cell(str(e.Value, "condition")))
@@ -570,9 +570,9 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		handlerLogic(d, o, impls)
 	}
 	if routes := pairs(root, "routes"); len(routes) > 0 {
-		d.heading(3, "Fixed routes")
-		d.para("The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held, and Caching is its Cache-Control header: a stored response is public when the route is public and private otherwise.")
-		d.line("| Route | Path | Serves | Permission | Caching |")
+		d.heading(3, tr("Fixed routes"))
+		d.para(tr("The routes the server answers beside its operations, GET and HEAD alone (ADR-216): the application's document, served at its path and at every page route under it with its content security policy and a nonce made for each response; the files of a folder, never a listing; the health of the service, 200 while healthy and 503 with the reason. Each is closed unless its permission is held, and Caching is its Cache-Control header: a stored response is public when the route is public and private otherwise."))
+		d.line(tr("| Route | Path | Serves | Permission | Caching |"))
 		d.line("|---|---|---|---|---|")
 		for _, r := range routes {
 			d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "path"), str(r.Value, "serves"), str(r.Value, "permission"), cachingText(str(r.Value, "permission"), get(r.Value, "caching")))
@@ -580,19 +580,19 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		d.blank()
 		for _, r := range routes {
 			if policy := policyText(get(r.Value, "contentSecurityPolicy")); policy != "" {
-				d.para(fmt.Sprintf("Route %s answers with Content-Security-Policy: %s; nonce stands for the value made for each response.", r.Key.Value, policy))
+				d.para(fmt.Sprintf(tr("Route %s answers with Content-Security-Policy: %s; nonce stands for the value made for each response."), r.Key.Value, policy))
 			}
 		}
 		d.explainRows(rowsOf(routes))
 	}
 	for _, j := range jobs {
-		d.heading(3, "Job "+j.Key.Value)
+		d.heading(3, tr("Job ")+j.Key.Value)
 		d.para(str(j.Value, "description"))
 		d.explain(j.Value)
 		jobDetails(d, root, j.Value)
 	}
 	for _, p := range procs {
-		d.heading(3, "Process "+p.Key.Value)
+		d.heading(3, tr("Process ")+p.Key.Value)
 		d.para(str(p.Value, "description"))
 		d.explain(p.Value)
 		d.para(processText(p.Value))
@@ -601,14 +601,14 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		gatewaySection(d, root, g.Key.Value, g.Value)
 	}
 	for _, w := range workflows {
-		d.heading(3, "Workflow "+w.Key.Value)
+		d.heading(3, tr("Workflow ")+w.Key.Value)
 		d.para(str(w.Value, "description"))
 		d.explain(w.Value)
 		workflowDetails(d, root, w.Key.Value, w.Value)
 		d.block(workflowFlowchart(d, root, w.Key.Value, w.Value))
 	}
 	for _, c := range cmds {
-		d.heading(3, "Command "+c.Key.Value)
+		d.heading(3, tr("Command ")+c.Key.Value)
 		d.para(str(c.Value, "description"))
 		d.explain(c.Value)
 		commandDetails(d, c.Value)
@@ -621,13 +621,13 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 // empty list, not stated when it has no list.
 func chainText(op *yaml.Node) string {
 	if get(op, "middlewares") == nil {
-		return "not stated"
+		return tr("not stated")
 	}
 	names := strs(op, "middlewares")
 	if len(names) == 0 {
 		return "none"
 	}
-	return strings.Join(names, ", then ")
+	return strings.Join(names, tr(", then "))
 }
 
 // operationDetails writes the middlewares an operation runs, what it
@@ -637,7 +637,7 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 	if get(op, "middlewares") != nil {
 		names := strs(op, "middlewares")
 		if len(names) == 0 {
-			d.para("Runs no middleware before its handler.")
+			d.para(tr("Runs no middleware before its handler."))
 		} else {
 			var parts []string
 			for _, n := range names {
@@ -646,11 +646,11 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 					refuses = append(refuses, strings.TrimSpace(str(r, "status")+" "+str(r, "problem")))
 				}
 				if len(refuses) > 0 {
-					n += " (refuses with " + joinAnd(refuses) + ")"
+					n += tr(" (refuses with ") + joinAnd(refuses) + ")"
 				}
 				parts = append(parts, n)
 			}
-			d.para("Runs before its handler, in this order: " + strings.Join(parts, ", then ") + ".")
+			d.para(tr("Runs before its handler, in this order: ") + strings.Join(parts, tr(", then ")) + ".")
 		}
 	}
 	if calls := calls(op); len(calls) > 0 {
@@ -658,7 +658,7 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 		for _, c := range calls {
 			parts = append(parts, callText(root, c))
 		}
-		d.para("Calls " + strings.Join(parts, ", ") + ".")
+		d.para(tr("Calls ") + strings.Join(parts, ", ") + ".")
 		for _, item := range items(op, "calls") {
 			if text := contractText(item); text != "" {
 				d.para(text)
@@ -667,35 +667,35 @@ func operationDetails(d *doc, root *yaml.Node, op *yaml.Node) {
 		}
 	}
 	if l := get(op, "listOf"); l != nil {
-		text := "Lists " + str(l, "entity") + " a page at a time"
+		text := tr("Lists ") + str(l, "entity") + tr(" a page at a time")
 		size := get(l, "pageSize")
 		if def := num(size, "default"); def != "" {
-			text += ", " + def + " records by default"
+			text += ", " + def + tr(" records by default")
 		}
-		text += ", at most " + num(size, "maximum") + " a page."
-		for _, k := range [][2]string{{"searchable", "A search matches"}, {"filterable", "A filter may name"}, {"sortable", "It may be sorted by"}} {
+		text += tr(", at most ") + num(size, "maximum") + tr(" a page.")
+		for _, k := range [][2]string{{"searchable", tr("A search matches")}, {"filterable", tr("A filter may name")}, {"sortable", tr("It may be sorted by")}} {
 			if fs := strs(l, k[0]); len(fs) > 0 {
 				text += " " + k[1] + " " + joinAnd(fs) + "."
 			}
 		}
-		d.para(text + " A request outside these is refused, not ignored (the paginated-list idiom).")
+		d.para(text + tr(" A request outside these is refused, not ignored (the paginated-list idiom)."))
 	}
 	if l := get(op, "limits"); l != nil {
 		var parts []string
 		if n := num(l, "maxRequestBytes"); n != "" {
-			parts = append(parts, "a request body of at most "+n+" bytes")
+			parts = append(parts, tr("a request body of at most ")+n+tr(" bytes"))
 		}
 		if r := get(l, "rate"); r != nil {
-			rate := num(r, "requests") + " requests per " + str(r, "per")
+			rate := num(r, "requests") + tr(" requests per ") + str(r, "per")
 			if b := num(r, "burst"); b != "" {
-				rate += ", with bursts of up to " + b
+				rate += tr(", with bursts of up to ") + b
 			}
 			parts = append(parts, rate)
 		}
-		d.para("Limits: " + strings.Join(parts, "; ") + ".")
+		d.para(tr("Limits: ") + strings.Join(parts, "; ") + ".")
 	}
 	if key := str(op, "idempotencyKey"); key != "" {
-		d.para(fmt.Sprintf("Idempotent by the %s header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused.", key))
+		d.para(fmt.Sprintf(tr("Idempotent by the %s header: a request repeated with the same key is answered as the first was and has no second effect; a different request with a key already used is refused."), key))
 	}
 	guardText(d, op)
 }
@@ -707,23 +707,23 @@ func guardText(d *doc, n *yaml.Node) {
 	if g == nil {
 		return
 	}
-	text := fmt.Sprintf("Guard: the change writes %s %s %s", str(g, "recordsChanged"), str(g, "entity"), map[bool]string{true: "record", false: "records"}[str(g, "recordsChanged") == "1"])
+	text := fmt.Sprintf(tr("Guard: the change writes %s %s %s"), str(g, "recordsChanged"), str(g, "entity"), map[bool]string{true: "record", false: "records"}[str(g, "recordsChanged") == "1"])
 	if pre := str(g, "precondition"); pre != "" {
-		text += ", and `" + pre + "` must hold on each as it is at the moment of the change"
+		text += tr(", and `") + pre + tr("` must hold on each as it is at the moment of the change")
 	}
-	d.para(text + "; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first.")
+	d.para(text + tr("; a change that finds otherwise is refused and changes nothing, so a second writer on the same record is refused rather than overwriting the first."))
 }
 
 func commandDetails(d *doc, c *yaml.Node) {
 	args := items(c, "arguments")
 	opts := pairs(c, "options")
 	if len(args)+len(opts) > 0 {
-		d.line("| Argument or option | Type | Required | Description |")
+		d.line(tr("| Argument or option | Type | Required | Description |"))
 		d.line("|---|---|---|---|")
 		for _, a := range args {
 			t := typeText(get(a, "schema"))
 			if str(a, "repeatable") == "true" {
-				t += ", one or more"
+				t += tr(", one or more")
 			}
 			req := ""
 			if str(a, "required") == "true" {
@@ -749,7 +749,7 @@ func commandDetails(d *doc, c *yaml.Node) {
 			d.para(f[1] + " " + strings.Join(parts, "; ") + ".")
 		}
 	}
-	for _, f := range [][2]string{{"standardOutput", "Standard output"}, {"standardError", "Standard error"}} {
+	for _, f := range [][2]string{{"standardOutput", tr("Standard output")}, {"standardError", tr("Standard error")}} {
 		if s := str(c, f[0]); s != "" {
 			d.para(f[1] + ": " + s)
 		}
@@ -771,11 +771,11 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 	if perms == "" && session == nil && len(pages)+len(algs)+len(sensitive)+len(middlewares) == 0 {
 		return
 	}
-	d.heading(2, "8. Cross-cutting concepts")
+	d.heading(2, tr("8. Cross-cutting concepts"))
 	if len(sensitive) > 0 {
-		d.heading(3, "Sensitive data")
-		d.para("The entity fields that are not public, and the ones encrypted at rest. A personal field is masked in logs and shown only to who may see it; a credential is never answered (the pii-in-logs and encrypted-column idioms).")
-		d.line("| Field | Sensitivity | At rest |")
+		d.heading(3, tr("Sensitive data"))
+		d.para(tr("The entity fields that are not public, and the ones encrypted at rest. A personal field is masked in logs and shown only to who may see it; a credential is never answered (the pii-in-logs and encrypted-column idioms)."))
+		d.line(tr("| Field | Sensitivity | At rest |"))
 		d.line("|---|---|---|")
 		for _, row := range sensitive {
 			d.line("| %s | %s | %s |", row[0], row[1], row[2])
@@ -783,16 +783,16 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		d.blank()
 	}
 	if perms != "" {
-		d.heading(3, "Permissions")
-		d.para("Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one.")
+		d.heading(3, tr("Permissions"))
+		d.para(tr("Access is fail-closed: every operation, command, page and route names the one permission it needs, and only the roles below grant one."))
 		if len(pairs(root, "permissions")) == 0 {
-			d.para("The roles grant the permissions of the modules that enforce them, each named with its module: this is the estate's one matrix, and each module's technical specification shows the roles that reach its own permissions.")
+			d.para(tr("The roles grant the permissions of the modules that enforce them, each named with its module: this is the estate's one matrix, and each module's technical specification shows the roles that reach its own permissions."))
 		} else if len(held) > 0 {
-			d.para("A column named with another module is a role or a client of the identity module, which grants this module's permissions by reference.")
+			d.para(tr("A column named with another module is a role or a client of the identity module, which grants this module's permissions by reference."))
 		}
 		d.block(perms)
 		if td := str(root, "trustDomain"); td != "" {
-			d.para(fmt.Sprintf("The trust domain is %s: the audience of every transaction token across the estate, and the base of every security event's identifier, %s/events/<rule>.", td, td))
+			d.para(fmt.Sprintf(tr("The trust domain is %s: the audience of every transaction token across the estate, and the base of every security event's identifier, %s/events/<rule>."), td, td))
 		}
 		var implying []source.Pair
 		for _, p := range pairs(root, "permissions") {
@@ -801,8 +801,8 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 		}
 		if len(implying) > 0 {
-			d.para("A permission implies the ones it lists: its holder holds them too, and what they imply. A cell that says through a permission is one the role holds only by that permission's implications.")
-			d.line("| Permission | Implies |")
+			d.para(tr("A permission implies the ones it lists: its holder holds them too, and what they imply. A cell that says through a permission is one the role holds only by that permission's implications."))
+			d.line(tr("| Permission | Implies |"))
 			d.line("|---|---|")
 			for _, p := range implying {
 				d.line("| %s | %s |", p.Key.Value, cell(strings.Join(strs(p.Value, "implies"), ", ")))
@@ -810,8 +810,8 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.blank()
 		}
 		if caller := source.Child(root, "caller"); caller != nil {
-			d.para("The caller is who is making the call, as the service knows it once the session or token has been checked: one record with the properties below, which a role's rows rule names as caller.<property>. A property the caller may lack allows null, and a comparison with it is false then.")
-			d.line("| Property | Type | Description |")
+			d.para(tr("The caller is who is making the call, as the service knows it once the session or token has been checked: one record with the properties below, which a role's rows rule names as caller.<property>. A property the caller may lack allows null, and a comparison with it is false then."))
+			d.line(tr("| Property | Type | Description |"))
 			d.line("|---|---|---|")
 			for _, p := range pairs(caller, "properties") {
 				d.line("| %s | %s | %s |", p.Key.Value, cell(typeText(p.Value)), cell(str(p.Value, "description")))
@@ -826,16 +826,16 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 		}
 		if tenant := source.Child(root, "tenant"); tenant != nil && str(tenant, "key") != "" {
-			shared := "No entity is shared."
+			shared := tr("No entity is shared.")
 			if s := strs(tenant, "shared"); len(s) > 0 {
-				shared = "Every tenant reads " + strings.Join(s, ", ") + " whole."
+				shared = tr("Every tenant reads ") + strings.Join(s, ", ") + tr(" whole.")
 			}
 			key := str(tenant, "key")
-			d.para(fmt.Sprintf("The tenant scope: every role reaches only the records of an entity that carries %s whose %s is the caller's %s, and the table below holds that rule for each such entity, unless the role writes its own rule for it. %s", key, key, str(tenant, "property"), shared))
+			d.para(fmt.Sprintf(tr("The tenant scope: every role reaches only the records of an entity that carries %s whose %s is the caller's %s, and the table below holds that rule for each such entity, unless the role writes its own rule for it. %s"), key, key, str(tenant, "property"), shared))
 		}
 		if len(rows) > 0 {
-			d.para("A role with a rows rule reaches only the records of the entity the rule holds for, through every operation, page and job; an entity not listed is reached whole, and a caller holding several roles reaches the union of their rows. A list shows only the rows, a read by key outside them answers not found, and a change that would leave them is refused.")
-			d.line("| Role | Entity | Rows |")
+			d.para(tr("A role with a rows rule reaches only the records of the entity the rule holds for, through every operation, page and job; an entity not listed is reached whole, and a caller holding several roles reaches the union of their rows. A list shows only the rows, a read by key outside them answers not found, and a change that would leave them is refused."))
+			d.line(tr("| Role | Entity | Rows |"))
 			d.line("|---|---|---|")
 			for _, row := range rows {
 				d.line("| %s | %s | `%s` |", row[0], row[1], row[2])
@@ -843,7 +843,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.blank()
 		}
 		if get(get(root, "permissions"), "signedIn") != nil {
-			d.para("The permission signedIn is held by every caller once signed in, a person or a client, whatever their roles, and granted by no role: it opens what every person has, such as their own profile.")
+			d.para(tr("The permission signedIn is held by every caller once signed in, a person or a client, whatever their roles, and granted by no role: it opens what every person has, such as their own profile."))
 		}
 		var homes []string
 		for _, r := range pairs(root, "roles") {
@@ -852,22 +852,22 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 		}
 		if len(homes) > 0 {
-			d.para("The page each role is shown after signing in, its home; a person holding several roles is shown the home of the first of them, in the order the session answers them, that has one: " + strings.Join(homes, "; ") + ".")
+			d.para(tr("The page each role is shown after signing in, its home; a person holding several roles is shown the home of the first of them, in the order the session answers them, that has one: ") + strings.Join(homes, "; ") + ".")
 		}
 		if get(get(root, "permissions"), "nobody") != nil {
-			d.para("The permission nobody closes a route on purpose: it stays in the contract and refuses every caller with the problem the design declares, so that a client still calling it is told, not given a 404 that looks like a wrong path. No role grants it.")
+			d.para(tr("The permission nobody closes a route on purpose: it stays in the contract and refuses every caller with the problem the design declares, so that a client still calling it is told, not given a 404 that looks like a wrong path. No role grants it."))
 		}
 		if clients := pairs(root, "clients"); len(clients) > 0 {
-			d.para("The clients: the programs that call the system, each by its software_id. An application is where a person signs in; a service calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client with roles is a column of the matrix above. A client is admitted only where an operation's callers lists it; a public client, one with no proof, has a name that is the issuer's word and no proof of origin.")
-			d.line("| Client | Kind | Admitted versions | Roles | Proof |")
+			d.para(tr("The clients: the programs that call the system, each by its software_id. An application is where a person signs in; a service calls on its own account with the roles it holds and a proof of its identity on each request, or carries a person's call. A client with roles is a column of the matrix above. A client is admitted only where an operation's callers lists it; a public client, one with no proof, has a name that is the issuer's word and no proof of origin."))
+			d.line(tr("| Client | Kind | Admitted versions | Roles | Proof |"))
 			d.line("|---|---|---|---|---|")
 			for _, c := range clients {
 				versions := "any"
 				if v := str(c.Value, "softwareVersion"); v != "" {
 					if str(c.Value, "softwareStatement") == "true" {
-						versions = v + ", a security check: the publisher's version, in its signed software statement"
+						versions = v + tr(", a security check: the publisher's version, in its signed software statement")
 					} else {
-						versions = v + ", a compatibility check: self-asserted"
+						versions = v + tr(", a compatibility check: self-asserted")
 					}
 				}
 				roles := strings.Join(strs(c.Value, "roles"), ", ")
@@ -882,21 +882,21 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		var callers [][2]string
 		for _, o := range operations(root) {
 			if list := strs(o.node, "callers"); len(list) > 0 {
-				callers = append(callers, [2]string{"operation " + o.id, strings.Join(list, ", ")})
+				callers = append(callers, [2]string{tr("operation ") + o.id, strings.Join(list, ", ")})
 			} else if str(o.node, "permission") == "nobody" {
-				callers = append(callers, [2]string{"operation " + o.id, "closed: nobody"})
+				callers = append(callers, [2]string{tr("operation ") + o.id, tr("closed: nobody")})
 			}
 		}
 		for _, c := range pairs(root, "commands") {
 			if list := strs(c.Value, "callers"); len(list) > 0 {
-				callers = append(callers, [2]string{"command " + c.Key.Value, strings.Join(list, ", ")})
+				callers = append(callers, [2]string{tr("command ") + c.Key.Value, strings.Join(list, ", ")})
 			} else if str(c.Value, "permission") == "nobody" {
-				callers = append(callers, [2]string{"command " + c.Key.Value, "closed: nobody"})
+				callers = append(callers, [2]string{tr("command ") + c.Key.Value, tr("closed: nobody")})
 			}
 		}
 		if len(callers) > 0 {
-			d.para("Who may call: an operation or command that lists its callers admits exactly them, people (anyone signed in, whose roles decide the rest) and the clients named; one that lists none admits people and refuses every client; one closed with nobody refuses everyone.")
-			d.line("| Operation or command | Callers |")
+			d.para(tr("Who may call: an operation or command that lists its callers admits exactly them, people (anyone signed in, whose roles decide the rest) and the clients named; one that lists none admits people and refuses every client; one closed with nobody refuses everyone."))
+			d.line(tr("| Operation or command | Callers |"))
 			d.line("|---|---|")
 			for _, row := range callers {
 				d.line("| %s | %s |", row[0], cell(row[1]))
@@ -904,13 +904,13 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.blank()
 		}
 		if tokens := pairs(root, "tokens"); len(tokens) > 0 {
-			d.para("The tokens: the formats the service issues and accepts. An access token rides in the Authorization header as a bearer token and is accepted only for the audience it names; a transaction token rides in the Txn-Token header across the trust domain, minted once at the edge and passed on unmodified, and each hop accepts it only from the immediate callers its via names, each proving its workload identity. A claim fills the caller's property of the same name. The one default token is what every operation accepts unless it names another.")
-			d.line("| Token | Kind | Header | Audience | Lifetime | Signature | Claims | Accepted by |")
+			d.para(tr("The tokens: the formats the service issues and accepts. An access token rides in the Authorization header as a bearer token and is accepted only for the audience it names; a transaction token rides in the Txn-Token header across the trust domain, minted once at the edge and passed on unmodified, and each hop accepts it only from the immediate callers its via names, each proving its workload identity. A claim fills the caller's property of the same name. The one default token is what every operation accepts unless it names another."))
+			d.line(tr("| Token | Kind | Header | Audience | Lifetime | Signature | Claims | Accepted by |"))
 			d.line("|---|---|---|---|---|---|---|---|")
 			for _, t := range tokens {
-				kind, header, audience := "access token", "Authorization: Bearer", "none fixed"
+				kind, header, audience := tr("access token"), tr("Authorization: Bearer"), tr("none fixed")
 				if str(t.Value, "tokenType") == "txn_token" {
-					kind, header, audience = "transaction token", "Txn-Token", "the trust domain"
+					kind, header, audience = tr("transaction token"), "Txn-Token", tr("the trust domain")
 				} else if aud := get(get(t.Value, "claims"), "aud"); aud != nil {
 					if v := str(aud, "const"); v != "" {
 						audience = v
@@ -920,7 +920,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				}
 				name := t.Key.Value
 				if str(t.Value, "default") == "true" {
-					name += " (default)"
+					name += tr(" (default)")
 				}
 				var claims []string
 				for _, c := range pairs(t.Value, "claims") {
@@ -931,54 +931,54 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 					if acceptedTokenOf(root, o.node) == t.Key.Value {
 						via := strs(o.node, "via")
 						if len(via) > 0 {
-							by = append(by, o.id+" via "+strings.Join(via, ", "))
+							by = append(by, o.id+tr(" via ")+strings.Join(via, ", "))
 						} else {
 							by = append(by, o.id)
 						}
 					}
 				}
 				if len(by) == 0 {
-					by = []string{"no operation"}
+					by = []string{tr("no operation")}
 				}
 				sig := str(t.Value, "signature")
 				if sig == "" {
-					sig = "none: opaque"
+					sig = tr("none: opaque")
 				}
 				d.line("| %s | %s, %s | %s | %s | %s | %s | %s | %s |", name, kind, str(t.Value, "format"), header, cell(audience), str(t.Value, "lifetime"), sig, cell(strings.Join(claims, ", ")), cell(strings.Join(by, "; ")))
 			}
 			d.blank()
 			d.explainRows(pairRows(root, "tokens"))
 			if chain := chainsDiagram(chains); chain != "" {
-				d.para("The delegation chains that reach the operations with a via, as the induction through calls finds them across the modules given with this one: from the person's application at the edge, hop by hop, with the token each hop accepts and the workload identity the caller presents on each arrow.")
+				d.para(tr("The delegation chains that reach the operations with a via, as the induction through calls finds them across the modules given with this one: from the person's application at the edge, hop by hop, with the token each hop accepts and the workload identity the caller presents on each arrow."))
 				d.block(fence(chain))
 			} else if chain := callChain(root); chain != "" {
-				d.para("The delegation chain each operation accepts, hop by hop, with the token on each arrow: the services via names call the operation on the person's behalf, each presenting its workload identity.")
+				d.para(tr("The delegation chain each operation accepts, hop by hop, with the token on each arrow: the services via names call the operation on the person's behalf, each presenting its workload identity."))
 				d.block(fence(chain))
 			}
 		}
 		if se := source.Child(root, "securityEvents"); se != nil {
-			d.heading(3, "Security events")
-			d.para(fmt.Sprintf("Every refusal of a caller writes a security event, a Security Event Token (RFC 8417) holding the rule, the severity, the operation, the client, the subject and the hash of the refused token, never the token itself, to %s, the append-only store; an event of severity high, or a repeat for one client within the window the deployment sets, goes to %s, the alarm channel, as well. The events, by the rule that refuses:", str(se, "store"), str(se, "alarm")))
-			d.line("| Refusal | Rule | Severity |")
+			d.heading(3, tr("Security events"))
+			d.para(fmt.Sprintf(tr("Every refusal of a caller writes a security event, a Security Event Token (RFC 8417) holding the rule, the severity, the operation, the client, the subject and the hash of the refused token, never the token itself, to %s, the append-only store; an event of severity high, or a repeat for one client within the window the deployment sets, goes to %s, the alarm channel, as well. The events, by the rule that refuses:"), str(se, "store"), str(se, "alarm")))
+			d.line(tr("| Refusal | Rule | Severity |"))
 			d.line("|---|---|---|")
-			d.line("| a token for another audience | token_audience | high |")
-			d.line("| an immediate caller not listed in via | via | high |")
-			d.line("| the confused deputy, each form | deputy | high |")
-			d.line("| a caller not in callers, or a closed route | callers | medium |")
-			d.line("| an application not in through | through | medium |")
-			d.line("| a version outside the admitted range, with a software statement | software_version | medium |")
-			d.line("| a version outside the admitted range, self-asserted | software_version | low |")
-			d.line("| an expired token | token | low |")
+			d.line(tr("| a token for another audience | token_audience | high |"))
+			d.line(tr("| an immediate caller not listed in via | via | high |"))
+			d.line(tr("| the confused deputy, each form | deputy | high |"))
+			d.line(tr("| a caller not in callers, or a closed route | callers | medium |"))
+			d.line(tr("| an application not in through | through | medium |"))
+			d.line(tr("| a version outside the admitted range, with a software statement | software_version | medium |"))
+			d.line(tr("| a version outside the admitted range, self-asserted | software_version | low |"))
+			d.line(tr("| an expired token | token | low |"))
 			if source.Child(root, "signIn") != nil {
 				for _, c := range signInChecks {
-					d.line("| at the sign-in callback, %s | %s | %s |", c[0], c[1], c[2])
+					d.line(tr("| at the sign-in callback, %s | %s | %s |"), c[0], c[1], c[2])
 				}
 			}
 			d.blank()
 		}
 		if rule := str(source.Child(root, "info"), "roleNames"); rule == wirename.UpperSnake {
-			d.para("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore.")
-			d.line("| Role | On the wire |")
+			d.para(tr("Every role goes on the wire in upper snake case (info.roleNames): in a token's roles claim and in the tables the permission check reads, a role is its name in capitals with each hyphen an underscore."))
+			d.line(tr("| Role | On the wire |"))
 			d.line("|---|---|")
 			for _, r := range pairs(root, "roles") {
 				d.line("| %s | %s |", r.Key.Value, wirename.Role(rule, r.Key.Value))
@@ -988,9 +988,9 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		d.explainRows(append(pairRows(root, "permissions"), pairRows(root, "roles")...))
 	}
 	if sets := pairs(root, "separationOfDuties"); len(sets) > 0 {
-		d.heading(3, "Separation of duties")
-		d.para("No role grants as many of a set's permissions as its cardinality; the validator refuses one that does. Which person holds which roles is data the specification does not hold, so each set lists the combinations of roles that together reach it: roles never to be given to one person.")
-		d.line("| Set | Permissions | Cardinality | Roles never given to one person |")
+		d.heading(3, tr("Separation of duties"))
+		d.para(tr("No role grants as many of a set's permissions as its cardinality; the validator refuses one that does. Which person holds which roles is data the specification does not hold, so each set lists the combinations of roles that together reach it: roles never to be given to one person."))
+		d.line(tr("| Set | Permissions | Cardinality | Roles never given to one person |"))
 		d.line("|---|---|---|---|")
 		for _, set := range sets {
 			cardinality := 2
@@ -999,11 +999,11 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 			var combos []string
 			for _, c := range roleCombinations(root, strs(set.Value, "permissions"), cardinality) {
-				combos = append(combos, strings.Join(c, " with "))
+				combos = append(combos, strings.Join(c, tr(" with ")))
 			}
 			reach := strings.Join(combos, "; ")
 			if reach == "" {
-				reach = "none: no roles together reach it"
+				reach = tr("none: no roles together reach it")
 			}
 			d.line("| %s | %s | %d | %s |", set.Key.Value, cell(strings.Join(strs(set.Value, "permissions"), ", ")), cardinality, cell(reach))
 		}
@@ -1011,8 +1011,8 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		d.explainRows(rowsOf(sets))
 	}
 	if len(middlewares) > 0 {
-		d.heading(3, "Middlewares")
-		d.para("The steps a request passes before an operation's handler runs, each declared once. Each operation names the ones it runs, in order, under HTTP operations; a refusal answers in place of the handler.")
+		d.heading(3, tr("Middlewares"))
+		d.para(tr("The steps a request passes before an operation's handler runs, each declared once. Each operation names the ones it runs, in order, under HTTP operations; a refusal answers in place of the handler."))
 		ranBy := map[string][]string{}
 		for _, o := range operations(root) {
 			for _, n := range strs(o.node, "middlewares") {
@@ -1022,7 +1022,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				}
 			}
 		}
-		d.line("| Middleware | What it checks or does | Refusals | Run by |")
+		d.line(tr("| Middleware | What it checks or does | Refusals | Run by |"))
 		d.line("|---|---|---|---|")
 		for _, m := range middlewares {
 			var refuses []string
@@ -1038,7 +1038,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			}
 			run := strings.Join(ranBy[m.Key.Value], ", ")
 			if run == "" {
-				run = "no operation"
+				run = tr("no operation")
 			}
 			d.line("| %s | %s | %s | %s |", m.Key.Value, cell(str(m.Value, "description")), cell(strings.Join(refuses, "; ")), cell(run))
 		}
@@ -1046,27 +1046,27 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		d.explainRows(rowsOf(middlewares))
 	}
 	if session != nil {
-		d.heading(3, "Sessions")
+		d.heading(3, tr("Sessions"))
 		d.para(str(session, "description"))
 		var ends []string
 		if t := str(session, "idleTimeout"); t != "" {
-			ends = append(ends, "after "+t+" without a request")
+			ends = append(ends, tr("after ")+t+tr(" without a request"))
 		}
 		if t := str(session, "absoluteTimeout"); t != "" {
-			ends = append(ends, "after "+t+" from signing in, whatever the caller does")
+			ends = append(ends, tr("after ")+t+tr(" from signing in, whatever the caller does"))
 		}
-		d.para("A caller's session expires " + strings.Join(ends, ", and ") + ". Every operation, command and page with a permission other than public refuses a caller whose session has expired.")
+		d.para(tr("A caller's session expires ") + strings.Join(ends, tr(", and ")) + tr(". Every operation, command and page with a permission other than public refuses a caller whose session has expired."))
 		d.explain(session)
 	}
 	if len(pages) > 0 {
-		d.heading(3, "Pages")
+		d.heading(3, tr("Pages"))
 		d.block(pagesFlowchart(root))
 		if menus := pairs(root, "menus"); len(menus) > 0 {
-			d.para("The menu, each entry shown to who may open its page:")
+			d.para(tr("The menu, each entry shown to who may open its page:"))
 			menuList(d, root, menus, "")
 			d.blank()
 		}
-		d.line("| Page | Kind | Route | Entity | Permission | Shows |")
+		d.line(tr("| Page | Kind | Route | Entity | Permission | Shows |"))
 		d.line("|---|---|---|---|---|---|")
 		for _, p := range pages {
 			shows := strs(p.Value, "columns")
@@ -1082,21 +1082,21 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				text = strings.Join(groups, "; ")
 			}
 			if compact := strs(p.Value, "compactColumns"); len(compact) > 0 {
-				text += "; on a compact screen " + strings.Join(compact, ", ")
+				text += tr("; on a compact screen ") + strings.Join(compact, ", ")
 			}
 			text += childRowsText(p.Value)
 			entity := str(p.Value, "entity")
 			switch str(p.Value, "kind") {
 			case "task":
-				entity = "none; submits to " + str(p.Value, "submit")
+				entity = tr("none; submits to ") + str(p.Value, "submit")
 			case "content":
-				entity = "none; loads and sends nothing"
+				entity = tr("none; loads and sends nothing")
 				text = blocksText(p.Value)
 			case "custom":
 				if entity == "" {
 					entity = "none"
 				}
-				text = "the project's own screen, built by hand"
+				text = tr("the project's own screen, built by hand")
 				if desc := strings.TrimSpace(str(p.Value, "description")); desc != "" {
 					text += ": " + desc
 				}
@@ -1109,21 +1109,21 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			states := get(p.Value, "states")
 			for _, k := range []string{"empty", "filteredEmpty"} {
 				if st := get(states, k); st != nil {
-					stateRows = append(stateRows, fmt.Sprintf("| %s | %s | %s |", p.Key.Value, map[string]string{"empty": "empty", "filteredEmpty": "filtered empty"}[k], cell(str(st, "message"))))
+					stateRows = append(stateRows, fmt.Sprintf("| %s | %s | %s |", p.Key.Value, map[string]string{"empty": tr("empty"), "filteredEmpty": tr("filtered empty")}[k], cell(str(st, "message"))))
 				}
 			}
 			for _, f := range pairs(states, "failed") {
-				state := "failed: " + f.Key.Value
+				state := tr("failed: ") + f.Key.Value
 				if fld := str(f.Value, "field"); fld != "" {
-					state += ", beside " + fld
+					state += tr(", beside ") + fld
 				}
 				stateRows = append(stateRows, fmt.Sprintf("| %s | %s | %s |", p.Key.Value, state, cell(str(f.Value, "message"))))
 			}
 		}
 		d.explainRows(rowsOf(pages))
 		if rows := elementRows(root, pages); len(rows) > 0 {
-			d.para("The elements of each page that pick, offer, hide or check something:")
-			d.line("| Page | Element | What it does |")
+			d.para(tr("The elements of each page that pick, offer, hide or check something:"))
+			d.line(tr("| Page | Element | What it does |"))
 			d.line("|---|---|---|")
 			for _, r := range rows {
 				d.line("%s", r)
@@ -1131,8 +1131,8 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.blank()
 		}
 		if len(stateRows) > 0 {
-			d.para("What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:")
-			d.line("| Page | State | Message |")
+			d.para(tr("What each page shows when it is empty or fails; while it loads or submits, the stack draws its own:"))
+			d.line(tr("| Page | State | Message |"))
 			d.line("|---|---|---|")
 			for _, r := range stateRows {
 				d.line("%s", r)
@@ -1141,8 +1141,8 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		}
 	}
 	for _, f := range pairs(root, "flows") {
-		d.heading(3, "Flow "+f.Key.Value)
-		d.para(str(f.Value, "description") + " Done by " + str(f.Value, "actor") + ".")
+		d.heading(3, tr("Flow ")+f.Key.Value)
+		d.para(str(f.Value, "description") + tr(" Done by ") + str(f.Value, "actor") + ".")
 		d.block(flowFlowchart(f.Value))
 		d.explain(f.Value)
 	}
@@ -1153,24 +1153,24 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 		themeTables(d, root)
 	}
 	for _, a := range algs {
-		d.heading(3, "Algorithm "+a.Key.Value)
+		d.heading(3, tr("Algorithm ")+a.Key.Value)
 		d.para(str(a.Value, "description"))
 		d.explain(a.Value)
 		var inputs []string
 		for _, in := range pairs(a.Value, "inputs") {
 			inputs = append(inputs, fmt.Sprintf("`%s` (%s)", in.Key.Value, typeText(in.Value)))
 		}
-		d.para("Inputs: " + strings.Join(inputs, ", ") + ". Output: " + typeText(get(a.Value, "output")) + ".")
+		d.para(tr("Inputs: ") + strings.Join(inputs, ", ") + tr(". Output: ") + typeText(get(a.Value, "output")) + ".")
 		if tab := get(a.Value, "table"); tab != nil {
 			decisionTable(d, a.Value, tab)
 		} else {
-			d.line("Formula:")
+			d.line(tr("Formula:"))
 			d.blank()
 			d.line("    %s", strings.TrimSpace(str(a.Value, "formula")))
 			d.blank()
 		}
 		if exs := items(a.Value, "examples"); len(exs) > 0 || get(a.Value, "table") == nil {
-			d.line("| Worked example | Inputs | Expected | Note |")
+			d.line(tr("| Worked example | Inputs | Expected | Note |"))
 			d.line("|---|---|---|---|")
 		}
 		for _, ex := range items(a.Value, "examples") {
@@ -1181,9 +1181,9 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.line("| %s | %s | %s | %s |", cell(str(ex, "name")), cell(strings.Join(in, ", ")), cell(str(ex, "expected")), cell(str(ex, "note")))
 		}
 		d.blank()
-		d.line("Pseudocode:")
+		d.line(tr("Pseudocode:"))
 		d.blank()
-		d.line("```text")
+		d.line(tr("```text"))
 		d.WriteString(strings.TrimRight(str(a.Value, "pseudocode"), "\n") + "\n")
 		d.line("```")
 		d.blank()
@@ -1194,15 +1194,15 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 // and the output, a row per rule in order, "any" where a rule does not
 // test an input (ADR-199).
 func decisionTable(d *doc, a, tab *yaml.Node) {
-	d.line("Decision table, hit policy %s:", str(tab, "hitPolicy"))
+	d.line(tr("Decision table, hit policy %s:"), str(tab, "hitPolicy"))
 	d.blank()
 	ins := pairs(a, "inputs")
-	head, rule := "| Rule |", "|---|"
+	head, rule := tr("| Rule |"), "|---|"
 	for _, in := range ins {
 		head += " " + cell(in.Key.Value) + " |"
 		rule += "---|"
 	}
-	d.line("%s Output | Note |", head)
+	d.line(tr("%s Output | Note |"), head)
 	d.line("%s---|---|", rule)
 	for i, r := range items(tab, "rules") {
 		row := fmt.Sprintf("| %d |", i+1)
@@ -1217,7 +1217,7 @@ func decisionTable(d *doc, a, tab *yaml.Node) {
 				for _, item := range c.Content {
 					alts = append(alts, item.Value)
 				}
-				text = strings.Join(alts, " or ")
+				text = strings.Join(alts, tr(" or "))
 			default:
 				text = c.Value
 			}
@@ -1237,7 +1237,7 @@ func decisions(d *doc, title string, root *yaml.Node) {
 	}
 	level := 3
 	if title == "" {
-		d.heading(4, "Implementation decisions")
+		d.heading(4, tr("Implementation decisions"))
 		level = 5
 	} else {
 		d.heading(2, title)
@@ -1260,15 +1260,15 @@ func decisions(d *doc, title string, root *yaml.Node) {
 		d.headed("decisions", p.Key.Value, d.heading(level, fmt.Sprintf("%s: %s", p.Key.Value, str(dec, "title"))))
 		status := str(dec, "status") + ", " + str(dec, "date")
 		if s := str(dec, "supersededBy"); s != "" {
-			status += ", superseded by " + link(s)
+			status += tr(", superseded by ") + link(s)
 		}
-		d.para("Status: " + status + ".")
+		d.para(tr("Status: ") + status + ".")
 		if links := items(dec, "restsOn"); len(links) > 0 {
 			var ids []string
 			for _, r := range links {
 				ids = append(ids, link(r.Value))
 			}
-			d.para("Rests on: " + strings.Join(ids, ", ") + ".")
+			d.para(tr("Rests on: ") + strings.Join(ids, ", ") + ".")
 		}
 		if alts := items(dec, "alternatives"); len(alts) > 0 {
 			// The simpler options the decision did not take, each with why
@@ -1279,7 +1279,7 @@ func decisions(d *doc, title string, root *yaml.Node) {
 				why := strings.TrimRight(strings.TrimSpace(str(a, "why")), ".")
 				lines = append(lines, option+": "+why+".")
 			}
-			d.para("Alternatives not taken: " + strings.Join(lines, " "))
+			d.para(tr("Alternatives not taken: ") + strings.Join(lines, " "))
 		}
 		for _, part := range [][2]string{{"context", "Context"}, {"decision", "Decision"}, {"consequences", "Consequences"}} {
 			if v := strings.TrimSpace(str(dec, part[0])); v != "" {
@@ -1295,14 +1295,14 @@ func qualityTests(d *doc, root *yaml.Node) {
 	if len(tests) == 0 {
 		return
 	}
-	d.heading(2, "10. Quality requirements")
-	d.para("The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.")
-	d.line("| Test | Subject | Level | Scenario | Given | When | Then |")
+	d.heading(2, tr("10. Quality requirements"))
+	d.para(tr("The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused."))
+	d.line(tr("| Test | Subject | Level | Scenario | Given | When | Then |"))
 	d.line("|---|---|---|---|---|---|---|")
 	for _, t := range tests {
 		subject := testSubject(t.Value)
 		if na := str(t.Value, "notApplicable"); na != "" {
-			d.line("| %s | %s | %s | %s | %s | %s | %s |", t.Key.Value, cell(subject), str(t.Value, "level"), str(t.Value, "scenario"), "not applicable", " ", cell(na))
+			d.line("| %s | %s | %s | %s | %s | %s | %s |", t.Key.Value, cell(subject), str(t.Value, "level"), str(t.Value, "scenario"), tr("not applicable"), " ", cell(na))
 			continue
 		}
 		d.line("| %s | %s | %s | %s | %s | %s | %s |", t.Key.Value, cell(subject), str(t.Value, "level"), str(t.Value, "scenario"), cell(str(t.Value, "given")), cell(str(t.Value, "when")), cell(str(t.Value, "then")))
@@ -1318,16 +1318,16 @@ func testSubject(t *yaml.Node) string {
 		}
 	}
 	if c := str(t, "constraint"); c != "" {
-		return str(t, "entity") + " constraint " + c
+		return str(t, "entity") + tr(" constraint ") + c
 	}
-	if tr := get(t, "transition"); tr != nil {
-		return fmt.Sprintf("%s %s to %s", str(t, "entity"), str(tr, "from"), str(tr, "to"))
+	if tn := get(t, "transition"); tn != nil {
+		return fmt.Sprintf(tr("%s %s to %s"), str(t, "entity"), str(tn, "from"), str(tn, "to"))
 	}
 	if r := str(t, "requirement"); r != "" {
-		return "requirement " + r
+		return tr("requirement ") + r
 	}
 	if e := str(t, "entity"); e != "" {
-		return e + " state machine"
+		return e + tr(" state machine")
 	}
 	return ""
 }
@@ -1338,8 +1338,8 @@ func glossary(d *doc, root *yaml.Node) {
 	if len(terms) == 0 {
 		return
 	}
-	d.heading(2, "12. Glossary")
-	d.line("| Term | Meaning |")
+	d.heading(2, tr("12. Glossary"))
+	d.line(tr("| Term | Meaning |"))
 	d.line("|---|---|")
 	for _, t := range terms {
 		d.line("| %s | %s |", cell(t.Key.Value), cell(str(t.Value, "definition")))
@@ -1364,10 +1364,10 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 	if len(reqs)+len(needs)+len(satisfied)+len(verified) == 0 {
 		return
 	}
-	d.heading(2, "13. Requirements")
+	d.heading(2, tr("13. Requirements"))
 	if len(needs) > 0 {
-		d.heading(3, "Needs")
-		d.line("| Need | Statement | Stakeholders | Status |")
+		d.heading(3, tr("Needs"))
+		d.line(tr("| Need | Statement | Stakeholders | Status |"))
 		d.line("|---|---|---|---|")
 		for _, n := range needs {
 			d.line("| %s | %s | %s | %s |", n.Key.Value, cell(str(n.Value, "statement")), cell(strings.Join(strs(n.Value, "stakeholders"), ", ")), cell(str(n.Value, "status")))
@@ -1376,8 +1376,8 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 		d.explainRows(rowsOf(needs))
 	}
 	if len(reqs) > 0 {
-		d.heading(3, "Requirements")
-		d.line("| Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |")
+		d.heading(3, tr("Requirements"))
+		d.line(tr("| Requirement | Statement | Kind | Priority | Status | Verification | Acceptance | Needs |"))
 		d.line("|---|---|---|---|---|---|---|---|")
 		for _, r := range reqs {
 			d.line("| %s | %s | %s | %s | %s | %s | %s | %s |", r.Key.Value, cell(str(r.Value, "statement")), str(r.Value, "kind"), str(r.Value, "priority"), str(r.Value, "status"), cell(str(r.Value, "verification")), cell(strings.Join(strs(r.Value, "acceptance"), " ")), cell(strings.Join(strs(r.Value, "needs"), ", ")))
@@ -1387,13 +1387,13 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 	}
 	for _, s := range pairs(root, "sources") {
 		if str(s.Value, "kind") == "requirement-set" {
-			d.para(fmt.Sprintf("%s: requirements with the prefix %s are in %s.", s.Key.Value, str(s.Value, "prefix"), strings.TrimSpace(str(s.Value, "title"))))
+			d.para(fmt.Sprintf(tr("%s: requirements with the prefix %s are in %s."), s.Key.Value, str(s.Value, "prefix"), strings.TrimSpace(str(s.Value, "title"))))
 		}
 	}
-	d.heading(3, "Traceability")
-	d.para("What satisfies and what verifies each requirement. An empty cell is a gap.")
+	d.heading(3, tr("Traceability"))
+	d.para(tr("What satisfies and what verifies each requirement. An empty cell is a gap."))
 	harm := harmColumn(reqs)
-	d.line("| Requirement |%s Satisfied by | Verified by |", harm.header)
+	d.line(tr("| Requirement |%s Satisfied by | Verified by |"), harm.header)
 	d.line("|---|%s---|---|", harm.rule)
 	ids := map[string]bool{}
 	for _, r := range reqs {
@@ -1417,7 +1417,7 @@ func requirements(d *doc, root *yaml.Node, impls []Implementation) {
 	}
 	d.blank()
 	if len(held) > 0 {
-		d.para("Held elsewhere, fulfilled by another stakeholder's component and so no gap here: " + strings.Join(held, "; ") + ".")
+		d.para(tr("Held elsewhere, fulfilled by another stakeholder's component and so no gap here: ") + strings.Join(held, "; ") + ".")
 	}
 }
 
@@ -1470,7 +1470,7 @@ func traceLinks(root *yaml.Node, impls []Implementation) (satisfied, verified ma
 	}
 	walk(root, "")
 	for _, i := range impls {
-		walk(i.Node, "implementation "+str(get(i.Node, "info"), "title"))
+		walk(i.Node, tr("implementation ")+str(get(i.Node, "info"), "title"))
 	}
 	return satisfied, verified
 }
@@ -1488,10 +1488,10 @@ func sensitiveFields(root *yaml.Node) [][3]string {
 				continue
 			}
 			if at != "" && str(f.Value, "lookup") != "" {
-				at += ", found by " + str(f.Value, "lookup")
+				at += tr(", found by ") + str(f.Value, "lookup")
 			}
 			if sens == "" {
-				sens = "not stated"
+				sens = tr("not stated")
 			}
 			out = append(out, [3]string{e.Key.Value + "." + f.Key.Value, sens, at})
 		}
@@ -1510,9 +1510,9 @@ func cachingText(permission string, c *yaml.Node) string {
 	if permission == "public" {
 		scope = "public"
 	}
-	text := scope + ", max-age=" + str(c, "maxAgeSeconds")
+	text := scope + tr(", max-age=") + str(c, "maxAgeSeconds")
 	if str(c, "immutable") == "true" {
-		text += ", immutable"
+		text += tr(", immutable")
 	}
 	return text
 }
@@ -1535,41 +1535,41 @@ func policyText(csp *yaml.Node) string {
 // reads, the signals and exit statuses it honours, when it is restarted
 // and given up, its health and the monitors that watch it (ADR-211).
 func processText(p *yaml.Node) string {
-	text := "Runs " + runsText(p) + "; started and watched by the service manager, acting as no role."
+	text := tr("Runs ") + runsText(p) + tr("; started and watched by the service manager, acting as no role.")
 	if j := strs(p, "jobs"); len(j) > 0 {
-		text += " Runs the jobs " + joinAnd(j) + "."
+		text += tr(" Runs the jobs ") + joinAnd(j) + "."
 	}
 	if c := strs(p, "configuration"); len(c) > 0 {
-		text += " Reads the settings " + joinAnd(c) + " when it starts."
+		text += tr(" Reads the settings ") + joinAnd(c) + tr(" when it starts.")
 	}
 	var sigs []string
 	for _, sg := range pairs(p, "signals") {
 		does := strings.TrimSuffix(strings.TrimSpace(str(sg.Value, "description")), ".")
 		if w := str(sg.Value, "within"); w != "" {
-			does += ", within " + w
+			does += tr(", within ") + w
 		}
 		sigs = append(sigs, sg.Key.Value+": "+does)
 	}
 	if len(sigs) > 0 {
-		text += " On " + strings.Join(sigs, "; on ") + "."
+		text += tr(" On ") + strings.Join(sigs, tr("; on ")) + "."
 	}
 	var codes []string
 	for _, c := range pairs(p, "exitCodes") {
-		codes = append(codes, c.Key.Value+" when "+strings.TrimSuffix(source.Str(c.Value), "."))
+		codes = append(codes, c.Key.Value+tr(" when ")+strings.TrimSuffix(source.Str(c.Value), "."))
 	}
 	if len(codes) > 0 {
-		text += " Exits " + strings.Join(codes, "; ") + "."
+		text += tr(" Exits ") + strings.Join(codes, "; ") + "."
 	}
 	r := get(p, "restart")
-	text += " Started again: " + restartText(r) + "."
+	text += tr(" Started again: ") + restartText(r) + "."
 	if e := strs(r, "exceptExitCodes"); len(e) > 0 && str(r, "when") != "never" {
-		text += " Never started again after exit " + joinAnd(e) + "."
+		text += tr(" Never started again after exit ") + joinAnd(e) + "."
 	}
 	if h := get(p, "health"); h != nil {
-		text += " Healthy when " + strings.TrimSuffix(strings.TrimSpace(str(h, "description")), ".") + "."
+		text += tr(" Healthy when ") + strings.TrimSuffix(strings.TrimSpace(str(h, "description")), ".") + "."
 	}
 	if m := strs(p, "monitors"); len(m) > 0 {
-		text += " Watched by " + joinAnd(m) + "."
+		text += tr(" Watched by ") + joinAnd(m) + "."
 	}
 	return text
 }
@@ -1581,37 +1581,37 @@ func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
 	var start string
 	switch {
 	case str(trigger, "schedule") != "":
-		start = "on the schedule `" + str(trigger, "schedule") + "` (UTC)"
+		start = tr("on the schedule `") + str(trigger, "schedule") + tr("` (UTC)")
 	case str(trigger, "every") != "":
-		start = "every " + str(trigger, "every")
+		start = tr("every ") + str(trigger, "every")
 	default:
-		start = "for each " + str(trigger, "consumes") + " it consumes"
+		start = tr("for each ") + str(trigger, "consumes") + tr(" it consumes")
 	}
-	text := "Runs " + start + ", as the role " + str(j, "role") + "."
+	text := tr("Runs ") + start + tr(", as the role ") + str(j, "role") + "."
 	if r := strs(j, "reads"); len(r) > 0 {
-		text += " Reads " + joinAnd(r) + "."
+		text += tr(" Reads ") + joinAnd(r) + "."
 	}
 	if w := strs(j, "writes"); len(w) > 0 {
-		text += " Writes " + joinAnd(w) + "."
+		text += tr(" Writes ") + joinAnd(w) + "."
 	}
 	if calls := calls(j); len(calls) > 0 {
 		var parts []string
 		for _, c := range calls {
 			parts = append(parts, callText(root, c))
 		}
-		text += " Calls " + joinAnd(parts) + "."
+		text += tr(" Calls ") + joinAnd(parts) + "."
 	}
 	if e := strs(j, "emits"); len(e) > 0 {
-		text += " Publishes " + joinAnd(e) + "."
+		text += tr(" Publishes ") + joinAnd(e) + "."
 	}
 	if r := get(j, "retries"); r != nil {
-		after := "set aside for a person"
+		after := tr("set aside for a person")
 		if str(r, "then") == "discard" {
 			after = "dropped"
 		}
-		text += " A failed item is tried " + str(r, "limit") + " times, then " + after + "."
+		text += fmt.Sprintf(tr(" A failed item is tried %s times, then %s."), str(r, "limit"), after)
 	}
-	d.para(text + " Running it twice over the same records changes nothing a second time.")
+	d.para(text + tr(" Running it twice over the same records changes nothing a second time."))
 }
 
 // menuList writes the menu tree as a nested list.
@@ -1619,7 +1619,7 @@ func menuList(d *doc, root *yaml.Node, items []source.Pair, indent string) {
 	for _, m := range items {
 		if page := str(m.Value, "page"); page != "" {
 			perm := str(get(get(root, "pages"), page), "permission")
-			d.line("%s- %s: page %s, %s", indent, str(m.Value, "title"), page, perm)
+			d.line(tr("%s- %s: page %s, %s"), indent, str(m.Value, "title"), page, perm)
 			continue
 		}
 		d.line("%s- %s", indent, str(m.Value, "title"))
@@ -1658,30 +1658,30 @@ func viewPathField(root *yaml.Node, entity, path string) (*yaml.Node, bool) {
 // from a specification meets, with who meets each: the design, checked by
 // the validator or not, the generator, or a person.
 var wcagCriteria = []struct{ id, name, level, who, how string }{
-	{"1.1.1", "Non-text content", "A", "a person", "an image's text alternative is written where the image is chosen"},
-	{"1.3.1", "Info and relationships", "A", "the generator", "a page's title, its labels and its order become the stack's headings and labelled controls"},
-	{"1.4.1", "Use of color", "A", "the generator", "a state or a value is shown in text as well as in colour"},
-	{"1.4.3", "Contrast (minimum)", "AA", "the generator", "the stack's own colours, which a person checks"},
-	{"1.4.6", "Contrast (enhanced)", "AAA", "the generator", "the stack's own colours, which a person checks"},
-	{"1.4.11", "Non-text contrast", "AA", "the generator", "the stack's own colours for the parts of controls, which a person checks"},
-	{"2.1.1", "Keyboard", "A", "the generator", "every action and field is reachable without a pointer"},
-	{"2.4.3", "Focus order", "A", "the design", "the order of a page's fields and columns is its focus order"},
-	{"2.4.6", "Headings and labels", "AA", "the design, checked", "every page has a title, every field it shows or filters by a title, and every action a label of its own"},
-	{"2.5.8", "Target size (minimum)", "AA", "the generator", "every control is at least 24 by 24 CSS pixels"},
-	{"3.2.3", "Consistent navigation", "AA", "the design", "the menu is one tree, the same on every page"},
-	{"3.3.1", "Error identification", "A", "the design, checked", "every failed state a page declares is a message in a full sentence, shown beside the field it names when it names one"},
-	{"3.3.2", "Labels or instructions", "A", "the design, checked", "every field a page shows or filters by has a title"},
-	{"4.1.2", "Name, role, value", "A", "the design, checked, and the generator", "every action has a label of its own; the generator gives each control its role"},
-	{"4.1.3", "Status messages", "AA", "the design and the generator", "every event's message and every state is text, which the generator announces without moving focus"},
+	{"1.1.1", tr("Non-text content"), "A", tr("a person"), tr("an image's text alternative is written where the image is chosen")},
+	{"1.3.1", tr("Info and relationships"), "A", tr("the generator"), tr("a page's title, its labels and its order become the stack's headings and labelled controls")},
+	{"1.4.1", tr("Use of color"), "A", tr("the generator"), tr("a state or a value is shown in text as well as in colour")},
+	{"1.4.3", tr("Contrast (minimum)"), "AA", tr("the generator"), tr("the stack's own colours, which a person checks")},
+	{"1.4.6", tr("Contrast (enhanced)"), "AAA", tr("the generator"), tr("the stack's own colours, which a person checks")},
+	{"1.4.11", tr("Non-text contrast"), "AA", tr("the generator"), tr("the stack's own colours for the parts of controls, which a person checks")},
+	{"2.1.1", "Keyboard", "A", tr("the generator"), tr("every action and field is reachable without a pointer")},
+	{"2.4.3", tr("Focus order"), "A", tr("the design"), tr("the order of a page's fields and columns is its focus order")},
+	{"2.4.6", tr("Headings and labels"), "AA", tr("the design, checked"), tr("every page has a title, every field it shows or filters by a title, and every action a label of its own")},
+	{"2.5.8", tr("Target size (minimum)"), "AA", tr("the generator"), tr("every control is at least 24 by 24 CSS pixels")},
+	{"3.2.3", tr("Consistent navigation"), "AA", tr("the design"), tr("the menu is one tree, the same on every page")},
+	{"3.3.1", tr("Error identification"), "A", tr("the design, checked"), tr("every failed state a page declares is a message in a full sentence, shown beside the field it names when it names one")},
+	{"3.3.2", tr("Labels or instructions"), "A", tr("the design, checked"), tr("every field a page shows or filters by has a title")},
+	{"4.1.2", tr("Name, role, value"), "A", tr("the design, checked, and the generator"), tr("every action has a label of its own; the generator gives each control its role")},
+	{"4.1.3", tr("Status messages"), "AA", tr("the design and the generator"), tr("every event's message and every state is text, which the generator announces without moving focus")},
 }
 
 // accessibilityTable lists the criteria of the target's level and who
 // meets each.
 func accessibilityTable(d *doc, a *yaml.Node, pairs bool) {
 	level := str(a, "level")
-	d.heading(3, "Accessibility")
-	d.para("The target is " + str(a, "standard") + " at level " + level + ". Of its criteria, these are settled in the design or left to the generator, as the table says; the validator checks those marked checked, and every other criterion of the level is a person's to check at commissioning.")
-	d.line("| Criterion | Level | Met by | How |")
+	d.heading(3, tr("Accessibility"))
+	d.para(tr("The target is ") + str(a, "standard") + tr(" at level ") + level + tr(". Of its criteria, these are settled in the design or left to the generator, as the table says; the validator checks those marked checked, and every other criterion of the level is a person's to check at commissioning."))
+	d.line(tr("| Criterion | Level | Met by | How |"))
 	d.line("|---|---|---|---|")
 	for _, c := range wcagCriteria {
 		if len(c.level) > len(level) {
@@ -1689,7 +1689,7 @@ func accessibilityTable(d *doc, a *yaml.Node, pairs bool) {
 		}
 		who, how := c.who, c.how
 		if pairs && (c.id == "1.4.3" || c.id == "1.4.6" || c.id == "1.4.11") {
-			who, how = "the design, checked", "every pair of colours the theme declares has the contrast its use asks for, in every mode"
+			who, how = tr("the design, checked"), tr("every pair of colours the theme declares has the contrast its use asks for, in every mode")
 		}
 		d.line("| %s %s | %s | %s | %s |", c.id, c.name, c.level, who, how)
 	}
@@ -1704,7 +1704,7 @@ func tokenText(v *yaml.Node) string {
 		return ""
 	}
 	if v.Kind == yaml.ScalarNode && strings.HasPrefix(v.Value, "{") && strings.HasSuffix(v.Value, "}") {
-		return "same as " + strings.Trim(v.Value, "{}")
+		return tr("same as ") + strings.Trim(v.Value, "{}")
 	}
 	if cs := items(v, "components"); len(cs) == 3 {
 		var hex strings.Builder
@@ -1735,7 +1735,7 @@ func tokenText(v *yaml.Node) string {
 // its pairs of colours with their contrast in each.
 func themeTables(d *doc, root *yaml.Node) {
 	theme := get(root, "theme")
-	d.heading(3, "Theme")
+	d.heading(3, tr("Theme"))
 	var rows []string
 	var walk func(group *yaml.Node, prefix, typ string)
 	walk = func(group *yaml.Node, prefix, typ string) {
@@ -1764,12 +1764,12 @@ func themeTables(d *doc, root *yaml.Node) {
 	}
 	walk(get(theme, "tokens"), "", "")
 	modes := pairs(theme, "modes")
-	head, rule := "| Token | Type | Value |", "|---|---|---|"
+	head, rule := tr("| Token | Type | Value |"), "|---|---|---|"
 	for _, m := range modes {
 		head += " " + m.Key.Value + " |"
 		rule += "---|"
 	}
-	d.para("The design tokens, in the format of the W3C Design Tokens Community Group. A mode's column shows the value it gives a token, and is empty where the token keeps its own.")
+	d.para(tr("The design tokens, in the format of the W3C Design Tokens Community Group. A mode's column shows the value it gives a token, and is empty where the token keeps its own."))
 	d.line("%s", head)
 	d.line("%s", rule)
 	for _, r := range rows {
@@ -1780,12 +1780,12 @@ func themeTables(d *doc, root *yaml.Node) {
 	if len(contrasts) == 0 {
 		return
 	}
-	head, rule = "| Text | Background | Use | Contrast |", "|---|---|---|---|"
+	head, rule = tr("| Text | Background | Use | Contrast |"), "|---|---|---|---|"
 	for _, m := range modeNames {
 		head += " " + m + " |"
 		rule += "---|"
 	}
-	d.para("The pairs of colours shown together, with their contrast in each mode:")
+	d.para(tr("The pairs of colours shown together, with their contrast in each mode:"))
 	d.line("%s", head)
 	d.line("%s", rule)
 	for _, p := range contrasts {
@@ -1804,12 +1804,12 @@ func themeTables(d *doc, root *yaml.Node) {
 func childRowsText(pg *yaml.Node) string {
 	var b strings.Builder
 	for _, row := range items(pg, "childRows") {
-		fmt.Fprintf(&b, "; %s, rows of %s: %s", str(row, "title"), str(row, "relation"), strings.Join(strs(row, "fields"), ", "))
+		fmt.Fprintf(&b, tr("; %s, rows of %s: %s"), str(row, "title"), str(row, "relation"), strings.Join(strs(row, "fields"), ", "))
 		if max := num(row, "maximum"); max != "" {
-			b.WriteString(", at most " + max)
+			b.WriteString(tr(", at most ") + max)
 		}
 		if str(row, "lockLoadedRows") == "true" {
-			b.WriteString(", the loaded rows locked")
+			b.WriteString(tr(", the loaded rows locked"))
 		}
 	}
 	return b.String()
@@ -1897,30 +1897,30 @@ func roleCombinations(root *yaml.Node, perms []string, cardinality int) [][]stri
 // the four-eyes rule every approval keeps, the pages that ask for it and
 // list what waits, and the messages it publishes when it ends.
 func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
-	text := "Starts when " + d.known(w, "trigger", "the trigger", "workflows", name) + " accepts a request and answers 202; the request waits as " + d.known(w, "subject", "the subject", "workflows", name) + "."
+	text := tr("Starts when ") + d.known(w, "trigger", tr("the trigger"), "workflows", name) + tr(" accepts a request and answers 202; the request waits as ") + d.known(w, "subject", tr("the subject"), "workflows", name) + "."
 	if str(w, "subject") != "" {
-		text = strings.Replace(text, " waits as ", " waits as a ", 1)
+		text = strings.Replace(text, tr(" waits as "), tr(" waits as a "), 1)
 	}
 	var approvals []string
 	for i, st := range items(w, "steps") {
 		if str(st, "kind") == "approval" {
 			at := []string{"workflows", name, "steps", fmt.Sprint(i)}
-			approvals = append(approvals, fmt.Sprintf("%s (%s, within %s)", str(st, "name"), d.known(st, "permission", "the permission", at...), d.known(st, "deadline", "the deadline", at...)))
+			approvals = append(approvals, fmt.Sprintf(tr("%s (%s, within %s)"), str(st, "name"), d.known(st, "permission", tr("the permission"), at...), d.known(st, "deadline", tr("the deadline"), at...)))
 		}
 	}
 	if len(approvals) > 0 {
 		order := ""
 		if len(approvals) > 1 {
-			order = ", in that order,"
+			order = tr(", in that order,")
 		}
-		text += " It is approved at " + joinAnd(approvals) + order + " and a refusal ends it. The person who made the request never approves it."
+		text += tr(" It is approved at ") + joinAnd(approvals) + order + tr(" and a refusal ends it. The person who made the request never approves it.")
 	}
 	var tasks, decisions, waits, failures, undone []string
 	for i, st := range items(w, "steps") {
 		at := []string{"workflows", name, "steps", fmt.Sprint(i)}
 		switch str(st, "kind") {
 		case "task":
-			tasks = append(tasks, fmt.Sprintf("%s (%s)", str(st, "name"), d.known(st, "permission", "the permission", at...)))
+			tasks = append(tasks, fmt.Sprintf("%s (%s)", str(st, "name"), d.known(st, "permission", tr("the permission"), at...)))
 		case "decision":
 			decisions = append(decisions, str(st, "name"))
 		case "wait":
@@ -1929,34 +1929,34 @@ func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
 			case str(st, "after") != "":
 				what = str(st, "after")
 			case str(st, "at") != "":
-				what = "the moment " + str(st, "at")
+				what = tr("the moment ") + str(st, "at")
 			}
 			waits = append(waits, fmt.Sprintf("%s (%s)", str(st, "name"), what))
 		case "operation":
 			if f := get(st, "onFailure"); f != nil {
-				then := "the request ends failed"
+				then := tr("the request ends failed")
 				if to := str(f, "to"); to != "" {
-					then = "the request goes on at " + to
+					then = tr("the request goes on at ") + to
 				}
-				failures = append(failures, " If "+str(st, "name")+" fails, "+then+".")
+				failures = append(failures, tr(" If ")+str(st, "name")+tr(" fails, ")+then+".")
 			}
 			if comp := str(st, "compensatedBy"); comp != "" {
-				undone = append([]string{fmt.Sprintf("%s by %s", str(st, "name"), comp)}, undone...)
+				undone = append([]string{fmt.Sprintf(tr("%s by %s"), str(st, "name"), comp)}, undone...)
 			}
 		}
 	}
 	if len(decisions) > 0 {
-		text += " It is routed by its subject at " + joinAnd(decisions) + "."
+		text += tr(" It is routed by its subject at ") + joinAnd(decisions) + "."
 	}
 	if len(tasks) > 0 {
-		text += " Work is done on it at " + joinAnd(tasks) + "."
+		text += tr(" Work is done on it at ") + joinAnd(tasks) + "."
 	}
 	if len(waits) > 0 {
-		text += " It waits at " + joinAnd(waits) + "."
+		text += tr(" It waits at ") + joinAnd(waits) + "."
 	}
 	text += strings.Join(failures, "")
 	if len(undone) > 0 {
-		text += " A request that ends refused or failed undoes " + joinAnd(undone) + ", the latest first."
+		text += tr(" A request that ends refused or failed undoes ") + joinAnd(undone) + tr(", the latest first.")
 	}
 	var asks, inboxes []string
 	for _, p := range pairs(root, "pages") {
@@ -1969,16 +1969,16 @@ func workflowDetails(d *doc, root *yaml.Node, name string, w *yaml.Node) {
 		}
 	}
 	if len(asks) > 0 {
-		text += " It is asked for on " + joinAnd(asks) + ", which says the request waits."
+		text += tr(" It is asked for on ") + joinAnd(asks) + tr(", which says the request waits.")
 	}
 	if len(inboxes) > 0 {
-		text += " What waits is listed on " + joinAnd(inboxes) + "."
+		text += tr(" What waits is listed on ") + joinAnd(inboxes) + "."
 	}
 	if emits := strs(w, "emits"); len(emits) > 0 {
-		text += " When it ends it publishes " + joinAnd(emits) + "."
+		text += tr(" When it ends it publishes ") + joinAnd(emits) + "."
 	}
 	if get(w, "asIs") != nil {
-		text += " This is the to-be: the business runs the as-is, kept under asIs, until the change is done, and the changes document lists what moving to the to-be reaches."
+		text += tr(" This is the to-be: the business runs the as-is, kept under asIs, until the change is done, and the changes document lists what moving to the to-be reaches.")
 	}
 	d.para(text)
 }
@@ -1995,17 +1995,17 @@ func blocksText(page *yaml.Node) string {
 	for _, b := range items(page, "blocks") {
 		switch {
 		case get(b, "heading") != nil:
-			parts = append(parts, "heading "+num(get(b, "heading"), "level")+" "+str(get(b, "heading"), "text"))
+			parts = append(parts, tr("heading ")+num(get(b, "heading"), "level")+" "+str(get(b, "heading"), "text"))
 		case get(b, "text") != nil:
-			parts = append(parts, "a paragraph")
+			parts = append(parts, tr("a paragraph"))
 		case get(b, "image") != nil:
-			parts = append(parts, "image "+str(get(b, "image"), "path"))
+			parts = append(parts, tr("image ")+str(get(b, "image"), "path"))
 		case get(b, "link") != nil:
 			to := str(get(b, "link"), "page")
 			if to == "" {
 				to = str(get(b, "link"), "href")
 			}
-			parts = append(parts, "link "+str(get(b, "link"), "label")+" to "+to)
+			parts = append(parts, tr("link ")+str(get(b, "link"), "label")+tr(" to ")+to)
 		}
 	}
 	return strings.Join(parts, "; ")
@@ -2020,32 +2020,32 @@ func elementRows(root *yaml.Node, pages []source.Pair) []string {
 		name, pg := p.Key.Value, p.Value
 		ent := get(get(root, "entities"), str(pg, "entity"))
 		for _, pk := range pairs(pg, "pickers") {
-			text := "picked from " + referenceText(root, str(pk.Value, "source"))
+			text := tr("picked from ") + referenceText(root, str(pk.Value, "source"))
 			for _, r := range pairs(ent, "relations") {
 				if str(r.Value, "kind") == "many-to-one" && str(r.Value, "via") == pk.Key.Value {
-					text = "a " + referenceText(root, str(r.Value, "target")) + ", through the relation " + r.Key.Value + ", " + text
+					text = "a " + referenceText(root, str(r.Value, "target")) + tr(", through the relation ") + r.Key.Value + ", " + text
 				}
 			}
-			text += ", showing " + strings.Join(strs(pk.Value, "shows"), ", ")
+			text += tr(", showing ") + strings.Join(strs(pk.Value, "shows"), ", ")
 			var fills []string
 			for _, f := range pairs(pk.Value, "fills") {
-				fills = append(fills, f.Key.Value+" from "+f.Value.Value)
+				fills = append(fills, f.Key.Value+tr(" from ")+f.Value.Value)
 			}
 			if len(fills) > 0 {
-				text += "; fills " + strings.Join(fills, ", ")
+				text += tr("; fills ") + strings.Join(fills, ", ")
 			}
-			row(name, "picker "+pk.Key.Value, text)
+			row(name, tr("picker ")+pk.Key.Value, text)
 		}
 		for _, a := range items(pg, "actions") {
 			var parts []string
 			if w := str(a, "when"); w != "" {
-				parts = append(parts, "offered while `"+w+"`")
+				parts = append(parts, tr("offered while `")+w+"`")
 			}
 			if r := str(a, "reason"); r != "" {
-				parts = append(parts, "its confirmation asks for a reason, sent as "+r)
+				parts = append(parts, tr("its confirmation asks for a reason, sent as ")+r)
 			}
 			if len(parts) > 0 {
-				row(name, "action "+str(a, "label"), strings.Join(parts, "; "))
+				row(name, tr("action ")+str(a, "label"), strings.Join(parts, "; "))
 			}
 		}
 		for _, f := range pairs(pg, "fieldConditions") {
@@ -2054,22 +2054,22 @@ func elementRows(root *yaml.Node, pages []source.Pair) []string {
 				parts = append(parts, "read-only")
 			}
 			if w := str(f.Value, "readOnlyWhen"); w != "" {
-				parts = append(parts, "read-only while `"+w+"`")
+				parts = append(parts, tr("read-only while `")+w+"`")
 			}
 			if w := str(f.Value, "hiddenWhen"); w != "" {
-				parts = append(parts, "hidden while `"+w+"`")
+				parts = append(parts, tr("hidden while `")+w+"`")
 			}
-			row(name, "field "+f.Key.Value, strings.Join(parts, "; "))
+			row(name, tr("field ")+f.Key.Value, strings.Join(parts, "; "))
 		}
 		for _, c := range pairs(pg, "checks") {
-			text := "`" + str(c.Value, "expression") + "`, or it is not sent: " + str(c.Value, "message")
+			text := "`" + str(c.Value, "expression") + tr("`, or it is not sent: ") + str(c.Value, "message")
 			if f := str(c.Value, "field"); f != "" {
-				text += " (beside " + f + ")"
+				text += tr(" (beside ") + f + ")"
 			}
-			row(name, "check "+c.Key.Value, text)
+			row(name, tr("check ")+c.Key.Value, text)
 		}
 		for _, f := range strs(pg, "enteredTwice") {
-			row(name, "field "+f, "entered twice; the second entry is compared and never sent")
+			row(name, tr("field ")+f, tr("entered twice; the second entry is compared and never sent"))
 		}
 	}
 	return rows
@@ -2080,7 +2080,7 @@ func elementRows(root *yaml.Node, pages []source.Pair) []string {
 // dependency declares, its method and path or channel and message.
 func callText(root *yaml.Node, c string) string {
 	dep := get(get(root, "dependencies"), calledDependency(c))
-	within := "within " + str(dep, "timeout")
+	within := tr("within ") + str(dep, "timeout")
 	if of := referenceOf(root, c); of != "" {
 		within = of + ", " + within
 	} else if _, name, ok := strings.Cut(c, "#/operations/"); ok {
@@ -2105,12 +2105,12 @@ func operationHow(op *yaml.Node) string {
 
 // authText names a dependency's auth in words, with its standard.
 var authText = map[string]string{
-	"apiKey":                  "an API key",
-	"basic":                   "a user and password (RFC 7617)",
-	"bearer":                  "a bearer token (RFC 6750)",
-	"oauth2ClientCredentials": "a token got with the client credentials grant (RFC 6749, 4.4)",
-	"mutualTls":               "a client certificate (RFC 8705)",
-	"signedRequest":           "a signed request",
+	"apiKey":                  tr("an API key"),
+	"basic":                   tr("a user and password (RFC 7617)"),
+	"bearer":                  tr("a bearer token (RFC 6750)"),
+	"oauth2ClientCredentials": tr("a token got with the client credentials grant (RFC 6749, 4.4)"),
+	"mutualTls":               tr("a client certificate (RFC 8705)"),
+	"signedRequest":           tr("a signed request"),
 }
 
 // dependencyContract says how this system proves itself to a dependency,
@@ -2118,18 +2118,18 @@ var authText = map[string]string{
 func dependencyContract(dep *yaml.Node) string {
 	var parts []string
 	if str(dep, "auth") == "none" {
-		parts = append(parts, "Is sent no credential.")
+		parts = append(parts, tr("Is sent no credential."))
 	} else if a := str(dep, "auth"); a != "" {
-		text := "Proves itself by " + authText[a]
+		text := tr("Proves itself by ") + authText[a]
 		if c := str(dep, "credential"); c != "" {
-			text += ", kept in the secret setting " + c
+			text += tr(", kept in the secret setting ") + c
 		}
 		parts = append(parts, text+".")
 	}
 	if r := get(dep, "rate"); r != nil {
-		text := "At most " + num(r, "requests") + " calls per " + str(r, "per")
+		text := tr("At most ") + num(r, "requests") + tr(" calls per ") + str(r, "per")
 		if b := num(r, "burst"); b != "" {
-			text += ", " + b + " at once above it"
+			text += ", " + b + tr(" at once above it")
 		}
 		parts = append(parts, text+".")
 	}
@@ -2138,7 +2138,7 @@ func dependencyContract(dep *yaml.Node) string {
 		ops = append(ops, op.Key.Value+" ("+operationHow(op.Value)+")")
 	}
 	if len(ops) > 0 {
-		parts = append(parts, "Its operations: "+strings.Join(ops, ", ")+".")
+		parts = append(parts, tr("Its operations: ")+strings.Join(ops, ", ")+".")
 	}
 	return strings.Join(parts, " ")
 }
@@ -2159,42 +2159,42 @@ func contractText(item *yaml.Node) string {
 		return strings.Join(out, ", ")
 	}
 	if s := pairsText("send"); s != "" {
-		parts = append(parts, "it sends "+s)
+		parts = append(parts, tr("it sends ")+s)
 	}
 	if s := pairsText("receive"); s != "" {
-		parts = append(parts, "keeps "+s+" from the answer")
+		parts = append(parts, fmt.Sprintf(tr("keeps %s from the answer"), s))
 	}
 	if k := get(item, "idempotencyKey"); k != nil {
-		parts = append(parts, "sends "+str(k, "header")+" as `"+str(k, "value")+"`, so a call made again is told from a new one")
+		parts = append(parts, fmt.Sprintf(tr("sends %s as `%s`, so a call made again is told from a new one"), str(k, "header"), str(k, "value")))
 	}
 	if r := get(item, "retries"); r != nil {
-		text := "tries again " + num(r, "limit") + " times, " + str(r, "delay") + " apart"
+		text := fmt.Sprintf(tr("tries again %s times, %s apart"), num(r, "limit"), str(r, "delay"))
 		if str(r, "backoff") == "exponential" {
-			text += " and twice that each time"
+			text += tr(" and twice that each time")
 		}
 		on := strs(r, "on")
 		if len(on) > 1 {
-			on = []string{strings.Join(on[:len(on)-1], ", ") + " or " + on[len(on)-1]}
+			on = []string{strings.Join(on[:len(on)-1], ", ") + tr(" or ") + on[len(on)-1]}
 		}
-		parts = append(parts, text+", on "+strings.Join(on, ""))
+		parts = append(parts, text+tr(", on ")+strings.Join(on, ""))
 	}
 	var errs []string
 	for _, p := range pairs(item, "errors") {
-		errs = append(errs, p.Key.Value+" as "+p.Value.Value)
+		errs = append(errs, fmt.Sprintf(tr("%s as %s"), p.Key.Value, p.Value.Value))
 	}
 	if len(errs) > 0 {
-		parts = append(parts, "answers their "+joinAnd(errs))
+		parts = append(parts, tr("answers their ")+joinAnd(errs))
 	}
 	switch str(item, "mode") {
 	case "async":
-		parts = append(parts, "does not wait, and hears back by "+str(item, "callback"))
+		parts = append(parts, tr("does not wait, and hears back by ")+str(item, "callback"))
 	case "fireAndForget":
-		parts = append(parts, "neither waits nor hears back")
+		parts = append(parts, tr("neither waits nor hears back"))
 	}
 	if len(parts) == 0 {
 		return ""
 	}
-	return "The call to " + c + ": " + strings.Join(parts, "; ") + "."
+	return tr("The call to ") + c + ": " + strings.Join(parts, "; ") + "."
 }
 
 // mappingExamples writes the worked examples of a call's mapping as a
@@ -2212,7 +2212,7 @@ func mappingExamples(d *doc, item *yaml.Node) {
 		}
 		return cell(strings.Join(out, ", "))
 	}
-	d.line("| Worked example of the call to %s | Inputs | Sent | Answer | Kept | Note |", str(item, "call"))
+	d.line(tr("| Worked example of the call to %s | Inputs | Sent | Answer | Kept | Note |"), str(item, "call"))
 	d.line("|---|---|---|---|---|---|")
 	for _, ex := range exs {
 		d.line("| %s | %s | %s | %s | %s | %s |", cell(str(ex, "name")), values(ex, "inputs"), values(ex, "sent"), values(ex, "answer"), values(ex, "kept"), cell(str(ex, "note")))
@@ -2224,11 +2224,11 @@ func mappingExamples(d *doc, item *yaml.Node) {
 func proofText(proof *yaml.Node) string {
 	switch str(proof, "kind") {
 	case "signedRequest":
-		return "a signed request (RFC 9421), " + str(proof, "algorithm") + " over " + strings.Join(strs(proof, "covers"), ", ")
+		return tr("a signed request (RFC 9421), ") + str(proof, "algorithm") + tr(" over ") + strings.Join(strs(proof, "covers"), ", ")
 	case "mutualTls":
-		return "its client certificate (RFC 8705)"
+		return tr("its client certificate (RFC 8705)")
 	case "":
-		return "none: a public client, whose name in a token is the issuer's word"
+		return tr("none: a public client, whose name in a token is the issuer's word")
 	}
 	return str(proof, "kind")
 }
@@ -2265,7 +2265,7 @@ func callChain(root *yaml.Node) string {
 	for _, o := range operations(root) {
 		for _, caller := range strs(o.node, "via") {
 			if _, ptr, ok := strings.Cut(caller, "#"); ok {
-				caller = strings.TrimPrefix(ptr, "/clients/")
+				caller = strings.TrimPrefix(ptr, tr("/clients/"))
 			}
 			fmt.Fprintf(&b, "    %s -->|%s| %s\n", mermaidID(caller), acceptedTokenOf(root, o.node), o.id)
 		}
@@ -2273,7 +2273,7 @@ func callChain(root *yaml.Node) string {
 	if b.Len() == 0 {
 		return ""
 	}
-	return "flowchart LR\n" + b.String()
+	return tr("flowchart LR\n") + b.String()
 }
 
 // chainsDiagram draws the chains the induction found: the person at the
@@ -2295,7 +2295,7 @@ func chainsDiagram(chains []Chain) string {
 		node := func(h Hop) string {
 			return fmt.Sprintf("%s[\"%s %s\"]", mermaidID(h.Module+"_"+h.Operation), h.Module, h.Operation)
 		}
-		line(fmt.Sprintf("    person([\"a person\"]) -->|%s| %s\n", c.Hops[0].Token, node(c.Hops[0])))
+		line(fmt.Sprintf(tr("    person([\"a person\"]) -->|%s| %s\n"), c.Hops[0].Token, node(c.Hops[0])))
 		for i := 1; i < len(c.Hops); i++ {
 			label := c.Hops[i].Token
 			if p := c.Hops[i-1].Proof; p != "" {
@@ -2307,5 +2307,5 @@ func chainsDiagram(chains []Chain) string {
 	if b.Len() == 0 {
 		return ""
 	}
-	return "flowchart LR\n" + b.String()
+	return tr("flowchart LR\n") + b.String()
 }

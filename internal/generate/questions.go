@@ -192,12 +192,12 @@ func (d *doc) known(n *yaml.Node, key, what string, tokens ...string) string {
 				continue
 			}
 			if names := str(q.node, "names"); names != "" {
-				return fmt.Sprintf("%s (open in %s, which names %s)", what, q.id, names)
+				return fmt.Sprintf(tr("%s (open in %s, which names %s)"), what, q.id, names)
 			}
-			return fmt.Sprintf("%s (open in %s)", what, q.id)
+			return fmt.Sprintf(tr("%s (open in %s)"), what, q.id)
 		}
 	}
-	return what + " (not given)"
+	return what + tr(" (not given)")
 }
 
 func (q question) label() string {
@@ -233,7 +233,7 @@ func (d *doc) draftNotice(target string) {
 	if len(ids) == 1 {
 		verb = "concerns"
 	}
-	d.para(fmt.Sprintf("**Draft:** %s %s this document (%s); see the open questions document, or run specarch gaps.", countText(len(ids), "open question", "open questions"), verb, strings.Join(ids, ", ")))
+	d.para(fmt.Sprintf(tr("**Draft:** %s %s this document (%s); see the open questions document, or run specarch gaps."), countText(len(ids), tr("open question"), tr("open questions")), verb, strings.Join(ids, ", ")))
 }
 
 // pointers maps every mapping node of the root to its pointer, so that an
@@ -274,22 +274,22 @@ func (d *doc) origin(n *yaml.Node) string {
 				title = str(c, "source")
 			}
 			if cl := str(c, "clause"); cl != "" {
-				title += ", clause " + cl
+				title += tr(", clause ") + cl
 			}
 			in = append(in, title)
 		}
 		if len(in) == 0 {
-			return "**Origin:** stated."
+			return tr("**Origin:** stated.")
 		}
-		return "**Origin:** stated in " + strings.Join(in, "; ") + "."
+		return tr("**Origin:** stated in ") + strings.Join(in, "; ") + "."
 	case "inferred":
-		return "**Origin:** inferred."
+		return tr("**Origin:** inferred.")
 	case "decided":
 		id := str(n, "decidedIn")
 		if title := str(get(d.decisions, id), "title"); title != "" {
-			return fmt.Sprintf("**Origin:** decided in %s, %s.", id, title)
+			return fmt.Sprintf(tr("**Origin:** decided in %s, %s."), id, title)
 		}
-		return fmt.Sprintf("**Origin:** decided in %s.", id)
+		return fmt.Sprintf(tr("**Origin:** decided in %s."), id)
 	}
 	return ""
 }
@@ -302,7 +302,7 @@ func (d *doc) open(label string, n *yaml.Node) {
 	}
 	on := ""
 	if label != "" {
-		on = " on " + label
+		on = tr(" on ") + label
 	}
 	for _, q := range d.questions {
 		if q.about(ptr) {
@@ -314,7 +314,7 @@ func (d *doc) open(label string, n *yaml.Node) {
 // openParagraph writes one open question: its ID, priority and kind, what
 // it is on, its text and who decides it.
 func (d *doc) openParagraph(q question, on string) {
-	d.para(fmt.Sprintf("**Open question %s%s:** %s Decided by %s.", q.label(), on, oneParagraph(str(q.node, "question")), str(q.node, "decidedBy")))
+	d.para(fmt.Sprintf(tr("**Open question %s%s:** %s Decided by %s."), q.label(), on, oneParagraph(str(q.node, "question")), str(q.node, "decidedBy")))
 }
 
 // Questions writes the open questions document, which specarch gaps also
@@ -335,13 +335,13 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			could++
 		}
 	}
-	d.line("# %s: open questions", str(info, "title"))
+	d.line(tr("# %s: open questions"), str(info, "title"))
 	d.blank()
 	if len(qs) == 0 {
-		d.para(fmt.Sprintf("Version %s of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder.", str(info, "version")))
+		d.para(fmt.Sprintf(tr("Version %s of the specification has no open question: nothing it says waits on a decision or on material from a stakeholder."), str(info, "version")))
 	} else {
-		d.para(fmt.Sprintf("Version %s of the specification: %s (%d must, %d should, %d could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed.",
-			str(info, "version"), countText(len(qs), "open question", "open questions"), must, should, could))
+		d.para(fmt.Sprintf(tr("Version %s of the specification: %s (%d must, %d should, %d could). A must question holds up everything that reads what it blocks; a should question holds up code generation and approval until the stakeholder confirms what was inferred; a could question holds up nothing. Each is answered by the stakeholder named, with a decision record that names the question under answers; the question is then removed."),
+			str(info, "version"), countText(len(qs), tr("open question"), tr("open questions")), must, should, could))
 	}
 	if len(qs) > 0 {
 		d.para(takers(qs))
@@ -350,7 +350,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	d.stakeholdersNotice()
 	if str(info, "tracksOrigin") == "true" {
 		stated, inferred, decided, none := originCounts(root)
-		d.para(fmt.Sprintf("Elements by origin: %d stated, %d inferred, %d decided, %d without origin.", stated, inferred, decided, none))
+		d.para(fmt.Sprintf(tr("Elements by origin: %d stated, %d inferred, %d decided, %d without origin."), stated, inferred, decided, none))
 	}
 	d.errorsSection()
 
@@ -359,9 +359,9 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 		d.heading(3, q.label())
 		d.para(oneParagraph(str(q.node, "question")))
 		if q.material() {
-			d.line("- Needed from: %s", str(q.node, "decidedBy"))
+			d.line(tr("- Needed from: %s"), str(q.node, "decidedBy"))
 		} else {
-			d.line("- Decided by: %s", str(q.node, "decidedBy"))
+			d.line(tr("- Decided by: %s"), str(q.node, "decidedBy"))
 		}
 		var blocks []string
 		for _, item := range items(q.node, "blocks") {
@@ -371,28 +371,28 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 				// element, at any depth; a pointer to a key that is
 				// not there names it already.
 				if missing := state.Missing[source.Pointer(b.Tokens...)]; len(missing) > 0 {
-					text += fmt.Sprintf(" (%s missing)", joinAnd(missing))
+					text += fmt.Sprintf(tr(" (%s missing)"), joinAnd(missing))
 				}
 			}
 			blocks = append(blocks, text)
 		}
-		d.line("- Blocks: %s", strings.Join(blocks, ", "))
+		d.line(tr("- Blocks: %s"), strings.Join(blocks, ", "))
 		if names := str(q.node, "names"); names != "" {
 			where := ""
 			if items := items(q.node, "blocks"); len(items) == 1 && state != nil && state.Places[items[0].Value] != "" {
-				where = " at " + state.Places[items[0].Value]
+				where = tr(" at ") + state.Places[items[0].Value]
 			}
-			text := fmt.Sprintf("- Names: %s, the name the source gives for the key left out%s; it is written there once the specification declares an element of that name", names, where)
+			text := fmt.Sprintf(tr("- Names: %s, the name the source gives for the key left out%s; it is written there once the specification declares an element of that name"), names, where)
 			d.line("%s", text)
 		}
 		if opts := strs(q.node, "options"); len(opts) > 0 {
-			d.line("- Options:")
+			d.line(tr("- Options:"))
 			for i, o := range opts {
 				d.line("  %d. %s", i+1, oneParagraph(o))
 			}
 		}
 		if chain := d.chain(q.id, opened); chain != "" {
-			d.line("- Opened by: %s", chain)
+			d.line(tr("- Opened by: %s"), chain)
 		}
 		d.blank()
 		d.explain(q.node)
@@ -425,7 +425,7 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	}
 	if len(outside) > 0 {
 		sortQuestions(outside)
-		d.section("Extension blocks")
+		d.section(tr("Extension blocks"))
 		for _, q := range outside {
 			write(q)
 		}
@@ -438,21 +438,21 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 	}
 	if len(material) > 0 {
 		sortQuestions(material)
-		d.section("Material to provide")
-		d.para("What a stakeholder must send rather than decide: a document, a file, a screenshot or a record. Each is answered by providing it, declared as a source the specification cites, and a decision record that names the question under answers.")
+		d.section(tr("Material to provide"))
+		d.para(tr("What a stakeholder must send rather than decide: a document, a file, a screenshot or a record. Each is answered by providing it, declared as a source the specification cites, and a decision record that names the question under answers."))
 		for _, q := range material {
 			write(q)
 		}
 	}
 
 	if state != nil && len(state.References) > 0 {
-		d.section("References to other specifications")
-		says := "1 reference names an element of another specification and is not resolved in this run"
+		d.section(tr("References to other specifications"))
+		says := tr("1 reference names an element of another specification and is not resolved in this run")
 		if n := len(state.References); n != 1 {
-			says = fmt.Sprintf("%d references name elements of other specifications and are not resolved in this run", n)
+			says = fmt.Sprintf(tr("%d references name elements of other specifications and are not resolved in this run"), n)
 		}
-		d.para(says + ": the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors.")
-		d.line("| At | Reference | Specification | Waits on |")
+		d.para(says + tr(": the specification named is not given with this one, or the element is blocked there by a must question. Give the other specification in the same run to check them; until then they are gaps, not errors."))
+		d.line(tr("| At | Reference | Specification | Waits on |"))
 		d.line("|---|---|---|---|")
 		for _, r := range state.References {
 			d.line("| %s | %s | %s %s | %s |", cell(r.Path), cell(r.Text), r.Specification, r.Version, cell(r.Waits))
@@ -462,11 +462,11 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 
 	d.coverage(root, impls)
 
-	d.section("Outputs")
-	d.para("What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval.")
-	d.line("| Output | State | Waits on |")
+	d.section(tr("Outputs"))
+	d.para(tr("What can be made from the specification now. A document is a draft while a must or should question blocks what it reads, or an error is in it; code generation waits for those questions, for every error to be fixed, and for the approval."))
+	d.line(tr("| Output | State | Waits on |"))
 	d.line("|---|---|---|")
-	approval := "the approval"
+	approval := tr("the approval")
 	if state != nil {
 		approval = state.Approval
 	}
@@ -478,17 +478,17 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 				waits = append(waits, byStage(qs, ids))
 			}
 			if errors := d.errorsConcerning(o.reads); errors > 0 {
-				waits = append(waits, countText(errors, "error", "errors"))
+				waits = append(waits, countText(errors, tr("error"), tr("errors")))
 			}
 			if len(waits) == 0 {
-				d.line("| %s | ready | |", o.name)
+				d.line(tr("| %s | ready | |"), outputName(o.name))
 			} else {
-				d.line("| %s | draft | %s |", o.name, strings.Join(waits, ", "))
+				d.line(tr("| %s | draft | %s |"), outputName(o.name), strings.Join(waits, ", "))
 			}
 			continue
 		}
 		if errors := d.errorCount(); errors > 0 {
-			waits = append(waits, countText(errors, "error", "errors"))
+			waits = append(waits, countText(errors, tr("error"), tr("errors")))
 		}
 		if len(ids) > 0 {
 			waits = append(waits, byStage(qs, ids))
@@ -497,13 +497,13 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			waits = append(waits, approval)
 		}
 		if len(waits) == 0 {
-			d.line("| %s | ready | |", o.name)
+			d.line(tr("| %s | ready | |"), outputName(o.name))
 		} else {
-			d.line("| %s | waits | %s |", o.name, cell(strings.Join(waits, "; ")))
+			d.line(tr("| %s | waits | %s |"), outputName(o.name), cell(strings.Join(waits, "; ")))
 		}
 	}
 	d.blank()
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -548,10 +548,10 @@ func takers(qs []question) string {
 	}
 	var says []string
 	if len(decide) > 0 {
-		says = append(says, "Decisions to take: "+list(decide)+".")
+		says = append(says, tr("Decisions to take: ")+list(decide)+".")
 	}
 	if len(provide) > 0 {
-		says = append(says, "Material to provide: "+list(provide)+".")
+		says = append(says, tr("Material to provide: ")+list(provide)+".")
 	}
 	return strings.Join(says, " ")
 }
@@ -584,14 +584,14 @@ func byStage(qs []question, ids []string) string {
 		var shown []string
 		for i, q := range in {
 			if i == shownPerStage {
-				shown = append(shown, fmt.Sprintf("%d more", len(in)-shownPerStage))
+				shown = append(shown, fmt.Sprintf(tr("%d more"), len(in)-shownPerStage))
 				break
 			}
 			shown = append(shown, q.id)
 		}
-		where := "in " + stage
+		where := tr("in ") + stage
 		if stage == "" {
-			where = "in extension blocks"
+			where = tr("in extension blocks")
 		}
 		parts = append(parts, fmt.Sprintf("%d %s (%s)", len(in), where, joinAnd(shown)))
 	}
@@ -631,7 +631,7 @@ func (d *doc) chain(id string, opened map[string][]string) string {
 				text += " (" + title + ")"
 			}
 			if answers := strs(get(d.decisions, dec), "answers"); len(answers) > 0 {
-				text += ", which answered " + joinAnd(answers)
+				text += tr(", which answered ") + joinAnd(answers)
 				for _, a := range answers {
 					if !seen[a] {
 						seen[a] = true
@@ -644,7 +644,7 @@ func (d *doc) chain(id string, opened map[string][]string) string {
 		if q == id {
 			parts = append(parts, joinAnd(by))
 		} else {
-			parts = append(parts, q+" was opened by "+joinAnd(by))
+			parts = append(parts, q+tr(" was opened by ")+joinAnd(by))
 		}
 	}
 	return strings.Join(parts, "; ")
@@ -683,7 +683,7 @@ func joinAnd(items []string) string {
 	case 1:
 		return items[0]
 	}
-	return strings.Join(items[:len(items)-1], ", ") + " and " + items[len(items)-1]
+	return strings.Join(items[:len(items)-1], ", ") + tr(" and ") + items[len(items)-1]
 }
 
 // originCounts counts the named elements of every section by origin.
@@ -739,4 +739,16 @@ func Holding(root *yaml.Node, impls []Implementation, target string) []string {
 		reads = []string{"*"}
 	}
 	return holding(questionsOf(root), reads)
+}
+
+// outputName is an output's name, as outputReads gives it in English, in
+// the document's language.
+func outputName(name string) string {
+	if t, ok := strings.CutSuffix(name, " document"); ok {
+		return fmt.Sprintf(tr("%s document"), t)
+	}
+	if t, ok := strings.CutPrefix(name, "code target "); ok {
+		return fmt.Sprintf(tr("code target %s"), t)
+	}
+	return name
 }

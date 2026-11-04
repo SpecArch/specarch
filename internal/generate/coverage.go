@@ -51,7 +51,7 @@ func citers(root *yaml.Node, impls []Implementation) map[string][]citer {
 		file := path.Base(impl.Rel)
 		walk(impl.Node, nil, func(p []string) string {
 			if len(p) >= 2 && p[0] == "mappings" {
-				return "mapping of " + p[1]
+				return tr("mapping of ") + p[1]
 			}
 			return file + " #" + source.Pointer(p...)
 		})
@@ -75,8 +75,8 @@ func (d *doc) coverage(root *yaml.Node, impls []Implementation) {
 		return
 	}
 	cited := citers(root, impls)
-	d.section("Coverage")
-	d.para("What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question.")
+	d.section(tr("Coverage"))
+	d.para(tr("What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question."))
 	for _, key := range keys {
 		src := get(get(root, "sources"), key)
 		title := strings.TrimSpace(str(src, "title"))
@@ -93,7 +93,7 @@ func (d *doc) coverage(root *yaml.Node, impls []Implementation) {
 			label := c.element
 			if best < 0 {
 				if c.clause == "" {
-					outside = append(outside, label+" (no clause)")
+					outside = append(outside, label+tr(" (no clause)"))
 				} else {
 					outside = append(outside, label+" ("+c.clause+")")
 				}
@@ -108,8 +108,8 @@ func (d *doc) coverage(root *yaml.Node, impls []Implementation) {
 			}
 		}
 		d.heading(3, fmt.Sprintf("%s (%s)", title, key))
-		d.para(fmt.Sprintf("%s of %d produced nothing.", countText(empty, "clause", "clauses"), len(clauses)))
-		d.line("| Clause | Title | Produced |")
+		d.para(fmt.Sprintf(tr("%s of %d produced nothing."), countText(empty, tr("clause"), tr("clauses")), len(clauses)))
+		d.line(tr("| Clause | Title | Produced |"))
 		d.line("|---|---|---|")
 		for i, cl := range clauses {
 			els := uniqueSorted(byClause[i])
@@ -121,7 +121,7 @@ func (d *doc) coverage(root *yaml.Node, impls []Implementation) {
 		}
 		d.blank()
 		if outside = uniqueSorted(outside); len(outside) > 0 {
-			d.para("Cited outside the listed clauses: " + strings.Join(outside, ", ") + ". Add the clause to the source's clauses, or correct the citation.")
+			d.para(tr("Cited outside the listed clauses: ") + strings.Join(outside, ", ") + tr(". Add the clause to the source's clauses, or correct the citation."))
 		}
 	}
 }

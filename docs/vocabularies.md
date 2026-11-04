@@ -75,4 +75,5 @@ words hold the English words Indonesian teams write beside their own
 table that mixes the two is read as a table of fields.
 
 Either file is the example to start from for another language: copy
-it, change `language`, and replace the words.
+it, change `language`, and replace the words. The language a document is
+written in is a separate choice, [`languages.md`](languages.md).

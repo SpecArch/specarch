@@ -35,14 +35,14 @@ func (d *doc) explainRows(rows []row) {
 func (d *doc) annotate(label string, n *yaml.Node) {
 	on := ""
 	if label != "" {
-		on = " on " + label
+		on = tr(" on ") + label
 	}
 	if str(n, "audience") == "internal" {
-		d.para(fmt.Sprintf("**Audience%s:** internal, left out of a document for everyone.", on))
+		d.para(fmt.Sprintf(tr("**Audience%s:** internal, left out of a document for everyone."), on))
 	}
 	if o := d.origin(n); o != "" {
 		if label != "" {
-			o = strings.Replace(o, "**Origin:**", "**Origin"+on+":**", 1)
+			o = strings.Replace(o, tr("**Origin:**"), fmt.Sprintf(tr("**Origin%s:**"), on), 1)
 		}
 		d.para(o)
 	}
@@ -50,10 +50,10 @@ func (d *doc) annotate(label string, n *yaml.Node) {
 	d.openChanges(label, n)
 	d.marksAt(label, n)
 	if why := strings.TrimSpace(str(n, "why")); why != "" {
-		d.para(fmt.Sprintf("**Insight%s:** %s", on, oneParagraph(why)))
+		d.para(fmt.Sprintf(tr("**Insight%s:** %s"), on, oneParagraph(why)))
 	}
 	for _, c := range items(n, "cites") {
-		d.para(fmt.Sprintf("**Note%s:** %s", on, d.citation(c)))
+		d.para(fmt.Sprintf(tr("**Note%s:** %s"), on, d.citation(c)))
 	}
 }
 
@@ -62,7 +62,7 @@ func (d *doc) annotate(label string, n *yaml.Node) {
 // hold the Audience paragraph.
 func markInternal(name string, n *yaml.Node) string {
 	if str(n, "audience") == "internal" {
-		return cell(name) + " (internal)"
+		return cell(name) + tr(" (internal)")
 	}
 	return cell(name)
 }
@@ -76,9 +76,9 @@ func heldElsewhere(r *yaml.Node) string {
 		return ""
 	}
 	if by := str(r, "fulfilledBy"); by != "" {
-		return "owned by " + owner + ", fulfilled by " + by
+		return tr("owned by ") + owner + tr(", fulfilled by ") + by
 	}
-	return "owned by " + owner
+	return tr("owned by ") + owner
 }
 
 // citation is a Note's text: from the source's title and edition, the
@@ -98,9 +98,9 @@ func (d *doc) citation(c *yaml.Node) string {
 		from += ", " + e
 	}
 	if cl := str(c, "clause"); cl != "" {
-		from += ", clause " + cl
+		from += tr(", clause ") + cl
 	}
-	text := "From " + from + ": " + oneParagraph(str(c, "says"))
+	text := tr("From ") + from + ": " + oneParagraph(str(c, "says"))
 	if u := str(src, "url"); u != "" && !strings.HasSuffix(str(src, "kind"), "-set") { // a tracker's url is a template
 		text += " <" + u + ">"
 	}
@@ -118,8 +118,8 @@ func (d *doc) sourcesIndex(title string) {
 	}
 	sort.Strings(keys)
 	d.heading(2, title)
-	d.para("Every source a Note in this document cites.")
-	d.line("| Source | Title | Edition | Author | Where to read it |")
+	d.para(tr("Every source a Note in this document cites."))
+	d.line(tr("| Source | Title | Edition | Author | Where to read it |"))
 	d.line("|---|---|---|---|---|")
 	for _, k := range keys {
 		s := get(d.sources, k)
@@ -155,7 +155,7 @@ func rowsOf(ps []source.Pair) []row {
 func stepRows(steps *yaml.Node) []row {
 	var out []row
 	for i, s := range itemsOf(steps) {
-		out = append(out, row{fmt.Sprintf("step %d, %s", i+1, str(s, "name")), s})
+		out = append(out, row{fmt.Sprintf(tr("step %d, %s"), i+1, str(s, "name")), s})
 	}
 	return out
 }

@@ -1,0 +1,7 @@
+translations:
+  "Coverage": "Cakupan"
+  "What each source's sections produced: the elements that cite a clause, or the clauses under it. A clause that produced nothing is either not read yet or holds nothing the specification needs; say which by citing it from an element or a question.": "Apa yang dihasilkan tiap bagian sumber: elemen yang mengutip sebuah klausul, atau klausul di bawahnya. Klausul yang tidak menghasilkan apa-apa berarti belum dibaca, atau tidak memuat apa pun yang dibutuhkan spesifikasi; tentukan yang mana dengan mengutipnya dari sebuah elemen atau pertanyaan."
+  " (no clause)": " (tanpa klausul)"
+  "| Clause | Title | Produced |": "| Klausul | Judul | Menghasilkan |"
+  "Cited outside the listed clauses: ": "Dikutip di luar klausul yang terdaftar: "
+  ". Add the clause to the source's clauses, or correct the citation.": ". Tambahkan klausul itu ke daftar klausul sumber, atau perbaiki kutipannya."

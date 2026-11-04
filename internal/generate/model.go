@@ -105,15 +105,15 @@ func typeLabel(f *yaml.Node) string {
 		return "bool"
 	case "array":
 		if it := get(f, "items"); it != nil {
-			return "list of " + typeLabel(it)
+			return tr("list of ") + typeLabel(it)
 		}
 		return "list"
 	case "object":
 		if values, ok := mapValues(f); ok {
 			if values == nil {
-				return "map of any value"
+				return tr("map of any value")
 			}
-			return "map of " + typeLabel(values)
+			return tr("map of ") + typeLabel(values)
 		}
 	case "":
 		return "value"
@@ -145,17 +145,17 @@ func typeText(f *yaml.Node) string {
 		if strings.Contains(v, ",") || strings.Contains(v, " or ") {
 			v = "(" + v + ")"
 		}
-		t = "map of " + v
+		t = tr("map of ") + v
 	}
 	if str(f, "format") == "decimal" && num(f, "precision") != "" {
-		t = fmt.Sprintf("decimal(%s, %s)", num(f, "precision"), num(f, "scale"))
+		t = fmt.Sprintf(tr("decimal(%s, %s)"), num(f, "precision"), num(f, "scale"))
 	}
 	if (str(f, "format") == "int64" || str(f, "format") == "uint64") && str(f, "type") == "string" {
-		t += ", as a JSON string"
+		t += tr(", as a JSON string")
 	}
 	for _, i := range items(f, "type") {
 		if i.Value == "null" {
-			t += " or null"
+			t += tr(" or null")
 		}
 	}
 	return t
@@ -169,55 +169,55 @@ func limits(f *yaml.Node) string {
 			out = append(out, word+" "+v)
 		}
 	}
-	add("minimum", "at least")
-	add("maximum", "at most")
-	add("exclusiveMinimum", "above")
-	add("exclusiveMaximum", "below")
+	add("minimum", tr("at least"))
+	add("maximum", tr("at most"))
+	add("exclusiveMinimum", tr("above"))
+	add("exclusiveMaximum", tr("below"))
 	if v := num(f, "minLength"); v != "" {
-		out = append(out, "at least "+characters(v))
+		out = append(out, tr("at least ")+characters(v))
 	}
 	if v := num(f, "maxLength"); v != "" {
-		out = append(out, "at most "+characters(v))
+		out = append(out, tr("at most ")+characters(v))
 	}
 	if v := str(f, "pattern"); v != "" {
-		out = append(out, "matches `"+v+"`")
+		out = append(out, tr("matches `")+v+"`")
 	}
 	if v := strs(f, "enum"); len(v) > 0 {
-		out = append(out, "one of "+strings.Join(v, ", "))
+		out = append(out, tr("one of ")+strings.Join(v, ", "))
 	}
 	if v := str(f, "const"); v != "" {
-		out = append(out, "always "+v)
+		out = append(out, tr("always ")+v)
 	}
 	if v := num(f, "minItems"); v != "" {
-		out = append(out, "at least "+itemCount(v))
+		out = append(out, tr("at least ")+itemCount(v))
 	}
 	if v := num(f, "maxItems"); v != "" {
-		out = append(out, "at most "+itemCount(v))
+		out = append(out, tr("at most ")+itemCount(v))
 	}
 	if str(f, "uniqueItems") == "true" {
-		out = append(out, "no item twice")
+		out = append(out, tr("no item twice"))
 	}
 	if f := str(f, "format"); f == "email" || f == "uri" || f == "hostname" || f == "ipv4" || f == "ipv6" {
-		out = append(out, "a valid "+f)
+		out = append(out, tr("a valid ")+f)
 	}
 	if str(f, "readOnly") == "true" {
-		out = append(out, "set by the system")
+		out = append(out, tr("set by the system"))
 	}
 	if str(f, "writeOnly") == "true" {
-		out = append(out, "never answered")
+		out = append(out, tr("never answered"))
 	}
 	switch str(f, "generatedDefault") {
 	case "identifier":
-		out = append(out, "a new UUID the database draws unless one is given")
+		out = append(out, tr("a new UUID the database draws unless one is given"))
 	case "currentTime":
-		out = append(out, "the time it is written unless one is given")
+		out = append(out, tr("the time it is written unless one is given"))
 	}
 	if v := str(f, "mistakes"); v != "" {
-		out = append(out, "users get it wrong "+map[string]string{"frequent": "often", "rare": "rarely"}[v])
+		out = append(out, tr("users get it wrong ")+map[string]string{"frequent": "often", "rare": "rarely"}[v])
 	}
 	if values, ok := mapValues(f); ok && values != nil {
 		if l := limits(values); l != "" {
-			out = append(out, "each value "+l)
+			out = append(out, tr("each value ")+l)
 		}
 	}
 	return strings.Join(out, ", ")
@@ -225,16 +225,16 @@ func limits(f *yaml.Node) string {
 
 func characters(n string) string {
 	if n == "1" {
-		return "1 character"
+		return tr("1 character")
 	}
-	return n + " characters"
+	return n + tr(" characters")
 }
 
 func itemCount(n string) string {
 	if n == "1" {
-		return "1 item"
+		return tr("1 item")
 	}
-	return n + " items"
+	return n + tr(" items")
 }
 
 // cell makes text safe inside a Markdown table cell.

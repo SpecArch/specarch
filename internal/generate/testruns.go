@@ -144,25 +144,25 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 		}
 		return idLess(str(runs[i], "id"), str(runs[j], "id"))
 	})
-	d.line("# %s: test runs and failure trend", str(info, "title"))
+	d.line(tr("# %s: test runs and failure trend"), str(info, "title"))
 	d.blank()
-	intro := fmt.Sprintf("Version %s of the specification: %s recorded beside it", str(info, "version"), countText(len(runs), "test run is", "test runs are"))
+	intro := fmt.Sprintf(tr("Version %s of the specification: %s recorded beside it"), str(info, "version"), countText(len(runs), tr("test run is"), tr("test runs are")))
 	if len(runs) > 0 {
 		last := runs[len(runs)-1]
 		c := countRun(last)
-		intro += fmt.Sprintf(", from %s to %s. The latest, %s, has %s: %d passed, %d failed, %d errored, %d skipped, and %d %s to no test",
-			str(runs[0], "at"), str(last, "at"), str(last, "id"), countText(len(items(last, "results")), "result", "results"),
-			c.passed, c.failed, c.errored, c.skipped, c.unmapped, oneOrMany(c.unmapped, "maps", "map"))
+		intro += fmt.Sprintf(tr(", from %s to %s. The latest, %s, has %s: %d passed, %d failed, %d errored, %d skipped, and %d %s to no test"),
+			str(runs[0], "at"), str(last, "at"), str(last, "id"), countText(len(items(last, "results")), tr("result"), tr("results")),
+			c.passed, c.failed, c.errored, c.skipped, c.unmapped, oneOrMany(c.unmapped, tr("maps"), tr("map")))
 	}
-	d.para(intro + ". The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies, or the algorithm or operation whose worked examples it ran.")
+	d.para(intro + tr(". The document is made from the records in `records/test-runs/` and `records/defects/`: each result names the test it ran, and through the test the element it is about and the requirements it verifies, or the algorithm or operation whose worked examples it ran."))
 	d.stakeholdersNotice()
 
-	d.section("Test runs")
+	d.section(tr("Test runs"))
 	if len(runs) == 0 {
-		d.para("No test run is recorded. specarch log test-run records one from a JUnit XML file.")
+		d.para(tr("No test run is recorded. specarch log test-run records one from a JUnit XML file."))
 		return d.String()
 	}
-	d.line("| Run | At | Environment | Version | Build | Passed | Failed | Errored | Skipped | Unmapped |")
+	d.line(tr("| Run | At | Environment | Version | Build | Passed | Failed | Errored | Skipped | Unmapped |"))
 	d.line("|---|---|---|---|---|---|---|---|---|---|")
 	for _, r := range runs {
 		c := countRun(r)
@@ -259,7 +259,7 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			header += " | " + str(r, "id")
 			rule += "|---"
 		}
-		d.line("%s | Open defects |", header)
+		d.line(tr("%s | Open defects |"), header)
 		d.line("%s|---|", rule)
 		var never []string
 		for _, k := range keys {
@@ -285,15 +285,15 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 		}
 		d.blank()
 		if len(never) > 0 {
-			d.para(fmt.Sprintf("No test of %s ran in a recorded run: %s.", countText(len(never), "other "+one, "other "+many), strings.Join(never, ", ")))
+			d.para(fmt.Sprintf(tr("No test of %s ran in a recorded run: %s."), countText(len(never), fmt.Sprintf(tr("other %s"), one), fmt.Sprintf(tr("other %s"), many)), strings.Join(never, ", ")))
 		}
 	}
-	trend("Failures per element", "Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run, and those of the results that name it as the algorithm or operation whose worked examples they ran; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests.",
-		"Element", "element", "elements", elements, func(k string) string { return "`" + k + "`" })
-	trend("Failures per requirement", "Each run is a column, oldest first. A cell counts the failed and errored results of the tests that verify the requirement in that run; a dash says none of those tests ran. The open defects are the ones reported or confirmed that violate the requirement.",
-		"Requirement", "requirement", "requirements", requirements, func(k string) string { return k })
+	trend(tr("Failures per element"), tr("Each run is a column, oldest first. A cell counts the failed and errored results of the tests about the element in that run, and those of the results that name it as the algorithm or operation whose worked examples they ran; a dash says none of those tests ran, since a skipped result did not run. The open defects are the ones reported or confirmed that violate the element or name one of its tests."),
+		tr("Element"), tr("element"), tr("elements"), elements, func(k string) string { return "`" + k + "`" })
+	trend(tr("Failures per requirement"), tr("Each run is a column, oldest first. A cell counts the failed and errored results of the tests that verify the requirement in that run; a dash says none of those tests ran. The open defects are the ones reported or confirmed that violate the requirement."),
+		tr("Requirement"), tr("requirement"), tr("requirements"), requirements, func(k string) string { return k })
 
-	d.section("Results that map to no test")
+	d.section(tr("Results that map to no test"))
 	var unmapped []string
 	for _, r := range runs {
 		for _, res := range items(r, "results") {
@@ -304,13 +304,13 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 	}
 	switch {
 	case len(unmapped) == 0:
-		d.para("Every result names the test it ran, or the element whose worked examples it ran.")
+		d.para(tr("Every result names the test it ran, or the element whose worked examples it ran."))
 	case everyone:
-		d.para(fmt.Sprintf("%s to no test of the specification, so %s for no element or requirement above. A document for everyone does not name %s, since nothing tells whether %s an internal element.",
-			countText(len(unmapped), "result maps", "results map"), oneOrMany(len(unmapped), "it counts", "they count"), oneOrMany(len(unmapped), "it", "them"), oneOrMany(len(unmapped), "it runs", "they run")))
+		d.para(fmt.Sprintf(tr("%s to no test of the specification, so %s for no element or requirement above. A document for everyone does not name %s, since nothing tells whether %s an internal element."),
+			countText(len(unmapped), tr("result maps"), tr("results map")), oneOrMany(len(unmapped), tr("it counts"), tr("they count")), oneOrMany(len(unmapped), tr("it"), tr("them")), oneOrMany(len(unmapped), tr("it runs"), tr("they run"))))
 	default:
-		d.para("These results name no test of the specification, so they count for no element or requirement above; each is a test the specification does not have yet, or one whose name its record must give under test.")
-		d.line("| Run | Result | Outcome | Message |")
+		d.para(tr("These results name no test of the specification, so they count for no element or requirement above; each is a test the specification does not have yet, or one whose name its record must give under test."))
+		d.line(tr("| Run | Result | Outcome | Message |"))
 		d.line("|---|---|---|---|")
 		for _, l := range unmapped {
 			d.line("%s", l)
@@ -318,33 +318,33 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 		d.blank()
 	}
 
-	d.section("Results by run")
+	d.section(tr("Results by run"))
 	for _, r := range runs {
-		head := fmt.Sprintf("%s: %s in %s, by %s", str(r, "id"), str(r, "at"), str(r, "environment"), str(r, "by"))
+		head := fmt.Sprintf(tr("%s: %s in %s, by %s"), str(r, "id"), str(r, "at"), str(r, "environment"), str(r, "by"))
 		d.heading(3, head)
 		var on []string
 		if v := str(r, "version"); v != "" {
-			on = append(on, "version "+v)
+			on = append(on, tr("version ")+v)
 		}
 		if b := str(r, "build"); b != "" {
-			on = append(on, "build "+b)
+			on = append(on, tr("build ")+b)
 		}
 		if g := str(r, "digest"); g != "" {
-			on = append(on, "the specification of digest "+g)
+			on = append(on, tr("the specification of digest ")+g)
 		}
 		if len(on) > 0 {
-			d.para("Run on " + strings.Join(on, ", ") + ".")
+			d.para(tr("Run on ") + strings.Join(on, ", ") + ".")
 		}
 		if ev := items(r, "evidence"); len(ev) > 0 {
 			var files []string
 			for _, e := range ev {
 				files = append(files, fmt.Sprintf("`%s` (%s, %s)", str(e, "path"), str(e, "mediaType"), str(e, "sha256")))
 			}
-			d.para("Evidence: " + strings.Join(files, ", ") + ".")
+			d.para(tr("Evidence: ") + strings.Join(files, ", ") + ".")
 		} else {
-			d.para("Recorded without a results file as evidence.")
+			d.para(tr("Recorded without a results file as evidence."))
 		}
-		d.line("| Result | Test | Outcome | Message | Defect |")
+		d.line(tr("| Result | Test | Outcome | Message | Defect |"))
 		d.line("|---|---|---|---|---|")
 		left := 0
 		for _, res := range items(r, "results") {
@@ -356,14 +356,14 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			if test == "" {
 				test = "none"
 				if el := str(res, "element"); el != "" {
-					test = "the worked examples of `" + el + "`"
+					test = tr("the worked examples of `") + el + "`"
 				}
 			}
 			d.line("| %s | %s | %s | %s | %s |", cell(str(res, "name")), test, str(res, "outcome"), cell(str(res, "message")), cell(str(res, "defect")))
 		}
 		d.blank()
 		if left > 0 {
-			d.para(fmt.Sprintf("%s of this run %s left out of a document for everyone: %s an internal test or element, or %s to no test (ADR-119).", countText(left, "result", "results"), oneOrMany(left, "is", "are"), oneOrMany(left, "it runs", "they run"), oneOrMany(left, "maps", "map")))
+			d.para(fmt.Sprintf(tr("%s of this run %s left out of a document for everyone: %s an internal test or element, or %s to no test (ADR-119)."), countText(left, tr("result"), tr("results")), oneOrMany(left, tr("is"), tr("are")), oneOrMany(left, tr("it runs"), tr("they run")), oneOrMany(left, tr("maps"), tr("map"))))
 		}
 	}
 	return d.String()

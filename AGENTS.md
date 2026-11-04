@@ -267,17 +267,18 @@ Error codes of --json:
   exit 1: a check fails, there is no release record for the new version, or
   a specification has errors
   exit 2: usage error, or a path that could not be read
-- `specarch document <target> [--out <out>] [--check] [--audience <audience>] [--dry-run] <paths>...`
+- `specarch document <target> [--out <out>] [--check] [--audience <audience>] [--language <language>] [--dry-run] <paths>...`
   Write a document from a specification.
   exit 0: written, or with `--check` the output is current
   exit 1: a specification has an error (after its files are written, or with
   `--check` compared), a marker is wrong, or with `--check` the output
   differs
   exit 2: usage error, a target this build does not offer, --audience with a
-  value other than external, without --out or for the problems target, no
-  output folder in any specification given (or, for the handover target, no
-  handover in any), the implementation files of one naming different output
-  folders, or a file that could not be read or written
+  value other than external, without --out or for the problems target,
+  --language with a value other than en or id, or other than en without
+  --out, no output folder in any specification given (or, for the handover
+  target, no handover in any), the implementation files of one naming
+  different output folders, or a file that could not be read or written
 - `specarch extract <source> --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--entity <entity>] [--template <template>] [--instructions <instructions>] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>] [--dry-run] <paths>...`
   Write a specification from existing code or documents.
   exit 0: the specification was written

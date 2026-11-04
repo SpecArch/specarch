@@ -54,14 +54,14 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 	if len(envs)+len(cfg)+len(migs)+len(checks)+len(impls)+len(pairs(root, "monitors")) == 0 && release == nil && rollback == nil && signoff == nil && handover == nil && backup == nil && restore == nil {
 		return
 	}
-	d.heading(2, "7. Deployment and implementation")
+	d.heading(2, tr("7. Deployment and implementation"))
 	if len(envs) > 0 {
-		d.heading(3, "Environments")
+		d.heading(3, tr("Environments"))
 		environmentsTable(d, envs)
 	}
 	if len(cfg) > 0 {
-		d.heading(3, "Configuration")
-		d.line("| Setting | Type | Secret | Description |")
+		d.heading(3, tr("Configuration"))
+		d.line(tr("| Setting | Type | Secret | Description |"))
 		d.line("|---|---|---|---|")
 		for _, c := range cfg {
 			secret := ""
@@ -74,13 +74,13 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		d.explainRows(rowsOf(cfg))
 	}
 	if release != nil {
-		d.heading(3, "Release")
+		d.heading(3, tr("Release"))
 		d.para(str(release, "description"))
 		d.explain(release)
 		stepsTable(d, get(release, "steps"))
 	}
 	if rollback != nil {
-		d.heading(3, "Rollback")
+		d.heading(3, tr("Rollback"))
 		d.para(str(rollback, "description"))
 		d.explain(rollback)
 		stepsTable(d, get(rollback, "steps"))
@@ -97,32 +97,32 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		}
 	}
 	if handover != nil {
-		d.heading(3, "Handover")
+		d.heading(3, tr("Handover"))
 		handoverText(d, root, handover)
 	}
 	for _, m := range migs {
-		d.heading(3, "Migration "+m.Key.Value)
+		d.heading(3, tr("Migration ")+m.Key.Value)
 		d.para(str(m.Value, "description"))
 		d.explain(m.Value)
 		stepsTable(d, get(m.Value, "steps"))
 		if rb := get(m.Value, "rollback"); rb != nil {
-			d.para("Reversed by:")
+			d.para(tr("Reversed by:"))
 			stepsTable(d, rb)
 		}
 	}
 	if len(checks) > 0 {
-		d.heading(3, "Commissioning checks")
-		d.para("Run on the installed system before it is handed over. The results of each run are records kept outside the specification.")
+		d.heading(3, tr("Commissioning checks"))
+		d.para(tr("Run on the installed system before it is handed over. The results of each run are records kept outside the specification."))
 		for _, c := range checks {
-			d.heading(4, fmt.Sprintf("%s (%s, in %s)", c.Key.Value, str(c.Value, "kind"), str(c.Value, "environment")))
+			d.heading(4, fmt.Sprintf(tr("%s (%s, in %s)"), c.Key.Value, str(c.Value, "kind"), str(c.Value, "environment")))
 			d.para(str(c.Value, "description"))
 			d.explain(c.Value)
 			stepsTable(d, get(c.Value, "steps"))
 		}
 	}
 	if signoff != nil {
-		d.heading(3, "Sign-off")
-		d.para("The system is accepted when:")
+		d.heading(3, tr("Sign-off"))
+		d.para(tr("The system is accepted when:"))
 		for _, c := range strs(signoff, "criteria") {
 			d.line("- %s", c)
 		}
@@ -131,11 +131,11 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		for _, s := range items(signoff, "signers") {
 			signers = append(signers, str(s, "role"))
 		}
-		d.para("Signed by: " + strings.Join(signers, ", ") + ".")
+		d.para(tr("Signed by: ") + strings.Join(signers, ", ") + ".")
 		d.explain(signoff)
 	}
 	if mons := pairs(root, "monitors"); len(mons) > 0 {
-		d.heading(3, "Monitors")
+		d.heading(3, tr("Monitors"))
 		monitorsTable(d, mons)
 	}
 	for _, i := range impls {
@@ -146,8 +146,8 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 // monitorsTable lists the monitors of the operation stage under a heading
 // the caller writes.
 func monitorsTable(d *doc, mons []source.Pair) {
-	d.para("What is watched on the live system, and the objective each must meet.")
-	d.line("| Monitor | Environment | Measures | Objective | Verifies |")
+	d.para(tr("What is watched on the live system, and the objective each must meet."))
+	d.line(tr("| Monitor | Environment | Measures | Objective | Verifies |"))
 	d.line("|---|---|---|---|---|")
 	for _, m := range mons {
 		d.line("| %s | %s | %s | %s | %s |", m.Key.Value, str(m.Value, "environment"), cell(str(m.Value, "description")), cell(str(m.Value, "objective")), cell(strings.Join(strs(m.Value, "verifies"), ", ")))
@@ -163,7 +163,7 @@ func deploymentMonitors(d *doc, dep *yaml.Node) {
 	if len(mons) == 0 {
 		return
 	}
-	d.line("| Monitor | Tool | How | Alert |")
+	d.line(tr("| Monitor | Tool | How | Alert |"))
 	d.line("|---|---|---|---|")
 	for _, m := range mons {
 		d.line("| %s | %s | %s | %s |", m.Key.Value, cell(str(m.Value, "tool")), cell(str(m.Value, "description")), cell(str(m.Value, "alert")))
@@ -176,7 +176,7 @@ func stepsTable(d *doc, steps *yaml.Node) {
 	if len(list) == 0 {
 		return
 	}
-	d.line("| Step | Action | Check |")
+	d.line(tr("| Step | Action | Check |"))
 	d.line("|---|---|---|")
 	for i, s := range list {
 		d.line("| %d. %s | %s | %s |", i+1, cell(str(s, "name")), cell(str(s, "action")), cell(str(s, "check")))
@@ -188,26 +188,26 @@ func stepsTable(d *doc, steps *yaml.Node) {
 // implementation is one implementation file's part of chapter 7.
 func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 	info := get(impl, "info")
-	d.heading(3, "Implementation: "+str(info, "title"))
-	d.para(fmt.Sprintf("From the implementation file version %s.", str(info, "version")))
+	d.heading(3, tr("Implementation: ")+str(info, "title"))
+	d.para(fmt.Sprintf(tr("From the implementation file version %s."), str(info, "version")))
 	d.para(str(info, "description"))
 
 	target := get(impl, "stack")
 	stack := []string{}
 	if l := get(target, "language"); l != nil {
-		stack = append(stack, fmt.Sprintf("language %s %s", str(l, "name"), str(l, "version")))
+		stack = append(stack, fmt.Sprintf(tr("language %s %s"), str(l, "name"), str(l, "version")))
 	}
 	if t := get(target, "toolchain"); t != nil {
-		stack = append(stack, fmt.Sprintf("toolchain %s %s", str(t, "name"), str(t, "version")))
+		stack = append(stack, fmt.Sprintf(tr("toolchain %s %s"), str(t, "name"), str(t, "version")))
 	}
 	if p := strs(target, "platforms"); len(p) > 0 {
-		stack = append(stack, "platforms "+strings.Join(p, ", "))
+		stack = append(stack, tr("platforms ")+strings.Join(p, ", "))
 	}
-	d.para("Stack: " + strings.Join(stack, "; ") + ".")
+	d.para(tr("Stack: ") + strings.Join(stack, "; ") + ".")
 
 	if libs := pairs(impl, "libraries"); len(libs) > 0 {
-		d.heading(4, "Libraries")
-		d.line("| Library | Version | Licence | Purpose |")
+		d.heading(4, tr("Libraries"))
+		d.line(tr("| Library | Version | Licence | Purpose |"))
 		d.line("|---|---|---|---|")
 		for _, l := range libs {
 			purpose := str(l.Value, "purpose")
@@ -220,8 +220,8 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 		d.explainRows(rowsOf(libs))
 	}
 	if layout := pairs(impl, "layout"); len(layout) > 0 {
-		d.heading(4, "Layout")
-		d.line("| Path | Holds | Implements |")
+		d.heading(4, tr("Layout"))
+		d.line(tr("| Path | Holds | Implements |"))
 		d.line("|---|---|---|")
 		for _, l := range layout {
 			d.line("| %s | %s | %s |", l.Key.Value, cell(str(l.Value, "description")), cell(strings.Join(strs(l.Value, "implements"), ", ")))
@@ -229,15 +229,15 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 		d.blank()
 	}
 	if maps := pairs(impl, "mappings"); len(maps) > 0 {
-		d.heading(4, "Mappings")
-		d.line("| Design object | Implemented by | Notes |")
+		d.heading(4, tr("Mappings"))
+		d.line(tr("| Design object | Implemented by | Notes |"))
 		d.line("|---|---|---|")
 		for _, m := range maps {
 			notes := str(m.Value, "description")
 			if by := str(m.Value, "ownedBy"); by != "" {
 				// An element another stakeholder owns is described here and
 				// generated nowhere (ADR-046).
-				notes = strings.TrimSpace("Owned by " + by + ", not generated. " + notes)
+				notes = strings.TrimSpace(tr("Owned by ") + by + tr(", not generated. ") + notes)
 			}
 			if ixs := items(m.Value, "indexes"); len(ixs) > 0 {
 				// The plain indexes of the table (ADR-121).
@@ -249,22 +249,22 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 					}
 					named = append(named, one)
 				}
-				notes = strings.TrimSpace(notes + " Indexed by " + strings.Join(named, "; ") + ".")
+				notes = strings.TrimSpace(notes + tr(" Indexed by ") + strings.Join(named, "; ") + ".")
 			}
 			d.line("| %s | %s | %s |", m.Key.Value, cell(str(m.Value, "target")), cell(notes))
 		}
 		d.blank()
 	}
 	if binds := pairs(impl, "bindings"); len(binds) > 0 {
-		d.heading(4, "Bindings")
+		d.heading(4, tr("Bindings"))
 		for _, b := range binds {
 			d.para(fmt.Sprintf("%s: %s. %s", b.Key.Value, str(b.Value, "framework"), strings.TrimSpace(str(b.Value, "description"))))
 		}
 		d.explainRows(rowsOf(binds))
 	}
 	if gens := pairs(impl, "targets"); len(gens) > 0 {
-		d.heading(4, "Targets")
-		d.line("| Target | Output folder | Settings |")
+		d.heading(4, tr("Targets"))
+		d.line(tr("| Target | Output folder | Settings |"))
 		d.line("|---|---|---|")
 		for _, g := range gens {
 			var set []string
@@ -279,8 +279,8 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 		d.explainRows(rowsOf(gens))
 	}
 	if tasks := pairs(impl, "tasks"); len(tasks) > 0 {
-		d.heading(4, "Tasks")
-		d.line("| Task | Command | In CI |")
+		d.heading(4, tr("Tasks"))
+		d.line(tr("| Task | Command | In CI |"))
 		d.line("|---|---|---|")
 		for _, t := range tasks {
 			ci := ""
@@ -292,19 +292,19 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 		d.blank()
 	}
 	if testing := get(impl, "testing"); testing != nil {
-		d.heading(4, "Testing")
-		d.para(fmt.Sprintf("Framework: %s. Run: `%s`.", str(testing, "framework"), str(testing, "run")))
+		d.heading(4, tr("Testing"))
+		d.para(fmt.Sprintf(tr("Framework: %s. Run: `%s`."), str(testing, "framework"), str(testing, "run")))
 		for _, k := range [][2]string{{"fixtures", "Fixtures"}, {"mocks", "Stand-ins"}, {"performance", "Performance"}} {
 			if s := str(testing, k[0]); s != "" {
 				d.para(k[1] + ": " + strings.TrimSpace(s))
 			}
 		}
-		d.line("| Suite | Level | Runs | Command |")
+		d.line(tr("| Suite | Level | Runs | Command |"))
 		d.line("|---|---|---|---|")
 		for _, s := range pairs(testing, "suites") {
-			runs := "tests of this implementation only"
+			runs := tr("tests of this implementation only")
 			if names := strs(s.Value, "designTests"); len(names) > 0 {
-				runs = "design tests " + strings.Join(names, ", ")
+				runs = tr("design tests ") + strings.Join(names, ", ")
 			}
 			var of []string
 			for _, subj := range items(s.Value, "designTestsOf") {
@@ -313,7 +313,7 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 				}
 			}
 			if len(of) > 0 {
-				runs = "every design test of " + strings.Join(of, ", ")
+				runs = tr("every design test of ") + strings.Join(of, ", ")
 			}
 			d.line("| %s | %s | %s | `%s` |", s.Key.Value, str(s.Value, "level"), cell(runs), cell(str(s.Value, "run")))
 		}
@@ -321,29 +321,29 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 		d.explainRows(pairRows(testing, "suites"))
 	}
 	if len(idioms) > 0 {
-		d.heading(4, "Idioms")
-		d.para("How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md).")
-		d.line("| Idiom | Version | Applies as | Parts the project replaces |")
+		d.heading(4, tr("Idioms"))
+		d.para(tr("How this implementation does each recurring concern: the idioms SpecArch ships apply unless the file excludes or overrides one, and an override replaces only the parts it names (docs/idioms.md)."))
+		d.line(tr("| Idiom | Version | Applies as | Parts the project replaces |"))
 		d.line("|---|---|---|---|")
 		for _, u := range idioms {
 			as := u.As
 			switch u.As {
 			case "overridden":
-				as = "overridden, copied from " + u.From
+				as = tr("overridden, copied from ") + u.From
 			case "project":
-				as = "the project's own"
+				as = tr("the project's own")
 			}
 			d.line("| %s | %s | %s | %s |", u.Name, u.Version, cell(as), cell(strings.Join(u.Parts, ", ")))
 		}
 		d.blank()
 		for _, u := range idioms {
 			if u.Why != "" {
-				d.para(fmt.Sprintf("**Insight on %s:** %s", u.Name, oneParagraph(u.Why)))
+				d.para(fmt.Sprintf(tr("**Insight on %s:** %s"), u.Name, oneParagraph(u.Why)))
 			}
 		}
 	}
 	if deps := pairs(impl, "deployments"); len(deps) > 0 {
-		d.heading(4, "Deployments")
+		d.heading(4, tr("Deployments"))
 		for _, dep := range deps {
 			var urls []string
 			for _, s := range items(dep.Value, "servers") {
@@ -351,7 +351,7 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 			}
 			env := ""
 			if e := str(dep.Value, "environment"); e != "" {
-				env = " Environment: " + e + "."
+				env = tr(" Environment: ") + e + "."
 			}
 			var settings []string
 			for _, c := range pairs(dep.Value, "configuration") {
@@ -359,22 +359,22 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 			}
 			line := fmt.Sprintf("%s: %s%s", dep.Key.Value, strings.TrimSpace(str(dep.Value, "description")), env)
 			if len(urls) > 0 {
-				line += " Servers: " + strings.Join(urls, ", ") + "."
+				line += tr(" Servers: ") + strings.Join(urls, ", ") + "."
 			}
 			if len(settings) > 0 {
-				line += " Settings: " + strings.Join(settings, ", ") + "."
+				line += tr(" Settings: ") + strings.Join(settings, ", ") + "."
 			}
 			if b := get(dep.Value, "build"); b != nil {
-				line += fmt.Sprintf(" Built by the task %s", str(b, "task"))
+				line += fmt.Sprintf(tr(" Built by the task %s"), str(b, "task"))
 				if n := len(items(b, "baseImages")); n > 0 {
-					line += fmt.Sprintf(" from %s pinned by digest", countText(n, "base image", "base images"))
+					line += fmt.Sprintf(tr(" from %s pinned by digest"), countText(n, tr("base image"), tr("base images")))
 				}
 				line += "."
 			}
 			if m := get(dep.Value, "method"); m != nil {
-				line += " Installed with " + str(m, "tool")
+				line += tr(" Installed with ") + str(m, "tool")
 				if f := str(m, "files"); f != "" {
-					line += " from " + f
+					line += tr(" from ") + f
 				}
 				line += "."
 			}

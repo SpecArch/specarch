@@ -1,0 +1,3 @@
+arguments: [document, techspec, --language, fr, --out, docs, project]
+exitStatus: 2
+standardOutput: ""

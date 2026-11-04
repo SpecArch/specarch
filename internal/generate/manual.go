@@ -19,27 +19,27 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	info := get(root, "info")
 	pages := pairs(root, "pages")
 	flows := pairs(root, "flows")
-	d.line("# %s: user manual", str(info, "title"))
+	d.line(tr("# %s: user manual"), str(info, "title"))
 	d.blank()
 	commands := pairs(root, "commands")
 	sort.SliceStable(commands, func(i, j int) bool { return commands[i].Key.Value < commands[j].Key.Value })
-	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.",
-		str(info, "version"), countText(len(flows), "task", "tasks"), countText(len(pages), "page", "pages"), countText(len(commands), "command", "commands")))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s, %s and %s. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers."),
+		str(info, "version"), countText(len(flows), tr("task"), tr("tasks")), countText(len(pages), tr("page"), tr("pages")), countText(len(commands), tr("command"), tr("commands"))))
 	d.draftNotice("manual")
 	d.para(str(info, "description"))
 
-	d.section("Who uses it")
+	d.section(tr("Who uses it"))
 	people := peopleRoles(root)
 	if len(people) == 0 {
-		d.para("The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.")
+		d.para(tr("The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page."))
 	} else {
 		if len(commands) == 0 {
-			d.para("Each role a person holds, and the pages it opens. A person holding several roles opens the pages of each.")
-			d.line("| Role | Who they are | Pages they open |")
+			d.para(tr("Each role a person holds, and the pages it opens. A person holding several roles opens the pages of each."))
+			d.line(tr("| Role | Who they are | Pages they open |"))
 			d.line("|---|---|---|")
 		} else {
-			d.para("Each role a person holds, and the pages it opens and the commands it runs. A person holding several roles opens the pages and runs the commands of each.")
-			d.line("| Role | Who they are | Pages they open | Commands they run |")
+			d.para(tr("Each role a person holds, and the pages it opens and the commands it runs. A person holding several roles opens the pages and runs the commands of each."))
+			d.line(tr("| Role | Who they are | Pages they open | Commands they run |"))
 			d.line("|---|---|---|---|")
 		}
 		for _, r := range people {
@@ -77,7 +77,7 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 		}
 	}
 	if len(open) > 0 {
-		d.para("Anyone opens these pages, signed in or not: " + strings.Join(open, ", ") + ".")
+		d.para(tr("Anyone opens these pages, signed in or not: ") + strings.Join(open, ", ") + ".")
 	}
 	var every []string
 	for _, p := range pages {
@@ -86,7 +86,7 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 		}
 	}
 	if len(every) > 0 {
-		d.para("Every person opens these pages once signed in, whatever their roles: " + strings.Join(every, ", ") + ".")
+		d.para(tr("Every person opens these pages once signed in, whatever their roles: ") + strings.Join(every, ", ") + ".")
 	}
 	var homes []string
 	for _, r := range peopleRoles(root) {
@@ -95,7 +95,7 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 		}
 	}
 	if len(homes) > 0 {
-		d.para("After signing in, a person is shown the home of the first of their roles that has one, in the order the session gives them: " + strings.Join(homes, "; ") + ".")
+		d.para(tr("After signing in, a person is shown the home of the first of their roles that has one, in the order the session gives them: ") + strings.Join(homes, "; ") + ".")
 	}
 	var anyone []string
 	for _, c := range commands {
@@ -105,23 +105,23 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	}
 	if len(anyone) > 0 {
 		sort.Strings(anyone)
-		d.para("Anyone who has the program runs these commands: " + strings.Join(anyone, ", ") + ".")
+		d.para(tr("Anyone who has the program runs these commands: ") + strings.Join(anyone, ", ") + ".")
 	}
 
-	d.section("Finding your way")
+	d.section(tr("Finding your way"))
 	if menus := pairs(root, "menus"); len(menus) == 0 {
-		d.para("The specification has no menus; the entries a person picks a page from are written under menus.")
+		d.para(tr("The specification has no menus; the entries a person picks a page from are written under menus."))
 	} else {
-		d.para("The menus, and the page each entry opens. An entry is shown only to who may open its page.")
+		d.para(tr("The menus, and the page each entry opens. An entry is shown only to who may open its page."))
 		for _, m := range menus {
 			menuLines(d, root, m.Value, 0)
 		}
 		d.blank()
 	}
 
-	d.section("Tasks")
+	d.section(tr("Tasks"))
 	if len(flows) == 0 {
-		d.para("The specification has no flows; a task a person does across pages, with who does it and each page on the way, is written under flows.")
+		d.para(tr("The specification has no flows; a task a person does across pages, with who does it and each page on the way, is written under flows."))
 	}
 	for _, f := range flows {
 		d.heading(3, f.Key.Value)
@@ -130,14 +130,14 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 		if desc := str(get(get(root, "roles"), actor), "description"); desc != "" {
 			actor += ": " + strings.TrimSuffix(strings.TrimSpace(desc), ".")
 		}
-		d.para("Done by " + actor + ".")
+		d.para(tr("Done by ") + actor + ".")
 		d.explain(f.Value)
 		n := 0
 		steps := items(f.Value, "steps")
 		if len(steps) > 0 {
 			if path := menuPath(root, str(steps[0], "page")); path != "" {
 				n++
-				d.line("%d. Open %s from the menu.", n, path)
+				d.line(tr("%d. Open %s from the menu."), n, path)
 			}
 		}
 		for _, s := range steps {
@@ -147,28 +147,28 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 		d.blank()
 	}
 
-	d.section("Pages")
+	d.section(tr("Pages"))
 	if len(pages) == 0 {
-		d.para("The specification has no pages; each screen a person opens, with its fields and actions, is written under pages.")
+		d.para(tr("The specification has no pages; each screen a person opens, with its fields and actions, is written under pages."))
 	}
 	for _, p := range pages {
 		manualPage(d, root, p.Key.Value, p.Value)
 	}
 
-	d.section("Commands")
+	d.section(tr("Commands"))
 	program := str(info, "program")
 	switch {
 	case len(commands) == 0:
-		d.para("The specification has no commands; each command a person types, with its arguments, options and exit statuses, is written under commands.")
+		d.para(tr("The specification has no commands; each command a person types, with its arguments, options and exit statuses, is written under commands."))
 	case program == "":
-		d.para("The specification names no program, so each command is written by its words alone; the name a person types before them is written under info.program. " + usageLegend)
+		d.para(tr("The specification names no program, so each command is written by its words alone; the name a person types before them is written under info.program. ") + tr(usageLegend))
 	default:
-		d.para("Each command is typed after the program's name, " + program + ", in a terminal. " + usageLegend)
+		d.para(tr("Each command is typed after the program's name, ") + program + tr(", in a terminal. ") + tr(usageLegend))
 	}
 	for _, c := range commands {
 		manualCommand(d, root, program, c.Key.Value, c.Value)
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -214,7 +214,7 @@ func pageTitleOf(root *yaml.Node, name string) string {
 func menuLines(d *doc, root, item *yaml.Node, depth int) {
 	indent := strings.Repeat("  ", depth)
 	if page := str(item, "page"); page != "" {
-		d.line("%s- %s: opens the %s page", indent, str(item, "title"), pageTitleOf(root, page))
+		d.line(tr("%s- %s: opens the %s page"), indent, str(item, "title"), pageTitleOf(root, page))
 		return
 	}
 	d.line("%s- %s", indent, str(item, "title"))
@@ -252,23 +252,23 @@ func menuPath(root *yaml.Node, page string) string {
 func flowInstruction(root, step *yaml.Node) string {
 	name := str(step, "page")
 	page := get(get(root, "pages"), name)
-	on := "On the " + pageTitle(name, page) + " page, "
+	on := fmt.Sprintf(tr("On the %s page, "), pageTitle(name, page))
 	switch str(step, "event") {
 	case "select":
-		return on + "select the row you want."
+		return on + tr("select the row you want.")
 	case "submitted":
 		var labels []string
 		for _, f := range pageFields(root, page) {
 			labels = append(labels, f.label)
 		}
 		if len(labels) == 0 {
-			return on + "send the form."
+			return on + tr("send the form.")
 		}
-		return on + "fill in " + joinAnd(labels) + ", and send it."
+		return on + tr("fill in ") + joinAnd(labels) + tr(", and send it.")
 	case "action":
-		return on + "choose " + str(step, "action") + "."
+		return on + tr("choose ") + str(step, "action") + "."
 	}
-	return on + "go on."
+	return on + tr("go on.")
 }
 
 // pageField is one field a page shows or asks for, as a person reads it.
@@ -336,31 +336,31 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 	kind := str(page, "kind")
 	var reached []string
 	if path := menuPath(root, name); path != "" {
-		reached = append(reached, "the menu "+path)
+		reached = append(reached, tr("the menu ")+path)
 	}
 	for _, other := range pairs(root, "pages") {
 		title := pageTitle(other.Key.Value, other.Value)
 		if str(get(other.Value, "onSelect"), "navigate") == name {
-			reached = append(reached, "a row selected on the "+title+" page")
+			reached = append(reached, fmt.Sprintf(tr("a row selected on the %s page"), title))
 		}
 		for _, a := range items(other.Value, "actions") {
 			if str(a, "kind") == "navigate" && str(a, "target") == name {
-				reached = append(reached, "the action "+str(a, "label")+" on the "+title+" page")
+				reached = append(reached, fmt.Sprintf(tr("the action %s on the %s page"), str(a, "label"), title))
 			}
 		}
 		for _, b := range items(other.Value, "blocks") {
 			if str(get(b, "link"), "page") == name {
-				reached = append(reached, "the link "+str(get(b, "link"), "label")+" on the "+title+" page")
+				reached = append(reached, fmt.Sprintf(tr("the link %s on the %s page"), str(get(b, "link"), "label"), title))
 			}
 		}
 	}
 	if len(reached) > 0 {
-		d.para("Reached from " + joinAnd(reached) + ".")
+		d.para(tr("Reached from ") + joinAnd(reached) + ".")
 	}
 	d.para(whoOpens(root, str(page, "permission")))
 	d.explain(page)
 	if kind == "custom" {
-		d.para("This screen is built by hand for this system rather than drawn from the specification, so how it looks and works is the project's.")
+		d.para(tr("This screen is built by hand for this system rather than drawn from the specification, so how it looks and works is the project's."))
 	}
 
 	fields := pageFields(root, page)
@@ -368,7 +368,7 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 	case kind == "list":
 		cols := fieldsOf(pageSchema(root, page), strs(page, "columns"))
 		if len(cols) > 0 {
-			d.line("| Column | What it shows |")
+			d.line(tr("| Column | What it shows |"))
 			d.line("|---|---|")
 			for _, c := range cols {
 				d.line("| %s | %s |", cell(c.label), cell(c.description))
@@ -380,11 +380,11 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 			for _, f := range filters {
 				labels = append(labels, f.label)
 			}
-			d.para("The list can be narrowed by " + joinAnd(labels) + ".")
+			d.para(tr("The list can be narrowed by ") + joinAnd(labels) + ".")
 		}
 	case kind == "view":
 		if len(fields) > 0 {
-			d.line("| Field | What it shows |")
+			d.line(tr("| Field | What it shows |"))
 			d.line("|---|---|")
 			for _, f := range fields {
 				d.line("| %s | %s |", cell(f.label), cell(f.description))
@@ -392,7 +392,7 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 			d.blank()
 		}
 	case len(fields) > 0:
-		d.line("| Field | What to enter | Required |")
+		d.line(tr("| Field | What to enter | Required |"))
 		d.line("|---|---|---|")
 		for _, f := range fields {
 			req := ""
@@ -412,9 +412,9 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 		if title == "" {
 			title = str(c, "relation")
 		}
-		line := fmt.Sprintf("%s are added as rows, each with %s", title, joinAnd(labels))
+		line := fmt.Sprintf(tr("%s are added as rows, each with %s"), title, joinAnd(labels))
 		if m := num(c, "maximum"); m != "" {
-			line += ", up to " + m
+			line += tr(", up to ") + m
 		}
 		d.para(line + ".")
 	}
@@ -423,7 +423,7 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 		for _, c := range checks {
 			msgs = append(msgs, strings.TrimSuffix(strings.TrimSpace(str(c.Value, "message")), "."))
 		}
-		d.para("Checked before it is sent: " + strings.Join(msgs, "; ") + ".")
+		d.para(tr("Checked before it is sent: ") + strings.Join(msgs, "; ") + ".")
 	}
 
 	var links []string
@@ -431,40 +431,40 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 		l := get(b, "link")
 		switch {
 		case str(l, "page") != "":
-			links = append(links, "**"+str(l, "label")+"**: opens the "+pageTitleOf(root, str(l, "page"))+" page.")
+			links = append(links, fmt.Sprintf(tr("**%s**: opens the %s page."), str(l, "label"), pageTitleOf(root, str(l, "page"))))
 		case str(l, "href") != "":
-			links = append(links, "**"+str(l, "label")+"**: opens "+str(l, "href")+", outside the system.")
+			links = append(links, "**"+str(l, "label")+tr("**: opens ")+str(l, "href")+tr(", outside the system."))
 		}
 	}
 	if len(links) > 0 {
-		d.para("Where its links lead:")
+		d.para(tr("Where its links lead:"))
 		for _, l := range links {
 			d.line("- %s", l)
 		}
 		d.blank()
 	}
 	if actions := items(page, "actions"); len(actions) > 0 {
-		d.para("What can be done here:")
+		d.para(tr("What can be done here:"))
 		for _, a := range actions {
 			d.line("- %s", actionText(root, page, a))
 		}
 		d.blank()
 	}
 	if after := afterSubmit(root, get(page, "onSubmitted")); after != "" {
-		d.para("Once it is sent: " + after)
+		d.para(tr("Once it is sent: ") + after)
 	}
 
 	failed := pairs(get(page, "states"), "failed")
 	if len(failed) > 0 {
-		d.para("When the system refuses:")
-		d.line("| You see | Why | What to do |")
+		d.para(tr("When the system refuses:"))
+		d.line(tr("| You see | Why | What to do |"))
 		d.line("|---|---|---|")
 		for _, f := range failed {
 			problem := get(get(root, "errors"), f.Key.Value)
 			why := str(problem, "condition")
 			if f.Key.Value == "default" {
 				// default is every problem type the page does not name.
-				why = "Any other problem the system reports."
+				why = tr("Any other problem the system reports.")
 			}
 			d.line("| %s | %s | %s |", cell(str(f.Value, "message")), cell(why), cell(str(problem, "remedy")))
 		}
@@ -478,9 +478,9 @@ func whoOpens(root *yaml.Node, perm string) string {
 	case "":
 		return ""
 	case "public":
-		return "Anyone opens it, signed in or not."
+		return tr("Anyone opens it, signed in or not.")
 	case "signedIn":
-		return "Every person opens it once signed in, whatever their roles."
+		return tr("Every person opens it once signed in, whatever their roles.")
 	}
 	var roles []string
 	for _, r := range peopleRoles(root) {
@@ -489,9 +489,9 @@ func whoOpens(root *yaml.Node, perm string) string {
 		}
 	}
 	if len(roles) == 0 {
-		return "Opened by who holds the permission " + perm + "; no role a person holds in this specification grants it."
+		return tr("Opened by who holds the permission ") + perm + tr("; no role a person holds in this specification grants it.")
 	}
-	return "Opened by " + joinAnd(roles) + " (the permission " + perm + ")."
+	return tr("Opened by ") + joinAnd(roles) + tr(" (the permission ") + perm + ")."
 }
 
 // actionText is one action of a page in plain words.
@@ -499,7 +499,7 @@ func actionText(root, page, a *yaml.Node) string {
 	text := "**" + str(a, "label") + "**: "
 	switch str(a, "kind") {
 	case "navigate":
-		text += "opens the " + pageTitleOf(root, str(a, "target")) + " page."
+		text += fmt.Sprintf(tr("opens the %s page."), pageTitleOf(root, str(a, "target")))
 	default:
 		what := str(a, "target")
 		if o := findOperation(root, what); o != nil && str(o.node, "summary") != "" {
@@ -508,21 +508,21 @@ func actionText(root, page, a *yaml.Node) string {
 		text += what + "."
 	}
 	if c := str(a, "confirm"); c != "" {
-		text += " It asks first: \"" + c + "\""
+		text += tr(" It asks first: \"") + c + "\""
 		if str(a, "reason") != "" {
-			text += ", and for the reason"
+			text += tr(", and for the reason")
 		}
 		text += "."
 	}
 	if w := str(a, "when"); w != "" {
-		text += " Offered only while " + w + "."
+		text += tr(" Offered only while ") + w + "."
 	}
 	if p := str(a, "permission"); p != "" && p != str(page, "permission") {
 		text += " " + whoOpens(root, p)
-		text = strings.Replace(text, "Opened by", "Shown to", 1)
+		text = strings.Replace(text, tr("Opened by"), tr("Shown to"), 1)
 	}
 	if m := str(get(a, "then"), "message"); m != "" {
-		text += " Then: " + m
+		text += tr(" Then: ") + m
 	}
 	return text
 }
@@ -539,11 +539,11 @@ func afterSubmit(root, on *yaml.Node) string {
 			parts = append(parts, m)
 		}
 		if p := str(e, "navigate"); p == "signIn" {
-			parts = append(parts, "The identity provider's sign-in opens.")
+			parts = append(parts, tr("The identity provider's sign-in opens."))
 		} else if p == "callerHome" {
-			parts = append(parts, "Your home page opens.")
+			parts = append(parts, tr("Your home page opens."))
 		} else if p != "" {
-			parts = append(parts, "The "+pageTitleOf(root, p)+" page opens.")
+			parts = append(parts, fmt.Sprintf(tr("The %s page opens."), pageTitleOf(root, p)))
 		}
 		return strings.Join(parts, " ")
 	}
@@ -556,7 +556,7 @@ func afterSubmit(root, on *yaml.Node) string {
 			parts = append(parts, t)
 		}
 	}
-	return strings.Join(parts, " Or: ")
+	return strings.Join(parts, tr(" Or: "))
 }
 
 // manualCommand writes one command: what it does, how it is typed, who
@@ -574,18 +574,18 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 	d.block("```\n" + usageLine(words, c) + "\n```\n")
 	d.para(whoRuns(root, str(c, "permission")))
 	if str(c, "deprecated") == "true" {
-		d.para("This command is deprecated: it still runs, and is kept only until it is removed.")
+		d.para(tr("This command is deprecated: it still runs, and is kept only until it is removed."))
 	}
 	if s := str(c, "enabledBy"); s != "" {
-		d.para("It runs only while the setting " + s + " is on.")
+		d.para(tr("It runs only while the setting ") + s + tr(" is on."))
 	}
 	if args := items(c, "arguments"); len(args) > 0 {
-		d.line("| Argument | What to give | Required |")
+		d.line(tr("| Argument | What to give | Required |"))
 		d.line("|---|---|---|")
 		for _, a := range args {
 			what := strings.TrimSpace(str(a, "description"))
 			if str(a, "repeatable") == "true" {
-				what = strings.TrimSpace(what + " One or more.")
+				what = strings.TrimSpace(what + tr(" One or more."))
 			}
 			req := ""
 			if str(a, "required") == "true" {
@@ -596,7 +596,7 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 		d.blank()
 	}
 	if opts := pairs(c, "options"); len(opts) > 0 {
-		d.line("| Option | What it does | Required |")
+		d.line(tr("| Option | What it does | Required |"))
 		d.line("|---|---|---|")
 		for _, o := range opts {
 			req := ""
@@ -605,13 +605,13 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 			}
 			what := strings.TrimSpace(str(o.Value, "description"))
 			if values := strs(get(o.Value, "schema"), "enum"); len(values) > 0 {
-				what = strings.TrimSpace(what + " One of: " + strings.Join(values, ", ") + ".")
+				what = strings.TrimSpace(what + tr(" One of: ") + strings.Join(values, ", ") + ".")
 			}
 			d.line("| `%s` | %s | %s |", optionText(o.Key.Value, o.Value), cell(what), req)
 		}
 		d.blank()
 	}
-	for _, f := range [][2]string{{"reads", "It reads:"}, {"writes", "It writes:"}} {
+	for _, f := range [][2]string{{"reads", tr("It reads:")}, {"writes", tr("It writes:")}} {
 		if list := items(c, f[0]); len(list) > 0 {
 			d.para(f[1])
 			for _, u := range list {
@@ -621,9 +621,9 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 		}
 	}
 	if get(c, "writes") == nil {
-		d.para("It writes no file.")
+		d.para(tr("It writes no file."))
 	}
-	for _, f := range [][2]string{{"standardOutput", "On standard output"}, {"standardError", "On standard error"}} {
+	for _, f := range [][2]string{{"standardOutput", tr("On standard output")}, {"standardError", tr("On standard error")}} {
 		if s := str(c, f[0]); s != "" {
 			d.para(f[1] + ": " + s)
 		}
@@ -636,7 +636,7 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 	})
 	if len(codes) > 0 {
 		remedies := get(c, "remedies")
-		d.line("| Exit status | It means | What to do |")
+		d.line(tr("| Exit status | It means | What to do |"))
 		d.line("|---|---|---|")
 		for _, e := range codes {
 			d.line("| %s | %s | %s |", e.Key.Value, cell(e.Value.Value), cell(str(remedies, e.Key.Value)))
@@ -704,9 +704,9 @@ func optionText(name string, o *yaml.Node) string {
 // whoRuns says who may run a command with a permission.
 func whoRuns(root *yaml.Node, perm string) string {
 	if perm == "public" {
-		return "Anyone who has the program runs it."
+		return tr("Anyone who has the program runs it.")
 	}
 	text := whoOpens(root, perm)
-	text = strings.Replace(text, "Opened by", "Run by", 1)
+	text = strings.Replace(text, tr("Opened by"), tr("Run by"), 1)
 	return text
 }

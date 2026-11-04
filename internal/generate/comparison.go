@@ -48,25 +48,25 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		dropped += len(o.dropped)
 	}
 
-	d.line("# %s: the old documents against the refined specification", str(info, "title"))
+	d.line(tr("# %s: the old documents against the refined specification"), str(info, "title"))
 	d.blank()
-	summary := fmt.Sprintf("Version %s of the specification against its %s: %s kept from them, %s clarified, %s added, %s corrected, and of the clauses the sources list, %s produced nothing.",
-		str(info, "version"), countText(len(pairs(root, "sources")), "source", "sources"),
-		countText(len(stated), "element", "elements"), countText(len(inferred), "element", "elements"),
-		countText(added, "element", "elements"), countText(corrected, "element", "elements"),
-		countText(dropped, "clause", "clauses"))
+	summary := fmt.Sprintf(tr("Version %s of the specification against its %s: %s kept from them, %s clarified, %s added, %s corrected, and of the clauses the sources list, %s produced nothing."),
+		str(info, "version"), countText(len(pairs(root, "sources")), tr("source"), tr("sources")),
+		countText(len(stated), tr("element"), tr("elements")), countText(len(inferred), tr("element"), tr("elements")),
+		countText(added, tr("element"), tr("elements")), countText(corrected, tr("element"), tr("elements")),
+		countText(dropped, tr("clause"), tr("clauses")))
 	if len(none) > 0 {
-		summary += fmt.Sprintf(" %s without an origin %s left out of the four groups.", countText(len(none), "element", "elements"), isAre(len(none)))
+		summary += fmt.Sprintf(tr(" %s without an origin %s left out of the four groups."), countText(len(none), tr("element"), tr("elements")), isAre(len(none)))
 	}
 	d.para(summary)
-	d.para("Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs; a citation from a decision or a question does not count, since neither is compared, and a clause only a question cites is named as asked about.")
+	d.para(tr("Kept: a source says it, and the element cites where. Clarified: the sources left it implicit, and the element says from what it was concluded. Added or corrected: a stakeholder decided it, answering a question; corrected when the element also cites a source, which said something else there, added when no source said anything. Dropped: a clause of a source's outline that no element cites, either not read yet or holding nothing the specification needs; a citation from a decision or a question does not count, since neither is compared, and a clause only a question cites is named as asked about."))
 	d.para(d.withheld.audienceNotice())
 	d.stakeholdersNotice()
 	d.problemsNotice("comparison")
 
-	d.section("Kept")
+	d.section(tr("Kept"))
 	if len(stated) == 0 {
-		d.para("No element is stated by a source.")
+		d.para(tr("No element is stated by a source."))
 	} else {
 		bySource := map[string][]element{}
 		var uncited []element
@@ -106,7 +106,7 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 			}
 			d.cite(key)
 			d.heading(3, fmt.Sprintf("%s (%s)", d.sourceTitle(key), key))
-			d.line("| Element | Clause | Says |")
+			d.line(tr("| Element | Clause | Says |"))
 			d.line("|---|---|---|")
 			for _, e := range in {
 				for _, c := range items(e.node, "cites") {
@@ -121,9 +121,9 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		}
 		if in := bySource[""]; len(in) > 0 {
 			delete(bySource, "")
-			d.heading(3, "Stated, citing without naming a source")
-			d.para("These elements cite a clause and name no source for it; the validator reports each (schema). Name the source at the citation.")
-			d.line("| Element | Clause | Says |")
+			d.heading(3, tr("Stated, citing without naming a source"))
+			d.para(tr("These elements cite a clause and name no source for it; the validator reports each (schema). Name the source at the citation."))
+			d.line(tr("| Element | Clause | Says |"))
 			d.line("|---|---|---|")
 			for _, e := range in {
 				for _, c := range items(e.node, "cites") {
@@ -143,8 +143,8 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		}
 		sort.Strings(unknown)
 		for _, key := range unknown {
-			d.heading(3, fmt.Sprintf("%s, a source the root file does not declare", key))
-			d.line("| Element | Clause | Says |")
+			d.heading(3, fmt.Sprintf(tr("%s, a source the root file does not declare"), key))
+			d.line(tr("| Element | Clause | Says |"))
 			d.line("|---|---|---|")
 			for _, e := range bySource[key] {
 				for _, c := range items(e.node, "cites") {
@@ -157,22 +157,22 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 			marksOnce(bySource[key])
 		}
 		if len(uncited) > 0 {
-			d.heading(3, "Stated, citing nothing")
-			d.para("These elements say a source states them and cite none; the validator reports each (origin_citation). Add the citation, or change the origin.")
+			d.heading(3, tr("Stated, citing nothing"))
+			d.para(tr("These elements say a source states them and cite none; the validator reports each (origin_citation). Add the citation, or change the origin."))
 			d.list(uncited)
 		}
 	}
 
-	d.section("Clarified")
+	d.section(tr("Clarified"))
 	if len(inferred) == 0 {
-		d.para("No element was inferred.")
+		d.para(tr("No element was inferred."))
 	} else {
-		d.line("| Element | Concluded from |")
+		d.line(tr("| Element | Concluded from |"))
 		d.line("|---|---|")
 		for _, e := range inferred {
 			from := oneParagraph(str(e.node, "why"))
 			if from == "" {
-				from = "not said; the validator reports it (origin_reason)"
+				from = tr("not said; the validator reports it (origin_reason)")
 			}
 			d.line("| %s | %s |", cell(e.label), cell(from))
 		}
@@ -180,11 +180,11 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		d.rowMarks(inferred)
 	}
 
-	d.section("Added or corrected")
+	d.section(tr("Added or corrected"))
 	if len(decided) == 0 {
-		d.para("No element was decided.")
+		d.para(tr("No element was decided."))
 	} else {
-		d.line("| Element | Decided in | Which | Why |")
+		d.line(tr("| Element | Decided in | Which | Why |"))
 		d.line("|---|---|---|---|")
 		for _, e := range decided {
 			id := str(e.node, "decidedIn")
@@ -199,9 +199,9 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 			}
 			in := id
 			if id == "" {
-				in = "not said; the validator reports it (origin_decision)"
+				in = tr("not said; the validator reports it (origin_decision)")
 			} else if dec == nil {
-				in = id + ", which the specification does not hold"
+				in = id + tr(", which the specification does not hold")
 			} else if title := oneParagraph(str(dec, "title")); title != "" {
 				in = id + ", " + title
 			}
@@ -211,16 +211,16 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		d.rowMarks(decided)
 	}
 
-	d.section("Dropped")
+	d.section(tr("Dropped"))
 	if len(outlined) == 0 {
-		d.para("No source lists its clauses, so nothing can be said to be dropped: list each source's outline under clauses, and this section names the clauses no element cites.")
+		d.para(tr("No source lists its clauses, so nothing can be said to be dropped: list each source's outline under clauses, and this section names the clauses no element cites."))
 	} else {
 		for _, o := range outlined {
 			d.cite(o.key)
 			d.heading(3, fmt.Sprintf("%s (%s)", d.sourceTitle(o.key), o.key))
-			d.para(fmt.Sprintf("%s of %d produced nothing.", countText(len(o.dropped), "clause", "clauses"), o.total))
+			d.para(fmt.Sprintf(tr("%s of %d produced nothing."), countText(len(o.dropped), tr("clause"), tr("clauses")), o.total))
 			if len(o.dropped) > 0 {
-				d.line("| Clause | Title |")
+				d.line(tr("| Clause | Title |"))
 				d.line("|---|---|")
 				for _, c := range o.dropped {
 					d.line("| %s | %s |", cell(c.clause), cell(c.title))
@@ -232,21 +232,21 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 				for _, c := range o.asked {
 					lines = append(lines, fmt.Sprintf("%s (%s)", c.clause, strings.Join(c.questions, ", ")))
 				}
-				d.para("Cited by a question only, so asked about rather than dropped: " + strings.Join(lines, "; ") + ".")
+				d.para(tr("Cited by a question only, so asked about rather than dropped: ") + strings.Join(lines, "; ") + ".")
 			}
 		}
 	}
 
 	if len(none) > 0 {
-		d.section("Without an origin")
+		d.section(tr("Without an origin"))
 		if str(info, "tracksOrigin") == "true" {
-			d.para("These elements carry no origin although the specification tracks it; the validator reports each (origin_missing). Say for each whether a source states it, it was inferred, or a decision settled it.")
+			d.para(tr("These elements carry no origin although the specification tracks it; the validator reports each (origin_missing). Say for each whether a source states it, it was inferred, or a decision settled it."))
 		} else {
-			d.para("These elements carry no origin: they were written spec-first, or the specification does not track origin yet (info.tracksOrigin).")
+			d.para(tr("These elements carry no origin: they were written spec-first, or the specification does not track origin yet (info.tracksOrigin)."))
 		}
 		d.list(none)
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 

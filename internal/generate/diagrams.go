@@ -26,7 +26,7 @@ func entityDiagram(root *yaml.Node) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("erDiagram\n")
+	b.WriteString(tr("erDiagram\n"))
 	// A relation declared from both sides is drawn once, from the side
 	// that holds many.
 	back := map[string]bool{}
@@ -43,16 +43,16 @@ func entityDiagram(root *yaml.Node) string {
 			var line string
 			switch str(r.Value, "kind") {
 			case "one-to-many":
-				line = fmt.Sprintf("  %s ||--o{ %s : %s\n", e.Key.Value, target, r.Key.Value)
+				line = fmt.Sprintf(tr("  %s ||--o{ %s : %s\n"), e.Key.Value, target, r.Key.Value)
 			case "many-to-one":
 				if back[e.Key.Value+"|"+target+"|"+via] {
 					continue
 				}
-				line = fmt.Sprintf("  %s }o--|| %s : %s\n", e.Key.Value, target, r.Key.Value)
+				line = fmt.Sprintf(tr("  %s }o--|| %s : %s\n"), e.Key.Value, target, r.Key.Value)
 			case "one-to-one":
 				line = fmt.Sprintf("  %s ||--|| %s : %s\n", e.Key.Value, target, r.Key.Value)
 			case "many-to-many":
-				line = fmt.Sprintf("  %s }o--o{ %s : %s\n", e.Key.Value, target, r.Key.Value)
+				line = fmt.Sprintf(tr("  %s }o--o{ %s : %s\n"), e.Key.Value, target, r.Key.Value)
 			}
 			b.WriteString(line)
 		}
@@ -73,7 +73,7 @@ func entityDiagram(root *yaml.Node) string {
 			keys := ""
 			switch {
 			case pk[f.Key.Value] && fk[f.Key.Value]:
-				keys = " PK, FK"
+				keys = tr(" PK, FK")
 			case pk[f.Key.Value]:
 				keys = " PK"
 			case fk[f.Key.Value]:
@@ -97,7 +97,7 @@ func stateDiagram(root *yaml.Node, entity string) (string, error) {
 		return "", fmt.Errorf("entity %s has no transitions to draw", entity)
 	}
 	var b strings.Builder
-	b.WriteString("stateDiagram-v2\n")
+	b.WriteString(tr("stateDiagram-v2\n"))
 	in, out := map[string]bool{}, map[string]bool{}
 	var order []string
 	seen := map[string]bool{}
@@ -146,57 +146,57 @@ func sequenceDiagram(root *yaml.Node, name string) (string, error) {
 
 func operationSequence(root *yaml.Node, o operation) string {
 	var b strings.Builder
-	b.WriteString("sequenceDiagram\n")
-	b.WriteString("  participant C as Client\n")
-	fmt.Fprintf(&b, "  participant S as %s\n", mermaidText(str(get(root, "info"), "title")))
+	b.WriteString(tr("sequenceDiagram\n"))
+	b.WriteString(tr("  participant C as Client\n"))
+	fmt.Fprintf(&b, tr("  participant S as %s\n"), mermaidText(str(get(root, "info"), "title")))
 	channels := map[string]string{}
 	var chOrder []string
 	for _, e := range items(o.node, "emits") {
 		ch, _, _ := strings.Cut(e.Value, "/")
 		if _, ok := channels[ch]; !ok {
-			channels[ch] = fmt.Sprintf("Q%d", len(channels)+1)
+			channels[ch] = fmt.Sprintf(tr("Q%d"), len(channels)+1)
 			chOrder = append(chOrder, ch)
 		}
 	}
 	for _, ch := range chOrder {
-		fmt.Fprintf(&b, "  participant %s as %s\n", channels[ch], ch)
+		fmt.Fprintf(&b, tr("  participant %s as %s\n"), channels[ch], ch)
 	}
 	calls := calls(o.node)
 	for i, dep := range calls {
-		fmt.Fprintf(&b, "  participant D%d as %s\n", i+1, callLabel(dep))
+		fmt.Fprintf(&b, tr("  participant D%d as %s\n"), i+1, callLabel(dep))
 	}
 	request := fmt.Sprintf("%s %s", strings.ToUpper(o.method), o.path)
 	if streamDirection(o.node) == "upload" {
-		request += ", the file streamed"
+		request += tr(", the file streamed")
 	}
 	if h := str(o.node, "handshake"); h != "" {
-		fmt.Fprintf(&b, "  Note over C,S: in the envelope of handshake %s\n", mermaidText(h))
-		request += ", sealed"
+		fmt.Fprintf(&b, tr("  Note over C,S: in the envelope of handshake %s\n"), mermaidText(h))
+		request += tr(", sealed")
 	}
-	fmt.Fprintf(&b, "  C->>S: %s\n", request)
+	fmt.Fprintf(&b, tr("  C->>S: %s\n"), request)
 	for i, dep := range calls {
-		fmt.Fprintf(&b, "  S->>D%d: call, within %s\n", i+1, str(get(get(root, "dependencies"), calledDependency(dep)), "timeout"))
-		fmt.Fprintf(&b, "  D%d-->>S: answer\n", i+1)
+		fmt.Fprintf(&b, tr("  S->>D%d: call, within %s\n"), i+1, str(get(get(root, "dependencies"), calledDependency(dep)), "timeout"))
+		fmt.Fprintf(&b, tr("  D%d-->>S: answer\n"), i+1)
 	}
 	if alg := str(o.node, "algorithm"); alg != "" {
 		var inputs []string
 		for _, p := range pairs(get(get(root, "algorithms"), alg), "inputs") {
 			inputs = append(inputs, p.Key.Value)
 		}
-		fmt.Fprintf(&b, "  S->>S: %s(%s)\n", alg, strings.Join(inputs, ", "))
+		fmt.Fprintf(&b, tr("  S->>S: %s(%s)\n"), alg, strings.Join(inputs, ", "))
 	}
 	for _, e := range items(o.node, "emits") {
 		ch, msg, _ := strings.Cut(e.Value, "/")
-		fmt.Fprintf(&b, "  S-->>%s: %s\n", channels[ch], msg)
+		fmt.Fprintf(&b, tr("  S-->>%s: %s\n"), channels[ch], msg)
 	}
 	if code, body := successResponse(o.node); code != "" {
 		switch {
 		case streamDirection(o.node) == "download":
-			body = "the file, streamed"
+			body = tr("the file, streamed")
 		case str(o.node, "handshake") != "":
-			body += ", sealed"
+			body += tr(", sealed")
 		}
-		fmt.Fprintf(&b, "  S-->>C: %s %s\n", code, strings.TrimSpace(body))
+		fmt.Fprintf(&b, tr("  S-->>C: %s %s\n"), code, strings.TrimSpace(body))
 	}
 	return fence(b.String())
 }
@@ -217,32 +217,32 @@ func successResponse(op *yaml.Node) (string, string) {
 
 func commandSequence(root *yaml.Node, name string, c *yaml.Node) string {
 	var b strings.Builder
-	b.WriteString("sequenceDiagram\n")
-	b.WriteString("  participant U as User\n")
-	fmt.Fprintf(&b, "  participant P as %s\n", mermaidText(str(get(root, "info"), "title")))
+	b.WriteString(tr("sequenceDiagram\n"))
+	b.WriteString(tr("  participant U as User\n"))
+	fmt.Fprintf(&b, tr("  participant P as %s\n"), mermaidText(str(get(root, "info"), "title")))
 	files := len(items(c, "reads"))+len(items(c, "writes")) > 0
 	if files {
-		b.WriteString("  participant F as Files\n")
+		b.WriteString(tr("  participant F as Files\n"))
 	}
 	args := []string{name}
 	for _, a := range items(c, "arguments") {
 		args = append(args, "<"+str(a, "name")+">")
 	}
-	fmt.Fprintf(&b, "  U->>P: %s\n", strings.Join(args, " "))
+	fmt.Fprintf(&b, tr("  U->>P: %s\n"), strings.Join(args, " "))
 	for _, r := range items(c, "reads") {
-		fmt.Fprintf(&b, "  P->>F: read %s\n", mermaidText(str(r, "path")))
+		fmt.Fprintf(&b, tr("  P->>F: read %s\n"), mermaidText(str(r, "path")))
 	}
 	if alg := str(c, "algorithm"); alg != "" {
-		fmt.Fprintf(&b, "  P->>P: %s\n", alg)
+		fmt.Fprintf(&b, tr("  P->>P: %s\n"), alg)
 	}
 	for _, w := range items(c, "writes") {
-		fmt.Fprintf(&b, "  P->>F: write %s\n", mermaidText(str(w, "path")))
+		fmt.Fprintf(&b, tr("  P->>F: write %s\n"), mermaidText(str(w, "path")))
 	}
 	var codes []string
 	for _, e := range pairs(c, "exitCodes") {
 		codes = append(codes, e.Key.Value)
 	}
-	fmt.Fprintf(&b, "  P-->>U: exit status %s\n", strings.Join(codes, ", "))
+	fmt.Fprintf(&b, tr("  P-->>U: exit status %s\n"), strings.Join(codes, ", "))
 	return fence(b.String())
 }
 
@@ -253,13 +253,13 @@ func pagesFlowchart(root *yaml.Node) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
+	b.WriteString(tr("flowchart LR\n"))
 	for _, p := range pages {
 		fmt.Fprintf(&b, "  %s[\"%s (%s)\"]\n", mermaidID(p.Key.Value), mermaidText(str(p.Value, "title")), str(p.Value, "kind"))
 	}
 	if si := get(root, "signIn"); si != nil {
 		// navigate: signIn leaves the application for the provider (ADR-182).
-		fmt.Fprintf(&b, "  signIn{{\"sign-in at %s\"}}\n", mermaidText(str(si, "provider")))
+		fmt.Fprintf(&b, tr("  signIn{{\"sign-in at %s\"}}\n"), mermaidText(str(si, "provider")))
 	}
 	for _, p := range pages {
 		if str(p.Value, "kind") != "task" {
@@ -272,7 +272,7 @@ func pagesFlowchart(root *yaml.Node) string {
 		if home {
 			// navigate: callerHome opens the home of the first of the
 			// caller's roles that has one (ADR-206).
-			b.WriteString("  callerHome{{\"the caller's home\"}}\n")
+			b.WriteString(tr("  callerHome{{\"the caller's home\"}}\n"))
 			break
 		}
 	}
@@ -280,18 +280,18 @@ func pagesFlowchart(root *yaml.Node) string {
 	op := func(target string) string {
 		if !ops[target] {
 			ops[target] = true
-			fmt.Fprintf(&b, "  op_%s([\"%s\"])\n", mermaidID(target), target)
+			fmt.Fprintf(&b, tr("  op_%s([\"%s\"])\n"), mermaidID(target), target)
 		}
 		return "op_" + mermaidID(target)
 	}
 	for _, p := range pages {
 		from := mermaidID(p.Key.Value)
 		if nav := str(get(p.Value, "onSelect"), "navigate"); nav != "" {
-			fmt.Fprintf(&b, "  %s -->|\"select\"| %s\n", from, mermaidID(nav))
+			fmt.Fprintf(&b, tr("  %s -->|\"select\"| %s\n"), from, mermaidID(nav))
 		}
 		if submit := str(p.Value, "submit"); submit != "" {
 			o := op(submit)
-			fmt.Fprintf(&b, "  %s -.->|\"submit\"| %s\n", from, o)
+			fmt.Fprintf(&b, tr("  %s -.->|\"submit\"| %s\n"), from, o)
 			if str(p.Value, "kind") == "task" {
 				for _, kv := range pairs(p.Value, "onSubmitted") {
 					if nav := str(kv.Value, "navigate"); nav != "" {
@@ -299,7 +299,7 @@ func pagesFlowchart(root *yaml.Node) string {
 					}
 				}
 			} else if nav := str(get(p.Value, "onSubmitted"), "navigate"); nav != "" {
-				fmt.Fprintf(&b, "  %s -->|\"submitted\"| %s\n", o, mermaidID(nav))
+				fmt.Fprintf(&b, tr("  %s -->|\"submitted\"| %s\n"), o, mermaidID(nav))
 			}
 		}
 		for _, a := range items(p.Value, "actions") {
@@ -312,7 +312,7 @@ func pagesFlowchart(root *yaml.Node) string {
 				o := op(target)
 				fmt.Fprintf(&b, "  %s -.->|\"%s\"| %s\n", from, label, o)
 				if nav := str(get(a, "then"), "navigate"); nav != "" {
-					fmt.Fprintf(&b, "  %s -->|\"%s done\"| %s\n", o, label, mermaidID(nav))
+					fmt.Fprintf(&b, tr("  %s -->|\"%s done\"| %s\n"), o, label, mermaidID(nav))
 				}
 			}
 		}
@@ -360,7 +360,7 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 	}
 	hasPublic := get(get(root, "permissions"), "public") != nil
 	var b strings.Builder
-	b.WriteString("| Permission |")
+	b.WriteString(tr("| Permission |"))
 	for _, r := range roles {
 		b.WriteString(" " + r.Key.Value + " |")
 	}
@@ -371,7 +371,7 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 		b.WriteString(" " + h.Name + " |")
 	}
 	if hasPublic {
-		b.WriteString(" public |")
+		b.WriteString(tr(" public |"))
 	}
 	b.WriteString("\n|---|")
 	b.WriteString(strings.Repeat("---|", len(roles)+len(clients)+len(held)))
@@ -384,14 +384,14 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 		for _, r := range roles {
 			if p.Key.Value == "signedIn" {
 				// Held by every signed-in caller, granted by no role (ADR-197).
-				b.WriteString(" signed in |")
+				b.WriteString(tr(" signed in |"))
 			} else if list := strs(get(r.Value, "through"), p.Key.Value); len(list) > 0 && grants[r.Key.Value][p.Key.Value] {
 				// A grant narrowed to the clients it holds through (ADR-106).
-				b.WriteString(" " + strings.Join(list, ", ") + " only |")
+				b.WriteString(" " + strings.Join(list, ", ") + tr(" only |"))
 			} else if through := implies.Through(strs(r.Value, "permissions"), p.Key.Value, impliedBy(root)); through != "" {
-				b.WriteString(" through " + through + " |")
+				b.WriteString(tr(" through ") + through + " |")
 			} else if grants[r.Key.Value][p.Key.Value] {
-				b.WriteString(" yes |")
+				b.WriteString(tr(" yes |"))
 			} else {
 				b.WriteString(" |")
 			}
@@ -402,9 +402,9 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 				held = held || grants[role][p.Key.Value]
 			}
 			if p.Key.Value == "signedIn" {
-				b.WriteString(" signed in |")
+				b.WriteString(tr(" signed in |"))
 			} else if held {
-				b.WriteString(" yes |")
+				b.WriteString(tr(" yes |"))
 			} else {
 				b.WriteString(" |")
 			}
@@ -415,9 +415,9 @@ func permissionsMatrix(root *yaml.Node, held []RoleColumn) string {
 		if hasPublic {
 			switch p.Key.Value {
 			case "public":
-				b.WriteString(" everyone |")
+				b.WriteString(tr(" everyone |"))
 			case "nobody":
-				b.WriteString(" closed |")
+				b.WriteString(tr(" closed |"))
 			default:
 				b.WriteString(" |")
 			}
@@ -470,7 +470,7 @@ func region(root *yaml.Node, impls []Implementation, what string) (string, error
 			err = fmt.Errorf("the design file has no roles, dependencies or channels to draw")
 		}
 	default:
-		names := []string{"components <stack>", "context", "deployment <deployment>", "erDiagram", "network <deployment>", "stateDiagram <Entity>", "sequenceDiagram <operationId or command>", "flowchart pages", "permissions"}
+		names := []string{tr("components <stack>"), "context", tr("deployment <deployment>"), "erDiagram", tr("network <deployment>"), tr("stateDiagram <Entity>"), tr("sequenceDiagram <operationId or command>"), tr("flowchart pages"), "permissions"}
 		sort.Strings(names)
 		return "", fmt.Errorf("%q is not something the generator draws; use one of %s", kind, strings.Join(names, ", "))
 	}
@@ -485,23 +485,23 @@ func flowFlowchart(flow *yaml.Node) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
+	b.WriteString(tr("flowchart LR\n"))
 	for i, st := range steps {
-		fmt.Fprintf(&b, "  s%d[\"%s\"]\n", i, mermaidText(str(st, "page")))
+		fmt.Fprintf(&b, tr("  s%d[\"%s\"]\n"), i, mermaidText(str(st, "page")))
 	}
 	for i := 0; i+1 < len(steps); i++ {
 		event := str(steps[i], "event")
 		if event == "action" {
 			event = str(steps[i], "action")
 		}
-		fmt.Fprintf(&b, "  s%d -->|\"%s\"| s%d\n", i, mermaidText(event), i+1)
+		fmt.Fprintf(&b, tr("  s%d -->|\"%s\"| s%d\n"), i, mermaidText(event), i+1)
 	}
 	if last := steps[len(steps)-1]; str(last, "event") != "" {
 		event := str(last, "event")
 		if event == "action" {
 			event = str(last, "action")
 		}
-		fmt.Fprintf(&b, "  s%d -->|\"%s\"| done((\"done\"))\n", len(steps)-1, mermaidText(event))
+		fmt.Fprintf(&b, tr("  s%d -->|\"%s\"| done((\"done\"))\n"), len(steps)-1, mermaidText(event))
 	}
 	return fence(b.String())
 }
@@ -520,8 +520,8 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
-	fmt.Fprintf(&b, "  start([\"%s answers 202\"])\n", mermaidText(d.known(w, "trigger", "the trigger", "workflows", name)))
+	b.WriteString(tr("flowchart LR\n"))
+	fmt.Fprintf(&b, tr("  start([\"%s answers 202\"])\n"), mermaidText(d.known(w, "trigger", tr("the trigger"), "workflows", name)))
 	index := map[string]int{}
 	refused, failed := false, false
 	drawn := map[string]bool{}
@@ -534,20 +534,20 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 			refused = true
 			approvers := strings.Join(strs(st, "approvers"), ", ")
 			if approvers == "" {
-				approvers = d.known(st, "approvers", "the approvers", at...)
+				approvers = d.known(st, "approvers", tr("the approvers"), at...)
 			}
-			fmt.Fprintf(&b, "  s%d[\"%s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(approvers), mermaidText(d.known(st, "permission", "the permission", at...)))
+			fmt.Fprintf(&b, tr("  s%d[\"%s: %s with %s\"]\n"), i, mermaidText(str(st, "name")), mermaidText(approvers), mermaidText(d.known(st, "permission", tr("the permission"), at...)))
 		case "task":
 			if str(st, "deadline") != "" && str(st, "onDeadline") != "escalate" {
 				refused = true
 			}
 			performers := strings.Join(strs(st, "performers"), ", ")
 			if performers == "" {
-				performers = d.known(st, "performers", "the performers", at...)
+				performers = d.known(st, "performers", tr("the performers"), at...)
 			}
-			fmt.Fprintf(&b, "  s%d[\"task %s: %s with %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(performers), mermaidText(d.known(st, "permission", "the permission", at...)))
+			fmt.Fprintf(&b, tr("  s%d[\"task %s: %s with %s\"]\n"), i, mermaidText(str(st, "name")), mermaidText(performers), mermaidText(d.known(st, "permission", tr("the permission"), at...)))
 		case "decision":
-			fmt.Fprintf(&b, "  s%d{\"%s\"}\n", i, mermaidText(str(st, "name")))
+			fmt.Fprintf(&b, tr("  s%d{\"%s\"}\n"), i, mermaidText(str(st, "name")))
 			for _, br := range items(st, "branches") {
 				refused = refused || str(br, "end") == "refused"
 				failed = failed || str(br, "end") == "failed"
@@ -556,21 +556,21 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 			what := str(st, "message")
 			switch {
 			case str(st, "after") != "":
-				what = "after " + str(st, "after")
+				what = tr("after ") + str(st, "after")
 			case str(st, "at") != "":
-				what = "at " + str(st, "at")
+				what = tr("at ") + str(st, "at")
 			}
 			if str(st, "deadline") != "" {
 				refused = true
 			}
-			fmt.Fprintf(&b, "  s%d>\"wait %s: %s\"]\n", i, mermaidText(str(st, "name")), mermaidText(what))
+			fmt.Fprintf(&b, tr("  s%d>\"wait %s: %s\"]\n"), i, mermaidText(str(st, "name")), mermaidText(what))
 		default:
-			fmt.Fprintf(&b, "  s%d[[\"%s\"]]\n", i, mermaidText(d.known(st, "operation", "the operation", at...)))
+			fmt.Fprintf(&b, tr("  s%d[[\"%s\"]]\n"), i, mermaidText(d.known(st, "operation", tr("the operation"), at...)))
 			if f := get(st, "onFailure"); f != nil && str(f, "to") == "" {
 				failed = true
 			}
 			if comp := str(st, "compensatedBy"); comp != "" {
-				fmt.Fprintf(&b, "  u%d[[\"%s\"]]\n", i, mermaidText(comp))
+				fmt.Fprintf(&b, tr("  u%d[[\"%s\"]]\n"), i, mermaidText(comp))
 			}
 			if o := findOperation(root, str(st, "operation")); o != nil {
 				for _, c := range calls(o.node) {
@@ -595,9 +595,9 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 						edge = callLabel(c)
 					}
 					if edge != "" {
-						calledBy = append(calledBy, fmt.Sprintf("  s%d -.->|\"%s\"| %s\n", i, mermaidText(edge), id))
+						calledBy = append(calledBy, fmt.Sprintf(tr("  s%d -.->|\"%s\"| %s\n"), i, mermaidText(edge), id))
 					} else {
-						calledBy = append(calledBy, fmt.Sprintf("  s%d -.-> %s\n", i, id))
+						calledBy = append(calledBy, fmt.Sprintf(tr("  s%d -.-> %s\n"), i, id))
 					}
 				}
 			}
@@ -606,24 +606,24 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 	for _, n := range deps {
 		fmt.Fprintf(&b, "  %s\n", n)
 	}
-	b.WriteString("  done((\"approved\"))\n")
+	b.WriteString(tr("  done((\"approved\"))\n"))
 	if refused {
-		b.WriteString("  refused((\"refused\"))\n")
+		b.WriteString(tr("  refused((\"refused\"))\n"))
 	}
 	if failed {
-		b.WriteString("  failed((\"failed\"))\n")
+		b.WriteString(tr("  failed((\"failed\"))\n"))
 	}
-	b.WriteString("  start --> s0\n")
+	b.WriteString(tr("  start --> s0\n"))
 	target := func(to string) string {
 		if j, ok := index[to]; ok {
-			return fmt.Sprintf("s%d", j)
+			return fmt.Sprintf(tr("s%d"), j)
 		}
 		return "done"
 	}
 	for i, st := range steps {
 		next := "done"
 		if i+1 < len(steps) {
-			next = fmt.Sprintf("s%d", i+1)
+			next = fmt.Sprintf(tr("s%d"), i+1)
 		}
 		kind := str(st, "kind")
 		switch kind {
@@ -640,33 +640,33 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 				case "refused", "failed":
 					to = str(br, "end")
 				}
-				fmt.Fprintf(&b, "  s%d -->|\"%s\"| %s\n", i, mermaidText(label), to)
+				fmt.Fprintf(&b, tr("  s%d -->|\"%s\"| %s\n"), i, mermaidText(label), to)
 			}
 			continue
 		case "approval":
-			fmt.Fprintf(&b, "  s%d -->|\"approved\"| %s\n", i, next)
-			fmt.Fprintf(&b, "  s%d -->|\"refused\"| refused\n", i)
+			fmt.Fprintf(&b, tr("  s%d -->|\"approved\"| %s\n"), i, next)
+			fmt.Fprintf(&b, tr("  s%d -->|\"refused\"| refused\n"), i)
 		default:
-			fmt.Fprintf(&b, "  s%d --> %s\n", i, next)
+			fmt.Fprintf(&b, tr("  s%d --> %s\n"), i, next)
 		}
 		if f := get(st, "onFailure"); f != nil && kind == "operation" {
 			to := "failed"
 			if str(f, "to") != "" {
 				to = target(str(f, "to"))
 			}
-			fmt.Fprintf(&b, "  s%d -->|\"fails\"| %s\n", i, to)
+			fmt.Fprintf(&b, tr("  s%d -->|\"fails\"| %s\n"), i, to)
 		}
 		if str(st, "compensatedBy") != "" && kind == "operation" {
-			fmt.Fprintf(&b, "  s%d -.->|\"undone by\"| u%d\n", i, i)
+			fmt.Fprintf(&b, tr("  s%d -.->|\"undone by\"| u%d\n"), i, i)
 		}
 		if kind == "operation" || kind == "decision" || str(st, "deadline") == "" && kind != "approval" {
 			continue
 		}
 		late := "refused"
 		if to, ok := index[str(st, "escalateTo")]; ok && str(st, "onDeadline") == "escalate" {
-			late = fmt.Sprintf("s%d", to)
+			late = fmt.Sprintf(tr("s%d"), to)
 		}
-		fmt.Fprintf(&b, "  s%d -->|\"%s passes\"| %s\n", i, mermaidText(d.known(st, "deadline", "the deadline", "workflows", name, "steps", fmt.Sprint(i))), late)
+		fmt.Fprintf(&b, tr("  s%d -->|\"%s passes\"| %s\n"), i, mermaidText(d.known(st, "deadline", tr("the deadline"), "workflows", name, "steps", fmt.Sprint(i))), late)
 	}
 	for _, e := range calledBy {
 		b.WriteString(e)
@@ -714,27 +714,27 @@ func handlerLogic(d *doc, o operation, impls []Implementation) {
 	for _, i := range recorded {
 		m := get(get(i.Node, "mappings"), ptr)
 		rec := get(m, "handler")
-		title := "What the handler does"
+		title := tr("What the handler does")
 		if len(recorded) > 1 {
-			title += " in " + str(get(i.Node, "info"), "title")
+			title += tr(" in ") + str(get(i.Node, "info"), "title")
 		}
 		d.heading(4, title)
 		fns := items(rec, "functions")
-		d.para(fmt.Sprintf("The handler is %s. Read from the code at commit %s by `specarch extract go`, which followed the calls of functions of the same code up to %s deep from the handler: %s. Each chart's node carries its step's id, and the source under the chart is the function as it was at that commit, so the chart can be checked against the code.",
+		d.para(fmt.Sprintf(tr("The handler is %s. Read from the code at commit %s by `specarch extract go`, which followed the calls of functions of the same code up to %s deep from the handler: %s. Each chart's node carries its step's id, and the source under the chart is the function as it was at that commit, so the chart can be checked against the code."),
 			str(m, "target"), shortCommit(str(rec, "commit")), str(rec, "depth"), functionsText(fns)))
 		var stopped []string
 		for _, fn := range fns {
-			d.para(fmt.Sprintf("**%s**, %s lines %s to %s.", str(fn, "name"), str(fn, "file"), str(fn, "firstLine"), str(fn, "lastLine")))
+			d.para(fmt.Sprintf(tr("**%s**, %s lines %s to %s."), str(fn, "name"), str(fn, "file"), str(fn, "firstLine"), str(fn, "lastLine")))
 			d.block(handlerFlowchart(fn))
 			d.block("```go\n" + str(fn, "source") + "\n```\n")
 			walkStepNodes(items(fn, "steps"), func(st *yaml.Node) {
 				if str(st, "kind") == "call" && str(st, "stopped") != "" {
-					stopped = append(stopped, fmt.Sprintf("%s at %s:%s (%s)", str(st, "text"), str(st, "file"), str(st, "firstLine"), str(st, "stopped")))
+					stopped = append(stopped, fmt.Sprintf(tr("%s at %s:%s (%s)"), str(st, "text"), str(st, "file"), str(st, "firstLine"), str(st, "stopped")))
 				}
 			})
 		}
 		if len(stopped) > 0 {
-			d.para("Not followed: " + strings.Join(stopped, "; ") + ".")
+			d.para(tr("Not followed: ") + strings.Join(stopped, "; ") + ".")
 		}
 	}
 }
@@ -743,11 +743,11 @@ func handlerLogic(d *doc, o operation, impls []Implementation) {
 func functionsText(fns []*yaml.Node) string {
 	switch len(fns) {
 	case 1:
-		return "the handler alone, which calls no function of the code"
+		return tr("the handler alone, which calls no function of the code")
 	case 2:
-		return "the handler and 1 function it reaches"
+		return tr("the handler and 1 function it reaches")
 	}
-	return fmt.Sprintf("the handler and %d functions it reaches", len(fns)-1)
+	return fmt.Sprintf(tr("the handler and %d functions it reaches"), len(fns)-1)
 }
 
 // shortCommit is the first seven characters of a commit.
@@ -781,13 +781,13 @@ type chartExit struct {
 // the returns and an end node for a path that falls off the end.
 func handlerFlowchart(fn *yaml.Node) string {
 	var b strings.Builder
-	b.WriteString("flowchart TD\n")
+	b.WriteString(tr("flowchart TD\n"))
 	name := str(fn, "name")
-	fmt.Fprintf(&b, "  begin([\"%s\"])\n", mermaidText(name))
+	fmt.Fprintf(&b, tr("  begin([\"%s\"])\n"), mermaidText(name))
 	var edges []string
 	exits := drawSteps(&b, &edges, items(fn, "steps"), []chartExit{{node: "begin"}}, nil)
 	if len(exits) > 0 {
-		fmt.Fprintf(&b, "  finish([\"end of %s\"])\n", mermaidText(name))
+		fmt.Fprintf(&b, tr("  finish([\"end of %s\"])\n"), mermaidText(name))
 		for _, e := range exits {
 			edges = append(edges, edge(e, "finish"))
 		}
@@ -889,8 +889,8 @@ func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []c
 			from = append(next, inner.breaks...)
 		case "loop":
 			inner := &chartScope{id: id, kind: "loop", label: str(st, "label"), parent: scope}
-			for _, e := range drawSteps(b, edges, items(st, "body"), []chartExit{{id, "each time"}}, inner) {
-				*edges = append(*edges, edge(chartExit{e.node, joinLabel(e.label, "again")}, id))
+			for _, e := range drawSteps(b, edges, items(st, "body"), []chartExit{{id, tr("each time")}}, inner) {
+				*edges = append(*edges, edge(chartExit{e.node, joinLabel(e.label, tr("again"))}, id))
 			}
 			from = append([]chartExit{{id, "done"}}, inner.breaks...)
 		case "statement":
@@ -966,7 +966,7 @@ func fewNames(names []string) string {
 	if len(names) <= 3 {
 		return strings.Join(names, ", ")
 	}
-	return fmt.Sprintf("%s and %d more", strings.Join(names[:3], ", "), len(names)-3)
+	return fmt.Sprintf(tr("%s and %d more"), strings.Join(names[:3], ", "), len(names)-3)
 }
 
 // usesContextKeys says whether the design keys any dependency with a kind
@@ -1026,7 +1026,7 @@ func contextDiagram(root *yaml.Node) string {
 		public = public || str(p.Value, "permission") == "public"
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
+	b.WriteString(tr("flowchart LR\n"))
 	system := "system"
 	fmt.Fprintf(&b, "  %s[\"%s\"]\n", system, mermaidText(str(get(root, "info"), "title")))
 	// An application client is the way a person reaches the system, drawn
@@ -1046,16 +1046,16 @@ func contextDiagram(root *yaml.Node) string {
 			continue
 		}
 		id := "person_" + mermaidID(r.Key.Value)
-		fmt.Fprintf(&b, "  %s([\"%s (person)\"])\n", id, mermaidText(r.Key.Value))
+		fmt.Fprintf(&b, tr("  %s([\"%s (person)\"])\n"), id, mermaidText(r.Key.Value))
 		fmt.Fprintf(&b, "  %s%s %s\n", id, through, system)
 	}
 	if public {
-		fmt.Fprintf(&b, "  person_anyone([\"anyone (person)\"])\n")
-		fmt.Fprintf(&b, "  person_anyone%s %s\n", through, system)
+		b.WriteString(tr("  person_anyone([\"anyone (person)\"])\n"))
+		fmt.Fprintf(&b, tr("  person_anyone%s %s\n"), through, system)
 	}
 	for _, c := range services {
 		id := "client_" + mermaidID(c.Key.Value)
-		fmt.Fprintf(&b, "  %s[\"%s (system, as %s)\"]\n", id, mermaidText(c.Key.Value), mermaidText(strings.Join(strs(c.Value, "roles"), ", ")))
+		fmt.Fprintf(&b, tr("  %s[\"%s (system, as %s)\"]\n"), id, mermaidText(c.Key.Value), mermaidText(strings.Join(strs(c.Value, "roles"), ", ")))
 		fmt.Fprintf(&b, "  %s --> %s\n", id, system)
 	}
 	// Who calls each dependency, who emits on each channel and which jobs
@@ -1091,7 +1091,7 @@ func contextDiagram(root *yaml.Node) string {
 	// forwards to, labelled with the claim it forwards by (ADR-141).
 	for _, g := range pairs(root, "gateways") {
 		call(g.Key.Value, g.Value)
-		label := g.Key.Value + " by " + str(g.Value, "claim")
+		label := g.Key.Value + tr(" by ") + str(g.Value, "claim")
 		for _, row := range items(g.Value, "forwards") {
 			if dep := str(row, "dependency"); dep != "" && !contains(callers[dep], label) {
 				callers[dep] = append(callers[dep], label)
@@ -1119,7 +1119,7 @@ func contextDiagram(root *yaml.Node) string {
 				label += ", " + a
 			}
 			if r := get(dep.Value, "rate"); r != nil {
-				label += ", " + num(r, "requests") + " per " + str(r, "per")
+				label += ", " + num(r, "requests") + tr(" per ") + str(r, "per")
 			}
 			id := "dependency_" + mermaidID(dep.Key.Value)
 			fmt.Fprintf(&b, "  %s\n", dependencyShape(id, label, kind))
@@ -1141,7 +1141,7 @@ func contextDiagram(root *yaml.Node) string {
 		name := mermaidText(ch.Key.Value)
 		if len(carriers) == 0 {
 			id := "channel_" + mermaidID(ch.Key.Value)
-			fmt.Fprintf(&b, "  %s>\"%s (channel)\"]\n", id, name)
+			fmt.Fprintf(&b, tr("  %s>\"%s (channel)\"]\n"), id, name)
 			if consumers[ch.Key.Value] {
 				fmt.Fprintf(&b, "  %s -.-> %s\n", id, system)
 			}
@@ -1200,27 +1200,27 @@ func componentsDiagram(impl *yaml.Node) string {
 		keys[l.Key.Value] = true
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
+	b.WriteString(tr("flowchart LR\n"))
 	for _, l := range layout {
 		label := mermaidText(l.Key.Value)
 		if n := len(strs(l.Value, "implements")); n > 0 {
-			label += fmt.Sprintf(", implements %d", n)
+			label += fmt.Sprintf(tr(", implements %d"), n)
 		}
 		fmt.Fprintf(&b, "  %s[\"%s\"]\n", "package_"+mermaidID(l.Key.Value), label)
 	}
 	for _, l := range layout {
 		for _, to := range strs(l.Value, "dependsOn") {
 			if keys[to] && to != l.Key.Value {
-				fmt.Fprintf(&b, "  package_%s --> package_%s\n", mermaidID(l.Key.Value), mermaidID(to))
+				fmt.Fprintf(&b, tr("  package_%s --> package_%s\n"), mermaidID(l.Key.Value), mermaidID(to))
 			}
 		}
 	}
 	if libs := pairs(impl, "libraries"); len(libs) > 0 {
-		b.WriteString("  subgraph libraries\n")
+		b.WriteString(tr("  subgraph libraries\n"))
 		for _, l := range libs {
-			fmt.Fprintf(&b, "    library_%s[\"%s %s\"]\n", mermaidID(l.Key.Value), mermaidText(l.Key.Value), mermaidText(str(l.Value, "version")))
+			fmt.Fprintf(&b, tr("    library_%s[\"%s %s\"]\n"), mermaidID(l.Key.Value), mermaidText(l.Key.Value), mermaidText(str(l.Value, "version")))
 		}
-		b.WriteString("  end\n")
+		b.WriteString(tr("  end\n"))
 	}
 	return fence(b.String())
 }
@@ -1268,7 +1268,7 @@ func serverID(s *yaml.Node, i int) string {
 	if n := str(s, "name"); n != "" {
 		return "server_" + mermaidID(n)
 	}
-	return fmt.Sprintf("server_%d", i+1)
+	return fmt.Sprintf(tr("server_%d"), i+1)
 }
 
 // urlHost is the host of a server's URL, or the URL itself when it has no
@@ -1305,16 +1305,16 @@ func deploymentDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
+	b.WriteString(tr("flowchart LR\n"))
 	title := name
 	if env := str(dep, "environment"); env != "" {
-		title += ", environment " + env
+		title += tr(", environment ") + env
 	}
-	fmt.Fprintf(&b, "  subgraph deployment_%s[\"%s\"]\n", mermaidID(name), mermaidText(title))
+	fmt.Fprintf(&b, tr("  subgraph deployment_%s[\"%s\"]\n"), mermaidID(name), mermaidText(title))
 	for i, s := range servers {
 		fmt.Fprintf(&b, "    %s\n", serverNode(root, s, i))
 	}
-	b.WriteString("  end\n")
+	b.WriteString(tr("  end\n"))
 	return fence(b.String())
 }
 
@@ -1331,7 +1331,7 @@ func serverNode(root, s *yaml.Node, i int) string {
 		if kind == "" {
 			kind = "system"
 		}
-		label = joinLabel(label, "dependency "+d)
+		label = joinLabel(label, tr("dependency ")+d)
 	} else {
 		label = joinLabel(label, kind)
 	}
@@ -1339,10 +1339,10 @@ func serverNode(root, s *yaml.Node, i int) string {
 	var runs []string
 	runs = append(runs, strs(get(s, "runs"), "packages")...)
 	for _, t := range strs(get(s, "runs"), "targets") {
-		runs = append(runs, "target "+t)
+		runs = append(runs, tr("target ")+t)
 	}
 	if len(runs) > 0 {
-		label += "<br/>runs " + strings.Join(runs, ", ")
+		label += tr("<br/>runs ") + strings.Join(runs, ", ")
 	}
 	return serverShape(serverID(s, i), mermaidText(label), kind)
 }
@@ -1398,7 +1398,7 @@ func networkDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("flowchart LR\n")
+	b.WriteString(tr("flowchart LR\n"))
 	var zones []string
 	inZone := map[string][]int{}
 	placed := map[string]bool{}
@@ -1416,11 +1416,11 @@ func networkDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
 		fmt.Fprintf(&b, "  %s\n", serverNode(root, servers[i], i))
 	}
 	for _, z := range zones {
-		fmt.Fprintf(&b, "  subgraph zone_%s[\"zone %s\"]\n", mermaidID(z), mermaidText(z))
+		fmt.Fprintf(&b, tr("  subgraph zone_%s[\"zone %s\"]\n"), mermaidID(z), mermaidText(z))
 		for _, i := range inZone[z] {
 			fmt.Fprintf(&b, "    %s\n", serverNode(root, servers[i], i))
 		}
-		b.WriteString("  end\n")
+		b.WriteString(tr("  end\n"))
 	}
 	byName, place := namedServers(dep)
 	for _, l := range items(dep, "links") {
@@ -1441,7 +1441,7 @@ func networkDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
 		}
 	}
 	if len(unreached) > 0 {
-		fmt.Fprintf(&b, "  subgraph unreached_%s[\"not a server of %s\"]\n", mermaidID(name), mermaidText(name))
+		fmt.Fprintf(&b, tr("  subgraph unreached_%s[\"not a server of %s\"]\n"), mermaidID(name), mermaidText(name))
 		for _, d := range unreached {
 			kind := str(d.Value, "kind")
 			if kind == "" {
@@ -1449,7 +1449,7 @@ func networkDiagram(root *yaml.Node, name string, dep *yaml.Node) string {
 			}
 			fmt.Fprintf(&b, "    %s\n", dependencyShape("dependency_"+mermaidID(d.Key.Value), mermaidText(d.Key.Value), kind))
 		}
-		b.WriteString("  end\n")
+		b.WriteString(tr("  end\n"))
 	}
 	return fence(b.String())
 }
@@ -1474,9 +1474,9 @@ func linkSentences(dep *yaml.Node) (links, ports string) {
 	var ls []string
 	for _, l := range items(dep, "links") {
 		to := byName[str(l, "to")]
-		s := fmt.Sprintf("%s reaches %s on port %s", str(l, "from"), str(l, "to"), str(l, "port"))
+		s := fmt.Sprintf(tr("%s reaches %s on port %s"), str(l, "from"), str(l, "to"), str(l, "port"))
 		if p := listenedProtocol(to, str(l, "port")); p != "" {
-			s += " over " + p
+			s += tr(" over ") + p
 		}
 		s += "."
 		if desc := strings.TrimSpace(str(l, "description")); desc != "" {
@@ -1485,7 +1485,7 @@ func linkSentences(dep *yaml.Node) (links, ports string) {
 		ls = append(ls, s)
 	}
 	if len(ls) > 0 {
-		links = "The allowed connections, and no others: " + strings.Join(ls, " ")
+		links = tr("The allowed connections, and no others: ") + strings.Join(ls, " ")
 	}
 	var ps []string
 	for _, s := range items(dep, "servers") {
@@ -1498,11 +1498,11 @@ func linkSentences(dep *yaml.Node) (links, ports string) {
 			on = append(on, p)
 		}
 		if len(on) > 0 {
-			ps = append(ps, fmt.Sprintf("%s on %s", str(s, "name"), strings.Join(on, ", ")))
+			ps = append(ps, fmt.Sprintf(tr("%s on %s"), str(s, "name"), strings.Join(on, ", ")))
 		}
 	}
 	if len(ps) > 0 {
-		ports = "Ports listened on: " + strings.Join(ps, "; ") + "."
+		ports = tr("Ports listened on: ") + strings.Join(ps, "; ") + "."
 	}
 	return links, ports
 }
@@ -1540,10 +1540,10 @@ func deploymentPicture(d *doc, root *yaml.Node, name string, dep *yaml.Node) {
 	}
 	d.block(deploymentDiagram(root, name, dep))
 	if hasNetwork(dep) {
-		d.para("The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached.")
+		d.para(tr("The servers by zone, with the links allowed between them on their ports; a dependency no server of the deployment is stands apart, not reached."))
 		return
 	}
-	d.para("The deployment declares no links between its servers, so the diagram draws none.")
+	d.para(tr("The deployment declares no links between its servers, so the diagram draws none."))
 }
 
 // referencedPermissions are the permissions of other modules the roles
@@ -1574,5 +1574,5 @@ func permissionLabel(root *yaml.Node, p string) string {
 	if module == "" {
 		module = dep
 	}
-	return module + " " + strings.TrimPrefix(ptr, "/permissions/")
+	return module + " " + strings.TrimPrefix(ptr, tr("/permissions/"))
 }

@@ -8,6 +8,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/problems"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -58,9 +59,9 @@ func (m Mark) String() string {
 func (m Mark) paragraph(label string) string {
 	on := ""
 	if label != "" {
-		on = " on " + label
+		on = tr(" on ") + label
 	}
-	return fmt.Sprintf("**Problem%s:** %s: %s: %s [%s]", on, m.Severity, m.Rule, m.Message, m.ID)
+	return fmt.Sprintf(tr("**Problem%s:** %s: %s: %s [%s]"), on, m.Severity, m.Rule, m.Message, m.ID)
 }
 
 // concerns reports whether a document reading the sections ("*" for all)
@@ -177,27 +178,27 @@ func (d *doc) problemsNotice(target string) {
 	}
 	var text []string
 	if errors > 0 {
-		text = append(text, fmt.Sprintf("The specification has %s, so it is invalid, and this document shows what could be read of it.", countText(errors, "error", "errors")))
+		text = append(text, fmt.Sprintf(tr("The specification has %s, so it is invalid, and this document shows what could be read of it."), countText(errors, tr("error"), tr("errors"))))
 	}
 	switch {
 	case len(here) == 0:
-		text = append(text, "None of them is in what this document covers.")
+		text = append(text, tr("None of them is in what this document covers."))
 	default:
 		var parts []string
 		if hereErrors > 0 {
-			parts = append(parts, countText(hereErrors, "error", "errors"))
+			parts = append(parts, countText(hereErrors, tr("error"), tr("errors")))
 		}
 		if warnings := len(here) - hereErrors; warnings > 0 {
-			parts = append(parts, countText(warnings, "warning", "warnings"))
+			parts = append(parts, countText(warnings, tr("warning"), tr("warnings")))
 		}
 		if len(here) == 1 {
-			text = append(text, fmt.Sprintf("%s concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it.", parts[0]))
+			text = append(text, fmt.Sprintf(tr("%s concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it."), parts[0]))
 		} else {
-			text = append(text, fmt.Sprintf("%s concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it.", strings.Join(parts, " and ")))
+			text = append(text, fmt.Sprintf(tr("%s concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it."), strings.Join(parts, tr(" and "))))
 		}
 	}
-	text = append(text, "The problems file lists every problem, and specarch validate prints them.")
-	d.para("**Problems:** " + strings.Join(text, " "))
+	text = append(text, tr("The problems file lists every problem, and specarch validate prints them."))
+	d.para(tr("**Problems:** ") + strings.Join(text, " "))
 	for _, m := range here {
 		if !d.shows(m) {
 			d.para(m.paragraph(""))
@@ -227,9 +228,9 @@ func (d *doc) errorsSection() {
 	if len(lines) == 0 {
 		return
 	}
-	d.section("Errors")
-	d.para(fmt.Sprintf("The specification has %s, so it is invalid: the questions below are those of what could be read, and nothing is ready until the errors are fixed. Each line gives the file, line and column, the pointer, the rule and how to fix it.", countText(len(lines), "error", "errors")))
-	d.line("```text")
+	d.section(tr("Errors"))
+	d.para(fmt.Sprintf(tr("The specification has %s, so it is invalid: the questions below are those of what could be read, and nothing is ready until the errors are fixed. Each line gives the file, line and column, the pointer, the rule and how to fix it."), countText(len(lines), tr("error"), tr("errors"))))
+	d.line(tr("```text"))
 	for _, l := range lines {
 		d.line("%s", l)
 	}
@@ -252,4 +253,22 @@ func (d *doc) errorsConcerning(sections []string) int {
 		}
 	}
 	return n
+}
+
+// ProblemsHeadline is the first line of the problems file, in the
+// document's language: the specification, its version when it has one,
+// and the counts of its errors, warnings and open questions by priority.
+func ProblemsHeadline(name, version string, t problems.Tally) string {
+	of := name
+	if version != "" {
+		of = fmt.Sprintf(tr("%s, version %s"), name, version)
+	}
+	if t.Errors+t.Warnings+t.Questions == 0 {
+		return fmt.Sprintf(tr("Problems of %s: no problems."), of)
+	}
+	text := fmt.Sprintf("%s, %s, %s", countText(t.Errors, tr("error"), tr("errors")), countText(t.Warnings, tr("warning"), tr("warnings")), countText(t.Questions, tr("open question"), tr("open questions")))
+	if t.Questions > 0 {
+		text += fmt.Sprintf(tr(" (%d must, %d should, %d could)"), t.Must, t.Should, t.Could)
+	}
+	return fmt.Sprintf(tr("Problems of %s: %s."), of, text)
 }

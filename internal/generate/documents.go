@@ -85,21 +85,21 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 	info := get(root, "info")
 	reqs := pairs(root, "requirements")
 	needs := pairs(root, "needs")
-	d.line("# %s: requirements specification", str(info, "title"))
+	d.line(tr("# %s: requirements specification"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.",
-		str(info, "version"), countText(len(pairs(root, "stakeholders")), "stakeholder", "stakeholders"), countText(len(needs), "need", "needs"), countText(len(reqs), "requirement", "requirements")))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s, %s and %s. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes."),
+		str(info, "version"), countText(len(pairs(root, "stakeholders")), tr("stakeholder"), tr("stakeholders")), countText(len(needs), tr("need"), tr("needs")), countText(len(reqs), tr("requirement"), tr("requirements"))))
 	d.draftNotice("requirements")
 
-	d.section("Purpose and scope")
+	d.section(tr("Purpose and scope"))
 	d.para(str(info, "description"))
 	if owners := strs(info, "owners"); len(owners) > 0 {
-		d.para("Owners: " + strings.Join(owners, ", ") + ".")
+		d.para(tr("Owners: ") + strings.Join(owners, ", ") + ".")
 	}
 
 	if sh := pairs(root, "stakeholders"); len(sh) > 0 {
-		d.section("Stakeholders")
-		d.line("| Stakeholder | Who they are | Concerns |")
+		d.section(tr("Stakeholders"))
+		d.line(tr("| Stakeholder | Who they are | Concerns |"))
 		d.line("|---|---|---|")
 		for _, s := range sh {
 			d.line("| %s | %s | %s |", s.Key.Value, cell(str(s.Value, "description")), cell(joinSentences(strs(s.Value, "concerns"))))
@@ -115,9 +115,9 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 				refinedBy[n] = append(refinedBy[n], r.Key.Value)
 			}
 		}
-		d.section("Needs")
-		d.para("What the stakeholders said they need, before it was shaped into requirements, and the requirements that refine each need.")
-		d.line("| Need | Statement | Stakeholders | Status | Refined by |")
+		d.section(tr("Needs"))
+		d.para(tr("What the stakeholders said they need, before it was shaped into requirements, and the requirements that refine each need."))
+		d.line(tr("| Need | Statement | Stakeholders | Status | Refined by |"))
 		d.line("|---|---|---|---|---|")
 		for _, n := range needs {
 			d.line("| %s | %s | %s | %s | %s |", n.Key.Value, cell(str(n.Value, "statement")), cell(strings.Join(strs(n.Value, "stakeholders"), ", ")), cell(str(n.Value, "status")), cell(strings.Join(refinedBy[n.Key.Value], ", ")))
@@ -127,8 +127,8 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 	}
 
 	if len(reqs) > 0 {
-		d.section("Requirements")
-		d.line("| Requirement | Kind | Priority | Status | Statement |")
+		d.section(tr("Requirements"))
+		d.line(tr("| Requirement | Kind | Priority | Status | Statement |"))
 		d.line("|---|---|---|---|---|")
 		for _, r := range reqs {
 			d.line("| %s | %s | %s | %s | %s |", r.Key.Value, str(r.Value, "kind"), str(r.Value, "priority"), str(r.Value, "status"), cell(str(r.Value, "statement")))
@@ -140,20 +140,20 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 			var attrs []string
 			for _, a := range []struct{ label, key string }{{"Kind", "kind"}, {"priority", "priority"}, {"status", "status"}} {
 				if v := str(r.Value, a.key); v != "" {
-					attrs = append(attrs, a.label+": "+v)
+					attrs = append(attrs, tr(a.label)+": "+v)
 				}
 			}
 			if len(attrs) > 0 {
 				attrs[0] = strings.ToUpper(attrs[0][:1]) + attrs[0][1:]
 			}
 			if v := str(r.Value, "verification"); v != "" {
-				attrs = append(attrs, "verified by "+v)
+				attrs = append(attrs, tr("verified by ")+v)
 			}
 			if n := strs(r.Value, "needs"); len(n) > 0 {
-				attrs = append(attrs, "refines "+strings.Join(n, ", "))
+				attrs = append(attrs, tr("refines ")+strings.Join(n, ", "))
 			}
 			if h := strs(r.Value, "harm"); len(h) > 0 {
-				attrs = append(attrs, "harm if not met: "+strings.Join(h, ", "))
+				attrs = append(attrs, tr("harm if not met: ")+strings.Join(h, ", "))
 			}
 			if held := heldElsewhere(r.Value); held != "" {
 				attrs = append(attrs, held)
@@ -162,22 +162,22 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 				d.para(strings.Join(attrs, "; ") + ".")
 			}
 			if acc := strs(r.Value, "acceptance"); len(acc) > 0 {
-				d.line("Acceptance criteria:")
+				d.line(tr("Acceptance criteria:"))
 				d.blank()
 				for _, a := range acc {
 					d.line("- %s", oneParagraph(a))
 				}
 				d.blank()
 			} else {
-				d.para("No acceptance criteria yet.")
+				d.para(tr("No acceptance criteria yet."))
 			}
 			d.explain(r.Value)
 		}
 	}
 
 	if cons := pairs(root, "constraints"); len(cons) > 0 {
-		d.section("Constraints")
-		d.line("| Constraint | Kind | Statement |")
+		d.section(tr("Constraints"))
+		d.line(tr("| Constraint | Kind | Statement |"))
 		d.line("|---|---|---|")
 		for _, c := range cons {
 			d.line("| %s | %s | %s |", c.Key.Value, str(c.Value, "kind"), cell(str(c.Value, "statement")))
@@ -186,8 +186,8 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 		d.explainRows(rowsOf(cons))
 	}
 	if as := pairs(root, "assumptions"); len(as) > 0 {
-		d.section("Assumptions")
-		d.line("| Assumption | Statement |")
+		d.section(tr("Assumptions"))
+		d.line(tr("| Assumption | Statement |"))
 		d.line("|---|---|")
 		for _, a := range as {
 			d.line("| %s | %s |", a.Key.Value, cell(str(a.Value, "statement")))
@@ -196,8 +196,8 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 		d.explainRows(rowsOf(as))
 	}
 	if terms := pairs(root, "glossary"); len(terms) > 0 {
-		d.section("Glossary")
-		d.line("| Term | Meaning |")
+		d.section(tr("Glossary"))
+		d.line(tr("| Term | Meaning |"))
 		d.line("|---|---|")
 		for _, t := range terms {
 			d.line("| %s | %s |", cell(t.Key.Value), cell(str(t.Value, "definition")))
@@ -208,14 +208,14 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 	var sets []string
 	for _, s := range pairs(root, "sources") {
 		if str(s.Value, "kind") == "requirement-set" {
-			sets = append(sets, fmt.Sprintf("Requirements with the prefix %s are in %s.", str(s.Value, "prefix"), strings.TrimSpace(str(s.Value, "title"))))
+			sets = append(sets, fmt.Sprintf(tr("Requirements with the prefix %s are in %s."), str(s.Value, "prefix"), strings.TrimSpace(str(s.Value, "title"))))
 		}
 	}
 	if len(sets) > 0 {
-		d.section("Requirements kept elsewhere")
+		d.section(tr("Requirements kept elsewhere"))
 		d.para(strings.Join(sets, " "))
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -247,13 +247,13 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		}
 		bySubject[s] = append(bySubject[s], row{t.Key.Value, t.Value})
 	}
-	d.line("# %s: test plan", str(info, "title"))
+	d.line(tr("# %s: test plan"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s, %d golden and %d red, about %s. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.",
-		str(info, "version"), countText(len(tests), "design test", "design tests"), golden, red, countText(len(order), "subject", "subjects")))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s, %d golden and %d red, about %s. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3."),
+		str(info, "version"), countText(len(tests), tr("design test"), tr("design tests")), golden, red, countText(len(order), tr("subject"), tr("subjects"))))
 	d.draftNotice("testplan")
 	if na > 0 {
-		d.para(fmt.Sprintf("%s marked not applicable, with the reason.", countText(na, "test is", "tests are")))
+		d.para(fmt.Sprintf(tr("%s marked not applicable, with the reason."), countText(na, tr("test is"), tr("tests are"))))
 	}
 	// The count is the tests target's, so it is shown only where an
 	// implementation file declares that target.
@@ -262,40 +262,40 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		bodies = bodyShare(tests)
 	}
 	if applies := len(tests) - na; applies > 0 && len(bodies.kinds) > 0 {
-		d.para(fmt.Sprintf("Of the %s that apply, the tests target writes %d with their bodies, from their input and expected outcome, and %d with a body written by hand (section 1).",
-			countText(applies, "test", "tests"), bodies.generated, applies-bodies.generated))
+		d.para(fmt.Sprintf(tr("Of the %s that apply, the tests target writes %d with their bodies, from their input and expected outcome, and %d with a body written by hand (section 1)."),
+			countText(applies, tr("test"), tr("tests")), bodies.generated, applies-bodies.generated))
 	}
 
-	d.section("Levels and how the tests run")
+	d.section(tr("Levels and how the tests run"))
 	levels := map[string]int{}
 	for _, t := range tests {
 		levels[str(t.Value, "level")]++
 	}
-	d.line("| Level | Design tests |")
+	d.line(tr("| Level | Design tests |"))
 	d.line("|---|---|")
 	for _, l := range sortedKeys(levels) {
 		d.line("| %s | %d |", cell(l), levels[l])
 	}
 	d.blank()
-	d.para("System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.")
+	d.para(tr("System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below."))
 	if len(bodies.kinds) > 0 {
-		d.line("| Subject | Design tests | Body generated | Body written by hand |")
+		d.line(tr("| Subject | Design tests | Body generated | Body written by hand |"))
 		d.line("|---|---|---|---|")
 		for _, k := range bodies.kinds {
 			c := bodies.byKind[k]
 			d.line("| %s | %d | %d | %d |", k, c[0]+c[1], c[0], c[1])
 		}
 		d.blank()
-		d.para("The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the operation and command tests that have none; it drafts no call for a page or any other subject.")
+		d.para(tr("The tests target writes a test's body when the test is about an operation, a command or a page and gives its `input` or `expect`: the call, and the checks of what it answers. Every other test is generated with its given, when and then and a body written by hand beside the generated file. `specarch derive --fill` adds the fixture, input and expect the design fixes to the operation and command tests that have none; it drafts no call for a page or any other subject."))
 	}
 	for _, i := range impls {
 		testing := get(i.Node, "testing")
 		if testing == nil {
 			continue
 		}
-		d.heading(3, "Implementation: "+str(get(i.Node, "info"), "title"))
-		d.para(fmt.Sprintf("Framework: %s. Run: `%s`.", str(testing, "framework"), str(testing, "run")))
-		d.line("| Suite | Level | Runs | Command |")
+		d.heading(3, tr("Implementation: ")+str(get(i.Node, "info"), "title"))
+		d.para(fmt.Sprintf(tr("Framework: %s. Run: `%s`."), str(testing, "framework"), str(testing, "run")))
+		d.line(tr("| Suite | Level | Runs | Command |"))
 		d.line("|---|---|---|---|")
 		for _, s := range pairs(testing, "suites") {
 			d.line("| %s | %s | %s | `%s` |", s.Key.Value, str(s.Value, "level"), cell(suiteRuns(s.Value)), cell(str(s.Value, "run")))
@@ -305,25 +305,25 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if len(tests) > 0 {
-		d.section("Test cases")
+		d.section(tr("Test cases"))
 		for _, s := range order {
 			d.heading(3, strings.ToUpper(s[:1])+s[1:])
 			for _, t := range bySubject[s] {
 				d.heading(4, t.label)
-				attrs := []string{"Scenario: " + str(t.node, "scenario"), "level: " + str(t.node, "level")}
+				attrs := []string{tr("Scenario: ") + str(t.node, "scenario"), tr("level: ") + str(t.node, "level")}
 				if cov := strs(t.node, "covers"); len(cov) > 0 {
-					attrs = append(attrs, "covers "+strings.Join(cov, ", "))
+					attrs = append(attrs, tr("covers ")+strings.Join(cov, ", "))
 				}
 				if v := strs(t.node, "verifies"); len(v) > 0 {
-					attrs = append(attrs, "verifies "+strings.Join(v, ", "))
+					attrs = append(attrs, tr("verifies ")+strings.Join(v, ", "))
 				}
 				d.para(strings.Join(attrs, "; ") + ".")
 				if reason := str(t.node, "notApplicable"); reason != "" {
-					d.para("Not applicable: " + oneParagraph(reason))
+					d.para(tr("Not applicable: ") + oneParagraph(reason))
 				} else {
-					d.line("- Given: %s", oneParagraph(str(t.node, "given")))
-					d.line("- When: %s", oneParagraph(str(t.node, "when")))
-					d.line("- Then: %s", oneParagraph(str(t.node, "then")))
+					d.line(tr("- Given: %s"), oneParagraph(str(t.node, "given")))
+					d.line(tr("- When: %s"), oneParagraph(str(t.node, "when")))
+					d.line(tr("- Then: %s"), oneParagraph(str(t.node, "then")))
 					d.blank()
 				}
 				d.explain(t.node)
@@ -333,10 +333,10 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	requirementsByRelease(d, root, tests)
 	stateMachines(d, root, state)
 	if state != nil && len(state.LeftOut) > 0 {
-		d.section("Derived cases left out")
-		d.para(fmt.Sprintf("%s the design implies %s no test and %s not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.",
-			countText(len(state.LeftOut), "case", "cases"), map[bool]string{true: "has", false: "have"}[len(state.LeftOut) == 1], map[bool]string{true: "is", false: "are"}[len(state.LeftOut) == 1]))
-		d.line("| Subject | Case | Scenario | Why it is left out |")
+		d.section(tr("Derived cases left out"))
+		d.para(fmt.Sprintf(tr("%s the design implies %s no test and %s not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list."),
+			countText(len(state.LeftOut), tr("case"), tr("cases")), map[bool]string{true: "has", false: "have"}[len(state.LeftOut) == 1], map[bool]string{true: "is", false: "are"}[len(state.LeftOut) == 1]))
+		d.line(tr("| Subject | Case | Scenario | Why it is left out |"))
 		d.line("|---|---|---|---|")
 		for _, c := range state.LeftOut {
 			d.line("| %s | %s | %s | %s |", cell(c.Subject), cell(c.Case), c.Scenario, cell(c.Reason))
@@ -344,9 +344,9 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		d.blank()
 	}
 	if len(pairs(root, "checks")) > 0 {
-		d.para("The checks run on the installed system before it is handed over are in the commissioning procedure.")
+		d.para(tr("The checks run on the installed system before it is handed over are in the commissioning procedure."))
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -433,12 +433,12 @@ func requirementsByRelease(d *doc, root *yaml.Node, tests []sourcePair) {
 			verifiedBy[id] = append(verifiedBy[id], t.Key.Value)
 		}
 	}
-	d.section("Requirements by release")
-	d.para(countText(len(reqs)-len(none), "requirement names the release it is", "requirements name the release they are") +
-		" meant for. Each release lists its requirements and the design tests that verify them, so a release is tested with its own scope.")
+	d.section(tr("Requirements by release"))
+	d.para(countText(len(reqs)-len(none), tr("requirement names the release it is"), tr("requirements name the release they are")) +
+		tr(" meant for. Each release lists its requirements and the design tests that verify them, so a release is tested with its own scope."))
 	group := func(title string, rs []sourcePair) {
 		d.heading(3, title)
-		d.line("| Requirement | Priority | Verified by |")
+		d.line(tr("| Requirement | Priority | Verified by |"))
 		d.line("|---|---|---|")
 		for _, r := range rs {
 			by := "none"
@@ -450,10 +450,10 @@ func requirementsByRelease(d *doc, root *yaml.Node, tests []sourcePair) {
 		d.blank()
 	}
 	for _, v := range versions {
-		group("Release "+v, byRelease[v])
+		group(tr("Release ")+v, byRelease[v])
 	}
 	if len(none) > 0 {
-		group("No release named", none)
+		group(tr("No release named"), none)
 	}
 }
 
@@ -469,7 +469,7 @@ func harmColumn(reqs []sourcePair) harmCol {
 	for _, r := range reqs {
 		if v := strs(r.Value, "harm"); len(v) > 0 {
 			h.harm[r.Key.Value] = v
-			h.header, h.rule = " Harm |", "---|"
+			h.header, h.rule = tr(" Harm |"), "---|"
 		}
 	}
 	return h
@@ -487,7 +487,7 @@ func (h harmCol) cell(id string) string {
 // suiteRuns says which tests a suite runs.
 func suiteRuns(s *yaml.Node) string {
 	if names := strs(s, "designTests"); len(names) > 0 {
-		return "design tests " + strings.Join(names, ", ")
+		return tr("design tests ") + strings.Join(names, ", ")
 	}
 	var of []string
 	for _, subj := range items(s, "designTestsOf") {
@@ -496,9 +496,9 @@ func suiteRuns(s *yaml.Node) string {
 		}
 	}
 	if len(of) > 0 {
-		return "every design test of " + strings.Join(of, ", ")
+		return tr("every design test of ") + strings.Join(of, ", ")
 	}
-	return "tests of this implementation only"
+	return tr("tests of this implementation only")
 }
 
 // Traceability writes the traceability matrix from needs through
@@ -553,20 +553,20 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 	}
 	gaps := len(unrefined) + len(noAcceptance) + len(unsatisfied) + len(unverified)
 
-	d.line("# %s: traceability matrix", str(info, "title"))
+	d.line(tr("# %s: traceability matrix"), str(info, "title"))
 	d.blank()
-	summary := fmt.Sprintf("Version %s of the specification: %s, %s, and %s.", str(info, "version"),
-		countText(len(needs), "need", "needs"), countText(len(reqs), "requirement", "requirements"), countText(gaps, "gap", "gaps"))
-	summary += " Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks"
+	summary := fmt.Sprintf(tr("Version %s of the specification: %s, %s, and %s."), str(info, "version"),
+		countText(len(needs), tr("need"), tr("needs")), countText(len(reqs), tr("requirement"), tr("requirements")), countText(gaps, tr("gap"), tr("gaps")))
+	summary += tr(" Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks")
 	if len(held) > 0 {
-		summary += fmt.Sprintf("; %s held elsewhere, fulfilled by another stakeholder's component", countText(len(held), "requirement is", "requirements are"))
+		summary += fmt.Sprintf(tr("; %s held elsewhere, fulfilled by another stakeholder's component"), countText(len(held), tr("requirement is"), tr("requirements are")))
 	}
 	d.para(summary + ".")
 	d.draftNotice("traceability")
 
 	if len(needs) > 0 {
-		d.section("Needs to requirements")
-		d.line("| Need | Status | Refined by |")
+		d.section(tr("Needs to requirements"))
+		d.line(tr("| Need | Status | Refined by |"))
 		d.line("|---|---|---|")
 		for _, n := range needs {
 			d.line("| %s | %s | %s |", markInternal(n.Key.Value, n.Value), cell(str(n.Value, "status")), cell(strings.Join(refinedBy[n.Key.Value], ", ")))
@@ -574,9 +574,9 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 		d.blank()
 	}
 
-	d.section("Requirements to design and verification")
+	d.section(tr("Requirements to design and verification"))
 	harm := harmColumn(reqs)
-	d.line("| Requirement |%s Needs | Satisfied by | Verified by |", harm.header)
+	d.line(tr("| Requirement |%s Needs | Satisfied by | Verified by |"), harm.header)
 	d.line("|---|%s---|---|---|", harm.rule)
 	ids := map[string]bool{}
 	reqNode := map[string]*yaml.Node{}
@@ -599,9 +599,9 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 	d.blank()
 
 	if len(held) > 0 {
-		d.section("Requirements held elsewhere")
-		d.para("The promises another stakeholder's component keeps: nothing in this specification satisfies or verifies them, so they are no gap here.")
-		d.line("| Requirement | Needs | Owned by | Fulfilled by |")
+		d.section(tr("Requirements held elsewhere"))
+		d.para(tr("The promises another stakeholder's component keeps: nothing in this specification satisfies or verifies them, so they are no gap here."))
+		d.line(tr("| Requirement | Needs | Owned by | Fulfilled by |"))
 		d.line("|---|---|---|---|")
 		for _, r := range held {
 			d.line("| %s | %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(strings.Join(strs(r.Value, "needs"), ", ")), cell(str(r.Value, "ownedBy")), cell(str(r.Value, "fulfilledBy")))
@@ -609,23 +609,23 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 		d.blank()
 	}
 
-	d.section("Gaps")
+	d.section(tr("Gaps"))
 	if gaps == 0 {
-		d.para("None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors.")
+		d.para(tr("None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors."))
 	} else {
-		leftOut := "Rejected needs and rejected or retired requirements are left out."
+		leftOut := tr("Rejected needs and rejected or retired requirements are left out.")
 		if len(held) > 0 {
-			leftOut = "Rejected needs, rejected or retired requirements and the satisfaction and verification of the requirements held elsewhere are left out."
+			leftOut = tr("Rejected needs, rejected or retired requirements and the satisfaction and verification of the requirements held elsewhere are left out.")
 		}
-		d.para("The work the specification still owes, the same gaps the validator warns about. " + leftOut)
+		d.para(tr("The work the specification still owes, the same gaps the validator warns about. ") + leftOut)
 		for _, g := range []struct {
 			ids  []string
 			what string
 		}{
-			{unrefined, "Needs no requirement refines"},
-			{noAcceptance, "Requirements without acceptance criteria"},
-			{unsatisfied, "Requirements no design element satisfies"},
-			{unverified, "Requirements no test, check or monitor verifies"},
+			{unrefined, tr("Needs no requirement refines")},
+			{noAcceptance, tr("Requirements without acceptance criteria")},
+			{unsatisfied, tr("Requirements no design element satisfies")},
+			{unverified, tr("Requirements no test, check or monitor verifies")},
 		} {
 			if len(g.ids) > 0 {
 				d.line("- %s: %s.", g.what, strings.Join(g.ids, ", "))
@@ -645,26 +645,26 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 	info := get(root, "info")
 	envs := pairs(root, "environments")
 	cfg := pairs(root, "configuration")
-	d.line("# %s: deployment guide", str(info, "title"))
+	d.line(tr("# %s: deployment guide"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s. Secrets are named here with where their value comes from, never with a value.",
-		str(info, "version"), countText(len(envs), "environment", "environments"), countText(len(cfg), "setting", "settings"), countText(len(pairs(root, "migrations")), "migration", "migrations")))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s, %s and %s. Secrets are named here with where their value comes from, never with a value."),
+		str(info, "version"), countText(len(envs), tr("environment"), tr("environments")), countText(len(cfg), tr("setting"), tr("settings")), countText(len(pairs(root, "migrations")), tr("migration"), tr("migrations"))))
 	d.draftNotice("deployment")
 
 	if len(envs) > 0 {
-		d.section("Environments")
+		d.section(tr("Environments"))
 		if path := promotionPath(envs); path != "" {
-			d.para("A release goes " + path + ".")
+			d.para(tr("A release goes ") + path + ".")
 		}
 		environmentsTable(d, envs)
 		if names := customerRun(envs); len(names) > 0 {
-			d.para(fmt.Sprintf("The customer builds, installs and runs %s from the source; what the customer receives is in the handover document.", strings.Join(names, " and ")))
+			d.para(fmt.Sprintf(tr("The customer builds, installs and runs %s from the source; what the customer receives is in the handover document."), strings.Join(names, tr(" and "))))
 		}
 	}
 
 	if len(cfg) > 0 {
-		d.section("Configuration")
-		d.line("| Setting | Type | Secret | Description |")
+		d.section(tr("Configuration"))
+		d.line(tr("| Setting | Type | Secret | Description |"))
 		d.line("|---|---|---|---|")
 		for _, c := range cfg {
 			secret := ""
@@ -682,21 +682,21 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 		if len(deps) == 0 {
 			continue
 		}
-		d.section("Installations: " + str(get(i.Node, "info"), "title"))
+		d.section(tr("Installations: ") + str(get(i.Node, "info"), "title"))
 		for _, dep := range deps {
 			d.heading(3, dep.Key.Value)
 			line := strings.TrimSpace(str(dep.Value, "description"))
 			byCustomer := false
 			if e := str(dep.Value, "environment"); e != "" {
-				line += " Environment: " + e + "."
+				line += tr(" Environment: ") + e + "."
 				byCustomer = str(get(get(root, "environments"), e), "runBy") == "customer"
 			}
 			if byCustomer {
-				line += " Run by the customer, who builds and installs it from the source; the handover document says what they receive."
+				line += tr(" Run by the customer, who builds and installs it from the source; the handover document says what they receive.")
 			}
 			d.para(line)
 			if servers := items(dep.Value, "servers"); len(servers) > 0 {
-				d.line("| Server | Description |")
+				d.line(tr("| Server | Description |"))
 				d.line("|---|---|")
 				for _, s := range servers {
 					d.line("| %s | %s |", cell(str(s, "url")), cell(str(s, "description")))
@@ -712,15 +712,15 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 				for _, v := range values {
 					given[v.Key.Value] = v.Value.Value
 				}
-				d.line("| Setting | Value |")
+				d.line(tr("| Setting | Value |"))
 				d.line("|---|---|")
 				for _, c := range cfg {
 					v := given[c.Key.Value]
 					switch {
 					case str(c.Value, "secret") == "true":
-						v = "a secret; its description says where the value comes from"
+						v = tr("a secret; its description says where the value comes from")
 					case v == "":
-						v = "not set"
+						v = tr("not set")
 					}
 					d.line("| %s | %s |", c.Key.Value, cell(v))
 				}
@@ -732,13 +732,13 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 	}
 
 	if release := get(root, "release"); release != nil {
-		d.section("Release")
+		d.section(tr("Release"))
 		d.para(str(release, "description"))
 		d.explain(release)
 		stepsTable(d, get(release, "steps"))
 	}
 	if rollback := get(root, "rollback"); rollback != nil {
-		d.section("Rollback")
+		d.section(tr("Rollback"))
 		d.para(str(rollback, "description"))
 		d.explain(rollback)
 		stepsTable(d, get(rollback, "steps"))
@@ -752,29 +752,29 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 		}
 	}
 	if h := get(root, "handover"); h != nil {
-		d.section("Handover")
+		d.section(tr("Handover"))
 		handoverText(d, root, h)
 	}
 	if mons := pairs(root, "monitors"); len(mons) > 0 {
-		d.section("Monitors")
+		d.section(tr("Monitors"))
 		monitorsTable(d, mons)
 	}
 	if migs := pairs(root, "migrations"); len(migs) > 0 {
-		d.section("Migrations")
+		d.section(tr("Migrations"))
 		for _, m := range migs {
 			d.heading(3, m.Key.Value)
 			d.para(str(m.Value, "description"))
 			d.explain(m.Value)
 			stepsTable(d, get(m.Value, "steps"))
 			if rb := get(m.Value, "rollback"); rb != nil {
-				d.para("Reversed by:")
+				d.para(tr("Reversed by:"))
 				stepsTable(d, rb)
 			} else {
-				d.para("This migration cannot be reversed.")
+				d.para(tr("This migration cannot be reversed."))
 			}
 		}
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -799,7 +799,7 @@ func promotionPath(envs []sourcePair) string {
 			path = append(path, cur)
 			seen[cur] = true
 		}
-		return "to " + strings.Join(path, ", then ")
+		return tr("to ") + strings.Join(path, tr(", then "))
 	}
 	return ""
 }
@@ -811,16 +811,16 @@ func Commissioning(root *yaml.Node, relRoot string, impls []Implementation, stat
 	d := newDoc("commissioning", root, relRoot, impls, state)
 	info := get(root, "info")
 	checks := pairs(root, "checks")
-	d.line("# %s: commissioning procedure", str(info, "title"))
+	d.line(tr("# %s: commissioning procedure"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s run on the installed system before it is handed over, and the sign-off sheet. Fill in the Result column as each step is run; the filled-in run is kept as a record under `records/commissioning/`, beside the specification, not in it.",
-		str(info, "version"), countText(len(checks), "check", "checks")))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s run on the installed system before it is handed over, and the sign-off sheet. Fill in the Result column as each step is run; the filled-in run is kept as a record under `records/commissioning/`, beside the specification, not in it."),
+		str(info, "version"), countText(len(checks), tr("check"), tr("checks"))))
 	d.draftNotice("commissioning")
 
 	envOrder := []string{}
 	envs := pairs(root, "environments")
 	if path := promotionPath(envs); path != "" {
-		envOrder = strings.Split(strings.TrimPrefix(path, "to "), ", then ")
+		envOrder = strings.Split(strings.TrimPrefix(path, tr("to ")), tr(", then "))
 	}
 	for _, e := range envs {
 		if !contains(envOrder, e.Key.Value) {
@@ -842,19 +842,19 @@ func Commissioning(root *yaml.Node, relRoot string, impls []Implementation, stat
 		}
 		title := env
 		if title == "" {
-			title = "any environment"
+			title = tr("any environment")
 		}
-		d.section("Checks in " + title)
+		d.section(tr("Checks in ") + title)
 		for _, c := range list {
 			d.heading(3, fmt.Sprintf("%s (%s)", c.Key.Value, str(c.Value, "kind")))
 			d.para(str(c.Value, "description"))
 			if v := strs(c.Value, "verifies"); len(v) > 0 {
-				d.para("Verifies " + strings.Join(v, ", ") + ".")
+				d.para(tr("Verifies ") + strings.Join(v, ", ") + ".")
 			}
 			d.explain(c.Value)
 			steps := itemsOf(get(c.Value, "steps"))
 			if len(steps) > 0 {
-				d.line("| Step | Action | Expected | Result |")
+				d.line(tr("| Step | Action | Expected | Result |"))
 				d.line("|---|---|---|---|")
 				for i, s := range steps {
 					d.line("| %d. %s | %s | %s | %s |", i+1, cell(str(s, "name")), cell(str(s, "action")), cell(str(s, "check")), cell(""))
@@ -866,22 +866,22 @@ func Commissioning(root *yaml.Node, relRoot string, impls []Implementation, stat
 	}
 
 	if signoff := get(root, "signoff"); signoff != nil {
-		d.section("Sign-off sheet")
-		d.line("| Run | Entry |")
+		d.section(tr("Sign-off sheet"))
+		d.line(tr("| Run | Entry |"))
 		d.line("|---|---|")
-		d.line("| Specification version | %s |", str(info, "version"))
-		d.line("| Build | %s |", cell(""))
-		d.line("| Environment | %s |", cell(""))
-		d.line("| Date | %s |", cell(""))
+		d.line(tr("| Specification version | %s |"), str(info, "version"))
+		d.line(tr("| Build | %s |"), cell(""))
+		d.line(tr("| Environment | %s |"), cell(""))
+		d.line(tr("| Date | %s |"), cell(""))
 		d.blank()
-		d.para("The system is accepted when every criterion is met:")
-		d.line("| Criterion | Met |")
+		d.para(tr("The system is accepted when every criterion is met:"))
+		d.line(tr("| Criterion | Met |"))
 		d.line("|---|---|")
 		for _, c := range strs(signoff, "criteria") {
 			d.line("| %s | %s |", cell(c), cell(""))
 		}
 		d.blank()
-		d.line("| Role | Description | Name | Signature | Date |")
+		d.line(tr("| Role | Description | Name | Signature | Date |"))
 		d.line("|---|---|---|---|---|")
 		for _, s := range items(signoff, "signers") {
 			d.line("| %s | %s | %s | %s | %s |", str(s, "role"), cell(str(s, "description")), cell(""), cell(""), cell(""))
@@ -889,7 +889,7 @@ func Commissioning(root *yaml.Node, relRoot string, impls []Implementation, stat
 		d.blank()
 		d.explain(signoff)
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }
 
@@ -924,10 +924,10 @@ func stateMachines(d *doc, root *yaml.Node, state *State) {
 	if len(entities) == 0 {
 		return
 	}
-	d.section("State machines")
-	d.para("Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm.")
+	d.section(tr("State machines"))
+	d.para(tr("Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm."))
 	for _, e := range entities {
-		d.heading(3, "States of "+e)
+		d.heading(3, tr("States of ")+e)
 		diagram, _ := stateDiagram(root, e)
 		d.block(diagram)
 		var paths []string
@@ -935,10 +935,10 @@ func stateMachines(d *doc, root *yaml.Node, state *State) {
 			paths = state.StatePaths[e]
 		}
 		if len(paths) == 0 {
-			d.para("It has no path from an initial to a terminal state.")
+			d.para(tr("It has no path from an initial to a terminal state."))
 			continue
 		}
-		d.line("| Path | Tests |")
+		d.line(tr("| Path | Tests |"))
 		d.line("|---|---|")
 		for _, p := range paths {
 			var tests []string

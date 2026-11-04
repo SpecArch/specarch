@@ -77,7 +77,7 @@ standardOutput: |
         Compare two versions of a specification and check the release between
         them.
     specarch document <target> [--out <out>] [--check] [--audience <audience>]
-      [--dry-run] <paths>...
+      [--language <language>] [--dry-run] <paths>...
         Write a document from a specification.
     specarch extract <source> --out <out> [--implementation <implementation>]
       [--facts <facts>] [--routes <routes>] [--language <language>]

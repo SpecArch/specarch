@@ -30,7 +30,8 @@ writes documents from it:
   produced and which outputs can be made now.
 - `specarch document <target>` writes what a person reads: the problems,
   the questions, the requirements, the technical specification and an
-  HTML site.
+  HTML site, in English or, with `--language id --out <folder>`, in
+  Indonesian ([`docs/languages.md`](docs/languages.md)).
 - `specarch decide` records a person's answer to a question as a decision
   record, removes the question and prints the entries to write from the
   answer.

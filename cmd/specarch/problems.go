@@ -114,7 +114,7 @@ func runProblems(paths []string, out string, check bool, w *disk.Writer, stdout,
 			version = source.Str(source.Child(info, "version"))
 		}
 		plan = append(plan,
-			planned{path: filepath.Join(folder, problems.TextName), content: problems.Text(name, version, relSlash(folder, s.RootFile), ps)},
+			planned{path: filepath.Join(folder, problems.TextName), content: problems.Text(generate.ProblemsHeadline(name, version, problems.Count(ps)), relSlash(folder, s.RootFile), ps)},
 			planned{path: filepath.Join(folder, problems.SARIFName), content: problems.SARIF(name, version, relSlash(folder, s.RootFile), ps)})
 	}
 	if len(plan) == 0 && skipped > 0 {

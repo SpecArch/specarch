@@ -773,3 +773,16 @@ requirements:
     verification: test
     needs: [NEED-2]
     why: A project that avoids a JavaScript build chain wrote its pages and the data files that mirror the specification's menus, pages and operations by hand, so every change was made twice, and no generator wrote for that stack (ADR-218).
+  SA-134:
+    statement: specarch document shall write every document target in English or in Indonesian, named with --language en or id, keeping the technical terms practitioners say in English, with English the default.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - document --language id --out <folder> writes each document target in Indonesian, every text the documents write given by the Indonesian catalog, and every link to a heading of the same document reaching one; without --language, or with --language en, the documents are the English ones, byte for byte.
+      - The specification's own words, the validator's and the approval's messages, the problem lines of problems.txt and problems.sarif, the generated-file header, the Mermaid keywords and the element names are written as they are in every language.
+      - document --language with a tag other than en or id, or with a tag other than en and no --out, is refused with exit 2, naming the languages written and, for the second, that the folder the implementation files name holds the English documents approve compares.
+      - A document in another language writes no region of specarch.md.
+    verification: test
+    needs: [NEED-3]
+    why: Teams that deliver to Indonesian customers hand them documents in Indonesian, and translating a generated document by hand loses the next regeneration; the catalog makes the translation part of the program.

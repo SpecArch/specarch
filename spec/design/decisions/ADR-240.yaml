@@ -46,5 +46,5 @@ decisions:
       The Indonesian conformance case gives the counts, priorities,
       fields, sensitivities and questions of the German one. The
       questions and lines extract writes stay in English; the documents
-      are written in Indonesian by document --language id.
+      are written in Indonesian by document --language id (ADR-241).
     satisfies: [SA-64]

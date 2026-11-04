@@ -39,10 +39,10 @@ func environmentsTable(d *doc, envs []sourcePair) {
 		}
 	}
 	if anyRunBy {
-		d.line("| Environment | Purpose | Run by | Promotes to |")
+		d.line(tr("| Environment | Purpose | Run by | Promotes to |"))
 		d.line("|---|---|---|---|")
 	} else {
-		d.line("| Environment | Purpose | Promotes to |")
+		d.line(tr("| Environment | Purpose | Promotes to |"))
 		d.line("|---|---|---|")
 	}
 	for _, e := range envs {
@@ -77,10 +77,10 @@ func handoverText(d *doc, root, h *yaml.Node) {
 	if desc := str(get(get(root, "stakeholders"), to), "description"); desc != "" {
 		who = to + ": " + strings.TrimSpace(desc)
 	}
-	d.para("Received by " + who)
-	d.para("The source: " + strings.TrimSpace(sourceDelivery(h)))
+	d.para(tr("Received by ") + who)
+	d.para(tr("The source: ") + strings.TrimSpace(sourceDelivery(h)))
 	resp := get(h, "responsibilities")
-	for _, side := range [][2]string{{"customer", "The customer is responsible for:"}, {"vendor", "The vendor stays responsible for:"}} {
+	for _, side := range [][2]string{{"customer", tr("The customer is responsible for:")}, {"vendor", tr("The vendor stays responsible for:")}} {
 		if list := strs(resp, side[0]); len(list) > 0 {
 			d.para(side[1])
 			for _, s := range list {
@@ -110,13 +110,13 @@ func buildDetails(d *doc, impl, build *yaml.Node, level int) {
 		return
 	}
 	d.para(str(build, "description"))
-	d.para(fmt.Sprintf("Build command: %s (the task %s).", taskCommand(impl, str(build, "task")), str(build, "task")))
+	d.para(fmt.Sprintf(tr("Build command: %s (the task %s)."), taskCommand(impl, str(build, "task")), str(build, "task")))
 	if images := items(build, "baseImages"); len(images) > 0 {
 		if level > 0 {
-			d.heading(level, "Base images")
+			d.heading(level, tr("Base images"))
 		}
-		d.para("Every image the build starts from, pinned by its digest; a build from another digest is a different build.")
-		d.line("| Image | Digest | Purpose |")
+		d.para(tr("Every image the build starts from, pinned by its digest; a build from another digest is a different build."))
+		d.line(tr("| Image | Digest | Purpose |"))
 		d.line("|---|---|---|")
 		for _, im := range images {
 			d.line("| %s | %s | %s |", cell(str(im, "name")), cell(str(im, "digest")), cell(str(im, "purpose")))
@@ -125,15 +125,15 @@ func buildDetails(d *doc, impl, build *yaml.Node, level int) {
 	}
 	if r := strings.TrimSpace(str(build, "reproducible")); r != "" {
 		if level > 0 {
-			d.heading(level, "Comparing a build with the vendor's")
+			d.heading(level, tr("Comparing a build with the vendor's"))
 		}
 		d.para(r)
 	}
 	if sbom := str(build, "sbom"); sbom != "" {
 		if level > 0 {
-			d.heading(level, "Software bill of materials")
+			d.heading(level, tr("Software bill of materials"))
 		}
-		d.para(fmt.Sprintf("The software bill of materials of the build, and its scan for known vulnerabilities, are written by %s (the task %s); the customer runs it on their build and compares the result with the vendor's.", taskCommand(impl, sbom), sbom))
+		d.para(fmt.Sprintf(tr("The software bill of materials of the build, and its scan for known vulnerabilities, are written by %s (the task %s); the customer runs it on their build and compares the result with the vendor's."), taskCommand(impl, sbom), sbom))
 	}
 }
 
@@ -142,9 +142,9 @@ func methodPara(d *doc, method *yaml.Node) {
 	if method == nil {
 		return
 	}
-	line := "Installed with " + str(method, "tool")
+	line := tr("Installed with ") + str(method, "tool")
 	if f := str(method, "files"); f != "" {
-		line += ", from " + f
+		line += tr(", from ") + f
 	}
 	line += "."
 	if desc := strings.TrimSpace(str(method, "description")); desc != "" {
@@ -158,7 +158,7 @@ func infrastructureTable(d *doc, infra *yaml.Node) {
 	if infra == nil {
 		return
 	}
-	d.line("| Resource | What the hosts must provide |")
+	d.line(tr("| Resource | What the hosts must provide |"))
 	d.line("|---|---|")
 	for _, k := range infrastructureKeys {
 		if v := str(infra, k[0]); v != "" {
@@ -260,65 +260,65 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		}
 	}
 
-	d.line("# %s: handover", str(info, "title"))
+	d.line(tr("# %s: handover"), str(info, "title"))
 	d.blank()
-	summary := fmt.Sprintf("Version %s of %s.", str(info, "version"), str(info, "title"))
+	summary := fmt.Sprintf(tr("Version %s of %s."), str(info, "version"), str(info, "title"))
 	if len(names) > 0 {
-		summary += fmt.Sprintf(" The customer builds, installs and runs %s from the source.", strings.Join(names, " and "))
+		summary += fmt.Sprintf(tr(" The customer builds, installs and runs %s from the source."), strings.Join(names, tr(" and ")))
 	}
-	summary += " This document says what the customer receives, what stays whose responsibility, how a release is built and installed, what the hosts must provide, and how the installed system is checked and accepted. It is written for the customer's engineers and needs nothing else to be read."
+	summary += tr(" This document says what the customer receives, what stays whose responsibility, how a release is built and installed, what the hosts must provide, and how the installed system is checked and accepted. It is written for the customer's engineers and needs nothing else to be read.")
 	d.para(summary)
 	d.draftNotice("handover")
 	d.para(str(h, "description"))
 	d.explain(h)
 
-	d.section("What the customer receives")
+	d.section(tr("What the customer receives"))
 	to := str(h, "to")
 	who := to + "."
 	if desc := str(get(get(root, "stakeholders"), to), "description"); desc != "" {
 		who = to + ": " + strings.TrimSpace(desc)
 	}
-	d.para("The handover goes to " + who + " It holds:")
-	d.line("- The source of each release: %s", strings.TrimSpace(sourceDelivery(h)))
+	d.para(tr("The handover goes to ") + who + tr(" It holds:"))
+	d.line(tr("- The source of each release: %s"), strings.TrimSpace(sourceDelivery(h)))
 	if hasBuild {
-		d.line("- How a release is built, with the exact toolchain, the base images and how a build is compared with the vendor's (Building a release).")
+		d.line(tr("- How a release is built, with the exact toolchain, the base images and how a build is compared with the vendor's (Building a release)."))
 	}
 	if hasSBOM {
-		d.line("- The software bill of materials of each release and its vulnerability scan (Building a release).")
+		d.line(tr("- The software bill of materials of each release and its vulnerability scan (Building a release)."))
 	}
 	if hasLibraries {
-		d.line("- Every dependency with its version and licence (Building a release).")
+		d.line(tr("- Every dependency with its version and licence (Building a release)."))
 	}
 	if hasHosts {
-		d.line("- What the hosts must provide (What the hosts must provide).")
+		d.line(tr("- What the hosts must provide (What the hosts must provide)."))
 	}
 	if len(cfg) > 0 {
-		d.line("- Every setting with its type, and where a secret's value comes from (Configuration).")
+		d.line(tr("- Every setting with its type, and where a secret's value comes from (Configuration)."))
 	}
 	if len(migs) > 0 {
-		d.line("- The data migrations, in the order they are applied (Data migrations).")
+		d.line(tr("- The data migrations, in the order they are applied (Data migrations)."))
 	}
 	if release != nil || rollback != nil {
-		d.line("- How a release is installed and rolled back (Installing a release, Rolling back).")
+		d.line(tr("- How a release is installed and rolled back (Installing a release, Rolling back)."))
 	}
 	if backup != nil || restore != nil {
-		d.line("- How the data is backed up and restored (Backing up, Restoring).")
+		d.line(tr("- How the data is backed up and restored (Backing up, Restoring)."))
 	}
 	if len(mons) > 0 {
-		d.line("- What is watched on the live system (Monitoring).")
+		d.line(tr("- What is watched on the live system (Monitoring)."))
 	}
 	if len(checks) > 0 || len(acceptance) > 0 {
-		d.line("- The checks to run after installing, and the acceptance tests (Checks after installing, Acceptance tests).")
+		d.line(tr("- The checks to run after installing, and the acceptance tests (Checks after installing, Acceptance tests)."))
 	}
 	if signoff != nil {
-		d.line("- The sign-off sheet (Sign-off sheet).")
+		d.line(tr("- The sign-off sheet (Sign-off sheet)."))
 	}
 	d.blank()
 
 	resp := get(h, "responsibilities")
 	if resp != nil {
-		d.section("Responsibilities")
-		for _, side := range [][2]string{{"customer", "The customer is responsible for:"}, {"vendor", "The vendor stays responsible for:"}} {
+		d.section(tr("Responsibilities"))
+		for _, side := range [][2]string{{"customer", tr("The customer is responsible for:")}, {"vendor", tr("The vendor stays responsible for:")}} {
 			if list := strs(resp, side[0]); len(list) > 0 {
 				d.para(side[1])
 				for _, s := range list {
@@ -342,28 +342,28 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 			continue
 		}
 		title := str(get(impl, "info"), "title")
-		d.section("Building a release: " + title)
+		d.section(tr("Building a release: ") + title)
 		stack := get(impl, "stack")
 		var parts []string
 		if l := get(stack, "language"); l != nil {
 			parts = append(parts, fmt.Sprintf("%s %s", str(l, "name"), str(l, "version")))
 		}
 		if t := get(stack, "toolchain"); t != nil {
-			parts = append(parts, fmt.Sprintf("the toolchain %s %s", str(t, "name"), str(t, "version")))
+			parts = append(parts, fmt.Sprintf(tr("the toolchain %s %s"), str(t, "name"), str(t, "version")))
 		}
 		if p := strs(stack, "platforms"); len(p) > 0 {
-			parts = append(parts, "for "+strings.Join(p, ", "))
+			parts = append(parts, tr("for ")+strings.Join(p, ", "))
 		}
 		if len(parts) > 0 {
-			d.para("Built with " + strings.Join(parts, ", ") + ". The versions are exact: a build with another version is a different build.")
+			d.para(tr("Built with ") + strings.Join(parts, ", ") + tr(". The versions are exact: a build with another version is a different build."))
 		}
 		if build != nil {
-			d.heading(3, "Build")
+			d.heading(3, tr("Build"))
 			buildDetails(d, impl, build, 3)
 		}
 		if len(libs) > 0 {
-			d.heading(3, "Dependencies and their licences")
-			d.line("| Library | Version | Licence | Purpose |")
+			d.heading(3, tr("Dependencies and their licences"))
+			d.line(tr("| Library | Version | Licence | Purpose |"))
 			d.line("|---|---|---|---|")
 			for _, l := range libs {
 				purpose := str(l.Value, "purpose")
@@ -378,7 +378,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if hasHosts {
-		d.section("What the hosts must provide")
+		d.section(tr("What the hosts must provide"))
 		for _, in := range installs {
 			for _, dep := range in.deps {
 				if !hostNeeds(dep.Value) {
@@ -388,7 +388,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 				d.marksAt(dep.Key.Value, dep.Value)
 				line := strings.TrimSpace(str(dep.Value, "description"))
 				if e := str(dep.Value, "environment"); e != "" {
-					line += " Environment: " + e + "."
+					line += tr(" Environment: ") + e + "."
 				}
 				d.para(line)
 				// The links and listens come first, what the keys say, and
@@ -401,7 +401,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 				}
 				infrastructureTable(d, get(dep.Value, "infrastructure"))
 				if servers := items(dep.Value, "servers"); len(servers) > 0 {
-					d.line("| Server | Description |")
+					d.line(tr("| Server | Description |"))
 					d.line("|---|---|")
 					for _, s := range servers {
 						d.line("| %s | %s |", cell(str(s, "url")), cell(str(s, "description")))
@@ -413,9 +413,9 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if len(cfg) > 0 {
-		d.section("Configuration")
-		d.para("Every setting the system reads at run time. A secret's value is never written here or in any document; its description says where the value comes from.")
-		d.line("| Setting | Type | Secret | Description |")
+		d.section(tr("Configuration"))
+		d.para(tr("Every setting the system reads at run time. A secret's value is never written here or in any document; its description says where the value comes from."))
+		d.line(tr("| Setting | Type | Secret | Description |"))
 		d.line("|---|---|---|---|")
 		for _, c := range cfg {
 			secret := ""
@@ -432,8 +432,8 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 				if len(values) == 0 {
 					continue
 				}
-				d.para(fmt.Sprintf("Values the vendor gives for %s (%s):", dep.Key.Value, str(get(in.impl.Node, "info"), "title")))
-				d.line("| Setting | Value |")
+				d.para(fmt.Sprintf(tr("Values the vendor gives for %s (%s):"), dep.Key.Value, str(get(in.impl.Node, "info"), "title")))
+				d.line(tr("| Setting | Value |"))
 				d.line("|---|---|")
 				for _, v := range values {
 					d.line("| %s | %s |", v.Key.Value, cell(v.Value.Value))
@@ -444,31 +444,31 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if len(migs) > 0 {
-		d.section("Data migrations")
-		d.para("Applied in this order, each before the release that carries it is installed.")
+		d.section(tr("Data migrations"))
+		d.para(tr("Applied in this order, each before the release that carries it is installed."))
 		for _, m := range migs {
 			d.heading(3, m.Key.Value)
 			d.para(str(m.Value, "description"))
 			d.explain(m.Value)
 			stepsTable(d, get(m.Value, "steps"))
 			if rb := get(m.Value, "rollback"); rb != nil {
-				d.para("Reversed by:")
+				d.para(tr("Reversed by:"))
 				stepsTable(d, rb)
 			} else {
-				d.para("This migration cannot be reversed.")
+				d.para(tr("This migration cannot be reversed."))
 			}
 		}
 	}
 
 	if release != nil {
-		d.section("Installing a release")
+		d.section(tr("Installing a release"))
 		d.para(str(release, "description"))
 		d.explain(release)
 		stepsTable(d, get(release, "steps"))
 		for _, in := range installs {
 			for _, dep := range in.deps {
 				if m := get(dep.Value, "method"); m != nil {
-					d.para(fmt.Sprintf("How the vendor installs %s (%s):", dep.Key.Value, str(get(in.impl.Node, "info"), "title")))
+					d.para(fmt.Sprintf(tr("How the vendor installs %s (%s):"), dep.Key.Value, str(get(in.impl.Node, "info"), "title")))
 					methodPara(d, m)
 				}
 			}
@@ -477,7 +477,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	for _, p := range []struct {
 		node  *yaml.Node
 		title string
-	}{{rollback, "Rolling back"}, {backup, "Backing up"}, {restore, "Restoring"}} {
+	}{{rollback, tr("Rolling back")}, {backup, tr("Backing up")}, {restore, "Restoring"}} {
 		if p.node != nil {
 			d.section(p.title)
 			d.para(str(p.node, "description"))
@@ -487,12 +487,12 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if len(mons) > 0 {
-		d.section("Monitoring")
+		d.section(tr("Monitoring"))
 		monitorsTable(d, mons)
 		for _, in := range installs {
 			for _, dep := range in.deps {
 				if len(pairs(dep.Value, "monitors")) > 0 {
-					d.para(fmt.Sprintf("How the vendor watches them in %s (%s):", dep.Key.Value, str(get(in.impl.Node, "info"), "title")))
+					d.para(fmt.Sprintf(tr("How the vendor watches them in %s (%s):"), dep.Key.Value, str(get(in.impl.Node, "info"), "title")))
 					deploymentMonitors(d, dep.Value)
 				}
 			}
@@ -500,18 +500,18 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if len(checks) > 0 {
-		d.section("Checks after installing")
-		d.para("Run on the installed system before it is accepted. Fill in the Result column as each step is run, and keep the filled-in run.")
+		d.section(tr("Checks after installing"))
+		d.para(tr("Run on the installed system before it is accepted. Fill in the Result column as each step is run, and keep the filled-in run."))
 		for _, c := range checks {
-			d.heading(3, fmt.Sprintf("%s (%s, in %s)", c.Key.Value, str(c.Value, "kind"), str(c.Value, "environment")))
+			d.heading(3, fmt.Sprintf(tr("%s (%s, in %s)"), c.Key.Value, str(c.Value, "kind"), str(c.Value, "environment")))
 			d.para(str(c.Value, "description"))
 			if v := strs(c.Value, "verifies"); len(v) > 0 {
-				d.para("Verifies " + strings.Join(v, ", ") + ".")
+				d.para(tr("Verifies ") + strings.Join(v, ", ") + ".")
 			}
 			d.explain(c.Value)
 			steps := itemsOf(get(c.Value, "steps"))
 			if len(steps) > 0 {
-				d.line("| Step | Action | Expected | Result |")
+				d.line(tr("| Step | Action | Expected | Result |"))
 				d.line("|---|---|---|---|")
 				for i, s := range steps {
 					d.line("| %d. %s | %s | %s | %s |", i+1, cell(str(s, "name")), cell(str(s, "action")), cell(str(s, "check")), cell(""))
@@ -523,40 +523,40 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 	}
 
 	if len(acceptance) > 0 {
-		d.section("Acceptance tests")
-		d.para("What the installed system must do for the people who use it, each as a scenario to run by hand or through the implementation's acceptance suite. A golden scenario succeeds; a red one is refused.")
+		d.section(tr("Acceptance tests"))
+		d.para(tr("What the installed system must do for the people who use it, each as a scenario to run by hand or through the implementation's acceptance suite. A golden scenario succeeds; a red one is refused."))
 		for _, t := range acceptance {
 			d.heading(3, t.Key.Value)
-			attrs := []string{"Scenario: " + str(t.Value, "scenario")}
+			attrs := []string{tr("Scenario: ") + str(t.Value, "scenario")}
 			if v := strs(t.Value, "verifies"); len(v) > 0 {
-				attrs = append(attrs, "verifies "+strings.Join(v, ", "))
+				attrs = append(attrs, tr("verifies ")+strings.Join(v, ", "))
 			}
 			d.para(strings.Join(attrs, "; ") + ".")
-			d.line("- Given: %s", oneParagraph(str(t.Value, "given")))
-			d.line("- When: %s", oneParagraph(str(t.Value, "when")))
-			d.line("- Then: %s", oneParagraph(str(t.Value, "then")))
+			d.line(tr("- Given: %s"), oneParagraph(str(t.Value, "given")))
+			d.line(tr("- When: %s"), oneParagraph(str(t.Value, "when")))
+			d.line(tr("- Then: %s"), oneParagraph(str(t.Value, "then")))
 			d.blank()
 			d.explain(t.Value)
 		}
 	}
 
 	if signoff != nil {
-		d.section("Sign-off sheet")
-		d.line("| Run | Entry |")
+		d.section(tr("Sign-off sheet"))
+		d.line(tr("| Run | Entry |"))
 		d.line("|---|---|")
-		d.line("| Specification version | %s |", str(info, "version"))
-		d.line("| Build | %s |", cell(""))
-		d.line("| Environment | %s |", cell(""))
-		d.line("| Date | %s |", cell(""))
+		d.line(tr("| Specification version | %s |"), str(info, "version"))
+		d.line(tr("| Build | %s |"), cell(""))
+		d.line(tr("| Environment | %s |"), cell(""))
+		d.line(tr("| Date | %s |"), cell(""))
 		d.blank()
-		d.para("The system is accepted when every criterion is met:")
-		d.line("| Criterion | Met |")
+		d.para(tr("The system is accepted when every criterion is met:"))
+		d.line(tr("| Criterion | Met |"))
 		d.line("|---|---|")
 		for _, c := range strs(signoff, "criteria") {
 			d.line("| %s | %s |", cell(c), cell(""))
 		}
 		d.blank()
-		d.line("| Role | Description | Name | Signature | Date |")
+		d.line(tr("| Role | Description | Name | Signature | Date |"))
 		d.line("|---|---|---|---|---|")
 		for _, s := range items(signoff, "signers") {
 			d.line("| %s | %s | %s | %s | %s |", str(s, "role"), cell(str(s, "description")), cell(""), cell(""), cell(""))
@@ -564,6 +564,6 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		d.blank()
 		d.explain(signoff)
 	}
-	d.sourcesIndex("Sources")
+	d.sourcesIndex(tr("Sources"))
 	return d.String()
 }

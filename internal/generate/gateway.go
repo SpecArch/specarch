@@ -12,7 +12,7 @@ import (
 // runs first, its refusals, the tests that name it, and the sequence of
 // one forwarded request.
 func gatewaySection(d *doc, root *yaml.Node, name string, g *yaml.Node) {
-	d.heading(3, "Gateway "+name)
+	d.heading(3, tr("Gateway ")+name)
 	d.para(str(g, "description"))
 	d.explain(g)
 	tokName, claim := str(g, "token"), str(g, "claim")
@@ -22,17 +22,17 @@ func gatewaySection(d *doc, root *yaml.Node, name string, g *yaml.Node) {
 		about = append(about, f)
 	}
 	if s := str(tok, "signature"); s != "" {
-		about = append(about, "signed with "+s)
+		about = append(about, tr("signed with ")+s)
 	}
 	if iss := str(get(get(tok, "claims"), "iss"), "const"); iss != "" {
-		about = append(about, "issued by "+iss)
+		about = append(about, tr("issued by ")+iss)
 	}
-	verifies := "the " + tokName + " token"
+	verifies := tr("the ") + tokName + tr(" token")
 	if len(about) > 0 {
 		verifies += " (" + strings.Join(about, ", ") + ")"
 	}
-	d.para(fmt.Sprintf("Verifies %s before it reads anything else, reads its claim %s, and forwards every request no operation of this specification answers, as received, to the service the value names. It checks no permission: the service checks its own.", verifies, claim))
-	d.line("| Value of %s | Forwarded to | Specification |", claim)
+	d.para(fmt.Sprintf(tr("Verifies %s before it reads anything else, reads its claim %s, and forwards every request no operation of this specification answers, as received, to the service the value names. It checks no permission: the service checks its own."), verifies, claim))
+	d.line(tr("| Value of %s | Forwarded to | Specification |"), claim)
 	d.line("|---|---|---|")
 	deps := get(root, "dependencies")
 	for _, row := range items(g, "forwards") {
@@ -50,20 +50,20 @@ func gatewaySection(d *doc, root *yaml.Node, name string, g *yaml.Node) {
 		for _, c := range calls {
 			parts = append(parts, callText(root, c))
 		}
-		text = append(text, "Calls "+joinAnd(parts)+".")
+		text = append(text, tr("Calls ")+joinAnd(parts)+".")
 	}
 	if get(g, "middlewares") != nil {
 		if m := strs(g, "middlewares"); len(m) > 0 {
-			text = append(text, "Runs "+joinAnd(m)+" first, in that order.")
+			text = append(text, tr("Runs ")+joinAnd(m)+tr(" first, in that order."))
 		} else {
-			text = append(text, "Runs no middleware.")
+			text = append(text, tr("Runs no middleware."))
 		}
 	}
 	if len(text) > 0 {
 		d.para(strings.Join(text, " "))
 	}
 	if refusals := items(g, "refusals"); len(refusals) > 0 {
-		d.line("| Status | Problem type | When |")
+		d.line(tr("| Status | Problem type | When |"))
 		d.line("|---|---|---|")
 		for _, r := range refusals {
 			d.line("| %s | %s | %s |", str(r, "status"), cell(str(r, "problem")), cell(str(r, "condition")))
@@ -82,7 +82,7 @@ func gatewaySection(d *doc, root *yaml.Node, name string, g *yaml.Node) {
 		tests = append(tests, line)
 	}
 	if len(tests) > 0 {
-		d.para("Tested by " + joinAnd(tests) + ".")
+		d.para(tr("Tested by ") + joinAnd(tests) + ".")
 	}
 	d.block(gatewaySequence(root, name, g))
 }
@@ -92,9 +92,9 @@ func gatewaySection(d *doc, root *yaml.Node, name string, g *yaml.Node) {
 // the service the claim names and back.
 func gatewaySequence(root *yaml.Node, name string, g *yaml.Node) string {
 	var b strings.Builder
-	b.WriteString("sequenceDiagram\n")
-	b.WriteString("  participant C as Client\n")
-	fmt.Fprintf(&b, "  participant G as Gateway %s\n", mermaidText(name))
+	b.WriteString(tr("sequenceDiagram\n"))
+	b.WriteString(tr("  participant C as Client\n"))
+	fmt.Fprintf(&b, tr("  participant G as Gateway %s\n"), mermaidText(name))
 	deps := get(root, "dependencies")
 	var keys []string
 	for _, c := range calls(g) {
@@ -103,19 +103,19 @@ func gatewaySequence(root *yaml.Node, name string, g *yaml.Node) string {
 		}
 	}
 	for i, k := range keys {
-		fmt.Fprintf(&b, "  participant I%d as %s\n", i+1, mermaidText(k))
+		fmt.Fprintf(&b, tr("  participant I%d as %s\n"), i+1, mermaidText(k))
 	}
 	claim := str(g, "claim")
-	b.WriteString("  participant S as the service the " + mermaidText(claim) + " names\n")
-	fmt.Fprintf(&b, "  C->>G: any request no operation answers, with a %s token\n", mermaidText(str(g, "token")))
+	b.WriteString(tr("  participant S as the service the ") + mermaidText(claim) + tr(" names\n"))
+	fmt.Fprintf(&b, tr("  C->>G: any request no operation answers, with a %s token\n"), mermaidText(str(g, "token")))
 	for i := range keys {
-		fmt.Fprintf(&b, "  G->>I%d: the signing keys, within %s\n", i+1, str(get(deps, keys[i]), "timeout"))
-		fmt.Fprintf(&b, "  I%d-->>G: the keys\n", i+1)
+		fmt.Fprintf(&b, tr("  G->>I%d: the signing keys, within %s\n"), i+1, str(get(deps, keys[i]), "timeout"))
+		fmt.Fprintf(&b, tr("  I%d-->>G: the keys\n"), i+1)
 	}
-	fmt.Fprintf(&b, "  G->>G: verify the token, read %s, find its forward\n", mermaidText(claim))
-	b.WriteString("  G->>S: the request as received\n")
-	b.WriteString("  S-->>G: the answer\n")
-	b.WriteString("  G-->>C: the answer as received\n")
+	fmt.Fprintf(&b, tr("  G->>G: verify the token, read %s, find its forward\n"), mermaidText(claim))
+	b.WriteString(tr("  G->>S: the request as received\n"))
+	b.WriteString(tr("  S-->>G: the answer\n"))
+	b.WriteString(tr("  G-->>C: the answer as received\n"))
 	return fence(b.String())
 }
 

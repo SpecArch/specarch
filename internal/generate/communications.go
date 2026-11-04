@@ -74,7 +74,7 @@ func formWord(w *yaml.Node) string {
 	if str(w, "form") == "verbatim" {
 		return "verbatim"
 	}
-	return "in summary"
+	return tr("in summary")
 }
 
 // attendance is who was invited, present and absent at a session, by
@@ -119,13 +119,13 @@ func linkRecords(r *yaml.Node) []string {
 func evidenceText(r *yaml.Node) string {
 	ev := items(r, "evidence")
 	if len(ev) == 0 {
-		return fmt.Sprintf("Recorded without evidence: the record holds what %s wrote down and nothing that shows it.", str(r, "recordedBy"))
+		return fmt.Sprintf(tr("Recorded without evidence: the record holds what %s wrote down and nothing that shows it."), str(r, "recordedBy"))
 	}
 	var parts []string
 	for _, e := range ev {
 		parts = append(parts, fmt.Sprintf("`%s` (%s, %s)", str(e, "path"), str(e, "mediaType"), str(e, "sha256")))
 	}
-	return "Evidence: " + strings.Join(parts, "; ") + "."
+	return tr("Evidence: ") + strings.Join(parts, "; ") + "."
 }
 
 // touches names what a record links, grouped as the record writes them.
@@ -140,20 +140,20 @@ func touches(r *yaml.Node) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	return "Touches: " + strings.Join(parts, "; ") + "."
+	return tr("Touches: ") + strings.Join(parts, "; ") + "."
 }
 
 // sessionLabel is a session's or test session's kind, title and setting.
 func sessionLabel(r *yaml.Node) string {
 	if str(r, "kind") == "test-session" {
-		return fmt.Sprintf("%s: test session “%s” (%s on %s, version %s)", str(r, "id"), str(r, "title"), str(r, "level"), str(r, "environment"), str(r, "version"))
+		return fmt.Sprintf(tr("%s: test session “%s” (%s on %s, version %s)"), str(r, "id"), str(r, "title"), str(r, "level"), str(r, "environment"), str(r, "version"))
 	}
-	return fmt.Sprintf("%s: session “%s” (%s)", str(r, "id"), str(r, "title"), str(r, "channel"))
+	return fmt.Sprintf(tr("%s: session “%s” (%s)"), str(r, "id"), str(r, "title"), str(r, "channel"))
 }
 
 // communicationLabel is a communication's type, direction and parties.
 func communicationLabel(r *yaml.Node) string {
-	return fmt.Sprintf("%s: %s from %s to %s (%s)", str(r, "id"), str(r, "type"), str(r, "from"), str(r, "to"), str(r, "channel"))
+	return fmt.Sprintf(tr("%s: %s from %s to %s (%s)"), str(r, "id"), str(r, "type"), str(r, "from"), str(r, "to"), str(r, "channel"))
 }
 
 // Communications writes the communication history from the records: every
@@ -200,18 +200,18 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 		}
 	}
 
-	d.line("# %s: communication history", str(info, "title"))
+	d.line(tr("# %s: communication history"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s, %s and %s are recorded beside it, in `records/communications/`, `records/sessions/` and `records/test-sessions/`. They come first in time order, then the history of each stakeholder and of each question, decision and element they touch. Each record says who said what to whom, when, by which channel and whether the words are verbatim or a summary; %s. People are named by role.",
-		str(info, "version"), countText(len(coms), "communication", "communications"), countText(len(sessions), "session", "sessions"), countText(len(tests), "test session", "test sessions"), evidenceCount(len(coms), withoutEvidence)))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s, %s and %s are recorded beside it, in `records/communications/`, `records/sessions/` and `records/test-sessions/`. They come first in time order, then the history of each stakeholder and of each question, decision and element they touch. Each record says who said what to whom, when, by which channel and whether the words are verbatim or a summary; %s. People are named by role."),
+		str(info, "version"), countText(len(coms), tr("communication"), tr("communications")), countText(len(sessions), tr("session"), tr("sessions")), countText(len(tests), tr("test session"), tr("test sessions")), evidenceCount(len(coms), withoutEvidence)))
 	if everyone {
-		d.para("This document is for everyone: the person labels the records carry are left out, and so is what touches an internal element.")
+		d.para(tr("This document is for everyone: the person labels the records carry are left out, and so is what touches an internal element."))
 	}
 	d.stakeholdersNotice()
 
-	d.section("In time order")
+	d.section(tr("In time order"))
 	if len(entries) == 0 {
-		d.para("Nothing is recorded.")
+		d.para(tr("Nothing is recorded."))
 	}
 	for _, e := range entries {
 		r := e.r
@@ -221,10 +221,10 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 			d.para(communicationFacts(r))
 			lines := []string{capitalise(formWord(get(r, "words"))) + ": " + quoteWords(get(r, "words"))}
 			if reply := get(r, "reply"); reply != nil {
-				lines = append(lines, fmt.Sprintf("Reply, %s: %s", formWord(reply), quoteWords(reply)))
+				lines = append(lines, fmt.Sprintf(tr("Reply, %s: %s"), formWord(reply), quoteWords(reply)))
 			}
 			if p := str(r, "person"); p != "" && !everyone {
-				lines = append(lines, "Person: "+p+".")
+				lines = append(lines, tr("Person: ")+p+".")
 			}
 			d.para(strings.Join(lines, " "))
 			d.para(evidenceText(r))
@@ -236,14 +236,14 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 				d.para(oneLine(s))
 			}
 			if ids := inSession[str(r, "id")]; len(ids) > 0 {
-				d.para("Said in it: " + strings.Join(ids, ", ") + ".")
+				d.para(tr("Said in it: ") + strings.Join(ids, ", ") + ".")
 			}
 			d.para(evidenceText(r))
 			d.para(touchesFor(r, state))
 		}
 	}
 
-	d.section("By stakeholder")
+	d.section(tr("By stakeholder"))
 	for _, p := range pairs(root, "stakeholders") {
 		role := p.Key.Value
 		d.heading(3, role)
@@ -265,7 +265,7 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 				}
 				was := "present"
 				if !contains(present, role) {
-					was = "invited, absent"
+					was = tr("invited, absent")
 				} else {
 					heard = true
 				}
@@ -273,16 +273,16 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 			}
 		}
 		if len(lines) == 0 {
-			d.para("Never heard: no communication names it, and no session lists it.")
+			d.para(tr("Never heard: no communication names it, and no session lists it."))
 			continue
 		}
 		if !heard {
-			d.para("Never heard: invited and absent every time, and no communication names it.")
+			d.para(tr("Never heard: invited and absent every time, and no communication names it."))
 		}
 		d.lines(lines)
 	}
 
-	d.section("By question, decision and element")
+	d.section(tr("By question, decision and element"))
 	byRef := map[string][]entry{}
 	for _, e := range entries {
 		for _, ref := range linkRefs(e.r) {
@@ -298,7 +298,7 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 	}
 	sort.Slice(refs, func(i, j int) bool { return refLess(refs[i], refs[j]) })
 	if len(refs) == 0 {
-		d.para("No record touches a question, a decision or an element.")
+		d.para(tr("No record touches a question, a decision or an element."))
 	}
 	for _, ref := range refs {
 		d.heading(3, refList([]string{ref}))
@@ -320,51 +320,51 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 func evidenceCount(total, without int) string {
 	switch {
 	case total == 0:
-		return "none is recorded yet"
+		return tr("none is recorded yet")
 	case without == 0:
-		return "every communication carries evidence"
+		return tr("every communication carries evidence")
 	case without == total:
-		return "none carries evidence, so each reads as what its recorder wrote down"
+		return tr("none carries evidence, so each reads as what its recorder wrote down")
 	}
 	if without == 1 {
-		return "1 communication carries no evidence and reads as what its recorder wrote down"
+		return tr("1 communication carries no evidence and reads as what its recorder wrote down")
 	}
-	return fmt.Sprintf("%d communications carry no evidence and read as what their recorder wrote down", without)
+	return fmt.Sprintf(tr("%d communications carry no evidence and read as what their recorder wrote down"), without)
 }
 
 // communicationFacts is a communication's direction, parties, channel,
 // instant, session, source and recorder in one paragraph.
 func communicationFacts(r *yaml.Node) string {
-	dir := "In, said by the stakeholder to the project"
+	dir := tr("In, said by the stakeholder to the project")
 	if str(r, "direction") == "out" {
-		dir = "Out, said by the project to the stakeholder"
+		dir = tr("Out, said by the project to the stakeholder")
 	}
-	s := fmt.Sprintf("%s: from %s to %s, by %s, at %s", dir, str(r, "from"), str(r, "to"), str(r, "channel"), str(r, "at"))
+	s := fmt.Sprintf(tr("%s: from %s to %s, by %s, at %s"), dir, str(r, "from"), str(r, "to"), str(r, "channel"), str(r, "at"))
 	if ses := str(r, "session"); ses != "" {
-		s += ", in " + ses
+		s += tr(", in ") + ses
 	}
 	if src := str(r, "source"); src != "" {
-		s += ", part of the source " + src
+		s += tr(", part of the source ") + src
 	}
-	return s + ". Recorded by " + str(r, "recordedBy") + "."
+	return s + tr(". Recorded by ") + str(r, "recordedBy") + "."
 }
 
 // sessionFacts is a session's or test session's time, attendance, result
 // and recorder in one paragraph.
 func sessionFacts(r *yaml.Node) string {
-	s := "From " + str(r, "start")
+	s := tr("From ") + str(r, "start")
 	if end := str(r, "end"); end != "" {
-		s += " to " + end
+		s += tr(" to ") + end
 	}
 	if build := str(r, "build"); build != "" {
-		s += ", build " + build
+		s += tr(", build ") + build
 	}
 	invited, present, absent := attendance(r)
-	s += fmt.Sprintf(". Invited: %s. Present: %s. Absent: %s.", listOrNone(invited), listOrNone(present), listOrNone(absent))
+	s += fmt.Sprintf(tr(". Invited: %s. Present: %s. Absent: %s."), listOrNone(invited), listOrNone(present), listOrNone(absent))
 	if res := str(r, "result"); res != "" {
-		s += " Result: " + res + "."
+		s += tr(" Result: ") + res + "."
 	}
-	return s + " Recorded by " + str(r, "recordedBy") + "."
+	return s + tr(" Recorded by ") + str(r, "recordedBy") + "."
 }
 
 func listOrNone(items []string) string {
@@ -396,7 +396,7 @@ func touchesFor(r *yaml.Node, state *State) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	return "Touches: " + strings.Join(parts, "; ") + "."
+	return tr("Touches: ") + strings.Join(parts, "; ") + "."
 }
 
 // refLess orders references: requirement IDs and record IDs by prefix and
@@ -427,25 +427,25 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 	info := get(root, "info")
 	loc := zoneOf(root)
 	events := timelineEvents(root, state, loc)
-	zone := "UTC, since the specification declares no time zone"
+	zone := tr("UTC, since the specification declares no time zone")
 	if name := str(root, "timeZone"); name != "" {
 		zone = name
 	}
 
-	d.line("# %s: timeline", str(info, "title"))
+	d.line(tr("# %s: timeline"), str(info, "title"))
 	d.blank()
-	d.para(fmt.Sprintf("Version %s of the specification: %s in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, test runs, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (%s) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release.",
-		str(info, "version"), countText(len(events), "event", "events"), zone))
+	d.para(fmt.Sprintf(tr("Version %s of the specification: %s in one time order, from the records beside it and the specification's decisions: communications, sessions, test sessions, test runs, deploys, releases, commissioning runs, incidents, defects, change requests, ideas, decisions and approvals. An event with an instant is placed at it; one with a date alone is placed at the start of that day in the specification's time zone (%s) and shown by its date; one whose record gives no date yet, such as a planned release, comes last. Then the same events by stakeholder, by requirement, decision or element, and by release."),
+		str(info, "version"), countText(len(events), tr("event"), tr("events")), zone))
 	if state.Withheld != nil {
-		d.para("This document is for everyone: what touches an internal element is left out.")
+		d.para(tr("This document is for everyone: what touches an internal element is left out."))
 	}
 	d.stakeholdersNotice()
 
-	d.section("Every event")
+	d.section(tr("Every event"))
 	if len(events) == 0 {
-		d.para("Nothing is recorded.")
+		d.para(tr("Nothing is recorded."))
 	} else {
-		d.line("| When | Event | What | Links |")
+		d.line(tr("| When | Event | What | Links |"))
 		d.line("|---|---|---|---|")
 		for _, e := range events {
 			d.line("| %s | %s | %s | %s |", cell(e.shown), cell(e.label), cell(e.what), cell(eventLinks(e, state)))
@@ -453,7 +453,7 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 		d.blank()
 	}
 
-	d.section("By stakeholder")
+	d.section(tr("By stakeholder"))
 	for _, p := range pairs(root, "stakeholders") {
 		role := p.Key.Value
 		d.heading(3, role)
@@ -464,13 +464,13 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 			}
 		}
 		if len(lines) == 0 {
-			d.para("No event names it.")
+			d.para(tr("No event names it."))
 			continue
 		}
 		d.lines(lines)
 	}
 
-	d.section("By requirement, decision and element")
+	d.section(tr("By requirement, decision and element"))
 	byRef := map[string][]event{}
 	for _, e := range events {
 		for _, ref := range e.refs {
@@ -486,7 +486,7 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 	}
 	sort.Slice(refs, func(i, j int) bool { return refLess(refs[i], refs[j]) })
 	if len(refs) == 0 {
-		d.para("No event touches a requirement, a decision or an element.")
+		d.para(tr("No event touches a requirement, a decision or an element."))
 	}
 	for _, ref := range refs {
 		d.heading(3, refList([]string{ref}))
@@ -497,7 +497,7 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 		d.lines(lines)
 	}
 
-	d.section("By release")
+	d.section(tr("By release"))
 	byVersion := map[string][]event{}
 	for _, e := range events {
 		for _, v := range e.versions {
@@ -517,7 +517,7 @@ func Timeline(root *yaml.Node, relRoot string, state *State) string {
 		return semver.Compare(a, b) < 0
 	})
 	if len(versions) == 0 {
-		d.para("No event names a release.")
+		d.para(tr("No event names a release."))
 	}
 	for _, v := range versions {
 		d.heading(3, v)
@@ -547,7 +547,7 @@ func eventLinks(e event, state *State) string {
 		parts = append(parts, strings.Join(e.records, ", "))
 	}
 	if len(e.versions) > 0 {
-		parts = append(parts, "release "+strings.Join(e.versions, ", "))
+		parts = append(parts, tr("release ")+strings.Join(e.versions, ", "))
 	}
 	return strings.Join(parts, "; ")
 }
@@ -572,9 +572,9 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 			invited, present, absent := attendance(r)
 			what := oneLine(str(r, "summary"))
 			if res := str(r, "result"); res != "" {
-				what = strings.TrimSpace("Result: " + res + ". " + what)
+				what = strings.TrimSpace(tr("Result: ") + res + ". " + what)
 			}
-			what = strings.TrimSpace(what + fmt.Sprintf(" Present: %s; absent: %s.", listOrNone(present), listOrNone(absent)))
+			what = strings.TrimSpace(what + fmt.Sprintf(tr(" Present: %s; absent: %s."), listOrNone(present), listOrNone(absent)))
 			e := event{when: placeInTime(str(r, "start"), loc), shown: str(r, "start"), kind: str(r, "kind"), id: id, label: sessionLabel(r), what: what,
 				roles: append(append([]string{}, invited...), present...), refs: linkRefs(r), records: linkRecords(r), node: r}
 			if v := str(r, "version"); v != "" {
@@ -582,20 +582,20 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 			}
 			add(e)
 		case "deploy":
-			what := "Result: " + str(r, "result") + "."
+			what := tr("Result: ") + str(r, "result") + "."
 			if n := str(r, "note"); n != "" {
 				what += " " + oneLine(n)
 			}
 			if b := str(r, "build"); b != "" {
-				what += " Build " + b + "."
+				what += tr(" Build ") + b + "."
 			}
-			add(event{when: placeInTime(str(r, "at"), loc), shown: str(r, "at"), kind: "deploy", id: id, label: fmt.Sprintf("%s: deploy of %s to %s by %s", id, str(r, "version"), str(r, "environment"), str(r, "by")), what: what,
+			add(event{when: placeInTime(str(r, "at"), loc), shown: str(r, "at"), kind: "deploy", id: id, label: fmt.Sprintf(tr("%s: deploy of %s to %s by %s"), id, str(r, "version"), str(r, "environment"), str(r, "by")), what: what,
 				roles: []string{str(r, "by")}, refs: linkRefs(r), records: linkRecords(r), versions: []string{str(r, "version")}, node: r})
 		case "test-run":
 			c := countRun(r)
-			what := fmt.Sprintf("%d passed, %d failed, %d errored, %d skipped, %d mapping to no test.", c.passed, c.failed, c.errored, c.skipped, c.unmapped)
+			what := fmt.Sprintf(tr("%d passed, %d failed, %d errored, %d skipped, %d mapping to no test."), c.passed, c.failed, c.errored, c.skipped, c.unmapped)
 			if b := str(r, "build"); b != "" {
-				what += " Build " + b + "."
+				what += tr(" Build ") + b + "."
 			}
 			var refs, recs []string
 			for _, res := range items(r, "results") {
@@ -607,7 +607,7 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 					recs = append(recs, dft)
 				}
 			}
-			e := event{when: placeInTime(str(r, "at"), loc), shown: str(r, "at"), kind: "test-run", id: id, label: fmt.Sprintf("%s: test run in %s by %s", id, str(r, "environment"), str(r, "by")), what: what,
+			e := event{when: placeInTime(str(r, "at"), loc), shown: str(r, "at"), kind: "test-run", id: id, label: fmt.Sprintf(tr("%s: test run in %s by %s"), id, str(r, "environment"), str(r, "by")), what: what,
 				roles: []string{str(r, "by")}, refs: refs, records: recs, node: r}
 			if v := str(r, "version"); v != "" {
 				e.versions = []string{v}
@@ -615,11 +615,11 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 			add(e)
 		case "release":
 			v := str(r, "version")
-			what := "Includes nothing recorded."
+			what := tr("Includes nothing recorded.")
 			if inc := strs(r, "includes"); len(inc) > 0 {
-				what = "Includes " + strings.Join(inc, ", ") + "."
+				what = tr("Includes ") + strings.Join(inc, ", ") + "."
 			}
-			add(event{when: placeInTime(str(r, "date"), loc), shown: str(r, "date"), kind: "release", id: v, label: fmt.Sprintf("release %s, %s", v, str(r, "status")), what: what,
+			add(event{when: placeInTime(str(r, "date"), loc), shown: str(r, "date"), kind: "release", id: v, label: fmt.Sprintf(tr("release %s, %s"), v, str(r, "status")), what: what,
 				records: strs(r, "includes"), versions: []string{v}, node: r})
 		case "commissioning":
 			v := str(r, "version")
@@ -631,19 +631,19 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 					failed++
 				}
 			}
-			what := fmt.Sprintf("%s passed, %s failed.", countText(passed, "check", "checks"), countText(failed, "check", "checks"))
+			what := fmt.Sprintf(tr("%s passed, %s failed."), countText(passed, tr("check"), tr("checks")), countText(failed, tr("check"), tr("checks")))
 			roles := []string{str(r, "operator")}
 			if so := get(r, "signoff"); so != nil {
-				what += fmt.Sprintf(" Signed off by %s on %s.", str(so, "by"), str(so, "date"))
+				what += fmt.Sprintf(tr(" Signed off by %s on %s."), str(so, "by"), str(so, "date"))
 				roles = append(roles, str(so, "by"))
 			}
-			add(event{when: placeInTime(str(r, "date"), loc), shown: str(r, "date"), kind: "commissioning", id: v + " " + str(r, "environment"), label: fmt.Sprintf("commissioning run of %s on %s by %s", v, str(r, "environment"), str(r, "operator")), what: what,
+			add(event{when: placeInTime(str(r, "date"), loc), shown: str(r, "date"), kind: "commissioning", id: v + " " + str(r, "environment"), label: fmt.Sprintf(tr("commissioning run of %s on %s by %s"), v, str(r, "environment"), str(r, "operator")), what: what,
 				roles: roles, versions: []string{v}, node: r})
 		case "incident":
-			add(event{when: placeInTime(str(r, "detected"), loc), shown: str(r, "detected"), kind: "incident", id: id, label: fmt.Sprintf("%s: incident on %s, %s", id, str(r, "environment"), str(r, "status")), what: oneLine(str(r, "summary")),
+			add(event{when: placeInTime(str(r, "detected"), loc), shown: str(r, "detected"), kind: "incident", id: id, label: fmt.Sprintf(tr("%s: incident on %s, %s"), id, str(r, "environment"), str(r, "status")), what: oneLine(str(r, "summary")),
 				roles: []string{str(r, "reportedBy")}, records: append(strs(r, "defects"), strs(r, "changes")...), node: r})
 		case "defect":
-			e := event{when: placeInTime(str(r, "reported"), loc), shown: str(r, "reported"), kind: "defect", id: id, label: fmt.Sprintf("%s: defect reported by %s, %s", id, str(r, "reportedBy"), str(r, "status")), what: oneLine(str(r, "title")),
+			e := event{when: placeInTime(str(r, "reported"), loc), shown: str(r, "reported"), kind: "defect", id: id, label: fmt.Sprintf(tr("%s: defect reported by %s, %s"), id, str(r, "reportedBy"), str(r, "status")), what: oneLine(str(r, "title")),
 				roles: []string{str(r, "reportedBy")}, refs: strs(r, "violates"), node: r}
 			if rel := str(r, "release"); rel != "" {
 				e.versions = []string{rel}
@@ -652,30 +652,30 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 		case "change":
 			affects := get(r, "affects")
 			refs := append(append(strs(affects, "adds"), strs(affects, "changes")...), strs(affects, "removes")...)
-			e := event{when: placeInTime(str(r, "raised"), loc), shown: str(r, "raised"), kind: "change", id: id, label: fmt.Sprintf("%s: change request raised by %s", id, str(r, "raisedBy")), what: oneLine(str(r, "title")),
+			e := event{when: placeInTime(str(r, "raised"), loc), shown: str(r, "raised"), kind: "change", id: id, label: fmt.Sprintf(tr("%s: change request raised by %s"), id, str(r, "raisedBy")), what: oneLine(str(r, "title")),
 				roles: []string{str(r, "raisedBy")}, refs: refs, node: r}
 			if rel := str(r, "release"); rel != "" {
 				e.versions = []string{rel}
 			}
 			add(e)
 			if dec := get(r, "decision"); dec != nil && str(dec, "date") != "" {
-				add(event{when: placeInTime(str(dec, "date"), loc), shown: str(dec, "date"), kind: "change", id: id + " decided", label: fmt.Sprintf("%s: change request %s by %s", id, str(dec, "outcome"), str(dec, "by")), what: oneLine(str(dec, "why")),
+				add(event{when: placeInTime(str(dec, "date"), loc), shown: str(dec, "date"), kind: "change", id: id + tr(" decided"), label: fmt.Sprintf(tr("%s: change request %s by %s"), id, str(dec, "outcome"), str(dec, "by")), what: oneLine(str(dec, "why")),
 					roles: []string{str(dec, "by")}, refs: refs, versions: e.versions, node: r})
 			}
 		case "idea":
-			e := event{when: placeInTime(str(r, "raised"), loc), shown: str(r, "raised"), kind: "idea", id: id, label: fmt.Sprintf("%s: idea raised%s, %s", id, byRole(str(r, "raisedBy")), str(r, "status")), what: oneLine(str(r, "statement")),
+			e := event{when: placeInTime(str(r, "raised"), loc), shown: str(r, "raised"), kind: "idea", id: id, label: fmt.Sprintf(tr("%s: idea raised%s, %s"), id, byRole(str(r, "raisedBy")), str(r, "status")), what: oneLine(str(r, "statement")),
 				refs: []string{str(r, "about")}, node: r}
 			if by := str(r, "raisedBy"); by != "" {
 				e.roles = []string{by}
 			}
 			add(e)
 			if dec := get(r, "decision"); dec != nil && str(dec, "date") != "" {
-				add(event{when: placeInTime(str(dec, "date"), loc), shown: str(dec, "date"), kind: "idea", id: id + " decided", label: fmt.Sprintf("%s: idea %s by %s", id, str(dec, "outcome"), str(dec, "by")), what: oneLine(str(dec, "why")),
+				add(event{when: placeInTime(str(dec, "date"), loc), shown: str(dec, "date"), kind: "idea", id: id + tr(" decided"), label: fmt.Sprintf(tr("%s: idea %s by %s"), id, str(dec, "outcome"), str(dec, "by")), what: oneLine(str(dec, "why")),
 					roles: []string{str(dec, "by")}, refs: []string{str(r, "about")}, node: r})
 			}
 		case "approval":
 			v := str(r, "version")
-			add(event{when: placeInTime(str(r, "date"), loc), shown: str(r, "date"), kind: "approval", id: v, label: fmt.Sprintf("approval of %s by %s", v, str(r, "approvedBy")), what: "Documents: " + listOrNone(strs(r, "documents")) + ".",
+			add(event{when: placeInTime(str(r, "date"), loc), shown: str(r, "date"), kind: "approval", id: v, label: fmt.Sprintf(tr("approval of %s by %s"), v, str(r, "approvedBy")), what: tr("Documents: ") + listOrNone(strs(r, "documents")) + ".",
 				roles: []string{str(r, "approvedBy")}, versions: []string{v}, node: r})
 		}
 	}
@@ -686,7 +686,7 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 		refs = append(refs, strs(dec, "satisfies")...)
 		what := sentence(oneLine(str(dec, "title")))
 		if by := str(dec, "decidedBy"); by != "" {
-			what += " Decided by " + by + "."
+			what += tr(" Decided by ") + by + "."
 		}
 		var records []string
 		for _, c := range items(dec, "cites") {
@@ -694,7 +694,7 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 				records = append(records, rec)
 			}
 		}
-		e := event{when: placeInTime(str(dec, "date"), loc), shown: str(dec, "date"), kind: "decision", id: id, label: fmt.Sprintf("%s: decision, %s", id, str(dec, "status")), what: what, refs: refs, records: records, node: dec}
+		e := event{when: placeInTime(str(dec, "date"), loc), shown: str(dec, "date"), kind: "decision", id: id, label: fmt.Sprintf(tr("%s: decision, %s"), id, str(dec, "status")), what: what, refs: refs, records: records, node: dec}
 		if by := str(dec, "decidedBy"); by != "" {
 			e.roles = []string{by}
 		}
@@ -702,7 +702,7 @@ func timelineEvents(root *yaml.Node, state *State, loc *time.Location) []event {
 	}
 	for i := range out {
 		if out[i].shown == "" {
-			out[i].shown = "no date"
+			out[i].shown = tr("no date")
 		}
 	}
 	// An event without a date or instant comes last, since it has not
@@ -727,7 +727,7 @@ func byRole(role string) string {
 	if role == "" {
 		return ""
 	}
-	return " by " + role
+	return tr(" by ") + role
 }
 
 func uniqueStrings(in []string) []string {

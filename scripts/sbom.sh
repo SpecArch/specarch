@@ -27,6 +27,18 @@
 # Any finding fails the script, naming the scanner and its report: a
 # release with a finding is not published until the owner has decided on
 # it.
+#
+# Where heavy-lock is on the PATH, govulncheck, the one step that builds the
+# module's code, runs as the heavy-lock job specarch:sbom-govulncheck, which
+# heavy-lock sends to a Linux runner when one is healthy (the runner gets
+# the committed files with the staged changes, no .git). It runs on this
+# host instead, with the reason printed, when files have changes not staged
+# or are untracked, when the script runs inside a heavy-lock job, and where
+# there is no heavy-lock. syft, grype and osv-scanner stay on this host:
+# syft reads HEAD through git, which a runner lacks, and grype and
+# osv-scanner read the SBOM this script has just written into a folder git
+# ignores, which a runner's snapshot does not carry; each is a lookup over
+# a few files that takes seconds.
 set -u
 
 version=${1:-}
@@ -154,6 +166,37 @@ report() {
 	return $status
 }
 
+# not_to_runner prints why govulncheck cannot go to a runner, or nothing
+# when it can.
+not_to_runner() {
+	if [ -n "${HEAVY_LOCK_HELD:-}" ]; then
+		echo "the script runs inside the heavy-lock job ${HEAVY_LOCK_HELD}, and a heavy-lock inside a job runs its command in place"
+		return
+	fi
+	if ! command -v heavy-lock >/dev/null 2>&1; then
+		echo "there is no heavy-lock on the PATH"
+		return
+	fi
+	unstaged=$(git diff --name-only | wc -l | tr -d ' ')
+	untracked=$(git ls-files --others --exclude-standard | wc -l | tr -d ' ')
+	if [ "$unstaged" != 0 ] || [ "$untracked" != 0 ]; then
+		echo "a runner gets the committed files with the staged changes only, and $unstaged tracked files have changes not staged and $untracked files are untracked"
+	fi
+}
+
+# govulncheck_job runs govulncheck as a heavy-lock job a runner can take, or
+# here with the reason printed. heavy-lock names the host it ran on, and a
+# runner that cannot take it, on its own lines, which the report keeps.
+govulncheck_job() {
+	why=$(not_to_runner)
+	if [ -z "$why" ]; then
+		heavy-lock specarch:sbom-govulncheck -- govulncheck ./...
+		return
+	fi
+	echo "sbom: govulncheck runs here, on $(uname -n): $why"
+	govulncheck ./...
+}
+
 licences() {
 	python3 - "$sbom" <<'EOF'
 import json, sys
@@ -170,6 +213,6 @@ step "export go.mod, go.sum and the Swift package files of HEAD" export_files
 step "write $sbom with syft $(syft version 2>/dev/null | awk '/^Version:/ {print $2}')" write_sbom
 step "scan with grype $(grype version 2>/dev/null | awk '/^Version:/ {print $2}')" report grype.txt grype --fail-on negligible "sbom:$sbom"
 step "scan with $(osv-scanner --version 2>/dev/null | head -1)" report osv-scanner.txt osv-scanner scan source -L "$sbom"
-step "check the module's code with govulncheck" report govulncheck.txt govulncheck ./...
+step "check the module's code with govulncheck" report govulncheck.txt govulncheck_job
 step "list the licences of the components" report licences.txt licences
 echo "sbom: done; the SBOM and the reports are in $out/"

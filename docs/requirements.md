@@ -6,7 +6,7 @@ Version 1.5.1-dev of the specification: 6 stakeholders, 10 needs and 136 require
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 10 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/stakeholders/stakeholders.yaml#/stakeholders]
 
@@ -1550,8 +1550,6 @@ Acceptance criteria:
 - The techspec of a specification with intent opens with the Intent chapter, and its traceability matrix has a Goals column naming the goals each requirement's needs serve; the outputs of a specification without intent are as before.
 - document progress lists each goal with its baseline, its target, the latest reading (none recorded, since no record holds a monitor's reading yet) and how many of the requirements that serve it are met.
 
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
-
 **Insight:** The intent is the first thing a reviewer and an agent read, so it is one page of its own, and it is the chapter arc42 opens with; a goal column shows which goal a requirement serves without a second document.
 
 ### SA-138
@@ -1566,8 +1564,6 @@ Acceptance criteria:
 - gaps --next on a specification with a problem and an accepted goal with no target prints that goal's question first.
 - gaps --next --json gives the intent question under intent, null when there is none, beside the open question it gave before.
 
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
-
 **Insight:** Every other answer rests on the problem and the goals; a missing problem is a gap and not a refusal, so it never changes whether gaps fails a run.
 
 ### SA-139
@@ -1581,8 +1577,6 @@ Acceptance criteria:
 - init --problem P --goal G1 --goal G2 --out-of-scope O writes problem.statement P, GOAL-1 and GOAL-2 with status proposed and OUT-1, which validates with no error.
 - init with none of the three and standard input not a terminal writes the specification as before and asks nothing.
 - An empty --problem, --goal or --out-of-scope is a usage error.
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
 
 **Insight:** The owner chose flags with prompts on a terminal (2026-11-05), so scripts and agents keep working unchanged and a person at the terminal is asked in plain words.
 

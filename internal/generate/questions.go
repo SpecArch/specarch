@@ -14,14 +14,15 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "progress", "html", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true}
+	DocumentTargets = []string{"intent", "techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "progress", "html", "manual", "operations"}
+	BuiltDocuments  = map[string]bool{"intent": true, "techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true}
 )
 
 // documentReads says which sections each document reads, so that a
 // question blocking one of them makes the document a draft. "*" is every
 // section.
 var documentReads = map[string][]string{
+	"intent":        {"problem", "goals", "outOfScope", "qualityGoals", "needs", "requirements"},
 	"techspec":      {"*"},
 	"requirements":  {"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints"},
 	"testplan":      {"tests", "requirements"},

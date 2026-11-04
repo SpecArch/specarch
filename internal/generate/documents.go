@@ -19,6 +19,8 @@ type sourcePair = source.Pair
 func Document(target string, root *yaml.Node, relRoot string, impls []Implementation, state *State) (text string, ok bool) {
 	var write func() string
 	switch target {
+	case "intent":
+		write = func() string { return Intent(root, relRoot, impls, state) }
 	case "techspec":
 		write = func() string { return Techspec(root, relRoot, impls, state) }
 	case "requirements":
@@ -576,8 +578,17 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 
 	d.section(tr("Requirements to design and verification"))
 	harm := harmColumn(reqs)
-	d.line(tr("| Requirement |%s Needs | Satisfied by | Verified by |"), harm.header)
-	d.line("|---|%s---|---|---|", harm.rule)
+	// The goal column stands only where the specification writes goals,
+	// so a matrix without them reads as before (ADR-244).
+	reqGoals := requirementGoals(root)
+	goalHeader, goalRule := "", ""
+	goalCell := func(string) string { return "" }
+	if len(pairs(root, "goals")) > 0 {
+		goalHeader, goalRule = tr(" Goals |"), "---|"
+		goalCell = func(id string) string { return " " + cell(strings.Join(reqGoals[id], ", ")) + " |" }
+	}
+	d.line(tr("| Requirement |%s Needs | Satisfied by | Verified by |"), harm.header+goalHeader)
+	d.line("|---|%s---|---|---|", harm.rule+goalRule)
 	ids := map[string]bool{}
 	reqNode := map[string]*yaml.Node{}
 	for _, r := range reqs {
@@ -594,7 +605,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 		delete(ids, r.Key.Value)
 	}
 	for _, k := range sortedLinks(ids) {
-		d.line("| %s |%s %s | %s | %s |", markInternal(k, reqNode[k]), harm.cell(k), cell(strings.Join(strs(reqNode[k], "needs"), ", ")), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
+		d.line("| %s |%s %s | %s | %s |", markInternal(k, reqNode[k]), harm.cell(k)+goalCell(k), cell(strings.Join(strs(reqNode[k], "needs"), ", ")), cell(strings.Join(unique(satisfied[k]), "; ")), cell(strings.Join(unique(verified[k]), "; ")))
 	}
 	d.blank()
 

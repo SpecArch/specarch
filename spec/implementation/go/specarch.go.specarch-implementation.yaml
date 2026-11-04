@@ -309,6 +309,9 @@ mappings:
   "#/algorithms/referenceResolves": { target: the validate.checker.check... methods for each kind of reference }
 
 targets:
+  intent:
+    output: ../../../docs
+    description: Why SpecArch is built and what counts as success, read before anything else, kept current by CI.
   techspec:
     output: ../../../docs
     description: SpecArch's own technical specification, written from the specification and this file, and kept current by CI.

@@ -381,7 +381,7 @@ Error codes of --json:
   exit 0: the overrides were printed, or there was none
   exit 2: usage error, an idiom this program does not ship, a path that
   could not be read, or a specification with errors
-- `specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]`
+- `specarch init <folder> [--title <title>] [--profile <profile>] [--problem <problem>] [--goal <goal>]... [--out-of-scope <out-of-scope>]... [--dry-run]`
   Write the smallest specification that validates into a new folder.
   exit 0: the specification was written, or with --dry-run would be
   exit 2: usage error, a folder that already holds specarch.yaml, or a path

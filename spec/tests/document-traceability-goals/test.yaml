@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order"
+when: "document traceability is run"
+then: "the traceability matrix has a Goals column naming the goals each requirement's needs serve, and exits 0"
+verifies: [SA-137]

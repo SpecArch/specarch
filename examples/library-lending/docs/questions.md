@@ -10,6 +10,7 @@ What can be made from the specification now. A document is a draft while a must 
 
 | Output | State | Waits on |
 |---|---|---|
+| intent document | ready | |
 | techspec document | ready | |
 | requirements document | ready | |
 | testplan document | ready | |

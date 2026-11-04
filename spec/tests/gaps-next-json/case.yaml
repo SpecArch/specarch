@@ -15,7 +15,7 @@ standardOutput: |
       "",
       "- Decided by: owner",
       "- Blocks: #/requirements/CASE-1/priority, #/requirements/CASE-1/acceptance",
-      "- Holds up: techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql",
+      "- Holds up: intent document, techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql",
       "- Options:",
       "  1. must",
       "  2. should",
@@ -43,6 +43,7 @@ standardOutput: |
           ],
           "missing": {},
           "holdsUp": [
+            "intent document",
             "techspec document",
             "requirements document",
             "testplan document",
@@ -69,7 +70,8 @@ standardOutput: |
             "project"
           ],
           "recommendation": null
-        }
+        },
+        "intent": null
       }
     ]
   }

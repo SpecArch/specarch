@@ -1,5 +1,7 @@
 stakeholders:
   owner: { description: The product owner. }
+problem:
+  statement: The work this case stands for takes too long by hand.
 requirements:
   CASE-1:
     statement: A member shall borrow at most five books.

@@ -536,6 +536,9 @@ func runIn(t *testing.T, dir string, args []string) (int, string) {
 	t.Helper()
 	t.Chdir(dir)
 	var out bytes.Buffer
+	// No run reads a person's answers: init asks on a terminal only.
+	standardInput = strings.NewReader("")
+	defer func() { standardInput = os.Stdin }()
 	status := run(args, &out, &out)
 	return status, out.String()
 }

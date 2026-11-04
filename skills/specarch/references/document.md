@@ -20,6 +20,22 @@ with no `--out`, has no such document: it gets a warning at the
 targets of its first implementation file and is passed over, and the
 others are written or checked (ADR-073).
 
+The intent target writes `intent.md`, about one page read before
+anything else (ADR-244): the problem with whom it hurts and how
+things stand today, the goals with measure, baseline, target, by,
+priority, status and the needs that serve each, what is out of
+scope with until and the needs it rules out, and the quality goals
+in rank order; a part the specification does not state says so and
+names the key that states it. The techspec opens its chapter 1
+with the same parts, those stated only, before the stakeholders; a
+decision that weighs quality goals names them highest rank first;
+the traceability matrix gains a Goals column, the goals each
+requirement's needs serve, once the specification writes a goal;
+and the progress report gains a Goals section, per goal the
+baseline, the target, the latest reading (none recorded, since no
+record holds a monitor's reading) and how many of the requirements
+serving it are met, a requirement met once its release is released.
+
 The techspec target writes `techspec.md`: an arc42 technical
 specification of the whole specification, with chapters only for
 what it holds. Diagrams are Mermaid: an entity diagram, a state
@@ -366,7 +382,7 @@ and the html page in place of what satisfies and verifies it.
 
 ## Arguments
 
-- `<target>` (required; one of `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `progress`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
+- `<target>` (required; one of `intent`, `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `progress`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
 - `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
 
 ## Options

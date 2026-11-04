@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+given: "a specification with requirements and no intent"
+when: "document intent is run"
+then: "intent.md says of each part that it is not written and names the key that states it, and marks problem_missing in its problems notice; it exits 0"
+verifies: [SA-137]

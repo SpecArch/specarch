@@ -1,7 +1,7 @@
 # specarch init
 
 ```
-specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
+specarch init <folder> [--title <title>] [--profile <profile>] [--problem <problem>] [--goal <goal>]... [--out-of-scope <out-of-scope>]... [--dry-run]
 ```
 
 Write the smallest specification that validates into a new folder.
@@ -17,6 +17,14 @@ entity, operation or stage to rename or delete, since a placeholder
 is a definition nobody made. `specarch help start` shows the next
 step, a first entity and operation that validate.
 
+The intent comes first (ADR-244): `--problem` writes
+`problem.statement`, each `--goal` a goal `GOAL-n` with status
+`proposed`, and each `--out-of-scope` an entry `OUT-n`, so the
+analyst answers in sentences and the keys are written for them.
+When standard input is a terminal and none of the three is given,
+init asks the three questions there on standard error, an empty
+answer skipping one; on a pipe or in a script it asks nothing.
+
 A folder that already holds `specarch.yaml` is refused and nothing
 is written: init never overwrites a specification.
 
@@ -28,6 +36,9 @@ is written: init never overwrites a specification.
 
 - `--title <title>`: The specification's title, written as info.title; the folder's own name when left out.
 - `--profile <profile>` (one of `lean`, `full`): The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full.
+- `--problem <problem>`: The problem the system solves, in a sentence, written as problem.statement.
+- `--goal <goal>` (given once per value): An outcome that counts as success, in a sentence, written as goal GOAL-n with status proposed; repeatable.
+- `--out-of-scope <out-of-scope>` (given once per value): Something the system will not do, in a sentence, written as entry OUT-n; repeatable.
 - `--dry-run`: Write nothing; print would write <path> and the text it would write.
 
 ## Reads
@@ -36,7 +47,7 @@ is written: init never overwrites a specification.
 
 ## Writes
 
-- `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile.
+- `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile, then the problem, goals and out-of-scope entries given or answered.
 
 ## Standard output
 

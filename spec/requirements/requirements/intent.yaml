@@ -31,7 +31,6 @@ requirements:
     verification: test
     needs: [NEED-1, NEED-8]
     why: Every later answer rests on the problem and the measured goals, so their absence is shown first; a compiler for specifications never refuses to read a specification for missing intent, so each is a warning, and on a small tool's lean specification a warning that shows on every run teaches people to skip warnings, so there it is a question (the owner's decision 3 of ADR-242).
-  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
   SA-137:
     statement: specarch document intent shall write intent.md with the problem, the goals with their measures, what is out of scope and the quality goals in rank order; the techspec shall open with an Intent chapter in the shape of arc42 section 1 and the traceability matrix shall gain a goal column, both only when the specification states intent; and document progress shall add, per goal, the baseline, the target, the latest value a monitor read and the share of its requirements met.
     kind: functional
@@ -44,7 +43,6 @@ requirements:
     verification: test
     needs: [NEED-3, NEED-6]
     why: The intent is the first thing a reviewer and an agent read, so it is one page of its own, and it is the chapter arc42 opens with; a goal column shows which goal a requirement serves without a second document.
-  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
   SA-138:
     statement: specarch gaps --next shall put the intent first, so that a specification with requirements and no problem, and then an accepted goal with no measure or target, is asked for that before any open question, on every profile, with the key to write, and the exit status shall stay that of the open questions and errors alone.
     kind: functional
@@ -57,7 +55,6 @@ requirements:
     verification: test
     needs: [NEED-8]
     why: Every other answer rests on the problem and the goals; a missing problem is a gap and not a refusal, so it never changes whether gaps fails a run.
-  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
   SA-139:
     statement: specarch init shall take --problem, --goal and --out-of-scope, the last two repeatable, and write problem.statement, a GOAL-n and an OUT-n for each with status proposed for the goals; when standard input is a terminal and none of them is given, init shall ask the three questions there, an empty answer skipping one, so the analyst answers in sentences and the keys are written for them.
     kind: functional

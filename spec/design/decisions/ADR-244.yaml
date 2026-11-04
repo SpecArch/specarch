@@ -106,5 +106,6 @@ decisions:
       brief names the goals a package serves and the out-of-scope entries
       near it. No record holds a monitor's reading, so the progress line
       for a goal says none recorded until one does.
+    weighs: [QG-1, QG-2]
     satisfies: [SA-135, SA-136, SA-137, SA-138, SA-139]
     restsOn: [ADR-242, ADR-234, ADR-210, ADR-209]

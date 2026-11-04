@@ -2,13 +2,11 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.5.1-dev of the specification: 136 requirements, 5 entities, 30 commands, 7 algorithms, 1045 tests, 227 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.5.1-dev of the specification: 136 requirements, 5 entities, 30 commands, 7 algorithms, 1055 tests, 227 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 11 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
-
-**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/derived-tests.yaml#/problem]
+**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/stakeholders/stakeholders.yaml#/stakeholders]
 
@@ -20,6 +18,53 @@ language, library or build tool in it; how one stack implements it is in
 `implementation/<stack>/`.
 
 Owners: specarch-maintainers.
+
+### Problem
+
+The specification of a system is scattered over documents that disagree with each other and drift from the code, so the people who build it guess at what was meant, a reviewer cannot see why a choice was made or what it rests on, and the people who use the system first see it at acceptance, where every change is the most expensive.
+
+Who it hurts: specification-author, implementer, reviewer.
+
+**Insight:** Every part of SpecArch is judged by one question, whether it makes a human decision faster, more accurate or traceable (docs/principles.md, Goal); the problem is what that question answers.
+
+### Goals
+
+The outcomes the owner of the system wants, each with what is counted, the value today and the value wanted, and the needs that serve it.
+
+| Goal | Statement | Measure | Baseline | Target | By | Priority | Status | Served by |
+|---|---|---|---|---|---|---|---|---|
+| GOAL-1 | Every decision in a specification can be traced back to what it rests on and forward to what it decides. | Share of accepted requirements whose needs, satisfying elements and verifying tests are all named, as the traceability matrix counts them. |   | 100 percent of accepted requirements |   | must | accepted | NEED-5, NEED-6 |
+| GOAL-2 | A specification is never quietly wrong. | Defects per release whose cause is a problem in the specification that no rule of the validator reported. |   | 0 per release |   | must | accepted | NEED-1, NEED-9 |
+| GOAL-3 | The documents and the code never drift from the specification. | Generated files that differ from what the specification writes, as the landing check counts them. |   | 0 at every landing |   | must | accepted | NEED-2, NEED-3 |
+| GOAL-4 | The next human decision is cheap to take, early and from what is already written. | Share of open questions that gaps --next puts with who decides, what it blocks and the command that records the answer. |   | 100 percent of open questions |   | should | accepted | NEED-4, NEED-7, NEED-8, NEED-10 |
+
+### Out of scope
+
+What the system will not do, decided on purpose, so a question or a change request that asks for it is answered here.
+
+| Entry | Statement | Until | Rules out |
+|---|---|---|---|
+| OUT-1 | SpecArch does not run, host or deploy the system it specifies; it writes the documents, the code and the checks, and the project's own pipeline runs them. | not planned |   |
+| OUT-2 | SpecArch does not track who does what by when; that stays in the team's tracker, and the specification holds the scope and the order only. | not planned |   |
+| OUT-3 | SpecArch has no graphical editor; a specification is YAML text, reviewed in version control. | not planned |   |
+
+**Insight on OUT-1:** Running the system would tie SpecArch to one host and one stack, against writing a design once and building it in more than one language.
+
+**Insight on OUT-2:** The delivery changes when a person is ill or an agent finishes early while the system does not (ADR-242), so the tracker keeps what changes with it.
+
+**Insight on OUT-3:** A text file shows every change as a diff a reviewer reads and a merge resolves, which a drawing tool's file does not.
+
+### Quality goals
+
+The qualities that matter most, in rank order: when two pull apart, the higher rank wins.
+
+| Rank | Quality goal | Quality | Statement | Requirements |
+|---|---|---|---|---|
+| 1 | QG-1 | functional-suitability | A specification the validator passes holds no problem one of its rules could have reported, and both validator builds print the same lines for it. |   |
+| 2 | QG-2 | interaction-capability | Every problem names the entry, the rule and what to write, so the analyst settles it without reading SpecArch's code. |   |
+| 3 | QG-3 | maintainability | A rule, a document or a generator is added in one place per build and checked by one case of its own. |   |
+
+**Insight on QG-1:** A wrong answer from the validator is the problem itself, a specification that is quietly wrong.
 
 ### Stakeholders
 
@@ -264,6 +309,7 @@ Primary key: path.
 |---|---|---|
 | DocumentKind | specification | a specification, the tree rooted at `specarch.yaml`; its design side is the SpecArch Definition (SDF) |
 | DocumentKind | implementation | a SpecArch Implementation File (SIF), `<name>.<stack>.specarch-implementation.yaml`, one stack's implementation of a specification |
+| DocumentTarget | intent | intent.md, about one page read before anything else: the problem the system solves, the goals with their measures, what is out of scope and the quality goals in rank order, in the shape of section 1 of arc42; a part the specification does not state says so and names the key (ADR-244) |
 | DocumentTarget | techspec | arc42 technical specification in Markdown with generated Mermaid diagrams |
 | DocumentTarget | requirements | requirements specification, in the layout of ISO/IEC/IEEE 29148 |
 | DocumentTarget | testplan | test plan and test cases, golden and red, traced to requirements |
@@ -1469,6 +1515,22 @@ whose implementation files name no output folder for the target,
 with no `--out`, has no such document: it gets a warning at the
 targets of its first implementation file and is passed over, and the
 others are written or checked (ADR-073).
+
+The intent target writes `intent.md`, about one page read before
+anything else (ADR-244): the problem with whom it hurts and how
+things stand today, the goals with measure, baseline, target, by,
+priority, status and the needs that serve each, what is out of
+scope with until and the needs it rules out, and the quality goals
+in rank order; a part the specification does not state says so and
+names the key that states it. The techspec opens its chapter 1
+with the same parts, those stated only, before the stakeholders; a
+decision that weighs quality goals names them highest rank first;
+the traceability matrix gains a Goals column, the goals each
+requirement's needs serve, once the specification writes a goal;
+and the progress report gains a Goals section, per goal the
+baseline, the target, the latest reading (none recorded, since no
+record holds a monitor's reading) and how many of the requirements
+serving it are met, a requirement met once its release is released.
 
 The techspec target writes `techspec.md`: an arc42 technical
 specification of the whole specification, with chapters only for
@@ -3868,6 +3930,18 @@ answer as `<answer>`) and `recommendation`, always null: the agent
 fills it with the answer it recommends and why before it puts the
 question (`specarch help asking`).
 
+The intent comes before any open question, on every profile
+(ADR-244): a specification with requirements and no problem, as the
+validator's `problem_missing` sees it, and then the first accepted
+goal with no measure or no target, is printed in its place, naming
+the rule and the pointer, the question in plain words, who to ask
+(the owner of the system), the keys the answer is written as, and
+the open question ranked first that comes after it. With `--json`
+each entry holds `intent`, null when there is none, with `rule`,
+`pointer`, `question` and `keys`, beside `question` as before. The
+exit status stays that of the open questions and the errors alone:
+nothing refuses a specification for missing intent.
+
 **Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
@@ -4353,6 +4427,14 @@ entity, operation or stage to rename or delete, since a placeholder
 is a definition nobody made. `specarch help start` shows the next
 step, a first entity and operation that validate.
 
+The intent comes first (ADR-244): `--problem` writes
+`problem.statement`, each `--goal` a goal `GOAL-n` with status
+`proposed`, and each `--out-of-scope` an entry `OUT-n`, so the
+analyst answers in sentences and the keys are written for them.
+When standard input is a terminal and none of the three is given,
+init asks the three questions there on standard error, an empty
+answer skipping one; on a pipe or in a script it asks nothing.
+
 A folder that already holds `specarch.yaml` is refused and nothing
 is written: init never overwrites a specification.
 
@@ -4363,11 +4445,14 @@ is written: init never overwrites a specification.
 | `<folder>` | string | yes | The folder the specification goes in; made when it does not exist. |
 | `--title` | string |   | The specification's title, written as info.title; the folder's own name when left out. |
 | `--profile` | string |   | The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full. |
+| `--problem` | string |   | The problem the system solves, in a sentence, written as problem.statement. |
+| `--goal` | list of string |   | An outcome that counts as success, in a sentence, written as goal GOAL-n with status proposed; repeatable. |
+| `--out-of-scope` | list of string |   | Something the system will not do, in a sentence, written as entry OUT-n; repeatable. |
 | `--dry-run` | bool |   | Write nothing; print would write <path> and the text it would write. |
 
 Reads `{folder}/specarch.yaml`: Only whether it exists, to refuse overwriting it.
 
-Writes `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile.
+Writes `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile, then the problem, goals and out-of-scope entries given or answered.
 
 Standard output: The path written, or with --dry-run would write <path> and the text.
 
@@ -5711,6 +5796,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 
 | Target | Output folder | Settings |
 |---|---|---|
+| intent | ../../../docs |   |
 | techspec | ../../../docs |   |
 | requirements | ../../../docs |   |
 | testplan | ../../../docs |   |
@@ -19178,6 +19264,8 @@ Status: accepted, 2026-11-05.
 
 Rests on: [ADR-242](#adr-242-a-specification-states-its-intent-in-the-requirements-stage-a-problem-measured-goals-what-is-out-of-scope-and-quality-goals-in-rank-order-the-work-is-split-into-work-package-records-beside-the-release-records-each-naming-requirements-only-and-specarch-plan-proposes-orders-and-briefs-the-packages-and-round-trips-them-with-a-tracker-every-new-rule-is-a-warning-never-a-refusal), [ADR-234](#adr-234-the-stakeholder-list-is-confirmed-complete-by-a-role-under-stakeholderscomplete-and-until-then-the-validator-warns-every-document-carries-a-banner-and-approve-warns), [ADR-210](#adr-210-a-short-on-ramp-specarch-init-and-specarch-help-start-and-a-lean-profile-under-infoprofile-that-makes-only-the-missing-tests-derive-writes-warnings), [ADR-209](#adr-209-questions-are-put-to-a-person-one-at-a-time-the-next-one-chosen-by-gaps---next-from-what-its-answer-unblocks-with-a-recommended-answer-the-agent-gives-and-no-fixed-number-of-questions).
 
+Quality goals weighed, highest rank first: QG-1 (rank 1, functional-suitability), QG-2 (rank 2, interaction-capability).
+
 Alternatives not taken: One rule, intent_reference, for every reference the intent sections make: It groups the new links, but a reader looking up a goal's monitor
 that does not exist would find it under a rule other than
 monitor, and one thing would be said two ways. problem_missing anchored at line 1 of the root file: It names the root file where the problem may be written, but the
@@ -19380,6 +19468,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-handover-none | command document | system | red | a specification whose implementation file names an output folder for handover, and that has no handover and no environment the customer runs | document handover is run on it alone | it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over |
 | document-html-integer-forms | command document | system | golden | a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores | document html is run | it writes site/index.html with every one of those integers in decimal, the separation of duties set read with its cardinality of 3, so only reader, clerk and supervisor together reach it, and exits 0 |
 | document-html-marks-problems | command document | system | red | the same specification with a permission no role grants, which is an error | document html is run | it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1 |
+| document-intent | command document | system | golden | a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order | document intent is run | intent.md holds the problem with whom it hurts and today, the goals table with the needs serving each, the out-of-scope table and the quality goals in rank order, and it exits 0 |
+| document-intent-missing | command document | system | red | a specification with requirements and no intent | document intent is run | intent.md says of each part that it is not written and names the key that states it, and marks problem_missing in its problems notice; it exits 0 |
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
 | document-language-id | command document | system | golden | the specification of document-audience-external, with an internal need and requirement, an entity, an open question and a requirement another stakeholder owns | document requirements is run with --language id and --out | it writes requirements.md in Indonesian, its headings, table headers and sentences translated and requirement, stakeholder and the priority words kept, the specification's own words and the generated-file header as they are, and exits 0 |
 | document-language-needs-out | command document | system | red | --language id with no --out | document is run | it prints the usage error saying a document in another language is written beside the English documents approve compares, not over them, writes nothing, and exits 2 |
@@ -19408,6 +19498,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-problems-none | command document | system | golden | a specification with no error, no warning and no open question | document problems is run | it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0 |
 | document-progress-effort-not-counted | command document | system | red | three change records: one with estimatedHours -4 and spentHours 1e-1, one whose effort holds only an extension key, and one with estimatedHours as the text "4" and spentHours as a list | document progress is run | it prints the schema errors, writes progress.md where the refused values are shown as written and marked not counted, sums only the 0.1 hours spent, names the extension-key and refused-only requests as missing, and exits 1 |
 | document-progress-for-everyone | command document | system | golden | a specification with a requirement for everyone and an internal one, an open question about each, and an approved change request that names both requirements and a pointer inside the internal one, in a planned release | document progress is run with --audience external | it writes progress.md that says the internal elements and the questions only about them are not counted, sizes the requirements as 1, counts 1 open question, and gives the release 1 element approved, and exits 0 |
+| document-progress-goals | command document | system | golden | a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order | document progress is run | the progress report has a Goals section with each goal's baseline, target, the latest reading as none recorded and the requirements serving it that are met, and exits 0 |
 | document-progress-stakeholders-confirmed | command document | system | golden | a specification with two stakeholders and stakeholdersComplete by the librarian on 2026-11-02, recorded in the declared source desk-interview | document progress is run | it writes progress.md with no stakeholders banner, whose stakeholder list says the librarian confirmed the list of 2 stakeholders complete on 2026-11-02, recorded in the source desk-interview, with no problem listed under it, and exits 0 |
 | document-progress-stakeholders-held | command document | system | golden | a specification with two stakeholders, no stakeholdersComplete, and an open must question Q-1 that blocks the stakeholders | document progress is run | it writes progress.md with no stakeholders banner, whose stakeholder list says the list is not confirmed and that Q-1 holds it up until it is answered, and exits 0 |
 | document-progress-uncounted-entries | command document | system | red | a specification whose stakeholdersComplete names auditor, who is not a stakeholder, whose open question Q-3 has the priority "Could" and no decidedBy, and a change request in the one release that names under affects a requirement of the specification, an ID it does not hold, an entity, the whole entities section, a question, an extension key under entities and an entity it does not hold | document progress is run | it prints the schema errors, writes progress.md whose stakeholder list gives the confirmation as written with the stakeholder error marked under it, where Q-3 is counted under Other priority on a row for no role named, named below the table with its priority as written, the rows add up to the total, and the burn-up counts the requirement and the entity and names the five other references with why they are not counted, and exits 1 |
@@ -19428,6 +19519,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-techspec-implies | command document | system | golden | a specification whose permission v1.all implies v1.get and another, v1.get implies a third, three roles each granting one of them, a fourth granting a permission no other implies, and a separation-of-duties set over the third and the fourth's | document techspec is run | the matrix marks a permission a role holds only by an implication as through the permission it grants, a table lists what each permission implies, the separation-of-duties set lists every role that reaches it through an implication, and it exits 0 |
 | document-techspec-integer-forms | command document | system | golden | a design whose length, item, page size, request size, rate, int32 bound, decimal precision and scale, child row maximum and separation of duties cardinality are integers written in hexadecimal, octal with 0o and with a leading zero, binary and with underscores | document techspec is run | it writes techspec.md with every one of those integers in decimal, the separation of duties set read with its cardinality of 3, so only reader, clerk and supervisor together reach it, and exits 0 |
 | document-techspec-integration | command document | system | golden | a specification whose ledger dependency proves itself with a bearer token kept in a secret setting, has a rate and two operations, whose audit log takes a message with no credential, an operation whose calls map, key, retry and map errors, call async and fire and forget, and a workflow whose operation step is that operation | document techspec is run | the context diagram writes the ledger's auth and rate on its node, the dependencies table says how each proves itself, its rate and its operations, the operation's calls name each operation's method and path or channel and message, a paragraph per call says its contract, the workflow diagram draws each dependency the step calls with an edge naming the operation, and it exits 0 |
+| document-techspec-intent | command document | system | golden | a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order | document techspec is run | chapter 1 opens with the problem, the goals, the out-of-scope entries and the quality goals in rank order before the stakeholders, and exits 0 |
 | document-techspec-marks-implementation-problem | command document | system | red | the project of document-handover-links-without-infrastructure, whose implementation file's deployment of an environment the customer runs has no infrastructure, a handover error in the implementation file | document techspec is run | it prints the error and writes techspec.md with the error marked by a Problem paragraph on production in the implementation's deployments, and counted in the notice under the summary as concerning the document; it exits 1 |
 | document-techspec-middlewares | command document | system | golden | a specification that declares three middlewares, two with a refusal each, an operation that runs all three in order, one of them before and after the others, and one that runs none | document techspec is run | the table of HTTP operations names each operation's middlewares in order, or none, one run twice named twice, each operation's runtime view says what it runs before its handler, with the refusals, a section lists every middleware with what it does, its refusals and the operations that run it, each once, and it exits 0 |
 | document-techspec-open-workflow | command document | system | golden | the tree extract workflows wrote for a BPMN file, whose workflow's trigger, subject, approval permission and step operation are held open by must questions, two of them naming an operation | document techspec is run | the workflow's text and flowchart write each open key as what it is, the question that holds it and the name it gives, and it exits 0 |
@@ -19445,6 +19537,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-testplan-left-out | command document | acceptance | golden | an operation that satisfies no requirement with a harm, with a length limit, a field marked mistakes rare and a 409 response, and one test that covers the case of a name that is too long | document testplan is run | it writes testplan.md with a section Derived cases left out that lists the uncovered cases of rank other with the reason for each, leaves out the covered one, and exits 0 |
 | document-testplan-state-machine | command document | system | golden | a Loan state machine with two paths and a test that walks one of them | document testplan is run | testplan.md has a State machines section with the Loan state diagram and a row per path naming the test that walks it, and exits 0 |
 | document-testruns-stakeholders-banner | command document | system | red | a specification with stakeholders and no stakeholdersComplete, and two test runs recorded beside it | document testruns is run | docs/testruns.md carries the Stakeholders unconfirmed banner under its summary, the test runs read as they do with the list confirmed, and the run exits 0 |
+| document-traceability-goals | command document | system | golden | a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order | document traceability is run | the traceability matrix has a Goals column naming the goals each requirement's needs serve, and exits 0 |
 | document-traceability-harm | command document | acceptance | golden | a specification with two requirements, one of which names two harms | document traceability is run | it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0 |
 | document-two-implementations | command document | system | golden | a specification with two implementation files, one of which names techspec's output folder | document techspec is run on it | chapter 7 has one part for each implementation, the header names both, and it exits 0 |
 | document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
@@ -19619,7 +19712,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-link-missing-held | command gaps | system | golden | the specification of validate-link-missing-held, whose open must question blocks the environment production and so holds the link_missing warning of the deployment that installs it | gaps is run on it | it lists the question under the deployment stage with what it blocks, shows the deployment, technical specification, html and operations documents as drafts and code generation waiting on it, and exits 1 |
 | gaps-lists-questions | command gaps | system | red | a specification that tracks origin, with two must questions in two stages, one of them a material question blocking an entity that is only a name, a could question, and an implementation file whose code target echo reads only the requirements | gaps is run | it prints the decisions to take and the material to provide per stakeholder, the elements by origin, the decisions by stage, the material question in a group of its own with who it is needed from and the missing keys of the blocked entity, and the outputs with what each waits on per stage, and exits 1 |
 | gaps-names-question | command gaps | system | red | the tree extract workflows wrote for a BPMN file, whose workflow leaves out its trigger and its service task's operation, each with a must question that names the operation | gaps is run | each of those questions lists the name it gives and the file and line of the element that leaves the key out, the outputs name the first three of the six questions in the design stage and count the rest, and it exits 1 |
+| gaps-next-asks-problem | command gaps | system | golden | a specification with requirements, an open must question and no problem | gaps --next is run | it prints the problem first, before the open question, naming problem_missing at /problem, the question in plain words, the keys statement, stakeholders and today, and the question ranked first after it, and exits 1 for the open must question alone |
+| gaps-next-asks-unmeasured-goal | command gaps | system | golden | a specification with a problem and an accepted goal with a measure and no target, and an open must question | gaps --next is run | it prints the goal's question first, naming goal_unmeasured at /goals/GOAL-1 and the keys baseline and target, and exits 1 for the open must question alone |
 | gaps-next-json | command gaps | system | red | a specification with two must questions and a could question | gaps --next is run with --json | the output object holds next with one entry for the specification: its root file, title and three open questions, and the question ranked first as fields, with the outputs it holds up, the decide command as arguments and a recommendation of null; it exits 1 |
+| gaps-next-json-intent | command gaps | system | golden | a specification with requirements, an open must question and no problem | gaps --next --json is run | next holds the intent with rule problem_missing, pointer /problem, the question and the keys, beside the open question as before |
 | gaps-next-none | command gaps | system | golden | a specification with no open question | gaps --next is run | it prints that the specification has no open question and exits 0 |
 | gaps-next-ranks-by-blocks | command gaps | system | red | a specification with an error, a requirement without its priority, two must questions on design entities that hold up the same outputs, Q-2 blocking one entity and Q-4 two, and a could question blocking three entries | gaps --next is run | it prints the error as a problem line, then Q-4, which blocks more entries, before Q-2, which has the lower ID, and the could question last, with the decide line citing the one interview source, and exits 1 |
 | gaps-next-ranks-by-outputs | command gaps | system | red | a specification with two must questions, Q-2 blocking two design entities and holding up four outputs, Q-5 blocking one key of a requirement and holding up seven, a could question, and two interview sources | gaps --next is run | it prints Q-5, which holds up more outputs, before Q-2, which blocks more entries and has the lower ID, with who decides, what it blocks, what it holds up, its options and Insight, the decide line without --source and a line naming the two interview sources to choose from, and exits 1 |
@@ -19794,9 +19890,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | idioms-lists-ui-framework | command idioms | system | golden | a specification with a list page and three implementation files: one in TypeScript whose ui target is platform web, framework nextjs-carbon, one in JavaScript whose ui target is platform web and names no framework, so plain-javascript, and one in Swift whose ui target is platform iphone and names no framework, so swiftui | idioms is run | it lists ui-components 1.10.0 as shipped for the TypeScript file, whose framework nextjs-carbon is a stack the idiom renders, and for the Swift file, whose framework swiftui by the platform's default is one too, and not for the JavaScript file, and exits 0 |
 | idioms-usage-error | command idioms | system | red | no folder | idioms is run without arguments | it prints the usage and exits 2 |
 | init-dry-run | command init | system | golden | a folder that does not exist | init is run with --dry-run | it prints the path and the text it would write, makes no folder and writes nothing, and exits 0 |
+| init-intent-empty | command init | system | red | a folder that does not exist | init is run with an empty --goal | it refuses the empty answer as a usage error, names the option and writes nothing, and exits 2 |
 | init-lean-profile | command init | system | golden | a folder that does not exist | init is run with --profile lean and a title holding a colon | it writes the title quoted as YAML needs and profile: lean under info, and the file validates with the one profile warning |
 | init-refuses-existing | command init | system | red | a folder that already holds specarch.yaml | init is run on it | it names the file, writes nothing, leaves the file as it was and exits 2 |
 | init-usage-error | command init | system | red | the program | init is run with a profile that does not exist | it names the profiles there are, prints how to use it, writes nothing and exits 2 |
+| init-writes-intent | command init | system | golden | a folder that does not exist | init is run with --problem, two --goal and one --out-of-scope, on standard input that is not a terminal | it writes specarch.yaml with problem.statement, GOAL-1 and GOAL-2 with status proposed and OUT-1, asks nothing, and exits 0 |
 | init-writes-specification | command init | system | golden | a folder that does not exist | init is run on it with no option | it makes the folder and writes specarch.yaml with the schema line, the meta-model version, the folder's name as the title and version 0.1.0, which validates with no error and no warning, and exits 0 |
 | log-answer-needs-question | command log | system | red | a specification with an open question Q-1 | log is run with every option of an answer but --question | it prints that --question is missing, asking which question the answer answers and offering Q-1, writes nothing and exits 1 |
 | log-asks-missing | command log | system | red | a specification with the stakeholders owner and library-board | log is run with only who said it and the words | it prints one line per missing option, the direction, the recipient, the instant, the channel, the type, the form and the recorder, each saying what to ask the analyst and the values the specification offers, writes nothing and exits 1 |
@@ -20665,15 +20763,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-136:** Every later answer rests on the problem and the measured goals, so their absence is shown first; a compiler for specifications never refuses to read a specification for missing intent, so each is a warning, and on a small tool's lean specification a warning that shows on every run teaches people to skip warnings, so there it is a question (the owner's decision 3 of ADR-242).
 
-**Problem on SA-137:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
-
 **Insight on SA-137:** The intent is the first thing a reviewer and an agent read, so it is one page of its own, and it is the chapter arc42 opens with; a goal column shows which goal a requirement serves without a second document.
 
-**Problem on SA-138:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
-
 **Insight on SA-138:** Every other answer rests on the problem and the goals; a missing problem is a gap and not a refusal, so it never changes whether gaps fails a run.
-
-**Problem on SA-139:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
 
 **Insight on SA-139:** The owner chose flags with prompts on a terminal (2026-11-05), so scripts and agents keep working unchanged and a person at the terminal is asked in plain words.
 
@@ -20930,9 +21022,9 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-134 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-no-regions; tests document-language-out-is-output; tests document-language-unknown |
 | SA-135 | decisions ADR-244 | tests validate-intent-references |
 | SA-136 | decisions ADR-244 | tests validate-intent-problem-missing; tests validate-intent-problem-missing-lean; tests validate-intent-warnings |
-| SA-137 | decisions ADR-244 |   |
-| SA-138 | decisions ADR-244 |   |
-| SA-139 | decisions ADR-244 |   |
+| SA-137 | enums DocumentTarget; commands document; decisions ADR-244 | tests document-intent; tests document-intent-missing; tests document-progress-goals; tests document-techspec-intent; tests document-traceability-goals |
+| SA-138 | commands gaps; decisions ADR-244 | tests gaps-next-asks-problem; tests gaps-next-asks-unmeasured-goal; tests gaps-next-json-intent |
+| SA-139 | commands init; decisions ADR-244 | tests init-intent-empty; tests init-writes-intent |
 
 ## Sources
 

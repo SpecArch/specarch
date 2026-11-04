@@ -71,7 +71,7 @@ problem:
   statement: Members cannot see which books are on the shelf, so a third of the visits to the library end without a loan.
   stakeholders: [member, librarian]
   today: 31 percent of visits counted at the desk in March end without a loan.
-  cites: [desk-survey-2026-03]
+  cites: [{ source: desk-survey-2026-03, says: "31 percent of visits ended without a loan." }]
   why: The librarians asked for an online catalogue after the survey.
 ```
 
@@ -151,12 +151,12 @@ what decides a trade-off.
 qualityGoals:
   QG-1:
     rank: 1
-    quality: correctness
+    quality: functional-suitability
     statement: A loan shown as returned has been returned.
     why: A wrong state sends a member to an empty shelf, which is the problem itself.
   QG-2:
     rank: 2
-    quality: usability
+    quality: interaction-capability
     statement: A member finds a book's shelf in under 30 seconds on a phone.
 ```
 

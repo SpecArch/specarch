@@ -67,6 +67,7 @@ document. Someone has an idea and a few people who know what they need.
     specarch init --profile lean notes
     specarch validate notes
     specarch gaps notes
+    specarch document intent --out notes/docs notes
     specarch document techspec --out notes/docs notes
 
 `specarch init` writes the smallest specification that validates, and
@@ -78,6 +79,13 @@ error until it is written. `specarch help start` shows a first entity and
 operation and what lean relaxes; `specarch help examples` is a worked
 example from the empty folder to a generated file; `specarch help format`
 is the layout of the files; `specarch help conventions` the keywords.
+
+Say why the system is built before anything else: `--problem`, `--goal`
+and `--out-of-scope` write the problem, the goals and what is out of scope
+from plain sentences, and on a terminal init asks for them when none is
+given. `specarch gaps --next` asks a missing problem first and then a goal
+with no measure or target, and `specarch document intent` writes the
+four parts as one page, the first a reviewer reads.
 
 **A worked example.** On a new folder:
 

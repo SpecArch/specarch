@@ -184,6 +184,7 @@ What can be made from the specification now. A document is a draft while a must 
 
 | Output | State | Waits on |
 |---|---|---|
+| intent document | draft | 3 in requirements (Q-1, Q-3 and Q-2) |
 | techspec document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in design (Q-8), 3 in implementation (Q-6, Q-7 and Q-4), 1 in tests (Q-5) |
 | requirements document | draft | 3 in requirements (Q-1, Q-3 and Q-2) |
 | testplan document | draft | 3 in requirements (Q-1, Q-3 and Q-2), 1 in tests (Q-5) |

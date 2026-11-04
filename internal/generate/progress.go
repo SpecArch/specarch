@@ -47,6 +47,11 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 	d.line(tr("| Total | %d | |"), total)
 	d.blank()
 
+	if len(pairs(root, "goals")) > 0 {
+		d.section(tr("Goals"))
+		d.progressGoals(root, state)
+	}
+
 	d.section(tr("Open work"))
 	d.progressQuestions()
 

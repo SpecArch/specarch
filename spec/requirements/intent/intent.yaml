@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-1.0.schema.json
+problem:
+  statement: The specification of a system is scattered over documents that disagree with each other and drift from the code, so the people who build it guess at what was meant, a reviewer cannot see why a choice was made or what it rests on, and the people who use the system first see it at acceptance, where every change is the most expensive.
+  stakeholders: [specification-author, implementer, reviewer]
+  why: Every part of SpecArch is judged by one question, whether it makes a human decision faster, more accurate or traceable (docs/principles.md, Goal); the problem is what that question answers.
+goals:
+  GOAL-1:
+    statement: Every decision in a specification can be traced back to what it rests on and forward to what it decides.
+    measure: Share of accepted requirements whose needs, satisfying elements and verifying tests are all named, as the traceability matrix counts them.
+    target: 100 percent of accepted requirements
+    priority: must
+    status: accepted
+  GOAL-2:
+    statement: A specification is never quietly wrong.
+    measure: Defects per release whose cause is a problem in the specification that no rule of the validator reported.
+    target: 0 per release
+    priority: must
+    status: accepted
+  GOAL-3:
+    statement: The documents and the code never drift from the specification.
+    measure: Generated files that differ from what the specification writes, as the landing check counts them.
+    target: 0 at every landing
+    priority: must
+    status: accepted
+  GOAL-4:
+    statement: The next human decision is cheap to take, early and from what is already written.
+    measure: Share of open questions that gaps --next puts with who decides, what it blocks and the command that records the answer.
+    target: 100 percent of open questions
+    priority: should
+    status: accepted
+outOfScope:
+  OUT-1:
+    statement: SpecArch does not run, host or deploy the system it specifies; it writes the documents, the code and the checks, and the project's own pipeline runs them.
+    why: Running the system would tie SpecArch to one host and one stack, against writing a design once and building it in more than one language.
+  OUT-2:
+    statement: SpecArch does not track who does what by when; that stays in the team's tracker, and the specification holds the scope and the order only.
+    why: The delivery changes when a person is ill or an agent finishes early while the system does not (ADR-242), so the tracker keeps what changes with it.
+  OUT-3:
+    statement: SpecArch has no graphical editor; a specification is YAML text, reviewed in version control.
+    why: A text file shows every change as a diff a reviewer reads and a merge resolves, which a drawing tool's file does not.
+qualityGoals:
+  QG-1:
+    rank: 1
+    quality: functional-suitability
+    statement: A specification the validator passes holds no problem one of its rules could have reported, and both validator builds print the same lines for it.
+    why: A wrong answer from the validator is the problem itself, a specification that is quietly wrong.
+  QG-2:
+    rank: 2
+    quality: interaction-capability
+    statement: Every problem names the entry, the rule and what to write, so the analyst settles it without reading SpecArch's code.
+  QG-3:
+    rank: 3
+    quality: maintainability
+    statement: A rule, a document or a generator is added in one place per build and checked by one case of its own.

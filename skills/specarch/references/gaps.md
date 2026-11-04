@@ -66,6 +66,18 @@ answer as `<answer>`) and `recommendation`, always null: the agent
 fills it with the answer it recommends and why before it puts the
 question (`specarch help asking`).
 
+The intent comes before any open question, on every profile
+(ADR-244): a specification with requirements and no problem, as the
+validator's `problem_missing` sees it, and then the first accepted
+goal with no measure or no target, is printed in its place, naming
+the rule and the pointer, the question in plain words, who to ask
+(the owner of the system), the keys the answer is written as, and
+the open question ranked first that comes after it. With `--json`
+each entry holds `intent`, null when there is none, with `rule`,
+`pointer`, `question` and `keys`, beside `question` as before. The
+exit status stays that of the open questions and the errors alone:
+nothing refuses a specification for missing intent.
+
 ## Arguments
 
 - `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.

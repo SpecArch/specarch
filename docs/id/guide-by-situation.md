@@ -72,7 +72,16 @@ yang tahu apa yang mereka butuhkan.
     specarch init --profile lean notes
     specarch validate notes
     specarch gaps notes
+    specarch document intent --out notes/docs notes
     specarch document techspec --out notes/docs notes
+
+Tulis dulu kenapa sistem ini dibangun: `--problem`, `--goal` dan
+`--out-of-scope` menulis masalah, goal dan hal yang out of scope dari
+kalimat biasa, dan di terminal init menanyakannya kalau tidak ada yang
+diberikan. `specarch gaps --next` menanyakan masalah yang belum ditulis
+lebih dulu, lalu goal yang belum punya measure atau target, dan
+`specarch document intent` menulis keempatnya dalam satu halaman, yang
+pertama dibaca reviewer.
 
 `specarch init` menulis spesifikasi terkecil yang lolos validasi, dan
 tidak lebih: setiap kunci di luar itu adalah keputusan yang belum diambil

@@ -76,12 +76,14 @@ var (
 // sectionTitles are the headings of the sections.
 var sectionTitles = map[string]string{
 	"separationOfDuties": "Separation of duties", "stakeholdersComplete": "Stakeholder list confirmed", "paths": "HTTP operations",
+	"outOfScope": "Out of scope", "qualityGoals": "Quality goals",
 }
 
 // linkTo says, for a key, which sections a value under it names an
 // element of, in the order they are tried.
 var linkTo = map[string][]string{
 	"satisfies": {"requirements"}, "verifies": {"requirements"}, "requirements": {"requirements"}, "refines": {"requirements"},
+	"goals": {"goals"}, "weighs": {"qualityGoals"}, "measuredBy": {"monitors"},
 	"needs": {"needs"}, "stakeholders": {"stakeholders"}, "decidedBy": {"stakeholders"}, "owner": {"stakeholders"},
 	"permission": {"permissions"}, "permissions": {"permissions"}, "middlewares": {"middlewares"},
 	"role": {"roles"}, "roles": {"roles"}, "approvers": {"roles"},

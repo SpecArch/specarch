@@ -1,7 +1,7 @@
 // Command specarch checks SpecArch specifications and makes documents and
 // code from them.
 //
-//	specarch init [--title <title>] [--profile lean|full] [--dry-run] <folder>
+//	specarch init [--title <title>] [--profile lean|full] [--problem <sentence>] [--goal <sentence>]... [--out-of-scope <sentence>]... [--dry-run] <folder>
 //	specarch validate <folder or file>...
 //	specarch document <target> [--out <folder>] [--check | --dry-run] [--audience external] [--language en|id] <folder>...
 //	specarch generate <target> [--out <folder>] [--check | --dry-run] [--unapproved] [--as-is] [--estate <file>] <folder>...
@@ -44,7 +44,7 @@ import (
 const version = specarch.Version
 
 const usage = `usage:
-  specarch init [--title <title>] [--profile lean|full] [--dry-run] <folder>
+  specarch init [--title <title>] [--profile lean|full] [--problem <sentence>] [--goal <sentence>]... [--out-of-scope <sentence>]... [--dry-run] <folder>
                                             write the smallest specification that validates into a new folder
   specarch validate <folder or file>...    check specifications and implementation files
   specarch gaps [--next] <folder>...        list the open questions and what they hold up;

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order"
+when: "document techspec is run"
+then: "chapter 1 opens with the problem, the goals, the out-of-scope entries and the quality goals in rank order before the stakeholders, and exits 0"
+verifies: [SA-137]

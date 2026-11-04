@@ -1,0 +1,4 @@
+arguments: [init, "--problem=Clerks cannot find an item by name.", "--goal=Sales wait less.", "--goal=Fewer items are lost.", "--out-of-scope=The system does not order stock.", notes]
+exitStatus: 0
+standardOutput: |
+  notes/specarch.yaml

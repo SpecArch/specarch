@@ -2,26 +2,20 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1045 design tests, 524 golden and 521 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1055 design tests, 532 golden and 523 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
-
-**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1041 |
+| system | 1051 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1037,6 +1031,22 @@ Scenario: red; level: system; verifies SA-60.
 - When: document html is run
 - Then: it prints the error, writes site/index.html all the same with an Invalid notice, the error listed under Problems with a link to the permission, and the permission's row marked with a link back to the problem, and exits 1
 
+#### document-intent
+
+Scenario: golden; level: system; verifies SA-137.
+
+- Given: a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order
+- When: document intent is run
+- Then: intent.md holds the problem with whom it hurts and today, the goals table with the needs serving each, the out-of-scope table and the quality goals in rank order, and it exits 0
+
+#### document-intent-missing
+
+Scenario: red; level: system; verifies SA-137.
+
+- Given: a specification with requirements and no intent
+- When: document intent is run
+- Then: intent.md says of each part that it is not written and names the key that states it, and marks problem_missing in its problems notice; it exits 0
+
 #### document-invalid-input
 
 Scenario: red; level: system; covers exit 1.
@@ -1261,6 +1271,14 @@ Scenario: golden; level: system; verifies SA-132.
 - When: document progress is run with --audience external
 - Then: it writes progress.md that says the internal elements and the questions only about them are not counted, sizes the requirements as 1, counts 1 open question, and gives the release 1 element approved, and exits 0
 
+#### document-progress-goals
+
+Scenario: golden; level: system; verifies SA-137.
+
+- Given: a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order
+- When: document progress is run
+- Then: the progress report has a Goals section with each goal's baseline, target, the latest reading as none recorded and the requirements serving it that are met, and exits 0
+
 #### document-progress-stakeholders-confirmed
 
 Scenario: golden; level: system; verifies SA-132.
@@ -1421,6 +1439,14 @@ Scenario: golden; level: system; verifies SA-105.
 - When: document techspec is run
 - Then: the context diagram writes the ledger's auth and rate on its node, the dependencies table says how each proves itself, its rate and its operations, the operation's calls name each operation's method and path or channel and message, a paragraph per call says its contract, the workflow diagram draws each dependency the step calls with an edge naming the operation, and it exits 0
 
+#### document-techspec-intent
+
+Scenario: golden; level: system; verifies SA-137.
+
+- Given: a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order
+- When: document techspec is run
+- Then: chapter 1 opens with the problem, the goals, the out-of-scope entries and the quality goals in rank order before the stakeholders, and exits 0
+
 #### document-techspec-marks-implementation-problem
 
 Scenario: red; level: system; verifies SA-51.
@@ -1556,6 +1582,14 @@ Scenario: red; level: system; verifies SA-129.
 - Given: a specification with stakeholders and no stakeholdersComplete, and two test runs recorded beside it
 - When: document testruns is run
 - Then: docs/testruns.md carries the Stakeholders unconfirmed banner under its summary, the test runs read as they do with the list confirmed, and the run exits 0
+
+#### document-traceability-goals
+
+Scenario: golden; level: system; verifies SA-137.
+
+- Given: a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order
+- When: document traceability is run
+- Then: the traceability matrix has a Goals column naming the goals each requirement's needs serve, and exits 0
 
 #### document-traceability-harm
 
@@ -2955,6 +2989,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-19, SA-69.
 - When: gaps is run
 - Then: each of those questions lists the name it gives and the file and line of the element that leaves the key out, the outputs name the first three of the six questions in the design stage and count the rest, and it exits 1
 
+#### gaps-next-asks-problem
+
+Scenario: golden; level: system; verifies SA-138.
+
+- Given: a specification with requirements, an open must question and no problem
+- When: gaps --next is run
+- Then: it prints the problem first, before the open question, naming problem_missing at /problem, the question in plain words, the keys statement, stakeholders and today, and the question ranked first after it, and exits 1 for the open must question alone
+
+#### gaps-next-asks-unmeasured-goal
+
+Scenario: golden; level: system; verifies SA-138.
+
+- Given: a specification with a problem and an accepted goal with a measure and no target, and an open must question
+- When: gaps --next is run
+- Then: it prints the goal's question first, naming goal_unmeasured at /goals/GOAL-1 and the keys baseline and target, and exits 1 for the open must question alone
+
 #### gaps-next-json
 
 Scenario: red; level: system; covers exit 1; verifies SA-107.
@@ -2962,6 +3012,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-107.
 - Given: a specification with two must questions and a could question
 - When: gaps --next is run with --json
 - Then: the output object holds next with one entry for the specification: its root file, title and three open questions, and the question ranked first as fields, with the outputs it holds up, the decide command as arguments and a recommendation of null; it exits 1
+
+#### gaps-next-json-intent
+
+Scenario: golden; level: system; verifies SA-138.
+
+- Given: a specification with requirements, an open must question and no problem
+- When: gaps --next --json is run
+- Then: next holds the intent with rule problem_missing, pointer /problem, the question and the keys, beside the open question as before
 
 #### gaps-next-none
 
@@ -4367,6 +4425,14 @@ Scenario: golden; level: system; verifies SA-108.
 - When: init is run with --dry-run
 - Then: it prints the path and the text it would write, makes no folder and writes nothing, and exits 0
 
+#### init-intent-empty
+
+Scenario: red; level: system; verifies SA-139.
+
+- Given: a folder that does not exist
+- When: init is run with an empty --goal
+- Then: it refuses the empty answer as a usage error, names the option and writes nothing, and exits 2
+
 #### init-lean-profile
 
 Scenario: golden; level: system; verifies SA-108.
@@ -4390,6 +4456,14 @@ Scenario: red; level: system; covers usage error, exit 2; verifies SA-108.
 - Given: the program
 - When: init is run with a profile that does not exist
 - Then: it names the profiles there are, prints how to use it, writes nothing and exits 2
+
+#### init-writes-intent
+
+Scenario: golden; level: system; verifies SA-139.
+
+- Given: a folder that does not exist
+- When: init is run with --problem, two --goal and one --out-of-scope, on standard input that is not a terminal
+- Then: it writes specarch.yaml with problem.statement, GOAL-1 and GOAL-2 with status proposed and OUT-1, asks nothing, and exits 0
 
 #### init-writes-specification
 

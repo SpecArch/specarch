@@ -8,6 +8,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
+	"github.com/SpecArch/specarch/internal/validate"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -22,6 +23,24 @@ type Next struct {
 	OpenQuestions int `json:"openQuestions"`
 	// Question is the one ranked first, nil when none is open.
 	Question *NextQuestion `json:"question"`
+	// Intent is the gap in the intent asked before any open question
+	// (ADR-244), nil when there is none.
+	Intent *NextIntent `json:"intent"`
+}
+
+// NextIntent is a gap in the intent of a specification, asked before any
+// open question because every other answer rests on it: a missing
+// problem, then an accepted goal with no measure or target.
+type NextIntent struct {
+	// Rule is the validator's rule for the gap: problem_missing or
+	// goal_unmeasured.
+	Rule string `json:"rule"`
+	// Pointer is where the answer is written: /problem or /goals/<ID>.
+	Pointer string `json:"pointer"`
+	// Question is the gap put as one plain question.
+	Question string `json:"question"`
+	// Keys are the keys the answer is written as, under the pointer.
+	Keys []string `json:"keys"`
 }
 
 // NextQuestion is the question ranked first, with what the person needs
@@ -64,7 +83,7 @@ type Recommendation struct {
 // many entries it blocks, then by stage in life-cycle order, then by ID.
 func NextOf(root *yaml.Node, relRoot string, impls []Implementation, state *State) Next {
 	qs := questionsOf(root)
-	n := Next{Specification: relRoot, Title: str(get(root, "info"), "title"), OpenQuestions: len(qs)}
+	n := Next{Specification: relRoot, Title: str(get(root, "info"), "title"), OpenQuestions: len(qs), Intent: intentGap(root)}
 	if len(qs) == 0 {
 		return n
 	}
@@ -208,8 +227,62 @@ func outputReads(root *yaml.Node, impls []Implementation) []output {
 	return out
 }
 
-// NextText is what gaps --next prints for one specification.
+// intentGap is the first gap in the intent: a specification with
+// requirements and no problem, as the validator's problem_missing sees it
+// on every profile, then the first accepted goal with no measure or no
+// target.
+func intentGap(root *yaml.Node) *NextIntent {
+	if validate.ProblemMissing(root) {
+		return &NextIntent{Rule: "problem_missing", Pointer: "/problem",
+			Question: "What problem does the system solve: whom does it hurt, and what does it cost them today?",
+			Keys:     []string{"statement", "stakeholders", "today"}}
+	}
+	for _, g := range pairs(root, "goals") {
+		if str(g.Value, "status") != "accepted" {
+			continue
+		}
+		var keys []string
+		for _, k := range []string{"measure", "baseline", "target"} {
+			if get(g.Value, k) == nil {
+				keys = append(keys, k)
+			}
+		}
+		if get(g.Value, "measure") != nil && get(g.Value, "target") != nil {
+			continue
+		}
+		return &NextIntent{Rule: "goal_unmeasured", Pointer: source.Pointer("goals", g.Key.Value),
+			Question: fmt.Sprintf("How is goal %s, %s, measured: what is counted, what is its value today, and what value is wanted?", g.Key.Value, strings.TrimSuffix(oneParagraph(str(g.Value, "statement")), ".")),
+			Keys:     keys}
+	}
+	return nil
+}
+
+// intentText is what gaps --next prints for a gap in the intent, before
+// the open question it would otherwise show.
+func intentText(n Next) string {
+	var b strings.Builder
+	in := n.Intent
+	fmt.Fprintf(&b, "Next in %s (%s): the intent comes first, before %s: %s at %s\n\n", n.Title, n.Specification, countText(n.OpenQuestions, "open question", "open questions"), in.Rule, in.Pointer)
+	fmt.Fprintf(&b, "%s\n\n", in.Question)
+	fmt.Fprintf(&b, "- Ask: the owner of the system\n")
+	fmt.Fprintf(&b, "- Write the answer: under %s, as %s, in plain sentences\n", strings.TrimPrefix(in.Pointer, "/"), joinAnd(in.Keys))
+	fmt.Fprintf(&b, "- Why first: every other answer rests on the problem and the goals\n")
+	if q := n.Question; q != nil {
+		fmt.Fprintf(&b, "- After it: %s, the open question ranked first\n", q.ID)
+	} else {
+		fmt.Fprintf(&b, "- After it: no open question\n")
+	}
+	fmt.Fprintf(&b, "\nPut it to the owner of the system alone, with one answer recommended and why; specarch help asking.\n")
+	return b.String()
+}
+
+// NextText is what gaps --next prints for one specification: a gap in
+// the intent first, when there is one, and the open question ranked
+// first otherwise.
 func NextText(n Next) string {
+	if n.Intent != nil {
+		return intentText(n)
+	}
 	var b strings.Builder
 	q := n.Question
 	if q == nil {

@@ -103,7 +103,9 @@ standardOutput: |
         List the idioms each implementation file uses, and how.
     specarch idioms diff <idiom> <paths>...
         Print a shipped idiom's parts beside each override's.
-    specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
+    specarch init <folder> [--title <title>] [--profile <profile>]
+      [--problem <problem>] [--goal <goal>]...
+      [--out-of-scope <out-of-scope>]... [--dry-run]
         Write the smallest specification that validates into a new folder.
     specarch log <folder> [--direction <direction>] [--from <from>]
       [--to <to>] [--at <at>] [--channel <channel>] [--type <type>]

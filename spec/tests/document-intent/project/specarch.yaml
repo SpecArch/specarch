@@ -1,0 +1,27 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  clerk: { description: Staff at the till. }
+stakeholdersComplete: { by: clerk, date: "2026-11-05" }
+problem:
+  statement: Clerks cannot find an item by name, so a sale waits while they search.
+  stakeholders: [clerk]
+  today: A search takes 90 seconds on average (March 2026).
+goals:
+  GOAL-1: { statement: Sales wait less., measure: Seconds from request to counter., baseline: 90 seconds, target: 20 seconds, priority: must, status: accepted }
+outOfScope:
+  OUT-1: { statement: The system does not order stock., why: Ordering belongs to the warehouse system. }
+qualityGoals:
+  QG-2: { rank: 2, quality: interaction-capability, statement: A clerk finds an item in under ten seconds. }
+  QG-1: { rank: 1, quality: functional-suitability, statement: A name search finds every item of that name., requirements: [CASE-1] }
+needs:
+  NEED-1: { statement: Items must be findable by name., stakeholders: [clerk], status: accepted, goals: [GOAL-1] }
+requirements:
+  CASE-1:
+    statement: An item shall have a non-empty name.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Saving an item with an empty name is refused.]
+    verification: test
+    needs: [NEED-1]

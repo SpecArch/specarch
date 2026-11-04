@@ -9,9 +9,6 @@
           "informationUri": "https://github.com/SpecArch/specarch",
           "rules": [
             {
-              "id": "problem_missing"
-            },
-            {
               "id": "requirement_unverified"
             },
             {
@@ -25,37 +22,6 @@
       },
       "columnKind": "unicodeCodePoints",
       "results": [
-        {
-          "ruleId": "problem_missing",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/requirements/requirements/derived-tests.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 4,
-                  "startColumn": 3
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/problem",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "problem_missing@requirements/requirements/derived-tests.yaml#/problem"
-          }
-        },
         {
           "ruleId": "requirement_unverified",
           "kind": "fail",
@@ -85,99 +51,6 @@
           ],
           "partialFingerprints": {
             "specarchId/v1": "requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98"
-          }
-        },
-        {
-          "ruleId": "requirement_unverified",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/requirements/requirements/intent.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 35,
-                  "startColumn": 3
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/requirements/SA-137",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137"
-          }
-        },
-        {
-          "ruleId": "requirement_unverified",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/requirements/requirements/intent.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 48,
-                  "startColumn": 3
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/requirements/SA-138",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138"
-          }
-        },
-        {
-          "ruleId": "requirement_unverified",
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "../spec/requirements/requirements/intent.yaml",
-                  "uriBaseId": "PROBLEMSDIR"
-                },
-                "region": {
-                  "startLine": 61,
-                  "startColumn": 3
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "/requirements/SA-139",
-                  "kind": "element"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "specarchId/v1": "requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139"
           }
         },
         {

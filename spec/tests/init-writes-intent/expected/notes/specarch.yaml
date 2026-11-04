@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.5.0/schema/specarch-design-1.0.schema.json
+specarch: "1.0.0"
+
+info:
+  title: notes
+  version: 0.1.0
+
+problem:
+  statement: Clerks cannot find an item by name.
+
+goals:
+  GOAL-1:
+    statement: Sales wait less.
+    status: proposed
+  GOAL-2:
+    statement: Fewer items are lost.
+    status: proposed
+
+outOfScope:
+  OUT-1:
+    statement: The system does not order stock.

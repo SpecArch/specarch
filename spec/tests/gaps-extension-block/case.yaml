@@ -24,6 +24,7 @@ standardOutput: |+
 
   | Output | State | Waits on |
   |---|---|---|
+  | intent document | ready | |
   | techspec document | draft | 1 in extension blocks (Q-1) |
   | requirements document | ready | |
   | testplan document | ready | |

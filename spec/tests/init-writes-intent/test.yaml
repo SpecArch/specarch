@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: init
+level: system
+scenario: golden
+given: "a folder that does not exist"
+when: "init is run with --problem, two --goal and one --out-of-scope, on standard input that is not a terminal"
+then: "it writes specarch.yaml with problem.statement, GOAL-1 and GOAL-2 with status proposed and OUT-1, asks nothing, and exits 0"
+verifies: [SA-139]

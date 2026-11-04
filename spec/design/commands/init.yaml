@@ -14,6 +14,14 @@ commands:
       is a definition nobody made. `specarch help start` shows the next
       step, a first entity and operation that validate.
 
+      The intent comes first (ADR-244): `--problem` writes
+      `problem.statement`, each `--goal` a goal `GOAL-n` with status
+      `proposed`, and each `--out-of-scope` an entry `OUT-n`, so the
+      analyst answers in sentences and the keys are written for them.
+      When standard input is a terminal and none of the three is given,
+      init asks the three questions there on standard error, an empty
+      answer skipping one; on a pipe or in a script it asks nothing.
+
       A folder that already holds `specarch.yaml` is refused and nothing
       is written: init never overwrites a specification.
     permission: public
@@ -24,6 +32,15 @@ commands:
       profile:
         description: The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full.
         schema: { type: string, enum: [lean, full] }
+      problem:
+        description: The problem the system solves, in a sentence, written as problem.statement.
+        schema: { type: string, minLength: 1 }
+      goal:
+        description: An outcome that counts as success, in a sentence, written as goal GOAL-n with status proposed; repeatable.
+        schema: { type: array, items: { type: string, minLength: 1 } }
+      out-of-scope:
+        description: Something the system will not do, in a sentence, written as entry OUT-n; repeatable.
+        schema: { type: array, items: { type: string, minLength: 1 } }
       dry-run:
         description: Write nothing; print would write <path> and the text it would write.
         schema: { type: boolean, default: false }
@@ -36,7 +53,7 @@ commands:
     reads:
       - { path: "{folder}/specarch.yaml", description: "Only whether it exists, to refuse overwriting it." }
     writes:
-      - { path: "{folder}/specarch.yaml", description: "The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile." }
+      - { path: "{folder}/specarch.yaml", description: "The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile, then the problem, goals and out-of-scope entries given or answered." }
     standardOutput: The path written, or with --dry-run would write <path> and the text.
     standardError: A usage message on a usage error; the file that is already there or the reason a path could not be written; after writing, the next step.
     exitCodes:
@@ -44,7 +61,7 @@ commands:
       "2": usage error, a folder that already holds specarch.yaml, or a path that could not be written
     remedies:
       "2": "Read the reason on standard error: give a folder without specarch.yaml, or a profile of lean or full, or a path that can be written, and run it again."
-    satisfies: [SA-108]
+    satisfies: [SA-108, SA-139]
     why: |
       The first minutes decide whether a small project uses SpecArch at
       all. Spec Kit's init writes a project skeleton in one command; this

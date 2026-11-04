@@ -12,7 +12,7 @@ file `specarch.yaml`, and one folder per life-cycle stage it keeps.
     spec/
       specarch.yaml                  the root: specarch, info, stages, sources
       specarch.md                    the hand-written explanation, with generated regions
-      requirements/                  stakeholders, stakeholdersComplete, needs, requirements, glossary, assumptions, constraints
+      requirements/                  problem, goals, outOfScope, qualityGoals, stakeholders, stakeholdersComplete, needs, requirements, glossary, assumptions, constraints
       design/                        enums, entities, permissions, roles, paths, commands, channels, pages, algorithms, decisions
       implementation/<stack>/        <name>.<stack>.specarch-implementation.yaml, and its .md when it needs one
       tests/<name>/                  test.yaml, and the scenario's own input and expected-output files
@@ -37,7 +37,7 @@ The rules, each of which the validator checks under the rule `layout`:
   sub-folder per section and one object per file, named after the object
   in kebab-case (`design/entities/loan.yaml`, `design/decisions/ADR-001.yaml`),
   with the small sections (`permissions`, `roles`) in one file each. The
-  single-object sections (`stakeholdersComplete`, `release`, `rollback`,
+  single-object sections (`problem`, `stakeholdersComplete`, `release`, `rollback`,
   `handover`, `signoff`, `backup`, `restore`) are one file each,
   `deployment/release.yaml`.
 - Each test is a folder `tests/<name>/` holding `test.yaml`, the test
@@ -421,6 +421,78 @@ warning already tells it to upgrade. The key is the refinement's own record, not
 element of the system: `diff` and the comparison leave it out, and origin
 tracking asks it for no origin.
 
+### The intent
+
+A specification says why the system is built and what counts as success
+before anything else (ADR-242, ADR-244), in four optional sections of
+the requirements stage, the business requirements of ISO/IEC/IEEE 29148
+(9.3) and section 1 of arc42:
+
+```yaml
+problem:
+  statement: Members cannot see which books are on the shelf, so a third of the visits end without a loan.
+  stakeholders: [member, librarian]
+  today: 31 percent of visits counted at the desk in March end without a loan.
+goals:
+  GOAL-1:
+    statement: Fewer visits end without a loan.
+    measure: Share of visits counted at the desk that end without a loan.
+    baseline: 31 percent (March 2026)
+    target: 15 percent
+    by: 1.0.0
+    priority: must
+    status: accepted
+    measuredBy: [visits-without-loan]
+outOfScope:
+  OUT-1:
+    statement: Members cannot reserve a book online.
+    why: Reservations need a hold shelf the library does not have.
+    until: 2.0.0
+    needs: [NEED-7]
+qualityGoals:
+  QG-1:
+    rank: 1
+    quality: functional-suitability
+    statement: A loan shown as returned has been returned.
+```
+
+- `problem` is one object; its `stakeholders` are stakeholders
+  (`stakeholder`) and its `cites` citations, as on every element.
+- A goal is the owner's outcome for the whole system, not one
+  stakeholder's need: `measure`, `baseline` and `target` are plain
+  sentences with a number and its unit (Planguage), `by` a release as a
+  requirement's `release` is (`record_ref`), `status` proposed, accepted,
+  met or dropped, and `measuredBy` the monitors that read it
+  (`monitor`). A need names the goals it serves under `goals` (`goal`),
+  so the chain is goal, need, requirement, design element, test.
+- An out-of-scope entry is a boundary decided before anyone asks:
+  `until` is the release it may come back in (`record_ref`), and `needs`
+  the needs it rules out (`need`), which keep their own status.
+- A quality goal's `quality` is a characteristic of ISO/IEC 25010:2023
+  (functional-suitability, performance-efficiency, compatibility,
+  interaction-capability, reliability, security, maintainability,
+  flexibility, safety), its `rank` the order that decides a trade-off,
+  and `requirements` the quality requirements that make it concrete
+  (`requirement`). A decision names the quality goals it weighed under
+  `weighs` (`quality_goal`).
+
+Every rule about the intent is a warning, at the entry and in the
+problems file: `problem_missing` (requirements and no problem; anchored at
+the requirements, held by a must question that blocks the problem, not on
+a meta-model before 1.0.0), `goal_unmeasured` (an accepted goal without
+`measure` or `target`), `goal_unserved` (an accepted goal no accepted need
+names), `need_without_goal` (an accepted need naming no goal, only once a
+goal exists), `scope_conflict` (an accepted requirement refining a need
+ruled out) and `quality_goal_rank` (two quality goals of one rank). On the
+lean profile `problem_missing` is not warned but asked as the first
+question of `specarch gaps --next`, which asks a missing problem and then
+an unmeasured goal first on every profile. `specarch init` writes the
+problem, the goals and what is out of scope from `--problem`, `--goal`
+and `--out-of-scope`, or asks for them on a terminal. `specarch document
+intent` writes them as one page, the techspec opens its first chapter with
+them, and the traceability matrix gains a Goals column once a goal is
+written.
+
 ### The interface boundary
 
 The rule of thumb: if a client of the interface needs to know it, it is
@@ -675,7 +747,7 @@ does not care; a reader does. In a tree, each section is in its stage's
 folder and only the first four are in the root file.
 
 1. `specarch`, `info`, `stages`, `sources`
-2. `stakeholders`, `stakeholdersComplete`, `needs`, `requirements`, `glossary`, `assumptions`, `constraints`
+2. `problem`, `goals`, `outOfScope`, `qualityGoals`, `stakeholders`, `stakeholdersComplete`, `needs`, `requirements`, `glossary`, `assumptions`, `constraints`
 3. `enums`
 4. `entities`
 5. `permissions`, `roles`, `session`
@@ -822,6 +894,7 @@ redefined.
 | `language` (on a source) | BCP 47 | the language subtag and the subtags after it; the tag names the vocabulary a document is read by |
 | `stakeholders`, `needs`, `requirements`, `statement`, `priority`, `status`, `acceptance`, `verification` | SpecArch, after ISO/IEC/IEEE 29148 | the requirements stage: the standard's stakeholders (5.2.2), needs (6.3), requirements (6.4) and attributes (5.2.8); priority after MoSCoW; verification methods after MIL-STD-961E |
 | `stakeholdersComplete`, `by`, `date`, `source` (of the confirmation) | SpecArch, after ISO/IEC/IEEE 29148 5.2.2 | the role that confirmed the stakeholder list is complete, when, and the declared source it rests on, when there is one; until it is set, `stakeholders_unconfirmed` warns, every document carries a banner and approve warns (ADR-234) |
+| `problem`, `goals`, `outOfScope`, `qualityGoals`, `measure`, `baseline`, `target`, `by`, `measuredBy`, `until`, `rank`, `quality`; `goals` on a need, `weighs` on a decision | SpecArch, after ISO/IEC/IEEE 29148 9.3, arc42 section 1, Planguage and ISO/IEC 25010:2023 | the intent of the specification (ADR-242, ADR-244): the problem, the goals with how they are measured, what is out of scope on purpose and the quality goals in rank order; see The intent |
 | `glossary`, `assumptions`, `constraints` (top level) | SpecArch, after ISO/IEC/IEEE 29148 | 9.2.3, 9.5.19 and 9.6.16 of the standard; arc42 sections 2 and 12 |
 | `satisfies`, `verifies` | SpecArch, after SysML and 29148 6.5 | the satisfy and verify relations from a design element or a test to a requirement |
 | `why`, `cites`, `source`, `clause`, `says` | SpecArch | the rationale and the citations every element may carry; 29148 (5.2.8) names rationale and source as attributes |

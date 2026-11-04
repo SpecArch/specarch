@@ -906,6 +906,22 @@ with no `--out`, has no such document: it gets a warning at the
 targets of its first implementation file and is passed over, and the
 others are written or checked (ADR-073).
 
+The intent target writes `intent.md`, about one page read before
+anything else (ADR-244): the problem with whom it hurts and how
+things stand today, the goals with measure, baseline, target, by,
+priority, status and the needs that serve each, what is out of
+scope with until and the needs it rules out, and the quality goals
+in rank order; a part the specification does not state says so and
+names the key that states it. The techspec opens its chapter 1
+with the same parts, those stated only, before the stakeholders; a
+decision that weighs quality goals names them highest rank first;
+the traceability matrix gains a Goals column, the goals each
+requirement's needs serve, once the specification writes a goal;
+and the progress report gains a Goals section, per goal the
+baseline, the target, the latest reading (none recorded, since no
+record holds a monitor's reading) and how many of the requirements
+serving it are met, a requirement met once its release is released.
+
 The techspec target writes `techspec.md`: an arc42 technical
 specification of the whole specification, with chapters only for
 what it holds. Diagrams are Mermaid: an entity diagram, a state
@@ -3333,6 +3349,18 @@ answer as `<answer>`) and `recommendation`, always null: the agent
 fills it with the answer it recommends and why before it puts the
 question (`specarch help asking`).
 
+The intent comes before any open question, on every profile
+(ADR-244): a specification with requirements and no problem, as the
+validator's `problem_missing` sees it, and then the first accepted
+goal with no measure or no target, is printed in its place, naming
+the rule and the pointer, the question in plain words, who to ask
+(the owner of the system), the keys the answer is written as, and
+the open question ranked first that comes after it. With `--json`
+each entry holds `intent`, null when there is none, with `rule`,
+`pointer`, `question` and `keys`, beside `question` as before. The
+exit status stays that of the open questions and the errors alone:
+nothing refuses a specification for missing intent.
+
 **Insight:** The owner and the agent run validate after every edit, so validate counts the open questions and lists none; this verb is the list, with what each question holds up, so that the next decision is always in view. The same text is the document, because the people who decide read documents, not terminals.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.6.3: The closure of to-be-determined and to-be-resolved items against plan is a measure of the requirements work. <https://www.iso.org/standard/72089.html>
@@ -3866,13 +3894,21 @@ entity, operation or stage to rename or delete, since a placeholder
 is a definition nobody made. `specarch help start` shows the next
 step, a first entity and operation that validate.
 
+The intent comes first (ADR-244): `--problem` writes
+`problem.statement`, each `--goal` a goal `GOAL-n` with status
+`proposed`, and each `--out-of-scope` an entry `OUT-n`, so the
+analyst answers in sentences and the keys are written for them.
+When standard input is a terminal and none of the three is given,
+init asks the three questions there on standard error, an empty
+answer skipping one; on a pipe or in a script it asks nothing.
+
 A folder that already holds `specarch.yaml` is refused and nothing
 is written: init never overwrites a specification.
 
 **Insight:** The first minutes decide whether a small project uses SpecArch at all. Spec Kit's init writes a project skeleton in one command; this init writes only what the format requires, since every key beyond it is a decision the author has not made yet, and a placeholder would be a definition the validator reads as made. The title from the folder's name is a fact, not a guess, and is one word to change. Refusing an existing specarch.yaml, rather than merging into it, keeps the command one that cannot lose work.
 
 ```
-specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
+specarch init <folder> [--title <title>] [--profile <profile>] [--problem <problem>] [--goal <goal>] [--out-of-scope <out-of-scope>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -3885,6 +3921,9 @@ Anyone who has the program runs it.
 |---|---|---|
 | `--title <title>` | The specification's title, written as info.title; the folder's own name when left out. |  |
 | `--profile <profile>` | The profile written as info.profile, lean or full; left out, no profile is written and the specification is on full. One of: lean, full. |  |
+| `--problem <problem>` | The problem the system solves, in a sentence, written as problem.statement. |  |
+| `--goal <goal>` | An outcome that counts as success, in a sentence, written as goal GOAL-n with status proposed; repeatable. |  |
+| `--out-of-scope <out-of-scope>` | Something the system will not do, in a sentence, written as entry OUT-n; repeatable. |  |
 | `--dry-run` | Write nothing; print would write <path> and the text it would write. |  |
 
 It reads:
@@ -3893,7 +3932,7 @@ It reads:
 
 It writes:
 
-- `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile.
+- `{folder}/specarch.yaml`: The smallest specification that validates: the $schema line, specarch and info with title, version and, when --profile is given, profile, then the problem, goals and out-of-scope entries given or answered.
 
 On standard output: The path written, or with --dry-run would write <path> and the text.
 

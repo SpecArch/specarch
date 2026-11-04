@@ -7,7 +7,7 @@ standardOutput: |
 
   - Decided by: owner
   - Blocks: #/requirements/CASE-1/priority
-  - Holds up: techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql
+  - Holds up: intent document, techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql
   - Options:
     1. must
     2. should

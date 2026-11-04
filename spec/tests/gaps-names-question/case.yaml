@@ -85,6 +85,7 @@ standardOutput: |+
 
   | Output | State | Waits on |
   |---|---|---|
+  | intent document | ready | |
   | techspec document | draft | 6 in design (Q-1, Q-2, Q-3 and 3 more) |
   | requirements document | ready | |
   | testplan document | ready | |

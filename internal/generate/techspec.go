@@ -214,6 +214,10 @@ func introduction(d *doc, root *yaml.Node) {
 	if owners := strs(info, "owners"); len(owners) > 0 {
 		d.para(tr("Owners: ") + strings.Join(owners, ", ") + ".")
 	}
+	// The intent opens the chapter, as section 1 of arc42 does: the
+	// problem and goals, the boundary and the quality goals, before the
+	// stakeholders; a part not stated is left out (ADR-244).
+	intentParts(d, root, 3, false)
 	if sh := pairs(root, "stakeholders"); len(sh) > 0 {
 		d.heading(3, tr("Stakeholders"))
 		d.line(tr("| Stakeholder | Who they are | Concerns |"))
@@ -1269,6 +1273,9 @@ func decisions(d *doc, title string, root *yaml.Node) {
 				ids = append(ids, link(r.Value))
 			}
 			d.para(tr("Rests on: ") + strings.Join(ids, ", ") + ".")
+		}
+		if w := weighsLine(root, dec); w != "" {
+			d.para(w)
 		}
 		if alts := items(dec, "alternatives"); len(alts) > 0 {
 			// The simpler options the decision did not take, each with why

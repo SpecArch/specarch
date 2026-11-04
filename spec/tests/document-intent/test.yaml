@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order"
+when: "document intent is run"
+then: "intent.md holds the problem with whom it hurts and today, the goals table with the needs serving each, the out-of-scope table and the quality goals in rank order, and it exits 0"
+verifies: [SA-137]

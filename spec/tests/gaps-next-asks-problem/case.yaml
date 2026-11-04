@@ -1,0 +1,13 @@
+arguments: [gaps, --next, project]
+exitStatus: 1
+standardOutput: |
+  Next in Case (project/specarch.yaml): the intent comes first, before 1 open question: problem_missing at /problem
+
+  What problem does the system solve: whom does it hurt, and what does it cost them today?
+
+  - Ask: the owner of the system
+  - Write the answer: under problem, as statement, stakeholders and today, in plain sentences
+  - Why first: every other answer rests on the problem and the goals
+  - After it: Q-1, the open question ranked first
+
+  Put it to the owner of the system alone, with one answer recommended and why; specarch help asking.

@@ -19,6 +19,7 @@ standardOutput: |+
 
   | Output | State | Waits on |
   |---|---|---|
+  | intent document | draft | 1 error |
   | techspec document | draft | 1 error |
   | requirements document | draft | 1 error |
   | testplan document | draft | 1 error |

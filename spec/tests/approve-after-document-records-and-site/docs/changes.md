@@ -24,7 +24,7 @@ Decision: approved by owner on 2026-10-10. Families are most of the members.
 Reaches, as the specification is now:
 
 - elements `#/requirements/CASE-1`.
-- the documents techspec, requirements, testplan, traceability, html.
+- the documents intent, techspec, requirements, testplan, traceability, html.
 - no approval to void: not approved: there is no records/approvals/1.0.0.yaml beside the specification.
 
 ### CR-2: Say how many books a member holds

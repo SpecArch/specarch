@@ -1,0 +1,13 @@
+arguments: [gaps, --next, project]
+exitStatus: 1
+standardOutput: |
+  Next in Case (project/specarch.yaml): the intent comes first, before 1 open question: goal_unmeasured at /goals/GOAL-1
+
+  How is goal GOAL-1, Sales wait less, measured: what is counted, what is its value today, and what value is wanted?
+
+  - Ask: the owner of the system
+  - Write the answer: under goals/GOAL-1, as baseline and target, in plain sentences
+  - Why first: every other answer rests on the problem and the goals
+  - After it: Q-1, the open question ranked first
+
+  Put it to the owner of the system alone, with one answer recommended and why; specarch help asking.

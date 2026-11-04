@@ -11,6 +11,7 @@ standardOutput: |+
 
   | Output | State | Waits on |
   |---|---|---|
+  | intent document | ready | |
   | techspec document | ready | |
   | requirements document | ready | |
   | testplan document | ready | |

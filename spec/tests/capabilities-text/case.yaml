@@ -70,7 +70,9 @@ standardOutput: |
         List the idioms each implementation file uses, and how.
     specarch idioms diff <idiom> <paths>...
         Print a shipped idiom's parts beside each override's.
-    specarch init <folder> [--title <title>] [--profile <profile>] [--dry-run]
+    specarch init <folder> [--title <title>] [--profile <profile>]
+      [--problem <problem>] [--goal <goal>]...
+      [--out-of-scope <out-of-scope>]... [--dry-run]
         Write the smallest specification that validates into a new folder.
     specarch log <folder> [--direction <direction>] [--from <from>]
       [--to <to>] [--at <at>] [--channel <channel>] [--type <type>]
@@ -117,7 +119,7 @@ standardOutput: |
     specarch version
         Print the program version and the meta-model versions it reads.
 
-  Document targets: techspec, requirements, testplan, traceability,
+  Document targets: intent, techspec, requirements, testplan, traceability,
     deployment, commissioning, handover, questions, problems, comparison,
     changes, releases, communications, timeline, testruns, progress, html,
     manual, operations

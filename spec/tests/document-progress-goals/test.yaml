@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order"
+when: "document progress is run"
+then: "the progress report has a Goals section with each goal's baseline, target, the latest reading as none recorded and the requirements serving it that are met, and exits 0"
+verifies: [SA-137]

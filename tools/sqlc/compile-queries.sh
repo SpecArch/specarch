@@ -74,6 +74,8 @@ sql:
     queries: queries
 YAML
 
-$podman_cmd create --name "$name" -w /src "$image" vet >/dev/null
+# vet reads only the files copied in and needs no network: the container
+# gets none.
+$podman_cmd create --name "$name" --network none -w /src "$image" vet >/dev/null
 $podman_cmd cp "$work/." "$name:/src"
 $podman_cmd start -a "$name"

@@ -16,6 +16,9 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # About 4 minutes a run; the limit stops a hung step from holding a
+    # runner for the default six hours.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -24,8 +27,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: stable
-          check-latest: true
+          # The toolchain go.mod names, so CI builds with the Go the
+          # repository was tested with, not whatever is newest that day.
+          go-version-file: go.mod
       - name: The landing checks, Go part
         # Build, vet, test with the conformance suite, the fragment schemas,
         # validate, and every generated document, code and data file
@@ -351,6 +355,8 @@ jobs:
     # its lock file with no install scripts, each application type-checked,
     # linted with no rule turned off, its derived tests run, and built.
     runs-on: ubuntu-latest
+    # About 1 minute a run.
+    timeout-minutes: 15
     env:
       IBM_TELEMETRY_DISABLED: "true"
       NEXT_TELEMETRY_DISABLED: "1"
@@ -382,6 +388,8 @@ jobs:
     # files and the screens' decision alone, and the vendored files match
     # the integrity the implementation file names.
     runs-on: ubuntu-latest
+    # Under 1 minute a run.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -406,12 +414,15 @@ jobs:
 
   swift:
     runs-on: macos-latest
+    # 7 to 13 minutes a run, the most of the jobs on a cold macOS runner.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: stable
-          check-latest: true
+          # The toolchain go.mod names, so CI builds with the Go the
+          # repository was tested with, not whatever is newest that day.
+          go-version-file: go.mod
       - name: Toolchain
         run: swift --version
       - name: The landing checks, Swift part

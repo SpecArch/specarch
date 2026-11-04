@@ -46,7 +46,7 @@
       "cmd/specarch-gen-*/*/*",
       "internal/gen*/*/*"
     ],
-    "command": "for d in {dirs}; do dirname \"$d\"; done | sort -u | xargs sh -c 'go vet \"$@\" && go test -count=1 \"$@\" ./cmd/specarch' sh"
+    "command": "for d in {dirs}; do dirname \"$d\"; done | sort -u | tr '\\n' '\\000' | xargs -0 sh -c 'go vet \"$@\" && go test -count=1 \"$@\" ./cmd/specarch' sh"
   },
   {
     "paths": [

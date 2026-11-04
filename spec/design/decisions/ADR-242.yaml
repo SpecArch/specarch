@@ -1,0 +1,185 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-242:
+    title: A specification states its intent in the requirements stage (a problem, measured goals, what is out of scope and quality goals in rank order), the work is split into work-package records beside the release records, each naming requirements only, and specarch plan proposes, orders and briefs the packages and round-trips them with a tracker; every new rule is a warning, never a refusal
+    status: proposed
+    date: "2026-11-04"
+    context: |
+      A team that writes a full specification before development, golden
+      and red paths included, still writes a product requirements
+      document, for two reasons: to say why the system is built and what
+      counts as success, and to split the work into an ordered sequence of
+      pieces that programmers or agents take one at a time. Most of such a
+      document is already in a specification: stakeholders with their
+      concerns and needs, requirements with priority, status, harm and
+      release, assumptions, constraints, questions and decisions. Writing
+      those again in a second document makes two sources that drift.
+      Four things have no home: the problem the system solves, the goals
+      that say what success is and how it is measured, what is out of
+      scope on purpose, and the quality goals in order, which decide a
+      trade-off. A rejected need covers "asked and declined" only; harm is
+      what a failure costs and priority what a release may go without,
+      neither an order of qualities. Half of the work split exists: each
+      requirement names its release (ADR-061), a release record can be
+      planned, and document progress draws a burn-up per release
+      (ADR-237). What is missing is a unit smaller than a release, its
+      order, and a check that a unit is ready to start. The design is
+      written out in docs/intent-and-work-packages-2026-11-04.md.
+    decision: |
+      1. Intent, in the requirements stage beside the stakeholders, all
+         keys optional in the 1.0 schemas:
+         - problem: one per specification, a statement, the stakeholders
+           it hurts, how things stand today, the sources it cites and why.
+         - goals: GOAL-n, an outcome the owner of the system wants, with
+           measure, baseline and target as plain sentences (a number with
+           its unit), the release it is meant by, priority and status in
+           the requirement's words, and the monitors that read the measure
+           on the live system when one does. A need names the goals it
+           serves, so the chain is goal, need, requirement, design element,
+           test, each link a plain list of IDs.
+         - outOfScope: OUT-n, what the system will not do, decided before
+           anyone asks, with why, the release it may come back in, and the
+           needs it rules out when they were asked; a need ruled out keeps
+           its own status.
+         - qualityGoals: QG-n, the three to five qualities that matter
+           most, each with its rank, the quality, a statement and why. A
+           decision names the quality goals it weighed under weighs.
+      2. Rules for intent, each a warning at the entry and in the problems
+         file: problem_missing (requirements and no problem), goal_unmeasured,
+         goal_unserved, need_without_goal (only once any goal exists, so an
+         existing specification upgrades with no new warning but
+         problem_missing), scope_conflict and quality_goal_rank. On the lean
+         profile problem_missing is not a warning but the first question
+         specarch gaps --next asks. A reference to a missing goal,
+         out-of-scope entry or quality goal is the usual unresolved-reference
+         error at the entry.
+      3. Outputs for intent: document intent writes intent.md, about one
+         page; the techspec opens with an Intent chapter in the shape of
+         arc42 section 1; the traceability matrix gains a goal column;
+         gaps --next ranks a missing problem and an unmeasured goal first;
+         init asks for the problem, the goals and what is out of scope as
+         plain questions; document progress adds, per goal, the baseline,
+         the target, the latest value a monitor read and the share of its
+         requirements met.
+      4. Work packages are records beside the release records, one per
+         package: an ID, the release, a title, the requirements it holds
+         (its only content; its design elements are those that satisfy
+         them and its tests those that verify them), the packages it comes
+         after, who it is assigned to (a person or a team), its status
+         (proposed, planned, ready, in-progress, done, withdrawn), its
+         effort and why. Ready is checked as QA's entry criterion and done
+         as its exit criterion.
+      5. Rules for work packages: work_package_cycle, an error at every
+         entry on the cycle, as decision_cycle; warnings for
+         work_package_order, work_package_overlap, work_package_release,
+         work_package_not_ready (only on a package marked ready),
+         work_package_unverified (only on a package marked done, read from
+         the test-run records of ADR-230) and work_package_unconfigured. An
+         accepted requirement of a planned release in no package is not a
+         problem; document progress lists it as unplanned.
+      6. specarch plan proposes packages for the requirements of a release
+         that no package holds, ordered by the reference graph the diagrams
+         already walk, as records with status proposed for a person to
+         accept, split or merge; --next prints the first package whose
+         earlier packages are done and which passes the readiness check;
+         --brief writes one page per package, the same for a programmer and
+         an agent, with what it changes in operation for DevOps; --export
+         csv or json and --import round-trip with a tracker, the
+         specification owning requirements, after and release and the
+         tracker owning status, assignedTo and effort, a field changed on
+         the wrong side a warning naming both values. The test plan groups
+         a release's tests by package, and document progress becomes the
+         weekly report per goal and per package.
+      7. The build comes in three phases, each its own decision and
+         requirements in spec/ before the code: intent; the work-package
+         records and their rules; specarch plan.
+    why: |
+      The four intent parts are the business requirements of ISO/IEC/IEEE
+      29148 (9.3) and section 1 of arc42, which open a requirements set
+      with its purpose, scope, goals and top quality goals because every
+      later choice is judged against them; they go in the requirements
+      stage because they are requirements, not design. Only the rows a
+      specification has nothing for are added, after "one way to say one
+      thing" (docs/principles.md): everything else a product requirements
+      document holds is already a key, and a second copy would drift. A
+      goal is its own section and not a need with a level (the owner's
+      decision 1): a goal has a measure and an owner a need does not, and
+      the analyst keeps needs in the stakeholders' own words (29148, 6.3).
+      The measure follows Tom Gilb's Planguage (Competitive Engineering,
+      2005), a scale with a value today and a value wanted, because a goal
+      without a number cannot be met or missed. An out-of-scope entry is
+      not a rejected need: it is written before anyone asks, so a change
+      request that asks for it is answered by a lookup. Quality goals take
+      the characteristics of ISO/IEC 25010 as their words and carry a rank,
+      because the order is what decides a trade-off before anyone argues.
+
+      A work package describes the delivery, not the system: it changes
+      when a programmer is ill or an agent finishes early, while the system
+      does not, so it is a record, as the release records are kept apart
+      for the same reason (the owner's decision 2). The word is the work
+      package of ISO/IEC/IEEE 12207 and of a work breakdown structure,
+      because batch, ticket and story each mean something else in some
+      tracker. It names requirements only, since naming design elements as
+      well would be a second way to say what the satisfy links say.
+      assignedTo names a person or a team (the owner's decision 4): a
+      project manager plans with names, a team name does not answer who is
+      late, and a record is not the public specification. The tracker round
+      trip lets the project manager keep one tool without the plan
+      drifting: each side wins on its own fields.
+
+      Compiler test: every new rule is a warning or, for a cycle, an error
+      at the entry; nothing refuses a specification for missing intent or
+      a missing plan, and a specification with none of it reads as it does
+      today. The one place the problems file does not carry a problem is
+      problem_missing on the lean profile (the owner's decision 3): on a
+      small tool a warning that shows on every run gets ignored and teaches
+      people to ignore the others, so it is asked as the first gaps --next
+      question there instead; on the full profile it is a warning like the
+      rest. Acceptance test: a missing problem or an unmeasured goal is the
+      first gap shown, and a change request that asks for what is out of
+      scope is answered from the specification.
+    alternatives:
+      - option: A goal as a need with a level key, so the stakeholders section holds both
+        why: |
+          It adds no section, but a goal carries a measure, a baseline and
+          a target that a need has no use for, and the need would stop
+          being one stakeholder's wish in their own words; the analyst
+          would have to learn when a need is a goal.
+      - option: Work packages as a section of the specification
+        why: |
+          It keeps everything in one tree, but a package changes with the
+          delivery while the system it builds does not, so each change of
+          plan would touch the specification and its approvals; the release
+          records already live apart for that reason.
+      - option: problem_missing as a warning on every profile
+        why: |
+          It keeps the compiler rule without an exception, but on a small
+          tool's lean specification it shows on every run, and a warning
+          people learn to skip hides the ones that matter; the owner chose
+          a gaps --next question there.
+    consequences: |
+      No key, rule or output exists until the phase that builds it; this
+      decision is the design they follow, and each phase records its own
+      decision under the next free ADR number with its requirements in
+      spec/ before the code, in both validator builds. Optional keys keep
+      every existing specification valid, and need_without_goal stays
+      silent until a goal is written, so an upgrade brings at most
+      problem_missing. The documents say once that a work package is what a
+      tracker may call an epic or a batch. Points the build settles: the
+      work package's effort takes the change record's shape (estimatedHours
+      and spentHours, ADR-237), its record kind is spelled work-package as
+      the other hyphenated kinds are, the goal's dropped status is weighed
+      against the requirement's rejected and retired, a quality goal names
+      quality requirements rather than restating one, and the list of
+      quality words is taken from ISO/IEC 25010.
+    cites:
+      - source: iso-29148
+        clause: "9.3"
+        says: "The business requirements specification states the business purpose, the scope, the goals and the problem the system addresses, before the stakeholder and system requirements."
+      - source: arc42
+        clause: "1"
+        says: "Introduction and goals: the requirements overview, the three to five most important quality goals in order, and the stakeholders, read first because the architecture is judged against them."
+      - source: iso-12207
+        clause: "6.3.1"
+        says: "The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned."
+    restsOn: [ADR-061, ADR-230, ADR-237]

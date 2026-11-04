@@ -46,12 +46,38 @@ func pdfPageKey(page pdf.Value) string {
 	return page.String()
 }
 
+// pdfStructBudget bounds the nodes a walk of the structure tree visits.
+// The depth limit alone does not bound it: an element that lists the same
+// child twice in K, at every level, makes the walk branch at each one, and
+// a malformed or crafted tree would hold the read for hours. A tagged
+// document's tree holds a few nodes per paragraph and per cell, far below
+// this.
+const pdfStructBudget = 100000
+
 // pdfStructTables walks the structure tree of a tagged PDF and gives its
-// tables. A PDF with no structure tree gives none.
-func pdfStructTables(r *pdf.Reader) []pdfStructTable {
+// tables. A PDF with no structure tree gives none. A tree larger than
+// pdfStructBudget nodes gives none, and over is true: every page is then
+// read by its lines, and the reader says so.
+func pdfStructTables(r *pdf.Reader) (tables []pdfStructTable, over bool) {
 	root := r.Trailer().Key("Root").Key("StructTreeRoot")
 	if root.Kind() != pdf.Dict {
-		return nil
+		return nil, false
+	}
+	return pdfStructTablesFrom(root, pdfStructBudget)
+}
+
+// pdfStructTablesFrom walks the tree under root, visiting at most budget
+// nodes.
+func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, over bool) {
+	visited := 0
+	// spend counts one node visited, and is false once the budget is
+	// spent: every walk then stops where it is.
+	spend := func() bool {
+		visited++
+		if visited > budget {
+			over = true
+		}
+		return !over
 	}
 	roles := root.Key("RoleMap")
 	// role resolves a structure type through the role map to the
@@ -67,12 +93,11 @@ func pdfStructTables(r *pdf.Reader) []pdfStructTable {
 		}
 		return s
 	}
-	var tables []pdfStructTable
 	// marks collects the marked content under an element, its own and its
 	// descendants', with the page inherited from the nearest Pg.
 	var marks func(v pdf.Value, page string, depth int, out *[]pdfMark)
 	marks = func(v pdf.Value, page string, depth int, out *[]pdfMark) {
-		if depth > 64 {
+		if depth > 64 || !spend() {
 			return
 		}
 		switch v.Kind() {
@@ -131,7 +156,7 @@ func pdfStructTables(r *pdf.Reader) []pdfStructTable {
 	}
 	var rows func(v pdf.Value, page string, depth int, t *pdfStructTable)
 	rows = func(v pdf.Value, page string, depth int, t *pdfStructTable) {
-		if depth > 64 {
+		if depth > 64 || !spend() {
 			return
 		}
 		for _, c := range children(v, page) {
@@ -141,6 +166,9 @@ func pdfStructTables(r *pdf.Reader) []pdfStructTable {
 			case "TR":
 				var row []pdfStructCell
 				for _, cell := range children(c.v, c.page) {
+					if !spend() {
+						return
+					}
 					s := role(cell.v.Key("S").Name())
 					if s != "TH" && s != "TD" {
 						continue
@@ -157,7 +185,7 @@ func pdfStructTables(r *pdf.Reader) []pdfStructTable {
 	}
 	var walk func(v pdf.Value, page string, depth int)
 	walk = func(v pdf.Value, page string, depth int) {
-		if depth > 64 {
+		if depth > 64 || !spend() {
 			return
 		}
 		for _, c := range children(v, page) {
@@ -173,7 +201,10 @@ func pdfStructTables(r *pdf.Reader) []pdfStructTable {
 		}
 	}
 	walk(root, "", 0)
-	return tables
+	if over {
+		return nil, true
+	}
+	return tables, false
 }
 
 // pdfTableAttribute reads RowSpan or ColSpan from an element's attributes,

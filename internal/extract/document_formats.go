@@ -966,7 +966,7 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	// A tagged PDF's tables are read from its structure tree: every
 	// glyph of a cell's marked content is that cell's, and not a line of
 	// the page (ADR-212).
-	tables := pdfStructTables(r)
+	tables, treeOver := pdfStructTables(r)
 	type cellAt struct{ table, row, cell int }
 	claimed := map[pdfMark]cellAt{}
 	claimedOn := map[string]bool{}
@@ -981,6 +981,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		}
 	}
 	cellLines := map[cellAt][]pdfLine{}
+	// tablePages are the pages that gave a cell a glyph: a page whose
+	// every glyph is a cell's holds text, though no line of its own.
+	tablePages := map[int]bool{}
 	type tableTop struct {
 		page int
 		y    float64
@@ -1027,6 +1030,7 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 						if strings.TrimSpace(t.S) == "" {
 							continue
 						}
+						tablePages[n] = true
 						if !seen || (top.page == n && t.Y > top.y) {
 							top, seen = tableTop{page: n, y: t.Y}, true
 						}
@@ -1064,6 +1068,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	}
 	for _, l := range lines {
 		delete(empty, l.page)
+	}
+	for n := range tablePages {
+		delete(empty, n)
 	}
 	// A page tree that gives no page to read is a PDF that does not
 	// parse, not a scanned one: there is nothing to say a picture of
@@ -1168,6 +1175,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 			in.blocks = append(in.blocks, docBlock{kind: blockParagraph, text: strings.Join(para, " "), place: fmt.Sprintf("page %d", last.page)})
 			para = nil
 		}
+	}
+	if treeOver {
+		in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: "structure tree", text: fmt.Sprintf("the structure tree holds more than %d nodes, more than a tagged document's tree holds, as a tree that lists an element twice gives: it is not walked, and every table is read as its lines; read the tables from the file the PDF was made from", pdfStructBudget)})
 	}
 	for n := 1; n <= r.NumPage(); n++ {
 		if empty[n] {

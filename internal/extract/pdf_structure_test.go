@@ -2,9 +2,12 @@ package extract
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/ledongthuc/pdf"
 )
@@ -124,5 +127,74 @@ func TestPDFGlyphMarks(t *testing.T) {
 				t.Errorf("%s page %d: no glyph has an MCID", name, n)
 			}
 		}
+	}
+}
+
+// TestPDFTableOverPages reads a table that runs onto a second page, a
+// page holding nothing but the table's rows: it is one table, and the
+// second page is not said to hold no text.
+func TestPDFTableOverPages(t *testing.T) {
+	data, err := os.ReadFile("testdata/long-table.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in, err := readPDF("long-table.pdf", data, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var tables [][][]string
+	for _, b := range in.blocks {
+		switch b.kind {
+		case blockTable:
+			tables = append(tables, b.rows)
+		case blockNotHeld:
+			t.Errorf("a line not held at %s: %s", b.place, b.text)
+		}
+	}
+	if len(tables) != 1 || len(tables[0]) != 71 {
+		t.Fatalf("got %d tables, want one of 71 rows", len(tables))
+	}
+	if got := tables[0][70]; !reflect.DeepEqual(got, []string{"field 70", "text"}) {
+		t.Errorf("the last row is %q, want [field 70 text]", got)
+	}
+}
+
+// TestPDFStructBudget walks a crafted tree whose element lists itself
+// twice in K: the walk branches at every level, and only the budget of
+// nodes keeps it from running for hours. The tree gives no table, and
+// says it was over the budget.
+func TestPDFStructBudget(t *testing.T) {
+	objects := []string{
+		"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"<< /Type /StructTreeRoot /K 4 0 R >>",
+		"<< /S /Table /K [5 0 R 5 0 R] >>",
+		"<< /S /TBody /K [5 0 R 5 0 R] >>",
+	}
+	var b strings.Builder
+	b.WriteString("%PDF-1.7\n")
+	var offsets []int
+	for i, o := range objects {
+		offsets = append(offsets, b.Len())
+		fmt.Fprintf(&b, "%d 0 obj\n%s\nendobj\n", i+1, o)
+	}
+	xref := b.Len()
+	fmt.Fprintf(&b, "xref\n0 %d\n0000000000 65535 f \n", len(objects)+1)
+	for _, o := range offsets {
+		fmt.Fprintf(&b, "%010d 00000 n \n", o)
+	}
+	fmt.Fprintf(&b, "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n", len(objects)+1, xref)
+	data := []byte(b.String())
+	r, err := pdf.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	tables, over := pdfStructTables(r)
+	if !over || tables != nil {
+		t.Errorf("got %d tables, over %v; want none, over the budget", len(tables), over)
+	}
+	if d := time.Since(start); d > 10*time.Second {
+		t.Errorf("the walk took %v", d)
 	}
 }

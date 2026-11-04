@@ -91,7 +91,11 @@ decisions:
       table of an untagged PDF, which does not mark one, is read as its
       lines. A page whose marked content does not give every glyph its
       MCID is read as its lines, and is a line and a could question
-      saying so. A PDF
+      saying so. A page that gave a table's cells their glyphs holds
+      text, though the table's line stands on the page it starts on. A
+      structure tree of more than 100000 nodes is not walked: every
+      table is read as its lines, and a line and a could question say
+      so. A PDF
       and its Markdown twin, the same text with the same headings, give
       the same requirements and questions citing the same clauses; the
       PDF adds only its pages, the page before the first heading and a
@@ -238,7 +242,13 @@ decisions:
       reading every tagged PDF by its tree alone, paragraphs and
       headings included, which would change what an untagged and a
       tagged copy of one document give for every block, not only for
-      tables, and depend on how well each program tags.
+      tables, and depend on how well each program tags. The walk is
+      bounded by the nodes it visits as well as by its depth: an element
+      listed twice in K at every level makes a depth-bounded walk branch
+      at each, so a malformed or crafted file would hold the read for
+      hours; the library's objects carry no identity to keep a set of
+      those visited, and a tagged document's tree holds a few nodes per
+      paragraph and cell, far below the bound.
 
       The clause names follow how people cite each format: a page, a
       slide number, a cell or range as Excel's formulas write it, with

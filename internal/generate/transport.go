@@ -48,9 +48,9 @@ func handshakesSection(d *doc, root *yaml.Node) {
 			renew = append(renew, tr("after ")+l)
 		}
 		if u := str(h.Value, "uses"); u != "" {
-			envelopes := "envelopes"
+			envelopes := tr("envelopes")
 			if u == "1" {
-				envelopes = "envelope"
+				envelopes = tr("envelope")
 			}
 			renew = append(renew, fmt.Sprintf(tr("after it has carried %s %s"), u, envelopes))
 		}

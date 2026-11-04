@@ -229,11 +229,11 @@ func (d *doc) draftNotice(target string) {
 	if len(ids) == 0 {
 		return
 	}
-	verb := "concern"
+	format := tr("**Draft:** %s concern this document (%s); see the open questions document, or run specarch gaps.")
 	if len(ids) == 1 {
-		verb = "concerns"
+		format = tr("**Draft:** %s concerns this document (%s); see the open questions document, or run specarch gaps.")
 	}
-	d.para(fmt.Sprintf(tr("**Draft:** %s %s this document (%s); see the open questions document, or run specarch gaps."), countText(len(ids), tr("open question"), tr("open questions")), verb, strings.Join(ids, ", ")))
+	d.para(fmt.Sprintf(format, countText(len(ids), tr("open question"), tr("open questions")), strings.Join(ids, ", ")))
 }
 
 // pointers maps every mapping node of the root to its pointer, so that an

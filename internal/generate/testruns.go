@@ -277,7 +277,7 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			for _, r := range runs {
 				line += " | " + trendCell(m[k], r)
 			}
-			defects := "none"
+			defects := tr("none")
 			if len(m[k].defects) > 0 {
 				defects = strings.Join(sortedUnique(m[k].defects), ", ")
 			}
@@ -354,7 +354,7 @@ func TestRuns(root *yaml.Node, relRoot string, state *State) string {
 			}
 			test := str(res, "test")
 			if test == "" {
-				test = "none"
+				test = tr("none")
 				if el := str(res, "element"); el != "" {
 					test = tr("the worked examples of `") + el + "`"
 				}

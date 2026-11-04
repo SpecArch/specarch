@@ -245,7 +245,7 @@ func (s *site) write() {
 	info := get(s.root, "info")
 	title := str(info, "title")
 	if title == "" {
-		title = "Specification"
+		title = tr("Specification")
 	}
 	s.line(tr("<!doctype html>"))
 	s.line("%s", s.header)
@@ -444,7 +444,7 @@ func (s *site) overview() {
 			}
 			c := s.count(k)
 			if c == "" {
-				c = "one"
+				c = tr("one")
 			}
 			s.line(tr(`<tr><td><a href="#%s">%s</a></td><td>%s</td></tr>`), esc(anchor("/"+k)), esc(sectionTitle(k)), c)
 		}
@@ -743,7 +743,7 @@ func (s *site) fields(n *yaml.Node, ptr string, required []string) {
 		}
 		req := ""
 		if slices.Contains(required, p.Key.Value) {
-			req = "yes"
+			req = tr("yes")
 		}
 		var text []string
 		if t := str(v, "title"); t != "" {

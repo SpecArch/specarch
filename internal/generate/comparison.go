@@ -188,9 +188,9 @@ func Comparison(root *yaml.Node, relRoot string, impls []Implementation, state *
 		d.line("|---|---|---|---|")
 		for _, e := range decided {
 			id := str(e.node, "decidedIn")
-			which := "added"
+			which := tr("added")
 			if d.corrects(e.node) {
-				which = "corrected"
+				which = tr("corrected")
 			}
 			dec := get(d.decisions, id)
 			why := oneParagraph(str(dec, "why"))

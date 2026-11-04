@@ -55,7 +55,7 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		for _, p := range params {
 			req := ""
 			if str(p, "required") == "true" {
-				req = "yes"
+				req = tr("yes")
 			}
 			schema := get(p, "schema")
 			d.line("| %s | %s | %s | %s | %s | %s |", cell(str(p, "name")), str(p, "in"), cell(d.linkedType(root, schema)), cell(req), cell(limits(schema)), cell(fieldDescription(p, schema)))
@@ -89,9 +89,9 @@ func operationRequest(d *doc, root *yaml.Node, o operation, explained map[*yaml.
 		d.explainRows([]row{{tr("the request body"), body}})
 		return
 	}
-	need := "optional"
+	need := tr("optional")
 	if str(body, "required") == "true" {
-		need = "required"
+		need = tr("required")
 	}
 	d.para(str(body, "description"))
 	content := pairs(body, "content")
@@ -133,7 +133,7 @@ func operationResponses(d *doc, root *yaml.Node, o operation, told map[string]bo
 			bodies = append(bodies, tr("the problem document ")+p+tr(" (RFC 9457)"))
 		}
 		if len(bodies) == 0 {
-			bodies = []string{"none"}
+			bodies = []string{tr("none")}
 		}
 		d.line("| %s | %s | %s |", cell(r.Key.Value), cell(str(r.Value, "description")), cell(strings.Join(bodies, "; ")))
 		rows = append(rows, row{tr("response ") + r.Key.Value, r.Value})
@@ -203,7 +203,7 @@ func (d *doc) body(root *yaml.Node, lead, label string, schema *yaml.Node) {
 	for _, f := range fields {
 		req := ""
 		if f.required {
-			req = "yes"
+			req = tr("yes")
 		}
 		d.line("| %s | %s | %s | %s | %s |", cell(f.path), cell(d.linkedType(root, f.node)), cell(req), cell(limits(f.node)), cell(fieldDescription(f.node, f.node)))
 		rows = append(rows, row{label + tr(" field ") + f.path, f.node})

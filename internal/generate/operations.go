@@ -219,7 +219,7 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 				for _, c := range codes {
 					again := tr("as Restarted says")
 					if never[c.Key.Value] {
-						again = "never"
+						again = tr("never")
 					}
 					d.line("| %s | %s | %s |", c.Key.Value, cell(source.Str(c.Value)), again)
 				}
@@ -349,7 +349,7 @@ func Operations(root *yaml.Node, relRoot string, impls []Implementation, state *
 		for _, c := range cfg {
 			secret := ""
 			if str(c.Value, "secret") == "true" {
-				secret = "yes"
+				secret = tr("yes")
 			}
 			d.line("| %s | %s | %s | %s |", markInternal(c.Key.Value, c.Value), cell(typeText(get(c.Value, "schema"))), secret, cell(str(c.Value, "description")))
 		}
@@ -402,7 +402,7 @@ func restartText(r *yaml.Node) string {
 	case "":
 		return tr("not said")
 	case "never":
-		return "never"
+		return tr("never")
 	}
 	text := tr("whenever it ends")
 	if str(r, "when") == "onFailure" {
@@ -448,5 +448,5 @@ func retriesText(job *yaml.Node) string {
 		}
 		return text + tr("kept apart for a person")
 	}
-	return text + "dropped"
+	return text + tr("dropped")
 }

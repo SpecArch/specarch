@@ -56,14 +56,14 @@ func Manual(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 				}
 			}
 			if len(opens) == 0 {
-				opens = []string{"none"}
+				opens = []string{tr("none")}
 			}
 			if len(commands) == 0 {
 				d.line("| %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(str(r.Value, "description")), cell(strings.Join(opens, ", ")))
 				continue
 			}
 			if len(runs) == 0 {
-				runs = []string{"none"}
+				runs = []string{tr("none")}
 			}
 			d.line("| %s | %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(str(r.Value, "description")), cell(strings.Join(opens, ", ")), cell(strings.Join(runs, ", ")))
 		}
@@ -397,7 +397,7 @@ func manualPage(d *doc, root *yaml.Node, name string, page *yaml.Node) {
 		for _, f := range fields {
 			req := ""
 			if f.required {
-				req = "yes"
+				req = tr("yes")
 			}
 			d.line("| %s | %s | %s |", cell(f.label), cell(f.description), req)
 		}
@@ -589,7 +589,7 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 			}
 			req := ""
 			if str(a, "required") == "true" {
-				req = "yes"
+				req = tr("yes")
 			}
 			d.line("| `<%s>` | %s | %s |", str(a, "name"), cell(what), req)
 		}
@@ -601,7 +601,7 @@ func manualCommand(d *doc, root *yaml.Node, program, name string, c *yaml.Node) 
 		for _, o := range opts {
 			req := ""
 			if str(o.Value, "required") == "true" {
-				req = "yes"
+				req = tr("yes")
 			}
 			what := strings.TrimSpace(str(o.Value, "description"))
 			if values := strs(get(o.Value, "schema"), "enum"); len(values) > 0 {

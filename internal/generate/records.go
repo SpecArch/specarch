@@ -121,7 +121,7 @@ func Changes(root *yaml.Node, relRoot string, impls []Implementation, state *Sta
 			}
 			affects := get(c, "affects")
 			var parts []string
-			for _, list := range []struct{ key, verb string }{{"adds", "adds"}, {"changes", "changes"}, {"removes", "removes"}} {
+			for _, list := range []struct{ key, verb string }{{"adds", tr("adds")}, {"changes", tr("changes")}, {"removes", tr("removes")}} {
 				if refs := strs(affects, list.key); len(refs) > 0 {
 					parts = append(parts, list.verb+" "+refList(refs))
 				}
@@ -361,7 +361,7 @@ func Releases(root *yaml.Node, relRoot string, state *State) string {
 			if len(groups[g]) == 0 {
 				continue
 			}
-			d.heading(3, g)
+			d.heading(3, tr(g))
 			for _, item := range groups[g] {
 				d.line("- %s", item)
 			}

@@ -131,3 +131,40 @@ func TestCatalogVerbs(t *testing.T) {
 		}
 	}
 }
+
+// TestNoTrAtStartUp refuses a call of tr outside a function, in a
+// package variable: it runs when the program starts, before a language
+// is chosen, so its text stays English in every document.
+func TestNoTrAtStartUp(t *testing.T) {
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
+		fset := token.NewFileSet()
+		f, err := parser.ParseFile(fset, file, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, decl := range f.Decls {
+			g, ok := decl.(*ast.GenDecl)
+			if !ok {
+				continue
+			}
+			ast.Inspect(g, func(n ast.Node) bool {
+				if _, ok := n.(*ast.FuncLit); ok {
+					return false
+				}
+				if c, ok := n.(*ast.CallExpr); ok {
+					if id, ok := c.Fun.(*ast.Ident); ok && id.Name == "tr" {
+						t.Errorf("%s: tr is called in a package variable, when the program starts and before a language is chosen; give the texts from a function", fset.Position(c.Pos()))
+					}
+				}
+				return true
+			})
+		}
+	}
+}

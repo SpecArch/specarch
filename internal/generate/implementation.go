@@ -66,7 +66,7 @@ func deployment(d *doc, root *yaml.Node, impls []Implementation) {
 		for _, c := range cfg {
 			secret := ""
 			if str(c.Value, "secret") == "true" {
-				secret = "yes"
+				secret = tr("yes")
 			}
 			d.line("| %s | %s | %s | %s |", c.Key.Value, cell(typeText(get(c.Value, "schema"))), cell(secret), cell(str(c.Value, "description")))
 		}
@@ -285,7 +285,7 @@ func implementation(d *doc, root, impl *yaml.Node, idioms []IdiomUse) {
 		for _, t := range tasks {
 			ci := ""
 			if str(t.Value, "ci") == "true" {
-				ci = "yes"
+				ci = tr("yes")
 			}
 			d.line("| %s | `%s` | %s |", t.Key.Value, cell(str(t.Value, "run")), cell(ci))
 		}

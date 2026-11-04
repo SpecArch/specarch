@@ -51,6 +51,7 @@ translations:
   "<p>At <code>%s</code>, which this page does not show.</p>": "<p>Di <code>%s</code>, yang tidak ditampilkan halaman ini.</p>"
   "<svg class=\"er\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 %d %d\" width=\"%d\" height=\"%d\" role=\"img\" aria-label=\"Entity relationship diagram\">": "<svg class=\"er\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 %d %d\" width=\"%d\" height=\"%d\" role=\"img\" aria-label=\"Diagram relasi entity\">"
   "<text class=\"er-field\" x=\"%d\" y=\"%d\">and %d more</text>": "<text class=\"er-field\" x=\"%d\" y=\"%d\">dan %d lagi</text>"
+  "Specification": "Spesifikasi"
 dynamic:
   "Requirements": "Requirement"
   "Data": "Data"

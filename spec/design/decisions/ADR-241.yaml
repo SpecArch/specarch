@@ -25,7 +25,9 @@ decisions:
       the copula, with a zero-width verb, but it formats the same values
       with the same verbs. document takes --language en or id; a
       language other than English needs --out, like a document for
-      everyone, and writes no region of specarch.md. What is not the
+      everyone, and an --out that is the folder the implementation files
+      name for the target is refused, for both; it writes no region of
+      specarch.md. What is not the
       generators' text is written as it is: the specification's own
       words, the validator's, the approval's and the derived cases'
       messages, the problem lines of problems.txt and problems.sarif, the

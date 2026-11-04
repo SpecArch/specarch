@@ -13,14 +13,17 @@ import (
 
 // signInChecks are the checks the callback makes, in the order it makes
 // them: the derived case, the security event's rule and severity, and the
-// clause that asks for it.
-var signInChecks = [][4]string{
-	{tr("state does not match"), "sign_in_state", "medium", tr("RFC 6749, 10.12; RFC 9700, 4.7")},
-	{tr("code used twice"), "sign_in_code", "high", tr("RFC 6749, 4.1.2; RFC 9700, 4.5")},
-	{tr("signature invalid"), "sign_in_signature", "high", tr("OpenID Connect Core, 3.1.3.7, step 6")},
-	{tr("issuer differs"), "sign_in_issuer", "high", tr("OpenID Connect Core, 3.1.3.7, step 2; RFC 9700, 4.4")},
-	{tr("identity token expired"), "sign_in_expired", "low", tr("OpenID Connect Core, 3.1.3.7, step 9")},
-	{tr("nonce replayed"), "sign_in_nonce", "high", tr("OpenID Connect Core, 3.1.3.7, step 11")},
+// clause that asks for it. A function, so that the texts are given in
+// the language in use when a document is written, not at start-up.
+func signInChecks() [][4]string {
+	return [][4]string{
+		{tr("state does not match"), "sign_in_state", "medium", tr("RFC 6749, 10.12; RFC 9700, 4.7")},
+		{tr("code used twice"), "sign_in_code", "high", tr("RFC 6749, 4.1.2; RFC 9700, 4.5")},
+		{tr("signature invalid"), "sign_in_signature", "high", tr("OpenID Connect Core, 3.1.3.7, step 6")},
+		{tr("issuer differs"), "sign_in_issuer", "high", tr("OpenID Connect Core, 3.1.3.7, step 2; RFC 9700, 4.4")},
+		{tr("identity token expired"), "sign_in_expired", "low", tr("OpenID Connect Core, 3.1.3.7, step 9")},
+		{tr("nonce replayed"), "sign_in_nonce", "high", tr("OpenID Connect Core, 3.1.3.7, step 11")},
+	}
 }
 
 // signInSection writes the sign-in flow of the runtime view, when the
@@ -51,7 +54,7 @@ func signInSection(d *doc, root *yaml.Node) {
 		"identity token expired": tr("exp has not passed"),
 		"nonce replayed":         tr("nonce is the one this sign-in sent, used once"),
 	}
-	for _, c := range signInChecks {
+	for _, c := range signInChecks() {
 		d.line("| %s | %s | %s | %s | %s |", what[c[0]], c[0], c[1], c[2], c[3])
 	}
 	d.blank()

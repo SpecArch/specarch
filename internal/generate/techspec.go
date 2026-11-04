@@ -393,7 +393,7 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 		for _, f := range pairs(e.Value, "properties") {
 			req := ""
 			if required[f.Key.Value] {
-				req = "yes"
+				req = tr("yes")
 			}
 			d.line("| %s | %s | %s | %s | %s |", f.Key.Value, cell(typeText(f.Value)), cell(req), cell(limits(f.Value)), cell(str(f.Value, "description")))
 		}
@@ -485,7 +485,7 @@ func buildingBlocks(d *doc, root *yaml.Node, impls []Implementation) {
 			for _, f := range pairs(v.Value, "properties") {
 				req := ""
 				if required[f.Key.Value] {
-					req = "yes"
+					req = tr("yes")
 				}
 				d.line("| %s | %s | %s | %s | %s |", f.Key.Value, cell(typeText(f.Value)), cell(req), cell(limits(f.Value)), cell(str(f.Value, "description")))
 			}
@@ -625,7 +625,7 @@ func chainText(op *yaml.Node) string {
 	}
 	names := strs(op, "middlewares")
 	if len(names) == 0 {
-		return "none"
+		return tr("none")
 	}
 	return strings.Join(names, tr(", then "))
 }
@@ -727,14 +727,14 @@ func commandDetails(d *doc, c *yaml.Node) {
 			}
 			req := ""
 			if str(a, "required") == "true" {
-				req = "yes"
+				req = tr("yes")
 			}
 			d.line("| `<%s>` | %s | %s | %s |", str(a, "name"), cell(t), cell(req), cell(str(a, "description")))
 		}
 		for _, o := range opts {
 			req := ""
 			if str(o.Value, "required") == "true" {
-				req = "yes"
+				req = tr("yes")
 			}
 			d.line("| `--%s` | %s | %s | %s |", o.Key.Value, cell(typeText(get(o.Value, "schema"))), cell(req), cell(str(o.Value, "description")))
 		}
@@ -862,7 +862,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.line(tr("| Client | Kind | Admitted versions | Roles | Proof |"))
 			d.line("|---|---|---|---|---|")
 			for _, c := range clients {
-				versions := "any"
+				versions := tr("any")
 				if v := str(c.Value, "softwareVersion"); v != "" {
 					if str(c.Value, "softwareStatement") == "true" {
 						versions = v + tr(", a security check: the publisher's version, in its signed software statement")
@@ -872,7 +872,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				}
 				roles := strings.Join(strs(c.Value, "roles"), ", ")
 				if roles == "" {
-					roles = "none"
+					roles = tr("none")
 				}
 				d.line("| %s | %s | %s | %s | %s |", c.Key.Value, str(c.Value, "kind"), cell(versions), cell(roles), cell(proofText(get(c.Value, "proof"))))
 			}
@@ -970,7 +970,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 			d.line(tr("| a version outside the admitted range, self-asserted | software_version | low |"))
 			d.line(tr("| an expired token | token | low |"))
 			if source.Child(root, "signIn") != nil {
-				for _, c := range signInChecks {
+				for _, c := range signInChecks() {
 					d.line(tr("| at the sign-in callback, %s | %s | %s |"), c[0], c[1], c[2])
 				}
 			}
@@ -1034,7 +1034,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				refuses = append(refuses, text)
 			}
 			if len(refuses) == 0 {
-				refuses = []string{"none"}
+				refuses = []string{tr("none")}
 			}
 			run := strings.Join(ranBy[m.Key.Value], ", ")
 			if run == "" {
@@ -1094,7 +1094,7 @@ func crossCutting(d *doc, root *yaml.Node, state *State) {
 				text = blocksText(p.Value)
 			case "custom":
 				if entity == "" {
-					entity = "none"
+					entity = tr("none")
 				}
 				text = tr("the project's own screen, built by hand")
 				if desc := strings.TrimSpace(str(p.Value, "description")); desc != "" {
@@ -1209,7 +1209,7 @@ func decisionTable(d *doc, a, tab *yaml.Node) {
 		when := get(r, "when")
 		for _, in := range ins {
 			c := get(when, in.Key.Value)
-			text := "any"
+			text := tr("any")
 			switch {
 			case c == nil:
 			case c.Kind == yaml.SequenceNode:
@@ -1607,7 +1607,7 @@ func jobDetails(d *doc, root *yaml.Node, j *yaml.Node) {
 	if r := get(j, "retries"); r != nil {
 		after := tr("set aside for a person")
 		if str(r, "then") == "discard" {
-			after = "dropped"
+			after = tr("dropped")
 		}
 		text += fmt.Sprintf(tr(" A failed item is tried %s times, then %s."), str(r, "limit"), after)
 	}
@@ -1656,23 +1656,26 @@ func viewPathField(root *yaml.Node, entity, path string) (*yaml.Node, bool) {
 
 // wcagCriteria are the WCAG 2.2 success criteria a user interface built
 // from a specification meets, with who meets each: the design, checked by
-// the validator or not, the generator, or a person.
-var wcagCriteria = []struct{ id, name, level, who, how string }{
-	{"1.1.1", tr("Non-text content"), "A", tr("a person"), tr("an image's text alternative is written where the image is chosen")},
-	{"1.3.1", tr("Info and relationships"), "A", tr("the generator"), tr("a page's title, its labels and its order become the stack's headings and labelled controls")},
-	{"1.4.1", tr("Use of color"), "A", tr("the generator"), tr("a state or a value is shown in text as well as in colour")},
-	{"1.4.3", tr("Contrast (minimum)"), "AA", tr("the generator"), tr("the stack's own colours, which a person checks")},
-	{"1.4.6", tr("Contrast (enhanced)"), "AAA", tr("the generator"), tr("the stack's own colours, which a person checks")},
-	{"1.4.11", tr("Non-text contrast"), "AA", tr("the generator"), tr("the stack's own colours for the parts of controls, which a person checks")},
-	{"2.1.1", "Keyboard", "A", tr("the generator"), tr("every action and field is reachable without a pointer")},
-	{"2.4.3", tr("Focus order"), "A", tr("the design"), tr("the order of a page's fields and columns is its focus order")},
-	{"2.4.6", tr("Headings and labels"), "AA", tr("the design, checked"), tr("every page has a title, every field it shows or filters by a title, and every action a label of its own")},
-	{"2.5.8", tr("Target size (minimum)"), "AA", tr("the generator"), tr("every control is at least 24 by 24 CSS pixels")},
-	{"3.2.3", tr("Consistent navigation"), "AA", tr("the design"), tr("the menu is one tree, the same on every page")},
-	{"3.3.1", tr("Error identification"), "A", tr("the design, checked"), tr("every failed state a page declares is a message in a full sentence, shown beside the field it names when it names one")},
-	{"3.3.2", tr("Labels or instructions"), "A", tr("the design, checked"), tr("every field a page shows or filters by has a title")},
-	{"4.1.2", tr("Name, role, value"), "A", tr("the design, checked, and the generator"), tr("every action has a label of its own; the generator gives each control its role")},
-	{"4.1.3", tr("Status messages"), "AA", tr("the design and the generator"), tr("every event's message and every state is text, which the generator announces without moving focus")},
+// the validator or not, the generator, or a person. A function, so that
+// the texts are given in the language in use when a document is written.
+func wcagCriteria() []struct{ id, name, level, who, how string } {
+	return []struct{ id, name, level, who, how string }{
+		{"1.1.1", tr("Non-text content"), "A", tr("a person"), tr("an image's text alternative is written where the image is chosen")},
+		{"1.3.1", tr("Info and relationships"), "A", tr("the generator"), tr("a page's title, its labels and its order become the stack's headings and labelled controls")},
+		{"1.4.1", tr("Use of color"), "A", tr("the generator"), tr("a state or a value is shown in text as well as in colour")},
+		{"1.4.3", tr("Contrast (minimum)"), "AA", tr("the generator"), tr("the stack's own colours, which a person checks")},
+		{"1.4.6", tr("Contrast (enhanced)"), "AAA", tr("the generator"), tr("the stack's own colours, which a person checks")},
+		{"1.4.11", tr("Non-text contrast"), "AA", tr("the generator"), tr("the stack's own colours for the parts of controls, which a person checks")},
+		{"2.1.1", "Keyboard", "A", tr("the generator"), tr("every action and field is reachable without a pointer")},
+		{"2.4.3", tr("Focus order"), "A", tr("the design"), tr("the order of a page's fields and columns is its focus order")},
+		{"2.4.6", tr("Headings and labels"), "AA", tr("the design, checked"), tr("every page has a title, every field it shows or filters by a title, and every action a label of its own")},
+		{"2.5.8", tr("Target size (minimum)"), "AA", tr("the generator"), tr("every control is at least 24 by 24 CSS pixels")},
+		{"3.2.3", tr("Consistent navigation"), "AA", tr("the design"), tr("the menu is one tree, the same on every page")},
+		{"3.3.1", tr("Error identification"), "A", tr("the design, checked"), tr("every failed state a page declares is a message in a full sentence, shown beside the field it names when it names one")},
+		{"3.3.2", tr("Labels or instructions"), "A", tr("the design, checked"), tr("every field a page shows or filters by has a title")},
+		{"4.1.2", tr("Name, role, value"), "A", tr("the design, checked, and the generator"), tr("every action has a label of its own; the generator gives each control its role")},
+		{"4.1.3", tr("Status messages"), "AA", tr("the design and the generator"), tr("every event's message and every state is text, which the generator announces without moving focus")},
+	}
 }
 
 // accessibilityTable lists the criteria of the target's level and who
@@ -1683,7 +1686,7 @@ func accessibilityTable(d *doc, a *yaml.Node, pairs bool) {
 	d.para(tr("The target is ") + str(a, "standard") + tr(" at level ") + level + tr(". Of its criteria, these are settled in the design or left to the generator, as the table says; the validator checks those marked checked, and every other criterion of the level is a person's to check at commissioning."))
 	d.line(tr("| Criterion | Level | Met by | How |"))
 	d.line("|---|---|---|---|")
-	for _, c := range wcagCriteria {
+	for _, c := range wcagCriteria() {
 		if len(c.level) > len(level) {
 			continue
 		}
@@ -2103,14 +2106,17 @@ func operationHow(op *yaml.Node) string {
 	return ""
 }
 
-// authText names a dependency's auth in words, with its standard.
-var authText = map[string]string{
-	"apiKey":                  tr("an API key"),
-	"basic":                   tr("a user and password (RFC 7617)"),
-	"bearer":                  tr("a bearer token (RFC 6750)"),
-	"oauth2ClientCredentials": tr("a token got with the client credentials grant (RFC 6749, 4.4)"),
-	"mutualTls":               tr("a client certificate (RFC 8705)"),
-	"signedRequest":           tr("a signed request"),
+// authText names a dependency's auth in words, with its standard, in the
+// language in use.
+func authText(auth string) string {
+	return map[string]string{
+		"apiKey":                  tr("an API key"),
+		"basic":                   tr("a user and password (RFC 7617)"),
+		"bearer":                  tr("a bearer token (RFC 6750)"),
+		"oauth2ClientCredentials": tr("a token got with the client credentials grant (RFC 6749, 4.4)"),
+		"mutualTls":               tr("a client certificate (RFC 8705)"),
+		"signedRequest":           tr("a signed request"),
+	}[auth]
 }
 
 // dependencyContract says how this system proves itself to a dependency,
@@ -2120,7 +2126,7 @@ func dependencyContract(dep *yaml.Node) string {
 	if str(dep, "auth") == "none" {
 		parts = append(parts, tr("Is sent no credential."))
 	} else if a := str(dep, "auth"); a != "" {
-		text := tr("Proves itself by ") + authText[a]
+		text := tr("Proves itself by ") + authText(a)
 		if c := str(dep, "credential"); c != "" {
 			text += tr(", kept in the secret setting ") + c
 		}

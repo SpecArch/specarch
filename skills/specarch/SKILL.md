@@ -246,9 +246,11 @@ Error codes of --json:
   exit 2: usage error, a target this build does not offer, --audience with a
   value other than external, without --out or for the problems target,
   --language with a value other than en or id, or other than en without
-  --out, no output folder in any specification given (or, for the handover
-  target, no handover in any), the implementation files of one naming
-  different output folders, or a file that could not be read or written
+  --out, --audience external or a language other than en with an --out that
+  is the folder the implementation files name for the target, no output
+  folder in any specification given (or, for the handover target, no
+  handover in any), the implementation files of one naming different output
+  folders, or a file that could not be read or written
 - `specarch extract <source> --out <out> [--implementation <implementation>] [--facts <facts>] [--routes <routes>] [--language <language>] [--vocabulary <vocabulary>] [--given-outside] [--entity <entity>] [--template <template>] [--instructions <instructions>] [--implementation-out <implementation-out>] [--table] [--source-key <source-key>] [--dry-run] <paths>...`
   Write a specification from existing code or documents.
   exit 0: the specification was written

@@ -46,8 +46,8 @@ erDiagram
 
 | Field | Tipe | Wajib | Batasan | Deskripsi |
 |---|---|---|---|---|
-| id | uuid | yes |   |   |
-| endsOn | date | yes |   |   |
+| id | uuid | ya |   |   |
+| endsOn | date | ya |   |   |
 
 Primary key: id.
 

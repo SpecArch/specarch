@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+covers: [usage error]
+given: "an implementation file naming docs as the output folder of requirements"
+when: "document requirements is run with --language id and --out naming that same folder"
+then: "it prints the usage error saying that folder holds the documents in English that approve compares and the document in another language is written beside them, not over them, writes nothing, and exits 2"
+verifies: [SA-134]

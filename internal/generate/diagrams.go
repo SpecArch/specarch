@@ -631,7 +631,7 @@ func workflowFlowchart(d *doc, root *yaml.Node, name string, w *yaml.Node) strin
 			for _, br := range items(st, "branches") {
 				label := str(br, "when")
 				if get(br, "otherwise") != nil {
-					label = "otherwise"
+					label = tr("otherwise")
 				}
 				to := target(str(br, "to"))
 				switch str(br, "end") {
@@ -857,11 +857,11 @@ func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []c
 			from = nil
 		case "branch":
 			var next []chartExit
-			next = append(next, drawSteps(b, edges, items(st, "then"), []chartExit{{id, "yes"}}, scope)...)
+			next = append(next, drawSteps(b, edges, items(st, "then"), []chartExit{{id, tr("yes")}}, scope)...)
 			if get(st, "otherwise") != nil {
-				next = append(next, drawSteps(b, edges, items(st, "otherwise"), []chartExit{{id, "no"}}, scope)...)
+				next = append(next, drawSteps(b, edges, items(st, "otherwise"), []chartExit{{id, tr("no")}}, scope)...)
 			} else {
-				next = append(next, chartExit{id, "no"})
+				next = append(next, chartExit{id, tr("no")})
 			}
 			from = next
 		case "choice":
@@ -884,7 +884,7 @@ func drawSteps(b *strings.Builder, edges *[]string, steps []*yaml.Node, from []c
 			}
 			next = append(next, carried...)
 			if !hasOtherwise {
-				next = append(next, chartExit{id, "otherwise"})
+				next = append(next, chartExit{id, tr("otherwise")})
 			}
 			from = append(next, inner.breaks...)
 		case "loop":

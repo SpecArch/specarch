@@ -72,7 +72,7 @@ func oneLine(s string) string { return strings.Join(strings.Fields(s), " ") }
 // formWord names the form of the words as a document says it.
 func formWord(w *yaml.Node) string {
 	if str(w, "form") == "verbatim" {
-		return "verbatim"
+		return tr("verbatim")
 	}
 	return tr("in summary")
 }
@@ -263,7 +263,7 @@ func Communications(root *yaml.Node, relRoot string, state *State) string {
 				if !contains(invited, role) && !contains(present, role) {
 					continue
 				}
-				was := "present"
+				was := tr("present")
 				if !contains(present, role) {
 					was = tr("invited, absent")
 				} else {
@@ -369,7 +369,7 @@ func sessionFacts(r *yaml.Node) string {
 
 func listOrNone(items []string) string {
 	if len(items) == 0 {
-		return "none"
+		return tr("none")
 	}
 	return strings.Join(items, ", ")
 }

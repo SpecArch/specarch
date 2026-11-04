@@ -113,7 +113,7 @@ func (d *doc) coverage(root *yaml.Node, impls []Implementation) {
 		d.line("|---|---|---|")
 		for i, cl := range clauses {
 			els := uniqueSorted(byClause[i])
-			produced := "nothing"
+			produced := tr("nothing")
 			if len(els) > 0 {
 				produced = strings.Join(els, ", ")
 			}

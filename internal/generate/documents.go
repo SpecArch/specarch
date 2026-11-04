@@ -240,7 +240,7 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		}
 		s := testSubject(t.Value)
 		if s == "" {
-			s = "other"
+			s = tr("other")
 		}
 		if bySubject[s] == nil {
 			order = append(order, s)
@@ -378,7 +378,7 @@ func bodyShare(tests []sourcePair) share {
 		if str(t.Value, "notApplicable") != "" {
 			continue
 		}
-		kind := "other"
+		kind := tr("other")
 		for _, k := range []string{"operation", "command", "page", "job", "process", "route", "gateway", "workflow", "flow", "requirement", "constraint", "transition", "entity"} {
 			if get(t.Value, k) != nil {
 				kind = k
@@ -441,7 +441,7 @@ func requirementsByRelease(d *doc, root *yaml.Node, tests []sourcePair) {
 		d.line(tr("| Requirement | Priority | Verified by |"))
 		d.line("|---|---|---|")
 		for _, r := range rs {
-			by := "none"
+			by := tr("none")
 			if t := verifiedBy[r.Key.Value]; len(t) > 0 {
 				by = strings.Join(t, ", ")
 			}
@@ -669,7 +669,7 @@ func DeploymentGuide(root *yaml.Node, relRoot string, impls []Implementation, st
 		for _, c := range cfg {
 			secret := ""
 			if str(c.Value, "secret") == "true" {
-				secret = "yes"
+				secret = tr("yes")
 			}
 			d.line("| %s | %s | %s | %s |", c.Key.Value, cell(typeText(get(c.Value, "schema"))), cell(secret), cell(str(c.Value, "description")))
 		}

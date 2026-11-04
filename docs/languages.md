@@ -10,7 +10,8 @@ Indonesian, beside the English documents:
 A language other than English needs `--out`: the folder the
 implementation files name holds the English documents, which `specarch
 approve` compares, so a document in another language is written beside
-them, never over them. It writes no region of `specarch.md`.
+them, never over them: an `--out` that is that folder is refused. It
+writes no region of `specarch.md`.
 
 ## What is translated
 
@@ -53,13 +54,27 @@ same:
   title made from its key, which no literal in the code names.
 - `same` lists the English texts the language keeps as they are.
 
-Two tests hold a catalog to the code. `TestCatalogsComplete` refuses a
-text the documents write that the catalog does not give, and an entry no
-document writes; `TestCatalogVerbs` refuses a translation whose verbs
-differ from its English text. `TestDocumentsInEveryLanguage` writes every
-target in every language and requires each document to differ from the
-English one, every text to come from the catalog and every link to a
-heading to reach one.
+A value the code sets before it writes it, such as the `yes` of a
+required column or the `none` of an empty list, goes through `tr` like
+any other text, and a table of texts is given by a function, never by a
+package variable, which is made before a language is chosen.
+
+The tests hold a catalog to the code:
+
+- `TestCatalogsComplete` refuses a literal text the code gives `tr` that
+  the catalog does not give, and an entry no code gives `tr`.
+- `TestCatalogVerbs` refuses a translation whose verbs differ from its
+  English text.
+- `TestNoTrAtStartUp` refuses a call of `tr` in a package variable.
+- `TestDocumentsInEveryLanguage` writes every target in every language
+  and requires of each document that it differs from the English one,
+  that every text it gave `tr` is in the catalog, that every link to a
+  heading reaches one, and that no table cell or heading is an English
+  text the catalog translates. That last check finds a value that
+  reached the document without `tr`; it passes over the specification's
+  own keys and values and the names of derived cases, which a document
+  writes as they are, so an English word that is also one of those is
+  not seen there.
 
 ## Adding a language
 

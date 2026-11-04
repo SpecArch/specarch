@@ -256,6 +256,10 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		if status != 0 {
 			return status
 		}
+		if msg := overConfigured(l, target, folder, everyone, language); msg != "" {
+			fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
+			return 2
+		}
 		impls, st := l.documentInputs(target, folder, stderr)
 		root := l.spec.Root
 		if everyone {
@@ -310,6 +314,30 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return status
+}
+
+// overConfigured refuses a document for everyone or in another language
+// written to the folder the implementation files name for the target:
+// that folder holds the documents in English with every element, which
+// approve compares, and the other document would be written over them.
+func overConfigured(l loaded, target, folder string, everyone bool, language string) string {
+	if !everyone && language == generate.DefaultLanguage || !namesOutput(l, target) {
+		return ""
+	}
+	configured, status := outputFolder(l, target, "", io.Discard)
+	if status != 0 {
+		return ""
+	}
+	given, err1 := filepath.Abs(folder)
+	named, err2 := filepath.Abs(configured)
+	if err1 != nil || err2 != nil || given != named {
+		return ""
+	}
+	what := "--audience external"
+	if language != generate.DefaultLanguage {
+		what = "--language " + language
+	}
+	return fmt.Sprintf("specarch document %s --out %s: %s is the folder the implementation files of %s name for %s, which holds the documents in English with every element that approve compares; give --out another folder, so the document is written beside them, not over them", what, folder, configured, l.spec.Dir, target)
 }
 
 // languageArg takes --language out of the arguments: the language the

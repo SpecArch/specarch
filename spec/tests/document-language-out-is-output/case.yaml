@@ -1,0 +1,3 @@
+arguments: [document, requirements, --language, id, --out, project/docs, project]
+exitStatus: 2
+standardOutput: ""

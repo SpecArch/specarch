@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/generate"
+	"go.yaml.in/yaml/v3"
 )
 
 // languageRuns are the specifications every document target is written
@@ -34,11 +35,16 @@ var (
 // that every link to a heading of the same Markdown document reaches one.
 func TestDocumentsInEveryLanguage(t *testing.T) {
 	for _, tag := range generate.Languages()[1:] {
+		catalog, err := generate.LoadCatalog(tag)
+		if err != nil {
+			t.Fatal(err)
+		}
 		for _, target := range generate.DocumentTargets {
 			if !generate.BuiltDocuments[target] {
 				continue
 			}
 			for _, paths := range languageRuns {
+				words := specWords(t, paths)
 				out := t.TempDir()
 				companions := readCompanions(t, paths)
 				var stdout, stderr bytes.Buffer
@@ -75,6 +81,7 @@ func TestDocumentsInEveryLanguage(t *testing.T) {
 					if bytes.Equal(text, english) && !strings.HasSuffix(f, ".sarif") {
 						t.Errorf("document %s --language %s %v: %s is the English document", target, tag, paths, filepath.Base(f))
 					}
+					checkUntranslated(t, catalog, words, target+" "+tag+" "+strings.Join(paths, " ")+": "+filepath.Base(f), string(text))
 					if strings.HasSuffix(f, ".md") {
 						checkAnchors(t, target+" "+tag+" "+strings.Join(paths, " ")+": "+filepath.Base(f), string(text))
 						checkAnchors(t, target+" en "+strings.Join(paths, " ")+": "+filepath.Base(f), string(english))
@@ -83,6 +90,88 @@ func TestDocumentsInEveryLanguage(t *testing.T) {
 			}
 		}
 	}
+}
+
+var (
+	mdCell   = regexp.MustCompile(`\|([^|]*)`)
+	htmlCell = regexp.MustCompile(`<t[dh][^>]*>([^<]*)</t[dh]>`)
+)
+
+// checkUntranslated requires of a document in another language that no
+// table cell or heading is an English text its catalog translates, unless
+// the specification itself holds that text as a key or a value, which a
+// document writes as it is: such a text reached the document without
+// going through the catalog, as a value the code set before it was
+// written, which Missed, recording only what passes through the catalog,
+// does not see.
+func checkUntranslated(t *testing.T, c *generate.Catalog, words map[string]bool, what, text string) {
+	t.Helper()
+	text = regexp.MustCompile("(?s)```.*?```").ReplaceAllString(text, "")
+	var found []string
+	look := func(s string) {
+		s = strings.TrimSpace(s)
+		if tr, ok := c.Translations[s]; ok && tr != s && !words[s] && !derivedWords[s] {
+			found = append(found, strconv.Quote(s))
+		}
+	}
+	for _, line := range strings.Split(text, "\n") {
+		switch {
+		case strings.HasPrefix(line, "|"):
+			for _, m := range mdCell.FindAllStringSubmatch(strings.TrimSuffix(line, "|"), -1) {
+				look(m[1])
+			}
+		case mdHeading.MatchString(line):
+			look(strings.TrimLeft(line, "# "))
+		}
+	}
+	for _, m := range htmlCell.FindAllStringSubmatch(text, -1) {
+		look(m[1])
+	}
+	if len(found) > 0 {
+		t.Errorf("%s: %d table cells or headings are English texts the catalog of %s translates, so they reached the document without it: %s", what, len(found), c.Language, strings.Join(found, ", "))
+	}
+}
+
+// derivedWords are the names of the derived cases that are also texts a
+// catalog translates; a derived case is written as derive names it, in
+// English (ADR-241).
+var derivedWords = map[string]bool{"empty": true, "filtered empty": true}
+
+// specWords is every key and scalar value of the YAML files under the
+// paths given: the specification's own words, which a document writes in
+// the language they are written in.
+func specWords(t *testing.T, paths []string) map[string]bool {
+	t.Helper()
+	words := map[string]bool{}
+	var walk func(n *yaml.Node)
+	walk = func(n *yaml.Node) {
+		if n.Kind == yaml.ScalarNode {
+			words[strings.TrimSpace(n.Value)] = true
+		}
+		for _, c := range n.Content {
+			walk(c)
+		}
+	}
+	for _, p := range paths {
+		err := filepath.WalkDir(p, func(path string, e os.DirEntry, err error) error {
+			if err != nil || e.IsDir() || !strings.HasSuffix(path, ".yaml") {
+				return err
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			var n yaml.Node
+			if yaml.Unmarshal(data, &n) == nil {
+				walk(&n)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	return words
 }
 
 // readCompanions reads the specarch.md beside each specification given,

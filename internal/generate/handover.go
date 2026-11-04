@@ -420,7 +420,7 @@ func Handover(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		for _, c := range cfg {
 			secret := ""
 			if str(c.Value, "secret") == "true" {
-				secret = "yes"
+				secret = tr("yes")
 			}
 			d.line("| %s | %s | %s | %s |", c.Key.Value, cell(typeText(get(c.Value, "schema"))), cell(secret), cell(str(c.Value, "description")))
 		}

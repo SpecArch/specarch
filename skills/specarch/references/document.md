@@ -373,8 +373,8 @@ and the html page in place of what satisfies and verifies it.
 
 - `--out <out>`: The folder the target owns. Without it, the folder the implementation files' `targets` name for the target, relative to each implementation file; they must agree.
 - `--check`: Make the output in memory and fail when the files on disk differ. Writes nothing.
-- `--audience <audience>` (one of `external`): external writes a document for everyone, without the internal elements (ADR-119). Needs --out; not for the problems target.
-- `--language <language>` (one of `en`, `id`): The language the documents are written in, en (the default) or id (Indonesian), with the technical terms practitioners say in English kept (ADR-241). A language other than en needs --out.
+- `--audience <audience>` (one of `external`): external writes a document for everyone, without the internal elements (ADR-119). Needs --out, a folder other than the one the implementation files name for the target; not for the problems target.
+- `--language <language>` (one of `en`, `id`): The language the documents are written in, en (the default) or id (Indonesian), with the technical terms practitioners say in English kept (ADR-241). A language other than en needs --out, a folder other than the one the implementation files name for the target.
 - `--dry-run`: Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check.
 
 ## Reads
@@ -409,4 +409,4 @@ A usage message on a usage error, the reason a file cannot be read or written, f
 
 - 0: written, or with `--check` the output is current.
 - 1: a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs. Then: Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again.
-- 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, --language with a value other than en or id, or other than en without --out, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.
+- 2: usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, --language with a value other than en or id, or other than en without --out, --audience external or a language other than en with an --out that is the folder the implementation files name for the target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written. Then: Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again.

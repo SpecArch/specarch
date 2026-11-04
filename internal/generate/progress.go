@@ -164,7 +164,7 @@ func sizeByStage(root *yaml.Node) []stageSize {
 		}
 		row.sections = strings.Join(parts, ", ")
 		if row.sections == "" {
-			row.sections = "none"
+			row.sections = tr("none")
 		}
 		out = append(out, row)
 	}
@@ -224,7 +224,7 @@ func (d *doc) progressQuestions() {
 		priority := q.priority
 		if priority != "must" && priority != "should" && priority != "could" {
 			priority = other
-			written := "missing"
+			written := tr("missing")
 			if n := source.Deref(get(q.node, "priority")); n != nil {
 				written = valueText(n)
 			}
@@ -293,7 +293,7 @@ type hours struct {
 func (h *hours) add(n *yaml.Node) string {
 	n = source.Deref(n)
 	if n == nil {
-		return "missing"
+		return tr("missing")
 	}
 	var r big.Rat
 	tag := n.ShortTag()
@@ -506,7 +506,7 @@ func (d *doc) progressBurnUp(root *yaml.Node, state *State, scope int) {
 		}
 		list := strings.Join(ids, ", ")
 		if list == "" {
-			list = "none"
+			list = tr("none")
 		}
 		d.line("| %s | %s | %s | %s | %d | %d | %d |", str(r, "version"), str(r, "status"), date, list, len(approved), len(generated), scope)
 	}

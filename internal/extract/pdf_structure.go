@@ -40,8 +40,14 @@ type pdfStructTable struct {
 // every page holding marked content (14.7.5.4), or else by its
 // dictionary as the file writes it, references and all.
 func pdfPageKey(page pdf.Value) string {
-	if sp := page.Key("StructParents"); sp.Kind() == pdf.Integer {
-		return fmt.Sprintf("StructParents %d", sp.Int64())
+	return pdfPageKeyOf(page, page.Key("StructParents"))
+}
+
+// pdfPageKeyOf is pdfPageKey with the page's StructParents already read,
+// so that the structure-tree walk can count what reading it cost.
+func pdfPageKeyOf(page, structParents pdf.Value) string {
+	if structParents.Kind() == pdf.Integer {
+		return fmt.Sprintf("StructParents %d", structParents.Int64())
 	}
 	return page.String()
 }
@@ -93,81 +99,122 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 	resolved := func(v pdf.Value) int {
 		return 1 + len(v.String())/pdfStructUnit
 	}
-	roles := root.Key("RoleMap")
+	// key reads one entry of a dictionary and spends what resolving it
+	// cost. The library resolves a reference each time an entry is read,
+	// so every entry the walk reads, its Type, S, RoleMap, A, Stm and
+	// MCID as much as its K and Pg, goes through key; an entry left
+	// uncounted is one a crafted file points at a large object. Once the
+	// budget is spent it gives null, and every walk stops.
+	key := func(v pdf.Value, name string) pdf.Value {
+		if over {
+			return pdf.Value{}
+		}
+		e := v.Key(name)
+		if !spend(resolved(e)) {
+			return pdf.Value{}
+		}
+		return e
+	}
+	// index reads one entry of an array as key reads one of a
+	// dictionary.
+	index := func(a pdf.Value, i int) pdf.Value {
+		if over {
+			return pdf.Value{}
+		}
+		e := a.Index(i)
+		if !spend(resolved(e)) {
+			return pdf.Value{}
+		}
+		return e
+	}
+	// page gives the key of the page an element names in Pg, or inherited
+	// when it names none.
+	page := func(v pdf.Value, inherited string) string {
+		if pg := key(v, "Pg"); pg.Kind() == pdf.Dict {
+			return pdfPageKeyOf(pg, key(pg, "StructParents"))
+		}
+		return inherited
+	}
+	roles := key(root, "RoleMap")
 	// role resolves a structure type through the role map to the
 	// standard type it stands for (14.7.3), a chain followed up to eight
-	// steps, so that a custom name a word processor writes is read.
+	// steps, so that a custom name a word processor writes is read. Each
+	// name is resolved once.
+	known := map[string]string{}
 	role := func(s string) string {
+		if r, ok := known[s]; ok {
+			return r
+		}
+		r := s
 		for i := 0; i < 8; i++ {
-			m := roles.Key(s)
-			if m.Kind() != pdf.Name || m.Name() == s {
+			m := key(roles, r)
+			if m.Kind() != pdf.Name || m.Name() == r {
 				break
 			}
-			s = m.Name()
+			r = m.Name()
 		}
-		return s
+		known[s] = r
+		return r
 	}
 	// marks collects the marked content under an element, its own and its
 	// descendants', with the page inherited from the nearest Pg.
-	var marks func(v pdf.Value, page string, depth int, out *[]pdfMark)
-	marks = func(v pdf.Value, page string, depth int, out *[]pdfMark) {
-		if depth > 64 || !spend(resolved(v)) {
+	var marks func(v pdf.Value, on string, depth int, out *[]pdfMark)
+	marks = func(v pdf.Value, on string, depth int, out *[]pdfMark) {
+		if !spend(resolved(v)) || depth > 64 {
 			return
 		}
 		switch v.Kind() {
 		case pdf.Integer:
-			*out = append(*out, pdfMark{page: page, mcid: v.Int64()})
+			*out = append(*out, pdfMark{page: on, mcid: v.Int64()})
 		case pdf.Array:
 			for i := 0; i < v.Len() && !over; i++ {
-				marks(v.Index(i), page, depth+1, out)
+				marks(v.Index(i), on, depth+1, out)
 			}
 		case pdf.Dict:
-			if pg := v.Key("Pg"); pg.Kind() == pdf.Dict {
-				spend(resolved(pg))
-				page = pdfPageKey(pg)
-			}
-			switch v.Key("Type").Name() {
+			on = page(v, on)
+			switch key(v, "Type").Name() {
 			case "MCR":
 				// An MCID in a form XObject's stream (Stm) is that
 				// stream's, not the page's, and the form's glyphs are not
 				// among the page's text: it is not matched.
-				if v.Key("Stm").IsNull() && v.Key("MCID").Kind() == pdf.Integer {
-					id := v.Key("MCID")
-					*out = append(*out, pdfMark{page: page, mcid: id.Int64()})
+				if key(v, "Stm").IsNull() && !over {
+					if id := key(v, "MCID"); id.Kind() == pdf.Integer {
+						*out = append(*out, pdfMark{page: on, mcid: id.Int64()})
+					}
 				}
 			case "OBJR":
 				// An object reference, such as an annotation, holds no
 				// page content.
 			default:
-				marks(v.Key("K"), page, depth+1, out)
+				marks(v.Key("K"), on, depth+1, out)
 			}
 		}
 	}
 	// children gives an element's child elements with the page each
-	// inherits. Each entry of K resolved is spent from the budget, so that
-	// an element listing the same child thousands of times costs what was
+	// inherits and its structure type through the role map, read once.
+	// Each entry of K resolved is spent from the budget, so that an
+	// element listing the same child thousands of times costs what was
 	// resolved; once the budget is spent it gives what it has.
 	type child struct {
 		v    pdf.Value
 		page string
+		role string
 	}
-	children := func(v pdf.Value, page string) []child {
-		if pg := v.Key("Pg"); pg.Kind() == pdf.Dict {
-			spend(resolved(pg))
-			page = pdfPageKey(pg)
-		}
-		k := v.Key("K")
-		if !spend(resolved(k)) {
+	children := func(v pdf.Value, inherited string) []child {
+		on := page(v, inherited)
+		k := key(v, "K")
+		if over {
 			return nil
 		}
 		var out []child
 		add := func(c pdf.Value) {
-			if !spend(resolved(c)) {
+			if !spend(resolved(c)) || c.Kind() != pdf.Dict {
 				return
 			}
-			if c.Kind() == pdf.Dict && c.Key("Type").Name() != "MCR" && c.Key("Type").Name() != "OBJR" {
-				out = append(out, child{c, page})
+			if t := key(c, "Type").Name(); t == "MCR" || t == "OBJR" || over {
+				return
 			}
+			out = append(out, child{c, on, role(key(c, "S").Name())})
 		}
 		if k.Kind() == pdf.Array {
 			for i := 0; i < k.Len() && !over; i++ {
@@ -184,7 +231,7 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 			return
 		}
 		for _, c := range children(v, page) {
-			switch role(c.v.Key("S").Name()) {
+			switch c.role {
 			case "THead", "TBody", "TFoot":
 				rows(c.v, c.page, depth+1, t)
 			case "TR":
@@ -193,11 +240,11 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 					if !spend(1) {
 						return
 					}
-					s := role(cell.v.Key("S").Name())
-					if s != "TH" && s != "TD" {
+					if cell.role != "TH" && cell.role != "TD" {
 						continue
 					}
-					sc := pdfStructCell{rowSpan: pdfTableAttribute(cell.v, "RowSpan"), colSpan: pdfTableAttribute(cell.v, "ColSpan")}
+					a := key(cell.v, "A")
+					sc := pdfStructCell{rowSpan: pdfTableAttribute(a, "RowSpan", key, index), colSpan: pdfTableAttribute(a, "ColSpan", key, index)}
 					marks(cell.v, cell.page, 0, &sc.marks)
 					row = append(row, sc)
 				}
@@ -213,7 +260,7 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 			return
 		}
 		for _, c := range children(v, page) {
-			if role(c.v.Key("S").Name()) == "Table" {
+			if c.role == "Table" {
 				var t pdfStructTable
 				rows(c.v, c.page, 0, &t)
 				if len(t.rows) > 0 {
@@ -231,21 +278,22 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 	return tables, false
 }
 
-// pdfTableAttribute reads RowSpan or ColSpan from an element's attributes,
-// a dictionary or an array of them with revision numbers between
-// (14.7.6); one when not given.
-func pdfTableAttribute(v pdf.Value, key string) int {
-	a := v.Key("A")
+// pdfTableAttribute reads RowSpan or ColSpan from an element's
+// attributes a, a dictionary or an array of them with revision numbers
+// between (14.7.6); one when not given. Every entry is read through
+// key and index, which count what resolving it cost and give null once
+// the walk's budget is spent.
+func pdfTableAttribute(a pdf.Value, name string, key func(pdf.Value, string) pdf.Value, index func(pdf.Value, int) pdf.Value) int {
 	var dicts []pdf.Value
 	if a.Kind() == pdf.Array {
 		for i := 0; i < a.Len(); i++ {
-			dicts = append(dicts, a.Index(i))
+			dicts = append(dicts, index(a, i))
 		}
 	} else {
 		dicts = append(dicts, a)
 	}
 	for _, d := range dicts {
-		if n := d.Key(key); n.Kind() == pdf.Integer && n.Int64() >= 1 && n.Int64() <= 1000 {
+		if n := key(d, name); n.Kind() == pdf.Integer && n.Int64() >= 1 && n.Int64() <= 1000 {
 			return int(n.Int64())
 		}
 	}

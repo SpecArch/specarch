@@ -241,3 +241,58 @@ func TestPDFStructBudgetWide(t *testing.T) {
 		})
 	})
 }
+
+// TestPDFStructBudgetLargeEntry walks crafted trees whose element lists
+// itself 2000 times in K and names, in one of the other entries the walk
+// reads, a reference to a string of a megabyte. The library reads the
+// string again at each resolve, so every entry read counts what it
+// resolved, and not only K and Pg.
+func TestPDFStructBudgetLargeEntry(t *testing.T) {
+	wide := func(ref string) string {
+		return "[" + strings.TrimSpace(strings.Repeat(ref+" ", 2000)) + "]"
+	}
+	large := "(" + strings.Repeat("a", 1<<20) + ")"
+	head := []string{
+		"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+	}
+	for _, c := range []struct {
+		name    string
+		objects []string
+	}{
+		{"Type", []string{
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S /Div /Type 5 0 R /K " + wide("4 0 R") + " >>",
+			large,
+		}},
+		{"S", []string{
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S 5 0 R /K " + wide("4 0 R") + " >>",
+			large,
+		}},
+		{"RoleMap", []string{
+			"<< /Type /StructTreeRoot /RoleMap << /Div 5 0 R >> /K 4 0 R >>",
+			"<< /S /Div /K " + wide("4 0 R") + " >>",
+			large,
+		}},
+		{"Attribute", []string{
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S /Table /K 6 0 R >>",
+			large,
+			"<< /S /TR /K " + wide("7 0 R") + " >>",
+			"<< /S /TD /A [5 0 R 5 0 R] >>",
+		}},
+		{"MCID", []string{
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S /Table /K 6 0 R >>",
+			large,
+			"<< /S /TR /K " + wide("7 0 R") + " >>",
+			"<< /S /TD /K " + wide("8 0 R") + " >>",
+			"<< /Type /MCR /MCID 5 0 R >>",
+		}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			pdfStructOverBudget(t, append(append([]string{}, head...), c.objects...))
+		})
+	}
+}

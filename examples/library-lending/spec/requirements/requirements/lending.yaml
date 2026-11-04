@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-1.0.schema.json
+# specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/problem]
 requirements:
   LIB-1:
     statement: A member shall be identified by a unique card number and a unique email address.

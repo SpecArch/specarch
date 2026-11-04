@@ -85,7 +85,7 @@ is the layout of the files; `specarch help conventions` the keywords.
     notes/specarch.yaml
     specarch init: next, run specarch validate notes after each edit; specarch help start shows a first entity and operation that validate
     $ specarch validate notes
-    notes/specarch.yaml:7:12: warning: /info/profile: profile: the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests [profile@specarch.yaml#/info/profile]
+    notes/specarch.yaml:7:12: warning: /info/profile: profile: the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing), and a missing problem is asked as the first question of specarch gaps --next, not warned (problem_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests [profile@specarch.yaml#/info/profile]
     specarch: 1 input checked: 0 errors, 1 warning
 
 **What to watch for.** Write the stakeholders first, by role, since every

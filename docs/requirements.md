@@ -2,11 +2,11 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.5.1-dev of the specification: 6 stakeholders, 10 needs and 131 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.5.1-dev of the specification: 6 stakeholders, 10 needs and 136 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 10 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/stakeholders/stakeholders.yaml#/stakeholders]
 
@@ -48,14 +48,14 @@ What the stakeholders said they need, before it was shaped into requirements, an
 
 | Need | Statement | Stakeholders | Status | Refined by |
 |---|---|---|---|---|
-| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-129, SA-133, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
+| NEED-1 | I want a specification that cannot quietly be wrong, so that the code built from it is right. | specification-author, implementer | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-135, SA-136, SA-72, SA-129, SA-133, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
-| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-19, SA-74 |
+| NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-137, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
 | NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118 |
-| NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
+| NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
+| NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
 | NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100 |
 
@@ -144,6 +144,11 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-116 | functional | should | proposed | specarch generate seed shall write, through specarch-gen-seed, a development seed for the tables generate sql writes, made-up rows drawn from the entities with a fixed seed, so that the file is the same bytes on every run, loads into a database the migrations have just built, and holds nothing about a real person. |
 | SA-121 | functional | should | proposed | specarch generate deploy shall write, through specarch-gen-deploy, each deployment of an implementation file as a Compose file, Kubernetes manifests or a cloud-init file per host, as the deploy target's settings name the form, from the specification's environments, configuration, migrations, release and rollback and the deployment's servers, links and values; shall write the release, the rollback and each migration as a runbook; shall write, for a Compose deployment named under fresh, the script that builds an environment from nothing, loads the migrations and the seed, runs the implementation's test suite there and tears it down; and shall reference every secret where the form reads it from the host, never writing a value for it. |
 | SA-32 | functional | must | accepted | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. |
+| SA-135 | functional | must | proposed | A specification shall state its intent in the requirements stage, every key optional, with problem (one per specification), goals with measure, baseline, target, by, priority, status and measuredBy, outOfScope with until and the needs it rules out, and qualityGoals with rank, a quality characteristic of ISO/IEC 25010 and the quality requirements that make it concrete; a need shall name the goals it serves under goals and a decision the quality goals it weighed under weighs, and specarch validate shall report a reference to a stakeholder, monitor, need, requirement, goal or quality goal that does not exist as the error of that kind at the entry, and a goal's by or an out-of-scope entry's until that names no planned or released release as record_ref. |
+| SA-136 | functional | must | proposed | specarch validate shall warn, at the entry and in the problems file, problem_missing when a specification on meta-model 1.0.0 or later has requirements and no problem and no must question blocks it, goal_unmeasured at an accepted goal without measure or target, goal_unserved at an accepted goal no accepted need names, need_without_goal at an accepted need naming no goal once any goal exists, scope_conflict at an accepted requirement's need that an out-of-scope entry rules out, and quality_goal_rank at quality goals that share a rank; on the lean profile problem_missing shall not be warned but asked as the first question of specarch gaps --next. |
+| SA-137 | functional | must | proposed | specarch document intent shall write intent.md with the problem, the goals with their measures, what is out of scope and the quality goals in rank order; the techspec shall open with an Intent chapter in the shape of arc42 section 1 and the traceability matrix shall gain a goal column, both only when the specification states intent; and document progress shall add, per goal, the baseline, the target, the latest value a monitor read and the share of its requirements met. |
+| SA-138 | functional | must | proposed | specarch gaps --next shall put the intent first, so that a specification with requirements and no problem, and then an accepted goal with no measure or target, is asked for that before any open question, on every profile, with the key to write, and the exit status shall stay that of the open questions and errors alone. |
+| SA-139 | functional | must | proposed | specarch init shall take --problem, --goal and --out-of-scope, the last two repeatable, and write problem.statement, a GOAL-n and an OUT-n for each with status proposed for the goals; when standard input is a terminal and none of them is given, init shall ask the three questions there, an empty answer skipping one, so the analyst answers in sentences and the keys are written for them. |
 | SA-11 | functional | must | accepted | A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind. |
 | SA-12 | functional | must | accepted | A specification shall be able to hold every stage of the life cycle, from stakeholders and needs through requirements, design, implementation, tests, deployment, commissioning and operation, each optional until the project reaches it. |
 | SA-23 | functional | must | accepted | The validator shall check the records kept beside a specification (change requests, defects, releases, incidents, commissioning runs and approvals) against their schema and against the specification they point into, without the specification pointing back at them. |
@@ -1501,6 +1506,86 @@ Acceptance criteria:
 
 **Insight:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
+### SA-135
+
+A specification shall state its intent in the requirements stage, every key optional, with problem (one per specification), goals with measure, baseline, target, by, priority, status and measuredBy, outOfScope with until and the needs it rules out, and qualityGoals with rank, a quality characteristic of ISO/IEC 25010 and the quality requirements that make it concrete; a need shall name the goals it serves under goals and a decision the quality goals it weighed under weighs, and specarch validate shall report a reference to a stakeholder, monitor, need, requirement, goal or quality goal that does not exist as the error of that kind at the entry, and a goal's by or an out-of-scope entry's until that names no planned or released release as record_ref.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-1, NEED-6.
+
+Acceptance criteria:
+
+- A specification with problem, goals, outOfScope and qualityGoals whose references resolve validates with no error, and one without any of them reads as before.
+- A problem stakeholder, a goal's measuredBy, an out-of-scope entry's needs, a quality goal's requirements, a need's goals and a decision's weighs that name nothing are the errors stakeholder, monitor, need, requirement, goal and quality_goal at the entry, each with the closest name when there is one.
+- Both validator builds print the same lines for the same specification.
+
+**Insight:** A product requirements document is written beside a full specification only for what the specification has no home for, the problem, the measured goals, the boundary and the order of qualities (ADR-242); giving them keys in the requirements stage makes one source instead of two that drift.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 9.3: The business requirements specification states the business purpose, the scope, the goals and the problem the system addresses, before the stakeholder and system requirements. <https://www.iso.org/standard/72089.html>
+
+**Note:** From arc42, the template for architecture documentation, 8.2, clause 1: Introduction and goals: the requirements overview, the three to five most important quality goals in order, and the stakeholders, read first because the architecture is judged against them. <https://arc42.org/overview>
+
+### SA-136
+
+specarch validate shall warn, at the entry and in the problems file, problem_missing when a specification on meta-model 1.0.0 or later has requirements and no problem and no must question blocks it, goal_unmeasured at an accepted goal without measure or target, goal_unserved at an accepted goal no accepted need names, need_without_goal at an accepted need naming no goal once any goal exists, scope_conflict at an accepted requirement's need that an out-of-scope entry rules out, and quality_goal_rank at quality goals that share a rank; on the lean profile problem_missing shall not be warned but asked as the first question of specarch gaps --next.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-1, NEED-8.
+
+Acceptance criteria:
+
+- validate on a full-profile specification with requirements and no problem warns problem_missing at /problem, at the line of the requirements, and exits 0; on the lean profile it prints no problem_missing and the profile warning says the problem is asked by gaps --next.
+- validate on a specification with each of the other five gaps warns that rule at that entry and exits 0.
+- A specification with no goals is never warned need_without_goal, so an upgrade brings at most problem_missing.
+
+**Insight:** Every later answer rests on the problem and the measured goals, so their absence is shown first; a compiler for specifications never refuses to read a specification for missing intent, so each is a warning, and on a small tool's lean specification a warning that shows on every run teaches people to skip warnings, so there it is a question (the owner's decision 3 of ADR-242).
+
+### SA-137
+
+specarch document intent shall write intent.md with the problem, the goals with their measures, what is out of scope and the quality goals in rank order; the techspec shall open with an Intent chapter in the shape of arc42 section 1 and the traceability matrix shall gain a goal column, both only when the specification states intent; and document progress shall add, per goal, the baseline, the target, the latest value a monitor read and the share of its requirements met.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-3, NEED-6.
+
+Acceptance criteria:
+
+- document intent on a specification with intent writes intent.md with one section per part, the goals with measure, baseline, target and by, the quality goals in rank order; on one without intent it writes the page saying what is missing and the key to add.
+- The techspec of a specification with intent opens with the Intent chapter, and its traceability matrix has a Goals column naming the goals each requirement's needs serve; the outputs of a specification without intent are as before.
+- document progress lists each goal with its baseline, its target, the latest reading (none recorded, since no record holds a monitor's reading yet) and how many of the requirements that serve it are met.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
+
+**Insight:** The intent is the first thing a reviewer and an agent read, so it is one page of its own, and it is the chapter arc42 opens with; a goal column shows which goal a requirement serves without a second document.
+
+### SA-138
+
+specarch gaps --next shall put the intent first, so that a specification with requirements and no problem, and then an accepted goal with no measure or target, is asked for that before any open question, on every profile, with the key to write, and the exit status shall stay that of the open questions and errors alone.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- gaps --next on a specification with requirements and no problem prints the problem question first, naming problem.statement, and exits as it would without it.
+- gaps --next on a specification with a problem and an accepted goal with no target prints that goal's question first.
+- gaps --next --json gives the intent question under intent, null when there is none, beside the open question it gave before.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
+
+**Insight:** Every other answer rests on the problem and the goals; a missing problem is a gap and not a refusal, so it never changes whether gaps fails a run.
+
+### SA-139
+
+specarch init shall take --problem, --goal and --out-of-scope, the last two repeatable, and write problem.statement, a GOAL-n and an OUT-n for each with status proposed for the goals; when standard input is a terminal and none of them is given, init shall ask the three questions there, an empty answer skipping one, so the analyst answers in sentences and the keys are written for them.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-8.
+
+Acceptance criteria:
+
+- init --problem P --goal G1 --goal G2 --out-of-scope O writes problem.statement P, GOAL-1 and GOAL-2 with status proposed and OUT-1, which validates with no error.
+- init with none of the three and standard input not a terminal writes the specification as before and asks nothing.
+- An empty --problem, --goal or --out-of-scope is a usage error.
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
+
+**Insight:** The owner chose flags with prompts on a terminal (2026-11-05), so scripts and agents keep working unchanged and a person at the terminal is asked in plain words.
+
 ### SA-11
 
 A specification shall be a folder tree with one root file, specarch.yaml, and one folder per life-cycle stage it keeps, in which a file holds one or a few objects of one kind.
@@ -2321,6 +2406,7 @@ Every source a Note in this document cites.
 | Source | Title | Edition | Author | Where to read it |
 |---|---|---|---|---|
 | adr-nygard | Documenting architecture decisions | 2011 | Michael Nygard | https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions |
+| arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
 | go-tool | The go command, Go documentation | 1.26 | The Go project | https://go.dev/doc/ |
 | ieee-830 | IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications | 1998 | IEEE |   |
 | iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |

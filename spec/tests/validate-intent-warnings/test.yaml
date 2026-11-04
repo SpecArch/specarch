@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a specification whose intent leaves gaps: an accepted goal with no target, an accepted goal no accepted need serves, an accepted need naming no goal while goals exist, an accepted requirement refining a need an out-of-scope entry rules out, and two quality goals of one rank"
+when: "validate is run"
+then: "it warns goal_unmeasured, goal_unserved, need_without_goal, scope_conflict and quality_goal_rank at those entries, and exits 0, since each is a warning"
+verifies: [SA-136]

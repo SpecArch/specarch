@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on the lean profile with requirements and no problem"
+when: "validate is run"
+then: "it does not warn problem_missing, since on the lean profile the problem is asked as the first question of gaps --next, and the profile warning says so; it exits 0"
+verifies: [SA-136]

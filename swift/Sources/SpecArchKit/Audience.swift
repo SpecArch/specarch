@@ -5,7 +5,7 @@ import Foundation
 
 /// The sections whose entries are each an element that may carry audience.
 private let keyedElements: Set<String> = [
-    "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
+    "goals", "outOfScope", "qualityGoals", "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
     "enums", "entities", "views", "schemas", "permissions", "roles", "clients", "tokens", "separationOfDuties", "middlewares", "handshakes", "routes",
     "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "flows",
     "algorithms", "tests", "decisions",
@@ -19,7 +19,7 @@ private let keyedElements: Set<String> = [
 func isElement(_ path: [String]) -> Bool {
     switch path.count {
     case 1:
-        return ["caller", "securityEvents", "session", "signIn", "release", "rollback", "signoff", "backup", "restore"].contains(path[0])
+        return ["problem", "caller", "securityEvents", "session", "signIn", "release", "rollback", "signoff", "backup", "restore"].contains(path[0])
     case 2:
         return keyedElements.contains(path[0])
     case 3:

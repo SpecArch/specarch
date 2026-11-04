@@ -5,7 +5,7 @@ let designSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-design-1.0.schema.json",
   "title": "SpecArch specification, meta-model 1.0",
-  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, signIn, endpoints, commands, channels, dependencies, jobs, processes, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A SpecArch specification describes one system through its whole life cycle: the sources it rests on, the requirements (problem, goals, outOfScope, qualityGoals, stakeholders, needs, requirements, glossary, assumptions, constraints), the design (enums, entities, permissions, roles, caller, tenant, clients, tokens, securityEvents, session, signIn, endpoints, commands, channels, dependencies, jobs, processes, pages, algorithms, decisions), the tests, the deployment (environments, configuration, release, rollback, migrations) and the commissioning (checks, sign-off). On disk it is a folder whose root file is specarch.yaml; each stage listed under 'stages' lives in a folder of that name, and a stage not listed may be written inside specarch.yaml itself. The validator merges the tree into one document that this schema describes. Field keywords come from JSON Schema, endpoint keywords from OpenAPI 3, event keywords from AsyncAPI. Keywords with no standard origin are marked 'SpecArch keyword' in their description. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarch": {
@@ -51,6 +51,40 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": {
         "$ref": "#/$defs/source"
+      }
+    },
+    "problem": {
+      "description": "SpecArch keyword. The problem the system solves, one per specification (ISO/IEC/IEEE 29148:2018, 9.3). A specification with requirements and no problem is the warning problem_missing on the full profile, and the first question specarch gaps --next asks on the lean profile.",
+      "$ref": "#/$defs/problem"
+    },
+    "goals": {
+      "description": "SpecArch keyword. The outcomes the owner of the system wants, each with how it is measured, keyed by ID such as GOAL-1.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/goal"
+      }
+    },
+    "outOfScope": {
+      "description": "SpecArch keyword. What the system will not do, decided on purpose, keyed by ID such as OUT-1.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/outOfScope"
+      }
+    },
+    "qualityGoals": {
+      "description": "SpecArch keyword. The three to five qualities that matter most, in rank order (arc42 section 1.2), keyed by ID such as QG-1.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/qualityGoal"
       }
     },
     "stakeholders": {
@@ -594,7 +628,7 @@ let designSchemaJSON = #"""
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
     "idKey": {
-      "description": "SpecArch keyword. The ID of a requirement, need, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
+      "description": "SpecArch keyword. The ID of a requirement, need, goal, out-of-scope entry, quality goal, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
@@ -948,7 +982,7 @@ let designSchemaJSON = #"""
           ]
         },
         "profile": {
-          "description": "SpecArch keyword. How much the validator demands of a first draft. full: every demand is an error. lean, for a small tool or an internal daemon: a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing), and the validator says so in one warning at this key (profile); every other rule is as on full, a permission on every operation and command included. Tighten by writing full, or by removing the key. Left out, the profile is full (ADR-210).",
+          "description": "SpecArch keyword. How much the validator demands of a first draft. full: every demand is an error. lean, for a small tool or an internal daemon: a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing), and a specification with requirements and no problem is asked for it as the first question of specarch gaps --next, not warned (problem_missing); the validator says so in one warning at this key (profile); every other rule is as on full, a permission on every operation and command included. Tighten by writing full, or by removing the key. Left out, the profile is full (ADR-210).",
           "type": "string",
           "enum": [
             "lean",
@@ -1231,6 +1265,268 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "problem": {
+      "description": "SpecArch keyword. The problem the system solves, one per specification (ISO/IEC/IEEE 29148:2018, 9.3; arc42 section 1): read before anything else, since whether the system is worth building, and whether each goal answers the problem, is judged against it.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "description": "The problem in plain words: who it hurts and what it costs them.",
+          "type": "string",
+          "minLength": 1
+        },
+        "stakeholders": {
+          "description": "The stakeholders the problem hurts, by key; each must be one of 'stakeholders' (the rule stakeholder).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "today": {
+          "description": "How things stand today, with a number and its unit where one is counted.",
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "statement"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "goal": {
+      "description": "SpecArch keyword. One goal: an outcome the owner of the system wants for the whole system, with how it is measured (Planguage, Tom Gilb, Competitive Engineering, 2005: the scale counted, the value today and the value wanted). A goal is not a need: a need is one stakeholder's wish in their own words; needs name the goals they serve under 'goals'.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "description": "The outcome, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "measure": {
+          "description": "What is counted, as a plain sentence; the scale of Planguage.",
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline": {
+          "description": "The value today, a number with its unit, and when it was read.",
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "description": "The value wanted, a number with its unit.",
+          "type": "string",
+          "minLength": 1
+        },
+        "by": {
+          "description": "The release the goal is meant to be met by, by version, as 'release' on a requirement: records/releases/ must hold a release of that version, planned or released.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "priority": {
+          "description": "must: the system has failed without it; should: expected, but a release without it can be accepted; could: wanted when it costs little (MoSCoW, as on a requirement).",
+          "type": "string",
+          "enum": [
+            "must",
+            "should",
+            "could"
+          ]
+        },
+        "status": {
+          "description": "proposed until the owner of the system agrees to it, accepted when they do, met once the target is reached, dropped when it is no longer wanted. A goal is the owner's own outcome, so it is dropped, never rejected by a stakeholder, and a met goal stays to show what was reached.",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "met",
+            "dropped"
+          ]
+        },
+        "measuredBy": {
+          "description": "The monitors (operation stage) that read the measure on the live system, by name; each must be one of 'monitors' (the rule monitor). Left out for a goal measured by hand.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "statement"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "outOfScope": {
+      "description": "SpecArch keyword. One thing the system will not do, decided before anyone asks, so a question or a change request that asks for it is answered by pointing here. A rejected need says asked and declined; an out-of-scope entry says the boundary was decided.",
+      "type": "object",
+      "properties": {
+        "statement": {
+          "description": "What the system will not do, in plain words.",
+          "type": "string",
+          "minLength": 1
+        },
+        "until": {
+          "description": "The release it may come back in, by version, as 'release' on a requirement; left out, it is not planned.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "needs": {
+          "description": "The needs it rules out, by ID, when they were asked; each must be one of 'needs' (the rule need). A need ruled out keeps its own status; an accepted requirement that refines one is the warning scope_conflict.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/idKey"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "statement"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "qualityGoal": {
+      "description": "SpecArch keyword. One of the three to five qualities that matter most, after arc42 section 1.2 and the quality characteristics of ISO/IEC 25010:2023. The rank decides a trade-off: a decision names the quality goals it weighed under 'weighs'.",
+      "type": "object",
+      "properties": {
+        "rank": {
+          "description": "The order, 1 first; no two quality goals share a rank (the warning quality_goal_rank).",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99
+        },
+        "quality": {
+          "description": "The quality characteristic of ISO/IEC 25010:2023: functional-suitability, performance-efficiency, compatibility, interaction-capability, reliability, security, maintainability, flexibility, safety.",
+          "type": "string",
+          "enum": [
+            "functional-suitability",
+            "performance-efficiency",
+            "compatibility",
+            "interaction-capability",
+            "reliability",
+            "security",
+            "maintainability",
+            "flexibility",
+            "safety"
+          ]
+        },
+        "statement": {
+          "description": "What the quality means for this system, in one verifiable sentence.",
+          "type": "string",
+          "minLength": 1
+        },
+        "requirements": {
+          "description": "The quality requirements that make it concrete, by ID, so the goal names them rather than restating one; each must be one of 'requirements' (the rule requirement).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/idKey"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "rank",
+        "quality",
+        "statement"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "need": {
       "description": "SpecArch keyword. One raw stakeholder need (ISO/IEC/IEEE 29148:2018, 6.3). A need is refined into one or more requirements, which name it under 'needs'.",
       "type": "object",
@@ -1258,6 +1554,15 @@ let designSchemaJSON = #"""
             "accepted",
             "rejected"
           ]
+        },
+        "goals": {
+          "description": "The goals the need serves, by ID; each must be one of 'goals' (the rule goal). Once the specification has a goal, an accepted need that names none is the warning need_without_goal.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/idKey"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "why": {
           "$ref": "#/$defs/why"
@@ -5955,6 +6260,15 @@ let designSchemaJSON = #"""
           "description": "SpecArch keyword. The stakeholder who decided, by key; a role, never a person. Required when the decision answers questions.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "weighs": {
+          "description": "The quality goals the decision weighed, by ID, so the techspec shows which side of a trade-off won; each must be one of 'qualityGoals' (the rule quality_goal).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/idKey"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

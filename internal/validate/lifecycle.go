@@ -43,6 +43,7 @@ func (c *checker) checkRequirementsStage(d *design) {
 		}
 	}
 	c.checkStakeholdersComplete(d)
+	c.checkIntent(d)
 }
 
 // checkStakeholdersComplete warns while no role has confirmed that the

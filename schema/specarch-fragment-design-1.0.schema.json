@@ -385,6 +385,11 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
     },
+    "idKey": {
+      "description": "SpecArch keyword. The ID of a requirement, need, goal, out-of-scope entry, quality goal, assumption or constraint: an upper-case prefix of 2 to 16 letters or digits, a dash, and an ID, such as SA-1 or NEED-12.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
+    },
     "duration": {
       "description": "SpecArch keyword. A length of time as ISO 8601 writes it, in days, hours, minutes and seconds only and never zero: PT5S, PT30M, P1DT12H. Weeks, months and years are not allowed, because their length depends on the calendar, and a limit must mean the same every day.",
       "type": "string",
@@ -5084,6 +5089,15 @@
           "description": "SpecArch keyword. The stakeholder who decided, by key; a role, never a person. Required when the decision answers questions.",
           "type": "string",
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "weighs": {
+          "description": "The quality goals the decision weighed, by ID, so the techspec shows which side of a trade-off won; each must be one of 'qualityGoals' (the rule quality_goal).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/idKey"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

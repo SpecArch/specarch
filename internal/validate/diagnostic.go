@@ -183,6 +183,14 @@ const (
 	RuleProcess                 Rule = "process"
 	RuleRoute                   Rule = "route"
 	RuleTechnologyUnjustified   Rule = "technology_unjustified"
+	RuleGoal                    Rule = "goal"
+	RuleQualityGoal             Rule = "quality_goal"
+	RuleProblemMissing          Rule = "problem_missing"
+	RuleGoalUnmeasured          Rule = "goal_unmeasured"
+	RuleGoalUnserved            Rule = "goal_unserved"
+	RuleNeedWithoutGoal         Rule = "need_without_goal"
+	RuleScopeConflict           Rule = "scope_conflict"
+	RuleQualityGoalRank         Rule = "quality_goal_rank"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -356,6 +364,14 @@ var Rules = []Rule{
 	RuleProcess,
 	RuleRoute,
 	RuleTechnologyUnjustified,
+	RuleGoal,
+	RuleQualityGoal,
+	RuleProblemMissing,
+	RuleGoalUnmeasured,
+	RuleGoalUnserved,
+	RuleNeedWithoutGoal,
+	RuleScopeConflict,
+	RuleQualityGoalRank,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

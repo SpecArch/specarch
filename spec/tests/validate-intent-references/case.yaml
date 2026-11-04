@@ -1,0 +1,10 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:5:18: error: /problem/stakeholders/0: stakeholder: clark is not a stakeholder of the specification; did you mean clerk? [stakeholder@specarch.yaml#/problem/stakeholders/0]
+  specarch.yaml:12:18: error: /goals/GOAL-1/measuredBy/0: monitor: wait-time is not a monitor of the specification; there are none in the specification [monitor@specarch.yaml#/goals/GOAL-1/measuredBy/0]
+  specarch.yaml:16:13: error: /outOfScope/OUT-1/needs/0: need: NEED-9 is not a need of the specification; did you mean NEED-1? [need@specarch.yaml#/outOfScope/OUT-1/needs/0]
+  specarch.yaml:18:125: error: /qualityGoals/QG-1/requirements/0: requirement: CASE-9 is not a requirement of the specification; did you mean CASE-1? [requirement@specarch.yaml#/qualityGoals/QG-1/requirements/0]
+  specarch.yaml:20:10: warning: /stakeholders/clerk: unheard: clerk was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement CASE-1 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/clerk]
+  specarch.yaml:23:114: error: /needs/NEED-1/goals/1: goal: GOAL-7 is not a goal of the specification; did you mean GOAL-1? [goal@specarch.yaml#/needs/NEED-1/goals/1]
+  specarch.yaml:41:20: error: /decisions/ADR-001/weighs/1: quality_goal: QG-4 is not a quality goal of the specification; did you mean QG-1? [quality_goal@specarch.yaml#/decisions/ADR-001/weighs/1]

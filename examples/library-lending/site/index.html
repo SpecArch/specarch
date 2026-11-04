@@ -149,7 +149,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#/backup">Backup</a> <span class="count"></span></li>
 <li><a href="#/restore">Restore</a> <span class="count"></span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">0</span></li>
+<li><a href="#problems">Problems</a> <span class="count">1</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
@@ -157,7 +157,7 @@ ol.problems p{margin:2px 0}
 <p>A small public library lends books to its members. Members borrow a copy, keep it for a fixed loan period, and pay a late fee when they return it after the due date. This example exists to exercise every concept of the meta-model in one place, across every stage of the life cycle; it is not a real library&#39;s system.</p>
 <p>Version 0.1.0; meta-model 1.0.0; stages requirements, design, implementation, tests, deployment, commissioning, operation; owners example-maintainers.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/0.1.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 0 warnings and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 1 warning and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>4</td></tr>
 <tr><td><a href="#/stakeholdersComplete">Stakeholder list confirmed</a></td><td>one</td></tr>
@@ -14020,7 +14020,13 @@ label {
 </section>
 <section class="group" id="problems">
 <h2>Problems</h2>
-<p>The specification has no errors, no warnings and no open questions.</p>
+<p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
+<ol class="problems">
+<li class="warning" data-search id="problem-problem_missing@requirements/requirements/lending.yaml%23/problem">
+<p><code>../spec/requirements/requirements/lending.yaml:4:3: warning: /problem: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/problem]</code></p>
+<p>At <code>/problem</code>, which this page does not show.</p>
+</li>
+</ol>
 </section>
 </main>
 <script>

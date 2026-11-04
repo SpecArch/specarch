@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-1.0.schema.json
+requirements:
+  SA-135:
+    statement: A specification shall state its intent in the requirements stage, every key optional, with problem (one per specification), goals with measure, baseline, target, by, priority, status and measuredBy, outOfScope with until and the needs it rules out, and qualityGoals with rank, a quality characteristic of ISO/IEC 25010 and the quality requirements that make it concrete; a need shall name the goals it serves under goals and a decision the quality goals it weighed under weighs, and specarch validate shall report a reference to a stakeholder, monitor, need, requirement, goal or quality goal that does not exist as the error of that kind at the entry, and a goal's by or an out-of-scope entry's until that names no planned or released release as record_ref.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - A specification with problem, goals, outOfScope and qualityGoals whose references resolve validates with no error, and one without any of them reads as before.
+      - A problem stakeholder, a goal's measuredBy, an out-of-scope entry's needs, a quality goal's requirements, a need's goals and a decision's weighs that name nothing are the errors stakeholder, monitor, need, requirement, goal and quality_goal at the entry, each with the closest name when there is one.
+      - Both validator builds print the same lines for the same specification.
+    verification: test
+    needs: [NEED-1, NEED-6]
+    why: A product requirements document is written beside a full specification only for what the specification has no home for, the problem, the measured goals, the boundary and the order of qualities (ADR-242); giving them keys in the requirements stage makes one source instead of two that drift.
+    cites:
+      - source: iso-29148
+        clause: "9.3"
+        says: "The business requirements specification states the business purpose, the scope, the goals and the problem the system addresses, before the stakeholder and system requirements."
+      - source: arc42
+        clause: "1"
+        says: "Introduction and goals: the requirements overview, the three to five most important quality goals in order, and the stakeholders, read first because the architecture is judged against them."
+  SA-136:
+    statement: specarch validate shall warn, at the entry and in the problems file, problem_missing when a specification on meta-model 1.0.0 or later has requirements and no problem and no must question blocks it, goal_unmeasured at an accepted goal without measure or target, goal_unserved at an accepted goal no accepted need names, need_without_goal at an accepted need naming no goal once any goal exists, scope_conflict at an accepted requirement's need that an out-of-scope entry rules out, and quality_goal_rank at quality goals that share a rank; on the lean profile problem_missing shall not be warned but asked as the first question of specarch gaps --next.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - validate on a full-profile specification with requirements and no problem warns problem_missing at /problem, at the line of the requirements, and exits 0; on the lean profile it prints no problem_missing and the profile warning says the problem is asked by gaps --next.
+      - validate on a specification with each of the other five gaps warns that rule at that entry and exits 0.
+      - A specification with no goals is never warned need_without_goal, so an upgrade brings at most problem_missing.
+    verification: test
+    needs: [NEED-1, NEED-8]
+    why: Every later answer rests on the problem and the measured goals, so their absence is shown first; a compiler for specifications never refuses to read a specification for missing intent, so each is a warning, and on a small tool's lean specification a warning that shows on every run teaches people to skip warnings, so there it is a question (the owner's decision 3 of ADR-242).
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
+  SA-137:
+    statement: specarch document intent shall write intent.md with the problem, the goals with their measures, what is out of scope and the quality goals in rank order; the techspec shall open with an Intent chapter in the shape of arc42 section 1 and the traceability matrix shall gain a goal column, both only when the specification states intent; and document progress shall add, per goal, the baseline, the target, the latest value a monitor read and the share of its requirements met.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - document intent on a specification with intent writes intent.md with one section per part, the goals with measure, baseline, target and by, the quality goals in rank order; on one without intent it writes the page saying what is missing and the key to add.
+      - The techspec of a specification with intent opens with the Intent chapter, and its traceability matrix has a Goals column naming the goals each requirement's needs serve; the outputs of a specification without intent are as before.
+      - document progress lists each goal with its baseline, its target, the latest reading (none recorded, since no record holds a monitor's reading yet) and how many of the requirements that serve it are met.
+    verification: test
+    needs: [NEED-3, NEED-6]
+    why: The intent is the first thing a reviewer and an agent read, so it is one page of its own, and it is the chapter arc42 opens with; a goal column shows which goal a requirement serves without a second document.
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
+  SA-138:
+    statement: specarch gaps --next shall put the intent first, so that a specification with requirements and no problem, and then an accepted goal with no measure or target, is asked for that before any open question, on every profile, with the key to write, and the exit status shall stay that of the open questions and errors alone.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - gaps --next on a specification with requirements and no problem prints the problem question first, naming problem.statement, and exits as it would without it.
+      - gaps --next on a specification with a problem and an accepted goal with no target prints that goal's question first.
+      - gaps --next --json gives the intent question under intent, null when there is none, beside the open question it gave before.
+    verification: test
+    needs: [NEED-8]
+    why: Every other answer rests on the problem and the goals; a missing problem is a gap and not a refusal, so it never changes whether gaps fails a run.
+  # specarch-problem: warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
+  SA-139:
+    statement: specarch init shall take --problem, --goal and --out-of-scope, the last two repeatable, and write problem.statement, a GOAL-n and an OUT-n for each with status proposed for the goals; when standard input is a terminal and none of them is given, init shall ask the three questions there, an empty answer skipping one, so the analyst answers in sentences and the keys are written for them.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - init --problem P --goal G1 --goal G2 --out-of-scope O writes problem.statement P, GOAL-1 and GOAL-2 with status proposed and OUT-1, which validates with no error.
+      - init with none of the three and standard input not a terminal writes the specification as before and asks nothing.
+      - An empty --problem, --goal or --out-of-scope is a usage error.
+    verification: test
+    needs: [NEED-8]
+    why: The owner chose flags with prompts on a terminal (2026-11-05), so scripts and agents keep working unchanged and a person at the terminal is asked in plain words.

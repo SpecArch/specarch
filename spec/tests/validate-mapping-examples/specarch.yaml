@@ -1,6 +1,8 @@
 specarch: "1.0.0"
 info: { title: Case, version: 1.0.0 }
 stages: [tests]
+problem:
+  statement: The work this case stands for takes too long by hand.
 requirements:
   CASE-1: { statement: One., kind: functional, priority: must, status: accepted, acceptance: [One.] }
 permissions:

@@ -12,6 +12,9 @@
               "id": "open_question"
             },
             {
+              "id": "problem_missing"
+            },
+            {
               "id": "requirement_unverified"
             },
             {
@@ -370,7 +373,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 4,
+                  "startLine": 5,
                   "startColumn": 3
                 }
               },
@@ -384,6 +387,37 @@
           ],
           "partialFingerprints": {
             "specarchId/v1": "stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders"
+          }
+        },
+        {
+          "ruleId": "problem_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 26,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/problem",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "problem_missing@requirements/requirements.yaml#/problem"
           }
         },
         {
@@ -401,7 +435,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 54,
+                  "startLine": 55,
                   "startColumn": 3
                 }
               },
@@ -425,7 +459,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 61,
+                  "startLine": 62,
                   "startColumn": 9
                 }
               },
@@ -482,7 +516,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 93,
+                  "startLine": 94,
                   "startColumn": 3
                 }
               },
@@ -506,7 +540,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 54,
+                  "startLine": 55,
                   "startColumn": 3
                 }
               },
@@ -522,7 +556,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 102,
+                  "startLine": 103,
                   "startColumn": 9
                 }
               },
@@ -593,7 +627,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 106,
+                  "startLine": 107,
                   "startColumn": 3
                 }
               },
@@ -617,7 +651,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 81,
+                  "startLine": 82,
                   "startColumn": 3
                 }
               },
@@ -656,7 +690,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 115,
+                  "startLine": 116,
                   "startColumn": 3
                 }
               },
@@ -680,7 +714,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 25,
+                  "startLine": 26,
                   "startColumn": 3
                 }
               },
@@ -696,7 +730,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 35,
+                  "startLine": 36,
                   "startColumn": 3
                 }
               },
@@ -712,7 +746,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 44,
+                  "startLine": 45,
                   "startColumn": 3
                 }
               },
@@ -728,7 +762,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 54,
+                  "startLine": 55,
                   "startColumn": 3
                 }
               },
@@ -744,7 +778,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 64,
+                  "startLine": 65,
                   "startColumn": 3
                 }
               },
@@ -760,7 +794,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 72,
+                  "startLine": 73,
                   "startColumn": 3
                 }
               },
@@ -776,7 +810,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 81,
+                  "startLine": 82,
                   "startColumn": 3
                 }
               },

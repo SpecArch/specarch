@@ -209,7 +209,7 @@ func (c *checker) checkProfile(d *design) {
 		return
 	}
 	c.warn(source.Child(source.Child(d.root, "info"), "profile"), "/info/profile", RuleProfile,
-		"the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests")
+		"the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing), and a missing problem is asked as the first question of specarch gaps --next, not warned (problem_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests")
 }
 
 // checkDeprecated warns at each key a file on 1.0 gives under the spelling

@@ -310,25 +310,36 @@ func (rc *recordChecks) release(r *record, key string) {
 	}
 }
 
-// checkRequirementReleases checks that a requirement's release is a
-// release record that is planned or released.
+// checkRequirementReleases checks that a requirement's release, a goal's
+// by and an out-of-scope entry's until (ADR-244) are each a release record
+// that is planned or released.
 func (rc *recordChecks) checkRequirementReleases(root *checker) {
-	for id, req := range rc.d.requirements {
-		n := source.Child(req, "release")
-		v := source.Str(n)
-		if ver, ok := semver.Parse(v); n == nil || !ok || ver.Pre != "" {
-			continue // the schema reports a version that is not one
-		}
-		ptr := source.Pointer("requirements", id, "release")
-		rel := rc.set["release"][v]
-		if rel == nil {
-			root.add(n, ptr, RuleRecordRef, "%s is not a release: there is no records/releases/%s.yaml; add it with status planned, or name a release that exists", v, v)
-			continue
-		}
-		if st := rel.str("status"); st == "withdrawn" {
-			root.add(n, ptr, RuleRecordRef, "release %s is withdrawn, so no requirement is meant for it; name a planned or released release", v)
+	for _, k := range releaseKeys {
+		for _, p := range source.Pairs(source.Child(rc.d.root, k.section)) {
+			n := source.Child(p.Value, k.key)
+			v := source.Str(n)
+			if ver, ok := semver.Parse(v); n == nil || !ok || ver.Pre != "" {
+				continue // the schema reports a version that is not one
+			}
+			ptr := source.Pointer(k.section, p.Key.Value, k.key)
+			rel := rc.set["release"][v]
+			if rel == nil {
+				root.add(n, ptr, RuleRecordRef, "%s is not a release: there is no records/releases/%s.yaml; add it with status planned, or name a release that exists", v, v)
+				continue
+			}
+			if st := rel.str("status"); st == "withdrawn" {
+				root.add(n, ptr, RuleRecordRef, "release %s is withdrawn, so no %s is meant for it; name a planned or released release", v, k.what)
+			}
 		}
 	}
+}
+
+// releaseKeys are the keys of the specification that name a release by
+// version: the section, the key and what an entry of the section is called.
+var releaseKeys = []struct{ section, key, what string }{
+	{"requirements", "release", "requirement"},
+	{"goals", "by", "goal"},
+	{"outOfScope", "until", "out-of-scope entry"},
 }
 
 func (rc *recordChecks) test(r *record) {

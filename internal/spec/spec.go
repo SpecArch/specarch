@@ -46,6 +46,7 @@ const QuestionsSection = "questions"
 
 // Sections maps every section to its stage.
 var Sections = map[string]string{
+	"problem": "requirements", "goals": "requirements", "outOfScope": "requirements", "qualityGoals": "requirements",
 	"stakeholders": "requirements", "stakeholdersComplete": "requirements", "needs": "requirements", "requirements": "requirements",
 	"glossary": "requirements", "assumptions": "requirements", "constraints": "requirements",
 	"enums": "design", "entities": "design", "views": "design", "schemas": "design", "permissions": "design", "roles": "design", "caller": "design", "tenant": "design", "clients": "design", "tokens": "design", "securityEvents": "design", "separationOfDuties": "design", "session": "design", "signIn": "design", "middlewares": "design", "handshakes": "design", "paths": "design", "routes": "design",
@@ -60,7 +61,7 @@ var Sections = map[string]string{
 // sectionOrder is the order sections appear in the merged document and in
 // docs/conventions.md: life-cycle order, the questions last.
 var sectionOrder = []string{
-	"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints",
+	"problem", "goals", "outOfScope", "qualityGoals", "stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints",
 	"enums", "entities", "views", "schemas", "permissions", "roles", "caller", "tenant", "clients", "tokens", "securityEvents", "separationOfDuties", "session", "signIn", "middlewares", "handshakes", "paths", "routes", "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "menus", "flows", "accessibility", "theme", "algorithms",
 	"tests", "decisions",
 	"environments", "configuration", "release", "rollback", "migrations", "handover",
@@ -71,7 +72,7 @@ var sectionOrder = []string{
 
 // singleSections hold one object, not a map of named objects, so they
 // cannot be split across files.
-var singleSections = map[string]bool{"stakeholdersComplete": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
+var singleSections = map[string]bool{"problem": true, "stakeholdersComplete": true, "release": true, "rollback": true, "handover": true, "signoff": true, "backup": true, "restore": true, "accessibility": true, "theme": true}
 
 // IsSingleSection reports whether a section holds one object rather than
 // a map of named objects.
@@ -83,7 +84,7 @@ var rootOnly = map[string]bool{"specarch": true, "info": true, "trustDomain": tr
 // keyedElements are the sections whose entries are each an element that
 // may carry audience (ADR-119).
 var keyedElements = map[string]bool{
-	"stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true, "constraints": true,
+	"goals": true, "outOfScope": true, "qualityGoals": true, "stakeholders": true, "needs": true, "requirements": true, "glossary": true, "assumptions": true, "constraints": true,
 	"enums": true, "entities": true, "views": true, "schemas": true, "permissions": true, "roles": true, "clients": true, "tokens": true, "separationOfDuties": true, "middlewares": true, "handshakes": true, "routes": true,
 	"commands": true, "channels": true, "dependencies": true, "jobs": true, "processes": true, "gateways": true, "workflows": true, "errors": true, "pages": true, "flows": true,
 	"algorithms": true, "tests": true, "decisions": true,
@@ -98,7 +99,7 @@ var keyedElements = map[string]bool{
 func IsElement(path []string) bool {
 	switch len(path) {
 	case 1:
-		return path[0] == "caller" || path[0] == "securityEvents" || path[0] == "session" || path[0] == "signIn" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff" || path[0] == "backup" || path[0] == "restore"
+		return path[0] == "problem" || path[0] == "caller" || path[0] == "securityEvents" || path[0] == "session" || path[0] == "signIn" || path[0] == "release" || path[0] == "rollback" || path[0] == "signoff" || path[0] == "backup" || path[0] == "restore"
 	case 2:
 		return keyedElements[path[0]]
 	case 3:

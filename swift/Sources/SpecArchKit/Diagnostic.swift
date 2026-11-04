@@ -172,6 +172,14 @@ public enum Rule: String, CaseIterable, Sendable {
     case process = "process"
     case route = "route"
     case technologyUnjustified = "technology_unjustified"
+    case goal = "goal"
+    case qualityGoal = "quality_goal"
+    case problemMissing = "problem_missing"
+    case goalUnmeasured = "goal_unmeasured"
+    case goalUnserved = "goal_unserved"
+    case needWithoutGoal = "need_without_goal"
+    case scopeConflict = "scope_conflict"
+    case qualityGoalRank = "quality_goal_rank"
 }
 
 /// Whether a diagnostic makes the file invalid.

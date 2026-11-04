@@ -3,6 +3,8 @@ info: { title: Core, version: 1.0.0, name: core }
 stages: [tests]
 stakeholders:
   finance: { description: "The finance office, which answers for every invoice." }
+problem:
+  statement: The work this case stands for takes too long by hand.
 requirements:
   INV-1:
     statement: An invoice manager shall delete an invoice only from the administration application, since a deleted invoice is money no longer asked for.

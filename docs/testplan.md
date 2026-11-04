@@ -2,20 +2,26 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1041 design tests, 523 golden and 518 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1045 design tests, 524 golden and 521 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
 
 ## 1. Levels and how the tests run
 
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1037 |
+| system | 1041 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -6549,6 +6555,38 @@ Scenario: red; level: system; covers exit 1; verifies SA-105.
 - When: validate is run
 - Then: it reports each as integration, setting, expression_type, expression_name, emits or schema at the key, the retried post with no key as a warning, and the job's rate exceeded as a case without a test, the same in both builds, and exits 1
 
+#### validate-intent-problem-missing
+
+Scenario: red; level: system; verifies SA-136.
+
+- Given: a specification on meta-model 1.0.0 with requirements and no problem
+- When: validate is run
+- Then: it warns problem_missing at /problem, anchored at the requirements, naming the key that ends the warning, and exits 0, since a warning is not an error
+
+#### validate-intent-problem-missing-lean
+
+Scenario: golden; level: system; verifies SA-136.
+
+- Given: a specification on the lean profile with requirements and no problem
+- When: validate is run
+- Then: it does not warn problem_missing, since on the lean profile the problem is asked as the first question of gaps --next, and the profile warning says so; it exits 0
+
+#### validate-intent-references
+
+Scenario: red; level: system; verifies SA-135.
+
+- Given: a specification whose intent names what does not exist: a stakeholder of the problem, a monitor of a goal, a need of an out-of-scope entry, a requirement of a quality goal, a goal of a need and a quality goal of a decision
+- When: validate is run
+- Then: it reports each as the error of the kind it names (stakeholder, monitor, need, requirement, goal, quality_goal) at the entry, with the closest name when there is one, and exits 1
+
+#### validate-intent-warnings
+
+Scenario: red; level: system; verifies SA-136.
+
+- Given: a specification whose intent leaves gaps: an accepted goal with no target, an accepted goal no accepted need serves, an accepted need naming no goal while goals exist, an accepted requirement refining a need an out-of-scope entry rules out, and two quality goals of one rank
+- When: validate is run
+- Then: it warns goal_unmeasured, goal_unserved, need_without_goal, scope_conflict and quality_goal_rank at those entries, and exits 0, since each is a warning
+
 #### validate-interface-problems
 
 Scenario: red; level: system; covers exit 1; verifies SA-34.
@@ -8441,7 +8479,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-609 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+624 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8844,6 +8882,21 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 4 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 5 | golden | SA-32 names no harm |
+| requirement SA-135 | acceptance 1 | golden | SA-135 names no harm |
+| requirement SA-135 | acceptance 2 | golden | SA-135 names no harm |
+| requirement SA-135 | acceptance 3 | golden | SA-135 names no harm |
+| requirement SA-136 | acceptance 1 | golden | SA-136 names no harm |
+| requirement SA-136 | acceptance 2 | golden | SA-136 names no harm |
+| requirement SA-136 | acceptance 3 | golden | SA-136 names no harm |
+| requirement SA-137 | acceptance 1 | golden | SA-137 names no harm |
+| requirement SA-137 | acceptance 2 | golden | SA-137 names no harm |
+| requirement SA-137 | acceptance 3 | golden | SA-137 names no harm |
+| requirement SA-138 | acceptance 1 | golden | SA-138 names no harm |
+| requirement SA-138 | acceptance 2 | golden | SA-138 names no harm |
+| requirement SA-138 | acceptance 3 | golden | SA-138 names no harm |
+| requirement SA-139 | acceptance 1 | golden | SA-139 names no harm |
+| requirement SA-139 | acceptance 2 | golden | SA-139 names no harm |
+| requirement SA-139 | acceptance 3 | golden | SA-139 names no harm |
 | requirement SA-11 | acceptance 1 | golden | SA-11 names no harm |
 | requirement SA-11 | acceptance 2 | golden | SA-11 names no harm |
 | requirement SA-12 | acceptance 1 | golden | SA-12 names no harm |

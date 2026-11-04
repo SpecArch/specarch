@@ -1083,7 +1083,7 @@ extension Checker {
     func checkProfile(_ d: Design) {
         guard d.lean else { return }
         warn(d.root.child("info")?.child("profile"), "/info/profile", .profile,
-             "the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests")
+             "the specification is on the lean profile, so a test specarch derive would write and nobody has is a warning, not an error (test_golden_missing, test_case_missing), and a missing problem is asked as the first question of specarch gaps --next, not warned (problem_missing); every other rule is as on full. Write profile: full, or remove the key, to make them errors, and run specarch derive to write the tests")
     }
 
     /// Warns at each key a file on 1.0 gives under the spelling 1.0.0

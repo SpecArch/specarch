@@ -16,6 +16,8 @@ needs:
   NEED-1:
     statement: Members may not take more than they bring back.
     stakeholders: [librarian]
+problem:
+  statement: The work this case stands for takes too long by hand.
 requirements:
   CASE-1:
     statement: A member shall borrow at most five books at once.

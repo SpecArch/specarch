@@ -7,11 +7,47 @@
         "driver": {
           "name": "specarch",
           "informationUri": "https://github.com/SpecArch/specarch",
-          "rules": []
+          "rules": [
+            {
+              "id": "problem_missing"
+            }
+          ]
         }
       },
       "columnKind": "unicodeCodePoints",
-      "results": [],
+      "results": [
+        {
+          "ruleId": "problem_missing",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/lending.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 4,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/problem",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "problem_missing@requirements/requirements/lending.yaml#/problem"
+          }
+        }
+      ],
       "properties": {
         "specification": "../spec",
         "title": "Library Lending",

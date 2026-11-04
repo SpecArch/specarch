@@ -433,6 +433,7 @@ extension Checker {
             }
         }
         checkStakeholdersComplete(d)
+        checkIntent(d)
     }
 
     /// Warns while no role has confirmed that the stakeholder list is

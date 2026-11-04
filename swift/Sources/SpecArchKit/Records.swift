@@ -374,21 +374,24 @@ struct RecordChecks {
         }
     }
 
-    /// Checks that a requirement's release is a release record that is
-    /// planned or released.
+    /// Checks that a requirement's release, a goal's by and an
+    /// out-of-scope entry's until (ADR-244) are each a release record that
+    /// is planned or released.
     func checkRequirementReleases(_ root: Checker) {
-        for (id, req) in d.requirements {
-            guard let n = req.child("release") else { continue }
-            let v = str(n)
-            // The schema reports a version that is not one.
-            guard let ver = Version(v), ver.pre.isEmpty else { continue }
-            let ptr = pointer("requirements", id, "release")
-            guard let rel = set["release"]?[v] else {
-                root.add(n, ptr, .recordRef, "\(v) is not a release: there is no records/releases/\(v).yaml; add it with status planned, or name a release that exists")
-                continue
-            }
-            if rel.str("status") == "withdrawn" {
-                root.add(n, ptr, .recordRef, "release \(v) is withdrawn, so no requirement is meant for it; name a planned or released release")
+        for k in releaseKeys {
+            for p in pairs(d.root.child(k.section)) {
+                guard let n = p.value.child(k.key) else { continue }
+                let v = str(n)
+                // The schema reports a version that is not one.
+                guard let ver = Version(v), ver.pre.isEmpty else { continue }
+                let ptr = pointer(k.section, p.key.value, k.key)
+                guard let rel = set["release"]?[v] else {
+                    root.add(n, ptr, .recordRef, "\(v) is not a release: there is no records/releases/\(v).yaml; add it with status planned, or name a release that exists")
+                    continue
+                }
+                if rel.str("status") == "withdrawn" {
+                    root.add(n, ptr, .recordRef, "release \(v) is withdrawn, so no \(k.what) is meant for it; name a planned or released release")
+                }
             }
         }
     }
@@ -680,3 +683,11 @@ extension Design {
         return out
     }
 }
+
+/// The keys of the specification that name a release by version: the
+/// section, the key and what an entry of the section is called.
+let releaseKeys: [(section: String, key: String, what: String)] = [
+    ("requirements", "release", "requirement"),
+    ("goals", "by", "goal"),
+    ("outOfScope", "until", "out-of-scope entry"),
+]

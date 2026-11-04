@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a specification on meta-model 1.0.0 with requirements and no problem"
+when: "validate is run"
+then: "it warns problem_missing at /problem, anchored at the requirements, naming the key that ends the warning, and exits 0, since a warning is not an error"
+verifies: [SA-136]

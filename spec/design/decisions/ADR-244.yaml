@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-244:
+    title: Intent phase 1 builds problem, goals, outOfScope and qualityGoals as optional requirements-stage keys of the 1.0 schemas, their references under the rule of each kind they name, the six warnings of ADR-242 gated as stakeholders_unconfirmed is, document intent, the techspec Intent chapter and the goal column only where intent is stated, gaps --next asking the intent first without changing its exit status, and init writing intent from flags or terminal prompts
+    status: accepted
+    date: "2026-11-05"
+    context: |
+      ADR-242 designs the intent of a specification and leaves to each
+      phase the points its build settles. Phase 1 builds the four intent
+      sections, goals on a need, weighs on a decision, the six rules and
+      the outputs. Building it raised forks ADR-242 does not settle: what
+      a reference to a missing goal or quality goal is reported as, where
+      problem_missing stands when there is no problem to point at, which
+      specifications it applies to, the words of a goal's status and of a
+      quality, how gaps --next asks a gap that is no written question,
+      how init asks for intent, and whether a specification without
+      intent sees new chapters and columns.
+    decision: |
+      1. The sections are problem (one object), goals (GOAL-n), outOfScope
+         (OUT-n) and qualityGoals (QG-n), in the requirements stage before
+         the stakeholders, in that order, every key optional in the 1.0
+         schemas. A goal's status is proposed, accepted, met or dropped; a
+         quality is one of the nine characteristics of ISO/IEC 25010:2023
+         (functional-suitability, performance-efficiency, compatibility,
+         interaction-capability, reliability, security, maintainability,
+         flexibility, safety); a quality goal names its quality
+         requirements under requirements; the problem's cites, like every
+         element's, are citations of declared sources.
+      2. A reference that resolves to nothing is the error of the kind it
+         names, as every reference is today: stakeholder for the problem's
+         stakeholders, monitor for a goal's measuredBy, need for an
+         out-of-scope entry's needs, requirement for a quality goal's
+         requirements, and two new rules, goal for a need's goals and
+         quality_goal for a decision's weighs. A goal's by and an
+         out-of-scope entry's until are checked against the release
+         records as a requirement's release is (record_ref).
+      3. problem_missing is gated as stakeholders_unconfirmed is: a file on
+         a meta-model before 1.0.0, whose schema has no problem, is not
+         warned, and a must question that blocks the problem holds it. It
+         stands at the requirements, the line of their first entry in the
+         file that holds them, with the pointer /problem. On the lean
+         profile it is not warned, and the profile warning says so.
+      4. gaps --next asks the intent before any open question, on every
+         profile: a missing problem first, then the first accepted goal
+         with no measure or target. The text names the gap, the question
+         in plain words, the key to write and where, and then the open
+         question it would have shown; --json gives it under intent, null
+         when there is none. Its exit status stays that of the open
+         questions and the errors alone.
+      5. init takes --problem, --goal and --out-of-scope, the last two
+         repeatable, and writes problem.statement, GOAL-n with status
+         proposed and OUT-n into specarch.yaml; when standard input is a
+         terminal and none is given, it asks the three questions there on
+         standard error, an empty answer skipping one (the owner's choice,
+         2026-11-05).
+      6. document intent writes intent.md, on a specification without
+         intent too, where it says what is missing and the key to add.
+         The techspec's Intent chapter and the traceability matrix's goal
+         column appear only when the specification states intent, so the
+         outputs of a specification without it are as they were. document
+         progress lists each goal with its baseline, target and the share
+         of the requirements serving it that are met; the latest value a
+         monitor read is printed as none recorded, since no record holds a
+         monitor's reading yet.
+    why: |
+      One way to say one thing (docs/principles.md): a reference error
+      already has a rule per kind it names, so a goal's monitor is the
+      monitor rule, and only goal and quality_goal, which name kinds no
+      rule covered, are new. The gate of problem_missing follows ADR-234
+      for the same reason: a file on 0.3 cannot follow the remedy, and an
+      open must question already asks about the gap, so a second mark
+      would say it twice. A goal is the owner's own outcome, never
+      refused by a stakeholder, so it has no rejected; dropped covers
+      what retired means on a requirement, and met stays as the record
+      of what was reached. The quality words are the characteristics of
+      ISO/IEC 25010:2023 because a quality goal decides between
+      characteristics; a sub-characteristic is said in the statement.
+      gaps --next keeps its exit status because nothing refuses a
+      specification for missing intent, and a CI job running gaps must
+      not start failing on an upgrade. init keeps working unchanged in a
+      script, while a person at a terminal is asked in sentences. A
+      chapter or column only where intent is stated keeps the promise
+      that a specification without it reads as it did; the intent page
+      itself is asked for by name, so it says what is missing.
+    alternatives:
+      - option: One rule, intent_reference, for every reference the intent sections make
+        why: |
+          It groups the new links, but a reader looking up a goal's monitor
+          that does not exist would find it under a rule other than
+          monitor, and one thing would be said two ways.
+      - option: problem_missing anchored at line 1 of the root file
+        why: |
+          It names the root file where the problem may be written, but the
+          requirements are what make the problem owed, and a mark beside
+          them is where the analyst reads; a specification without
+          requirements is not warned at all.
+      - option: init writing three must questions answered with specarch decide
+        why: |
+          It uses the question machinery, but a question needs a decidedBy
+          stakeholder init has none of, so init would write a stakeholder
+          nobody named, a placeholder.
+    consequences: |
+      A specification upgrades with at most problem_missing; SpecArch's own
+      specification states its intent and names a goal on every accepted
+      need. Phase 2, the work-package records, rests on these keys: a
+      brief names the goals a package serves and the out-of-scope entries
+      near it. No record holds a monitor's reading, so the progress line
+      for a goal says none recorded until one does.
+    satisfies: [SA-135, SA-136, SA-137, SA-138, SA-139]
+    restsOn: [ADR-242, ADR-234, ADR-210, ADR-209]

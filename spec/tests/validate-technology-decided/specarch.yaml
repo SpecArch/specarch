@@ -4,5 +4,7 @@ stakeholders:
   owner: { description: Owns the system. }
 stakeholdersComplete: { by: owner, date: "2026-11-03" }
 stages: [implementation]
+problem:
+  statement: The work this case stands for takes too long by hand.
 requirements:
   CASE-1: { statement: A late return is told to the finance desk the same night., kind: functional, priority: must, status: accepted, acceptance: [The desk sees it the next morning.] }

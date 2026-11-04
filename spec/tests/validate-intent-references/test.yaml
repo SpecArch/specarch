@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a specification whose intent names what does not exist: a stakeholder of the problem, a monitor of a goal, a need of an out-of-scope entry, a requirement of a quality goal, a goal of a need and a quality goal of a decision"
+when: "validate is run"
+then: "it reports each as the error of the kind it names (stakeholder, monitor, need, requirement, goal, quality_goal) at the entry, with the closest name when there is one, and exits 1"
+verifies: [SA-135]

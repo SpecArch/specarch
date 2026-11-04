@@ -1,5 +1,9 @@
 stakeholders:
   owner: { description: The product owner., origin: stated, cites: [{ source: old-doc, clause: "1", says: "The owner decides." }] }
+problem:
+  statement: The work this case stands for takes too long by hand.
+  origin: inferred
+  why: The case needs a problem only so that it warns of nothing else.
 requirements:
   CASE-1:
     statement: A member shall borrow at most five books.

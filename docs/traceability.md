@@ -2,26 +2,32 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.5.1-dev of the specification: 10 needs, 131 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.5.1-dev of the specification: 10 needs, 136 requirements, and 4 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-98; add verifies: [SA-98] to the test that shows it is met [requirement_unverified@requirements/requirements/design-keywords.yaml#/requirements/SA-98]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-137; add verifies: [SA-137] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-137]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-138; add verifies: [SA-138] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-138]
+
+**Problem:** warning: requirement_unverified: no test, commissioning check or monitor verifies requirement SA-139; add verifies: [SA-139] to the test that shows it is met [requirement_unverified@requirements/requirements/intent.yaml#/requirements/SA-139]
 
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-72, SA-129, SA-133, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-135, SA-136, SA-72, SA-129, SA-133, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
-| NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-19, SA-74 |
+| NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-137, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118 |
-| NEED-6 | accepted | SA-15, SA-13, SA-117, SA-127, SA-97, SA-126 |
+| NEED-6 | accepted | SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
+| NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
 | NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
 | NEED-10 | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100 |
 
@@ -160,10 +166,15 @@ Version 1.5.1-dev of the specification: 10 needs, 131 requirements, and 1 gap. E
 | SA-132 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-237 | tests document-progress-effort-not-counted; tests document-progress-for-everyone; tests document-progress-stakeholders-confirmed; tests document-progress-stakeholders-held; tests document-progress-uncounted-entries; tests document-writes-progress; tests validate-change-effort |
 | SA-133 | NEED-1, NEED-8 | commands approve; decisions ADR-239 | tests approve-refuses-session-absent; tests approve-refuses-session-missing; tests approve-refuses-unheard; tests approve-warns-no-session; tests approve-writes-record; tests validate-approval-session |
 | SA-134 | NEED-3 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-no-regions; tests document-language-out-is-output; tests document-language-unknown |
+| SA-135 | NEED-1, NEED-6 | decisions ADR-244 | tests validate-intent-references |
+| SA-136 | NEED-1, NEED-8 | decisions ADR-244 | tests validate-intent-problem-missing; tests validate-intent-problem-missing-lean; tests validate-intent-warnings |
+| SA-137 | NEED-3, NEED-6 | decisions ADR-244 |   |
+| SA-138 | NEED-8 | decisions ADR-244 |   |
+| SA-139 | NEED-8 | decisions ADR-244 |   |
 
 ## 3. Gaps
 
 The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
 
-- Requirements no test, check or monitor verifies: SA-98.
+- Requirements no test, check or monitor verifies: SA-98, SA-137, SA-138, SA-139.
 

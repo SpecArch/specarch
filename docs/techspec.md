@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.4.0 of the specification: 129 requirements, 5 entities, 30 commands, 7 algorithms, 1024 tests, 221 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.4.0 of the specification: 129 requirements, 5 entities, 30 commands, 7 algorithms, 1024 tests, 222 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -18721,6 +18721,98 @@ burn-up sections that say so.
 **Insight:** Every figure comes from a key a person wrote, so two readers who ask get the same answer and a figure can be traced to the record that gives it. Hours are the one unit: a day or a story point means a different amount in each team, and a mapping with the unit in each key's name cannot be read in the wrong unit. Estimated and spent are two keys, not one with a kind, because a change request carries the estimate taken at its analysis and the time spent after it is done, and the two must never be added together. An effort with only an extension key is read, as every extension key is, and records no hours; requiring one of the two keys in the schema instead would print two errors, one for each key as if both were missing, for one problem. A change request with no effort is shown as missing rather than as zero or as an average of the others, since a guess in a progress report is read as a fact and hides the gap the team must close; a refused value is shown, marked, rather than summed or dropped, as a compiler marks a problem at its entry. The burn-up counts elements, not change requests, because a change request may touch one element or twenty; it counts what the records name rather than a past specification's size, since only the current specification is at hand, and the scope line is today's size for that reason. A reference is counted as its element because one element may be named by its ID and its pointer, or by a pointer inside it, and counting each spelling would pass the scope line it is drawn against. A request withdrawn or rejected after its approval carries nothing into the delivery, so it adds nothing.
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.4.3: Each requirement is traceable to its source: the stakeholder need or the document it comes from. <https://www.iso.org/standard/72089.html>
+
+### ADR-238: A specification written on parallel branches takes each sequential ID from a reservation made outside the branches when the entry is written, so two branches never land the same decision or requirement number; SpecArch keeps ADR- and three or more digits, and specarch decide takes a reserved ID
+
+Status: proposed, 2026-11-04.
+
+Rests on: [ADR-155](#adr-155-specarch-decide-writes-the-decision-as-a-file-of-its-own-under-the-next-id-takes-the-question-out-of-its-file-as-text-prints-the-entries-to-write-rather-than-writing-them-and-asks-for-a-source-when-the-specification-tracks-origin).
+
+Alternatives not taken: A provisional ID on the branch, a name rather than a number (ADR-new-<name>), that the step that lands the branch replaces with the next free number in every reference: A name cannot clash, and a unique name is safe to replace by search,
+but it costs the most and still leaves references wrong. Every ID
+pattern changes, ADR- and three or more digits in about ten schema
+files (the 0.3 fragments among them) and each other prefix that
+clashes, in the Go and the Swift build and their conformance cases.
+It is a second way to say one ID, so it needs a rule of its own, an
+unnumbered entry reported in the problems file at the entry, and a
+way to refuse it on the base branch, which SpecArch cannot tell from
+any other. Landing becomes a command that rewrites the specification,
+the code comments, the skill and the history entries, then a
+regeneration and a full run of the checks, the run the clash costs
+today. Commit messages on the branch keep the name, which then names
+nothing. A mechanical specarch renumber <old> <new> that rewrites a clashing ID in the key and every reference the specification holds, run when a rebase meets a clash: It makes a clash cheaper but does not prevent one, and the hard
+part stays: text outside the specification, code comments, history
+entries and commit messages, cites the old number beside main's own
+use of the same token, so the command can only list those, and a
+person settles each. Each clash still costs a regeneration and a
+full run of both builds' checks. It is the fallback for a team with
+no counter, and can be built later on its own. IDs that cannot clash, numbered by the work item or by date and name (ADR-<date>-<name>): It changes the convention every specification follows and every ID
+written so far, with longer keys a reader has to copy exactly, and
+the number no longer says which decision came first. The Low IQ Tax
+asks for one short way to name a thing; the clash is a matter of
+how numbers are handed out, which a counter settles without
+changing what is written.
+
+Context: A decision is ADR- and three or more digits, and specarch decide
+writes the next one as the largest number any decision carries plus
+one (ADR-155). Requirements, questions, needs, change records,
+communication, test-run and defect records, and bugs are numbered the
+same way, each by its own prefix. On one branch that is enough. When
+several branches are written at once, each takes the largest number
+it can see plus one, so two branches take the same number, and the
+second to land meets the first's file in a conflict on the same path.
+
+The validator does not miss it: a decision ID held twice is the error
+decision, and git stops the rebase on the two files of one name. The
+cost is the rework. This specification's own history holds ten
+commits that renumber a decision and its requirement after a rebase,
+the decision and the requirement clashing together each time. One
+such renumbering touched 21 files: the decision, the requirement, the
+rule enum, the schema text in the Go build and in the Swift build,
+the skill's reference, four test cases and every generated document,
+each then regenerated and checked again by both builds. A
+renumbering on a token that main also holds cannot be done by a plain
+search and replace, since main's own ADR-NNN must stay where it is,
+so it is done by hand, reference by reference.
+
+Two more things hold. A branch is reviewed before it lands, so no
+branch can claim a number by putting it on main first. And a number
+that is cited in a history entry or a commit message cannot be
+changed there once it is pushed without rewriting history; a
+renumbered decision leaves those citations naming another decision.
+
+Decision: Proposed for the owner to choose; nothing is built until then.
+
+The recommended way: each sequential ID is reserved when the entry is
+written, from a counter kept outside the branches by the tool that
+hands out the work, one counter per specification and per prefix
+(ADR, the requirements' prefix, Q, CR and the rest). The counter
+starts above the largest number on the base branch and on every open
+branch, gives each number once, and is never moved back. A branch
+writes the reserved number from the start, in the entry, every
+reference, the history entry and the commit message, and keeps it
+when it lands, so nothing is renumbered at landing.
+
+SpecArch's own part is small and leaves the language as it is: the
+ID patterns stay, the validator is unchanged in both builds, and a
+duplicate is still the error decision, which catches a number taken
+without a reservation. specarch decide takes the reserved ID with an
+option of its own (--id), refused when the ID is held already, and
+takes the largest number plus one as now when none is given, so a
+team on one branch needs no counter. A number reserved by work that
+is dropped is never used, and the numbers have gaps; nothing reads
+the numbers as contiguous.
+
+Consequences: Numbers are given in the order work is taken, not the order it lands:
+a decision may land before one with a lower number, and its date says
+when it was taken. A team without a tool that hands out work keeps
+taking the largest number plus one and meets the clash as now, which
+the error decision reports. A contribution from outside the counter
+is renumbered by its author or its reviewer before it lands. The
+reservation itself is a change to the tool that hands out the work,
+outside this specification.
+
+**Insight:** A number that is right from the start is the only kind a history entry and a commit message can cite truly, since both are written on the branch and neither can be corrected once pushed. The clash is prevented where the number is taken, not repaired where the branches meet, so the hand merge and the second run of every check go away rather than become cheaper. The specification keeps one way to write each ID, so no rule, schema pattern or conformance case changes in either validator build, and a specification written before reads the same.
 
 ## 10. Quality requirements
 

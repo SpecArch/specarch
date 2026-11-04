@@ -15,14 +15,16 @@ decisions:
       second to land meets the first's file in a conflict on the same path.
 
       The validator does not miss it: a decision ID held twice is the error
-      decision, and git stops the rebase on the two files of one name. The
+      duplicate_key, and git stops the rebase on the two files of one name. The
       cost is the rework. This specification's own history holds ten
       commits that renumber a decision and its requirement after a rebase,
       the decision and the requirement clashing together each time. One
       such renumbering touched 21 files: the decision, the requirement, the
-      rule enum, the schema text in the Go build and in the Swift build,
-      the skill's reference, four test cases and every generated document,
-      each then regenerated and checked again by both builds. A
+      enum of document targets, the document command's design, the schema
+      text in the Go build and in the Swift build, the skill's reference, a
+      code comment in the progress generator, six test cases, two history
+      entries and the five generated documents, each then regenerated and
+      checked again by both builds. A
       renumbering on a token that main also holds cannot be done by a plain
       search and replace, since main's own ADR-NNN must stay where it is,
       so it is done by hand, reference by reference.
@@ -47,7 +49,7 @@ decisions:
 
       SpecArch's own part is small and leaves the language as it is: the
       ID patterns stay, the validator is unchanged in both builds, and a
-      duplicate is still the error decision, which catches a number taken
+      duplicate is still the error duplicate_key, which catches a number taken
       without a reservation. specarch decide takes the reserved ID with an
       option of its own (--id), refused when the ID is held already, and
       takes the largest number plus one as now when none is given, so a
@@ -69,7 +71,7 @@ decisions:
       a decision may land before one with a lower number, and its date says
       when it was taken. A team without a tool that hands out work keeps
       taking the largest number plus one and meets the clash as now, which
-      the error decision reports. A contribution from outside the counter
+      the error duplicate_key reports. A contribution from outside the counter
       is renumbered by its author or its reviewer before it lands. The
       reservation itself is a change to the tool that hands out the work,
       outside this specification.

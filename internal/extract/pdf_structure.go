@@ -46,18 +46,26 @@ func pdfPageKey(page pdf.Value) string {
 	return page.String()
 }
 
-// pdfStructBudget bounds the nodes a walk of the structure tree visits.
-// The depth limit alone does not bound it: an element that lists the same
-// child twice in K, at every level, makes the walk branch at each one, and
-// a malformed or crafted tree would hold the read for hours. A tagged
-// document's tree holds a few nodes per paragraph and per cell, far below
-// this.
-const pdfStructBudget = 100000
+// pdfStructBudget bounds the work a walk of the structure tree does, in
+// units of one object resolved plus one for every pdfStructUnit bytes of
+// it. The depth limit alone does not bound it: an element that lists the
+// same child twice in K, at every level, makes the walk branch at each
+// one, and one that lists it thousands of times makes every visit resolve
+// thousands of entries. The library reads an object again from the file
+// each time a reference to it is resolved, so a resolve costs the size of
+// the object, and the budget counts that size. A malformed or crafted
+// tree would otherwise hold the read for hours. A tagged document's tree
+// holds a few small elements per paragraph and per cell, its whole tree
+// far below this.
+const (
+	pdfStructBudget = 1000000
+	pdfStructUnit   = 64
+)
 
 // pdfStructTables walks the structure tree of a tagged PDF and gives its
-// tables. A PDF with no structure tree gives none. A tree larger than
-// pdfStructBudget nodes gives none, and over is true: every page is then
-// read by its lines, and the reader says so.
+// tables. A PDF with no structure tree gives none. A tree whose walk
+// costs more than pdfStructBudget gives none, and over is true: every
+// page is then read by its lines, and the reader says so.
 func pdfStructTables(r *pdf.Reader) (tables []pdfStructTable, over bool) {
 	root := r.Trailer().Key("Root").Key("StructTreeRoot")
 	if root.Kind() != pdf.Dict {
@@ -66,18 +74,24 @@ func pdfStructTables(r *pdf.Reader) (tables []pdfStructTable, over bool) {
 	return pdfStructTablesFrom(root, pdfStructBudget)
 }
 
-// pdfStructTablesFrom walks the tree under root, visiting at most budget
-// nodes.
+// pdfStructTablesFrom walks the tree under root, doing at most budget
+// units of work.
 func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, over bool) {
-	visited := 0
-	// spend counts one node visited, and is false once the budget is
+	spent := 0
+	// spend counts n units of work, and is false once the budget is
 	// spent: every walk then stops where it is.
-	spend := func() bool {
-		visited++
-		if visited > budget {
+	spend := func(n int) bool {
+		spent += n
+		if spent > budget {
 			over = true
 		}
 		return !over
+	}
+	// resolved is what a value just resolved costs: one, and one for each
+	// pdfStructUnit bytes it is written in, its references written and not
+	// followed, as the library parsed it.
+	resolved := func(v pdf.Value) int {
+		return 1 + len(v.String())/pdfStructUnit
 	}
 	roles := root.Key("RoleMap")
 	// role resolves a structure type through the role map to the
@@ -97,18 +111,19 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 	// descendants', with the page inherited from the nearest Pg.
 	var marks func(v pdf.Value, page string, depth int, out *[]pdfMark)
 	marks = func(v pdf.Value, page string, depth int, out *[]pdfMark) {
-		if depth > 64 || !spend() {
+		if depth > 64 || !spend(resolved(v)) {
 			return
 		}
 		switch v.Kind() {
 		case pdf.Integer:
 			*out = append(*out, pdfMark{page: page, mcid: v.Int64()})
 		case pdf.Array:
-			for i := 0; i < v.Len(); i++ {
+			for i := 0; i < v.Len() && !over; i++ {
 				marks(v.Index(i), page, depth+1, out)
 			}
 		case pdf.Dict:
 			if pg := v.Key("Pg"); pg.Kind() == pdf.Dict {
+				spend(resolved(pg))
 				page = pdfPageKey(pg)
 			}
 			switch v.Key("Type").Name() {
@@ -129,24 +144,33 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 		}
 	}
 	// children gives an element's child elements with the page each
-	// inherits.
+	// inherits. Each entry of K resolved is spent from the budget, so that
+	// an element listing the same child thousands of times costs what was
+	// resolved; once the budget is spent it gives what it has.
 	type child struct {
 		v    pdf.Value
 		page string
 	}
 	children := func(v pdf.Value, page string) []child {
 		if pg := v.Key("Pg"); pg.Kind() == pdf.Dict {
+			spend(resolved(pg))
 			page = pdfPageKey(pg)
 		}
 		k := v.Key("K")
+		if !spend(resolved(k)) {
+			return nil
+		}
 		var out []child
 		add := func(c pdf.Value) {
+			if !spend(resolved(c)) {
+				return
+			}
 			if c.Kind() == pdf.Dict && c.Key("Type").Name() != "MCR" && c.Key("Type").Name() != "OBJR" {
 				out = append(out, child{c, page})
 			}
 		}
 		if k.Kind() == pdf.Array {
-			for i := 0; i < k.Len(); i++ {
+			for i := 0; i < k.Len() && !over; i++ {
 				add(k.Index(i))
 			}
 		} else {
@@ -156,7 +180,7 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 	}
 	var rows func(v pdf.Value, page string, depth int, t *pdfStructTable)
 	rows = func(v pdf.Value, page string, depth int, t *pdfStructTable) {
-		if depth > 64 || !spend() {
+		if depth > 64 || !spend(1) {
 			return
 		}
 		for _, c := range children(v, page) {
@@ -166,7 +190,7 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 			case "TR":
 				var row []pdfStructCell
 				for _, cell := range children(c.v, c.page) {
-					if !spend() {
+					if !spend(1) {
 						return
 					}
 					s := role(cell.v.Key("S").Name())
@@ -185,7 +209,7 @@ func pdfStructTablesFrom(root pdf.Value, budget int) (tables []pdfStructTable, o
 	}
 	var walk func(v pdf.Value, page string, depth int)
 	walk = func(v pdf.Value, page string, depth int) {
-		if depth > 64 || !spend() {
+		if depth > 64 || !spend(1) {
 			return
 		}
 		for _, c := range children(v, page) {

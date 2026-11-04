@@ -1177,7 +1177,7 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		}
 	}
 	if treeOver {
-		in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: "structure tree", text: fmt.Sprintf("the structure tree holds more than %d nodes, more than a tagged document's tree holds, as a tree that lists an element twice gives: it is not walked, and every table is read as its lines; read the tables from the file the PDF was made from", pdfStructBudget)})
+		in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: "structure tree", text: fmt.Sprintf("the structure tree costs more than %d units of %d bytes to read, more than a tagged document's tree does, as a tree that lists an element twice, or thousands of times, gives: it is not walked, and every table is read as its lines; read the tables from the file the PDF was made from", pdfStructBudget, pdfStructUnit)})
 	}
 	for n := 1; n <= r.NumPage(); n++ {
 		if empty[n] {

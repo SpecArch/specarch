@@ -159,18 +159,10 @@ func TestPDFTableOverPages(t *testing.T) {
 	}
 }
 
-// TestPDFStructBudget walks a crafted tree whose element lists itself
-// twice in K: the walk branches at every level, and only the budget of
-// nodes keeps it from running for hours. The tree gives no table, and
-// says it was over the budget.
-func TestPDFStructBudget(t *testing.T) {
-	objects := []string{
-		"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
-		"<< /Type /Pages /Kids [] /Count 0 >>",
-		"<< /Type /StructTreeRoot /K 4 0 R >>",
-		"<< /S /Table /K [5 0 R 5 0 R] >>",
-		"<< /S /TBody /K [5 0 R 5 0 R] >>",
-	}
+// pdfStructReader builds a PDF of the given objects, the first the
+// catalog, and opens it.
+func pdfStructReader(t *testing.T, objects []string) *pdf.Reader {
+	t.Helper()
 	var b strings.Builder
 	b.WriteString("%PDF-1.7\n")
 	var offsets []int
@@ -189,6 +181,14 @@ func TestPDFStructBudget(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	return r
+}
+
+// pdfStructOverBudget reads the tables of a crafted tree and wants none,
+// over the budget, within a few seconds.
+func pdfStructOverBudget(t *testing.T, objects []string) {
+	t.Helper()
+	r := pdfStructReader(t, objects)
 	start := time.Now()
 	tables, over := pdfStructTables(r)
 	if !over || tables != nil {
@@ -197,4 +197,47 @@ func TestPDFStructBudget(t *testing.T) {
 	if d := time.Since(start); d > 10*time.Second {
 		t.Errorf("the walk took %v", d)
 	}
+}
+
+// TestPDFStructBudget walks a crafted tree whose element lists itself
+// twice in K: the walk branches at every level, and only the budget of
+// nodes keeps it from running for hours. The tree gives no table, and
+// says it was over the budget.
+func TestPDFStructBudget(t *testing.T) {
+	pdfStructOverBudget(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"<< /Type /StructTreeRoot /K 4 0 R >>",
+		"<< /S /Table /K [5 0 R 5 0 R] >>",
+		"<< /S /TBody /K [5 0 R 5 0 R] >>",
+	})
+}
+
+// TestPDFStructBudgetWide walks crafted trees whose element lists itself
+// 2000 times in K: each visit would resolve all 2000 entries, so the
+// budget counts every entry of K and not only the nodes visited. One
+// tree is a Div among the document's elements, one a table whose row
+// lists a cell 2000 times and whose cell lists itself 2000 times.
+func TestPDFStructBudgetWide(t *testing.T) {
+	wide := func(ref string) string {
+		return "[" + strings.TrimSpace(strings.Repeat(ref+" ", 2000)) + "]"
+	}
+	t.Run("Div", func(t *testing.T) {
+		pdfStructOverBudget(t, []string{
+			"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
+			"<< /Type /Pages /Kids [] /Count 0 >>",
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S /Div /K " + wide("4 0 R") + " >>",
+		})
+	})
+	t.Run("TableCell", func(t *testing.T) {
+		pdfStructOverBudget(t, []string{
+			"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
+			"<< /Type /Pages /Kids [] /Count 0 >>",
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S /Table /K 5 0 R >>",
+			"<< /S /TR /K " + wide("6 0 R") + " >>",
+			"<< /S /TD /K " + wide("6 0 R") + " >>",
+		})
+	})
 }

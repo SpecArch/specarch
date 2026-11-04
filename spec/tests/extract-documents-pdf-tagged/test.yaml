@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding a tagged PDF printed by a web browser: headings numbered 1 to 3, a paragraph under each of 1 and 3, and under 2 a table of fields headed Field, Type and Description with three rows, which the structure tree marks as a Table of TR rows and TH and TD cells"
+when: "extract documents is run on the PDF"
+then: "it reads the table from the structure tree as its rows and cells, counts one table and one table of fields, writes the entity LoanFields with the fields loanNumber, member and dueDate, their types and descriptions, citing clause 2, writes the requirements of clauses 1 and 3, and exits 0"
+verifies: [SA-110]

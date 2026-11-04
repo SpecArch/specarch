@@ -79,8 +79,19 @@ decisions:
       a copy with a text layer, as an OCR program writes, or the file
       the document was printed from; as an email's attachment it is a
       line and a could question, as any attachment that is refused. A
-      table in a PDF is read as its lines: an untagged PDF does not mark
-      one, and the structure tree of a tagged PDF is not read. A PDF
+      tagged PDF's tables are read from its structure tree: every Table
+      element, its type resolved through the role map, is a table of the
+      TR rows under it, those of THead, TBody and TFoot included, and of
+      the TH and TD cells of each row, a cell spanning rows or columns
+      leaving the places it covers empty. A cell's text is the glyphs of
+      the marked content it holds, matched by page and MCID, joined into
+      lines as a page's are; the table stands where its first cell is,
+      among the page's lines from top to bottom, and its glyphs are not
+      read again as lines. A table with no glyph found for it, and every
+      table of an untagged PDF, which does not mark one, is read as its
+      lines. A page whose marked content does not give every glyph its
+      MCID is read as its lines, and is a line and a could question
+      saying so. A PDF
       and its Markdown twin, the same text with the same headings, give
       the same requirements and questions citing the same clauses; the
       PDF adds only its pages, the page before the first heading and a
@@ -130,9 +141,11 @@ decisions:
       character sets of a message. No reader calls the network or
       another program. A PDF made from scanned pages is refused with
       what to do, a PDF with some scanned pages gives a could question
-      per such page, and a PDF's tables give
-      their lines as sentences, not fields: a table of fields is read
-      from the Word, Excel or Markdown copy. A heading numbered in a
+      per such page. A tagged PDF's table of fields gives an entity as a
+      Word table does; an untagged PDF's tables give their lines as
+      sentences, not fields, so a table of fields is read from a tagged
+      copy, as a word processor or a browser prints one, or from the
+      Word, Excel or Markdown copy. A heading numbered in a
       format the reader does not compute (ordinal words, Chinese
       counting) is a section cited by its title, with a could question
       saying so. The tabular data source reader can build on
@@ -203,6 +216,30 @@ decisions:
       does not parse, and a page missing among pages that read is named
       as not parsing, not as a scanned page.
 
+      A tagged PDF's tables from its structure tree, because a table read
+      as lines loses its rows and cells: a cell's words run into the
+      next cell's, and a table of fields gives no entity. The structure
+      tree is the file's own statement of which text is which cell
+      (ISO 32000-2, 14.7 and 14.8), where guessing columns from the
+      glyphs' positions would split a cell that wraps and join two that
+      sit close. No library was added: the chosen one gives no structure
+      tree, but it gives the file's objects and the content stream's
+      operators, which is all the reader needs, while pdfcpu, the
+      library that reads structure trees, was rejected above as built
+      to write PDFs. Glyphs are matched to their MCID by reading the
+      content stream again as the library reads it for its text, one
+      glyph per character a string decodes to, so the two agree glyph
+      for glyph; where they would not, the page is read as before and
+      says so, so a table is never lost. A page is found from a
+      structure element by its StructParents key, which a tagged PDF
+      gives each page with marked content (14.7.5.4). A spanned cell
+      leaves the places it covers empty, not a copy of its text, so a
+      header that spans two columns names neither twice. Rejected:
+      reading every tagged PDF by its tree alone, paragraphs and
+      headings included, which would change what an untagged and a
+      tagged copy of one document give for every block, not only for
+      tables, and depend on how well each program tags.
+
       The clause names follow how people cite each format: a page, a
       slide number, a cell or range as Excel's formulas write it, with
       the sheet's name quoted when it holds a space, and an
@@ -219,6 +256,12 @@ decisions:
       - source: iso-32000-2
         clause: "9.10"
         says: "Extraction of text content: a conforming reader maps the character codes shown by text-showing operators to Unicode through the font's ToUnicode CMap or its encoding."
+      - source: iso-32000-2
+        clause: "14.7"
+        says: "Logical structure: a tagged PDF's structure tree, its elements typed through the role map, whose content items are marked-content sequences named by their MCID on a page."
+      - source: iso-32000-2
+        clause: "14.8.4.8.3"
+        says: "Table structure types: Table holds TR rows, optionally grouped in THead, TBody and TFoot, and each TR holds TH and TD cells."
       - source: rfc-5322
         clause: "3.6"
         says: "Field definitions: the origination date, originator (From), destination (To) and informational (Subject) fields of a message."

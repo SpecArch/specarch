@@ -931,6 +931,9 @@ type pdfLine struct {
 	text    string
 	size, y float64
 	bold    bool
+	// table: a table read from the structure tree, set at the top of its
+	// first cell on its first page; such a line holds no text.
+	table [][]string
 }
 
 func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
@@ -951,7 +954,7 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	}
 	in = &docInput{
 		clauses: "every heading and numbered section is a clause, and so is every page before the first heading, as page 2",
-		counted: "every line set larger than the body text, or in bold with a section number, as a heading, every page before the first heading, every paragraph that starts with a section number such as 3.1, and every sentence of a paragraph; a table is read as its lines, since a PDF does not mark one"}
+		counted: "every line set larger than the body text, or in bold with a section number, as a heading, every page before the first heading, every paragraph that starts with a section number such as 3.1, and every sentence of a paragraph; a table the structure tree of a tagged PDF marks is read as its rows and cells, and any other table as its lines"}
 	if info := r.Trailer().Key("Info"); !info.IsNull() {
 		in.title = strings.TrimSpace(info.Key("Title").Text())
 	}
@@ -960,6 +963,30 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	var broken []string
 	unread := map[int]bool{}
 	read := 0
+	// A tagged PDF's tables are read from its structure tree: every
+	// glyph of a cell's marked content is that cell's, and not a line of
+	// the page (ADR-212).
+	tables := pdfStructTables(r)
+	type cellAt struct{ table, row, cell int }
+	claimed := map[pdfMark]cellAt{}
+	claimedOn := map[string]bool{}
+	for ti, t := range tables {
+		for ri, row := range t.rows {
+			for ci, c := range row {
+				for _, m := range c.marks {
+					claimed[m] = cellAt{ti, ri, ci}
+					claimedOn[m.page] = true
+				}
+			}
+		}
+	}
+	cellLines := map[cellAt][]pdfLine{}
+	type tableTop struct {
+		page int
+		y    float64
+	}
+	tableAt := map[int]tableTop{}
+	unmatched := map[int]bool{}
 	for n := 1; n <= r.NumPage(); n++ {
 		p := r.Page(n)
 		if p.V.IsNull() {
@@ -970,11 +997,73 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 			continue
 		}
 		read++
-		got := pdfPageLines(n, p.Content().Text)
-		if len(got) == 0 {
+		texts := p.Content().Text
+		if key := pdfPageKey(p.V); claimedOn[key] {
+			marks := pdfGlyphMarks(p)
+			if len(marks) != len(texts) {
+				// The marked content does not give one MCID per glyph:
+				// the page is read by its lines, and says so.
+				unmatched[n] = true
+			} else {
+				own := map[cellAt][]pdf.Text{}
+				var order []cellAt
+				var free []pdf.Text
+				for i, t := range texts {
+					c, ok := claimed[pdfMark{page: key, mcid: marks[i]}]
+					if !ok || marks[i] < 0 {
+						free = append(free, t)
+						continue
+					}
+					if own[c] == nil {
+						order = append(order, c)
+					}
+					own[c] = append(own[c], t)
+				}
+				texts = free
+				for _, c := range order {
+					cellLines[c] = append(cellLines[c], pdfPageLines(n, own[c])...)
+					top, seen := tableAt[c.table]
+					for _, t := range own[c] {
+						if strings.TrimSpace(t.S) == "" {
+							continue
+						}
+						if !seen || (top.page == n && t.Y > top.y) {
+							top, seen = tableTop{page: n, y: t.Y}, true
+						}
+					}
+					if seen {
+						tableAt[c.table] = top
+					}
+				}
+			}
+		}
+		lines = append(lines, pdfPageLines(n, texts)...)
+	}
+	// Each table read is a line at the top of its first cell, among the
+	// lines of its page from top to bottom; a table no glyph was found
+	// for is not one, and its text, if any, is read as lines.
+	for ti, t := range tables {
+		top, ok := tableAt[ti]
+		if !ok {
+			continue
+		}
+		rows := pdfTableRows(t, func(row, cell int) string { return pdfCellText(cellLines[cellAt{ti, row, cell}]) })
+		at := len(lines)
+		for i, l := range lines {
+			if l.page > top.page || (l.page == top.page && l.table == nil && l.y < top.y) {
+				at = i
+				break
+			}
+		}
+		lines = append(lines[:at], append([]pdfLine{{page: top.page, y: top.y, table: rows}}, lines[at:]...)...)
+	}
+	for n := 1; n <= r.NumPage(); n++ {
+		if !unread[n] {
 			empty[n] = true
 		}
-		lines = append(lines, got...)
+	}
+	for _, l := range lines {
+		delete(empty, l.page)
 	}
 	// A page tree that gives no page to read is a PDF that does not
 	// parse, not a scanned one: there is nothing to say a picture of
@@ -1000,6 +1089,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	repeated := map[string]map[int]bool{}
 	digits := regexp.MustCompile(`[0-9]+`)
 	for _, l := range lines {
+		if l.table != nil {
+			continue
+		}
 		k := digits.ReplaceAllString(l.text, "#")
 		if repeated[k] == nil {
 			repeated[k] = map[int]bool{}
@@ -1018,7 +1110,7 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	said := map[string]bool{}
 	for _, l := range lines {
 		k := digits.ReplaceAllString(l.text, "#")
-		if running[k] {
+		if l.table == nil && running[k] {
 			if !said[k] {
 				said[k] = true
 				in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: fmt.Sprintf("page %d", l.page), text: fmt.Sprintf("the line %q repeats on %d pages, a running header or footer; it is not read", l.text, len(repeated[k]))})
@@ -1030,7 +1122,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 	// The body size is the size most characters are set in.
 	weight := map[float64]int{}
 	for _, l := range body {
-		weight[l.size] += len([]rune(l.text))
+		if l.table == nil {
+			weight[l.size] += len([]rune(l.text))
+		}
 	}
 	bodySize, most := 0.0, -1
 	for s, w := range weight {
@@ -1039,6 +1133,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		}
 	}
 	isHeading := func(l pdfLine) bool {
+		if l.table != nil {
+			return false
+		}
 		short := len([]rune(l.text)) <= 120
 		if l.size >= bodySize*1.15 && short {
 			return true
@@ -1079,6 +1176,9 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		if unread[n] {
 			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: fmt.Sprintf("page %d", n), text: fmt.Sprintf("page %d does not parse: the page tree counts it, but no page object is there for it, so it is not read; read the page from a copy saved again by a PDF program", n)})
 		}
+		if unmatched[n] {
+			in.blocks = append(in.blocks, docBlock{kind: blockNotHeld, place: fmt.Sprintf("page %d", n), text: fmt.Sprintf("page %d: the structure tree marks a table there, but the page's marked content does not give each character its MCID, so the table is read as its lines; read the table from the file the PDF was made from", n)})
+		}
 	}
 	for _, l := range body {
 		if l.page != page {
@@ -1088,6 +1188,12 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 				id := fmt.Sprintf("page %d", page)
 				in.blocks = append(in.blocks, docBlock{kind: blockSection, level: 1, id: id, title: id, place: id})
 			}
+		}
+		if l.table != nil {
+			flush()
+			in.blocks = append(in.blocks, docBlock{kind: blockTable, place: fmt.Sprintf("page %d", l.page), rows: l.table})
+			last = l
+			continue
 		}
 		if isHeading(l) {
 			flush()

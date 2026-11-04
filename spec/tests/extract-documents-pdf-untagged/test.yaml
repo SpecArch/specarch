@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a repository holding the PDF of extract-documents-pdf-tagged with no structure tree: its catalog names neither MarkInfo nor StructTreeRoot, so nothing marks the table of fields under heading 2"
+when: "extract documents is run on the PDF"
+then: "it reads the table as its lines, counts no table and no table of fields, writes no entity, writes the requirements of clauses 1 and 3 and those its lines give, and exits 0"
+verifies: [SA-110]

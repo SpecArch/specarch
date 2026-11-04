@@ -1,0 +1,11 @@
+arguments: [extract, documents, --out, spec, docs/loan-register.pdf]
+repository:
+  folder: docs
+  commits:
+    - [loan-register.pdf]
+exitStatus: 0
+standardOutput: |
+  commit 5d44b7c5ef57b2ae37eb18a0fcbeb015e6692de2: the last change to loan-register.pdf
+  counted 4 headings, 0 numbered paragraphs, 6 sentences (3 commitments) and 0 tables (0 tables of fields): every line set larger than the body text, or in bold with a section number, as a heading, every page before the first heading, every paragraph that starts with a section number such as 3.1, and every sentence of a paragraph; a table the structure tree of a tagged PDF marks is read as its rows and cells, and any other table as its lines
+  wrote 3 requirements, 0 entities and 1 question: one per commitment that names its subject, one per table of fields, one per thing the document does not say, and one per thing the meta-model cannot hold
+  derived 0 draft tests under tests, as specarch derive writes them: the success of each subject the design gives one, and each chosen case no test covers

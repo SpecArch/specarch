@@ -1,0 +1,27 @@
+entities:
+  LoanFields:
+    type: object
+    properties:
+      loanNumber: {type: string, description: The number the desk gives the loan}
+      member: {type: string, description: The member who borrows the item}
+      dueDate: {type: string, format: date, description: The day the item must be returned}
+    origin: stated
+    cites:
+      - {source: loan-register, clause: "2", says: 'A table of the fields of Loan fields: loan number, member, due date.'}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which fields identify one LoanFields, its primary key? Decided by system-owner. Answer with a decision record that names Q-2 under answers. [Q-2]
+  Q-2:
+    question: Which fields identify one LoanFields, its primary key?
+    kind: decision
+    priority: must
+    blocks: ['#/entities/LoanFields/primaryKey']
+    decidedBy: system-owner
+    why: A table of fields does not say which of them identify a record.
+  # specarch-problem: question: open_question: (should, decision) How sensitive is each of these fields of LoanFields: loanNumber, member, dueDate? Public, internal, personal or credential. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
+  Q-3:
+    question: 'How sensitive is each of these fields of LoanFields: loanNumber, member, dueDate? Public, internal, personal or credential.'
+    kind: decision
+    priority: should
+    blocks: ['#/entities/LoanFields/properties/loanNumber/sensitivity', '#/entities/LoanFields/properties/member/sensitivity', '#/entities/LoanFields/properties/dueDate/sensitivity']
+    decidedBy: system-owner
+    why: The document has no sensitivity column for them and no sentence that calls them personal or a credential.

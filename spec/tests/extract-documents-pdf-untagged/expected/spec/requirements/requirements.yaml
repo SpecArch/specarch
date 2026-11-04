@@ -1,0 +1,40 @@
+stakeholders:
+  # specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
+  system-owner:
+    description: Whoever owns the system that was read and answers for it; the reviewer replaces this with the real role.
+    origin: inferred
+    why: The surface names no one, and every question needs a stakeholder to decide it.
+requirements:
+  # specarch-problem: warning: acceptance_missing: requirement LOANREGISTER-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LOANREGISTER-1]
+  LOANREGISTER-1:
+    statement: The library keeps one record per loan.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: loan-register, clause: "1", says: The library keeps one record per loan.}
+  # specarch-problem: warning: acceptance_missing: requirement LOANREGISTER-2 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LOANREGISTER-2]
+  LOANREGISTER-2:
+    statement: due date date The day the item must be returned
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: loan-register, clause: "2", says: due date date The day the item must be returned}
+  # specarch-problem: warning: acceptance_missing: requirement LOANREGISTER-3 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LOANREGISTER-3]
+  LOANREGISTER-3:
+    statement: The system must record the return date of every loan.
+    priority: must
+    status: accepted
+    origin: stated
+    cites:
+      - {source: loan-register, clause: "3", says: The system must record the return date of every loan.}
+questions:
+  # specarch-problem: question: open_question: (must, decision) Which kind is each requirement read from the document: LOANREGISTER-1, LOANREGISTER-2, LOANREGISTER-3? Functional, quality, interface or constraint. Decided by system-owner. Answer with a decision record that names Q-1 under answers. [Q-1]
+  Q-1:
+    question: 'Which kind is each requirement read from the document: LOANREGISTER-1, LOANREGISTER-2, LOANREGISTER-3? Functional, quality, interface or constraint.'
+    kind: decision
+    priority: must
+    blocks: ['#/requirements/LOANREGISTER-1/kind', '#/requirements/LOANREGISTER-2/kind', '#/requirements/LOANREGISTER-3/kind']
+    decidedBy: system-owner
+    why: A document states what is committed, not which kind of requirement it is.

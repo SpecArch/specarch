@@ -1423,7 +1423,8 @@ The sources this build reads:
   number, is a heading, the text before the first heading is in the
   clause of its page (page 1), a line on three pages or more is a
   running header and a page with no text a scanned page, each a
-  line; a table is read as its lines. In PowerPoint, each slide is
+  line; a table a tagged PDF's structure tree marks is read as its
+  rows and cells, and any other as its lines. In PowerPoint, each slide is
   the clause slide 3, titled by its title, and its notes slide 3
   notes; a picture or a chart prints a line. In Excel, each sheet
   is a heading, each rectangle of touching cells of two rows and two

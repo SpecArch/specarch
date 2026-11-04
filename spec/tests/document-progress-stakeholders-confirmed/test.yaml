@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with two stakeholders and stakeholdersComplete by the librarian on 2026-11-02, recorded in the declared source desk-interview"
+when: "document progress is run"
+then: "it writes progress.md with no stakeholders banner, whose stakeholder list says the librarian confirmed the list of 2 stakeholders complete on 2026-11-02, recorded in the source desk-interview, with no problem listed under it, and exits 0"
+verifies: [SA-132]

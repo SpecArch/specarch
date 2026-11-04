@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1037 design tests, 520 golden and 517 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1038 design tests, 521 golden and 517 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1037 design tests, 520 golden and 517 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1033 |
+| system | 1034 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1255,6 +1255,14 @@ Scenario: golden; level: system; verifies SA-132.
 - When: document progress is run with --audience external
 - Then: it writes progress.md that says the internal elements and the questions only about them are not counted, sizes the requirements as 1, counts 1 open question, and gives the release 1 element approved, and exits 0
 
+#### document-progress-stakeholders-confirmed
+
+Scenario: golden; level: system; verifies SA-132.
+
+- Given: a specification with two stakeholders and stakeholdersComplete by the librarian on 2026-11-02, recorded in the declared source desk-interview
+- When: document progress is run
+- Then: it writes progress.md with no stakeholders banner, whose stakeholder list says the librarian confirmed the list of 2 stakeholders complete on 2026-11-02, recorded in the source desk-interview, with no problem listed under it, and exits 0
+
 #### document-progress-stakeholders-held
 
 Scenario: golden; level: system; verifies SA-132.
@@ -1685,7 +1693,7 @@ Scenario: golden; level: system; verifies SA-132.
 
 - Given: a specification with stakeholders, requirements, an entity, a page and three open questions, a communication record that hears the librarian alone while an accepted requirement relies on the member too, four change requests, one with an estimate and the hours spent, one with an estimate that names a requirement by its ID and by its pointer and a property inside the entity, one with no effort, and one withdrawn after its approval with an estimate written with an exponent, and two releases
 - When: document progress is run
-- Then: it writes progress.md with the elements of each stage, the open questions by priority and deciding role, the member warned unheard, the stakeholder list not confirmed, the effort table with the exponent read as 0.1 and the change request without effort counted and named as missing, and a burn-up of two points that counts the requirement named two ways and the property as the elements they name, once, and adds nothing for the withdrawn request, and exits 0
+- Then: it writes progress.md with the elements of each stage, the open questions by priority and deciding role, the member warned unheard, the stakeholder list confirmed by the owner on 2026-11-03, the effort table with the exponent read as 0.1 and the change request without effort counted and named as missing, and a burn-up of two points that counts the requirement named two ways and the property as the elements they name, once, and adds nothing for the withdrawn request, and exits 0
 
 #### document-writes-questions
 

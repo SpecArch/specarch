@@ -1,0 +1,12 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+sources:
+  desk-interview:
+    kind: interview
+    title: Interview at the lending desk
+    date: "2026-11-02"
+    participants: [librarian]
+stakeholders:
+  librarian: { description: Runs the lending desk. }
+  member: { description: Borrows books. }
+stakeholdersComplete: { by: librarian, date: "2026-11-02", source: desk-interview }

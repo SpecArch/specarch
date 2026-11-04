@@ -17,7 +17,10 @@ before anything is built and revised the same day at the owner's word
 that nothing in a machine may depend on the implementation or on a
 reading; ADR-193 holds the specification's time zone and ADR-194 the
 rule for every date-time of a specification (12), both proposed with
-that revision.
+that revision. The state machines and date-times are designed and not
+yet built, apart from what step 5 of the build plan (11) names as built
+already, and no release is assigned to them; the owner names that
+release when the work is planned.
 
 In short:
 
@@ -62,7 +65,8 @@ In short:
 - Everything is additive: a 1.0 file gets no new error, since every rule
   that can fire on one is a warning, and this repository's specification
   and examples get no new line, the library lending example declaring
-  its `timeZone`, so the step is a minor one, 1.4.0.
+  its `timeZone`, so the step is a minor one; no release is assigned to
+  it yet.
 
 ## 1. What SpecArch holds today
 
@@ -769,8 +773,9 @@ with a state field have one transition per state and trigger, every enum
 value named, no default and one derived initial state. Of the cases
 without one, `validate-validity` and `validate-concept-cases-listed` gain
 one `time_zone` warning each, at the validity bounded by a date (12.5).
-The step is a minor one, 1.4.0 (`docs/maintenance.md`, rule 7; ADR-186),
-with the new rule names frozen at that release. Nothing is deprecated:
+The step is a minor one (`docs/maintenance.md`, rule 7; ADR-186), with
+the new rule names frozen at the release that carries it; no release is
+assigned to it yet. Nothing is deprecated:
 the short form is not replaced, it is the full form with the machine's
 own keys left out.
 
@@ -1055,7 +1060,8 @@ approves that revision, and the build items follow in the order of 11.
 6. The library lending example rewritten with
    `at: dueOn + duration("P1D")` where the owner agrees, as the
    acceptance test of the design.
-7. The release, 1.4.0.
+7. The release, a minor one, with no version assigned yet; the owner
+   names it when the work is planned.
 
 ## 12. Date-times and the time zone, everywhere
 
@@ -1231,8 +1237,9 @@ cases `validate-time-zone`, `validate-time-zone-missing` and
 `validate-time-zone-unknown` hold the readings.
 Every other change is an addition: one root key, two formats, `why` on a field, one
 rule with errors only where a new key is written and warnings where a
-1.0 file may be. The step is the minor one the machines take, 1.4.0 (7),
-one release for both, since both rest on `timeZone`. The implementation
+1.0 file may be. The step is the minor one the machines take (7),
+one release for both, since both rest on `timeZone`; no release is
+assigned to it yet. The implementation
 files and the type-rendering idiom gain rows for `local-date-time` and
 `time-zone` per stack, a 1.x of the idiom; `specarch upgrade` has
 nothing to move.

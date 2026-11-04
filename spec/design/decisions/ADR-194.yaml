@@ -88,7 +88,8 @@ decisions:
       (ADR-193), so a worked example or a test record over an instant
       written with an offset other than Z whose date differs in UTC may
       change its outcome; none in this repository does. The step is the
-      minor one of the state machines, 1.4.0.
+      minor one of the state machines, which are designed and not yet
+      built and have no release assigned yet.
     restsOn: [ADR-121, ADR-186, ADR-193]
     satisfies: [SA-99]
     cites:

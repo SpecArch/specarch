@@ -15923,7 +15923,7 @@ last left, and takes the within machine's parent state as its given.
 
 **Note:** From Statecharts: a visual formalism for complex systems, Science of Computer Programming 8, pages 231 to 274, 1987: Orthogonality lets a statechart be in several states at once, one per orthogonal component, which is the product of their state sets written without the product.
 
-### ADR-192: Both validators check a machine's reachability, dead ends, unused states, causes, names and ambiguity with the same lines; the diagram draws causes, conditions and updates on the arrows, the variables as a note, nested states and parallel machines; the documents, the test plan and the guarded script follow; the step is minor, 1.4.0
+### ADR-192: Both validators check a machine's reachability, dead ends, unused states, causes, names and ambiguity with the same lines; the diagram draws causes, conditions and updates on the arrows, the variables as a note, nested states and parallel machines; the documents, the test plan and the guarded script follow; the step is minor, with no release assigned yet
 
 Status: accepted, 2026-10-26.
 
@@ -16003,8 +16003,9 @@ two share those, its cause; specarch-gen-scripts takes when and set
 into the guarded script; specarch model lists the machines; generate
 sql writes the entry instant columns of a machine with after beside
 its state field, as the audit columns, and the technical
-specification lists them. The step is 1.4.0, the rule names frozen at
-that release.
+specification lists them. The step is minor, the rule names frozen at
+the release that carries it; the machines are designed and not yet
+built, and no release is assigned to them yet.
 
 Consequences: Eleven rules join the Rule enum when they are built, and the
 conformance cases under spec/tests carry each. The documents of the
@@ -16147,7 +16148,8 @@ in UTC, reads UTC without a timeZone and the zone with one
 (ADR-193), so a worked example or a test record over an instant
 written with an offset other than Z whose date differs in UTC may
 change its outcome; none in this repository does. The step is the
-minor one of the state machines, 1.4.0.
+minor one of the state machines, which are designed and not yet
+built and have no release assigned yet.
 
 **Insight:** The instant is the default and keeps its format because it is what date-time has always meant in JSON Schema and OpenAPI, RFC 3339's date-time, and because every value a system records happened at an instant; a wall-clock reading is the exception that needs a word, so the exception carries the format and the reason, not the rule. The local form is a format of its own and not a key beside date-time, such as zone: none, because the two are different types with different renderings and different operations, as SQL's two TIMESTAMPs are, and a format is where a type is said; it is named local-date-time after ISO 8601's local time and the type the languages call so. The reason is why and not a fixed list of reasons because the valid cases are two and their wording is the specification's, and why is the one word SpecArch has for a reason; a field gains why for it, which every element already has. The offset written is not kept because an instant has none of its own and keeping it would make equal instants unequal values, and a value that needs the zone it was meant in holds a time-zone field beside it. A zone is a name and not an offset because only the name survives a change of the rules, RFC 9557's reason; time-zone is a format so that both validators check the name against the database their platform ships and report one that is not there. A past event written as local is not a valid case because it happened at an instant, and the server's zone is not a reason because it is the implementation's. Compiler test: a local-date-time without why is time_zone at the field and the field is read, rendered and drawn; acceptance test: making a wall-clock field an instant is one format changed and one why removed, and the problems file lists where the value is compared.
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1039 design tests, 521 golden and 518 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1041 design tests, 523 golden and 518 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1039 design tests, 521 golden and 518 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1035 |
+| system | 1037 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1960,6 +1960,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-110.
 - Given: a PDF of two pages, each a picture of a page as a scanner writes it, with no text layer
 - When: extract documents is run on it
 - Then: it says the PDF has no text layer and is a scanned document, and to read a copy with a text layer or the file it was printed from, writes nothing and exits 1
+
+#### extract-documents-pdf-tagged
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding a tagged PDF printed by a web browser: headings numbered 1 to 3, a paragraph under each of 1 and 3, and under 2 a table of fields headed Field, Type and Description with three rows, which the structure tree marks as a Table of TR rows and TH and TD cells
+- When: extract documents is run on the PDF
+- Then: it reads the table from the structure tree as its rows and cells, counts one table and one table of fields, writes the entity LoanFields with the fields loanNumber, member and dueDate, their types and descriptions, citing clause 2, writes the requirements of clauses 1 and 3, and exits 0
+
+#### extract-documents-pdf-untagged
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a repository holding the PDF of extract-documents-pdf-tagged with no structure tree: its catalog names neither MarkInfo nor StructTreeRoot, so nothing marks the table of fields under heading 2
+- When: extract documents is run on the PDF
+- Then: it reads the table as its lines, counts no table and no table of fields, writes no entity, writes the requirements of clauses 1 and 3 and those its lines give, and exits 0
 
 #### extract-documents-powerpoint
 

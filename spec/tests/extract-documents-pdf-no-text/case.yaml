@@ -1,0 +1,9 @@
+arguments: [extract, documents, --out, spec, docs/lending-rules.pdf]
+repository:
+  folder: docs
+  commits:
+    - [lending-rules.pdf]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch extract documents: docs/lending-rules.pdf cannot be read as a PDF document: the PDF has no text layer: none of its 2 pages holds text, so it is a scanned document, pictures of text, which this build does not read; make a copy with a text layer, as an OCR program writes, or take the file the document was printed from, and read that

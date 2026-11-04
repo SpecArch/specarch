@@ -31,8 +31,8 @@ decisions:
       extract documents chooses the reader by the file's extension:
       .md and .markdown, .pdf, .docx, .pptx, .xlsx and .eml. Any other
       file is refused, exit 1, naming the formats; a file of one of
-      these that does not parse, or a PDF encrypted with a password, is
-      refused with the reader's own error. Each reader gives the same
+      these that does not parse, a PDF encrypted with a password, or a
+      PDF with no text layer, is refused with the reader's own error. Each reader gives the same
       blocks the Markdown reader gives (a heading with its level, a
       clause the format names itself, a paragraph, a table, a block of
       code, and a thing not read with its place), and one reader turns
@@ -70,8 +70,17 @@ decisions:
       heading is in the clause of its page, page 1. A line that repeats
       on three pages or more is a running header or footer and not
       read; a page with no text is a scanned page and a could question.
-      A table in a PDF is read as its lines, since the file does not
-      mark one.
+      A PDF none of whose pages holds text has no text layer: it is a
+      scanned document, and it is refused, exit 1, saying so and to read
+      a copy with a text layer, as an OCR program writes, or the file
+      the document was printed from; as an email's attachment it is a
+      line and a could question, as any attachment that is refused. A
+      table in a PDF is read as its lines: an untagged PDF does not mark
+      one, and the structure tree of a tagged PDF is not read. A PDF
+      and its Markdown twin, the same text with the same headings, give
+      the same requirements and questions citing the same clauses; the
+      PDF adds only its pages, the page before the first heading and a
+      page with no text.
 
       PowerPoint: every slide is a clause, slide 3, titled by its title
       placeholder; its text boxes are paragraphs and its tables tables;
@@ -115,8 +124,9 @@ decisions:
       the Office formats and email use only the standard library and
       golang.org/x/text, which the program already holds, for the
       character sets of a message. No reader calls the network or
-      another program. A PDF made from scanned pages gives a could
-      question per page and nothing else, and a PDF's tables give
+      another program. A PDF made from scanned pages is refused with
+      what to do, a PDF with some scanned pages gives a could question
+      per such page, and a PDF's tables give
       their lines as sentences, not fields: a table of fields is read
       from the Word, Excel or Markdown copy. A heading numbered in a
       format the reader does not compute (ordinal words, Chinese
@@ -167,6 +177,22 @@ decisions:
       file, as the original does, so the reader recovers and refuses
       with the library's message. It has no release tags, so it is
       pinned at an exact commit by its pseudo-version.
+
+      A PDF with no text layer is refused, not read: read, it would give
+      a tree of no requirement and a could question per page, which
+      says the document commits nothing, and that is false; the
+      principle that a definition is read and its problems marked
+      (docs/principles.md) holds for a definition, and a picture of
+      text holds none to read. Rejected: reading it as such a tree, with
+      one more must question saying it is scanned, which leaves a source
+      and an outline of pages that nothing cites; and reading the
+      pictures by optical character recognition, which needs another
+      program or a model of its own and gives text whose every letter
+      is a guess, so a citation would quote words the file may not say.
+      A PDF with text on some pages is read, and each page without is a
+      could question, since what the rest commits is real. No text is
+      no glyph on any page, counted before running headers and footers
+      are set aside, as a page with no text is counted.
 
       The clause names follow how people cite each format: a page, a
       slide number, a cell or range as Excel's formulas write it, with

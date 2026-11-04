@@ -968,6 +968,15 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		}
 		lines = append(lines, got...)
 	}
+	// A PDF none of whose pages holds text has no text layer: it is a
+	// scanned document, and a tree read from it would say the document
+	// commits nothing (ADR-212).
+	if r.NumPage() == 0 {
+		return nil, fmt.Errorf("the PDF holds no page; read a copy that holds the document's pages")
+	}
+	if len(lines) == 0 {
+		return nil, fmt.Errorf("the PDF has no text layer: none of its %d pages holds text, so it is a scanned document, pictures of text, which this build does not read; make a copy with a text layer, as an OCR program writes, or take the file the document was printed from, and read that", r.NumPage())
+	}
 	// A line that repeats on three pages or more, its digits aside, is a
 	// running header or footer.
 	repeated := map[string]map[int]bool{}

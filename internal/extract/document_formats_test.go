@@ -3,11 +3,18 @@ package extract
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/base64"
+	"fmt"
 	"os"
+	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
+	"go.yaml.in/yaml/v3"
+
 	"github.com/SpecArch/specarch/internal/ooxml"
+	"github.com/SpecArch/specarch/internal/vocabulary"
 )
 
 func TestWordNumbering(t *testing.T) {
@@ -123,5 +130,120 @@ func TestEmailRepeatedSubject(t *testing.T) {
 	want := []string{"body", `message "Re: Loan limits"`, `message "Re: Loan limits" 2`}
 	if strings.Join(sections, "|") != strings.Join(want, "|") {
 		t.Fatalf("readEML named the clauses %q, want %q", sections, want)
+	}
+}
+
+// readTwin reads one fixture of extract documents into its requirements,
+// its questions and its clauses, as the reader writes them.
+func readTwin(t *testing.T, path string) (requirements, questions map[string]any, clauses []string) {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	format, _ := documentFormat(path)
+	in, err := format.read(filepath.Base(path), data, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := &docReader{key: "lending-rules", res: &Result{Tree: newTree()}, questions: &yaml.Node{Kind: yaml.MappingNode}, words: newDocWords(vocabulary.English()), counted: in.counted}
+	d.read(in.blocks)
+	d.write()
+	decode := func(n *yaml.Node) map[string]any {
+		out := map[string]any{}
+		if n != nil {
+			if err := n.Decode(&out); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return out
+	}
+	for _, c := range d.clauses {
+		if c.cited && !c.used || c.children > 0 && !c.own {
+			continue
+		}
+		clauses = append(clauses, c.id+" "+c.title)
+	}
+	return decode(d.requirements), decode(d.questions), clauses
+}
+
+// A PDF and its Markdown twin give the same requirements and questions,
+// citing the same clauses with the same words; the PDF alone cites the
+// pages a Markdown document has none of: page 1, before its first
+// heading, and page 2, which holds no text.
+func TestPDFMarkdownTwin(t *testing.T) {
+	pdfReq, pdfQ, pdfClauses := readTwin(t, "../../spec/tests/extract-documents-pdf/docs/lending-rules.pdf")
+	mdReq, mdQ, mdClauses := readTwin(t, "../../spec/tests/extract-documents-pdf-markdown-twin/docs/lending-rules.md")
+	if len(pdfReq) != 3 || !reflect.DeepEqual(pdfReq, mdReq) {
+		t.Errorf("the requirements differ:\nPDF      %v\nMarkdown %v", pdfReq, mdReq)
+	}
+	pageOnly := map[string]any{}
+	for id, q := range pdfQ {
+		if _, ok := mdQ[id]; ok {
+			continue
+		}
+		pageOnly[id] = q
+	}
+	for id, q := range mdQ {
+		if !reflect.DeepEqual(pdfQ[id], q) {
+			t.Errorf("question %s differs:\nPDF      %v\nMarkdown %v", id, pdfQ[id], q)
+		}
+	}
+	if len(pageOnly) != 1 || !strings.Contains(fmt.Sprint(pageOnly["Q-3"]), "clause:page 2") {
+		t.Errorf("the PDF's own questions are %v, want Q-3 citing page 2", pageOnly)
+	}
+	var pages, others []string
+	for _, c := range pdfClauses {
+		if strings.HasPrefix(c, "page ") {
+			pages = append(pages, c)
+		} else {
+			others = append(others, c)
+		}
+	}
+	if !reflect.DeepEqual(others, mdClauses) {
+		t.Errorf("the clauses differ:\nPDF      %q\nMarkdown %q", others, mdClauses)
+	}
+	if want := []string{"page 1 page 1"}; !reflect.DeepEqual(pages, want) {
+		t.Errorf("the PDF's page clauses are %q, want %q", pages, want)
+	}
+}
+
+// A PDF none of whose pages holds text is refused as a scanned document,
+// not read as a document that commits nothing.
+func TestPDFWithoutTextLayer(t *testing.T) {
+	data, err := os.ReadFile("../../spec/tests/extract-documents-pdf-no-text/docs/lending-rules.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in, err := readPDF("lending-rules.pdf", data, 0)
+	if err == nil || !strings.Contains(err.Error(), "the PDF has no text layer: none of its 2 pages holds text") {
+		t.Fatalf("readPDF on a scanned PDF gave %v, %v; want the missing text layer named", in, err)
+	}
+}
+
+// A PDF with no text layer attached to an email is a line and a could
+// question, as any attachment that is refused, and the message is read.
+func TestEmailAttachedPDFWithoutTextLayer(t *testing.T) {
+	data, err := os.ReadFile("../../spec/tests/extract-documents-pdf-no-text/docs/lending-rules.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := "From: board@example.org\r\nSubject: Lending rules\r\nMIME-Version: 1.0\r\n" +
+		"Content-Type: multipart/mixed; boundary=b\r\n\r\n" +
+		"--b\r\nContent-Type: text/plain\r\n\r\nA loan lasts three weeks.\r\n" +
+		"--b\r\nContent-Type: application/pdf\r\nContent-Disposition: attachment; filename=\"lending-rules.pdf\"\r\nContent-Transfer-Encoding: base64\r\n\r\n" +
+		base64.StdEncoding.EncodeToString(data) + "\r\n--b--\r\n"
+	in, err := readEML("rules.eml", []byte(msg), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var notRead []string
+	for _, b := range in.blocks {
+		if b.kind == blockNotHeld {
+			notRead = append(notRead, b.place+": "+b.text)
+		}
+	}
+	if len(notRead) != 1 || !strings.Contains(notRead[0], "lending-rules.pdf: the attachment lending-rules.pdf cannot be read as a PDF document: the PDF has no text layer") {
+		t.Fatalf("readEML set aside %q, want the attached PDF's missing text layer as one line", notRead)
 	}
 }

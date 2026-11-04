@@ -111,8 +111,10 @@ numbering, which a conversion to Markdown loses (ADR-212, SA-110,
 `spec/tests/extract-documents-word`, `-pdf`, `-powerpoint`, `-excel`,
 `-email`): built on main, in no release yet. A capture trial beside Spec
 Kit, which starts from whatever its agent is given to read, showed the
-gap. Not built: tables in a PDF, which the file does not mark, and the
-text of a scanned page.
+gap. A PDF with no text layer is refused as a scanned document, with
+what to do (`spec/tests/extract-documents-pdf-no-text`). Not built: tables
+in a PDF, which an untagged file does not mark and whose tagged structure
+is not read, and the text of a scanned page.
 
 `specarch extract tables` reads CSV, TSV and Excel registers into entities,
 each column's type inferred from every value of every file of the register

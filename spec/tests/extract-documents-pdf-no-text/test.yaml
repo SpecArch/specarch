@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: red
+covers: [exit 1]
+given: "a PDF of two pages, each a picture of a page as a scanner writes it, with no text layer"
+when: "extract documents is run on it"
+then: "it says the PDF has no text layer and is a scanned document, and to read a copy with a text layer or the file it was printed from, writes nothing and exits 1"
+verifies: [SA-110]

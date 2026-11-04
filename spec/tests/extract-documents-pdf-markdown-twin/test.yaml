@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: extract
+level: system
+scenario: golden
+given: "a Markdown document holding the text of the PDF of extract-documents-pdf: the paragraph before the first heading, the headings Lending rules, 1 Scope, 2 Loans and 3 Fines, and the paragraphs numbered 2.1, 2.2 and 3.1"
+when: "extract documents is run on the Markdown document"
+then: "it writes the same requirements, citing the clauses 2.1, 2.2 and 3.1 with the same words, and the same questions as the PDF gives; the PDF alone cites page 1, the page before its first heading, and page 2, the page that holds no text; it exits 0"
+verifies: [SA-110]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1035 design tests, 519 golden and 516 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1037 design tests, 520 golden and 517 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1035 design tests, 519 golden and 516 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1031 |
+| system | 1033 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1936,6 +1936,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-110.
 - Given: a PDF encrypted by the standard security handler with a user password, RC4 with a 128-bit key
 - When: extract documents is run on it
 - Then: it says the PDF is encrypted with a password and to read a copy saved without one, writes nothing and exits 1
+
+#### extract-documents-pdf-markdown-twin
+
+Scenario: golden; level: system; verifies SA-110.
+
+- Given: a Markdown document holding the text of the PDF of extract-documents-pdf: the paragraph before the first heading, the headings Lending rules, 1 Scope, 2 Loans and 3 Fines, and the paragraphs numbered 2.1, 2.2 and 3.1
+- When: extract documents is run on the Markdown document
+- Then: it writes the same requirements, citing the clauses 2.1, 2.2 and 3.1 with the same words, and the same questions as the PDF gives; the PDF alone cites page 1, the page before its first heading, and page 2, the page that holds no text; it exits 0
+
+#### extract-documents-pdf-no-text
+
+Scenario: red; level: system; covers exit 1; verifies SA-110.
+
+- Given: a PDF of two pages, each a picture of a page as a scanner writes it, with no text layer
+- When: extract documents is run on it
+- Then: it says the PDF has no text layer and is a scanned document, and to read a copy with a text layer or the file it was printed from, writes nothing and exits 1
 
 #### extract-documents-powerpoint
 

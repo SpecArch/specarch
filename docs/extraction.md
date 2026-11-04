@@ -265,12 +265,15 @@ Steps, in order:
    (`lending-rules.docx: 2.1.1`). Pictures, charts, tracked changes,
    footnotes, scanned pages, running headers, quoted replies, the
    signature and an attachment of another kind are each a line and a
-   could question. Word, PowerPoint, Excel and email are read with the
+   could question; a PDF with no text on any page has no text layer and
+   is refused as a scanned document, saying to read a copy with a text
+   layer. A PDF and its Markdown twin give the same requirements and
+   questions, citing the same clauses; the PDF adds its pages. Word, PowerPoint, Excel and email are read with the
    standard library; PDF with `github.com/ledongthuc/pdf` (BSD-3-Clause,
    no dependencies); the workbook reader, `internal/xlsx`, is shared
    with the tabular data source. Cases `spec/tests/extract-documents-word`,
-   `-pdf`, `-powerpoint`, `-excel`, `-email` and
-   `-pdf-does-not-parse`.
+   `-pdf`, `-pdf-markdown-twin`, `-pdf-no-text`, `-powerpoint`,
+   `-excel`, `-email` and `-pdf-does-not-parse`.
 7. Built. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and
    3.1, in YAML or JSON, with no dependency beyond the YAML library
    (ADR-049): operations, parameters, request and response schemas, as a

@@ -70,6 +70,10 @@ decisions:
       heading is in the clause of its page, page 1. A line that repeats
       on three pages or more is a running header or footer and not
       read; a page with no text is a scanned page and a could question.
+      A page the page tree counts but holds no page object for does not
+      parse: it is a line at that page, and a page tree that gives no
+      page to read, none counted or none of those counted there, is a
+      PDF that does not parse and is refused as one, exit 1.
       A PDF none of whose pages holds text has no text layer: it is a
       scanned document, and it is refused, exit 1, saying so and to read
       a copy with a text layer, as an OCR program writes, or the file
@@ -192,7 +196,12 @@ decisions:
       A PDF with text on some pages is read, and each page without is a
       could question, since what the rest commits is real. No text is
       no glyph on any page, counted before running headers and footers
-      are set aside, as a page with no text is counted.
+      are set aside, as a page with no text is counted. Only a page that
+      reads counts: a page tree with no page object to read says nothing
+      of pictures of text, so calling it scanned and saying to run OCR
+      would name the wrong cause and the wrong remedy; it is a PDF that
+      does not parse, and a page missing among pages that read is named
+      as not parsing, not as a scanned page.
 
       The clause names follow how people cite each format: a page, a
       slide number, a cell or range as Excel's formulas write it, with

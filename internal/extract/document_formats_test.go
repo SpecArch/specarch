@@ -247,3 +247,77 @@ func TestEmailAttachedPDFWithoutTextLayer(t *testing.T) {
 		t.Fatalf("readEML set aside %q, want the attached PDF's missing text layer as one line", notRead)
 	}
 }
+
+// buildPDF writes a PDF of the given objects, numbered from 1, with the
+// cross-reference table a reader needs; object 1 is the catalog.
+func buildPDF(objects ...string) []byte {
+	var b strings.Builder
+	b.WriteString("%PDF-1.4\n")
+	offsets := make([]int, len(objects))
+	for i, o := range objects {
+		offsets[i] = b.Len()
+		fmt.Fprintf(&b, "%d 0 obj\n%s\nendobj\n", i+1, o)
+	}
+	xref := b.Len()
+	fmt.Fprintf(&b, "xref\n0 %d\n0000000000 65535 f \n", len(objects)+1)
+	for _, off := range offsets {
+		fmt.Fprintf(&b, "%010d 00000 n \n", off)
+	}
+	fmt.Fprintf(&b, "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n", len(objects)+1, xref)
+	return []byte(b.String())
+}
+
+func pdfPage(content string) []string {
+	stream := fmt.Sprintf("<< /Length %d >>\nstream\n%s\nendstream", len(content), content)
+	return []string{
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+		stream,
+		"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
+	}
+}
+
+// A page tree that gives no page to read does not parse: it is refused as
+// such, not as a scanned document to be read by OCR.
+func TestPDFPageTreeWithoutPages(t *testing.T) {
+	for _, c := range []struct {
+		name, pages, want string
+	}{
+		{"no page counted", "<< /Type /Pages /Kids [] /Count 0 >>", "the PDF does not parse: its page tree counts 0 pages"},
+		{"no page object", "<< /Type /Pages /Kids [] /Count 2 >>", "the PDF does not parse: its page tree counts 2 pages, but no page object is there for any of them"},
+	} {
+		in, err := readPDF("lending-rules.pdf", buildPDF("<< /Type /Catalog /Pages 2 0 R >>", c.pages), 0)
+		if err == nil || !strings.Contains(err.Error(), c.want) || strings.Contains(err.Error(), "text layer") {
+			t.Errorf("%s: readPDF gave %v, %v; want %q", c.name, in, err, c.want)
+		}
+	}
+}
+
+// A page the page tree counts but holds no object for is a line at that
+// page; the pages that read are read. When none of those holds text, the
+// refusal names the missing text layer and the pages that do not parse.
+func TestPDFPageWithoutObject(t *testing.T) {
+	catalog, pages := "<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 2 >>"
+	text := append([]string{catalog, pages}, pdfPage("BT /F1 12 Tf 72 720 Td (A loan lasts three weeks.) Tj ET")...)
+	in, err := readPDF("lending-rules.pdf", buildPDF(text...), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var notRead []string
+	read := false
+	for _, b := range in.blocks {
+		if b.kind == blockNotHeld {
+			notRead = append(notRead, b.place+": "+b.text)
+		}
+		if b.kind == blockParagraph && strings.Contains(b.text, "three weeks") {
+			read = true
+		}
+	}
+	if !read || len(notRead) != 1 || !strings.HasPrefix(notRead[0], "page 2: page 2 does not parse") {
+		t.Fatalf("readPDF read the text: %v; set aside %q; want page 1 read and page 2 named as not parsing", read, notRead)
+	}
+	blank := append([]string{catalog, pages}, pdfPage("")...)
+	_, err = readPDF("lending-rules.pdf", buildPDF(blank...), 0)
+	if err == nil || !strings.Contains(err.Error(), "the PDF has no text layer: none of its 1 pages holds text (pages 2 of 2 do not parse") {
+		t.Fatalf("readPDF on a blank page and a missing one gave %v; want the text layer and page 2 named", err)
+	}
+}

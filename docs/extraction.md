@@ -267,7 +267,8 @@ Steps, in order:
    signature and an attachment of another kind are each a line and a
    could question; a PDF with no text on any page has no text layer and
    is refused as a scanned document, saying to read a copy with a text
-   layer. A PDF and its Markdown twin give the same requirements and
+   layer, while a page tree that gives no page to read is refused as a
+   PDF that does not parse. A PDF and its Markdown twin give the same requirements and
    questions, citing the same clauses; the PDF adds its pages. Word, PowerPoint, Excel and email are read with the
    standard library; PDF with `github.com/ledongthuc/pdf` (BSD-3-Clause,
    no dependencies); the workbook reader, `internal/xlsx`, is shared

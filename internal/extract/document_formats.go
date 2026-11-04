@@ -1050,7 +1050,7 @@ func readPDF(_ string, data []byte, _ int) (in *docInput, err error) {
 		rows := pdfTableRows(t, func(row, cell int) string { return pdfCellText(cellLines[cellAt{ti, row, cell}]) })
 		at := len(lines)
 		for i, l := range lines {
-			if l.page > top.page || (l.page == top.page && l.table == nil && l.y < top.y) {
+			if l.page > top.page || (l.page == top.page && l.y < top.y) {
 				at = i
 				break
 			}

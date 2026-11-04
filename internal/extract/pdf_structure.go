@@ -88,7 +88,11 @@ func pdfStructTables(r *pdf.Reader) []pdfStructTable {
 			}
 			switch v.Key("Type").Name() {
 			case "MCR":
-				if id := v.Key("MCID"); id.Kind() == pdf.Integer {
+				// An MCID in a form XObject's stream (Stm) is that
+				// stream's, not the page's, and the form's glyphs are not
+				// among the page's text: it is not matched.
+				if v.Key("Stm").IsNull() && v.Key("MCID").Kind() == pdf.Integer {
+					id := v.Key("MCID")
 					*out = append(*out, pdfMark{page: page, mcid: id.Int64()})
 				}
 			case "OBJR":

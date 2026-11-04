@@ -269,11 +269,15 @@ Steps, in order:
    is refused as a scanned document, saying to read a copy with a text
    layer, while a page tree that gives no page to read is refused as a
    PDF that does not parse. A PDF and its Markdown twin give the same requirements and
-   questions, citing the same clauses; the PDF adds its pages. Word, PowerPoint, Excel and email are read with the
+   questions, citing the same clauses; the PDF adds its pages. A tagged
+   PDF's tables are read from its structure tree as their rows and cells,
+   so its table of fields gives an entity; an untagged PDF's tables are
+   read as their lines. Word, PowerPoint, Excel and email are read with the
    standard library; PDF with `github.com/ledongthuc/pdf` (BSD-3-Clause,
    no dependencies); the workbook reader, `internal/xlsx`, is shared
    with the tabular data source. Cases `spec/tests/extract-documents-word`,
-   `-pdf`, `-pdf-markdown-twin`, `-pdf-no-text`, `-powerpoint`,
+   `-pdf`, `-pdf-markdown-twin`, `-pdf-no-text`, `-pdf-tagged`,
+   `-pdf-untagged`, `-powerpoint`,
    `-excel`, `-email` and `-pdf-does-not-parse`.
 7. Built. The OpenAPI reader, `extract openapi`, for OpenAPI 3.0 and
    3.1, in YAML or JSON, with no dependency beyond the YAML library

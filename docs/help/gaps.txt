@@ -39,11 +39,15 @@ among its stages and has a design/ folder. Then validate again.
 When the documents are written and read, the stakeholder who read them
 approves:
 
-  specarch approve --by writer spec/
+  specarch approve --by writer --session SES-1 spec/
 
 It refuses a specification with errors, with an open must or should
-question, or whose documents differ from what it says now, and warns,
-going ahead, while no role has confirmed that the stakeholder list is
-complete (stakeholdersComplete; specarch help validate). The record
+question, or whose documents differ from what it says now, and a role
+never heard (unheard: no communication, session, interview or decision
+names it). --session names the session, test session or communication
+record in which the role read the documents, which must list it
+(approval_session). It warns, going ahead, while no role has confirmed
+that the stakeholder list is complete (stakeholdersComplete; specarch
+help validate), and when no session is named. The record
 holds a digest of the files, so any later change voids it. generate runs
 only on an approved specification.

@@ -184,6 +184,46 @@ extension RecordChecks {
     }
 }
 
+extension RecordChecks {
+    /// Checks the record an approval names as the session in which its
+    /// role read the documents: a session, a test session or a
+    /// communication record, under exactly one of those kinds, that lists
+    /// the role under present, or as from or to (ADR-239).
+    func checkApprovalSession(_ r: Record) {
+        guard let n = r.root?.child("session") else { return }
+        let id = str(n)
+        if id.isEmpty { return }
+        let role = r.str("approvedBy")
+        var found: [Record] = []
+        var kinds: [String] = []
+        for (kind, folder) in [("session", "sessions"), ("test-session", "test-sessions"), ("communication", "communications")] {
+            if let rec = set[kind]?[id] {
+                found.append(rec)
+                kinds.append("records/\(folder)/\(id).yaml")
+            }
+        }
+        if found.isEmpty {
+            r.c.add(n, "/session", .recordRef, "\(id) is not a session, a test session or a communication: there is no records/sessions/\(id).yaml, records/test-sessions/\(id).yaml or records/communications/\(id).yaml; name the record in which \(role) read the documents")
+            return
+        }
+        if found.count > 1 {
+            r.c.add(n, "/session", .recordRef, "\(id) names more than one record: \(joinAnd(kinds)); give each record an ID of its own, and name the one in which \(role) read the documents")
+            return
+        }
+        let rec = found[0]
+        if rec.kind == "communication" {
+            let from = rec.str("from"), to = rec.str("to")
+            if from == role || to == role { return }
+            r.c.add(n, "/session", .approvalSession, "\(id) is from \(from) to \(to), not from or to \(role), so it does not show that \(role) read the documents; name the session or the communication in which \(role) read them")
+            return
+        }
+        let present = items(rec.root?.child("present")).map(\.value)
+        if present.contains(role) { return }
+        let what = present.isEmpty ? "lists nobody under present" : "lists \(joinAnd(present)) under present"
+        r.c.add(n, "/session", .approvalSession, "\(id) \(what), not \(role), so it does not show that \(role) read the documents there; name the session in which \(role) read them, or add \(role) under present when it took part")
+    }
+}
+
 /// A communication's type with its article, for a message.
 func typeArticle(_ typ: String) -> String {
     switch typ {

@@ -1,0 +1,6 @@
+arguments: [approve, --by, clerk, --date, 2026-11-04, project]
+exitStatus: 0
+standardOutput: ""
+standardError: |
+  specarch approve: warning: the approval names no session (--session), so it does not record where clerk read the documents; the approval goes ahead, and --session <ID> names the session, test session or communication record in which it read them
+  specarch approve: version 1.0.0 of project approved by clerk; records/approvals/1.0.0.yaml written beside it

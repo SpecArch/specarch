@@ -368,13 +368,17 @@ record, since it happens once per version:
     version: 1.0.0
     approvedBy: product-owner
     date: "2026-10-08"
+    session: SES-4
     documents: [techspec, requirements, testplan]
     digest: sha256:9f86d081...
 
-`specarch approve --by <stakeholder> [--date <date>] <folder>` writes it,
-after checking that the specification has no error, that no `must` or
-`should` question is open, that `--by` is a stakeholder of the specification,
-and that at least one document target is configured and every configured
+`specarch approve --by <stakeholder> [--session <ID>] [--date <date>] <folder>`
+writes it, after checking that the specification has no error, that no
+`must` or `should` question is open, that `--by` is a stakeholder of the
+specification and was heard (a communication, session, test session,
+interview or decision names it, as the rule `unheard` reads it), that the
+record `--session` names is a session, test session or communication that
+lists that role (ADR-239), and that at least one document target is configured and every configured
 document on disk is what the specification generates now, so that what the
 approver read is what is approved. The date is today unless given. The record
 lives beside the specification's folder, under `records/`, where the

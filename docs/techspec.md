@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.5.0 of the specification: 129 requirements, 5 entities, 30 commands, 7 algorithms, 1024 tests, 222 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.5.0 of the specification: 130 requirements, 5 entities, 30 commands, 7 algorithms, 1029 tests, 223 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -74,7 +74,7 @@ The interfaces the system offers, as its clients see them.
 
 | Command | Summary | Permission | Exit statuses |
 |---|---|---|---|
-| approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete); 1: refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
+| approve | Record that the documents were read and the specification is approved | public | 0: the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one when no session is named; 1: refused; the specification has errors or open questions, the stakeholder is unknown or was never heard, the session is not a record that lists it, no document is configured, or a document is not current; 2: usage error, or a file that could not be read or written |
 | capabilities | List what this program and the plug-ins on PATH can do; with --json as a tool listing a program reads | public | 0: printed; 2: usage error |
 | check | Compare a specification with the dumps of the running code, for a CI gate | public | 0: every difference is one the allowlist names or a report, and every line of the allowlist names a difference and was there at --since; 1: a difference the allowlist does not name, a line of the allowlist that names none, repeats one or was added since --since, or a specification validate reports an error in; 2: usage error; a dump, the specification or the allowlist that could not be read; a dump of no format check reads, or one its reader refuses; a catalogue dump with no implementation file to compare it through, or with one whose tables cannot be written for PostgreSQL; or a revision git does not know |
 | compare | Compare alternative implementation files of one specification in one table, from their test results, scan findings and measurements | public | 0: the table is written or printed, its gaps marked in their cells and listed; 1: nothing written, since an implementation file, an option's name or a test-run record is not the specification's, or an input file is refused; or written, while the specification has errors; 2: usage error, or a folder or file that could not be read or written |
@@ -362,7 +362,7 @@ Primary key: path.
 | Rule | secret_value | a setting marked secret carries a value, as a default or in a deployment |
 | Rule | monitor | an implementation's deployment watches a monitor the specification does not declare |
 | Rule | record_name | a record's file name is not its ID, its version, or its date and environment, or it does not sit in the folder of its kind under `records/` |
-| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release, commissioning run, session or test session that is not a record and not in a declared change-set or defect-set; or the environment of the build a change or defect from acceptance names under against is not an environment, a seenAt pointer of an open change or defect does not resolve, or a question a proposed or analysed change names is neither open nor answered by a decision; or an answer record links neither a question nor a change request; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model; a communication's, session's, test session's or deploy's links, session, source, version and roles are checked the same way, a question a decision answers counting as a question (ADR-220); so are a test run's environment, version and role and each result's test, element and defect (ADR-230) |
+| Rule | record_ref | a record names a stakeholder, requirement, `#/` pointer, test, environment, monitor, source, decision or question the specification does not have, or a change, defect, incident, release, commissioning run, session or test session that is not a record and not in a declared change-set or defect-set; or the environment of the build a change or defect from acceptance names under against is not an environment, a seenAt pointer of an open change or defect does not resolve, or a question a proposed or analysed change names is neither open nor answered by a decision; or an answer record links neither a question nor a change request; or a requirement's release is not a planned or released release record; an open idea's `about` may name an element not yet there under one that is, or under a section of the meta-model; a communication's, session's, test session's or deploy's links, session, source, version and roles are checked the same way, a question a decision answers counting as a question (ADR-220); so are a test run's environment, version and role and each result's test, element and defect (ADR-230); and an approval's session names a session, test session or communication record held under exactly one of those kinds (ADR-239) |
 | Rule | change_applied | an implemented or released change's `adds` or `changes` do not resolve or its `removes` still do, or an open change's `changes` or `removes` do not resolve; an open change whose `adds` already resolve is a warning |
 | Rule | change_decision | an approved, implemented or released change has no decision with outcome approved, or a rejected one no decision with outcome rejected |
 | Rule | change_answered | on a decision whose answers name a change request (a change record beside the specification, or an ID of a declared change tracker; every other ID under answers is a question's): an accepted decision answers a change whose decision is not approved, or the change's decision was taken by another role than the one decidedBy names (ADR-221) |
@@ -455,6 +455,7 @@ Primary key: path.
 | Rule | evidence | a record's evidence names a file that is not under records/, or one whose SHA-256 is not the one recorded, so the file changed since the record was written (ADR-220) |
 | Rule | record_cited | a citation names a communication record that does not exist, one whose type is neither answer nor information (a request, a question or an objection settles nothing by itself: cite the decision it led to, or the answer given), or, on a decision that answers questions, an answer record that links none of them or that was said by another role than the one decidedBy names (ADR-220) |
 | Rule | unheard | as a warning, at the stakeholder, from the first day: a role that no communication record names as from or to, no session or test session lists as present, no interview source lists among its participants and no decision names under decidedBy, while an accepted requirement needs it (through its needs or ownedBy) or, in an approved specification, a page's permission is granted to it; the warning names the role and the elements, so the risk of that role objecting first at acceptance shows early; while no communication, session or test session record is kept beside the specification, every such role is unheard and the warning adds that none is kept yet and to start by logging the first conversation (ADR-220) |
+| Rule | approval_session | an approval's session names a session or test session that does not list the approving role under present, or a communication that is neither from nor to it, so the record does not show that the role read the documents there (ADR-239) |
 | Rule | test_unmapped | as a warning, at the result: a result of a test-run record names no test and no element, since its testcase's name maps to no test of the specification and to no algorithm's or call mapping's worked examples, or to two; the result is kept, and the warning stays until test names the test it runs, element the algorithm or operation whose worked examples it runs, or the specification gains the test (ADR-230) |
 | Rule | technology_unjustified | as a warning, at a binding of an implementation file whose framework is not the standard library: no element of the design needs a binding of its kind (http: paths, routes or gateways; messaging: channels or a dependency of kind messageBroker; cli: commands; ui: pages; storage: entities or views), no idiom of the file's stacks approves the framework under technologies, and no decision justifies it: the binding names none under decidedIn, or the decision it names satisfies no requirement or names no simpler option under alternatives; the message names what would justify it (ADR-231) |
 | Severity | error | the file is invalid |
@@ -672,7 +673,14 @@ flowchart LR
 
 Validates its input first and approves nothing with errors. Then
 refuses while a must or should question is open, when `--by` is not a
-stakeholder of the specification, when no document target is
+stakeholder of the specification, when `--by` was never heard (the
+rule unheard: no communication record names it as from or to, no
+session or test session lists it under present, no interview lists it
+among its participants and no decision names it under decidedBy,
+whether or not anything relies on it; ADR-239), when `--session` names
+no session, test session or communication record, or one held under
+two of those kinds (record_ref), or one that does not list `--by`
+(approval_session), when no document target is
 configured, and when any configured document on disk is not what the
 specification generates now, so that what was read is what is
 approved. Each document is made as `document` makes it, with the
@@ -681,7 +689,8 @@ html site, its problems, diagrams and screens, so a document that
 `document` has just written is current; the questions, problems and comparison targets are the
 refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
 the specification's folder: the record kind, the version, who
-approved, the date, the documents that were current, the digest
+approved, the date, the session given with `--session`, the
+documents that were current, the digest
 of the specification's files (the SHA-256 of every `.yaml` file under
 its folder, in byte order of their relative paths, each as its path,
 a zero byte, its bytes without its problem marks, and a zero byte),
@@ -689,12 +698,14 @@ and the commit the folder is at when it is inside a git repository
 and every file under it is committed, so that `diff` between that
 commit and the working tree later shows the approver only what
 changed (ADR-224); a folder with changes not committed gets no
-commit, with a line on standard error saying so.
+commit, with a line on standard error saying so. Without `--session`
+it warns on standard error that the approval names no session, and
+still writes the record.
 A later change to any of those files voids the approval, and
 `generate` says so; a problem mark, a line that starts with
 `# specarch-problem:` (ADR-066), is not a change.
 
-**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The marks are left out of the digest because they record what a run of SpecArch found, not what the author wrote, and `document problems` rewrites them on every run. The record names a role, because a specification is read and copied by more people than a ticket system.
+**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The marks are left out of the digest because they record what a run of SpecArch found, not what the author wrote, and `document problems` rewrites them on every run. The record names a role, because a specification is read and copied by more people than a ticket system. A role never heard is refused, and the session is named, because an approval by a role nobody talked to is the one most likely to be overturned at acceptance, and the session says where and with whom the documents were read (ADR-239).
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
@@ -704,16 +715,17 @@ A later change to any of those files voids the approval, and
 |---|---|---|---|
 | `<paths>` | string, one or more | yes | Folders holding specifications, searched as validate searches them. |
 | `--by` | string | yes | The stakeholder who read the documents and approves, by key; a role, never a person. |
+| `--session` | string |   | The session, test session or communication record in which the role read the documents, by ID; it must list the role under present, or as from or to of a communication. |
 | `--date` | date |   | The date of the approval, as YYYY-MM-DD. Today when not given. |
 | `--dry-run` | bool |   | Check everything and write nothing; print the approval record it would write, as would write <path>. |
 
-Reads `{paths}`: The specifications and their implementation files; `<output>/<target>.md`: Every configured document, compared with what the specification generates now.
+Reads `{paths}`: The specifications and their implementation files; `<output>/<target>.md`: Every configured document, compared with what the specification generates now; `records/`: The records beside the specification: the communications, sessions and test sessions that show the role was heard, and the one --session names.
 
-Writes `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
+Writes `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the session --session names and the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
 
 Standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
 
-Standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one line naming the record written.
+Standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), one warning when no session is named (--session), and one line naming the record written.
 
 ```mermaid
 sequenceDiagram
@@ -723,6 +735,7 @@ sequenceDiagram
   U->>P: approve <paths>
   P->>F: read {paths}
   P->>F: read <output>/<target>.md
+  P->>F: read records/
   P->>F: write records/approvals/<version>.yaml
   P-->>U: exit status 0, 1, 2
 ```
@@ -18816,19 +18829,65 @@ outside this specification.
 
 **Insight:** A number that is right from the start is the only kind a history entry and a commit message can cite truly, since both are written on the branch and neither can be corrected once pushed. The clash is prevented where the number is taken, not repaired where the branches meet, so the hand merge and the second run of every check go away rather than become cheaper. The specification keeps one way to write each ID, so no rule, schema pattern or conformance case changes in either validator build, and a specification written before reads the same.
 
+### ADR-239: approve refuses a role never heard, and the approval names the session, test session or communication record in which the documents were read
+
+Status: proposed, 2026-11-04.
+
+Rests on: [ADR-220](#adr-220-who-said-what-and-when-is-kept-as-records-beside-the-specification-a-communication-a-session-a-test-session-and-a-deploy-each-with-an-instant-and-its-offset-and-evidence-hashed-with-sha-256-a-citation-names-a-communication-record-specarch-log-writes-one-from-options-alone-and-asks-for-what-is-missing-the-validator-warns-of-a-role-nobody-heard-and-two-documents-the-communication-history-and-the-timeline-are-written-from-the-records), [ADR-224](#adr-224-does-approval-stay-whole-with-the-cost-of-approving-again-kept-down-by-diff-against-the-approval-or-may-part-of-a-specification-be-approved).
+
+Context: An approval record names the role that read the documents and the
+digest of what it read, but nothing in it shows that the role was
+ever heard, or where and with whom it read them. The validator warns
+unheard of a role no communication, session, interview or decision
+names, but only while something relies on it, and approve accepted
+any stakeholder, so a role nobody had talked to could approve, and
+be the first to object at acceptance.
+
+Decision: specarch approve refuses, with exit 1, a --by role that no
+communication record names as from or to, no session or test
+session lists under present, no interview source lists among its
+participants and no decision names under decidedBy: the same
+definition of heard as the rule unheard, applied whether or not
+anything relies on the role. The refusal names the rule unheard,
+the records that would show the role was heard, and --session.
+--session <ID> names the session, test session or communication
+record in which the role read the documents; approve checks it as
+validate does and writes it into the approval record as session.
+An ID that is no such record, or one held under two of those kinds,
+is the error record_ref; a session or test session whose present
+does not list the approving role, or a communication neither from
+nor to it, is the error approval_session; approve refuses both.
+Without --session approve prints a warning on standard error,
+writes the record and exits 0. validate checks the session of every
+approval record the same way, at its session key.
+
+Consequences: A specification is approved only after at least one record shows
+the approving role was heard, so the first approval of a project
+starts by logging a session or a conversation. An approval record
+without session stays valid, and approve says each time that it
+names none.
+
+**Insight:** A refusal rather than a warning for an unheard role, because an approval is the one act the role does itself: a role that approves without any record of being heard is the gap the approval exists to close, and recording one session costs a few lines. A warning rather than a refusal without --session, because a role may have been heard in a session and read the documents on their own later; the warning keeps that visible without stopping the work. A communication record as well as a session, because the documents are often read and approved in an e-mail or a chat, where from and to say who took part as present does in a session. One ID naming two kinds of record is an error, not a first match, since which record the approval rests on would then be a guess (the Low IQ Tax). The same definition of heard as unheard, so that the validator's warning and approve's refusal never disagree on a role.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
 
 | Test | Subject | Level | Scenario | Given | When | Then |
 |---|---|---|---|---|---|---|
-| approve-after-document-records-and-site | command approve | system | golden | a specification with change requests, releases and a defect in the records beside it, a stakeholder owner, and changes, releases and html documents that specarch document has just written | approve is run with --by owner and a date | it finds every document current, as document wrote it from the records, the problem marks and the site's parts, writes records/approvals/1.0.0.yaml naming the three documents, and exits 0 |
+| approve-after-document-records-and-site | command approve | system | golden | a specification with change requests, releases and a defect in the records beside it, a stakeholder owner, a session SES-1 that lists owner present, and changes, releases and html documents that specarch document has just written | approve is run with --by owner, --session SES-1 and a date | it finds every document current, as document wrote it from the records, the problem marks and the site's parts, writes records/approvals/1.0.0.yaml naming the three documents, and exits 0 |
 | approve-refuses-open-question | command approve | system | red | a specification with an open should question | approve is run | it refuses, writes nothing and exits 1 |
-| approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now | approve is run | it names the document that differs, writes nothing and exits 1 |
-| approve-stakeholders-complete | command approve | system | golden | a specification whose stakeholdersComplete is set by a declared stakeholder, a current requirements document and a stakeholder clerk | approve is run with --by clerk and a date | it writes the approval record with no warning about the stakeholder list, and exits 0 |
+| approve-refuses-session-absent | command approve | system | red | a specification with a current requirements document, stakeholders clerk and manager, and a session SES-1 to which both were invited and only the manager came | approve is run with --by clerk and --session SES-1 | it refuses on standard error as approval_session, naming who SES-1 lists present, writes nothing, and exits 1 |
+| approve-refuses-session-missing | command approve | system | red | a specification with a current requirements document, a stakeholder clerk and a session SES-1 that lists it present | approve is run with --by clerk and --session SES-9, which is no record | it refuses on standard error as record_ref, naming the three folders the ID was looked for in, writes nothing, and exits 1 |
+| approve-refuses-stale-document | command approve | system | red | a configured requirements document that is not what the specification generates now, and a session SES-1 that lists the approving owner present | approve is run with --by owner and --session SES-1 | it names the document that differs, writes nothing and exits 1 |
+| approve-refuses-unheard | command approve | system | red | a specification with a current requirements document and a stakeholder owner that no communication, session, test session, interview or decision names, and no records beside it | approve is run with --by owner and a date | it refuses on standard error, naming the rule unheard, the records that would show owner was heard and --session, writes nothing, and exits 1 |
+| approve-stakeholders-complete | command approve | system | golden | a specification whose stakeholdersComplete is set by a declared stakeholder, a current requirements document a stakeholder clerk and a session SES-1 that lists it present | approve is run with --by clerk, --session SES-1 and a date | it writes the approval record with no warning about the stakeholder list, and exits 0 |
 | approve-usage-error | command approve | system | red | no --by | approve is run without saying who approves | it prints how to use it and exits 2 |
-| approve-warns-stakeholders-unconfirmed | command approve | system | red | a specification with stakeholders and no stakeholdersComplete, a current requirements document and a stakeholder clerk | approve is run with --by clerk and a date | it warns on standard error that the stakeholder list is not confirmed complete, still writes the approval record, and exits 0 |
-| approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner | approve is run with --by owner and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0 |
+| approve-warns-no-session | command approve | system | red | a specification with a current requirements document and a stakeholder clerk heard at the kickoff interview, and no records beside it | approve is run with --by clerk and a date, without --session | it warns on standard error that the approval names no session, still writes the approval record without session, and exits 0 |
+| approve-warns-stakeholders-unconfirmed | command approve | system | red | a specification with stakeholders and no stakeholdersComplete, a current requirements document a stakeholder clerk and a session SES-1 that lists it present | approve is run with --by clerk, --session SES-1 and a date | it warns on standard error that the stakeholder list is not confirmed complete, still writes the approval record, and exits 0 |
+| approve-writes-record | command approve | system | golden | a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, a stakeholder owner, and a session SES-1 that lists owner present | approve is run with --by owner, --session SES-1 and a date | it writes records/approvals/1.0.0.yaml with the role, the date, the session SES-1, the document and the digest of the files, and exits 0 |
 | capabilities-text | command capabilities | system | golden | the program, with no plug-in on PATH | capabilities is run | it prints the version, the formats, every command, the document targets and extract sources, no plug-in and the limits, and exits 0 |
 | capabilities-usage-error | command capabilities | system | red | the program | capabilities is run with an option it does not take | it prints how to use it and exits 2 |
 | check-dump-of-no-format | command check | system | red | a specification and a JSON file with tables and a commit and none of the keys routeTable, permissionTable and catalogue | check is run with the file as a dump | it says on standard error that the file is no dump check reads, naming the three keys, prints nothing on standard output and exits 2 |
@@ -19484,6 +19543,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-acceptance-valid | command validate | system | golden | a change request from the acceptance test with the build it is against, where it was seen, what was observed and expected and its cause, approved and answered by an accepted decision that cites the board's answer linking it; a second one analysed with the question its analysis wrote; and a defect from acceptance with its environment and build | validate is run | it reports no error and exits 0 |
 | validate-accessibility | command validate | system | red | a specification that names WCAG 2.2 at level AA, whose pages show or filter by a field with a title and two without one, and a page with two actions of the same label | validate is run | it reports accessibility for each field without a title, naming the pages that show it or filter by it, and for the second action, and exits 1 |
 | validate-algorithm | command validate | system | red | an operation that names an algorithm that does not exist | validate is run | it reports algorithm and exits 1 |
+| validate-approval-session | command validate | system | red | stakeholders clerk, manager and board; a session SES-1 the manager came to alone; communications COM-1 from the manager to the clerk and COM-2 from the manager to the board; DUP-1 both a session and a communication; and approvals by the clerk naming COM-1, SES-1, COM-2, SES-9 and DUP-1 as their session | validate is run | it reports approval_session at the session of the approvals naming SES-1 and COM-2, record_ref at those naming SES-9, which is no record, and DUP-1, which is two, nothing for the approval naming COM-1, and exits 1 |
 | validate-audience | command validate | system | red | an internal need, enum and entity, named by a requirement, an entity's field, a relation and a page that are for everyone, and by an internal relation and an internal operation | validate is run | it reports the error audience at each name an element for everyone gives, and none inside the internal elements, and exits 1 |
 | validate-build-task-unknown | command validate | system | red | a deployment whose build names a misspelt task and an sbom task the implementation file does not have | validate is run | it reports build_task at each, suggesting the close name, and exits 1 |
 | validate-caller-chain-gap | command validate | system | red | the estate of validate-caller-estate with the middleware's via removed, and the core accepting an access token for the front ends' backend's audience | validate is run on the estate file | it reports the gap at the middleware as via and the two modules accepting one audience at the core's entry in the estate as token_audience, the same in both builds, and exits 1 |
@@ -19999,6 +20059,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-97 | A decision record shall name the earlier decisions it rests on under restsOn; the validator shall refuse a restsOn entry naming a decision that does not exist and a chain that comes back to its own decision, each at the entry, and shall warn at a decision that is not itself superseded resting on a superseded one, naming the successor; and specarch decision why shall print the chain a decision rests on, earliest first, and specarch decision rests the decisions that rest on it, nearest first, each with a summary line first and one decision per line. | functional | must | accepted | test | A decision whose restsOn names a decision the specification does not have is an error decision at that entry, naming the nearest ID; a decision whose restsOn chain comes back to it is an error decision_cycle at every restsOn entry on the cycle, each naming the chain from its decision; a decision that is not superseded resting on a superseded one is a warning decision_superseded at the entry, naming the successor; and a superseded decision resting on a superseded one warns nothing. decision why on the last of a chain of three prints that it rests on 2 decisions and the three lines earliest first, each with its ID, title, status, date and the decisions it rests on; decision rests on the first prints that 2 decisions rest on it, its own line and the two lines nearest first; and both exit 0. decision why and decision rests on an ID that is not a decision of the specification are refused, naming the decisions there are, and exit 1; without the ID or the folder they exit 2. | NEED-6 |
 | SA-118 | specarch log shall write one communication record from options alone, who said it to whom, when with its offset, by which channel, of which type, in which words and form, recorded by whom and touching what, guessing none of them - every missing one printed as a line saying what to ask the analyst and the option to give it with, and nothing written - and shall print, for an answer, the decide line that records it as the decision; and specarch decide shall take --record naming an answer record that links the question, writing the decision as stated and citing the record, in place of --source. | functional | must | proposed | test | log with every option of an answer writes records/communications/COM-<n>.yaml under the next number, with the words, the form, the evidence's path, media type and SHA-256 and the links as given, prints its path and the decide line with --record, and exits 0; --dry-run prints the record and writes nothing. log without the direction, the roles, the instant, the channel, the type, the words, the form or the recorder prints one line per missing option, saying what to ask and the values the specification offers, writes nothing and exits 1; with --json the same under log.missing; an answer naming no question is missing --question. log is refused, with nothing written, for a role that is not a stakeholder, an instant without its offset, a channel, type, form or direction outside their values, a question, decision, element, change, defect, idea, session or source the specification and its records do not have, a reply on a record that is not a question, and an evidence file that is not under records/. decide with --record on an answer record that links the question writes the decision stated, citing the record with the answer as what it says and no source, and exits 0; decide is refused for a record that is not a communication record, one that is not an answer, one that does not link the question, one said by another role than --by, and --source with --record together. | NEED-5, NEED-8 |
 | SA-129 | A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed. | functional | must | proposed | test | validate on a specification with stakeholders and no stakeholdersComplete warns stakeholders_unconfirmed at /stakeholders and exits 0; with stakeholdersComplete set by a declared stakeholder it prints nothing. stakeholdersComplete whose by is not a stakeholder is the error stakeholder at /stakeholdersComplete/by, and a source that is not declared is the error source at /stakeholdersComplete/source. Every document specarch document writes, and the overview of the HTML site, carries the Stakeholders unconfirmed banner while the key is not set, and none once it is. approve on such a specification writes the approval record, prints the warning on standard error and exits 0. A must question that blocks the stakeholders holds the warning and the banner alike, a specification that lists no stakeholders is told to list them first, and a file on a meta-model before 1.0.0 is not warned, since its schema has no stakeholdersComplete. | NEED-1, NEED-8 |
+| SA-133 | specarch approve shall refuse a role that no record shows was ever heard, naming the rule unheard and how to record the session in which it read the documents, shall take --session to name the session, test session or communication record in which it read them and write it into the approval record, and shall warn and go on when no session is named; specarch validate shall check that the record an approval names exists and lists the approving role. | functional | must | proposed | test | approve by a stakeholder that no communication, session, test session, interview or decision names is refused with exit 1, and the reason names the rule unheard, the records that would show the role was heard and --session. approve with --session naming a session whose present lists the approving role writes session into the approval record, and validate on that record prints nothing about it. approve with --session naming a record that does not exist is refused as record_ref, and one whose present does not list the role, or a communication neither from nor to it, as approval_session; validate reports the same rules at the record's session. approve by a heard role without --session prints a warning on standard error, writes the approval record and exits 0. | NEED-1, NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -20283,6 +20344,10 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-129:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: The stakeholders of the system are identified, so that every class of stakeholder with a legitimate interest in the system is represented. <https://www.iso.org/standard/72089.html>
 
+**Insight on SA-133:** An approval says a role read the documents; a role nobody ever heard approving is the one most likely to object first at acceptance, and an approval that names where the documents were read can be traced back to the session and the people in it.
+
+**Note on SA-133:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -20434,6 +20499,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-130 | commands diff; commands document; commands generate; decisions ADR-236 | tests diff-lists-transition; tests document-changes-transition; tests generate-bpmn-as-is; tests generate-bpmn-to-be; tests validate-workflow-as-is; tests validate-workflow-as-is-refused |
 | SA-131 | commands extract; commands merge; decisions ADR-235 | tests extract-tests-incomplete-scripts; tests merge-keeps-read-tests |
 | SA-132 | enums DocumentTarget; commands document; decisions ADR-237 | tests document-progress-effort-not-counted; tests document-progress-for-everyone; tests document-progress-stakeholders-held; tests document-progress-uncounted-entries; tests document-writes-progress; tests validate-change-effort |
+| SA-133 | commands approve; decisions ADR-239 | tests approve-refuses-session-absent; tests approve-refuses-session-missing; tests approve-refuses-unheard; tests approve-warns-no-session; tests approve-writes-record; tests validate-approval-session |
 
 ## Sources
 

@@ -25,11 +25,15 @@ import (
 
 // Record is one approval.
 type Record struct {
-	Version    string   `yaml:"version"`
-	ApprovedBy string   `yaml:"approvedBy"`
-	Date       string   `yaml:"date"`
-	Documents  []string `yaml:"documents"`
-	Digest     string   `yaml:"digest"`
+	Version    string `yaml:"version"`
+	ApprovedBy string `yaml:"approvedBy"`
+	Date       string `yaml:"date"`
+	// Session is the session, test session or communication record in
+	// which the role read the documents, or "" when none was named
+	// (ADR-239).
+	Session   string   `yaml:"session"`
+	Documents []string `yaml:"documents"`
+	Digest    string   `yaml:"digest"`
 	// Commit is the commit the specification's folder was at when it was
 	// approved, or "" outside a git repository or when the folder had
 	// changes not committed (ADR-224).
@@ -42,6 +46,7 @@ type file struct {
 	Version        string   `yaml:"version"`
 	ApprovedBy     string   `yaml:"approvedBy"`
 	Date           string   `yaml:"date"`
+	Session        string   `yaml:"session"`
 	Documents      []string `yaml:"documents"`
 	Digest         string   `yaml:"digest"`
 	Commit         string   `yaml:"commit"`
@@ -142,7 +147,7 @@ func Read(specDir, version string) (*Record, error) {
 	case f.Digest == "" || f.ApprovedBy == "" || f.Date == "":
 		return nil, fmt.Errorf("%s is missing digest, approvedBy or date", Name(version))
 	}
-	return &Record{Version: f.Version, ApprovedBy: f.ApprovedBy, Date: f.Date, Documents: f.Documents, Digest: f.Digest, Commit: f.Commit}, nil
+	return &Record{Version: f.Version, ApprovedBy: f.ApprovedBy, Date: f.Date, Session: f.Session, Documents: f.Documents, Digest: f.Digest, Commit: f.Commit}, nil
 }
 
 // Write writes the approval of r.Version through w, replacing an earlier
@@ -154,6 +159,9 @@ func Write(w *disk.Writer, specDir string, r Record) error {
 	fmt.Fprintf(&b, "version: %s\n", r.Version)
 	fmt.Fprintf(&b, "approvedBy: %s\n", r.ApprovedBy)
 	fmt.Fprintf(&b, "date: %q\n", r.Date)
+	if r.Session != "" {
+		fmt.Fprintf(&b, "session: %s\n", r.Session)
+	}
 	if len(r.Documents) > 0 {
 		fmt.Fprintf(&b, "documents: [%s]\n", strings.Join(r.Documents, ", "))
 	}

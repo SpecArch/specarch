@@ -591,7 +591,7 @@ func treeOut(c conformanceCase) []string {
 			switch a := args[i]; {
 			case a == "--dry-run":
 				return nil // writes nothing
-			case a == "--by" || a == "--date" || a == "--title" || a == "--profile":
+			case a == "--by" || a == "--date" || a == "--session" || a == "--title" || a == "--profile":
 				i++ // approve's and init's options that take the next argument
 			case !strings.HasPrefix(a, "-"):
 				out = append(out, a)

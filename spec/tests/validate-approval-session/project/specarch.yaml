@@ -1,0 +1,13 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+sources:
+  kickoff:
+    kind: interview
+    title: Kickoff meeting with the shop
+    date: "2026-11-02"
+    participants: [clerk, manager, board]
+stakeholders:
+  clerk: { description: Staff at the till. }
+  manager: { description: Runs the shop. }
+  board: { description: Owns the shop. }
+stakeholdersComplete: { by: manager, date: "2026-11-02", source: kickoff }

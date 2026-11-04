@@ -70,8 +70,9 @@ standardOutput: |
 
   [approving] Approving the specification
     Questions answered, documents read. specarch document, then specarch
-    approve --by <role>, run by the person; the record holds the digest
-    and the commit. Topic: gaps.
+    approve --by <role> --session <ID>, run by the person; a role never
+    heard is refused, the session names where it read the documents, and
+    the record holds the digest and the commit. Topic: gaps.
 
   [building] Building the system from the specification
     specarch generate sql, seed, sqlc, scripts, openapi, go-dxlib, tests,

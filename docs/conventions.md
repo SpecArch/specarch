@@ -3266,22 +3266,37 @@ validator checks them against.
 
 ### Approval records
 
-`specarch approve --by <stakeholder>` records that a stakeholder read the
-documents of a specification and approves it for code generation, as
-`records/approvals/<version>.yaml` beside the specification's folder:
+`specarch approve --by <stakeholder> --session <ID>` records that a
+stakeholder read the documents of a specification and approves it for code
+generation, as `records/approvals/<version>.yaml` beside the
+specification's folder:
 
     specarchRecord: "1.0.0"
     kind: approval
     version: 1.4.0
     approvedBy: product-owner
     date: "2026-10-08"
+    session: SES-4
     documents: [techspec, requirements, testplan]
     digest: sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
     commit: 13a7741636f5c3a996cded5502e9af89aeef6161
 
 The record is written only when the specification has no error and no
-`must` or `should` question, `--by` is one of its stakeholders, and every
-configured document on disk is what the specification generates now. The
+`must` or `should` question, `--by` is one of its stakeholders and was
+heard, and every configured document on disk is what the specification
+generates now. A role is heard, as the rule `unheard` reads it, when a
+communication record names it as `from` or `to`, a session or test session
+lists it under `present`, an interview source lists it among its
+`participants` or a decision names it under `decidedBy`; approve refuses
+a role never heard, whether or not anything relies on it, and says how to
+record the session in which it read the documents (ADR-239). The session,
+given with `--session`, is the session, test session or communication
+record in which the role read them: it must list the role under `present`,
+or as `from` or `to` of a communication (`approval_session`), and be a
+record of exactly one of those kinds (`record_ref`); approve refuses one
+that is not, and validate checks the `session` of every approval record
+the same way. Without `--session` approve warns that the approval names no
+session, and writes the record. The
 digest is the SHA-256 of every `.yaml` file under the specification's
 folder, in byte order of their paths relative to it, each as its path, a
 zero byte, its bytes and a zero byte; any later change to one of those

@@ -312,3 +312,20 @@ requirements:
       - source: iso-29148
         clause: "5.2.2"
         says: "The stakeholders of the system are identified, so that every class of stakeholder with a legitimate interest in the system is represented."
+  SA-133:
+    statement: specarch approve shall refuse a role that no record shows was ever heard, naming the rule unheard and how to record the session in which it read the documents, shall take --session to name the session, test session or communication record in which it read them and write it into the approval record, and shall warn and go on when no session is named; specarch validate shall check that the record an approval names exists and lists the approving role.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - approve by a stakeholder that no communication, session, test session, interview or decision names is refused with exit 1, and the reason names the rule unheard, the records that would show the role was heard and --session.
+      - approve with --session naming a session whose present lists the approving role writes session into the approval record, and validate on that record prints nothing about it.
+      - approve with --session naming a record that does not exist is refused as record_ref, and one whose present does not list the role, or a communication neither from nor to it, as approval_session; validate reports the same rules at the record's session.
+      - approve by a heard role without --session prints a warning on standard error, writes the approval record and exits 0.
+    verification: test
+    needs: [NEED-1, NEED-8]
+    why: An approval says a role read the documents; a role nobody ever heard approving is the one most likely to object first at acceptance, and an approval that names where the documents were read can be traced back to the session and the people in it.
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."

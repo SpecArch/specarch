@@ -39,7 +39,14 @@ Record that the documents were read and the specification is approved.
 
 Validates its input first and approves nothing with errors. Then
 refuses while a must or should question is open, when `--by` is not a
-stakeholder of the specification, when no document target is
+stakeholder of the specification, when `--by` was never heard (the
+rule unheard: no communication record names it as from or to, no
+session or test session lists it under present, no interview lists it
+among its participants and no decision names it under decidedBy,
+whether or not anything relies on it; ADR-239), when `--session` names
+no session, test session or communication record, or one held under
+two of those kinds (record_ref), or one that does not list `--by`
+(approval_session), when no document target is
 configured, and when any configured document on disk is not what the
 specification generates now, so that what was read is what is
 approved. Each document is made as `document` makes it, with the
@@ -48,7 +55,8 @@ html site, its problems, diagrams and screens, so a document that
 `document` has just written is current; the questions, problems and comparison targets are the
 refinement's own documents and are not among them (ADR-157). Otherwise writes `records/approvals/<version>.yaml` beside
 the specification's folder: the record kind, the version, who
-approved, the date, the documents that were current, the digest
+approved, the date, the session given with `--session`, the
+documents that were current, the digest
 of the specification's files (the SHA-256 of every `.yaml` file under
 its folder, in byte order of their relative paths, each as its path,
 a zero byte, its bytes without its problem marks, and a zero byte),
@@ -56,19 +64,21 @@ and the commit the folder is at when it is inside a git repository
 and every file under it is committed, so that `diff` between that
 commit and the working tree later shows the approver only what
 changed (ADR-224); a folder with changes not committed gets no
-commit, with a line on standard error saying so.
+commit, with a line on standard error saying so. Without `--session`
+it warns on standard error that the approval names no session, and
+still writes the record.
 A later change to any of those files voids the approval, and
 `generate` says so; a problem mark, a line that starts with
 `# specarch-problem:` (ADR-066), is not a change.
 
-**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The marks are left out of the digest because they record what a run of SpecArch found, not what the author wrote, and `document problems` rewrites them on every run. The record names a role, because a specification is read and copied by more people than a ticket system.
+**Insight:** A specification is reviewed in the form its readers use, the documents, and approval must be of exactly what was read; a digest of the files says so where a version number, which does not change while a specification is being written, cannot. The marks are left out of the digest because they record what a run of SpecArch found, not what the author wrote, and `document problems` rewrites them on every run. The record names a role, because a specification is read and copied by more people than a ticket system. A role never heard is refused, and the session is named, because an approval by a role nobody talked to is the one most likely to be overturned at acceptance, and the session says where and with whom the documents were read (ADR-239).
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
 **Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 3: A baseline is a formally approved version of a configuration item, fixed at a point in time. <https://www.iso.org/standard/72089.html>
 
 ```
-specarch approve <paths>... --by <by> [--date <date>] [--dry-run]
+specarch approve <paths>... --by <by> [--session <session>] [--date <date>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -80,6 +90,7 @@ Anyone who has the program runs it.
 | Option | What it does | Required |
 |---|---|---|
 | `--by <by>` | The stakeholder who read the documents and approves, by key; a role, never a person. | yes |
+| `--session <session>` | The session, test session or communication record in which the role read the documents, by ID; it must list the role under present, or as from or to of a communication. |  |
 | `--date <date>` | The date of the approval, as YYYY-MM-DD. Today when not given. |  |
 | `--dry-run` | Check everything and write nothing; print the approval record it would write, as would write <path>. |  |
 
@@ -87,19 +98,20 @@ It reads:
 
 - `{paths}`: The specifications and their implementation files.
 - `<output>/<target>.md`: Every configured document, compared with what the specification generates now.
+- `records/`: The records beside the specification: the communications, sessions and test sessions that show the role was heard, and the one --session names.
 
 It writes:
 
-- `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
+- `records/approvals/<version>.yaml`: The approval record, beside the specification's folder, with the session --session names and the commit the folder is at when it is committed in a git repository; an earlier approval of the same version is replaced.
 
 On standard output: The errors of an invalid specification, and one line per configured document that is missing or differs.
 
-On standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one line naming the record written.
+On standard error: A usage message on a usage error, the reason a refusal, one line when the folder has changes not committed and so no commit is recorded, one warning when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), one warning when no session is named (--session), and one line naming the record written.
 
 | Exit status | It means | What to do |
 |---|---|---|
-| 0 | the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete) |   |
-| 1 | refused; the specification has errors or open questions, the stakeholder is unknown, no document is configured, or a document is not current | Run specarch gaps and specarch validate on the same paths and settle what they print, run specarch document for each document not current, then approve again. |
+| 0 | the approval was recorded; a warning on standard error when no role has confirmed that the stakeholder list is complete (stakeholdersComplete), and one when no session is named |   |
+| 1 | refused; the specification has errors or open questions, the stakeholder is unknown or was never heard, the session is not a record that lists it, no document is configured, or a document is not current | Run specarch gaps and specarch validate on the same paths and settle what they print; for a role never heard, record the session in which it read the documents under records/sessions/ with the role under present, or what it said with specarch log; run specarch document for each document not current, then approve again with --session naming that record. |
 | 2 | usage error, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch capabilities

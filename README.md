@@ -441,8 +441,9 @@ answers with decisions and material; `specarch decide <question> --by
 question out and prints the entries to write from it; what a stakeholder
 said in a meeting, a chat, an email or a call is kept with `specarch log`
 as a communication record the decision cites; the questions
-shrink, the documents are regenerated and read, and `specarch approve --by <stakeholder>` records
-the approval with a digest of the files. `specarch generate` runs only
+shrink, the documents are regenerated and read, and `specarch approve --by <stakeholder> --session <ID>` records
+the approval with a digest of the files and the session in which the
+documents were read, refusing a role no record shows was heard. `specarch generate` runs only
 then. `docs/refinement.md` is the design.
 
 Code targets (OpenAPI, SQL, UI, tests) are plug-ins: `specarch generate

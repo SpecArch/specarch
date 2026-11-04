@@ -3,5 +3,6 @@ kind: approval
 version: 1.0.0
 approvedBy: clerk
 date: "2026-11-03"
+session: SES-1
 documents: [requirements]
 digest: sha256:818f25ca8b68144e33eb1ab37381c72826c836811567d112526d6110a7b28a21

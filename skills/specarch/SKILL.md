@@ -164,14 +164,14 @@ Error codes of --json:
 
 ## Commands
 
-- `specarch approve --by <by> [--date <date>] [--dry-run] <paths>...`
+- `specarch approve --by <by> [--session <session>] [--date <date>] [--dry-run] <paths>...`
   Record that the documents were read and the specification is approved.
   exit 0: the approval was recorded; a warning on standard error when no
   role has confirmed that the stakeholder list is complete
-  (stakeholdersComplete)
+  (stakeholdersComplete), and one when no session is named
   exit 1: refused; the specification has errors or open questions, the
-  stakeholder is unknown, no document is configured, or a document is not
-  current
+  stakeholder is unknown or was never heard, the session is not a record
+  that lists it, no document is configured, or a document is not current
   exit 2: usage error, or a file that could not be read or written
 - `specarch capabilities [--json]`
   List what this program and the plug-ins on PATH can do; with --json as a

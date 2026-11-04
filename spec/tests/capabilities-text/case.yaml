@@ -12,7 +12,8 @@ standardOutput: |
     vocabulary: writes 1.0.0, reads 1.0.0 and any later 1.0 patch, 0.1
 
   Commands
-    specarch approve --by <by> [--date <date>] [--dry-run] <paths>...
+    specarch approve --by <by> [--session <session>] [--date <date>]
+      [--dry-run] <paths>...
         Record that the documents were read and the specification is approved.
     specarch capabilities [--json]
         List what this program and the plug-ins on PATH can do; with --json as

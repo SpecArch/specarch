@@ -557,21 +557,26 @@ itu.
     specarch document techspec --out docs spec
     specarch document requirements --out docs spec
     specarch document problems --out docs spec
-    specarch approve --dry-run --by librarian spec
-    specarch approve --by librarian spec
+    specarch approve --dry-run --by librarian --session SES-1 spec
+    specarch approve --by librarian --session SES-1 spec
 
 Catatan penyetujuan, `records/approvals/<versi>.yaml`, menyimpan digest
 setiap berkas, sehingga perubahan apa pun sesudahnya membatalkannya, dan
 commit tempat ia dibuat bila setiap berkas sudah di-commit. `approve`
 menolak spesifikasi dengan kesalahan, dengan pertanyaan must atau should
 yang terbuka, atau yang dokumennya berbeda dari apa yang dikatakannya
-sekarang. `document problems` menulis `problems.txt` dan `problems.sarif`,
+sekarang, dan role yang belum pernah didengar: belum ada communication,
+session, interview atau decision yang menyebutnya (rule `unheard`).
+`--session` menyebut record session, test session atau communication
+tempat role itu membaca dokumennya, dan record itu harus mencantumkan role
+tersebut; tanpa `--session`, `approve` memberi peringatan lalu tetap
+jalan. `document problems` menulis `problems.txt` dan `problems.sarif`,
 setiap kesalahan, peringatan dan pertanyaan terbuka satu baris
 masing-masing, untuk dibaca penyetuju lebih dulu.
 
 **Contoh.**
 
-    $ specarch approve --dry-run --by librarian library
+    $ specarch approve --dry-run --by librarian --session SES-1 library
     would write library/records/approvals/0.1.0.yaml
     specarch approve: version 0.1.0 of library/spec can be approved by librarian; nothing written (--dry-run)
 
@@ -1065,7 +1070,7 @@ tidak akan membaca tiga ratus halaman lagi demi satu lajur.
 
     specarch diff spec-at-approval spec
     specarch decision why ADR-005 spec
-    specarch approve --by librarian spec
+    specarch approve --by librarian --session SES-2 spec
 
 Catatan penyetujuan menyimpan commit tempat ia dibuat. `diff` antara
 commit itu dan pohon kerja mendaftar setiap elemen yang berubah beserta

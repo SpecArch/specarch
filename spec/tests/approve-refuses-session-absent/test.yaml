@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: approve
+level: system
+scenario: red
+given: "a specification with a current requirements document, stakeholders clerk and manager, and a session SES-1 to which both were invited and only the manager came"
+when: "approve is run with --by clerk and --session SES-1"
+then: "it refuses on standard error as approval_session, naming who SES-1 lists present, writes nothing, and exits 1"
+verifies: [SA-133]

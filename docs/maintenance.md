@@ -446,7 +446,10 @@ requirements and pages, so the risk of that role objecting first at the
 user acceptance test shows early. While no communication, session or
 test session record is kept yet, every such role is unheard, and the
 warning adds that none is kept yet and to start by logging the first
-conversation.
+conversation. `specarch approve` reads the same definition of heard: it
+refuses a `--by` role never heard, and an approval record's `session`
+names the session, test session or communication record in which the role
+read the documents, which must list it (`approval_session`, ADR-239).
 
 ## Test runs
 
@@ -516,7 +519,7 @@ error unless it says warning.
 | Rule | Checks |
 |---|---|
 | `record_name` | a record's file name equals its `id`, its `version` for a release or an approval, or its date and environment for a commissioning run, and it sits in the folder of its kind |
-| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record (a test run's version and each result's test and defect among them), or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request. A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
+| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record (a test run's version and each result's test and defect among them), or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request; an approval's `session` is a session, test session or communication record, of exactly one of those kinds (ADR-239). A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
 | `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open (proposed, analysed or approved), `changes` and `removes` resolve, and an `adds` that already resolves is a warning. A requirement of an external set is taken as resolving and never as removed, since the validator cannot read the set |
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
 | `change_answered` | on a decision whose `answers` name a change request (a change record, or an ID of a declared change tracker; every other ID under `answers` is a question's): an accepted decision answers a change whose decision is approved, taken by the role `decidedBy` names (ADR-221). A proposed decision may answer a change still analysed |
@@ -531,6 +534,7 @@ error unless it says warning.
 | `evidence` | each file a record names as evidence is under `records/` and still has the SHA-256 the record holds; the message gives the hash the file has now |
 | `record_cited` | a citation that names a communication record names one that exists and is an answer or information (a request, a question or an objection settles nothing by itself); a decision that answers questions or change requests cites an answer that links one of them, said by the role `decidedBy` names |
 | `unheard` | a warning, at the stakeholder, from the first day: a role an accepted requirement needs or an approved specification's page is for, while no record, interview or decision shows it was heard; names the role and the elements; while no communication, session or test session record is kept, every such role is unheard and the warning says to start by logging the first conversation |
+| `approval_session` | an approval's `session` names a session or test session that lists the approving role under `present`, or a communication from or to it; one that does not is an error, as `specarch approve --session` refuses it (ADR-239) |
 | `test_unmapped` | a warning, at the result: a result of a test run names no `test` and no `element`, since its testcase maps to none or to two; the outcome counts for no element or requirement until its test or element is named |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
 

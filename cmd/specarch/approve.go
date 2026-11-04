@@ -19,10 +19,11 @@ import (
 // runApprove records that a stakeholder read the documents of a
 // specification and approves it for code generation. It refuses a
 // specification with errors, one with an open must or should question, a
-// stakeholder the specification does not declare, and documents on disk
-// that are not what the specification generates now.
+// stakeholder the specification does not declare or that was never heard,
+// a session that does not list it, and documents on disk that are not what
+// the specification generates now.
 func runApprove(args []string, stdout, stderr io.Writer) int {
-	by, date := "", ""
+	by, date, session := "", "", ""
 	w := disk.Real
 	var paths []string
 	for i := 0; i < len(args); i++ {
@@ -31,15 +32,18 @@ func runApprove(args []string, stdout, stderr io.Writer) int {
 		case a == "--":
 			paths = append(paths, args[i+1:]...)
 			i = len(args)
-		case a == "--by" || a == "--date":
+		case a == "--by" || a == "--date" || a == "--session":
 			if i+1 >= len(args) {
 				fmt.Fprintf(stderr, "specarch approve: %s needs a value\n\n%s", a, usage)
 				return 2
 			}
-			if a == "--by" {
+			switch a {
+			case "--by":
 				by = args[i+1]
-			} else {
+			case "--date":
 				date = args[i+1]
+			default:
+				session = args[i+1]
 			}
 			i++
 		case a == "--dry-run":
@@ -48,8 +52,10 @@ func runApprove(args []string, stdout, stderr io.Writer) int {
 			by = strings.TrimPrefix(a, "--by=")
 		case strings.HasPrefix(a, "--date="):
 			date = strings.TrimPrefix(a, "--date=")
+		case strings.HasPrefix(a, "--session="):
+			session = strings.TrimPrefix(a, "--session=")
 		case strings.HasPrefix(a, "-") && len(a) > 1:
-			fmt.Fprintf(stderr, "specarch approve has no option %s; its options are --by, --date and --dry-run\n\n%s", a, usage)
+			fmt.Fprintf(stderr, "specarch approve has no option %s; its options are --by, --session, --date and --dry-run\n\n%s", a, usage)
 			return 2
 		default:
 			paths = append(paths, a)
@@ -74,14 +80,14 @@ func runApprove(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	for _, l := range specs {
-		if status := approve(l, by, date, w, stdout, stderr); status != 0 {
+		if status := approve(l, by, session, date, w, stdout, stderr); status != 0 {
 			return status
 		}
 	}
 	return 0
 }
 
-func approve(l loaded, by, date string, w *disk.Writer, stdout, stderr io.Writer) int {
+func approve(l loaded, by, session, date string, w *disk.Writer, stdout, stderr io.Writer) int {
 	root := l.spec.Root
 	must, should, _ := validate.Questions(root)
 	if must+should > 0 {
@@ -95,6 +101,19 @@ func approve(l loaded, by, date string, w *disk.Writer, stdout, stderr io.Writer
 	if source.Child(source.Child(root, "stakeholders"), by) == nil {
 		fmt.Fprintf(stderr, "specarch approve: %s is not a stakeholder of %s; approve as one of its stakeholders, by key\n", by, l.spec.Dir)
 		return 1
+	}
+	// The session is checked first, since a session that lists the role
+	// is also what shows it was heard (ADR-239).
+	if session != "" {
+		if rule, msg := validate.ApprovalSession(l.spec, session, by); rule != "" {
+			fmt.Fprintf(stderr, "specarch approve: %s (%s), so nothing was approved\n", msg, rule)
+			return 1
+		}
+	} else if !validate.Heard(l.spec, by) {
+		fmt.Fprintf(stderr, "specarch approve: %s was never heard (%s): no communication record names it as from or to, no session or test session lists it under present, no interview lists it among its participants and no decision names it under decidedBy, so nothing shows it read the documents; record the session in which it read them under records/sessions/ with %s under present, or what it said with specarch log, then approve again with --session <that record's ID>\n", by, validate.RuleUnheard, by)
+		return 1
+	} else {
+		fmt.Fprintf(stderr, "specarch approve: warning: the approval names no session (--session), so it does not record where %s read the documents; the approval goes ahead, and --session <ID> names the session, test session or communication record in which it read them\n", by)
 	}
 	if validate.StakeholdersUnconfirmed(root) {
 		fmt.Fprintf(stderr, "specarch approve: warning: the stakeholder list of %s is not confirmed complete (stakeholders_unconfirmed), so a role with an interest in the system may be missing from it and object first at acceptance; the approval goes ahead, and a stakeholder confirms the list with stakeholdersComplete (by and date, and source when a declared source records it) in the specification\n", l.spec.Dir)
@@ -145,7 +164,7 @@ func approve(l loaded, by, date string, w *disk.Writer, stdout, stderr io.Writer
 	if note != "" {
 		fmt.Fprintf(stderr, "specarch approve: %s\n", note)
 	}
-	rec := approval.Record{Version: version, ApprovedBy: by, Date: date, Documents: documents, Digest: digest, Commit: commit}
+	rec := approval.Record{Version: version, ApprovedBy: by, Date: date, Session: session, Documents: documents, Digest: digest, Commit: commit}
 	if err := approval.Write(w, l.spec.Dir, rec); err != nil {
 		fmt.Fprintf(stderr, "specarch approve: cannot write the record: %v\n", err)
 		return 2

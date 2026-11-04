@@ -61,6 +61,30 @@ func (rs recordSet) has(kind, key string) bool { return rs[kind][key] != nil }
 // checkRecords checks the records beside a specification: each against the
 // record schema, then against the specification and the other records.
 func checkRecords(s *spec.Spec, d *design) []Diagnostic {
+	recs, set := readRecords(s)
+	rc := &recordChecks{d: d, set: set, dir: s.RecordsDir}
+	for _, r := range recs {
+		if r.kind != "" {
+			rc.check(r)
+		}
+	}
+	rootChecker := &checker{file: s.RootFile, files: s.Files}
+	rc.checkReleases(recs, rootChecker)
+	rc.checkRequirementReleases(rootChecker)
+	rc.checkCitedRecords(rootChecker)
+	rc.checkChangeAnswered(rootChecker)
+	rc.checkUnheard(rootChecker)
+	out := rootChecker.diags
+	for _, r := range recs {
+		out = append(out, withoutEchoes(withoutHeld(r.c.diags, r.held))...)
+	}
+	return out
+}
+
+// readRecords reads the records beside a specification, each checked
+// against the record schema, and indexes them by kind and key; the first
+// record of a key is the one indexed.
+func readRecords(s *spec.Spec) ([]*record, recordSet) {
 	var recs []*record
 	set := recordSet{}
 	for _, f := range s.Records {
@@ -93,23 +117,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 			}
 		}
 	}
-	rc := &recordChecks{d: d, set: set, dir: s.RecordsDir}
-	for _, r := range recs {
-		if r.kind != "" {
-			rc.check(r)
-		}
-	}
-	rootChecker := &checker{file: s.RootFile, files: s.Files}
-	rc.checkReleases(recs, rootChecker)
-	rc.checkRequirementReleases(rootChecker)
-	rc.checkCitedRecords(rootChecker)
-	rc.checkChangeAnswered(rootChecker)
-	rc.checkUnheard(rootChecker)
-	out := rootChecker.diags
-	for _, r := range recs {
-		out = append(out, withoutEchoes(withoutHeld(r.c.diags, r.held))...)
-	}
-	return out
+	return recs, set
 }
 
 type recordChecks struct {
@@ -180,6 +188,7 @@ func (rc *recordChecks) check(r *record) {
 		rc.checkCommissioning(r)
 	case "approval":
 		rc.role(r, "approvedBy")
+		rc.checkApprovalSession(r)
 	case "idea":
 		rc.role(r, "raisedBy")
 		rc.role(r, "decision", "by")

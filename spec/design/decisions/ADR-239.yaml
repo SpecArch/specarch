@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-239:
+    title: approve refuses a role never heard, and the approval names the session, test session or communication record in which the documents were read
+    status: proposed
+    date: "2026-11-04"
+    context: |
+      An approval record names the role that read the documents and the
+      digest of what it read, but nothing in it shows that the role was
+      ever heard, or where and with whom it read them. The validator warns
+      unheard of a role no communication, session, interview or decision
+      names, but only while something relies on it, and approve accepted
+      any stakeholder, so a role nobody had talked to could approve, and
+      be the first to object at acceptance.
+    decision: |
+      specarch approve refuses, with exit 1, a --by role that no
+      communication record names as from or to, no session or test
+      session lists under present, no interview source lists among its
+      participants and no decision names under decidedBy: the same
+      definition of heard as the rule unheard, applied whether or not
+      anything relies on the role. The refusal names the rule unheard,
+      the records that would show the role was heard, and --session.
+      --session <ID> names the session, test session or communication
+      record in which the role read the documents; approve checks it as
+      validate does and writes it into the approval record as session.
+      An ID that is no such record, or one held under two of those kinds,
+      is the error record_ref; a session or test session whose present
+      does not list the approving role, or a communication neither from
+      nor to it, is the error approval_session; approve refuses both.
+      Without --session approve prints a warning on standard error,
+      writes the record and exits 0. validate checks the session of every
+      approval record the same way, at its session key.
+    consequences: |
+      A specification is approved only after at least one record shows
+      the approving role was heard, so the first approval of a project
+      starts by logging a session or a conversation. An approval record
+      without session stays valid, and approve says each time that it
+      names none.
+    why: |
+      A refusal rather than a warning for an unheard role, because an
+      approval is the one act the role does itself: a role that approves
+      without any record of being heard is the gap the approval exists to
+      close, and recording one session costs a few lines. A warning
+      rather than a refusal without --session, because a role may have
+      been heard in a session and read the documents on their own later;
+      the warning keeps that visible without stopping the work. A
+      communication record as well as a session, because the documents
+      are often read and approved in an e-mail or a chat, where from and
+      to say who took part as present does in a session. One ID naming
+      two kinds of record is an error, not a first match, since which
+      record the approval rests on would then be a guess (the Low IQ
+      Tax). The same definition of heard as unheard, so that the
+      validator's warning and approve's refusal never disagree on a role.
+    satisfies: [SA-133]
+    restsOn: [ADR-220, ADR-224]
+    cites:
+      - source: iso-29148
+        clause: "6.3.3.6"
+        says: "Requirements validation is subject to approval by the project authority and the key stakeholders."

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: approve
+level: system
+scenario: red
+given: "a specification with a current requirements document, a stakeholder clerk and a session SES-1 that lists it present"
+when: "approve is run with --by clerk and --session SES-9, which is no record"
+then: "it refuses on standard error as record_ref, naming the three folders the ID was looked for in, writes nothing, and exits 1"
+verifies: [SA-133]

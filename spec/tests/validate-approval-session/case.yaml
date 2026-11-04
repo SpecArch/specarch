@@ -1,0 +1,7 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/approvals/0.6.0.yaml:6:10: error: /session: record_ref: DUP-1 names more than one record: records/sessions/DUP-1.yaml and records/communications/DUP-1.yaml; give each record an ID of its own, and name the one in which clerk read the documents [record_ref@../records/approvals/0.6.0.yaml#/session]
+  records/approvals/0.7.0.yaml:6:10: error: /session: record_ref: SES-9 is not a session, a test session or a communication: there is no records/sessions/SES-9.yaml, records/test-sessions/SES-9.yaml or records/communications/SES-9.yaml; name the record in which clerk read the documents [record_ref@../records/approvals/0.7.0.yaml#/session]
+  records/approvals/0.8.0.yaml:6:10: error: /session: approval_session: COM-2 is from manager to board, not from or to clerk, so it does not show that clerk read the documents; name the session or the communication in which clerk read them [approval_session@../records/approvals/0.8.0.yaml#/session]
+  records/approvals/0.9.0.yaml:6:10: error: /session: approval_session: SES-1 lists manager under present, not clerk, so it does not show that clerk read the documents there; name the session in which clerk read them, or add clerk under present when it took part [approval_session@../records/approvals/0.9.0.yaml#/session]

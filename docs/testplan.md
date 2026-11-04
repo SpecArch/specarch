@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.0 of the specification: 1024 design tests, 516 golden and 508 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.0 of the specification: 1029 design tests, 516 golden and 513 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.0 of the specification: 1024 design tests, 516 golden and 508 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1020 |
+| system | 1025 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -53,8 +53,8 @@ Framework: Swift Testing. Run: `swift test --package-path swift`.
 
 Scenario: golden; level: system; verifies SA-20.
 
-- Given: a specification with change requests, releases and a defect in the records beside it, a stakeholder owner, and changes, releases and html documents that specarch document has just written
-- When: approve is run with --by owner and a date
+- Given: a specification with change requests, releases and a defect in the records beside it, a stakeholder owner, a session SES-1 that lists owner present, and changes, releases and html documents that specarch document has just written
+- When: approve is run with --by owner, --session SES-1 and a date
 - Then: it finds every document current, as document wrote it from the records, the problem marks and the site's parts, writes records/approvals/1.0.0.yaml naming the three documents, and exits 0
 
 #### approve-refuses-open-question
@@ -65,20 +65,44 @@ Scenario: red; level: system; covers exit 1; verifies SA-20.
 - When: approve is run
 - Then: it refuses, writes nothing and exits 1
 
+#### approve-refuses-session-absent
+
+Scenario: red; level: system; verifies SA-133.
+
+- Given: a specification with a current requirements document, stakeholders clerk and manager, and a session SES-1 to which both were invited and only the manager came
+- When: approve is run with --by clerk and --session SES-1
+- Then: it refuses on standard error as approval_session, naming who SES-1 lists present, writes nothing, and exits 1
+
+#### approve-refuses-session-missing
+
+Scenario: red; level: system; verifies SA-133.
+
+- Given: a specification with a current requirements document, a stakeholder clerk and a session SES-1 that lists it present
+- When: approve is run with --by clerk and --session SES-9, which is no record
+- Then: it refuses on standard error as record_ref, naming the three folders the ID was looked for in, writes nothing, and exits 1
+
 #### approve-refuses-stale-document
 
 Scenario: red; level: system; covers exit 1; verifies SA-20.
 
-- Given: a configured requirements document that is not what the specification generates now
-- When: approve is run
+- Given: a configured requirements document that is not what the specification generates now, and a session SES-1 that lists the approving owner present
+- When: approve is run with --by owner and --session SES-1
 - Then: it names the document that differs, writes nothing and exits 1
+
+#### approve-refuses-unheard
+
+Scenario: red; level: system; verifies SA-133.
+
+- Given: a specification with a current requirements document and a stakeholder owner that no communication, session, test session, interview or decision names, and no records beside it
+- When: approve is run with --by owner and a date
+- Then: it refuses on standard error, naming the rule unheard, the records that would show owner was heard and --session, writes nothing, and exits 1
 
 #### approve-stakeholders-complete
 
 Scenario: golden; level: system; verifies SA-129.
 
-- Given: a specification whose stakeholdersComplete is set by a declared stakeholder, a current requirements document and a stakeholder clerk
-- When: approve is run with --by clerk and a date
+- Given: a specification whose stakeholdersComplete is set by a declared stakeholder, a current requirements document a stakeholder clerk and a session SES-1 that lists it present
+- When: approve is run with --by clerk, --session SES-1 and a date
 - Then: it writes the approval record with no warning about the stakeholder list, and exits 0
 
 #### approve-usage-error
@@ -89,21 +113,29 @@ Scenario: red; level: system; covers usage error, exit 2.
 - When: approve is run without saying who approves
 - Then: it prints how to use it and exits 2
 
+#### approve-warns-no-session
+
+Scenario: red; level: system; verifies SA-133.
+
+- Given: a specification with a current requirements document and a stakeholder clerk heard at the kickoff interview, and no records beside it
+- When: approve is run with --by clerk and a date, without --session
+- Then: it warns on standard error that the approval names no session, still writes the approval record without session, and exits 0
+
 #### approve-warns-stakeholders-unconfirmed
 
 Scenario: red; level: system; verifies SA-129.
 
-- Given: a specification with stakeholders and no stakeholdersComplete, a current requirements document and a stakeholder clerk
-- When: approve is run with --by clerk and a date
+- Given: a specification with stakeholders and no stakeholdersComplete, a current requirements document a stakeholder clerk and a session SES-1 that lists it present
+- When: approve is run with --by clerk, --session SES-1 and a date
 - Then: it warns on standard error that the stakeholder list is not confirmed complete, still writes the approval record, and exits 0
 
 #### approve-writes-record
 
-Scenario: golden; level: system; verifies SA-20.
+Scenario: golden; level: system; verifies SA-20, SA-133.
 
-- Given: a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, and a stakeholder owner
-- When: approve is run with --by owner and a date
-- Then: it writes records/approvals/1.0.0.yaml with the role, the date, the document and the digest of the files, and exits 0
+- Given: a specification without open questions, a configured requirements document that is current, a configured problems target, which is not a document anyone approves, a stakeholder owner, and a session SES-1 that lists owner present
+- When: approve is run with --by owner, --session SES-1 and a date
+- Then: it writes records/approvals/1.0.0.yaml with the role, the date, the session SES-1, the document and the digest of the files, and exits 0
 
 ### Command capabilities
 
@@ -5405,6 +5437,14 @@ Scenario: red; level: system; covers exit 1.
 - When: validate is run
 - Then: it reports algorithm and exits 1
 
+#### validate-approval-session
+
+Scenario: red; level: system; verifies SA-133.
+
+- Given: stakeholders clerk, manager and board; a session SES-1 the manager came to alone; communications COM-1 from the manager to the clerk and COM-2 from the manager to the board; DUP-1 both a session and a communication; and approvals by the clerk naming COM-1, SES-1, COM-2, SES-9 and DUP-1 as their session
+- When: validate is run
+- Then: it reports approval_session at the session of the approvals naming SES-1 and COM-2, record_ref at those naming SES-9, which is no record, and DUP-1, which is two, nothing for the approval naming COM-1, and exits 1
+
 #### validate-audience
 
 Scenario: red; level: system; covers exit 1; verifies SA-67.
@@ -8305,7 +8345,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-600 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+604 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8866,6 +8906,10 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-129 | acceptance 3 | golden | SA-129 names no harm |
 | requirement SA-129 | acceptance 4 | golden | SA-129 names no harm |
 | requirement SA-129 | acceptance 5 | golden | SA-129 names no harm |
+| requirement SA-133 | acceptance 1 | golden | SA-133 names no harm |
+| requirement SA-133 | acceptance 2 | golden | SA-133 names no harm |
+| requirement SA-133 | acceptance 3 | golden | SA-133 names no harm |
+| requirement SA-133 | acceptance 4 | golden | SA-133 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

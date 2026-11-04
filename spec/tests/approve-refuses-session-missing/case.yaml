@@ -1,0 +1,5 @@
+arguments: [approve, --by, clerk, --session, SES-9, --date, 2026-11-04, project]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch approve: SES-9 is not a session, a test session or a communication: there is no records/sessions/SES-9.yaml, records/test-sessions/SES-9.yaml or records/communications/SES-9.yaml; name the record in which clerk read the documents (record_ref), so nothing was approved

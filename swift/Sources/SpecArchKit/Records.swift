@@ -172,6 +172,7 @@ struct RecordChecks {
             checkCommissioning(r)
         case "approval":
             role(r, "approvedBy")
+            checkApprovalSession(r)
         case "idea":
             role(r, "raisedBy")
             role(r, "decision", "by")

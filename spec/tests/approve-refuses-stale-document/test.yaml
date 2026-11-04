@@ -3,7 +3,7 @@ command: approve
 level: system
 scenario: red
 covers: [exit 1]
-given: "a configured requirements document that is not what the specification generates now"
-when: "approve is run"
+given: "a configured requirements document that is not what the specification generates now, and a session SES-1 that lists the approving owner present"
+when: "approve is run with --by owner and --session SES-1"
 then: "it names the document that differs, writes nothing and exits 1"
 verifies: [SA-20]

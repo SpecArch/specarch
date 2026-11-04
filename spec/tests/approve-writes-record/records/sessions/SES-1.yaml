@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: session
+id: SES-1
+title: Reading the documents with the owner
+channel: meeting
+start: "2026-10-07T10:00:00+07:00"
+invited: [owner]
+present: [owner]
+recordedBy: owner

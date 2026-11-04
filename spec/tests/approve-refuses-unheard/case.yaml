@@ -1,0 +1,5 @@
+arguments: [approve, --by, owner, --date, 2026-11-04, project]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch approve: owner was never heard (unheard): no communication record names it as from or to, no session or test session lists it under present, no interview lists it among its participants and no decision names it under decidedBy, so nothing shows it read the documents; record the session in which it read them under records/sessions/ with owner under present, or what it said with specarch log, then approve again with --session <that record's ID>

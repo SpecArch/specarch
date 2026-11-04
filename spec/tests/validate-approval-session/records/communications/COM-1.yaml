@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: communication
+id: COM-1
+direction: in
+from: manager
+to: clerk
+at: "2026-11-03T10:00:00+07:00"
+channel: email
+type: information
+words: { form: summary, text: "The documents are read." }
+recordedBy: manager

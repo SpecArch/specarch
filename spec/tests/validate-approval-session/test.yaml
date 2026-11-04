@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "stakeholders clerk, manager and board; a session SES-1 the manager came to alone; communications COM-1 from the manager to the clerk and COM-2 from the manager to the board; DUP-1 both a session and a communication; and approvals by the clerk naming COM-1, SES-1, COM-2, SES-9 and DUP-1 as their session"
+when: "validate is run"
+then: "it reports approval_session at the session of the approvals naming SES-1 and COM-2, record_ref at those naming SES-9, which is no record, and DUP-1, which is two, nothing for the approval naming COM-1, and exits 1"
+verifies: [SA-133]

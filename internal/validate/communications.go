@@ -12,6 +12,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/spec"
 )
 
 // The checks of the records that keep who said what and when: a
@@ -185,26 +186,7 @@ func (rc *recordChecks) checkUnheard(c *checker) {
 	if len(rc.set["communication"])+len(rc.set["session"])+len(rc.set["test-session"]) == 0 {
 		hint = unheardFirstHint
 	}
-	heard := map[string]bool{}
-	for _, r := range rc.set["communication"] {
-		heard[r.str("from")] = true
-		heard[r.str("to")] = true
-	}
-	for _, kind := range []string{"session", "test-session"} {
-		for _, r := range rc.set[kind] {
-			for _, v := range itemValues(source.Child(r.root, "present")) {
-				heard[v] = true
-			}
-		}
-	}
-	for _, src := range rc.d.sources {
-		for _, v := range itemValues(source.Child(src, "participants")) {
-			heard[v] = true
-		}
-	}
-	for _, dec := range rc.d.decisions {
-		heard[source.Str(source.Child(dec, "decidedBy"))] = true
-	}
+	heard := rc.heard()
 	relies := map[string][]string{} // role -> what relies on it, as named
 	add := func(role, what string) {
 		if role == "" || heard[role] || rc.d.stakeholders[role] == nil {
@@ -251,6 +233,114 @@ func (rc *recordChecks) checkUnheard(c *checker) {
 	for _, role := range roles {
 		c.warn(rc.d.stakeholders[role], source.Pointer("stakeholders", role), RuleUnheard, "%s was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while %s %s on it; hear it before acceptance, and record what it said with specarch log%s", role, joinAnd(relies[role]), relyVerb(len(relies[role])), hint)
 	}
+}
+
+// heard is the set of roles some record or the specification shows were
+// heard: named as from or to by a communication record, listed under
+// present by a session or test session, among an interview source's
+// participants, or under a decision's decidedBy (ADR-220). The rule
+// unheard and specarch approve read the same set (ADR-239).
+func (rc *recordChecks) heard() map[string]bool {
+	heard := map[string]bool{}
+	for _, r := range rc.set["communication"] {
+		heard[r.str("from")] = true
+		heard[r.str("to")] = true
+	}
+	for _, kind := range []string{"session", "test-session"} {
+		for _, r := range rc.set[kind] {
+			for _, v := range itemValues(source.Child(r.root, "present")) {
+				heard[v] = true
+			}
+		}
+	}
+	for _, src := range rc.d.sources {
+		for _, v := range itemValues(source.Child(src, "participants")) {
+			heard[v] = true
+		}
+	}
+	for _, dec := range rc.d.decisions {
+		heard[source.Str(source.Child(dec, "decidedBy"))] = true
+	}
+	delete(heard, "")
+	return heard
+}
+
+// sessionKinds are the kinds of record an approval's session may name,
+// each with its folder as the messages name it.
+var sessionKinds = []struct{ kind, folder string }{
+	{"session", "sessions"}, {"test-session", "test-sessions"}, {"communication", "communications"},
+}
+
+// approvalSession is the problem with the record an approval names as the
+// session in which role read the documents, or "" with no rule when there
+// is none: the ID is a session, a test session or a communication record,
+// under exactly one of those kinds, and it lists the role under present,
+// or as from or to (ADR-239).
+func (rc *recordChecks) approvalSession(id, role string) (Rule, string) {
+	var found []*record
+	var kinds []string
+	for _, k := range sessionKinds {
+		if r := rc.set[k.kind][id]; r != nil {
+			found = append(found, r)
+			kinds = append(kinds, "records/"+k.folder+"/"+id+".yaml")
+		}
+	}
+	switch len(found) {
+	case 0:
+		return RuleRecordRef, fmt.Sprintf("%s is not a session, a test session or a communication: there is no records/sessions/%s.yaml, records/test-sessions/%s.yaml or records/communications/%s.yaml; name the record in which %s read the documents", id, id, id, id, role)
+	case 1:
+	default:
+		return RuleRecordRef, fmt.Sprintf("%s names more than one record: %s; give each record an ID of its own, and name the one in which %s read the documents", id, joinAnd(kinds), role)
+	}
+	r := found[0]
+	if r.kind == "communication" {
+		from, to := r.str("from"), r.str("to")
+		if from == role || to == role {
+			return "", ""
+		}
+		return RuleApprovalSession, fmt.Sprintf("%s is from %s to %s, not from or to %s, so it does not show that %s read the documents; name the session or the communication in which %s read them", id, from, to, role, role, role)
+	}
+	present := itemValues(source.Child(r.root, "present"))
+	for _, v := range present {
+		if v == role {
+			return "", ""
+		}
+	}
+	what := "lists nobody under present"
+	if len(present) > 0 {
+		what = "lists " + joinAnd(present) + " under present"
+	}
+	return RuleApprovalSession, fmt.Sprintf("%s %s, not %s, so it does not show that %s read the documents there; name the session in which %s read them, or add %s under present when it took part", id, what, role, role, role, role)
+}
+
+// checkApprovalSession checks the session an approval record names.
+func (rc *recordChecks) checkApprovalSession(r *record) {
+	n := source.Child(r.root, "session")
+	id := source.Str(n)
+	if n == nil || id == "" {
+		return
+	}
+	if rule, msg := rc.approvalSession(id, r.str("approvedBy")); rule != "" {
+		r.c.add(n, "/session", rule, "%s", msg)
+	}
+}
+
+// Heard reports whether some record beside the specification, or the
+// specification itself, shows that role was heard, as the rule unheard
+// reads it (ADR-239).
+func Heard(s *spec.Spec, role string) bool {
+	_, set := readRecords(s)
+	rc := &recordChecks{d: newDesign(s.Root), set: set, dir: s.RecordsDir}
+	return rc.heard()[role]
+}
+
+// ApprovalSession is the problem with id as the session of an approval by
+// role, as validate reports it at the record's session, or "" with no rule
+// when the record exists and lists the role (ADR-239).
+func ApprovalSession(s *spec.Spec, id, role string) (Rule, string) {
+	_, set := readRecords(s)
+	rc := &recordChecks{d: newDesign(s.Root), set: set, dir: s.RecordsDir}
+	return rc.approvalSession(id, role)
 }
 
 // unheardFirstHint ends the unheard warning of a specification that keeps

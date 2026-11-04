@@ -100,6 +100,7 @@ const (
 	RuleEvidence                Rule = "evidence"
 	RuleRecordCited             Rule = "record_cited"
 	RuleUnheard                 Rule = "unheard"
+	RuleApprovalSession         Rule = "approval_session"
 	RuleTestUnmapped            Rule = "test_unmapped"
 	RuleCommissioningRecord     Rule = "commissioning_record"
 	RuleReleaseContents         Rule = "release_contents"
@@ -272,6 +273,7 @@ var Rules = []Rule{
 	RuleEvidence,
 	RuleRecordCited,
 	RuleUnheard,
+	RuleApprovalSession,
 	RuleTestUnmapped,
 	RuleCommissioningRecord,
 	RuleReleaseContents,

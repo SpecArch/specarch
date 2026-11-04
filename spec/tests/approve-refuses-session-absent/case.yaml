@@ -1,0 +1,5 @@
+arguments: [approve, --by, clerk, --session, SES-1, --date, 2026-11-04, project]
+exitStatus: 1
+standardOutput: ""
+standardError: |
+  specarch approve: SES-1 lists manager under present, not clerk, so it does not show that clerk read the documents there; name the session in which clerk read them, or add clerk under present when it took part (approval_session), so nothing was approved

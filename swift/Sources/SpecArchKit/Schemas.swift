@@ -20787,6 +20787,10 @@ let recordSchemaJSON = #"""
           "type": "string",
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
+        "session": {
+          "description": "The session, test session or communication record in which the approving role read the documents, by ID; validate checks that the record exists and lists that role as present, or as from or to of a communication.",
+          "$ref": "#/$defs/recordId"
+        },
         "commit": {
           "description": "The commit the specification's folder was at when it was approved, written when every file under it was committed to a git repository; diff between it and the working tree shows an approver only what changed since.",
           "type": "string",

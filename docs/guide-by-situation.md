@@ -529,20 +529,24 @@ for use may be generated only from a specification that person approved.
     specarch document techspec --out docs spec
     specarch document requirements --out docs spec
     specarch document problems --out docs spec
-    specarch approve --dry-run --by librarian spec
-    specarch approve --by librarian spec
+    specarch approve --dry-run --by librarian --session SES-1 spec
+    specarch approve --by librarian --session SES-1 spec
 
 The approval record, `records/approvals/<version>.yaml`, holds the digest
 of every file, so any later change voids it, and the commit it was made at
 when every file is committed. `approve` refuses a specification with
 errors, with an open must or should question, or whose documents differ
-from what it says now. `document problems` writes `problems.txt` and
+from what it says now, and a role never heard: no communication, session,
+interview or decision names it (the rule `unheard`). `--session` names the
+session, test session or communication record in which the role read the
+documents, and it must list the role; without it `approve` warns and goes
+on. `document problems` writes `problems.txt` and
 `problems.sarif`, every error, warning and open question one line each,
 for the approver to read first.
 
 **A worked example.**
 
-    $ specarch approve --dry-run --by librarian library
+    $ specarch approve --dry-run --by librarian --session SES-1 library
     would write library/records/approvals/0.1.0.yaml
     specarch approve: version 0.1.0 of library/spec can be approved by librarian; nothing written (--dry-run)
 
@@ -1012,7 +1016,7 @@ approver will not read three hundred pages again for a column.
 
     specarch diff spec-at-approval spec
     specarch decision why ADR-005 spec
-    specarch approve --by librarian spec
+    specarch approve --by librarian --session SES-2 spec
 
 The approval record holds the commit it was made at. `diff` between that
 commit and the working tree lists every changed element with the change

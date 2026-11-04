@@ -360,12 +360,25 @@ func decimal(_ any: Any) -> Decimal? {
     return nil
 }
 
+/// Whether a number JSONSerialization read is true or false, not 1 or 0:
+/// CoreFoundation's boolean type on macOS; on Linux, where there is no
+/// CoreFoundation API, a Swift Bool or an NSNumber made from one (its
+/// Objective-C type "c").
+func isBoolean(_ any: Any, _ n: NSNumber) -> Bool {
+    #if canImport(Darwin)
+    return CFGetTypeID(n) == CFBooleanGetTypeID()
+    #else
+    if type(of: any) == Bool.self { return true }
+    return String(cString: n.objCType) == "c"
+    #endif
+}
+
 func fromAny(_ any: Any) -> JSONValue {
     switch any {
     case is NSNull: return .null
     case let s as String: return .string(s)
     case let n as NSNumber:
-        if CFGetTypeID(n) == CFBooleanGetTypeID() { return .bool(n.boolValue) }
+        if isBoolean(any, n) { return .bool(n.boolValue) }
         return .number(Decimal(string: n.stringValue) ?? 0, n.stringValue)
     case let a as [Any]: return .array(a.map(fromAny))
     case let o as [String: Any]: return .object(o.sorted { $0.key < $1.key }.map { ($0.key, fromAny($0.value)) })

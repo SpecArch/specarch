@@ -118,9 +118,13 @@ private func evaluate(_ src: String, _ env: ExprEnv = [:], _ vals: [String: Expr
 }
 
 /// Both builds hold a timeZone to the database's own spelling and refuse
-/// the names a platform's library knows beyond it.
+/// the names a platform's library knows beyond it. EST is a name of the
+/// database's backward file, which some Linux distributions ship in a
+/// package of its own (Debian's tzdata-legacy): it is required only where
+/// the host's database holds it.
 @Test func zoneNamesAreTheDatabases() {
     for name in ["Asia/Jakarta", "UTC", "Etc/UTC", "EST", "Etc/GMT+7", "America/Argentina/Buenos_Aires"] {
+        if name == "EST" && !zoneSpelled(name).held { continue }
         #expect(zoneNamed(name) != nil, "\(name)")
     }
     for name in ["asia/jakarta", "Asia/JAKARTA", "utc", "Local", "", "PST", "GMT+7", "WIB", "+07:00", "posixrules"] {

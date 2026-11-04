@@ -5822,12 +5822,12 @@ Consequences: Rules walk the node tree directly. A date without quotes is caught
 
 From the implementation file version 0.1.0.
 
-A second implementation of the specification in `spec/`, for macOS,
-built from the same specification as the Go one. It offers the validate
+A second implementation of the specification in `spec/`, for macOS
+and Linux, built from the same specification as the Go one. It offers the validate
 and version commands and passes the same conformance cases; the
 documents, the generators, gaps, decide, approve, diff, derive and idioms are built in Go only.
 
-Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin/arm64, darwin/amd64.
+Stack: language Swift 6.0; toolchain Swift Package Manager 6.0; platforms darwin/arm64, darwin/amd64, linux/amd64.
 
 #### Libraries
 
@@ -6005,6 +6005,34 @@ Decision: Int, uint and decimal values are Foundation Decimal, exact to 38 signi
 Consequences: Results agree with the Go build, which uses unbounded rationals,
 wherever a value has 38 digits or fewer. The design does not yet bound
 a decimal's precision; that is reported as a finding.
+
+##### ADR-243: The validator builds and passes its tests on Linux too
+
+Status: accepted, 2026-11-05.
+
+Context: The landing checks run on a Linux build runner when one is healthy,
+the swift part included, so the Swift build must compile and give
+the Go build's output there. Swift on Linux has Foundation but no
+CryptoKit and no CoreFoundation API, and a Linux distribution may
+ship the time zone database's backward names (EST and the like) in a
+package of its own.
+
+Decision: Code that needs a macOS framework says so with canImport and has a
+portable path beside it: the SHA-256 of a recorded evidence file is
+CryptoKit's where it is there and a FIPS 180-4 implementation of its
+own otherwise, tested against the standard's examples and, on macOS,
+against CryptoKit; a JSON boolean is told from a number by
+CoreFoundation's type on macOS and by the NSNumber's Objective-C
+type, or a Swift Bool, on Linux. No dependency is added: swift-crypto
+would bring BoringSSL to build for one digest. A time zone is read
+from the host's database on both, as before.
+
+Consequences: CI's swift job keeps the macOS build covered; the landing check's
+swift part may run on either. On a host whose database lacks a
+backward name, the Swift build refuses it while the Go build, which
+falls back to Go's own copy of the database, reads it, so the two can
+differ there for such a name; the expression tests require EST only
+where the host's database holds it, and no example names one.
 
 ## 8. Cross-cutting concepts
 

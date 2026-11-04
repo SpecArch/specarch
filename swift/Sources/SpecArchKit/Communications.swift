@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 // The checks of the records that keep who said what and when: a
@@ -76,7 +75,7 @@ extension RecordChecks {
                 r.c.add(pathNode, ptr, .evidence, "\(p) is not under records/: there is no records/\(p); put the file there, or correct the path")
                 continue
             }
-            let got = "sha256:" + SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+            let got = "sha256:" + sha256Hex(data)
             let want = str(item.child("sha256"))
             if !want.isEmpty && want != got {
                 r.c.add(item.child("sha256"), pointer("evidence", String(i), "sha256"), .evidence, "records/\(p) has changed since it was recorded: its SHA-256 is now \(got), not \(want); restore the file, or record it again as it is now")

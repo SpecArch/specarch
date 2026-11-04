@@ -13,11 +13,26 @@
 # so this script and CI run the same checks. It stops at the first failure
 # and names the step. The specarch-gen-* plug-ins are built into .bin, which
 # is not tracked; scratch files go into a folder mktemp makes.
+#
+# Where heavy-lock is on the PATH, each part runs as one heavy-lock job of
+# its own, so run the script bare, not under heavy-lock. heavy-lock sends
+# each to a Linux runner when one is healthy, the go part as a job of kind
+# go_build_test and the swift part as one of kind swift_linux_static (the
+# script names the kind in HEAVY_LOCK_KIND, since heavy-lock reads it from
+# the command, and sh is not one it knows). A runner gets the committed
+# files with the staged changes, no .git, and runs every step of the part
+# there, the swift part building its own specarch to compare with. A part
+# runs on the Mac instead, with the reason printed, when no runner can take
+# it (heavy-lock names why), when files have changes that are not staged or
+# are untracked (the runner would check another tree than this one), when
+# the script itself runs inside a heavy-lock job (a heavy-lock inside a job
+# runs its command in place), and where there is no heavy-lock (CI). No
+# step needs macOS: CI's swift job still runs the swift part on macOS.
 set -u
 
 parts=${1:-all}
 case $parts in
-all | go | swift) ;;
+all | go | swift | _go | _swift) ;;
 *)
 	echo "landing-check: unknown part $parts; give go, swift or nothing for both" >&2
 	exit 2
@@ -32,14 +47,18 @@ fi
 tmp=$(mktemp -d) || exit 1
 trap 'rm -rf "$tmp"' EXIT
 bin=$(pwd)/.bin
+# The go part leaves the name of the host it ran on here; on a runner it is
+# not sent back, so the file says the Go build in .bin is this host's own.
+built_here=$bin/.go-part-host
 
-# step runs a command and stops the script when it fails, naming the step.
+# step runs a command and stops the script when it fails, naming the step and
+# the host it ran on.
 step() {
 	name=$1
 	shift
 	echo "landing-check: $name"
 	if ! "$@"; then
-		echo "landing-check: FAILED at: $name" >&2
+		echo "landing-check: FAILED at: $name (on $(uname -n))" >&2
 		exit 1
 	fi
 }
@@ -109,7 +128,9 @@ model_same() {
 	done
 }
 
-if [ "$parts" != swift ]; then
+# go_steps is the go part's own work, on whichever host runs it.
+go_steps() {
+	echo "landing-check: the go part runs on $(uname -n) ($(uname -s) $(uname -m))"
 	step "go build" go build ./...
 	step "go vet" go vet ./...
 	step "go test, including the conformance suite" go test ./...
@@ -118,16 +139,87 @@ if [ "$parts" != swift ]; then
 	step "validate SpecArch's own specification and every example" "$bin/specarch" validate spec examples
 	step "generated documents are current (scripts/regenerate.sh writes them)" documents_current
 	step "generated code and data are current (scripts/regenerate.sh writes them)" generated_current
-fi
+	uname -n >"$built_here"
+}
 
-if [ "$parts" != go ]; then
+# swift_steps is the swift part's own work, on whichever host runs it. With
+# $1 "built" the go part has just built specarch in this checkout and it is
+# used as it is; otherwise it is built now.
+swift_steps() {
+	echo "landing-check: the swift part runs on $(uname -n) ($(uname -s) $(uname -m))"
 	step "swift build" swift build -c release --package-path swift
 	step "swift test, including the conformance suite" swift test --package-path swift
-	if [ "$parts" = swift ]; then
+	if [ "${1:-}" != built ] || [ ! -x "$bin/specarch" ]; then
 		step "build specarch into .bin" build_specarch
 	fi
 	step "the Swift build's validate output is the Go build's" validate_same
 	step "both builds print the same model of the specification, every example and the estate" model_same
+}
+
+# not_to_runner prints why the go part cannot go to a runner, or nothing
+# when it can.
+not_to_runner() {
+	if [ -n "${HEAVY_LOCK_HELD:-}" ]; then
+		echo "the script runs inside the heavy-lock job ${HEAVY_LOCK_HELD}, and a heavy-lock inside a job runs its command in place; run sh scripts/landing-check.sh bare to use a runner"
+		return
+	fi
+	if ! command -v heavy-lock >/dev/null 2>&1; then
+		echo "there is no heavy-lock on the PATH"
+		return
+	fi
+	if ! git rev-parse --git-dir >/dev/null 2>&1; then
+		echo "$(pwd) is not a git checkout, so there is no snapshot to send"
+		return
+	fi
+	unstaged=$(git diff --name-only | wc -l | tr -d ' ')
+	untracked=$(git ls-files --others --exclude-standard | wc -l | tr -d ' ')
+	if [ "$unstaged" != 0 ] || [ "$untracked" != 0 ]; then
+		echo "a runner gets the committed files with the staged changes only, and $unstaged tracked files have changes not staged and $untracked files are untracked (git add them, or commit, to send them)"
+	fi
+}
+
+# run_part runs the internal part $2 (with $3) as the heavy-lock job $1,
+# of kind $4: on a runner when heavy-lock can send it there, otherwise on
+# this Mac with the reason printed.
+run_part() {
+	label=$1 part=$2 arg=$3 kind=$4
+	why=$(not_to_runner)
+	if [ -z "$why" ]; then
+		HEAVY_LOCK_KIND=$kind heavy-lock "$label" -- sh scripts/landing-check.sh "$part" $arg
+	elif [ -n "${HEAVY_LOCK_HELD:-}" ] || ! command -v heavy-lock >/dev/null 2>&1; then
+		echo "landing-check: $label runs here, on $(uname -n): $why"
+		sh scripts/landing-check.sh "$part" $arg
+	else
+		echo "landing-check: $label runs on this Mac ($(uname -n)): $why"
+		heavy-lock --host local "$label" -- sh scripts/landing-check.sh "$part" $arg
+	fi
+	status=$?
+	if [ $status != 0 ]; then
+		echo "landing-check: FAILED: $label exited $status; the lines above name the host it ran on and the step" >&2
+		exit 1
+	fi
+}
+
+case $parts in
+_go)
+	go_steps
+	exit 0
+	;;
+_swift)
+	swift_steps "${2:-}"
+	exit 0
+	;;
+esac
+
+from=""
+if [ "$parts" != swift ]; then
+	rm -f "$built_here"
+	run_part specarch:landing-go _go "" go_build_test
+	[ -f "$built_here" ] && from=built
+fi
+
+if [ "$parts" != go ]; then
+	run_part specarch:landing-swift _swift "$from" swift_linux_static
 fi
 
 echo "landing-check: all passed ($parts)"

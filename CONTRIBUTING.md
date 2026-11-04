@@ -55,6 +55,18 @@ web screens' build.
 writes every file the script checks as generated. To settle a conflict in
 one, take either side, run it on the merged tree, then run the checks.
 
+Where `heavy-lock` is on the PATH, both scripts run their work as
+heavy-lock jobs, which go to a healthy Linux runner when one is set up:
+the go part, the swift part and the regenerate each as one job, sent as
+the committed files with the staged changes. Run them bare, not under
+heavy-lock, and stage what they should see. regenerate's runner packs the
+files it wrote and removed into `.bin/regenerated`, which comes back and
+is written into the checkout. A job runs on the machine itself, with the
+reason printed, when no runner can take it, when files have changes not
+staged or are untracked, or when the script runs inside a heavy-lock job.
+Both builds of the validator build and pass their tests on Linux and
+macOS; CI runs the swift part on macOS.
+
 While a change is in progress, `scripts/test-map.json` names the narrowest
 check that covers each path: a list of rules, each a set of globs and the
 command for them, the first matching rule taking a path. In a command,

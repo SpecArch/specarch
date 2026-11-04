@@ -1,0 +1,7 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:1:11: warning: /specarch: meta_model_version: the specification is written against meta-model 0.1, an earlier version read beside 1.0.0 with this warning, and its missing tests are warnings; run specarch derive to write the tests 0.2 and later ask for, then run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@specarch.yaml#/specarch]
+  specarch.yaml:8:30: error: /algorithms/archived/formula: expression_syntax: the formula: the method form x.startsWith() is not part of SpecArch expressions, and startsWith is not a function of them; the functions are int, uint, double, decimal, string, date, timestamp, duration, size, round, floor, ceil, min and max [expression_syntax@specarch.yaml#/algorithms/archived/formula]
+  specarch.yaml:16:25: error: /algorithms/archivedAsAdvised/formula: expression_syntax: the formula: startsWith is not a function of SpecArch expressions; the functions are int, uint, double, decimal, string, date, timestamp, duration, size, round, floor, ceil, min and max [expression_syntax@specarch.yaml#/algorithms/archivedAsAdvised/formula]
+  specarch.yaml:24:24: error: /algorithms/short/formula: expression_syntax: the formula: the method form x.size() is not part of SpecArch expressions; write size(x) [expression_syntax@specarch.yaml#/algorithms/short/formula]

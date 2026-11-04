@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.5.1-dev of the specification: 131 requirements, 5 entities, 30 commands, 7 algorithms, 1038 tests, 225 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.5.1-dev of the specification: 131 requirements, 5 entities, 30 commands, 7 algorithms, 1039 tests, 225 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -19741,6 +19741,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-expression-date-days | command validate | system | golden | formulas that move a date forward and back by whole days, with worked examples across a month, a year and a leap day | validate is run | it evaluates every example to the date it expects and exits 0 |
 | validate-expression-date-number | command validate | system | red | formulas that add a bare number, hours, weeks, and a duration written before the date to a date | validate is run | it reports expression_type for each, with the form to write, and exits 1 |
 | validate-expression-in-stage-file | command validate | system | red | a specification tree whose design stage holds a formula naming an input that does not exist and a check that gives a number | validate is run | it reports expression_name and expression_type, each at the file and line of its expression, and exits 1 |
+| validate-expression-method-form | command validate | system | red | formulas that call startsWith as a method and as a function, and size as a method | validate is run | each is refused with expression_syntax, the method form of startsWith and its function form both naming the functions the subset has, and the method form of size advising size(x); it exits 1 |
 | validate-expression-name | command validate | system | red | a formula that names an input that does not exist | validate is run | it reports expression_name and exits 1 |
 | validate-expression-not-in-subset | command validate | system | red | a formula that uses %, which the subset leaves out | validate is run | it reports expression_syntax naming % and exits 1 |
 | validate-expression-syntax | command validate | system | red | a formula that ends after an operator | validate is run | it reports expression_syntax with the column and exits 1 |

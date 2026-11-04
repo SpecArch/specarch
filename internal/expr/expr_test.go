@@ -103,6 +103,23 @@ func TestOutsideTheSubsetIsRefusedByName(t *testing.T) {
 	}
 }
 
+// A method call is refused with advice that is never refused in turn:
+// f(x) only when the subset has f, otherwise the functions it has, as a call
+// of a name outside the subset is (BUG-074).
+func TestMethodFormAdvisesOnlyAFunctionOfTheSubset(t *testing.T) {
+	for src, want := range map[string]string{
+		`name.size()`:            "the method form x.size() is not part of SpecArch expressions; write size(x)",
+		`code.startsWith("a/")`:  "the method form x.startsWith() is not part of SpecArch expressions, and startsWith is not a function of them; the functions are " + FunctionList,
+		`startsWith(code, "a/")`: "startsWith is not a function of SpecArch expressions; the functions are " + FunctionList,
+		`x.exists(y, y > 1)`:     "the method form x.exists() is not part of SpecArch expressions, and exists is not a function of them; the functions are " + FunctionList,
+	} {
+		_, errs := Parse(src)
+		if len(errs) != 1 || errs[0].Message != want {
+			t.Errorf("%s: want %q, got %v", src, want, errs)
+		}
+	}
+}
+
 // date() of an instant is the instant's calendar date in the zone given,
 // whatever offset the instant was written with (ADR-193).
 func TestDateOfInstantReadsZone(t *testing.T) {

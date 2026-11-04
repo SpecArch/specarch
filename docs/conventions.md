@@ -2965,7 +2965,11 @@ back.
 Nothing else is in the subset: no `%`, no `in`, no lists or maps written in
 the expression, no field access with `.`, no macros (`has`, `all`,
 `exists`, `map`, `filter`), and no other function. Each is refused with a
-message naming it. Comparisons do not chain: `a < b < c` is an error,
+message naming it. A function called as a method, `name.size()`, is
+refused with the call that replaces it, `size(name)`, but only when the
+subset has that function; any other method, `code.startsWith("a/")`, is
+refused with the list of the functions the subset has, so following a
+refusal never leads to a second one. Comparisons do not chain: `a < b < c` is an error,
 written `a < b && b < c`. CEL itself lets numbers of different types be
 compared; SpecArch does not, so that every operator follows one rule, and a
 mixed comparison is written with a conversion. Anything a real

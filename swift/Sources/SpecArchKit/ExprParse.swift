@@ -306,7 +306,13 @@ private final class Parser {
                 if isOp("(") {
                     let open = next()
                     _ = try arguments()
-                    refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions; write \(name.text)(x)")
+                    // The advice names name(x) only when the subset has
+                    // that function, so it never leads to a second refusal.
+                    if exprFunctions.contains(name.text) {
+                        refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions; write \(name.text)(x)")
+                    } else {
+                        refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions, and \(name.text) is not a function of them; the functions are \(exprFunctionList)")
+                    }
                 } else if lastDot == nil && n.op == .name && n.text == exprCallerName {
                     // caller.<property>, the one field access, read as one name.
                     n.text = exprCallerName + "." + name.text

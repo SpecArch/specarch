@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1038 design tests, 521 golden and 517 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1039 design tests, 521 golden and 518 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1038 design tests, 521 golden and 517 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1034 |
+| system | 1035 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -6132,6 +6132,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-3.
 - Given: a specification tree whose design stage holds a formula naming an input that does not exist and a check that gives a number
 - When: validate is run
 - Then: it reports expression_name and expression_type, each at the file and line of its expression, and exits 1
+
+#### validate-expression-method-form
+
+Scenario: red; level: system; covers exit 1.
+
+- Given: formulas that call startsWith as a method and as a function, and size as a method
+- When: validate is run
+- Then: each is refused with expression_syntax, the method form of startsWith and its function form both naming the functions the subset has, and the method form of size advising size(x); it exits 1
 
 #### validate-expression-name
 

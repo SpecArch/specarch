@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "formulas that call startsWith as a method and as a function, and size as a method"
+when: validate is run
+then: "each is refused with expression_syntax, the method form of startsWith and its function form both naming the functions the subset has, and the method form of size advising size(x); it exits 1"

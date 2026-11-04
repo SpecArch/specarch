@@ -1,0 +1,27 @@
+specarch: "0.1"
+info: { title: Case, version: 1.0.0 }
+algorithms:
+  archived:
+    inputs:
+      code: { type: string, maxLength: 20 }
+    output: { type: boolean }
+    formula: 'code.startsWith("a/")'
+    examples:
+      - { name: an archived code, inputs: { code: "a/17" }, expected: true }
+    pseudocode: return whether code begins with a/
+  archivedAsAdvised:
+    inputs:
+      code: { type: string, maxLength: 20 }
+    output: { type: boolean }
+    formula: 'startsWith(code, "a/")'
+    examples:
+      - { name: an archived code, inputs: { code: "a/17" }, expected: true }
+    pseudocode: return whether code begins with a/
+  short:
+    inputs:
+      code: { type: string, maxLength: 20 }
+    output: { type: boolean }
+    formula: "code.size() < 5"
+    examples:
+      - { name: a short code, inputs: { code: "a/17" }, expected: true }
+    pseudocode: return whether code has fewer than five characters

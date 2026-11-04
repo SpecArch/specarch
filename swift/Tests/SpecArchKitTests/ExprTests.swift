@@ -63,6 +63,22 @@ private func evaluate(_ src: String, _ env: ExprEnv = [:], _ vals: [String: Expr
     }
 }
 
+/// A method call is refused with advice that is never refused in turn:
+/// f(x) only when the subset has f, otherwise the functions it has, as a
+/// call of a name outside the subset is (BUG-074).
+@Test func methodFormAdvisesOnlyAFunctionOfTheSubset() {
+    let cases = [
+        "name.size()": "the method form x.size() is not part of SpecArch expressions; write size(x)",
+        "code.startsWith(\"a/\")": "the method form x.startsWith() is not part of SpecArch expressions, and startsWith is not a function of them; the functions are \(exprFunctionList)",
+        "startsWith(code, \"a/\")": "startsWith is not a function of SpecArch expressions; the functions are \(exprFunctionList)",
+        "x.exists(y, y > 1)": "the method form x.exists() is not part of SpecArch expressions, and exists is not a function of them; the functions are \(exprFunctionList)",
+    ]
+    for (src, want) in cases {
+        let (_, errs) = parseExpr(src)
+        #expect(errs.count == 1 && errs.first?.message == want, "\(src): \(errs)")
+    }
+}
+
 /// The positions CEL gives: an identifier at its first character, an
 /// operator at the operator, a call at its opening bracket.
 @Test func positionsFollowCEL() {

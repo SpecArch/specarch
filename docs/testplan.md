@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1055 design tests, 532 golden and 523 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1056 design tests, 533 golden and 523 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1055 design tests, 532 golden and 523 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1051 |
+| system | 1052 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -2996,6 +2996,14 @@ Scenario: golden; level: system; verifies SA-138.
 - Given: a specification with requirements, an open must question and no problem
 - When: gaps --next is run
 - Then: it prints the problem first, before the open question, naming problem_missing at /problem, the question in plain words, the keys statement, stakeholders and today, and the question ranked first after it, and exits 1 for the open must question alone
+
+#### gaps-next-asks-problem-lean
+
+Scenario: golden; level: system; verifies SA-138.
+
+- Given: a specification on the lean profile with requirements, an open must question and no problem
+- When: gaps --next is run
+- Then: it prints the problem first, as on full, since on lean the problem is asked here rather than warned,, before the open question, naming problem_missing at /problem, the question in plain words, the keys statement, stakeholders and today, and the question ranked first after it, and exits 1 for the open must question alone
 
 #### gaps-next-asks-unmeasured-goal
 
@@ -6649,9 +6657,9 @@ Scenario: golden; level: system; verifies SA-136.
 
 Scenario: red; level: system; verifies SA-135.
 
-- Given: a specification whose intent names what does not exist: a stakeholder of the problem, a monitor of a goal, a need of an out-of-scope entry, a requirement of a quality goal, a goal of a need and a quality goal of a decision
+- Given: a specification whose intent names what does not exist: a stakeholder of the problem, a monitor of a goal, a need of an out-of-scope entry, a requirement of a quality goal, a goal of a need and a quality goal of a decision, and a goal's by and an out-of-scope entry's until naming a release that is not recorded
 - When: validate is run
-- Then: it reports each as the error of the kind it names (stakeholder, monitor, need, requirement, goal, quality_goal) at the entry, with the closest name when there is one, and exits 1
+- Then: it reports each as the error of the kind it names (stakeholder, monitor, need, requirement, goal, quality_goal) at the entry, with the closest name when there is one, the two releases as record_ref, and exits 1
 
 #### validate-intent-warnings
 

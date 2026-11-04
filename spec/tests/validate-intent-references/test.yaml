@@ -2,7 +2,7 @@
 command: validate
 level: system
 scenario: red
-given: "a specification whose intent names what does not exist: a stakeholder of the problem, a monitor of a goal, a need of an out-of-scope entry, a requirement of a quality goal, a goal of a need and a quality goal of a decision"
+given: "a specification whose intent names what does not exist: a stakeholder of the problem, a monitor of a goal, a need of an out-of-scope entry, a requirement of a quality goal, a goal of a need and a quality goal of a decision, and a goal's by and an out-of-scope entry's until naming a release that is not recorded"
 when: "validate is run"
-then: "it reports each as the error of the kind it names (stakeholder, monitor, need, requirement, goal, quality_goal) at the entry, with the closest name when there is one, and exits 1"
+then: "it reports each as the error of the kind it names (stakeholder, monitor, need, requirement, goal, quality_goal) at the entry, with the closest name when there is one, the two releases as record_ref, and exits 1"
 verifies: [SA-135]

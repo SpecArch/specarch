@@ -10,9 +10,11 @@ goals:
     target: 20 seconds
     status: accepted
     measuredBy: [wait-time]
+    by: 9.9.9
 outOfScope:
   OUT-1:
     statement: The system does not order stock.
+    until: 9.9.9
     needs: [NEED-9]
 qualityGoals:
   QG-1: { rank: 1, quality: functional-suitability, statement: A name search finds every item of that name., requirements: [CASE-9] }

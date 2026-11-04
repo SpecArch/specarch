@@ -163,7 +163,7 @@ Version 1.5.1-dev of the specification: 10 needs, 136 requirements, and 1 gap. E
 | SA-135 | GOAL-2, GOAL-1 | NEED-1, NEED-6 | decisions ADR-244 | tests validate-intent-references |
 | SA-136 | GOAL-2, GOAL-4 | NEED-1, NEED-8 | decisions ADR-244 | tests validate-intent-problem-missing; tests validate-intent-problem-missing-lean; tests validate-intent-warnings |
 | SA-137 | GOAL-3, GOAL-1 | NEED-3, NEED-6 | enums DocumentTarget; commands document; decisions ADR-244 | tests document-intent; tests document-intent-missing; tests document-progress-goals; tests document-techspec-intent; tests document-traceability-goals |
-| SA-138 | GOAL-4 | NEED-8 | commands gaps; decisions ADR-244 | tests gaps-next-asks-problem; tests gaps-next-asks-unmeasured-goal; tests gaps-next-json-intent |
+| SA-138 | GOAL-4 | NEED-8 | commands gaps; decisions ADR-244 | tests gaps-next-asks-problem; tests gaps-next-asks-problem-lean; tests gaps-next-asks-unmeasured-goal; tests gaps-next-json-intent |
 | SA-139 | GOAL-4 | NEED-8 | commands init; decisions ADR-244 | tests init-intent-empty; tests init-writes-intent |
 
 ## 3. Gaps

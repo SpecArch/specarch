@@ -197,7 +197,7 @@ func (b *builder) call(e ast.Expr, n *Node) *Node {
 	c := e.AsCall()
 	fn := c.FunctionName()
 	if c.IsMemberFunction() {
-		return b.refuse(e, "%s", methodForm(fn))
+		return b.refuse(e, "%s", methodForm(fn, len(c.Args()) > 0))
 	}
 	args := c.Args()
 	if op, ok := binary[fn]; ok {
@@ -233,10 +233,15 @@ func (b *builder) call(e ast.Expr, n *Node) *Node {
 
 // methodForm is the refusal of x.<name>(): it advises <name>(x) only when
 // the subset has that function, and otherwise names the functions it has,
-// so the advice never leads to a second refusal.
-func methodForm(fn string) string {
+// so the advice never leads to a second refusal; a method given arguments
+// keeps a place for them, written <name>(x, ...).
+func methodForm(fn string, withArgs bool) string {
 	if Functions[fn] {
-		return fmt.Sprintf("the method form x.%s() is not part of SpecArch expressions; write %s(x)", fn, fn)
+		rest := ""
+		if withArgs {
+			rest = ", ..."
+		}
+		return fmt.Sprintf("the method form x.%s() is not part of SpecArch expressions; write %s(x%s)", fn, fn, rest)
 	}
 	return fmt.Sprintf("the method form x.%s() is not part of SpecArch expressions, and %s is not a function of them; the functions are %s", fn, fn, FunctionList)
 }

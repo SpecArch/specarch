@@ -305,11 +305,12 @@ private final class Parser {
                 let name = next()
                 if isOp("(") {
                     let open = next()
-                    _ = try arguments()
+                    let args = try arguments()
                     // The advice names name(x) only when the subset has
-                    // that function, so it never leads to a second refusal.
+                    // that function, so it never leads to a second refusal,
+                    // and keeps a place for the method's arguments.
                     if exprFunctions.contains(name.text) {
-                        refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions; write \(name.text)(x)")
+                        refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions; write \(name.text)(x\(args.isEmpty ? "" : ", ..."))")
                     } else {
                         refuse(open, "the method form x.\(name.text)() is not part of SpecArch expressions, and \(name.text) is not a function of them; the functions are \(exprFunctionList)")
                     }

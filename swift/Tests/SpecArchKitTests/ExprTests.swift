@@ -69,6 +69,7 @@ private func evaluate(_ src: String, _ env: ExprEnv = [:], _ vals: [String: Expr
 @Test func methodFormAdvisesOnlyAFunctionOfTheSubset() {
     let cases = [
         "name.size()": "the method form x.size() is not part of SpecArch expressions; write size(x)",
+        "total.round(2)": "the method form x.round() is not part of SpecArch expressions; write round(x, ...)",
         "code.startsWith(\"a/\")": "the method form x.startsWith() is not part of SpecArch expressions, and startsWith is not a function of them; the functions are \(exprFunctionList)",
         "startsWith(code, \"a/\")": "startsWith is not a function of SpecArch expressions; the functions are \(exprFunctionList)",
         "x.exists(y, y > 1)": "the method form x.exists() is not part of SpecArch expressions, and exists is not a function of them; the functions are \(exprFunctionList)",

@@ -3,9 +3,9 @@ name: specarch
 description: "Write, check and generate from SpecArch specifications with the specarch command: validate a specification and read its problems, list the open questions and ask them one at a time, record decisions and approvals, write documents and code, and capture a system that exists from its code and documents. Use when a repository holds specarch.yaml, specarch-estate.yaml or *.specarch-implementation.yaml files, or when asked to write, review, check or generate from a specification with SpecArch."
 ---
 
-<!-- Written by specarch skill 1.4.0 from its command definitions; write it again with specarch skill --out <folder> after an upgrade. -->
+<!-- Written by specarch skill 1.5.0 from its command definitions; write it again with specarch skill --out <folder> after an upgrade. -->
 
-# SpecArch 1.4.0 for agents
+# SpecArch 1.5.0 for agents
 
 SpecArch is a compiler for specifications: it reads a specification written
 in YAML, lists every problem in it, and writes documents and code from it.

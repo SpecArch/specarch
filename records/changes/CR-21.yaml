@@ -1,0 +1,37 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-21
+title: Read CSV, TSV and Excel registers into entities, check a filled register and write its template
+raisedBy: specification-author
+raised: "2026-11-01"
+phase: development
+type: perfective
+urgency: normal
+reason: Many systems start from spreadsheets people already keep, and their columns, types and allowed values had to be copied into entities by hand, with no check that a filled register fits the entity afterwards.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-215"
+    - "#/sources/rfc-4180"
+    - SA-113
+    - "#/tests/check-register"
+    - "#/tests/extract-tables-header-questions"
+    - "#/tests/extract-tables-instructions"
+    - "#/tests/extract-tables-mixed-column"
+    - "#/tests/extract-tables-no-header"
+    - "#/tests/extract-tables-quote-not-closed"
+    - "#/tests/extract-tables-register"
+    - "#/tests/extract-tables-round-trip"
+    - "#/tests/extract-tables-template"
+    - "#/tests/extract-tables-two-periods"
+    - "#/tests/generate-register"
+  changes:
+    - "#/commands/check"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: extract tables, check register and the register generator are new; a specification without a register is read, checked and generated as before, so a minor release carries it (ADR-186, ADR-215).
+release: 1.5.0
+status: released

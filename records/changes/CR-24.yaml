@@ -1,0 +1,29 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-24
+title: Add specarch-gen-ui-vue-htm, the web screens with no build step on Vue's runtime-only build and htm
+raisedBy: specification-author
+raised: "2026-11-02"
+phase: development
+type: perfective
+urgency: normal
+reason: A small web application had to take on a Node build chain to get screens from the specification, which a team without one could not maintain.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-218"
+    - "#/sources/sri"
+    - SA-115
+    - "#/tests/generate-ui-vue-htm"
+    - "#/tests/generate-ui-vue-htm-dxlib"
+    - "#/tests/generate-ui-vue-htm-hand-built"
+    - "#/tests/generate-ui-vue-htm-refused"
+    - "#/tests/generate-ui-vue-htm-table-override"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A new plug-in and an optional files key on a library of the 1.0 implementation schema; the other UI generators write what they wrote, so a minor release carries it (ADR-186, ADR-218).
+release: 1.5.0
+status: released

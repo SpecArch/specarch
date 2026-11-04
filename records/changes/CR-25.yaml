@@ -1,0 +1,34 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-25
+title: Add specarch-gen-seed, the development seed drawn from the entities with a fixed seed
+raisedBy: specification-author
+raised: "2026-11-02"
+phase: development
+type: perfective
+urgency: normal
+reason: Developers wrote seed rows by hand, which drifted from the entities and their rules and differed between machines.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-219"
+    - "#/sources/splitmix"
+    - "#/sources/rfc-2606"
+    - "#/sources/rfc-3849"
+    - "#/sources/rfc-5737"
+    - SA-116
+    - "#/tests/generate-seed"
+    - "#/tests/generate-seed-dialect-refused"
+    - "#/tests/generate-seed-encrypted-refused"
+    - "#/tests/generate-seed-mariadb"
+    - "#/tests/generate-seed-oracle"
+    - "#/tests/generate-seed-rows-zero"
+    - "#/tests/generate-seed-sqlserver"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A new plug-in and target; nothing existing is written differently, so a minor release carries it (ADR-186, ADR-219).
+release: 1.5.0
+status: released

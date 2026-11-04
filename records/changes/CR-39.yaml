@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-39
+title: Write a test package for a customer's environment with generate tests --package, and run it with specarch run
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: A system delivered to a customer is accepted in the customer's environment by people who have neither the project's code nor its test harness; they could only check the specification's golden, red and uncovered paths by hand, in a spreadsheet the specification never saw again.
+cause: omitted
+affects:
+  adds:
+    - "#/commands/run"
+    - "#/decisions/ADR-233"
+    - "#/requirements/SA-128"
+    - "#/tests/generate-tests-package"
+    - "#/tests/log-test-run-maps-derived-cases"
+    - "#/tests/run-package-no-answer"
+    - "#/tests/run-package-servers"
+    - "#/tests/run-package-skips"
+    - "#/tests/run-usage-error"
+  changes:
+    - "#/commands/generate"
+    - "#/commands/log test-run"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "specarch generate tests --package <environment> writes one file, specarch-test-package.yaml, every test and every derived case no test covers as a request to that environment's servers, holding no credential; specarch run runs it from outside and writes JUnit XML that log test-run maps back, a derived case to its subject's element (ADR-233, SA-128). --package is a new option and run a new command, and log test-run is itself new since 1.4.0 (ADR-230), so no file clean on 1.4.0 gets a new error, a new output line or a new exit status, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.5.0
+status: released

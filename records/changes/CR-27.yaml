@@ -1,0 +1,37 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-27
+title: "Settle the acceptance loop: record a remark from acceptance with its build, place and cause, answer it by a decision, keep the approval's commit and show what an open change reaches"
+raisedBy: specification-author
+raised: "2026-10-31"
+phase: development
+type: perfective
+urgency: normal
+reason: A remark made at the user acceptance test had no record that named the build and place it was seen at or why it arose, so it could not be traced back into the specification or counted by cause, and approving again after a change meant reviewing everything.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-221"
+    - "#/decisions/ADR-223"
+    - "#/decisions/ADR-224"
+    - "#/stakeholders/owner"
+    - "#/sources/owner-review-2026-10-31"
+    - "#/tests/diff-same-version"
+    - "#/tests/document-writes-changes-reach"
+    - "#/tests/validate-acceptance-record"
+    - "#/tests/validate-acceptance-valid"
+    - "#/tests/validate-change-answered"
+  changes:
+    - "#/decisions/ADR-083"
+    - "#/requirements/SA-57"
+    - "#/commands/approve"
+    - "#/commands/diff"
+    - "#/commands/document"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "The record schema 1.0 now requires cause on a change that is analysed, approved, rejected, implemented or released (ADR-223, the owner's decision of 2026-10-31), so a 1.0 change record in one of those states written without cause is an error that 1.4.0 did not give; the fix is one key per record. The owner decided on 2026-11-04 to release that as 1.5.0. Every other addition is optional: phase acceptance, against, seenAt, observed, expected and questions; the approval's commit, written by approve with a line on standard error when the folder has changes not committed; diff leaving the version check out between two folders of one version; document reading the change records to show what an open change reaches. So apart from cause, no file clean on 1.4.0 gets a new error, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.5.0
+status: released

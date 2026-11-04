@@ -1,0 +1,22 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-42
+title: Propose a reservation made outside the branches for each sequential ID, so parallel branches stop landing the same decision and requirement numbers
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: When several branches of one specification are written at once, each takes the largest decision or requirement number it can see plus one, so two branches take the same number and the second to land is renumbered by hand after a conflict; this specification's own history holds ten such renumbering commits, and nothing in the design said how parallel branches should take an ID.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-238"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "ADR-238 is recorded as proposed: it weighs a provisional name rewritten at landing, a specarch renumber command and IDs that cannot clash against a reservation counter, and recommends the counter with one option on specarch decide (--id). It is not built: the ID patterns, both validator builds, the commands and docs/conventions.md are unchanged, so no file's output, error or exit status changes and the release takes it as a patch-sized entry."
+release: 1.5.0
+status: released

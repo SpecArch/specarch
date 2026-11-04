@@ -1,0 +1,40 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-17
+title: Let a specification declare its long-running processes, read from systemd units and written into the documents
+raisedBy: specification-author
+raised: "2026-10-31"
+phase: development
+type: perfective
+urgency: normal
+reason: A program a service manager starts and watches, with its jobs, settings, signals, restarts and health, had no place in the design, so it was described only in prose and in unit files nobody checked against the specification.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-211"
+    - "#/sources/systemd-service"
+    - "#/sources/systemd-unit"
+    - "#/sources/posix-signal"
+    - SA-109
+    - "#/tests/derive-processes"
+    - "#/tests/document-operations-processes"
+    - "#/tests/document-techspec-processes"
+    - "#/tests/extract-systemd-not-a-unit"
+    - "#/tests/extract-systemd-reads-units"
+    - "#/tests/extract-systemd-stop-signal-not-held"
+    - "#/tests/merge-systemd-and-settings"
+    - "#/tests/validate-processes-must-question"
+    - "#/tests/validate-processes-refused"
+    - "#/tests/validate-processes-should-question"
+    - "#/tests/validate-processes-valid"
+  changes:
+    - "#/commands/model"
+    - "#/commands/extract"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: processes is an optional root key of the 1.0 design schema, and extract systemd a new source; a 1.4.0 specification holds no processes and is checked and modelled as before. extract's exit status 1 gains reasons that only a systemd file or a new document format can give, so no 1.4.0 command line reads differently, and a minor release carries it (ADR-186, ADR-211).
+release: 1.5.0
+status: released

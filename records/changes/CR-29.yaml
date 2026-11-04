@@ -1,0 +1,26 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-29
+title: Explain every feature by the situation it is for, in English and Indonesian, with a help topic as its index
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: The help was organised by command, so a person who knew their situation but not the command could not find what to run.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-225"
+    - SA-119
+    - "#/tests/help-situations"
+  changes:
+    - "#/commands/help"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A new help topic and two guides; every existing topic prints as before, so a minor release carries it (ADR-186, ADR-225).
+release: 1.5.0
+status: released

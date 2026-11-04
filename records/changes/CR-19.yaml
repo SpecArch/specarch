@@ -1,0 +1,30 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-19
+title: Let derive draft the fixture, input and expected outcome the design fixes, fill existing tests on request and count the bodies written
+raisedBy: specification-author
+raised: "2026-11-01"
+phase: development
+type: perfective
+urgency: normal
+reason: derive wrote each derived case with an empty fixture, input and expect even where the design fixed them, so an author typed by hand what the specification already said, and the test plan could not tell a test with a body from one without.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-213"
+    - SA-111
+    - "#/tests/derive-drafts-calls"
+    - "#/tests/derive-drafts-status-alone"
+    - "#/tests/derive-fill"
+    - "#/tests/document-testplan-bodies"
+  changes:
+    - "#/commands/derive"
+    - "#/decisions/ADR-041"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: derive drafts only what was left empty, and --fill is a new option; a test with a body is kept as it was. derive's standard error gains lines for the tests it fills, which a script reads only by the count line it already printed. A minor release carries it (ADR-186, ADR-213).
+release: 1.5.0
+status: released

@@ -1,0 +1,37 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-18
+title: Read PDF, Word, PowerPoint, Excel and email documents in extract documents
+raisedBy: specification-author
+raised: "2026-10-31"
+phase: development
+type: perfective
+urgency: normal
+reason: Requirements arrive as PDF, Word, PowerPoint, Excel and email files, and extract documents read Markdown alone, so each had to be converted by hand and a citation could not name the page, slide, cell range or attachment people hold.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-212"
+    - "#/sources/iso-29500"
+    - "#/sources/iso-32000-2"
+    - "#/sources/rfc-2045"
+    - "#/sources/rfc-5322"
+    - SA-110
+    - "#/tests/extract-documents-email"
+    - "#/tests/extract-documents-email-forwarded"
+    - "#/tests/extract-documents-excel"
+    - "#/tests/extract-documents-pdf"
+    - "#/tests/extract-documents-pdf-does-not-parse"
+    - "#/tests/extract-documents-pdf-encrypted"
+    - "#/tests/extract-documents-powerpoint"
+    - "#/tests/extract-documents-word"
+  changes:
+    - "#/tests/extract-documents-not-markdown"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A file extract documents refused in 1.4.0 is now read when it has one of the five formats' extensions; a Markdown document is read as before. The case extract-documents-not-markdown keeps a format that is still refused. A minor release carries it (ADR-186, ADR-212).
+release: 1.5.0
+status: released

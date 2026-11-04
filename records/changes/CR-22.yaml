@@ -1,0 +1,31 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-22
+title: "Declare the fixed routes a server answers beside its operations: the application's document, a folder of files and a health check"
+raisedBy: specification-author
+raised: "2026-11-01"
+phase: development
+type: perfective
+urgency: normal
+reason: The routes that serve the browser application, static files and health had no place in the design, so their permission, content security policy and caching were decided in code alone and never checked or tested.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-216"
+    - "#/sources/rfc-8246"
+    - "#/sources/rfc-9111"
+    - SA-114
+    - "#/tests/derive-routes"
+    - "#/tests/document-techspec-routes"
+    - "#/tests/generate-go-dxlib-routes"
+    - "#/tests/generate-tests-routes"
+    - "#/tests/validate-routes-refused"
+    - "#/tests/validate-routes-valid"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: routes is an optional root key of the 1.0 design schema; a 1.4.0 specification holds none and is checked and generated as before, so a minor release carries it (ADR-186, ADR-216).
+release: 1.5.0
+status: released

@@ -1,0 +1,32 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-41
+title: Write a progress document from the specification and its records, with effort on a change request and a burn-up per release
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: A team delivering from a specification is asked every week how big it is, what is still open and who must answer, whether every role was heard, what the change requests cost and how far the delivery has come; nothing counted these in one place, and no record held the effort a change request took, so the figures lived in a tracker that drifts from the specification.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-237"
+    - "#/requirements/SA-132"
+    - "#/tests/document-progress-effort-not-counted"
+    - "#/tests/document-progress-for-everyone"
+    - "#/tests/document-progress-stakeholders-held"
+    - "#/tests/document-progress-uncounted-entries"
+    - "#/tests/document-writes-progress"
+    - "#/tests/validate-change-effort"
+  changes:
+    - "#/commands/document"
+    - "#/commands/validate"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "specarch document progress writes progress.md from the specification and the records beside it: the size by stage and section, the open questions by priority and deciding role, the unheard roles, the stakeholder list's confirmation, the effort each change request records with the ones that record none named as missing, and a burn-up per release; a change record takes an optional effort with estimatedHours and spentHours, and nothing is estimated where nobody recorded a figure (ADR-237, SA-132). progress is a new document target and effort a new optional key, so no file clean on 1.4.0 gets a new error, a new output line or a new exit status, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.5.0
+status: released

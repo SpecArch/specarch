@@ -1,0 +1,26 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-23
+title: Let a question block a key inside an extension block, an element's own or a root x- block
+raisedBy: specification-author
+raised: "2026-11-01"
+phase: development
+type: perfective
+urgency: normal
+reason: An open question about a key under an x- block could not name what it blocks, so the uncertainty was either left out or attached to the wrong element.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-217"
+    - "#/tests/gaps-extension-block"
+    - "#/tests/validate-question-block-extension"
+  changes:
+    - "#/requirements/SA-17"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A blocks pointer that was refused in 1.4.0 is now accepted when it names a key inside an extension block; every pointer accepted before is read as before, so a minor release carries it (ADR-186, ADR-217).
+release: 1.5.0
+status: released

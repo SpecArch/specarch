@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-15
+title: Put questions to a person one at a time with gaps --next, ranked by what an answer unblocks
+raisedBy: specification-author
+raised: "2026-10-31"
+phase: development
+type: perfective
+urgency: normal
+reason: gaps listed every open question at once, so an author asking a stakeholder had to choose the order by hand and often asked first what unblocked least.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-209"
+    - "#/sources/spec-kit"
+    - SA-107
+    - "#/tests/gaps-next-json"
+    - "#/tests/gaps-next-none"
+    - "#/tests/gaps-next-ranks-by-blocks"
+    - "#/tests/gaps-next-ranks-by-outputs"
+    - "#/tests/gaps-next-should-before-could"
+    - "#/tests/gaps-next-unknown-option"
+    - "#/tests/gaps-next-usage-error"
+  changes:
+    - "#/commands/gaps"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "--next is a new option of gaps; without it gaps prints what it printed in 1.4.0. The new text of gaps' standard output only names what --next and --json print, so no existing command line reads differently and a minor release carries it (ADR-186, ADR-209)."
+release: 1.5.0
+status: released

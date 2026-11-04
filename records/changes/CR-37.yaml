@@ -1,0 +1,39 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-37
+title: Warn until a role confirms the stakeholder list is complete, under stakeholdersComplete
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: A stakeholder nobody listed objects first at the user acceptance test, and nothing in a specification said whether its stakeholder list was complete; who has an interest in the system is a human finding that no rule can make.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-234"
+    - "#/requirements/SA-129"
+    - "#/tests/approve-stakeholders-complete"
+    - "#/tests/approve-warns-stakeholders-unconfirmed"
+    - "#/tests/document-stakeholders-banner"
+    - "#/tests/document-stakeholders-complete"
+    - "#/tests/document-stakeholders-held"
+    - "#/tests/document-testruns-stakeholders-banner"
+    - "#/tests/validate-stakeholders-complete"
+    - "#/tests/validate-stakeholders-complete-unknown"
+    - "#/tests/validate-stakeholders-earlier-meta-model"
+    - "#/tests/validate-stakeholders-none"
+    - "#/tests/validate-stakeholders-unconfirmed"
+    - "#/tests/validate-stakeholders-unconfirmed-held"
+  changes:
+    - "#/commands/approve"
+    - "#/enums/Rule"
+    - "#/tests/validate-design-key"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "The root takes an optional stakeholdersComplete (by, a stakeholder; date; source, when given, a declared source). Until it is set, both validators warn stakeholders_unconfirmed, every generated document and the overview carry a banner, and specarch approve prints the same warning on standard error and still exits 0 (ADR-234, SA-129). A file clean on 1.4.0 gets a warning, never an error, and a file on a meta-model before 1.0.0 is not warned; the errors stakeholder and source apply only to the new key. So no file clean on 1.4.0 gets a new error or a new exit status, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.5.0
+status: released

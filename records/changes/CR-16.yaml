@@ -1,0 +1,34 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-16
+title: "Add a short on-ramp: specarch init, specarch help start and the lean profile"
+raisedBy: specification-author
+raised: "2026-10-31"
+phase: development
+type: perfective
+urgency: normal
+reason: A first-time author had no smallest valid specification to start from and met every missing-test error at once, so the first hour went on errors that say nothing about the system being specified.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-210"
+    - "#/commands/init"
+    - SA-108
+    - "#/tests/derive-lean-profile"
+    - "#/tests/init-dry-run"
+    - "#/tests/init-lean-profile"
+    - "#/tests/init-refuses-existing"
+    - "#/tests/init-usage-error"
+    - "#/tests/init-writes-specification"
+    - "#/tests/validate-profile-absent-missing-tests"
+    - "#/tests/validate-profile-full-missing-tests"
+    - "#/tests/validate-profile-lean-missing-tests"
+    - "#/tests/validate-profile-lean-permission-missing"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: init is a new command and info.profile an optional key of the 1.0 design schema; a specification without a profile is checked as before, so a minor release carries it (ADR-186, ADR-210).
+release: 1.5.0
+status: released

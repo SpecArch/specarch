@@ -1,0 +1,25 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-31
+title: "Add generate deploy: Compose, Kubernetes and cloud-init forms, runbooks and a fresh environment's script"
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: The deployment stage was specified but its files were written by hand, so the running system drifted from the specification and a fresh environment could not be built from it.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-227"
+    - SA-121
+    - "#/tests/generate-deploy"
+    - "#/tests/generate-deploy-refused"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A new plug-in and target; nothing existing is written differently, so a minor release carries it (ADR-186, ADR-227).
+release: 1.5.0
+status: released

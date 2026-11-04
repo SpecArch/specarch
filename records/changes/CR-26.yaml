@@ -1,0 +1,57 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-26
+title: "Keep who said what and when as records: specarch log, decide --record, the communications and timeline documents, and the rules evidence, record_cited and unheard"
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: What a stakeholder said, and when, lived in notes and chats outside the specification, so a decision could not cite it and a stakeholder nobody had heard went unnoticed until acceptance.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-220"
+    - "#/commands/log"
+    - SA-117
+    - SA-118
+    - "#/tests/decide-cites-record"
+    - "#/tests/decide-record-refused"
+    - "#/tests/decide-record-unknown"
+    - "#/tests/decide-record-wrong-by"
+    - "#/tests/decide-source-and-record"
+    - "#/tests/document-communications-everyone"
+    - "#/tests/document-writes-communications"
+    - "#/tests/document-writes-timeline"
+    - "#/tests/log-answer-needs-question"
+    - "#/tests/log-asks-missing"
+    - "#/tests/log-asks-missing-json"
+    - "#/tests/log-dry-run"
+    - "#/tests/log-evidence-outside"
+    - "#/tests/log-unknown-role"
+    - "#/tests/log-usage-error"
+    - "#/tests/log-writes-record"
+    - "#/tests/validate-communication-ref"
+    - "#/tests/validate-communications-valid"
+    - "#/tests/validate-evidence"
+    - "#/tests/validate-record-cited"
+    - "#/tests/validate-unheard"
+    - "#/tests/validate-unheard-no-records"
+    - "#/tests/validate-unheard-one-heard"
+  changes:
+    - "#/commands/decide"
+    - "#/commands/validate"
+    - "#/enums/DocumentTarget"
+    - "#/enums/Rule"
+    - "#/tests/validate-cites"
+    - "#/tests/validate-need-rejected"
+    - "#/tests/validate-requirements-only"
+    - "#/tests/validate-tree-valid"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: The communication, session, test session and deploy records are new kinds of the 1.0 record schema, log is a new command and decide --record a new option; decide's exit status 1 gains reasons only --record can give. unheard is a warning, so a specification clean on 1.4.0 gains warnings but no error; the four validate cases it changed gain that warning. A minor release carries it (ADR-186, ADR-220).
+release: 1.5.0
+status: released

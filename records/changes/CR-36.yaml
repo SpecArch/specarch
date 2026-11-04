@@ -1,0 +1,22 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-36
+title: Import into the Dart test file only what its tests name
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: generate tests in Dart imported the library even when every design test had a body written by hand, so dart analyze --fatal-infos failed on an unused import (BUG-070).
+cause: wrong
+affects:
+  adds:
+    - "#/tests/generate-tests-dart-hand-written-bodies"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: The Dart file drops an import none of its tests uses; every test is written as before, so a patch release carries it (BUG-070).
+release: 1.5.0
+status: released

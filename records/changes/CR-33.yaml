@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-33
+title: Warn at a binding the design does not need, unless a decision names a rejected alternative or an idiom approves the technology
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: An implementation file could bind a framework no element of the design needed, and nothing asked why a simpler alternative was not taken.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-231"
+    - SA-126
+    - "#/tests/validate-idiom-override-technologies"
+    - "#/tests/validate-technology-approved"
+    - "#/tests/validate-technology-decided"
+    - "#/tests/validate-technology-decision-incomplete"
+    - "#/tests/validate-technology-decision-missing"
+    - "#/tests/validate-technology-standard-library"
+    - "#/tests/validate-technology-unjustified"
+  changes:
+    - "#/tests/validate-ui-components"
+    - "#/tests/validate-ui-schema-file"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: The new rule is a warning and technologies an optional key of the 1.0 idiom schema; a file clean on 1.4.0 gains at most a warning, and the two cases it changed gain that warning. A minor release carries it (ADR-186, ADR-231).
+release: 1.5.0
+status: released

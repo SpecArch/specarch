@@ -1,0 +1,36 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-20
+title: Serve the commands as MCP tools with specarch mcp and write an agent skill with specarch skill
+raisedBy: specification-author
+raised: "2026-11-01"
+phase: development
+type: perfective
+urgency: normal
+reason: An agent could run specarch only through a shell and read its help, so every client wired each command by hand and the wiring drifted from the definitions the program was built with.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-214"
+    - "#/commands/mcp"
+    - "#/commands/skill"
+    - "#/sources/model-context-protocol"
+    - "#/sources/json-rpc-2"
+    - "#/sources/agent-skills"
+    - SA-112
+    - "#/tests/mcp-serves-tools"
+    - "#/tests/mcp-usage-error"
+    - "#/tests/skill-check-differs"
+    - "#/tests/skill-lists-what-it-writes"
+    - "#/tests/skill-refuses-another-folder"
+    - "#/tests/skill-usage-error"
+  changes:
+    - "#/requirements/SA-96"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: mcp and skill are new commands built from the same definitions as capabilities; nothing an existing command prints changes, so a minor release carries it (ADR-186, ADR-214).
+release: 1.5.0
+status: released

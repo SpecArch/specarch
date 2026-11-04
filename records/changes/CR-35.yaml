@@ -1,0 +1,23 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-35
+title: Take -- before a folder in idioms and idioms diff as the end of the options
+raisedBy: specification-author
+raised: "2026-11-01"
+phase: development
+type: perfective
+urgency: normal
+reason: idioms refused -- before a folder as an unknown option, so a command line written as the other commands take it failed (BUG-066).
+cause: wrong
+affects:
+  adds:
+    - "#/tests/idioms-after-dash"
+    - "#/tests/idioms-diff-after-dash"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: A command line refused in 1.4.0 is now read; every one accepted before reads as before, so a patch release carries it (BUG-066).
+release: 1.5.0
+status: released

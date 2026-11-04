@@ -1,0 +1,36 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-32
+title: Record test runs beside the specification and import JUnit XML results with specarch log test-run
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: Test results lived in the CI system only, so which tests of the specification had passed in which build could not be shown per element or per requirement, nor cited at acceptance.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-230"
+    - "#/commands/log test-run"
+    - SA-125
+    - "#/tests/document-writes-testruns"
+    - "#/tests/document-writes-testruns-external"
+    - "#/tests/document-writes-timeline-test-runs"
+    - "#/tests/log-test-run-asks-missing"
+    - "#/tests/log-test-run-defect-not-failed"
+    - "#/tests/log-test-run-maps-worked-examples"
+    - "#/tests/log-test-run-nameless-testcase"
+    - "#/tests/log-test-run-not-junit"
+    - "#/tests/log-test-run-results-outside"
+    - "#/tests/log-test-run-usage-error"
+    - "#/tests/log-test-run-writes-record"
+    - "#/tests/validate-test-run-ref"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: The test-run record is a new kind of the 1.0 record schema and log test-run a new subcommand; a specification without test runs is checked and documented as before, so a minor release carries it (ADR-186, ADR-230).
+release: 1.5.0
+status: released

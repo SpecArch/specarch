@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: release
+version: 1.5.0
+status: released
+date: "2026-11-04"
+specificationVersion: 1.5.0
+implementations: { go: 0.1.0, swift: 0.1.0 }
+includes: [CR-15, CR-16, CR-17, CR-18, CR-19, CR-20, CR-21, CR-22, CR-23, CR-24, CR-25, CR-26, CR-27, CR-28, CR-29, CR-30, CR-31, CR-32, CR-33, CR-34, CR-35, CR-36, CR-37, CR-38, CR-39, CR-40, CR-41, CR-42]

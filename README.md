@@ -95,7 +95,7 @@ communications, sessions, test sessions and deploys). The same schema gives edit
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.0.0/schema/specarch-design-0.3.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.5.0/schema/specarch-design-1.0.schema.json
 
 ## The rules SpecArch serves
 
@@ -211,7 +211,7 @@ the program and are built once in your cache with their toolchains). It has two 
 the same design.
 The Go build has every verb. With Go 1.27.3 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v1.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v1.5.0
 
 or, from a clone of this repository:
 
@@ -258,22 +258,22 @@ script of a fresh environment that builds, loads, tests and tears down
 a Compose deployment, every secret referenced and never written. Install
 them at the same tag as `specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-seed@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-vue-htm@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.4.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-deploy@v1.4.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-seed@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-vue-htm@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.5.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-deploy@v1.5.0
 
 The Swift build, for macOS, has the validate, model, upgrade, try and
 version verbs and gives the same output. With Swift 6:
@@ -455,7 +455,7 @@ answers with. `docs/generators.md` has the protocol.
 Version 1.0.0 of the meta-model, October 2026, the first stable version;
 a file written against 0.3, 0.2 or 0.1 is read beside it with a warning, a
 0.1 file with its missing tests as warnings, and `specarch upgrade` moves
-it. Release 1.4.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
+it. Release 1.5.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, six examples, the validator in Go and in Swift, fifteen
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`

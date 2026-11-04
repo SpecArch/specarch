@@ -1,0 +1,33 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-38
+title: Let a workflow keep its as-is beside the to-be during a transition, under asIs
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: A business process changes over weeks or months, and while the team builds the to-be people still work by the as-is; a specification held only one of the two, so neither the move between them nor what it adds, changes and removes could be reviewed.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-236"
+    - "#/requirements/SA-130"
+    - "#/tests/diff-lists-transition"
+    - "#/tests/document-changes-transition"
+    - "#/tests/generate-bpmn-as-is"
+    - "#/tests/generate-bpmn-to-be"
+    - "#/tests/validate-workflow-as-is"
+    - "#/tests/validate-workflow-as-is-refused"
+  changes:
+    - "#/commands/diff"
+    - "#/commands/document"
+    - "#/commands/generate"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "A workflow takes an optional asIs, in the workflow's shape without asIs; the workflow's own keys stay the to-be. Both validators check the as-is by the workflow's rules at its own pointer, the changes document writes a section Transitions and specarch diff a transition line per part, every generator gets the to-be, and specarch generate --as-is gives the as-is in its place (ADR-236, SA-130). The diff's standard output gains transition lines only for a workflow that keeps an as-is, a key no 1.4.0 file has, and --as-is is a new option, so no file clean on 1.4.0 gets a new error, a new output line or a new exit status, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.5.0
+status: released

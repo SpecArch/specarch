@@ -1,0 +1,24 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-30
+title: Write an integration test per call into another module of an estate from generate tests
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: A call from one module of an estate into another was tested only by hand, so a change on either side broke the other unnoticed until it ran together.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-226"
+    - SA-120
+    - "#/tests/generate-tests-estate-calls"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: The tests target writes the new file only when the run names an estate; a run without one writes what it wrote, so a minor release carries it (ADR-186, ADR-226).
+release: 1.5.0
+status: released

@@ -1,0 +1,28 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-40
+title: Read existing test scripts and test sheets into tests with extract tests, and keep them in merge
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: A project often has its tests already, as Gherkin feature files or test sheets, complete or not; they stayed outside the specification, so what they check, and what they leave out, could not be reviewed against it.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-235"
+    - "#/requirements/SA-131"
+    - "#/tests/extract-tests-incomplete-scripts"
+    - "#/tests/merge-keeps-read-tests"
+  changes:
+    - "#/commands/extract"
+    - "#/commands/merge"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: "specarch extract tests reads Gherkin feature files and CSV, TSV or Excel test sheets into tests inferred from them, each citing where it was read, with a must question for each test's subject and for each given, step or expected result the script leaves out; merge keeps a test that cites a source of its tree, and the questions that block only such tests (ADR-235, SA-131). tests is a new extract source, and merge keeps only tests no 1.4.0 tree could hold, so no file clean on 1.4.0 gets a new error, a new output line or a new exit status, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.5.0
+status: released

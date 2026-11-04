@@ -1,0 +1,29 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-28
+title: Name the element each generated piece came from, and show the trace only in a build for an environment that asks for it
+raisedBy: specification-author
+raised: "2026-11-03"
+phase: development
+type: perfective
+urgency: normal
+reason: A tester at acceptance could not tell which element of the specification a field, link or answer came from, so a remark could not name the element to change.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-222"
+    - "#/tests/generate-environment-unknown"
+    - "#/tests/generate-go-dxlib-trace"
+    - "#/tests/generate-trace-without-out"
+    - "#/tests/generate-ui-trace"
+    - "#/tests/validate-environment-trace"
+  changes:
+    - "#/commands/generate"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-04"
+  outcome: approved
+  why: trace is an optional key of an environment and --environment a new option of generate; a build without them writes what it wrote, with the digest and pointer comments added. The one new refusal, a traced build without --out, needs an environment with trace true, which no 1.4.0 specification holds, so a minor release carries it (ADR-186, ADR-222).
+release: 1.5.0
+status: released

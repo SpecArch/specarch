@@ -40,6 +40,7 @@ func TestDocumentsInEveryLanguage(t *testing.T) {
 			}
 			for _, paths := range languageRuns {
 				out := t.TempDir()
+				companions := readCompanions(t, paths)
 				var stdout, stderr bytes.Buffer
 				status := run(append([]string{"document", target, "--language", tag, "--out", filepath.Join(out, tag)}, paths...), &stdout, &stderr)
 				if status == 2 && target == "handover" && strings.Contains(stderr.String(), "has a handover") {
@@ -48,12 +49,16 @@ func TestDocumentsInEveryLanguage(t *testing.T) {
 				if status == 2 {
 					t.Fatalf("document %s --language %s %v: exit 2: %s%s", target, tag, paths, stdout.String(), stderr.String())
 				}
+				if after := readCompanions(t, paths); !equalMaps(companions, after) {
+					t.Errorf("document %s --language %s %v wrote a region of specarch.md; a document in another language writes none", target, tag, paths)
+				}
 				if missed := generate.Missed(); len(missed) > 0 {
 					t.Errorf("document %s --language %s %v wrote %d texts the catalog of %s does not give:\n%q", target, tag, paths, len(missed), tag, missed)
 				}
 				stdout.Reset()
 				stderr.Reset()
 				run(append([]string{"document", target, "--out", filepath.Join(out, "en")}, paths...), &stdout, &stderr)
+				run(append([]string{"document", target, "--language", "en", "--out", filepath.Join(out, "en-named")}, paths...), &stdout, &stderr)
 				files, _ := filepath.Glob(filepath.Join(out, tag, "*"))
 				if len(files) == 0 {
 					continue // a target with nothing to write from these specifications, such as handover without one
@@ -64,6 +69,9 @@ func TestDocumentsInEveryLanguage(t *testing.T) {
 						t.Fatal(err)
 					}
 					english, _ := os.ReadFile(filepath.Join(out, "en", filepath.Base(f)))
+					if named, _ := os.ReadFile(filepath.Join(out, "en-named", filepath.Base(f))); !bytes.Equal(named, english) {
+						t.Errorf("document %s --language en %v: %s differs from the document written without --language", target, paths, filepath.Base(f))
+					}
 					if bytes.Equal(text, english) && !strings.HasSuffix(f, ".sarif") {
 						t.Errorf("document %s --language %s %v: %s is the English document", target, tag, paths, filepath.Base(f))
 					}
@@ -75,6 +83,25 @@ func TestDocumentsInEveryLanguage(t *testing.T) {
 			}
 		}
 	}
+}
+
+// readCompanions reads the specarch.md beside each specification given,
+// by path.
+func readCompanions(t *testing.T, paths []string) map[string]string {
+	t.Helper()
+	out := map[string]string{}
+	for _, p := range paths {
+		matches, _ := filepath.Glob(filepath.Join(p, "*", "specarch.md"))
+		direct, _ := filepath.Glob(filepath.Join(p, "specarch.md"))
+		for _, m := range append(matches, direct...) {
+			data, err := os.ReadFile(m)
+			if err != nil {
+				t.Fatal(err)
+			}
+			out[m] = string(data)
+		}
+	}
+	return out
 }
 
 // checkAnchors requires every link to #anchor in a Markdown document to

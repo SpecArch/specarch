@@ -159,7 +159,7 @@ Version 1.5.1-dev of the specification: 10 needs, 131 requirements, and 1 gap. E
 | SA-131 | NEED-8, NEED-9 | commands extract; commands merge; decisions ADR-235 | tests extract-tests-incomplete-scripts; tests merge-keeps-read-tests |
 | SA-132 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-237 | tests document-progress-effort-not-counted; tests document-progress-for-everyone; tests document-progress-stakeholders-held; tests document-progress-uncounted-entries; tests document-writes-progress; tests validate-change-effort |
 | SA-133 | NEED-1, NEED-8 | commands approve; decisions ADR-239 | tests approve-refuses-session-absent; tests approve-refuses-session-missing; tests approve-refuses-unheard; tests approve-warns-no-session; tests approve-writes-record; tests validate-approval-session |
-| SA-134 | NEED-3 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-unknown |
+| SA-134 | NEED-3 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-no-regions; tests document-language-unknown |
 
 ## 3. Gaps
 

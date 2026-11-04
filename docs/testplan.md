@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1033 design tests, 518 golden and 515 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1034 design tests, 519 golden and 515 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1033 design tests, 518 golden and 515 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1029 |
+| system | 1030 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1054,6 +1054,14 @@ Scenario: red; level: system; covers usage error; verifies SA-134.
 - Given: --language id with no --out
 - When: document is run
 - Then: it prints the usage error saying a document in another language is written beside the English documents approve compares, not over them, writes nothing, and exits 2
+
+#### document-language-no-regions
+
+Scenario: golden; level: system; verifies SA-134.
+
+- Given: the specification of document-audience-external with a hand-written specarch.md beside its root file, holding an erDiagram region not written yet
+- When: document techspec is run with --language id and --out
+- Then: it writes techspec.md in Indonesian into the folder named, leaves specarch.md as it is, its region unwritten, since the regions are written in English for every element, and exits 0
 
 #### document-language-unknown
 

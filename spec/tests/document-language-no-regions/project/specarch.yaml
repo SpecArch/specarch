@@ -1,0 +1,65 @@
+specarch: "0.1"
+info: { title: Lending desk, version: 1.0.0, description: Loans of books to members. }
+stakeholders:
+  librarian: { description: Staff at the desk. }
+  card-issuer: { description: The team that runs the card service. }
+needs:
+  NEED-1: { statement: Members must borrow books., stakeholders: [librarian], status: accepted }
+  NEED-2: { statement: Staff must see which loans look risky., stakeholders: [librarian], status: proposed, audience: internal }
+requirements:
+  LD-1:
+    statement: A member shall borrow a book for fourteen days.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan ends fourteen days after it starts.]
+    needs: [NEED-1]
+  LD-2:
+    statement: A loan shall carry a risk band that only staff see.
+    kind: functional
+    priority: could
+    status: proposed
+    acceptance: [A loan's risk band is low or high.]
+    needs: [NEED-2]
+    audience: internal
+  LD-3:
+    statement: A member shall pay a late fee by card.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A card payment of a late fee is accepted or declined within five seconds.]
+    needs: [NEED-1]
+    ownedBy: card-issuer
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      endsOn: { type: string, format: date }
+    required: [id, endsOn]
+    primaryKey: [id]
+    satisfies: [LD-1, LD-2]
+    why: A loan is what the desk records when a book leaves it.
+  RiskNote:
+    type: object
+    audience: internal
+    properties:
+      id: { type: string, format: uuid }
+      loanId: { type: string, format: uuid }
+    primaryKey: [id]
+    relations:
+      loan: { target: Loan, kind: many-to-one, via: loanId }
+    satisfies: [LD-2]
+questions:
+  Q-1:
+    question: Which loans count as risky?
+    kind: decision
+    priority: could
+    decidedBy: librarian
+    blocks: ["#/entities/RiskNote"]
+  Q-2:
+    question: Is fourteen days the same for every member?
+    kind: decision
+    priority: could
+    decidedBy: librarian
+    blocks: ["#/requirements/LD-1"]

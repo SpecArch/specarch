@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.5.1-dev of the specification: 131 requirements, 5 entities, 30 commands, 7 algorithms, 1033 tests, 225 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.5.1-dev of the specification: 131 requirements, 5 entities, 30 commands, 7 algorithms, 1034 tests, 225 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -19093,6 +19093,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-invalid-input | command document | system | red | a design file with a relation to an entity that does not exist | document techspec is run | it prints the error, writes the technical specification with a Problems notice and a Problem paragraph at the relation, and exits 1 |
 | document-language-id | command document | system | golden | the specification of document-audience-external, with an internal need and requirement, an entity, an open question and a requirement another stakeholder owns | document requirements is run with --language id and --out | it writes requirements.md in Indonesian, its headings, table headers and sentences translated and requirement, stakeholder and the priority words kept, the specification's own words and the generated-file header as they are, and exits 0 |
 | document-language-needs-out | command document | system | red | --language id with no --out | document is run | it prints the usage error saying a document in another language is written beside the English documents approve compares, not over them, writes nothing, and exits 2 |
+| document-language-no-regions | command document | system | golden | the specification of document-audience-external with a hand-written specarch.md beside its root file, holding an erDiagram region not written yet | document techspec is run with --language id and --out | it writes techspec.md in Indonesian into the folder named, leaves specarch.md as it is, its region unwritten, since the regions are written in English for every element, and exits 0 |
 | document-language-unknown | command document | system | red | --language fr, a language SpecArch has no catalog for | document is run | it prints the usage error naming the languages the documents are written in, en and id, writes nothing, and exits 2 |
 | document-manual-content | command document | system | golden | a specification with a public content page whose links open a task page and an address outside, a content page that needs clients.read, the task page and a menu | document manual is run | it lists each content page with who opens it and where its links lead, says the task page is reached from the link on the content page, and exits 0 |
 | document-manual-custom | command document | system | golden | a specification with a view of a document whose action Edit opens a custom page at /documents/{id}/edit that names its entity, a description and the action Done back to the view, a custom page Drafts that needs documents.edit, a public custom page Live board, a menu over both and a flow through the editor | document manual is run | it writes each custom page with its description, where it is reached from, who may open it, that the screen is built by hand for this system, and where its actions lead, and exits 0 |
@@ -20600,7 +20601,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-131 | commands extract; commands merge; decisions ADR-235 | tests extract-tests-incomplete-scripts; tests merge-keeps-read-tests |
 | SA-132 | enums DocumentTarget; commands document; decisions ADR-237 | tests document-progress-effort-not-counted; tests document-progress-for-everyone; tests document-progress-stakeholders-held; tests document-progress-uncounted-entries; tests document-writes-progress; tests validate-change-effort |
 | SA-133 | commands approve; decisions ADR-239 | tests approve-refuses-session-absent; tests approve-refuses-session-missing; tests approve-refuses-unheard; tests approve-warns-no-session; tests approve-writes-record; tests validate-approval-session |
-| SA-134 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-unknown |
+| SA-134 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-no-regions; tests document-language-unknown |
 
 ## Sources
 

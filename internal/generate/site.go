@@ -331,10 +331,14 @@ func groupID(title string) string {
 }
 
 func sectionTitle(key string) string {
-	if t, ok := sectionTitles[key]; ok {
-		return tr(t)
+	t, ok := sectionTitles[key]
+	if !ok {
+		t = strings.ToUpper(key[:1]) + key[1:]
 	}
-	return tr(strings.ToUpper(key[:1]) + key[1:])
+	// A title starts with a capital in every language, though the
+	// catalog may give it in lower case for its use inside a sentence.
+	r := []rune(tr(t))
+	return strings.ToUpper(string(r[:1])) + string(r[1:])
 }
 
 func (s *site) nav() {

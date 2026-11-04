@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-240:
+    title: SpecArch ships an Indonesian vocabulary beside the English one, its time limits written as phrases and its tables read with the English column words Indonesian teams mix in
+    status: accepted
+    date: "2026-11-04"
+    context: |
+      ADR-105 made the words a document is read by a vocabulary file per
+      language and shipped English, leaving which other languages ship
+      to the first project that supplies one. The owner asked for
+      Indonesian (2026-11-03): teams that deliver to Indonesian
+      customers receive their requirements, minutes and handbooks in
+      Indonesian, and each would otherwise write and check the same file.
+    decision: |
+      `vocabularies/id.specarch-vocabulary.yaml` ships embedded, read
+      with `--language id` by extract documents and extract tables, and
+      by merge for a source whose `language` is id. Its commitment words
+      are harus, wajib and akan (must) and sebaiknya, seharusnya and
+      hendaknya (should); its time limits are phrases (dalam waktu,
+      paling lambat, selambat-lambatnya) and the words sebelum, sesudah,
+      setelah and sampai dengan; its frequencies are satu kali, dua kali
+      and sekali sehari; a time of day is written with a dot or a colon;
+      its number words include the two-word ones (dua belas, lima puluh);
+      its units are hari, minggu, pekan, jam and menit. Its headers,
+      yes words, sensitivities and types list the Indonesian words and
+      the English ones written beside them in Indonesian tables (field,
+      mandatory, timestamp, varchar).
+    why: |
+      The single word dalam (in, within) is in nearly every Indonesian
+      sentence, so as a time-limit word it would make most sentences a
+      commitment and every one a requirement to review; the phrases
+      carry the meaning without that cost. sekali alone also means very
+      and is left out for the same reason; akan is kept as must because
+      it is how many Indonesian requirement documents state what a
+      system does, as will is in English, which ADR-105's English file
+      reads as must. Indonesian writes 09.00, so the dot is a time
+      separator; a version number such as 2.10 then reads as a time of
+      day and is offered as a commitment, which a reviewer rejects in one
+      step, while leaving the dot out would drop every opening hour. A
+      table that writes Field and Tipe side by side is the common case in
+      practice, so a vocabulary of dictionary words alone would leave it
+      a could line. Compiler test: the vocabulary widens what is read and
+      refuses nothing; a sentence it misreads is a requirement or a
+      question in the problems file, never a dropped one.
+    consequences: |
+      The Indonesian conformance case gives the counts, priorities,
+      fields, sensitivities and questions of the German one. The
+      questions and lines extract writes stay in English; the documents
+      are written in Indonesian by document --language id.
+    satisfies: [SA-64]

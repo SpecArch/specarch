@@ -3,10 +3,10 @@
 A vocabulary is the words of one language that `specarch extract
 documents` finds a commitment and reads a table of fields by, and that
 `specarch merge` reads a number of days in a requirement by (ADR-105).
-SpecArch ships English and reads it when nothing else is named. A
-project that writes its documents in another language writes a
-vocabulary for it, keeps it in its specification repository, and names
-it with `--vocabulary`:
+SpecArch ships English and Indonesian, and reads English when nothing
+else is named. A project that writes its documents in another language
+writes a vocabulary for it, keeps it in its specification repository,
+and names it with `--vocabulary`:
 
     specarch extract documents --vocabulary de.specarch-vocabulary.yaml --out trees/handbook docs/handbuch.md
     specarch merge --vocabulary de.specarch-vocabulary.yaml --out spec trees/code trees/handbook
@@ -54,10 +54,25 @@ list, or a word is in two lists of one group: two priorities, two
 headers, two sensitivities or two types. A word may be in two groups:
 English's `required` is both a header and a yes word.
 
-## English
+## The shipped vocabularies
 
-The vocabulary SpecArch ships,
-[`vocabularies/en.specarch-vocabulary.yaml`](../vocabularies/en.specarch-vocabulary.yaml),
-is the example to start from: copy it, change `language`, and replace
-the words. Which languages SpecArch ships beyond English is decided when
-a project first supplies one.
+SpecArch ships two vocabularies, embedded in the program:
+
+| Tag | File | Read |
+|---|---|---|
+| `en` | [`vocabularies/en.specarch-vocabulary.yaml`](../vocabularies/en.specarch-vocabulary.yaml) | when nothing is named, or with `--language en` |
+| `id` | [`vocabularies/id.specarch-vocabulary.yaml`](../vocabularies/id.specarch-vocabulary.yaml) | with `--language id` |
+
+    specarch extract documents --language id --out trees/panduan docs/panduan.md
+
+The Indonesian file takes `harus`, `wajib` and `akan` as must and
+`sebaiknya`, `seharusnya` and `hendaknya` as should, writes its time
+limits as phrases (`dalam waktu`, `paling lambat`), since the single
+word `dalam` is in nearly every sentence, and reads a time of day
+written with a dot (`09.00`) or a colon. Its table headers and type
+words hold the English words Indonesian teams write beside their own
+(`Field`, `Tipe`, `Wajib`, `Keterangan`; `timestamp`, `varchar`), so a
+table that mixes the two is read as a table of fields.
+
+Either file is the example to start from for another language: copy
+it, change `language`, and replace the words.

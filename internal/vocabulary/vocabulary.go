@@ -1,8 +1,8 @@
 // Package vocabulary reads a vocabulary: the words of one language that
 // extract documents finds a commitment and reads a table of fields by,
 // and that merge reads a number of days by (docs/vocabularies.md,
-// ADR-105). SpecArch ships English and reads it by default; a project
-// writes its own file for another language.
+// ADR-105, ADR-240). SpecArch ships English, read by default, and
+// Indonesian; a project writes its own file for another language.
 package vocabulary
 
 import (

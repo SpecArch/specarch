@@ -1,0 +1,63 @@
+specarchVocabulary: "1.0.0"
+language: id
+description: The Indonesian words extract documents finds a commitment and reads a table of fields by, extract tables reads a register's instructions by, and merge reads a number of days by, with the English column words Indonesian teams write in their tables.
+commitments:
+  must: [harus, wajib, akan]
+  should: [sebaiknya, seharusnya, hendaknya]
+frequencies: [sekali sehari, satu kali, dua kali]
+timeLimits: [dalam waktu, paling lambat, selambat-lambatnya, sebelum, sesudah, setelah, sampai dengan]
+pronouns: [ia, dia, mereka, ini, itu, hal ini, hal tersebut]
+linkingVerbs: [adalah, ialah, merupakan]
+leadingWords: [setiap, tiap, masing-masing, para, sebuah, seorang, suatu]
+numbers:
+  satu: 1
+  dua: 2
+  tiga: 3
+  empat: 4
+  lima: 5
+  enam: 6
+  tujuh: 7
+  delapan: 8
+  sembilan: 9
+  sepuluh: 10
+  sebelas: 11
+  dua belas: 12
+  lima belas: 15
+  dua puluh: 20
+  tiga puluh: 30
+  empat puluh: 40
+  lima puluh: 50
+  enam puluh: 60
+  seratus: 100
+  seribu: 1000
+units:
+  hari: P1D
+  minggu: P7D
+  pekan: P7D
+  jam: PT1H
+  menit: PT1M
+timeSeparators: [".", ":"]
+headers:
+  field: [field, nama field, kolom, atribut]
+  type: [tipe, tipe data, jenis data, type]
+  required: [wajib, wajib diisi, mandatory, required]
+  sensitivity: [sensitivitas, klasifikasi data, sensitivity]
+  description: [keterangan, deskripsi, description]
+  rowNumber: ["#", "no.", "no"]
+  values: [nilai, pilihan, nilai yang diizinkan, values]
+yes: ["ya", "y", wajib, wajib diisi, mandatory, "yes", "true"]
+sensitivities:
+  public: [publik, umum, public]
+  internal: [internal]
+  personal: [pribadi, data pribadi, personal]
+  credential: [kredensial, credential, credentials]
+types:
+  string: [teks, string, text, varchar]
+  date: [tanggal, date]
+  dateTime: [tanggal dan waktu, tanggal-waktu, timestamp, datetime, date-time]
+  boolean: [boolean, ya/tidak]
+  email: [email, e-mail, surel]
+  integer: [bilangan bulat, angka bulat, integer]
+  decimal: [desimal, decimal, angka, nominal]
+  uuid: [uuid]
+  integer64: [bilangan bulat 64-bit, big integer, bigint]

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1029 design tests, 516 golden and 513 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1030 design tests, 517 golden and 513 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1029 design tests, 516 golden and 513 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1025 |
+| system | 1026 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1848,6 +1848,14 @@ Scenario: golden; level: system; verifies SA-110.
 - Given: a repository holding a workbook titled in its properties, with a register sheet of shared, inline and date cells whose requirement column holds a commitment, a sheet whose name holds a space with a table of fields starting at B2, one of a type the meta-model does not hold, and a chart sheet
 - When: extract documents is run on the workbook
 - Then: it writes the register's range and the one cell a requirement cites as clauses, the table of fields as an entity citing its quoted range 'Account fields'!B2:D5, prints a line and writes a could question for the register table, the field's type and the chart sheet, and exits 0
+
+#### extract-documents-language-id
+
+Scenario: golden; level: system; verifies SA-64.
+
+- Given: a repository holding the branch handbook of extract-documents-vocabulary written in Indonesian, its first table with a leading row-number column and English column words beside Indonesian ones
+- When: extract documents is run on the handbook with --language id and no --vocabulary
+- Then: it reads the handbook by the Indonesian vocabulary SpecArch ships and names it, writes language id on the source, skips the row-number column, and gives the same counts, requirements with the same priorities, entities with the same types, required fields and sensitivities, and the same questions as the German handbook read with its vocabulary, and exits 0
 
 #### extract-documents-language-not-shipped
 
@@ -8345,7 +8353,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-604 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+605 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -8864,6 +8872,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-64 | acceptance 3 | golden | SA-64 names no harm |
 | requirement SA-64 | acceptance 4 | golden | SA-64 names no harm |
 | requirement SA-64 | acceptance 5 | golden | SA-64 names no harm |
+| requirement SA-64 | acceptance 6 | golden | SA-64 names no harm |
 | requirement SA-110 | acceptance 1 | golden | SA-110 names no harm |
 | requirement SA-110 | acceptance 2 | golden | SA-110 names no harm |
 | requirement SA-110 | acceptance 3 | golden | SA-110 names no harm |

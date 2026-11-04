@@ -67,3 +67,56 @@ func TestDaysCommitment(t *testing.T) {
 		t.Errorf("a check with no days should give none")
 	}
 }
+
+// indonesian is the Indonesian vocabulary SpecArch ships.
+func indonesian(t *testing.T) *vocabulary.Vocabulary {
+	t.Helper()
+	v, err := vocabulary.Shipped("id")
+	if err != nil || v == nil {
+		t.Fatalf("the shipped Indonesian vocabulary does not read: %v", err)
+	}
+	return v
+}
+
+// TestCommitmentIndonesian reads the same commitments in Indonesian: a
+// modal, a quantity, a frequency, a time limit and a time of day written
+// with a dot, and leaves an edition number and plain prose alone.
+func TestCommitmentIndonesian(t *testing.T) {
+	w := newDocWords(indonesian(t))
+	for s, want := range map[string]string{
+		"Petugas harus memeriksa kartu.":                          "must",
+		"Petugas sebaiknya memeriksa kartu.":                      "should",
+		"Masa pinjam adalah 21 hari.":                             "must",
+		"Seorang anggota boleh meminjam paling banyak lima buku.": "must",
+		"Peminjaman boleh diperpanjang satu kali.":                "must",
+		"Buku dikembalikan sebelum tanggal jatuh tempo.":          "must",
+		"Loket buka pukul 09.00.":                                 "must",
+		"Edisi 2025.":                                             "",
+		"Anggota dikenali dari nomor kartunya.":                   "",
+		"Loket meminjamkan buku kepada anggota terdaftar.":        "",
+	} {
+		got, ok := w.commitment(s)
+		if ok != (want != "") || got != want {
+			t.Errorf("commitment(%q) = %q, %v; want %q", s, got, ok, want)
+		}
+	}
+}
+
+// TestDaysCommitmentIndonesian reads the subject and the days of a
+// statement in Indonesian, a number word of two words included.
+func TestDaysCommitmentIndonesian(t *testing.T) {
+	w := newDayWords(indonesian(t))
+	subject, days, ok := w.daysCommitment("Masa pinjam adalah 21 hari.")
+	if !ok || days != 21 || !reflect.DeepEqual(subject, []string{"masa", "pinjam"}) {
+		t.Errorf("got %v %d %v", subject, days, ok)
+	}
+	if _, days, ok := w.daysCommitment("Masa pengingat adalah dua belas hari."); !ok || days != 12 {
+		t.Errorf("dua belas hari: got %d %v", days, ok)
+	}
+	if _, days, ok := w.daysCommitment("Masa perpanjangan harus dua minggu."); !ok || days != 14 {
+		t.Errorf("dua minggu: got %d %v", days, ok)
+	}
+	if _, _, ok := w.daysCommitment("Masa perpanjangan adalah 48 jam."); ok {
+		t.Errorf("hours are not whole days and should not be read")
+	}
+}

@@ -611,7 +611,6 @@ added to the allowlist fail, as `docs/sync-gates.md` asks.
 |---|---|
 | a permission defined by a path pattern and methods | overlapping rows give one operation several permissions, where it has exactly one and an ambiguity is an error; a permission that follows a pattern reaches a route added later without anyone writing it (point 5) |
 | a plug-in reader for a custom workflow format | extract's rules stay in one place; a printer writes a workflow table and the reader reads it (point 8); a standard format gets a reader (decision 5) |
-| a shipped vocabulary per language before a project supplies one | the words are a project's to check; English is shipped and the format documented (point 3) |
 | `release` naming a release with no record | the record is one file with `status: planned`; the rule protects against a release named nowhere (point 9) |
 | a per-file acknowledgement of the version warning | the warning is the one signal to migrate and is filtered by its id (point 9) |
 | Go server interfaces as a SpecArch target | the stack's OpenAPI code generator makes them from the document SpecArch writes (point 11) |

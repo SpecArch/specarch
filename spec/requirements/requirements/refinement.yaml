@@ -148,12 +148,13 @@ requirements:
     needs: [NEED-10]
     why: People never write a complete specification, and the people who will use a system see it first at the user acceptance test; a remark that cannot name the element it is about, or that has no way back into the specification, is lost or applied by hand where the next generation overwrites it.
   SA-64:
-    statement: specarch extract documents shall read a document in any language whose words a vocabulary gives, the English one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language.
+    statement: specarch extract documents shall read a document in any language whose words a vocabulary gives, the English or Indonesian one SpecArch ships or a project's file, write the language on the source, and give for it the elements it gives for the same document in English; specarch merge shall read a number of days in a requirement by the vocabulary of its source's language.
     kind: functional
     priority: must
     status: accepted
     acceptance:
       - extract documents with --vocabulary on a document written in a second language gives the counts, the requirements' priorities, the entities' types, required fields and sensitivities, and the questions the same document in English gives, and writes language on the source.
+      - extract documents with --language id and no vocabulary file reads a document written in Indonesian by the Indonesian vocabulary SpecArch ships, and gives the counts, priorities, fields, sensitivities and questions the same document gives in German with its vocabulary.
       - extract documents with no vocabulary named reads the document by the English vocabulary and writes the tree it wrote before vocabularies were data, byte for byte.
       - A vocabulary that lists one word in two lists of one group, such as two sensitivities, is refused with the file, the line and the two lists; a language tag SpecArch ships no vocabulary for, given with no file, is refused with the keys a vocabulary holds.
       - A leading table column headed with the vocabulary's row-number word is skipped in every table, and --given-outside writes givenOutside on the source.

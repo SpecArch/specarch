@@ -253,9 +253,11 @@ decisions:
       from the file each time a reference to it is resolved, and so a
       count of elements alone leaves a wide element's cost uncounted;
       the library's objects carry no identity to keep a set of those
-      visited. A tagged document costs about 1000 units a page of
-      dense table, so the bound holds about a thousand such pages, and a
-      crafted tree stops within seconds.
+      visited. Every entry the walk reads is counted, an element's Type,
+      S and Pg as much as its K, since a crafted file can point any of
+      them at a large object. A tagged document costs about 2000 units a
+      page of dense table, so the bound holds about five hundred such
+      pages, and a crafted tree stops within seconds.
 
       The clause names follow how people cite each format: a page, a
       slide number, a cell or range as Excel's formulas write it, with

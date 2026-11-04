@@ -242,15 +242,14 @@ func TestPDFStructBudgetWide(t *testing.T) {
 	})
 }
 
-// TestPDFStructBudgetLargeEntry walks crafted trees whose element lists
-// itself 2000 times in K and names, in one of the other entries the walk
-// reads, a reference to a string of a megabyte. The library reads the
-// string again at each resolve, so every entry read counts what it
-// resolved, and not only K and Pg.
+// TestPDFStructBudgetLargeEntry walks crafted trees that name, in one
+// of the entries the walk reads besides K and Pg, a reference to a
+// string of a megabyte, each read once. The library reads the string
+// again at each resolve, so every entry read must count what it
+// resolved: the walk, given a budget of 10000 units, is over it on the
+// one read (a megabyte is 16384 units). A walk that counted K and Pg
+// alone spends a few units on these trees and stays under the budget.
 func TestPDFStructBudgetLargeEntry(t *testing.T) {
-	wide := func(ref string) string {
-		return "[" + strings.TrimSpace(strings.Repeat(ref+" ", 2000)) + "]"
-	}
 	large := "(" + strings.Repeat("a", 1<<20) + ")"
 	head := []string{
 		"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
@@ -262,37 +261,67 @@ func TestPDFStructBudgetLargeEntry(t *testing.T) {
 	}{
 		{"Type", []string{
 			"<< /Type /StructTreeRoot /K 4 0 R >>",
-			"<< /S /Div /Type 5 0 R /K " + wide("4 0 R") + " >>",
+			"<< /S /Div /Type 5 0 R >>",
 			large,
 		}},
 		{"S", []string{
 			"<< /Type /StructTreeRoot /K 4 0 R >>",
-			"<< /S 5 0 R /K " + wide("4 0 R") + " >>",
+			"<< /S 5 0 R >>",
 			large,
 		}},
 		{"RoleMap", []string{
 			"<< /Type /StructTreeRoot /RoleMap << /Div 5 0 R >> /K 4 0 R >>",
-			"<< /S /Div /K " + wide("4 0 R") + " >>",
+			"<< /S /Div >>",
 			large,
 		}},
 		{"Attribute", []string{
 			"<< /Type /StructTreeRoot /K 4 0 R >>",
 			"<< /S /Table /K 6 0 R >>",
 			large,
-			"<< /S /TR /K " + wide("7 0 R") + " >>",
-			"<< /S /TD /A [5 0 R 5 0 R] >>",
+			"<< /S /TR /K 7 0 R >>",
+			"<< /S /TD /A 5 0 R >>",
 		}},
 		{"MCID", []string{
 			"<< /Type /StructTreeRoot /K 4 0 R >>",
 			"<< /S /Table /K 6 0 R >>",
 			large,
-			"<< /S /TR /K " + wide("7 0 R") + " >>",
-			"<< /S /TD /K " + wide("8 0 R") + " >>",
+			"<< /S /TR /K 7 0 R >>",
+			"<< /S /TD /K 8 0 R >>",
 			"<< /Type /MCR /MCID 5 0 R >>",
+		}},
+		{"StructParents", []string{
+			"<< /Type /StructTreeRoot /K 4 0 R >>",
+			"<< /S /Div /Pg 6 0 R >>",
+			large,
+			"<< /Type /Page /StructParents 5 0 R >>",
 		}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			pdfStructOverBudget(t, append(append([]string{}, head...), c.objects...))
+			r := pdfStructReader(t, append(append([]string{}, head...), c.objects...))
+			root := r.Trailer().Key("Root").Key("StructTreeRoot")
+			if tables, over := pdfStructTablesFrom(root, 10000); !over || tables != nil {
+				t.Errorf("got %d tables, over %v; want none, over a budget of 10000 units", len(tables), over)
+			}
 		})
+	}
+}
+
+// TestPDFStructBudgetSmallEntry walks the same trees with the large
+// string replaced by a short one, so that the large-entry test fails for
+// the size it counts and not for anything else the trees hold.
+func TestPDFStructBudgetSmallEntry(t *testing.T) {
+	r := pdfStructReader(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 3 0 R >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"<< /Type /StructTreeRoot /K 4 0 R >>",
+		"<< /S /Table /K 6 0 R >>",
+		"(a)",
+		"<< /S /TR /K 7 0 R >>",
+		"<< /S /TD /A 5 0 R /K 8 0 R >>",
+		"<< /Type /MCR /MCID 5 0 R >>",
+	})
+	root := r.Trailer().Key("Root").Key("StructTreeRoot")
+	if _, over := pdfStructTablesFrom(root, 10000); over {
+		t.Errorf("a tree of small entries is over a budget of 10000 units")
 	}
 }

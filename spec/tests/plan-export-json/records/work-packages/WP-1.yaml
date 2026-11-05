@@ -6,4 +6,4 @@ title: Know a member
 requirements: [CASE-1]
 assignedTo: alex
 status: done
-effort: { estimatedHours: 8, spentHours: 10 }
+effort: { estimatedHours: 8., spentHours: +10 }

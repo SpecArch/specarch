@@ -1,0 +1,9 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-1
+release: 1.0.0
+title: Know a member
+requirements: [CASE-1]
+assignedTo: alex
+status: done
+effort: { estimatedHours: 8, spentHours: 10 }

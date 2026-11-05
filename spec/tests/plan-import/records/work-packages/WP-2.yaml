@@ -6,7 +6,7 @@ release: 1.0.0
 title: Lend a book
 requirements: [CASE-2]
 after: [WP-1]
-assignedTo: alex
-status: planned
+assignedTo: alex  # until December
+status: planned  # agreed in the planning meeting
 effort: { estimatedHours: 12 }
 why: Lending needs the member of WP-1.

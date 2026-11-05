@@ -2,8 +2,10 @@ arguments: [plan, --import, tracker.csv, project]
 exitStatus: 0
 standardOutput: |
   tracker.csv: warning: column sprint is not one plan reads, so it is left out; plan reads id, title, release, status, assignedTo, estimatedHours, spentHours, after, requirements
+  tracker.csv:2: warning: WP-1 spentHours: the tracker has "NaN", which is not a positive number of hours, so the record keeps "10"; give the hours as a number above 0, or leave the cell empty
   tracker.csv:3: warning: WP-2 release: the tracker has "1.1.0" and the specification "1.0.0"; the specification owns release, so the record keeps "1.0.0"; if the tracker is right, change it in records/work-packages/WP-2.yaml and export again
   tracker.csv:3: warning: WP-2 after: the tracker has "WP-1, WP-9" and the specification "WP-1"; the specification owns after, so the record keeps "WP-1"; if the tracker is right, change it in records/work-packages/WP-2.yaml and export again
+  tracker.csv:3: warning: WP-2 spentHours: the tracker has "Inf", which is not a positive number of hours, so the record keeps "none"; give the hours as a number above 0, or leave the cell empty
   WP-2 (records/work-packages/WP-2.yaml): status from planned to in-progress, assignedTo from alex to sam, estimatedHours from 12 to 16
   tracker.csv:4: warning: WP-3 is not a work package beside the specification, and the specification owns which packages there are, so it is not added; propose it with specarch plan or write its record, then export again
   tracker.csv:5: warning: the row has no id, so it matches no work package; give it the package's ID

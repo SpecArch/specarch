@@ -4706,7 +4706,8 @@ can start it prints each candidate with what it waits on.
 
 With `--brief <package>` it prints one page in Markdown: whether the
 package can start and why not, its requirements with their acceptance
-criteria, the design elements that meet them, the tests that verify
+criteria, the design elements that meet them (a decision that
+satisfies one explains it and is not listed), the tests that verify
 them, the goals the needs of its requirements serve, the out-of-scope
 entries that rule out one of those needs and the others by ID, the
 quality goals in rank order, and what it changes in operation: the
@@ -4717,17 +4718,21 @@ With `--export csv` or `--export json` it prints every package for a
 tracker: id, title, release, status, assignedTo, estimatedHours,
 spentHours, after and requirements; a CSV is quoted as RFC 4180 quotes,
 with LF line breaks, a list of IDs in one cell separated by a comma
-and a space; a JSON list is an array.
+and a space; a JSON list is an array. Hours are written as the
+number in plain decimal form (a record's .5 as 0.5), and a JSON
+export that cannot be encoded exits 2 naming the cause.
 
-With `--import <file>`, a .csv or .json file as the export writes it,
-it writes into each record what the tracker owns and the file
+With `--import <file>`, a .csv or .json file as the export writes it
+(a byte order mark before a CSV's header is not part of its first
+column's name), it writes into each record what the tracker owns and the file
 changes: status, assignedTo and effort, an empty cell taking the key
-out, the record's other keys and comments kept; it prints one line
+out, the record's other keys and comments kept (a comment on a key
+it changes too), hours in plain decimal form; it prints one line
 per record written with each change. It warns, one line each with the
 file and row first, at a title, release, after or requirements the
 file changes (naming both values; the record keeps its own), at a
 status that is not a work package's, at hours that are not a positive
-number, at a row with no ID, a repeated ID or an ID with no record,
+finite number (NaN and infinity are none), at a row with no ID, a repeated ID or an ID with no record,
 and at a column it does not read.
 
 **Insight:** The project manager plans with packages, the analyst answers questions, QA tests a package as it lands and DevOps reads what it changes in operation; all of it is in the specification and the records already, so the command reads it there instead of asking for a second plan. The tracker keeps what changes daily, the specification what defines the work, and a change on the wrong side is said, never taken.

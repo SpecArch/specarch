@@ -2,7 +2,7 @@
 command: plan
 level: system
 scenario: golden
-given: "a done package with its effort and a planned package whose title holds commas"
+given: "a done package with its effort written as 8. and +10 and a planned package whose title holds commas with an estimate written as .5, forms YAML reads as numbers and JSON does not"
 when: "plan --export json is run"
-then: "it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array and missing hours null, and exits 0"
+then: "it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array, the hours as JSON numbers (8, 10 and 0.5) and missing hours null, and exits 0"
 verifies: [SA-145]

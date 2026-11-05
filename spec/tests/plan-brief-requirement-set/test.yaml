@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "a planned package after a done one, holding only a requirement of a declared requirement set, met by an entity that needs an entity a package outside its after chain builds"
+when: "plan --brief is run for the package"
+then: "it says the package can start, as validate warns no work_package_order at it (the rule skips a requirement of a requirement set), names the requirement as one to read in its set, lists the entity to build, and exits 0"
+verifies: [SA-144]

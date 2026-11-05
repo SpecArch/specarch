@@ -1,0 +1,43 @@
+arguments: [plan, --brief, WP-4, project]
+exitStatus: 0
+standardOutput: |
+  # WP-4, Show fines in the tracker
+
+  Release 1.0.0, status planned, assigned to nobody named.
+
+  ## Can it start
+
+  Yes: every package it comes after is done, and the readiness check finds nothing.
+
+  ## Requirements
+
+  ### TRK-7
+
+  Not a requirement of this specification; read it in the requirement set it belongs to.
+
+  ## Design elements to build
+
+  - /entities/Fine, meets TRK-7
+
+  ## Tests that must pass
+
+  None: no test verifies its requirements yet.
+
+  ## Goals it serves
+
+  None named: no need its requirements refine names a goal.
+
+  ## Out of scope near it
+
+  None rules out a need its requirements refine or a need serving a goal it serves.
+
+  Out of scope elsewhere: OUT-1, OUT-2.
+
+  ## Quality goals, in rank order
+
+  1. QG-1, functional-suitability: A loan shown as returned has been returned.
+  2. QG-2, interaction-capability: A member finds their loans in under 30 seconds.
+
+  ## What it changes in operation
+
+  Nothing: it adds no setting, migration, job, process or monitor.

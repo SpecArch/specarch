@@ -148,6 +148,16 @@ entities:
     relations:
       member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
     satisfies: [CASE-7]
+decisions:
+  ADR-001:
+    title: A fine is a flat amount per late day
+    status: accepted
+    date: "2026-11-03"
+    context: A late loan needs a fine people can work out themselves.
+    decision: One flat amount for each day a loan is late.
+    consequences: CASE-3 counts late days.
+    decidedBy: owner
+    satisfies: [CASE-3]
 environments:
   production: { description: "The library's live system." }
 configuration:

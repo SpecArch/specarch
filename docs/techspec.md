@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.6.0 of the specification: 142 requirements, 5 entities, 31 commands, 7 algorithms, 1078 tests, 229 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.6.0 of the specification: 142 requirements, 5 entities, 31 commands, 7 algorithms, 1079 tests, 229 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -5195,7 +5195,8 @@ can start it prints each candidate with what it waits on.
 
 With `--brief <package>` it prints one page in Markdown: whether the
 package can start and why not, its requirements with their acceptance
-criteria, the design elements that meet them, the tests that verify
+criteria, the design elements that meet them (a decision that
+satisfies one explains it and is not listed), the tests that verify
 them, the goals the needs of its requirements serve, the out-of-scope
 entries that rule out one of those needs and the others by ID, the
 quality goals in rank order, and what it changes in operation: the
@@ -5206,17 +5207,21 @@ With `--export csv` or `--export json` it prints every package for a
 tracker: id, title, release, status, assignedTo, estimatedHours,
 spentHours, after and requirements; a CSV is quoted as RFC 4180 quotes,
 with LF line breaks, a list of IDs in one cell separated by a comma
-and a space; a JSON list is an array.
+and a space; a JSON list is an array. Hours are written as the
+number in plain decimal form (a record's .5 as 0.5), and a JSON
+export that cannot be encoded exits 2 naming the cause.
 
-With `--import <file>`, a .csv or .json file as the export writes it,
-it writes into each record what the tracker owns and the file
+With `--import <file>`, a .csv or .json file as the export writes it
+(a byte order mark before a CSV's header is not part of its first
+column's name), it writes into each record what the tracker owns and the file
 changes: status, assignedTo and effort, an empty cell taking the key
-out, the record's other keys and comments kept; it prints one line
+out, the record's other keys and comments kept (a comment on a key
+it changes too), hours in plain decimal form; it prints one line
 per record written with each change. It warns, one line each with the
 file and row first, at a title, release, after or requirements the
 file changes (naming both values; the record keeps its own), at a
 status that is not a work package's, at hours that are not a positive
-number, at a row with no ID, a repeated ID or an ID with no record,
+finite number (NaN and infinity are none), at a row with no ID, a repeated ID or an ID with no record,
 and at a column it does not read.
 
 **Insight:** The project manager plans with packages, the analyst answers questions, QA tests a package as it lands and DevOps reads what it changes in operation; all of it is in the specification and the records already, so the command reads it there instead of asking for a second plan. The tracker keeps what changes daily, the specification what defines the work, and a change on the wrong side is said, never taken.
@@ -19606,16 +19611,26 @@ Decision: 1. plan proposes for the requirements document progress lists as
    CRLF RFC 4180 names; a list of IDs sits in one cell separated by a
    comma and a space;
    a JSON export holds workPackages, its lists as arrays and the
-   hours as numbers or null.
+   hours as numbers or null. Hours go out in plain decimal form
+   whatever form the record holds them in: YAML reads .5, 1. and +5
+   as numbers and JSON has no such forms (RFC 8259 requires a digit
+   before and after the point and no plus sign), so a record's own
+   text would make the JSON unreadable. An export that cannot be
+   encoded exits 2 with the cause; it never prints a partial or
+   empty file the caller would take for the plan.
 6. --import reads a file ending in .csv or .json, as the export
-   writes it. A column it does not read is named once; a column left
+   writes it. A CSV may start with a UTF-8 byte order mark, as a
+   spreadsheet's "CSV UTF-8" writes it; RFC 4180 does not name one,
+   and it is no part of the first column's name, so it is skipped. A column it does not read is named once; a column left
    out is no opinion. It writes into each record status, assignedTo
    and effort when the file changes them, the record's other keys,
-   their order and its comments kept, and an empty cell takes the key
-   out. It warns, and writes nothing of that field, at a title,
+   their order and its comments kept, a line comment on a value it
+   changes included, and an empty cell takes the key out; hours are
+   written in plain decimal form. It warns, and writes nothing of that field, at a title,
    release, after or requirements the file changes (naming both
    values), at a status that is not a work package's, at hours that
-   are not a positive number, at a row with no ID, a second row of an
+   are not a positive finite number (a float parser takes NaN and
+   Inf, and neither is a number of hours), at a row with no ID, a second row of an
    ID and an ID with no record.
 7. The import's warnings are lines on its own standard output, the
    file and row they are at first, and exit 0: the validator reads no
@@ -20263,11 +20278,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
-| plan-brief | command plan | system | golden | a planned package holding the loan and fine requirements, met by entities, a setting and a migration and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order | plan --brief is run for the package | it prints that it can start, each requirement with its acceptance criteria, the elements and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0 |
+| plan-brief | command plan | system | golden | a planned package holding the loan and fine requirements, met by entities, a setting, a migration and a decision and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order | plan --brief is run for the package | it prints that it can start, each requirement with its acceptance criteria, the elements to build without the decision, which builds nothing, and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0 |
+| plan-brief-requirement-set | command plan | system | golden | a planned package after a done one, holding only a requirement of a declared requirement set, met by an entity that needs an entity a package outside its after chain builds | plan --brief is run for the package | it says the package can start, as validate warns no work_package_order at it (the rule skips a requirement of a requirement set), names the requirement as one to read in its set, lists the entity to build, and exits 0 |
 | plan-brief-unknown | command plan | system | red | a specification with one work package, WP-1 | plan --brief is run for WP-9 | it refuses, naming WP-1, and exits 1 |
 | plan-export-csv | command plan | system | golden | a done package with its effort and a planned package whose title holds commas | plan --export csv is run | it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, the title quoted and each list in one cell, and exits 0 |
-| plan-export-json | command plan | system | golden | a done package with its effort and a planned package whose title holds commas | plan --export json is run | it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array and missing hours null, and exits 0 |
-| plan-import | command plan | system | golden | a done package and a planned package with an assignee and an estimate, and a tracker CSV that leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read | plan --import is run with the CSV | it writes the status, assignee and estimate into the planned package's record, its comment, key order and other keys kept, warns at the release and after with both values, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0 |
+| plan-export-json | command plan | system | golden | a done package with its effort written as 8. and +10 and a planned package whose title holds commas with an estimate written as .5, forms YAML reads as numbers and JSON does not | plan --export json is run | it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array, the hours as JSON numbers (8, 10 and 0.5) and missing hours null, and exits 0 |
+| plan-import | command plan | system | golden | a done package and a planned package with an assignee and an estimate, a head comment and line comments on its status and assignee, and a tracker CSV saved by a spreadsheet as CSV UTF-8 (a byte order mark first) that gives the done package NaN spent hours and otherwise leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate written as 16.0 and Inf spent hours while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read | plan --import is run with the CSV | it writes the status, assignee and estimate into the planned package's record, the estimate as 16, its comments (the line comments on the changed status and assignee too), key order and other keys kept, warns at the release and after with both values, at the NaN and Inf hours, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0 |
 | plan-import-json | command plan | system | golden | a planned package with an assignee and an estimate, and a tracker JSON file that empties its assignee and estimate, gives a status that is not a work package's and negative spent hours, and adds a requirement | plan --import is run with the JSON file | it takes the assignee and the estimate out of the record, keeps its status and writes no spent hours, warning at each with both values, warns at the requirements with both values, and exits 0 |
 | plan-next | command plan | system | golden | a done package, a planned package after it whose requirement is accepted with acceptance criteria and no open question, and a planned package after that one | plan --next is run | it prints the package after the done one, with its release, status, assignee, requirements, after and the brief command, and exits 0 |
 | plan-next-none | command plan | system | red | a package in progress, a planned package after it, a ready package whose requirement is proposed with no acceptance criteria, and a proposed package | plan --next is run | it prints that no package can start and, for each planned or ready package, what it waits on, leaves out the proposed package, and exits 1 |
@@ -20893,7 +20909,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-142 | specarch document progress shall list, once a work-package record exists, each package with its release, status, assignee, the packages it comes after, its requirements, its effort and what blocks it, and the accepted requirements of a planned release that no package holds as unplanned; and specarch document testplan shall group the design tests by the work package whose requirements they verify, so a package is tested as it lands. | functional | must | proposed | test | document progress on a specification with work-package records writes a Work packages section with one row per package and the unplanned requirements named; without such a record it writes no such section. document testplan on a specification with work-package records writes a Tests by work package section with each package's requirements and the tests that verify them, and the tests no package covers; without such a record it writes no such section. A package that comes after a withdrawn package is not blocked by it. With --audience external, neither section names a requirement the document for everyone withholds. | NEED-5, NEED-10 |
 | SA-143 | specarch plan shall propose work packages for the accepted requirements of a planned release (or of the release --release names, with the accepted requirements that name no release) that no package not withdrawn holds, grouping requirements met by a common design element, merging groups that need each other and ordering the rest by the reference graph so a package comes after the packages that build what its elements need, and write each as a work-package record with status proposed under the next free ID; and specarch plan --next shall print the first package by ID that is planned or ready, whose after packages are done or withdrawn and that neither work_package_not_ready nor work_package_order would warn of, or each candidate with what it waits on when none can start. | functional | must | proposed | test | plan on a specification whose planned release has accepted requirements no package holds writes one proposed record per group, a package after the package that builds the entity its path names, and the records it writes validate with no work-package warning but work_package_unconfigured. Two groups whose elements name each other are proposed as one package, and no proposal names a release other than its requirements'. A requirement that is proposed, rejected or held by a package not withdrawn is not planned, and the ones left out are named. plan --next prints the first planned or ready package that can start with its brief command, and, when none can, each candidate with what it waits on, and exits 1. With --dry-run nothing is written and each record is listed as would write. | NEED-5, NEED-10 |
 | SA-144 | specarch plan --brief shall print one page for a work package that a programmer or an agent can work from alone - whether it can start and why not, its requirements with their acceptance criteria, the design elements that meet them, the tests that verify them, the goals its requirements' needs serve, the out-of-scope entries that rule out one of those needs and the others by ID, the quality goals in rank order, and for DevOps the settings, migrations, jobs, processes and monitors it adds or reaches. | functional | must | proposed | test | plan --brief on a package prints each section, naming the elements, tests, goals, out-of-scope entries, quality goals and operation changes the specification links to its requirements, and exits 0. plan --brief on an ID with no work-package record names the packages there are and exits 1. | NEED-5, NEED-10 |
-| SA-145 | specarch plan --export shall write every work package for a tracker as CSV (quoted as RFC 4180 quotes, with LF line breaks, a list of IDs in one cell separated by commas) or JSON on standard output, and specarch plan --import shall read such a file back and write into each record only what the tracker owns - status, assignedTo and effort - warning, with both values, at a field the specification owns (title, release, after, requirements) that the file changes, at a status or hours that are not valid, at a row naming no package, and at a column it does not read. | functional | must | proposed | test | plan --export csv and --export json write one row or object per package with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements. plan --import of a file changing a package's status, assignee and hours writes them into the record, its other keys and comments kept, and a file changing its release or after is warned with both values and leaves them as they were. A row naming no package, a status not of a work package and hours that are not a positive number are warned and nothing of them is written. | NEED-5, NEED-10 |
+| SA-145 | specarch plan --export shall write every work package for a tracker as CSV (quoted as RFC 4180 quotes, with LF line breaks, a list of IDs in one cell separated by commas) or JSON on standard output, and specarch plan --import shall read such a file back and write into each record only what the tracker owns - status, assignedTo and effort - warning, with both values, at a field the specification owns (title, release, after, requirements) that the file changes, at a status or hours that are not valid, at a row naming no package, and at a column it does not read. | functional | must | proposed | test | plan --export csv and --export json write one row or object per package with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements. plan --import of a file changing a package's status, assignee and hours writes them into the record, its other keys and comments kept (a line comment on a changed value too), and a file changing its release or after is warned with both values and leaves them as they were. A row naming no package, a status not of a work package and hours that are not a positive finite number (NaN and infinity included) are warned and nothing of them is written. | NEED-5, NEED-10 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -21365,7 +21381,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-141 | enums Rule; decisions ADR-245 | tests validate-work-package-warnings |
 | SA-142 | enums DocumentTarget; commands document; decisions ADR-245 | tests document-progress-work-packages; tests document-progress-work-packages-for-everyone; tests document-testplan-by-package; tests document-testplan-by-package-for-everyone |
 | SA-143 | commands plan; decisions ADR-246 | tests plan-next; tests plan-next-none; tests plan-proposes; tests plan-proposes-dry-run; tests plan-release-unknown; tests plan-usage-error; tests validate-plan-proposals |
-| SA-144 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-unknown |
+| SA-144 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-requirement-set; tests plan-brief-unknown |
 | SA-145 | commands plan; decisions ADR-246 | tests plan-export-csv; tests plan-export-json; tests plan-import; tests plan-import-json |
 
 ## Sources

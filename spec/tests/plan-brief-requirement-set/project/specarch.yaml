@@ -1,0 +1,202 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+timeZone: Asia/Jakarta
+sources:
+  tracker: { kind: requirement-set, title: The project's issue tracker, prefix: TRK }
+problem:
+  statement: Members cannot tell which books they hold, so loans run late.
+stakeholders:
+  owner: { description: The product owner. }
+  member: { description: Borrows books. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }
+goals:
+  GOAL-1:
+    statement: Fewer loans run late.
+    measure: Share of loans returned after their due date.
+    baseline: 30 percent (October 2026)
+    target: 10 percent
+    by: 1.0.0
+    priority: must
+    status: accepted
+needs:
+  NEED-1: { statement: Members must see what they borrowed., stakeholders: [member], status: accepted, goals: [GOAL-1] }
+  NEED-2: { statement: Members must reserve a book from home., stakeholders: [member], status: rejected, goals: [GOAL-1] }
+outOfScope:
+  OUT-1:
+    statement: Members cannot reserve a book online.
+    why: Reservations need a hold shelf the library does not have.
+    needs: [NEED-2]
+  OUT-2:
+    statement: The library sells no books.
+    why: It lends only.
+qualityGoals:
+  QG-2: { rank: 2, quality: interaction-capability, statement: A member finds their loans in under 30 seconds. }
+  QG-1: { rank: 1, quality: functional-suitability, statement: A loan shown as returned has been returned. }
+requirements:
+  CASE-1:
+    statement: A member shall be known by an opaque id.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Two members never share an id.]
+    release: 1.0.0
+    needs: [NEED-1]
+  CASE-2:
+    statement: A member shall borrow a book for the days the library sets.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan names its member and its due date.]
+    release: 1.0.0
+    needs: [NEED-1]
+  CASE-3:
+    statement: A late loan shall be fined.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan returned a day late is fined once.]
+    release: 1.0.0
+    needs: [NEED-1]
+  CASE-4:
+    statement: A member shall be reminded of a loan falling due.
+    kind: functional
+    priority: should
+    status: proposed
+    release: 1.0.0
+    needs: [NEED-1]
+  CASE-5:
+    statement: A shelf shall belong to a branch.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [Every shelf names its branch.]
+    release: 1.0.0
+    needs: [NEED-1]
+  CASE-6:
+    statement: A branch shall name its front shelf.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [Every branch names a front shelf.]
+    release: 1.0.0
+    needs: [NEED-1]
+  CASE-7:
+    statement: A member shall see the books they hold.
+    kind: functional
+    priority: could
+    status: accepted
+    acceptance: [The list names every book on loan to the member.]
+    release: 1.1.0
+    needs: [NEED-1]
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+    required: [id]
+    primaryKey: [id]
+    constraints:
+      member_once: { kind: unique, fields: [id], message: This member is already recorded. }
+    satisfies: [CASE-1]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+    constraints:
+      loan_once: { kind: unique, fields: [memberId, id], message: This loan is already recorded. }
+    satisfies: [CASE-2]
+  Fine:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      loanId: { type: string, format: uuid }
+    required: [id, loanId]
+    primaryKey: [id]
+    relations:
+      loan: { target: Loan, kind: many-to-one, via: loanId, onDelete: restrict }
+    satisfies: [CASE-3, TRK-7]
+  Shelf:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      branchId: { type: string, format: uuid }
+    required: [id, branchId]
+    primaryKey: [id]
+    relations:
+      branch: { target: Branch, kind: many-to-one, via: branchId, onDelete: restrict }
+    satisfies: [CASE-5]
+  Branch:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      frontShelfId: { type: string, format: uuid }
+    required: [id, frontShelfId]
+    primaryKey: [id]
+    relations:
+      frontShelf: { target: Shelf, kind: many-to-one, via: frontShelfId, onDelete: restrict }
+    satisfies: [CASE-6]
+  Holding:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+    satisfies: [CASE-7]
+environments:
+  production: { description: "The library's live system." }
+configuration:
+  loanDays:
+    description: How many days a loan lasts.
+    secret: false
+    schema: { type: integer, format: int32 }
+    satisfies: [CASE-2]
+migrations:
+  add-due-date:
+    description: Every loan gets a due date.
+    steps:
+      - { name: Add the column, action: Add the due date column., check: The column exists. }
+    rollback:
+      - { name: Drop the column, action: Drop the due date column., check: The column is gone. }
+    satisfies: [CASE-2]
+monitors:
+  late-loans:
+    description: The share of loans returned late.
+    environment: production
+    objective: Fewer than one loan in ten is returned late.
+    verifies: [CASE-3]
+tests:
+  member-key:
+    entity: Member
+    constraint: member_once
+    level: system
+    scenario: golden
+    given: two members saved
+    when: their ids are read
+    then: the ids differ
+    verifies: [CASE-1]
+  loan-member:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: golden
+    given: a member
+    when: a loan is saved for the member
+    then: the loan names the member and its due date
+    verifies: [CASE-2]
+  loan-unknown-member:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: red
+    given: no member with the id
+    when: a loan is saved for that id
+    then: the loan is refused
+    verifies: [CASE-2]

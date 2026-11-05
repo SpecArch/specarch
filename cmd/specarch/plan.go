@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -764,12 +765,19 @@ func (p *planner) brief(id string, stdout, stderr io.Writer) int {
 	line("## Design elements to build")
 	line("")
 	var elements []string
+	explained := false
 	for _, req := range wp.Requirements {
 		for _, e := range p.plan.Satisfied[req] {
-			elements = appendOnce(elements, e)
+			if builds(e) {
+				elements = appendOnce(elements, e)
+			} else {
+				explained = true
+			}
 		}
 	}
-	if len(elements) == 0 {
+	if len(elements) == 0 && explained {
+		line("None: only decisions satisfy its requirements, and a decision explains a requirement; nothing of it is built.")
+	} else if len(elements) == 0 {
 		line("None: no element of the design satisfies its requirements yet.")
 	}
 	for _, e := range elements {
@@ -937,7 +945,7 @@ func (p *planner) export(format string, stdout, stderr io.Writer) int {
 		cw := csv.NewWriter(stdout)
 		cw.Write(trackerColumns)
 		for _, wp := range p.plan.Packages {
-			cw.Write([]string{wp.ID, wp.Title, wp.Release, wp.Status, wp.AssignedTo, wp.EstimatedHours, wp.SpentHours, strings.Join(wp.After, ", "), strings.Join(wp.Requirements, ", ")})
+			cw.Write([]string{wp.ID, wp.Title, wp.Release, wp.Status, wp.AssignedTo, hoursText(wp.EstimatedHours), hoursText(wp.SpentHours), strings.Join(wp.After, ", "), strings.Join(wp.Requirements, ", ")})
 		}
 		cw.Flush()
 		if err := cw.Error(); err != nil {
@@ -958,10 +966,11 @@ func (p *planner) export(format string, stdout, stderr io.Writer) int {
 		Requirements   []string        `json:"requirements"`
 	}
 	hours := func(s string) json.RawMessage {
-		if _, err := strconv.ParseFloat(s, 64); err != nil {
+		f, ok := hoursValue(s)
+		if !ok {
 			return json.RawMessage("null")
 		}
-		return json.RawMessage(s)
+		return json.RawMessage(strconv.FormatFloat(f, 'f', -1, 64))
 	}
 	out := struct {
 		WorkPackages []row `json:"workPackages"`
@@ -976,8 +985,34 @@ func (p *planner) export(format string, stdout, stderr io.Writer) int {
 		}
 		out.WorkPackages = append(out.WorkPackages, r)
 	}
-	writeJSON(stdout, out)
+	data, err := json.MarshalIndent(out, "", "  ")
+	if err != nil {
+		fmt.Fprintf(stderr, "specarch plan: cannot encode the export as JSON: %v\n", err)
+		return 2
+	}
+	stdout.Write(append(data, '\n'))
 	return 0
+}
+
+// hoursText is hours as the export writes them: the number in plain
+// decimal form, or "" when the record holds no number of hours.
+func hoursText(s string) string {
+	f, ok := hoursValue(s)
+	if !ok {
+		return ""
+	}
+	return strconv.FormatFloat(f, 'f', -1, 64)
+}
+
+// hoursValue reads hours as a record or a tracker gives them: a finite
+// number above 0, in any form YAML or strconv takes (.5, 1., +5, 1e1).
+// NaN and infinity parse as floats but are no number of hours.
+func hoursValue(s string) (float64, bool) {
+	f, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
+	if err != nil || math.IsNaN(f) || math.IsInf(f, 0) || f <= 0 {
+		return 0, false
+	}
+	return f, true
 }
 
 // trackerRow is one package as the tracker file gives it: the columns it
@@ -1010,6 +1045,9 @@ func readTracker(path string, data []byte) ([]trackerRow, []string, error) {
 			return nil, nil, fmt.Errorf("it has no header row; its first row names the columns, as specarch plan --export csv writes them")
 		}
 		header := records[0]
+		// A spreadsheet's "CSV UTF-8" starts the file with a byte order
+		// mark, which is no part of the first column's name.
+		header[0] = strings.TrimPrefix(header[0], "\ufeff")
 		hasID := false
 		for _, h := range header {
 			if h == "id" {
@@ -1178,10 +1216,15 @@ func (p *planner) importFrom(path string, w *disk.Writer, stdout, stderr io.Writ
 				continue
 			}
 			if v != "" {
-				if f, err := strconv.ParseFloat(v, 64); err != nil || f <= 0 {
+				f, ok := hoursValue(v)
+				if !ok {
 					warn(r.at, "%s %s: the tracker has %q, which is not a positive number of hours, so the record keeps %q; give the hours as a number above 0, or leave the cell empty", id, h.key, v, orWord(h.have, "none"))
 					continue
 				}
+				if have, ok := hoursValue(h.have); ok && have == f {
+					continue // the same hours written another way
+				}
+				v = strconv.FormatFloat(f, 'f', -1, 64)
 			}
 			key := h.key
 			changes = append(changes, fmt.Sprintf("%s from %s to %s", key, orWord(h.have, "none"), orWord(v, "none")))
@@ -1208,7 +1251,9 @@ func (p *planner) importFrom(path string, w *disk.Writer, stdout, stderr io.Writ
 func setScalar(root *yaml.Node, key, value, tag string) {
 	for i := 0; i+1 < len(root.Content); i += 2 {
 		if root.Content[i].Value == key {
-			root.Content[i+1] = &yaml.Node{Kind: yaml.ScalarNode, Tag: tag, Value: value}
+			// The node is changed in place, so the comments on it stay.
+			n := root.Content[i+1]
+			n.Kind, n.Tag, n.Value, n.Style, n.Content, n.Anchor, n.Alias = yaml.ScalarNode, tag, value, 0, nil, "", nil
 			return
 		}
 	}

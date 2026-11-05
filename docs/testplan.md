@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.6.0 of the specification: 1078 design tests, 550 golden and 528 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.6.0 of the specification: 1079 design tests, 551 golden and 528 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.6.0 of the specification: 1078 design tests, 550 golden and 528 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1074 |
+| system | 1075 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5113,9 +5113,17 @@ Scenario: golden; level: system; verifies SA-74.
 
 Scenario: golden; level: system; verifies SA-144.
 
-- Given: a planned package holding the loan and fine requirements, met by entities, a setting and a migration and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order
+- Given: a planned package holding the loan and fine requirements, met by entities, a setting, a migration and a decision and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order
 - When: plan --brief is run for the package
-- Then: it prints that it can start, each requirement with its acceptance criteria, the elements and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0
+- Then: it prints that it can start, each requirement with its acceptance criteria, the elements to build without the decision, which builds nothing, and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0
+
+#### plan-brief-requirement-set
+
+Scenario: golden; level: system; verifies SA-144.
+
+- Given: a planned package after a done one, holding only a requirement of a declared requirement set, met by an entity that needs an entity a package outside its after chain builds
+- When: plan --brief is run for the package
+- Then: it says the package can start, as validate warns no work_package_order at it (the rule skips a requirement of a requirement set), names the requirement as one to read in its set, lists the entity to build, and exits 0
 
 #### plan-brief-unknown
 
@@ -5137,17 +5145,17 @@ Scenario: golden; level: system; verifies SA-145.
 
 Scenario: golden; level: system; verifies SA-145.
 
-- Given: a done package with its effort and a planned package whose title holds commas
+- Given: a done package with its effort written as 8. and +10 and a planned package whose title holds commas with an estimate written as .5, forms YAML reads as numbers and JSON does not
 - When: plan --export json is run
-- Then: it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array and missing hours null, and exits 0
+- Then: it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array, the hours as JSON numbers (8, 10 and 0.5) and missing hours null, and exits 0
 
 #### plan-import
 
 Scenario: golden; level: system; verifies SA-145.
 
-- Given: a done package and a planned package with an assignee and an estimate, and a tracker CSV that leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read
+- Given: a done package and a planned package with an assignee and an estimate, a head comment and line comments on its status and assignee, and a tracker CSV saved by a spreadsheet as CSV UTF-8 (a byte order mark first) that gives the done package NaN spent hours and otherwise leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate written as 16.0 and Inf spent hours while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read
 - When: plan --import is run with the CSV
-- Then: it writes the status, assignee and estimate into the planned package's record, its comment, key order and other keys kept, warns at the release and after with both values, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0
+- Then: it writes the status, assignee and estimate into the planned package's record, the estimate as 16, its comments (the line comments on the changed status and assignee too), key order and other keys kept, warns at the release and after with both values, at the NaN and Inf hours, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0
 
 #### plan-import-json
 

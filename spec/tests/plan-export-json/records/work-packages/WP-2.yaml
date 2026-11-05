@@ -6,3 +6,4 @@ title: Lend, and fine, a book
 requirements: [CASE-2, CASE-3]
 after: [WP-1]
 status: planned
+effort: { estimatedHours: .5 }

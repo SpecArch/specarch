@@ -70,6 +70,9 @@ func PlanWorkPackages(s *spec.Spec) *WorkPackagePlan {
 			before := pl.before(wp.ID)
 			var orders []misorder
 			for _, req := range wp.Requirements {
+				if req == "" || rc.d.requirements[req] == nil {
+					continue // work_package_order skips it too: a requirement of a requirement set, or none
+				}
 				orders = append(orders, pl.misorders(req, before)...)
 			}
 			wp.NotReady = rc.notReady(r, pl, false)

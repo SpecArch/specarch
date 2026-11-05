@@ -169,7 +169,7 @@ Version 1.6.0 of the specification: 10 needs, 142 requirements, and 1 gap. Each 
 | SA-141 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums Rule; decisions ADR-245 | tests validate-work-package-warnings |
 | SA-142 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-245 | tests document-progress-work-packages; tests document-progress-work-packages-for-everyone; tests document-testplan-by-package; tests document-testplan-by-package-for-everyone |
 | SA-143 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-next; tests plan-next-none; tests plan-proposes; tests plan-proposes-dry-run; tests plan-release-unknown; tests plan-usage-error; tests validate-plan-proposals |
-| SA-144 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-unknown |
+| SA-144 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-requirement-set; tests plan-brief-unknown |
 | SA-145 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-export-csv; tests plan-export-json; tests plan-import; tests plan-import-json |
 
 ## 3. Gaps

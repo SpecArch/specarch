@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-4
+release: 1.0.0
+title: Show fines in the tracker
+requirements: [TRK-7]
+after: [WP-1]
+status: planned

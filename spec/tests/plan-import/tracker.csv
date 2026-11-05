@@ -1,6 +1,6 @@
-id,title,release,status,assignedTo,estimatedHours,spentHours,after,requirements,sprint
-WP-1,Know a member,1.0.0,done,alex,8,10,,CASE-1,S1
-WP-2,Lend a book,1.1.0,in-progress,sam,16,,"WP-1, WP-9",CASE-2,S2
+﻿id,title,release,status,assignedTo,estimatedHours,spentHours,after,requirements,sprint
+WP-1,Know a member,1.0.0,done,alex,8,NaN,,CASE-1,S1
+WP-2,Lend a book,1.1.0,in-progress,sam,16.0,Inf,"WP-1, WP-9",CASE-2,S2
 WP-3,Fine a late loan,1.0.0,planned,,,,,CASE-3,S2
 ,No id,1.0.0,planned,,,,,,S3
 WP-2,Lend a book,1.0.0,done,,,,,CASE-2,S3

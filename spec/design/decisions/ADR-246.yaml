@@ -53,16 +53,26 @@ decisions:
          CRLF RFC 4180 names; a list of IDs sits in one cell separated by a
          comma and a space;
          a JSON export holds workPackages, its lists as arrays and the
-         hours as numbers or null.
+         hours as numbers or null. Hours go out in plain decimal form
+         whatever form the record holds them in: YAML reads .5, 1. and +5
+         as numbers and JSON has no such forms (RFC 8259 requires a digit
+         before and after the point and no plus sign), so a record's own
+         text would make the JSON unreadable. An export that cannot be
+         encoded exits 2 with the cause; it never prints a partial or
+         empty file the caller would take for the plan.
       6. --import reads a file ending in .csv or .json, as the export
-         writes it. A column it does not read is named once; a column left
+         writes it. A CSV may start with a UTF-8 byte order mark, as a
+         spreadsheet's "CSV UTF-8" writes it; RFC 4180 does not name one,
+         and it is no part of the first column's name, so it is skipped. A column it does not read is named once; a column left
          out is no opinion. It writes into each record status, assignedTo
          and effort when the file changes them, the record's other keys,
-         their order and its comments kept, and an empty cell takes the key
-         out. It warns, and writes nothing of that field, at a title,
+         their order and its comments kept, a line comment on a value it
+         changes included, and an empty cell takes the key out; hours are
+         written in plain decimal form. It warns, and writes nothing of that field, at a title,
          release, after or requirements the file changes (naming both
          values), at a status that is not a work package's, at hours that
-         are not a positive number, at a row with no ID, a second row of an
+         are not a positive finite number (a float parser takes NaN and
+         Inf, and neither is a number of hours), at a row with no ID, a second row of an
          ID and an ID with no record.
       7. The import's warnings are lines on its own standard output, the
          file and row they are at first, and exit 0: the validator reads no

@@ -2,7 +2,7 @@
 command: plan
 level: system
 scenario: golden
-given: "a planned package holding the loan and fine requirements, met by entities, a setting and a migration and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order"
+given: "a planned package holding the loan and fine requirements, met by entities, a setting, a migration and a decision and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order"
 when: "plan --brief is run for the package"
-then: "it prints that it can start, each requirement with its acceptance criteria, the elements and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0"
+then: "it prints that it can start, each requirement with its acceptance criteria, the elements to build without the decision, which builds nothing, and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0"
 verifies: [SA-144]

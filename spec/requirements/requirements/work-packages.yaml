@@ -78,8 +78,8 @@ requirements:
     status: proposed
     acceptance:
       - plan --export csv and --export json write one row or object per package with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements.
-      - plan --import of a file changing a package's status, assignee and hours writes them into the record, its other keys and comments kept, and a file changing its release or after is warned with both values and leaves them as they were.
-      - A row naming no package, a status not of a work package and hours that are not a positive number are warned and nothing of them is written.
+      - plan --import of a file changing a package's status, assignee and hours writes them into the record, its other keys and comments kept (a line comment on a changed value too), and a file changing its release or after is warned with both values and leaves them as they were.
+      - A row naming no package, a status not of a work package and hours that are not a positive finite number (NaN and infinity included) are warned and nothing of them is written.
     verification: test
     needs: [NEED-5, NEED-10]
     why: The project manager keeps the tracker they already use; each side wins on its own fields and a change on the wrong side is said, never taken silently, so the plan does not drift (ADR-242, ADR-246).

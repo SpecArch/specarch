@@ -10,12 +10,46 @@
           "rules": [
             {
               "id": "problem_missing"
+            },
+            {
+              "id": "work_package_unverified"
             }
           ]
         }
       },
       "columnKind": "unicodeCodePoints",
       "results": [
+        {
+          "ruleId": "work_package_unverified",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "WP-1 is marked done, but the tests browse-catalogue, register-member and register-member-email-taken have no passed result in the test-run records; record a run that passes with specarch log test-run, or set status to in-progress"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../records/work-packages/WP-1.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/status",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "work_package_unverified@../records/work-packages/WP-1.yaml#/status"
+          }
+        },
         {
           "ruleId": "problem_missing",
           "kind": "fail",

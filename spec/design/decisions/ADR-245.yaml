@@ -1,0 +1,135 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-245:
+    title: Intent phase 2 builds the work-package record (kind work-package in records/work-packages/, its effort in the change record's shape, assignedTo a free name), its references under record_ref, work_package_cycle as an error at each link on the cycle, six warnings held to live packages only and read from the design's reference graph, the test-run records and the deployments, and the Work packages section of document progress and the Tests by work package section of the test plan, both only once a package is recorded
+    status: accepted
+    date: "2026-11-05"
+    context: |
+      ADR-242 designs the work packages and leaves to each phase the points
+      its build settles; phase 2 builds the record, its seven rules, the
+      per-package lines of document progress and the test plan grouped by
+      package. Building it raised forks ADR-242 does not settle: what a
+      reference to a missing requirement, release or package is reported
+      as, which packages the warnings hold to, what an element "needs"
+      for the order rule, when a requirement's release differs from its
+      package's, which questions keep a package from being ready, what a
+      passing run is, which settings a requirement adds and when a missing
+      value is worth a warning, and whether a specification without work
+      packages sees new sections.
+    decision: |
+      1. A work package is a record of kind work-package in
+         records/work-packages/, named by its ID: id, title, requirements
+         (IDs, at least one) and status are required; release, after,
+         assignedTo, effort and why are optional. effort is the change
+         record's effort, estimatedHours and spentHours, one shared
+         definition. assignedTo is a plain name of a person or a team, not
+         a stakeholder role, since the owner's decision 4 of ADR-242 asks
+         for a name a project manager plans with.
+      2. A requirement that is not one of the specification or of a
+         declared requirement set, a requirement named by a #/ pointer, a
+         release with no record and an after entry with no record are
+         record_ref at the entry, as every reference a record makes is.
+      3. work_package_cycle is an error at each after link whose chain comes
+         back to its package, naming the chain, as decision_cycle is. Every
+         other rule is a warning, and a withdrawn package is held to none of
+         them and counts for no other package's.
+      4. work_package_order reads the reference graph the diagrams walk
+         (specarch model's references), each end cut to its element, without
+         satisfies, verifies and decidedIn, which say what an element meets,
+         not what it needs. An element satisfying a package's requirement
+         needs another element; when some live package builds that element
+         (holds a requirement it satisfies) and none of them is the package
+         or in its after chain, the requirement is warned. An element no
+         package builds is unplanned, not out of order. Only the
+         specification's own elements are read: an implementation file's
+         satisfies says how one stack meets a requirement, not what the
+         delivery builds first.
+      5. work_package_release warns only when the requirement and the
+         package both name a release and they differ; a requirement with no
+         release takes its package's.
+      6. work_package_not_ready, on a package marked ready, names each
+         reason in the order of its requirements: a requirement not
+         accepted, one with no acceptance criteria, an open question of any
+         priority whose #/ block is at or inside an element satisfying one,
+         and work_package_order on the package.
+      7. work_package_unverified, on a package marked done, names each test
+         whose scenario is golden or red, that is not marked not applicable,
+         that verifies one of its requirements, and that no result of any
+         test-run record names with outcome passed.
+      8. work_package_unconfigured warns at a requirement for each setting it
+         adds - a setting that satisfies it, or one an element satisfying it
+         names, such as a process's configuration - that is not secret, has
+         no default in its schema and that no deployment of any
+         implementation file gives a value; it is warned only once some
+         deployment gives a setting a value.
+      9. document progress writes a Work packages section, with one row per
+         package (release, status, assignee, after, requirements, estimated
+         and spent hours, what blocks it) and the accepted requirements of a
+         planned release no live package holds named as unplanned; the test
+         plan writes a Tests by work package section, per package its
+         requirements and the design tests that verify them, then the tests
+         no live package covers. Both sections appear only once a
+         work-package record exists. The burn-up keeps counting the elements
+         the change requests name; a package's effort is shown in its row.
+    why: |
+      One way to say one thing (docs/principles.md): a record's reference to
+      what does not exist is record_ref wherever it stands, and effort
+      already has a shape the progress report reads (ADR-237). A cycle
+      makes the plan impossible to follow, so it is an error, as a decision
+      chain that rests on itself is; everything else is a plan that can
+      still be followed with care, so it is a warning, and nothing refuses
+      a specification for a plan (the compiler rule of ADR-242). A
+      withdrawn package is no longer part of the delivery, so a warning
+      about it, or because of it, would ask for work nobody plans. The
+      order rule reads the same graph the diagrams draw, so what the
+      analyst sees linked is what the rule judges; leaving out the meets
+      links keeps an element from needing its own requirement. Warning an
+      element no package builds would warn every package of a plan made one
+      package at a time, while the progress report already lists it as
+      unplanned. Any open question counts against ready because QA's entry
+      criterion is that nothing about the work is undecided, whatever its
+      priority. Any passed result counts as a passing run, since a later
+      failure is the test-run document's to show and a done package is
+      reopened by setting its status, not by the validator guessing which
+      run is the current one. A secret's value never stands in a
+      deployment (the validator refuses it as secret_value) and a default
+      is a value, so neither is warned;
+      before any deployment gives a value, the implementation is not yet
+      written down and every setting would warn. New sections only where
+      packages exist keep the promise that a specification without them
+      reads as it did.
+    alternatives:
+      - option: kind workPackage, as the design document's example writes it
+        why: |
+          It matches the example, but every other kind of more than one word
+          is hyphenated (test-session, test-run), and a second spelling
+          rule would be one thing said two ways; ADR-242 settles the spelling.
+      - option: assignedTo as a stakeholder role, as every other record names people
+        why: |
+          It keeps records free of names, but a role does not answer who is
+          late, and the owner chose a person or a team (ADR-242, decision 4).
+      - option: work_package_order also for an element no package builds yet
+        why: |
+          It catches a gap earlier, but a plan written one package at a time
+          would warn at every step; progress lists unplanned requirements
+          instead.
+      - option: work_package_unconfigured on every specification, with or without a deployment
+        why: |
+          It shows the setting early, but before an implementation file
+          gives any value every setting of every package would warn, a
+          warning people learn to skip.
+      - option: Count a package's effort in the burn-up
+        why: |
+          The burn-up counts elements, not hours, so a package's hours have
+          no column there; they stand in the package's row and the effort
+          section stays the change requests'.
+    consequences: |
+      A specification with no work-package record validates and documents
+      as before. A project manager writes a package by hand until phase 3's
+      specarch plan proposes them; the warnings show a plan that cannot be
+      followed as it is written. Phase 3 reads the same plan: --next is the
+      first package whose after packages are done and which warns neither
+      work_package_not_ready nor work_package_order.
+    weighs: [QG-1, QG-2]
+    satisfies: [SA-140, SA-141, SA-142]
+    restsOn: [ADR-242, ADR-244, ADR-230, ADR-237]

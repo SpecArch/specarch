@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-requirements-1.0.schema.json
+requirements:
+  SA-140:
+    statement: A specification shall keep beside it, as records in records/work-packages/, each work package of the delivery - its ID, its release, a title, the requirements it holds by ID (its only content), the packages it comes after, the person or team it is assigned to, its status (proposed, planned, ready, in-progress, done, withdrawn), its effort in the change record's shape and why - and specarch validate shall report, in both builds, a requirement that is not one of the specification or is named by pointer, a release with no record and a package with no record as record_ref at the entry, and a chain of after links that comes back to its package as work_package_cycle, an error at each link on the cycle naming the chain.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - A work-package record whose requirements, release and after resolve validates with no error, and a specification with no work-package record reads as before.
+      - Two packages that come after each other are each reported work_package_cycle at their after link, a package after itself at its own, and validate exits 1.
+      - A requirement that is not one of the specification, a requirement named by pointer, a release with no record and a package with no record are record_ref at the entry.
+      - Both validator builds print the same lines for the same records.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: A work package describes the delivery, not the system, so it is a record beside the release records; naming requirements only keeps one way to say which design elements and tests it covers, the satisfy and verify links (ADR-242, ADR-245).
+    cites:
+      - source: iso-12207
+        clause: "6.3.1"
+        says: "The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned."
+  SA-141:
+    statement: specarch validate shall warn, at the work-package record and in the problems file, in both builds and never at a withdrawn package, work_package_order at a requirement whose satisfying element names an element that only packages outside the package's after chain build, work_package_overlap at a requirement two packages hold, work_package_release at a requirement whose release is not the package's, work_package_unconfigured at a requirement that adds a setting with no default that no deployment of an implementation file gives a value once any deployment gives one, work_package_not_ready at a package marked ready whose requirement is not accepted or has no acceptance criteria, whose satisfying element an open question blocks, or which warns work_package_order, and work_package_unverified at a package marked done with a golden or red test of its requirements that has no passed result in the test-run records.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - validate on records with each of the six gaps warns that rule at that entry, naming what to do, and exits 0.
+      - A done package whose tests all passed, a setting with a default or a secret, and a withdrawn package are not warned.
+      - Both validator builds print the same lines for the same records.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: Ready is QA's entry criterion and done its exit criterion, so both are checked, not just written; the order, overlap, release and configuration checks show a plan that cannot be followed before anyone starts on it, and each is a warning because a plan is never refused (ADR-242, ADR-245).
+  SA-142:
+    statement: specarch document progress shall list, once a work-package record exists, each package with its release, status, assignee, the packages it comes after, its requirements, its effort and what blocks it, and the accepted requirements of a planned release that no package holds as unplanned; and specarch document testplan shall group the design tests by the work package whose requirements they verify, so a package is tested as it lands.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - document progress on a specification with work-package records writes a Work packages section with one row per package and the unplanned requirements named; without such a record it writes no such section.
+      - document testplan on a specification with work-package records writes a Tests by work package section with each package's requirements and the tests that verify them, and the tests no package covers; without such a record it writes no such section.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: The project manager reads per package what is done, in progress or blocked and by what, and QA tests each package as it lands; a specification without work packages keeps the documents it had (ADR-242, ADR-245).

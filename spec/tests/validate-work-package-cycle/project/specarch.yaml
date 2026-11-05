@@ -1,0 +1,27 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+timeZone: Asia/Jakarta
+problem:
+  statement: Members cannot tell which books they hold, so loans run late.
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }
+requirements:
+  CASE-1:
+    statement: A member shall be known by an opaque id.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Two members never share an id.]
+  CASE-2:
+    statement: A member shall see the books they hold.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [The list names every book on loan to the member.]
+  CASE-3:
+    statement: A member shall renew a loan once.
+    kind: functional
+    priority: could
+    status: accepted
+    acceptance: [A second renewal is refused.]

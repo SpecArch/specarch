@@ -52,6 +52,11 @@ func Progress(root *yaml.Node, relRoot string, state *State) string {
 		d.progressGoals(root, state)
 	}
 
+	if len(recordsOf(state, "work-package")) > 0 {
+		d.section(tr("Work packages"))
+		d.progressWorkPackages(root, state)
+	}
+
 	d.section(tr("Open work"))
 	d.progressQuestions()
 

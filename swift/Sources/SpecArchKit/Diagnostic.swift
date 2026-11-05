@@ -180,6 +180,13 @@ public enum Rule: String, CaseIterable, Sendable {
     case needWithoutGoal = "need_without_goal"
     case scopeConflict = "scope_conflict"
     case qualityGoalRank = "quality_goal_rank"
+    case workPackageCycle = "work_package_cycle"
+    case workPackageOrder = "work_package_order"
+    case workPackageOverlap = "work_package_overlap"
+    case workPackageRelease = "work_package_release"
+    case workPackageNotReady = "work_package_not_ready"
+    case workPackageUnverified = "work_package_unverified"
+    case workPackageUnconfigured = "work_package_unconfigured"
 }
 
 /// Whether a diagnostic makes the file invalid.

@@ -1,0 +1,132 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+timeZone: Asia/Jakarta
+problem:
+  statement: Members cannot tell which books they hold, so loans run late.
+stakeholders:
+  owner: { description: The product owner. }
+  tester: { description: Runs the tests of each build. }
+stakeholdersComplete: { by: owner, date: "2026-11-03" }
+requirements:
+  CASE-1:
+    statement: A member shall be known by an opaque id.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Two members never share an id.]
+    release: 1.0.0
+  CASE-2:
+    statement: A member shall borrow a book.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan names its member.]
+    release: 1.0.0
+  CASE-3:
+    statement: A loan shall last the number of days the library sets.
+    kind: functional
+    priority: should
+    status: proposed
+    release: 1.1.0
+  CASE-4:
+    statement: A member shall borrow at most the number of books the library sets.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [A loan past the limit is refused.]
+    release: 1.0.0
+  CASE-5:
+    statement: A member shall see the books they hold.
+    kind: functional
+    priority: could
+    status: accepted
+    acceptance: [The list names every book on loan to the member.]
+    release: 1.0.0
+entities:
+  Member:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+    required: [id]
+    primaryKey: [id]
+    constraints:
+      member_once: { kind: unique, fields: [id], message: This member is already recorded. }
+    satisfies: [CASE-1]
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+    relations:
+      member: { target: Member, kind: many-to-one, via: memberId, onDelete: restrict }
+    constraints:
+      loan_once: { kind: unique, fields: [memberId, id], message: This loan is already recorded. }
+    satisfies: [CASE-2]
+environments:
+  staging: { description: "The build under test, before release." }
+configuration:
+  loanDays:
+    description: How many days a loan lasts.
+    secret: false
+    schema: { type: integer, format: int32 }
+    satisfies: [CASE-3]
+  maxLoans:
+    description: How many books a member holds at once.
+    secret: false
+    schema: { type: integer, format: int32, default: 5 }
+    satisfies: [CASE-4]
+  catalogueKey:
+    description: The key the catalogue is read with; the deployment's vault gives it.
+    secret: true
+    schema: { type: string, maxLength: 200 }
+    satisfies: [CASE-3]
+  region:
+    description: Where the hosts run.
+    secret: false
+    schema: { type: string, maxLength: 40 }
+tests:
+  member-key:
+    entity: Member
+    constraint: member_once
+    level: system
+    scenario: golden
+    given: two members saved
+    when: their ids are read
+    then: the ids differ
+    verifies: [CASE-1]
+  loan-member:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: golden
+    given: a member
+    when: a loan is saved for the member
+    then: the loan names the member
+    verifies: [CASE-2]
+  loan-unknown-member:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: red
+    given: no member with the id
+    when: a loan is saved for that id
+    then: the loan is refused
+    verifies: [CASE-2]
+  loan-limit:
+    entity: Loan
+    constraint: loan_once
+    level: system
+    scenario: red
+    given: a member who holds as many books as the limit
+    when: one more loan is saved
+    then: the loan is refused
+    verifies: [CASE-4]
+questions:
+  Q-1:
+    question: Does a loan keep the member's name as it was when the loan was made?
+    kind: decision
+    priority: should
+    decidedBy: owner
+    blocks: ["#/entities/Loan/properties/memberId"]

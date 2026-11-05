@@ -333,6 +333,7 @@ func Testplan(root *yaml.Node, relRoot string, impls []Implementation, state *St
 		}
 	}
 	requirementsByRelease(d, root, tests)
+	testsByPackage(d, tests, state)
 	stateMachines(d, root, state)
 	if state != nil && len(state.LeftOut) > 0 {
 		d.section(tr("Derived cases left out"))

@@ -21,6 +21,7 @@ var recordFolders = map[string]string{
 	"incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
 	"idea": "ideas", "communication": "communications", "session": "sessions",
 	"test-session": "test-sessions", "deploy": "deploys", "test-run": "test-runs",
+	"work-package": "work-packages",
 }
 
 // record is one record file, read and checked against its schema.
@@ -37,7 +38,7 @@ type record struct {
 // environment of a commissioning run; "" when the fields are missing.
 func (r *record) key() string {
 	switch r.kind {
-	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run":
+	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run", "work-package":
 		return r.str("id")
 	case "release", "approval":
 		return r.str("version")
@@ -74,6 +75,7 @@ func checkRecords(s *spec.Spec, d *design) []Diagnostic {
 	rc.checkCitedRecords(rootChecker)
 	rc.checkChangeAnswered(rootChecker)
 	rc.checkUnheard(rootChecker)
+	rc.checkWorkPackages(recs)
 	out := rootChecker.diags
 	for _, r := range recs {
 		out = append(out, withoutEchoes(withoutHeld(r.c.diags, r.held))...)
@@ -235,6 +237,12 @@ func (rc *recordChecks) check(r *record) {
 		rc.role(r, "by")
 		rc.checkEvidence(r)
 		rc.checkResults(r)
+	case "work-package":
+		rc.release(r, "release")
+		rc.packageRequirements(r)
+		for i, item := range source.Items(source.Child(r.root, "after")) {
+			rc.recordID(r, item, source.Pointer("after", fmt.Sprint(i)), "work-package")
+		}
 	}
 }
 
@@ -276,7 +284,7 @@ func (rc *recordChecks) checkName(r *record) {
 		return
 	}
 	switch r.kind {
-	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run":
+	case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run", "work-package":
 		r.c.add(source.Child(r.root, "id"), "/id", RuleRecordName, "the file is named %s but the record's id is %s; name the file %s.yaml", name, key, key)
 	case "release", "approval":
 		r.c.add(source.Child(r.root, "version"), "/version", RuleRecordName, "the file is named %s but the record's version is %s; name the file %s.yaml", name, key, key)
@@ -370,7 +378,7 @@ func (rc *recordChecks) recordID(r *record, n *yaml.Node, path string, kinds ...
 		}
 		where = append(where, "records/"+recordFolders[k]+"/"+v+".yaml")
 	}
-	what := map[string]string{"change": "a change request", "defect": "a defect", "incident": "an incident", "idea": "an idea"}
+	what := map[string]string{"change": "a change request", "defect": "a defect", "incident": "an incident", "idea": "an idea", "work-package": "a work package"}
 	var names []string
 	for _, k := range kinds {
 		names = append(names, what[k])

@@ -1777,7 +1777,39 @@ Scenario: red; level: system; covers waiverId not a valid uuid, not found waiver
 - When: waiveFee is called with waiverId abc, and with that id
 - Then: the first is refused as invalid input and the second as not found
 
-## 3. State machines
+## 3. Tests by work package
+
+3 work packages are not withdrawn, each with its requirements and the design tests that verify them, so each package is tested as it lands; a package is done once each of these tests has passed.
+
+### WP-1, Members and the catalogue
+
+Release 0.1.0, status done.
+
+| Requirement | Verified by |
+|---|---|
+| LIB-1 | register-member, register-member-email-taken |
+| LIB-2 | browse-catalogue |
+
+### WP-2, Lend within the member's limits
+
+Release 0.2.0, status in-progress.
+
+| Requirement | Verified by |
+|---|---|
+| LIB-3 | create-loan-rate-exceeded, create-loan-repeated-with-the-same-idempotency-key, create-loan-request-larger-than-1024-bytes, fees-block-lending, lend-a-copy, lend-copies, lend-copies-limit-reached, lend-copies-repeated-with-the-same-idempotency-key, lend-limit-reached, lending-limit-accepted, member-loans-refused, member-loans-shown, member-loans-six-rows |
+
+### WP-3, Overdue loans and late fees
+
+Release 0.2.0, status planned.
+
+| Requirement | Verified by |
+|---|---|
+| LIB-4 | loan-becomes-overdue, mark-overdue-runs-twice, mark-overdue-succeeds |
+| LIB-5 | loan-lent-and-returned, return-late |
+
+In no work package: 178 design tests, since they verify no requirement a package holds: approve-fee-waiver, approve-fee-waiver-denied, approve-fee-waiver-unknown-waiver, book-available-above-owned, book-available-at-most-owned, book-isbn-once, book-isbn-twice, browse-catalogue-query-too-long, confirm-second-factor-bad-code, confirm-second-factor-refused, confirm-second-factor-succeeds, create-loan-denied-with-expired-session, create-loan-expired-member-id, create-loan-idempotency-key-not-a-valid-uuid, create-loan-idempotency-key-reused-for-another-request, create-loan-not-yet-valid-member-id, create-loan-refused-for-a-service-s-own-token, create-member-denied-with-expired-session, deactivate-member, deactivate-member-bad-input, deactivate-member-denied, deactivate-member-denied-with-expired-session, deactivate-member-not-found, fee-waiver, fee-waiver-approval-without-permission, fee-waiver-deadline-passes, fee-waiver-form-denied-with-expired-session, fee-waiver-form-denied-without-fees-request, fee-waiver-form-not-found-loan-id, fee-waiver-form-sent-for-approval, fee-waiver-form-succeeds, fee-waiver-large-fee, fee-waiver-refused, fee-waiver-requester-approves-own-request, fee-waiver-small-fee, fee-waiver-waive-fails, fee-waivers-inbox-denied-with-expired-session, fee-waivers-inbox-denied-without-fees-approve, fee-waivers-inbox-refuse, fee-waivers-inbox-succeeds, get-member-denied-with-expired-session, get-profile-denied-when-not-signed-in, get-profile-denied-with-expired-session, get-profile-succeeds, get-session-expired, get-session-signed-in, lend-a-copy-at-the-desk, lend-a-copy-limit-reached, lend-bad-dates, lend-bad-ids, lend-copies-bad-loans, lend-copies-bad-member-id, lend-copies-denied, lend-copies-denied-with-expired-session, lend-copies-idempotency-key-not-a-valid-uuid, lend-copies-idempotency-key-reused-for-another-request, lend-copies-refused-for-a-service-s-own-token, lend-copies-unknown-member, lend-denied, lend-event-not-delivered, lend-missing-field, lend-unknown-member-or-book, list-fee-waivers-denied-with-expired-session, list-fee-waivers-denied-without-fees-approve, list-fee-waivers-succeeds, list-loans, list-loans-bad-filter, list-loans-denied, list-loans-denied-with-expired-session, list-loans-shows-only-the-rows-of-member, list-members, list-members-bad-tier, list-members-denied, list-members-denied-with-expired-session, loan-due-after-lent, loan-due-on-lent-day, loan-form-denied, loan-form-denied-with-expired-session, loan-form-due-before-lent, loan-form-picks-nothing, loan-form-shown, loan-lent-after-recorded, loan-lent-before-recorded, loan-overdue-only-from-open, loan-returned-after-loaned, loan-returned-before-loaned, loan-returned-on-time, loan-returned-only-when-out, loans-list-denied, loans-list-denied-with-expired-session, loans-list-shown, member-card-number-once, member-card-number-twice, member-email-once, member-email-twice, member-form-denied, member-form-denied-with-expired-session, member-form-shown, member-loans-bad-member-id, member-loans-denied, member-loans-denied-with-expired-session, member-loans-not-found, member-view-deactivate, member-view-denied, member-view-denied-with-expired-session, member-view-not-found, member-view-shown, members-list-deactivate, members-list-denied, members-list-denied-with-expired-session, members-list-shown, open-loan-lost, open-loan-lost-after-return, overdue-loan-lost, overdue-loan-lost-twice, overdue-loan-returned, overdue-loan-returned-twice, profile-denied-when-not-signed-in, profile-denied-with-expired-session, profile-succeeds, refuse-fee-waiver, refuse-fee-waiver-bad-input, refuse-fee-waiver-denied, register-member-bad-values, register-member-card-number-clash, register-member-denied, register-member-missing-field, register-member-missing-part, register-member-name-length, report-lost, report-lost-already-closed, report-lost-concurrent-write, report-lost-denied, report-lost-denied-with-expired-session, report-lost-dependency-fails-fee-ledger, report-lost-dependency-rate-exceeded-fee-ledger, report-lost-dependency-times-out-fee-ledger, report-lost-event-not-delivered, report-lost-unknown-loan, request-fee-waiver, request-fee-waiver-bad-input, request-fee-waiver-denied, request-fee-waiver-denied-with-expired-session, request-fee-waiver-unknown-loan, reset-password-missing-field, reset-password-page, reset-password-page-mismatch, reset-password-page-refused, reset-password-refused, reset-password-succeeds, return-already-closed, return-denied, return-event-not-delivered, return-loan-concurrent-write, return-loan-denied-with-expired-session, return-loan-dependency-answers-unmapped-fee-ledger-post-charge, return-loan-dependency-fails-fee-ledger, return-loan-dependency-rate-exceeded-fee-ledger, return-loan-dependency-retries-exhausted-fee-ledger-post-charge, return-loan-dependency-times-out-fee-ledger, return-unknown-loan, second-factor-page, second-factor-page-refused, show-member, show-member-bad-id, show-member-denied, show-member-not-found, sign-in-asks-second-factor, sign-in-bad-email, sign-in-missing-field, sign-in-page, sign-in-page-refused, sign-in-page-second-factor, sign-in-succeeds, waive-fee, waive-fee-denied, waive-fee-denied-with-expired-session, waive-fee-unknown-waiver.
+
+## 4. State machines
 
 Each entity with a state field is a state machine. A path runs from a state no move reaches to one no move leaves; a test about the entity alone walks one, and names it under covers. A path with no test is listed under the derived cases left out, or warned about when it moves through a transition that satisfies a requirement with a harm.
 
@@ -1802,7 +1834,7 @@ stateDiagram-v2
 | open to returned | loan-lent-and-returned |
 | open to lost |   |
 
-## 4. Derived cases left out
+## 5. Derived cases left out
 
 169 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 

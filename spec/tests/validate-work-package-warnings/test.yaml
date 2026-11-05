@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "work-package records beside a specification with an implementation file: a done package whose tests all passed, a ready package that comes before the package that builds what it needs, shares a requirement with a done package, holds a requirement of another release that is proposed, has no acceptance criteria and adds a setting no deployment gives a value, a done package whose tests did not all pass, and a withdrawn package holding a requirement another package holds; the done package's entity has a one-to-many relation to the entity a later package builds"
+when: validate is run
+then: "it warns work_package_order, and not for the one-to-many relation, whose related rows hold the key, work_package_overlap at both packages that hold the requirement and not at the withdrawn one, work_package_release, work_package_unconfigured for the setting with no default and no deployment value and not for the setting with a default or the secret, work_package_not_ready at the ready package naming each reason, and work_package_unverified at the done package naming the tests with no passed result and not at the package whose tests passed, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-141]

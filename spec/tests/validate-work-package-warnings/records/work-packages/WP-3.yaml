@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-3
+release: 1.0.0
+title: Lend within the limit
+requirements: [CASE-2, CASE-4]
+after: [WP-1, WP-2]
+status: done

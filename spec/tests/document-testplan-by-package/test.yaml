@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with three work packages that are not withdrawn and one that is, whose requirements the design tests verify"
+when: "document testplan is run"
+then: "it writes a Tests by work package section with, per package that is not withdrawn, its release, status and each requirement with the tests that verify it, says every design test is covered, and exits 0"
+verifies: [SA-142]

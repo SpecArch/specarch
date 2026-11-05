@@ -20037,7 +20037,7 @@ let recordSchemaJSON = #"""
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/SpecArch/specarch/main/schema/specarch-record-1.0.schema.json",
   "title": "SpecArch record, 1.0",
-  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval, an idea, a communication with a stakeholder, a session (a meeting or a call with its attendance), a test session, a deploy or a test run. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification points back only where a decision cites a communication record. A record names people only by role, except the person label a communication record may carry, which the documents for everyone leave out. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
+  "description": "A record is a fact about one event in the life of a system: a change request, a defect, a release, an incident in production, a commissioning run, an approval, an idea, a communication with a stakeholder, a session (a meeting or a call with its attendance), a test session, a deploy, a test run or a work package. Records live in records/ beside the specification's folder, one file per record, in a folder per kind; they point into the specification, and the specification points back only where a decision cites a communication record. A record names people only by role, except the person label a communication record may carry and the person or team a work package is assigned to, which the documents for everyone leave out. Every object rejects unknown keys; keys starting with 'x-' are allowed everywhere as extensions.",
   "type": "object",
   "properties": {
     "specarchRecord": {
@@ -20060,7 +20060,8 @@ let recordSchemaJSON = #"""
         "session",
         "test-session",
         "deploy",
-        "test-run"
+        "test-run",
+        "work-package"
       ]
     }
   },
@@ -20248,6 +20249,21 @@ let recordSchemaJSON = #"""
       "then": {
         "$ref": "#/$defs/test-run"
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "work-package"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/work-package"
+      }
     }
   ],
   "$defs": {
@@ -20272,7 +20288,7 @@ let recordSchemaJSON = #"""
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
     },
     "recordId": {
-      "description": "The ID of a change request, defect, incident, idea, communication, session, test session or deploy: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7, INC-3, IDEA-4, COM-9, SES-2, TS-1 or DEP-5. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
+      "description": "The ID of a change request, defect, incident, idea, communication, session, test session, deploy or work package: an upper-case prefix, a dash and a number or name, such as CR-12, DEF-7, INC-3, IDEA-4, COM-9, SES-2, TS-1, DEP-5 or WP-3. It is the record's file name, or an ID in a tracker declared under the specification's sources.",
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,15}-[A-Za-z0-9._]+$"
     },
@@ -20439,25 +20455,7 @@ let recordSchemaJSON = #"""
           ]
         },
         "effort": {
-          "description": "The effort the change takes, in hours, as the team recorded it: estimatedHours when it is analysed, spentHours once it is done. A change whose effort records neither as a positive number is shown as missing in the progress document, never filled in (ADR-237).",
-          "type": "object",
-          "properties": {
-            "estimatedHours": {
-              "description": "The hours the team estimated the change takes, a positive number.",
-              "type": "number",
-              "exclusiveMinimum": 0
-            },
-            "spentHours": {
-              "description": "The hours the team spent on the change, a positive number.",
-              "type": "number",
-              "exclusiveMinimum": 0
-            }
-          },
-          "minProperties": 1,
-          "patternProperties": {
-            "^x-": {}
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/effort"
         },
         "decision": {
           "description": "The decision on the request.",
@@ -21946,6 +21944,103 @@ let recordSchemaJSON = #"""
         "at",
         "by",
         "results"
+      ],
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "effort": {
+      "description": "The effort the work takes, in hours, as the team recorded it: estimatedHours when it is analysed or planned, spentHours once it is done. A change request or work package whose effort records neither as a positive number is shown as missing in the progress document, never filled in (ADR-237).",
+      "type": "object",
+      "properties": {
+        "estimatedHours": {
+          "description": "The hours the team estimated the change takes, a positive number.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "spentHours": {
+          "description": "The hours the team spent on the change, a positive number.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "minProperties": 1,
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "work-package": {
+      "description": "One piece of the delivery, which a programmer, a team or an agent takes as a whole: the requirements it holds, the release it belongs to, the packages that come before it, who it is assigned to and where it stands. Its design elements are those that satisfy its requirements and its tests those that verify them, so it names requirements only. A tracker may call it an epic or a batch. Kept in records/work-packages/, named by its ID (ADR-245).",
+      "type": "object",
+      "properties": {
+        "specarchRecord": {},
+        "kind": {},
+        "id": {
+          "$ref": "#/$defs/recordId"
+        },
+        "title": {
+          "description": "One line saying what the package delivers.",
+          "type": "string",
+          "minLength": 1
+        },
+        "release": {
+          "description": "The release the package belongs to, a release record, planned or released.",
+          "$ref": "#/$defs/version"
+        },
+        "requirements": {
+          "description": "The requirements the package holds, by ID: its only content. A requirement belongs to one package; one that two packages need is split instead.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "after": {
+          "description": "The packages that must be done before this one starts, by ID.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recordId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "assignedTo": {
+          "description": "The person or the team that takes the package, as the project plans with them: a record is not the public specification, and a name is the one detail of a person it holds.",
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "description": "Where it stands: proposed until someone accepts it, planned, ready (checked: QA's entry criterion holds), in-progress, done (checked: QA's exit criterion holds), or withdrawn.",
+          "type": "string",
+          "enum": [
+            "proposed",
+            "planned",
+            "ready",
+            "in-progress",
+            "done",
+            "withdrawn"
+          ]
+        },
+        "effort": {
+          "$ref": "#/$defs/effort"
+        },
+        "why": {
+          "description": "Why the package holds what it holds and comes where it comes, such as what it needs from the packages before it.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "specarchRecord",
+        "kind",
+        "id",
+        "title",
+        "requirements",
+        "status"
       ],
       "patternProperties": {
         "^x-": {}

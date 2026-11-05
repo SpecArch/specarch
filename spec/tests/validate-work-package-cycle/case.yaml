@@ -1,0 +1,11 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  records/work-packages/WP-1.yaml:7:9: error: /after/0: work_package_cycle: WP-1 comes after WP-2, which comes after WP-1, so the chain comes back to WP-1; a package comes only after packages that can be done before it, so take one link out [work_package_cycle@../records/work-packages/WP-1.yaml#/after/0]
+  records/work-packages/WP-2.yaml:7:9: error: /after/0: work_package_cycle: WP-2 comes after WP-1, which comes after WP-2, so the chain comes back to WP-2; a package comes only after packages that can be done before it, so take one link out [work_package_cycle@../records/work-packages/WP-2.yaml#/after/0]
+  records/work-packages/WP-3.yaml:7:9: error: /after/0: work_package_cycle: WP-3 comes after itself; a package comes only after packages that can be done before it, so take one link out [work_package_cycle@../records/work-packages/WP-3.yaml#/after/0]
+  records/work-packages/WP-4.yaml:4:10: error: /release: record_ref: 2.0.0 is not a release: there is no records/releases/2.0.0.yaml [record_ref@../records/work-packages/WP-4.yaml#/release]
+  records/work-packages/WP-4.yaml:6:16: error: /requirements/0: record_ref: CASE-9 is not a requirement of the specification; did you mean CASE-1? [record_ref@../records/work-packages/WP-4.yaml#/requirements/0]
+  records/work-packages/WP-4.yaml:6:24: error: /requirements/1: record_ref: #/requirements/CASE-2 is a pointer, and a work package names requirements by their ID only, its design elements being those that satisfy them; name each requirement by its ID [record_ref@../records/work-packages/WP-4.yaml#/requirements/1]
+  records/work-packages/WP-4.yaml:7:9: error: /after/0: record_ref: WP-9 is not a work package: there is no records/work-packages/WP-9.yaml [record_ref@../records/work-packages/WP-4.yaml#/after/0]
+  records/work-packages/WP-4.yaml:10:27: error: /effort/estimatedHours: schema: 0 must be above 0 [schema@../records/work-packages/WP-4.yaml#/effort/estimatedHours]

@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-3
+release: 0.2.0
+title: Overdue loans and late fees
+requirements: [LIB-4, LIB-5]
+after: [WP-2]
+assignedTo: desk team
+status: planned
+why: A loan is overdue only once it can be lent.

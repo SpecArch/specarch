@@ -6,6 +6,7 @@ let recordFolders: [String: String] = [
     "incident": "incidents", "commissioning": "commissioning", "approval": "approvals",
     "idea": "ideas", "communication": "communications", "session": "sessions",
     "test-session": "test-sessions", "deploy": "deploys", "test-run": "test-runs",
+    "work-package": "work-packages",
 ]
 
 /// One record file, read and checked against its schema.
@@ -29,7 +30,7 @@ final class Record {
     /// environment of a commissioning run; "" when the fields are missing.
     var key: String {
         switch kind {
-        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run": return str("id")
+        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run", "work-package": return str("id")
         case "release", "approval": return str("version")
         case "commissioning":
             let date = str("date"), env = str("environment")
@@ -76,6 +77,7 @@ func checkRecords(_ s: Spec, _ d: Design) -> [Diagnostic] {
     rc.checkCitedRecords(rootChecker)
     rc.checkChangeAnswered(rootChecker)
     rc.checkUnheard(rootChecker)
+    rc.checkWorkPackages(recs)
     var out = rootChecker.diags
     for r in recs {
         out += withoutEchoes(withoutHeld(r.c.diags, r.held))
@@ -219,6 +221,12 @@ struct RecordChecks {
             role(r, "by")
             checkEvidence(r)
             checkResults(r)
+        case "work-package":
+            release(r, "release")
+            packageRequirements(r)
+            for (i, item) in items(root.child("after")).enumerated() {
+                recordID(r, item, pointer("after", String(i)), ["work-package"])
+            }
         default:
             break
         }
@@ -265,7 +273,7 @@ struct RecordChecks {
         if name.hasSuffix(".yaml") { name = String(name.dropLast(5)) }
         if key.isEmpty || name == key { return }
         switch r.kind {
-        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run":
+        case "change", "defect", "incident", "idea", "communication", "session", "test-session", "deploy", "test-run", "work-package":
             r.c.add(root.child("id"), "/id", .recordName, "the file is named \(name) but the record's id is \(key); name the file \(key).yaml")
         case "release", "approval":
             r.c.add(root.child("version"), "/version", .recordName, "the file is named \(name) but the record's version is \(key); name the file \(key).yaml")
@@ -421,7 +429,7 @@ struct RecordChecks {
             }
             whereFiles.append("records/\(recordFolders[k]!)/\(v).yaml")
         }
-        let what = ["change": "a change request", "defect": "a defect", "incident": "an incident", "idea": "an idea"]
+        let what = ["change": "a change request", "defect": "a defect", "incident": "an incident", "idea": "an idea", "work-package": "a work package"]
         var msg = "\(v) is not \(kinds.map { what[$0]! }.joined(separator: " or ")): there is no \(whereFiles.joined(separator: " or "))"
         if !sets.isEmpty {
             msg += " and no source of kind \(sets.joined(separator: " or ")) with prefix \(prefix)"

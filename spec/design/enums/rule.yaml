@@ -183,6 +183,13 @@ enums:
       - need_without_goal
       - scope_conflict
       - quality_goal_rank
+      - work_package_cycle
+      - work_package_order
+      - work_package_overlap
+      - work_package_release
+      - work_package_not_ready
+      - work_package_unverified
+      - work_package_unconfigured
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -361,4 +368,11 @@ enums:
       need_without_goal: "as a warning, at an accepted need that names no goal under `goals`, once the specification has any goal, so a specification without goals is never warned (ADR-244)"
       scope_conflict: "as a warning, at a `needs` entry of an accepted requirement: it refines a need an out-of-scope entry rules out under its `needs` (ADR-244)"
       quality_goal_rank: "as a warning, at the `rank` of each quality goal that shares its rank with another, since the order then does not decide a trade-off between them (ADR-244)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93, SA-109, SA-114, SA-126, SA-129]
+      work_package_cycle: "at each `after` entry of a work package on a cycle: following `after` comes back to the package, so none of them can start first (ADR-245)"
+      work_package_order: "as a warning, at a work package's `requirements` entry: an element that satisfies it names another element that only requirements of packages outside the package and its `after` chain satisfy, so the package would be built before what it needs (ADR-245)"
+      work_package_overlap: "as a warning, at a work package's `requirements` entry naming a requirement another work package also holds; split the requirement instead (ADR-245)"
+      work_package_release: "as a warning, at a work package's `requirements` entry naming a requirement whose `release` is not the package's `release` (ADR-245)"
+      work_package_not_ready: "as a warning, at the `status` of a work package marked ready: a requirement it holds is not accepted or has no acceptance criteria, an open question blocks an element that satisfies one, or it warns work_package_order, so QA's entry criterion does not hold (ADR-245)"
+      work_package_unverified: "as a warning, at the `status` of a work package marked done: a golden or red test that verifies one of its requirements has no passed result in the test-run records, so QA's exit criterion does not hold (ADR-245)"
+      work_package_unconfigured: "as a warning, at a work package's `requirements` entry: a setting that satisfies the requirement, or that a process satisfying it reads, has no default and no deployment of an implementation file gives it a value, once any deployment gives a setting a value (ADR-245)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93, SA-109, SA-114, SA-126, SA-129, SA-140, SA-141]

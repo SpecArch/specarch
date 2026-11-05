@@ -1,0 +1,11 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-2
+release: 0.2.0
+title: Lend within the member's limits
+requirements: [LIB-3]
+after: [WP-1]
+assignedTo: desk team
+status: in-progress
+effort: { estimatedHours: 16 }
+why: Lending reads the member's tier and fees, which WP-1 builds.

@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-1
+release: 1.0.0
+title: Know a member
+requirements: [CASE-1]
+after: [WP-2]
+status: planned

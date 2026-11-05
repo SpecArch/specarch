@@ -18,19 +18,31 @@ The elements of each stage, a section of named elements counted by its entries a
 | operation | 4 | monitors 2, backup 1, restore 1 |
 | Total | 339 | |
 
-## 2. Open work
+## 2. Work packages
+
+3 work packages are recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan.
+
+| Package | Release | Status | Assigned to | After | Requirements | Estimated hours | Spent hours | Blocked by |
+|---|---|---|---|---|---|---|---|---|
+| WP-1, Members and the catalogue | 0.1.0 | done | catalogue team | none | LIB-1, LIB-2 | 24 | 30 | work_package_unverified |
+| WP-2, Lend within the member's limits | 0.2.0 | in-progress | desk team | WP-1 | LIB-3 | 16 | missing | nothing |
+| WP-3, Overdue loans and late fees | 0.2.0 | planned | desk team | WP-2 | LIB-4, LIB-5 | missing | missing | WP-2 (in-progress) |
+
+Unplanned: every accepted requirement of a planned release is in a work package that is not withdrawn.
+
+## 3. Open work
 
 No question is open.
 
-## 3. Unheard roles
+## 4. Unheard roles
 
 The validator warns no role unheard.
 
-## 4. Stakeholder list
+## 5. Stakeholder list
 
 Confirmed: library-board confirmed the list of 4 stakeholders complete on 2026-09-15, recorded in the source desk-interview.
 
-## 5. Effort
+## 6. Effort
 
 3 change requests are recorded beside the specification, with the effort each records in hours. Estimated: no change request records it. Spent: no change request records it. 3 of 3 record no effort and are counted as missing: CR-1, CR-2, CR-3. No figure is filled in.
 
@@ -40,7 +52,7 @@ Confirmed: library-board confirmed the list of 4 stakeholders complete on 2026-0
 | CR-2, Send a receipt by text message on every return | rejected | missing | missing |
 | CR-3, Put the Renew action where the desk reaches it first on the loans list | approved | missing | missing |
 
-## 6. Burn-up
+## 7. Burn-up
 
 One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 339 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
 

@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-4
+release: 2.0.0
+title: Names what is not there
+requirements: [CASE-9, "#/requirements/CASE-2"]
+after: [WP-9]
+assignedTo: alex
+status: planned
+effort: { estimatedHours: 0 }

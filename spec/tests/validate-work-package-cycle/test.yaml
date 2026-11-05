@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "work-package records two of which come after each other, one that comes after itself, and one naming a release with no record, a requirement the specification does not have, a requirement by pointer, a package with no record and an effort of zero hours"
+when: validate is run
+then: "it reports work_package_cycle at each after link on a cycle, naming the chain, record_ref at the release, the unknown requirement with the one it may mean, the pointer and the unknown package, the schema error at the effort, and exits 1, in the Go build and the Swift build alike"
+verifies: [SA-140]

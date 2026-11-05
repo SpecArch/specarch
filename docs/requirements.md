@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: requirements specification
 
-Version 1.6.0 of the specification: 6 stakeholders, 10 needs and 136 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
+Version 1.6.0 of the specification: 6 stakeholders, 10 needs and 139 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -52,12 +52,12 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | NEED-2 | I want to write a design once and build it in more than one language. | implementer | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | I want the documents and diagrams to come from the specification, so they never drift from it. | reviewer, specification-author | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-137, SA-19, SA-74 |
 | NEED-4 | I want a big specification split over many files, each about one thing, so I can find what I am looking for. | specification-author, reviewer | accepted | SA-11, SA-2 |
-| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118 |
+| NEED-5 | I want the whole life of the system in one place, from the first requirement to the day it is accepted. | reviewer, operator | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118, SA-140, SA-141, SA-142 |
 | NEED-6 | I want to see why something is the way it is, and which standard asks for it. | reviewer | accepted | SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | I want one tool to learn and install, not one program per task. | specification-author, ci-job | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | I want to build a specification from the documents and code that exist, without inventing what they do not say, and to see at every step what is still missing and what can already be made. | specification-author, reviewer | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
 | NEED-9 | I want the tests a specification implies, with the ones that matter most written first and the rest listed with the reason they were left out. | specification-author, implementer | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
-| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100 |
+| NEED-10 | I want to show what a specification builds long before it is finished, and to take a remark from someone looking at the result back into the specification, knowing what it reaches, and out again in the next build. | reviewer, specification-author | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100, SA-140, SA-141, SA-142 |
 
 ## 4. Requirements
 
@@ -199,6 +199,9 @@ What the stakeholders said they need, before it was shaped into requirements, an
 | SA-95 | functional | must | accepted | specarch shall read every file by the version its version line declares, 1.0.0 and any later 1.0 patch, and every earlier version beside it (0.3, 0.2 and 0.1 of the meta-model, 0.1 of the other formats), each earlier version with a warning naming specarch upgrade; a version line it does not read shall be an error at the line, the file read as 1.0.0 so that every other problem is still listed; and a key meta-model 1.0.0 renamed shall be read under its old spelling as its replacement, with a warning, until 2.0.0. |
 | SA-100 | functional | must | proposed | specarch try shall evaluate one algorithm's formula, in both builds, on each of its worked examples or on inputs given on the command line, with the specification's definition of the algorithm or a proposed one read from a file in its place, and print for each evaluation its inputs, every operation and call of the formula with the value it gave, in the order they were computed, the result and, for an example, the expected value and whether it holds. |
 | SA-126 | functional | must | proposed | The validator shall warn, in both builds, at a binding of an implementation file whose framework no element of the design needs, unless an idiom of the file's stacks approves the framework under technologies or the binding is decided in an accepted decision that satisfies a requirement and names under alternatives the simpler option it rejected; the warning shall name what would justify the binding. |
+| SA-140 | functional | must | proposed | A specification shall keep beside it, as records in records/work-packages/, each work package of the delivery - its ID, its release, a title, the requirements it holds by ID (its only content), the packages it comes after, the person or team it is assigned to, its status (proposed, planned, ready, in-progress, done, withdrawn), its effort in the change record's shape and why - and specarch validate shall report, in both builds, a requirement that is not one of the specification or is named by pointer, a release with no record and a package with no record as record_ref at the entry, and a chain of after links that comes back to its package as work_package_cycle, an error at each link on the cycle naming the chain. |
+| SA-141 | functional | must | proposed | specarch validate shall warn, at the work-package record and in the problems file, in both builds and never at a withdrawn package, work_package_order at a requirement whose satisfying element names an element that only packages outside the package's after chain build, work_package_overlap at a requirement two packages hold, work_package_release at a requirement whose release is not the package's, work_package_unconfigured at a requirement that adds a setting with no default that no deployment of an implementation file gives a value once any deployment gives one, work_package_not_ready at a package marked ready whose requirement is not accepted or has no acceptance criteria, whose satisfying element an open question blocks, or which warns work_package_order, and work_package_unverified at a package marked done with a golden or red test of its requirements that has no passed result in the test-run records. |
+| SA-142 | functional | must | proposed | specarch document progress shall list, once a work-package record exists, each package with its release, status, assignee, the packages it comes after, its requirements, its effort and what blocks it, and the accepted requirements of a planned release that no package holds as unplanned; and specarch document testplan shall group the design tests by the work package whose requirements they verify, so a package is tested as it lands. |
 
 ### SA-31
 
@@ -2353,6 +2356,50 @@ Acceptance criteria:
 - A binding whose kind the design has elements of, or whose framework is the standard library, is never warned about; a decidedIn naming no decision is reported by origin_decision alone.
 
 **Insight:** A broker, a framework or a protocol that nothing in the design needs is the technology choice that costs a delivery most, and the one a reviewer sees last, when it is already built; a warning at the binding makes the decision to adopt it visible where it is written, and names what would make it traceable to a requirement, a rejected simpler option or the organisation's baseline (ADR-231).
+
+### SA-140
+
+A specification shall keep beside it, as records in records/work-packages/, each work package of the delivery - its ID, its release, a title, the requirements it holds by ID (its only content), the packages it comes after, the person or team it is assigned to, its status (proposed, planned, ready, in-progress, done, withdrawn), its effort in the change record's shape and why - and specarch validate shall report, in both builds, a requirement that is not one of the specification or is named by pointer, a release with no record and a package with no record as record_ref at the entry, and a chain of after links that comes back to its package as work_package_cycle, an error at each link on the cycle naming the chain.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-5, NEED-10.
+
+Acceptance criteria:
+
+- A work-package record whose requirements, release and after resolve validates with no error, and a specification with no work-package record reads as before.
+- Two packages that come after each other are each reported work_package_cycle at their after link, a package after itself at its own, and validate exits 1.
+- A requirement that is not one of the specification, a requirement named by pointer, a release with no record and a package with no record are record_ref at the entry.
+- Both validator builds print the same lines for the same records.
+
+**Insight:** A work package describes the delivery, not the system, so it is a record beside the release records; naming requirements only keeps one way to say which design elements and tests it covers, the satisfy and verify links (ADR-242, ADR-245).
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.3.1: The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned. <https://www.iso.org/standard/63712.html>
+
+### SA-141
+
+specarch validate shall warn, at the work-package record and in the problems file, in both builds and never at a withdrawn package, work_package_order at a requirement whose satisfying element names an element that only packages outside the package's after chain build, work_package_overlap at a requirement two packages hold, work_package_release at a requirement whose release is not the package's, work_package_unconfigured at a requirement that adds a setting with no default that no deployment of an implementation file gives a value once any deployment gives one, work_package_not_ready at a package marked ready whose requirement is not accepted or has no acceptance criteria, whose satisfying element an open question blocks, or which warns work_package_order, and work_package_unverified at a package marked done with a golden or red test of its requirements that has no passed result in the test-run records.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-5, NEED-10.
+
+Acceptance criteria:
+
+- validate on records with each of the six gaps warns that rule at that entry, naming what to do, and exits 0.
+- A done package whose tests all passed, a setting with a default or a secret, and a withdrawn package are not warned.
+- Both validator builds print the same lines for the same records.
+
+**Insight:** Ready is QA's entry criterion and done its exit criterion, so both are checked, not just written; the order, overlap, release and configuration checks show a plan that cannot be followed before anyone starts on it, and each is a warning because a plan is never refused (ADR-242, ADR-245).
+
+### SA-142
+
+specarch document progress shall list, once a work-package record exists, each package with its release, status, assignee, the packages it comes after, its requirements, its effort and what blocks it, and the accepted requirements of a planned release that no package holds as unplanned; and specarch document testplan shall group the design tests by the work package whose requirements they verify, so a package is tested as it lands.
+
+Kind: functional; priority: must; status: proposed; verified by test; refines NEED-5, NEED-10.
+
+Acceptance criteria:
+
+- document progress on a specification with work-package records writes a Work packages section with one row per package and the unplanned requirements named; without such a record it writes no such section.
+- document testplan on a specification with work-package records writes a Tests by work package section with each package's requirements and the tests that verify them, and the tests no package covers; without such a record it writes no such section.
+
+**Insight:** The project manager reads per package what is done, in progress or blocked and by what, and QA tests each package as it lands; a specification without work packages keeps the documents it had (ADR-242, ADR-245).
 
 ## 5. Constraints
 

@@ -67,6 +67,7 @@ folder is specification.
 | `records/test-sessions/` | a test session (SIT, UAT or other), with its attendance and result | `test-session` | its ID, `TS-2.yaml` |
 | `records/deploys/` | one installation of a version on an environment | `deploy` | its ID, `DEP-5.yaml` |
 | `records/test-runs/` | one run of the tests on one build, each result mapped to its test | `test-run` | its ID, `TR-4.yaml` |
+| `records/work-packages/` | one piece of the delivery: the requirements it holds, its release and the packages before it | `work-package` | its ID, `WP-3.yaml` |
 | `records/evidence/` | the files communication, session, test session, deploy and test-run records name as evidence | none: not records | any name; each record holds the path, media type and SHA-256 |
 
 A record file starts with `specarchRecord: "1.0.0"` and `kind`, and has its
@@ -502,6 +503,66 @@ reported by the run's role, violating the requirements the test verifies
 build. A test fails for a flaky host as well as for a fault, so the person
 who imports the run decides which failures are defects.
 
+## Work packages
+
+A work package is one piece of the delivery that a programmer, a team or
+an agent takes as a whole; a tracker may call it an epic or a batch
+(ADR-242, ADR-245). It is a record, not part of the specification,
+because it changes when someone is ill or finishes early while the
+system it builds does not, as release records are kept apart for the
+same reason.
+
+    specarchRecord: "1.0.0"
+    kind: work-package
+    id: WP-3
+    release: 1.0.0
+    title: Lend and return a book
+    requirements: [LIB-4, LIB-5, LIB-9]
+    after: [WP-1, WP-2]
+    assignedTo: alex
+    status: planned
+    effort: { estimatedHours: 24 }
+    why: Lending needs the member and catalogue entities of WP-1 and WP-2.
+
+`requirements` is its only content, by ID: its design elements are those
+that satisfy them and its tests those that verify them, so naming either
+would say the same thing twice. `after` names the packages that must be
+done first. `assignedTo` is the name of a person or a team, the one detail
+of a person a record holds, and the documents for everyone leave it out.
+`status` is `proposed`, `planned`, `ready`, `in-progress`, `done` or
+`withdrawn`; `ready` and `done` are checked, as QA's entry and exit
+criteria. `effort` has the change request's shape, `estimatedHours` and
+`spentHours`.
+
+A chain of `after` links that comes back to its package is an error,
+`work_package_cycle`. Every other rule is a warning, and none applies to a
+withdrawn package:
+
+- `work_package_order`: an element that satisfies one of its requirements
+  names another element, by the references `specarch model` lists, and
+  only packages outside its `after` chain build that element. A
+  one-to-many or many-to-many relation does not count, since the related
+  rows hold the key; an element no package builds is unplanned, not out of
+  order.
+- `work_package_overlap`: two packages hold one requirement; split it.
+- `work_package_release`: the requirement's `release` is not the package's.
+- `work_package_unconfigured`: a requirement adds a setting (one that
+  satisfies it, or one an element satisfying it names, such as a
+  process's configuration) that is not secret, has no default and that no
+  deployment gives a value; warned once some deployment gives any setting
+  a value.
+- `work_package_not_ready`, on a package marked `ready`: a requirement not
+  accepted or without acceptance criteria, an open question on an element
+  that satisfies one, or `work_package_order`.
+- `work_package_unverified`, on a package marked `done`: a golden or red
+  test of its requirements has no passed result in the test-run records.
+
+`specarch document progress` adds a Work packages section once a package
+is recorded: one row per package with what blocks it, and the accepted
+requirements of a planned release that no package holds, as unplanned.
+The test plan adds Tests by work package, so QA tests each package as it
+lands.
+
 ## Stack-neutral and stack-specific
 
 | In the specification or the records (stack-neutral) | In the implementation file (one stack) |
@@ -519,7 +580,7 @@ error unless it says warning.
 | Rule | Checks |
 |---|---|
 | `record_name` | a record's file name equals its `id`, its `version` for a release or an approval, or its date and environment for a commissioning run, and it sits in the folder of its kind |
-| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release and commissioning run it names is a record (a test run's version and each result's test and defect among them), or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request; an approval's `session` is a session, test session or communication record, of exactly one of those kinds (ADR-239). A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
+| `record_ref` | every role is a stakeholder of the specification; every requirement ID, `#/` pointer, test, environment, monitor, source, decision and question a record names resolves (a question a decision answers counts, and an idea's `about` is read as the Ideas section says); every change, defect, incident, release, commissioning run and work package it names is a record (a test run's version and each result's test and defect among them), or a change or defect whose prefix is that of a declared change-set or defect-set; the environment a change or defect from acceptance names under `against` is an environment, a `seenAt` pointer resolves while the record is open, a question a proposed or analysed change names is open or answered, and an answer record links a question or a change request; an approval's `session` is a session, test session or communication record, of exactly one of those kinds (ADR-239). A requirement's `release` is a release record that is planned or released. A change's `affects` belong to `change_applied`, a defect's `duplicateOf` to `defect_duplicate` and a commissioning run's checks to `commissioning_record` |
 | `change_applied` | for a change that is implemented or released, every `adds` and `changes` reference resolves and every `removes` reference does not (a removed requirement may instead stay with status retired); for one still open (proposed, analysed or approved), `changes` and `removes` resolve, and an `adds` that already resolves is a warning. A requirement of an external set is taken as resolving and never as removed, since the validator cannot read the set |
 | `change_decision` | a change that is approved, implemented or released has a `decision` with outcome approved; a rejected one has outcome rejected |
 | `change_answered` | on a decision whose `answers` name a change request (a change record, or an ID of a declared change tracker; every other ID under `answers` is a question's): an accepted decision answers a change whose decision is approved, taken by the role `decidedBy` names (ADR-221). A proposed decision may answer a change still analysed |
@@ -537,6 +598,8 @@ error unless it says warning.
 | `approval_session` | an approval's `session` names a session or test session that lists the approving role under `present`, or a communication from or to it; one that does not is an error, as `specarch approve --session` refuses it (ADR-239) |
 | `test_unmapped` | a warning, at the result: a result of a test run names no `test` and no `element`, since its testcase maps to none or to two; the outcome counts for no element or requirement until its test or element is named |
 | `commissioning_record` | a commissioning record's results name checks that exist, and its version is a release's |
+| `work_package_cycle` | a work package's `after` chain does not come back to it; an error at each link on a cycle (ADR-245) |
+| `work_package_order`, `work_package_overlap`, `work_package_release`, `work_package_unconfigured`, `work_package_not_ready`, `work_package_unverified` | warnings at a work package that is not withdrawn, as the Work packages section says (ADR-245) |
 
 `monitors` adds no new rule: a monitor's `environment` uses the existing
 `environment` rule, its `verifies` the existing `requirement` rule, and the

@@ -191,6 +191,13 @@ const (
 	RuleNeedWithoutGoal         Rule = "need_without_goal"
 	RuleScopeConflict           Rule = "scope_conflict"
 	RuleQualityGoalRank         Rule = "quality_goal_rank"
+	RuleWorkPackageCycle        Rule = "work_package_cycle"
+	RuleWorkPackageOrder        Rule = "work_package_order"
+	RuleWorkPackageOverlap      Rule = "work_package_overlap"
+	RuleWorkPackageRelease      Rule = "work_package_release"
+	RuleWorkPackageNotReady     Rule = "work_package_not_ready"
+	RuleWorkPackageUnverified   Rule = "work_package_unverified"
+	RuleWorkPackageUnconfigured Rule = "work_package_unconfigured"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -372,6 +379,13 @@ var Rules = []Rule{
 	RuleNeedWithoutGoal,
 	RuleScopeConflict,
 	RuleQualityGoalRank,
+	RuleWorkPackageCycle,
+	RuleWorkPackageOrder,
+	RuleWorkPackageOverlap,
+	RuleWorkPackageRelease,
+	RuleWorkPackageNotReady,
+	RuleWorkPackageUnverified,
+	RuleWorkPackageUnconfigured,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

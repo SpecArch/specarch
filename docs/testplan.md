@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.6.0 of the specification: 1059 design tests, 536 golden and 523 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.6.0 of the specification: 1063 design tests, 539 golden and 524 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.6.0 of the specification: 1059 design tests, 536 golden and 523 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1055 |
+| system | 1059 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1311,6 +1311,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-132.
 - When: document progress is run
 - Then: it prints the schema errors, writes progress.md whose stakeholder list gives the confirmation as written with the stakeholder error marked under it, where Q-3 is counted under Other priority on a row for no role named, named below the table with its priority as written, the rows add up to the total, and the burn-up counts the requirement and the entity and names the five other references with why they are not counted, and exits 1
 
+#### document-progress-work-packages
+
+Scenario: golden; level: system; verifies SA-142.
+
+- Given: a specification with four work-package records, done, ready, done with a test not passed, and withdrawn, and an accepted requirement of a planned release that no package holds
+- When: document progress is run
+- Then: it writes a Work packages section with one row per package giving its release, status, assignee, after, requirements, effort and the rules the validator warns it of, names the requirement no package holds as unplanned with its release, and exits 0
+
 #### document-sequence-diagram
 
 Scenario: golden; level: system.
@@ -1550,6 +1558,14 @@ Scenario: golden; level: system; verifies SA-111.
 - Given: a specification whose implementation file declares the tests target, with four operation tests, three of them giving input or expect, and an acceptance test
 - When: document testplan is run
 - Then: it says that the tests target writes 3 of the 5 tests that apply with their bodies and 2 with a body written by hand, and counts them by kind of subject: operation 3 and 1, requirement 0 and 1; it exits 0
+
+#### document-testplan-by-package
+
+Scenario: golden; level: system; verifies SA-142.
+
+- Given: a specification with three work packages that are not withdrawn and one that is, whose requirements the design tests verify
+- When: document testplan is run
+- Then: it writes a Tests by work package section with, per package that is not withdrawn, its release, status and each requirement with the tests that verify it, says every design test is covered, and exits 0
 
 #### document-testplan-by-release
 
@@ -8421,6 +8437,22 @@ Scenario: red; level: system; covers exit 1; verifies SA-49.
 - When: validate is run
 - Then: it reports wire_name seven times, at the second name of each pair, and exits 1
 
+#### validate-work-package-cycle
+
+Scenario: red; level: system; verifies SA-140.
+
+- Given: work-package records two of which come after each other, one that comes after itself, and one naming a release with no record, a requirement the specification does not have, a requirement by pointer, a package with no record and an effort of zero hours
+- When: validate is run
+- Then: it reports work_package_cycle at each after link on a cycle, naming the chain, record_ref at the release, the unknown requirement with the one it may mean, the pointer and the unknown package, the schema error at the effort, and exits 1, in the Go build and the Swift build alike
+
+#### validate-work-package-warnings
+
+Scenario: golden; level: system; verifies SA-141.
+
+- Given: work-package records beside a specification with an implementation file: a done package whose tests all passed, a ready package that comes before the package that builds what it needs, shares a requirement with a done package, holds a requirement of another release that is proposed, has no acceptance criteria and adds a setting no deployment gives a value, a done package whose tests did not all pass, and a withdrawn package holding a requirement another package holds; the done package's entity has a one-to-many relation to the entity a later package builds
+- When: validate is run
+- Then: it warns work_package_order, and not for the one-to-many relation, whose related rows hold the key, work_package_overlap at both packages that hold the requirement and not at the withdrawn one, work_package_release, work_package_unconfigured for the setting with no default and no deployment value and not for the setting with a default or the secret, work_package_not_ready at the ready package naming each reason, and work_package_unverified at the done package naming the tests with no passed result and not at the package whose tests passed, and exits 0, in the Go build and the Swift build alike
+
 #### validate-workflow
 
 Scenario: red; level: system; covers exit 1; verifies SA-47.
@@ -8585,7 +8617,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-624 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+633 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9213,6 +9245,15 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-126 | acceptance 3 | golden | SA-126 names no harm |
 | requirement SA-126 | acceptance 4 | golden | SA-126 names no harm |
 | requirement SA-126 | acceptance 5 | golden | SA-126 names no harm |
+| requirement SA-140 | acceptance 1 | golden | SA-140 names no harm |
+| requirement SA-140 | acceptance 2 | golden | SA-140 names no harm |
+| requirement SA-140 | acceptance 3 | golden | SA-140 names no harm |
+| requirement SA-140 | acceptance 4 | golden | SA-140 names no harm |
+| requirement SA-141 | acceptance 1 | golden | SA-141 names no harm |
+| requirement SA-141 | acceptance 2 | golden | SA-141 names no harm |
+| requirement SA-141 | acceptance 3 | golden | SA-141 names no harm |
+| requirement SA-142 | acceptance 1 | golden | SA-142 names no harm |
+| requirement SA-142 | acceptance 2 | golden | SA-142 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-1
+release: 0.1.0
+title: Members and the catalogue
+requirements: [LIB-1, LIB-2]
+assignedTo: catalogue team
+status: done
+effort: { estimatedHours: 24, spentHours: 30 }
+why: Every loan names a member and a copy, so both come first.

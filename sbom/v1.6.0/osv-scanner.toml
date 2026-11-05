@@ -1,0 +1,11 @@
+# osv-scanner's ignores for sbom/v1.6.0/, written with the records: the root's osv-scanner.toml as it was at the
+# scan, then the findings of v1.6.0 as scanned, which describe that release, not the current tree.
+
+
+[[IgnoredVulns]]
+id = "CVE-2026-118764"
+reason = "A finding of v1.6.0, recorded in sbom/v1.6.0/; the current tree's state is in the latest release's records."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+reason = "A finding of v1.6.0, recorded in sbom/v1.6.0/; the current tree's state is in the latest release's records."

@@ -1,0 +1,9 @@
+{
+  "file" : ".dependency-allowlist.json",
+  "vulnerabilities" : [
+    {
+      "id" : "GHSA-g3hv-75wg-m249",
+      "why" : "minimatch 10.2.6 and 3.1.5 (CVE-2026-118764), fixed in 11.0.1. Both are in examples/library-lending/web-nextjs/pnpm-lock.yaml, reached only through the example's lint, a development tool that reads the project's own glob patterns, never a visitor's input, and nothing of it ships in a page or in specarch. 10.2.6 comes from @typescript-eslint/typescript-estree 8.71.1; 3.1.5 from eslint 9.39.5, @eslint/config-array 0.21.2, @eslint/eslintrc 3.3.7, eslint-plugin-import 2.32.0, eslint-plugin-jsx-a11y 6.10.2 and eslint-plugin-react 7.37.5. Forcing minimatch 11.x breaks the pattern options of the three plug-ins. Accepted by the owner on 2026-11-04; review by 2026-12-04. Drop this entry once every one of those dependents takes minimatch 11 (or the example's lock no longer holds minimatch below 11.0.1)."
+    }
+  ]
+}

@@ -2398,6 +2398,8 @@ Acceptance criteria:
 
 - document progress on a specification with work-package records writes a Work packages section with one row per package and the unplanned requirements named; without such a record it writes no such section.
 - document testplan on a specification with work-package records writes a Tests by work package section with each package's requirements and the tests that verify them, and the tests no package covers; without such a record it writes no such section.
+- A package that comes after a withdrawn package is not blocked by it.
+- With --audience external, neither section names a requirement the document for everyone withholds.
 
 **Insight:** The project manager reads per package what is done, in progress or blocked and by what, and QA tests each package as it lands; a specification without work packages keeps the documents it had (ADR-242, ADR-245).
 

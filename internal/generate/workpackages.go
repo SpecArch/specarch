@@ -13,6 +13,18 @@ import (
 // grouped by the package whose requirements they verify. Both appear only
 // once a work-package record exists.
 
+// shownRequirements is the requirements a work package holds, less those a
+// document for everyone leaves out (ADR-119).
+func shownRequirements(p *yaml.Node, state *State) []string {
+	var out []string
+	for _, id := range strs(p, "requirements") {
+		if state.Withheld == nil || !state.Withheld.CoversRef(id) {
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
 // livePackages is the work packages that are not withdrawn, by ID.
 func livePackages(state *State) []*yaml.Node {
 	var out []*yaml.Node
@@ -26,14 +38,15 @@ func livePackages(state *State) []*yaml.Node {
 
 // progressWorkPackages writes one row per work package, what blocks each,
 // and the accepted requirements of a planned release that no package
-// holds.
+// holds. A withdrawn package counts for no other package (ADR-245), so an
+// after entry naming one blocks nothing.
 func (d *doc) progressWorkPackages(root *yaml.Node, state *State) {
 	packages := recordsOf(state, "work-package")
 	status := map[string]string{}
 	for _, p := range packages {
 		status[str(p, "id")] = str(p, "status")
 	}
-	d.para(fmt.Sprintf(tr("%s recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan."),
+	d.para(fmt.Sprintf(tr("%s recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan and blocks no package that comes after it."),
 		countText(len(packages), tr("work package is"), tr("work packages are"))))
 	d.line(tr("| Package | Release | Status | Assigned to | After | Requirements | Estimated hours | Spent hours | Blocked by |"))
 	d.line("|---|---|---|---|---|---|---|---|---|")
@@ -45,7 +58,7 @@ func (d *doc) progressWorkPackages(root *yaml.Node, state *State) {
 		if st := str(p, "status"); st != "withdrawn" {
 			if st != "done" {
 				for _, a := range strs(p, "after") {
-					if s := status[a]; s != "done" {
+					if s := status[a]; s != "done" && s != "withdrawn" {
 						blocked = append(blocked, fmt.Sprintf(tr("%s (%s)"), a, orNone(s, tr("no record"))))
 					}
 				}
@@ -63,7 +76,7 @@ func (d *doc) progressWorkPackages(root *yaml.Node, state *State) {
 			assigned = tr("not shown in a document for everyone")
 		}
 		d.line("| %s, %s | %s | %s | %s | %s | %s | %s | %s | %s |", id, cell(str(p, "title")), orNone(str(p, "release"), tr("none named")), str(p, "status"),
-			cell(assigned), orNone(strings.Join(strs(p, "after"), ", "), tr("none")), strings.Join(strs(p, "requirements"), ", "),
+			cell(assigned), orNone(strings.Join(strs(p, "after"), ", "), tr("none")), orNone(strings.Join(shownRequirements(p, state), ", "), tr("none shown")),
 			estimated.add(get(effort, "estimatedHours")), spent.add(get(effort, "spentHours")), cell(orNone(strings.Join(blocked, ", "), tr("nothing"))))
 	}
 	d.blank()
@@ -117,7 +130,7 @@ func testsByPackage(d *doc, tests []sourcePair, state *State) {
 		d.para(fmt.Sprintf(tr("Release %s, status %s."), orNone(str(p, "release"), tr("none named")), str(p, "status")))
 		d.line(tr("| Requirement | Verified by |"))
 		d.line("|---|---|")
-		for _, id := range strs(p, "requirements") {
+		for _, id := range shownRequirements(p, state) {
 			by := tr("none")
 			if t := verifiedBy[id]; len(t) > 0 {
 				by = strings.Join(t, ", ")

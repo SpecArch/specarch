@@ -1,0 +1,7 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-4
+release: 1.0.0
+title: Lend a book, the first plan
+requirements: [CASE-2]
+status: withdrawn

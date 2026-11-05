@@ -20,12 +20,12 @@ The elements of each stage, a section of named elements counted by its entries a
 
 ## 2. Work packages
 
-4 work packages are recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan.
+4 work packages are recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan and blocks no package that comes after it.
 
 | Package | Release | Status | Assigned to | After | Requirements | Estimated hours | Spent hours | Blocked by |
 |---|---|---|---|---|---|---|---|---|
 | WP-1, Know a member | 1.0.0 | done | alex | none | CASE-1 | 8 | 10 | nothing |
-| WP-2, Lend a book | 1.0.0 | ready | lending team | none | CASE-2, CASE-3 | missing | missing | work_package_order, work_package_overlap, work_package_release, work_package_unconfigured, work_package_not_ready |
+| WP-2, Lend a book | 1.0.0 | ready | lending team | WP-4 | CASE-2, CASE-3 | missing | missing | work_package_order, work_package_overlap, work_package_release, work_package_unconfigured, work_package_not_ready |
 | WP-3, Lend within the limit | 1.0.0 | done | nobody named | WP-1, WP-2 | CASE-2, CASE-4 | missing | missing | work_package_overlap, work_package_unverified |
 | WP-4, Lend a book, the first plan | 1.0.0 | withdrawn | nobody named | none | CASE-2 | missing | missing | nothing |
 

@@ -64,12 +64,16 @@ decisions:
          deployment gives a setting a value.
       9. document progress writes a Work packages section, with one row per
          package (release, status, assignee, after, requirements, estimated
-         and spent hours, what blocks it) and the accepted requirements of a
+         and spent hours, what blocks it: a package it comes after that is
+         neither done nor withdrawn, and the rules the validator warns it
+         of) and the accepted requirements of a
          planned release no live package holds named as unplanned; the test
          plan writes a Tests by work package section, per package its
          requirements and the design tests that verify them, then the tests
          no live package covers. Both sections appear only once a
-         work-package record exists. The burn-up keeps counting the elements
+         work-package record exists. A document for everyone leaves out of
+         both the requirements it withholds (ADR-119), as it does
+         everywhere else, and the assignee's name. The burn-up keeps counting the elements
          the change requests name; a package's effort is shown in its row.
     why: |
       One way to say one thing (docs/principles.md): a record's reference to

@@ -20,7 +20,7 @@ The elements of each stage, a section of named elements counted by its entries a
 
 ## 2. Work packages
 
-3 work packages are recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan.
+3 work packages are recorded beside the specification. A work package is one piece of the delivery, what a tracker may call an epic or a batch: the requirements it holds, the release it belongs to and the packages that must be done before it. A package is blocked while a package it comes after is not done, or while the validator warns it; a done package the validator warns is listed with the warning, since QA's exit criterion does not hold for it. A withdrawn package is part of no plan and blocks no package that comes after it.
 
 | Package | Release | Status | Assigned to | After | Requirements | Estimated hours | Spent hours | Blocked by |
 |---|---|---|---|---|---|---|---|---|

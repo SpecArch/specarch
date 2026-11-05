@@ -2,7 +2,7 @@
 command: document
 level: system
 scenario: golden
-given: "a specification with four work-package records, done, ready, done with a test not passed, and withdrawn, and an accepted requirement of a planned release that no package holds"
+given: "a specification with four work-package records, done, ready and after the withdrawn one, done with a test not passed, and withdrawn, and an accepted requirement of a planned release that no package holds"
 when: "document progress is run"
-then: "it writes a Work packages section with one row per package giving its release, status, assignee, after, requirements, effort and the rules the validator warns it of, names the requirement no package holds as unplanned with its release, and exits 0"
+then: "it writes a Work packages section with one row per package giving its release, status, assignee, after, requirements, effort and the rules the validator warns it of, not the withdrawn package it comes after, names the requirement no package holds as unplanned with its release, and exits 0"
 verifies: [SA-142]

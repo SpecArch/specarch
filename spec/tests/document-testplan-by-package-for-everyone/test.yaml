@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with work packages, one holding a requirement marked audience internal that no design test verifies"
+when: "document testplan --audience external is run"
+then: "the Tests by work package section has no row for the internal requirement, as the rest of the test plan leaves it out, and exits 0"
+verifies: [SA-142]

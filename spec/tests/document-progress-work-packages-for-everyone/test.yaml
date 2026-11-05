@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with work-package records, one holding a requirement marked audience internal, and an accepted requirement of a planned release that no package holds"
+when: "document progress --audience external is run"
+then: "the Work packages section names no internal requirement in any package's row and no assignee, leaves the internal requirement out of the unplanned line, and exits 0"
+verifies: [SA-142]

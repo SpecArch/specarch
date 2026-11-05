@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.6.0 of the specification: 1063 design tests, 539 golden and 524 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.6.0 of the specification: 1065 design tests, 541 golden and 524 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.6.0 of the specification: 1063 design tests, 539 golden and 524 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1059 |
+| system | 1061 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1315,9 +1315,17 @@ Scenario: red; level: system; covers exit 1; verifies SA-132.
 
 Scenario: golden; level: system; verifies SA-142.
 
-- Given: a specification with four work-package records, done, ready, done with a test not passed, and withdrawn, and an accepted requirement of a planned release that no package holds
+- Given: a specification with four work-package records, done, ready and after the withdrawn one, done with a test not passed, and withdrawn, and an accepted requirement of a planned release that no package holds
 - When: document progress is run
-- Then: it writes a Work packages section with one row per package giving its release, status, assignee, after, requirements, effort and the rules the validator warns it of, names the requirement no package holds as unplanned with its release, and exits 0
+- Then: it writes a Work packages section with one row per package giving its release, status, assignee, after, requirements, effort and the rules the validator warns it of, not the withdrawn package it comes after, names the requirement no package holds as unplanned with its release, and exits 0
+
+#### document-progress-work-packages-for-everyone
+
+Scenario: golden; level: system; verifies SA-142.
+
+- Given: a specification with work-package records, one holding a requirement marked audience internal, and an accepted requirement of a planned release that no package holds
+- When: document progress --audience external is run
+- Then: the Work packages section names no internal requirement in any package's row and no assignee, leaves the internal requirement out of the unplanned line, and exits 0
 
 #### document-sequence-diagram
 
@@ -1566,6 +1574,14 @@ Scenario: golden; level: system; verifies SA-142.
 - Given: a specification with three work packages that are not withdrawn and one that is, whose requirements the design tests verify
 - When: document testplan is run
 - Then: it writes a Tests by work package section with, per package that is not withdrawn, its release, status and each requirement with the tests that verify it, says every design test is covered, and exits 0
+
+#### document-testplan-by-package-for-everyone
+
+Scenario: golden; level: system; verifies SA-142.
+
+- Given: a specification with work packages, one holding a requirement marked audience internal that no design test verifies
+- When: document testplan --audience external is run
+- Then: the Tests by work package section has no row for the internal requirement, as the rest of the test plan leaves it out, and exits 0
 
 #### document-testplan-by-release
 
@@ -8617,7 +8633,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-633 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+635 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9254,6 +9270,8 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-141 | acceptance 3 | golden | SA-141 names no harm |
 | requirement SA-142 | acceptance 1 | golden | SA-142 names no harm |
 | requirement SA-142 | acceptance 2 | golden | SA-142 names no harm |
+| requirement SA-142 | acceptance 3 | golden | SA-142 names no harm |
+| requirement SA-142 | acceptance 4 | golden | SA-142 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

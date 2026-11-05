@@ -167,7 +167,7 @@ Version 1.6.0 of the specification: 10 needs, 139 requirements, and 1 gap. Each 
 | SA-139 | GOAL-4 | NEED-8 | commands init; decisions ADR-244 | tests init-intent-empty; tests init-writes-intent |
 | SA-140 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums Rule; decisions ADR-245 | tests validate-work-package-cycle |
 | SA-141 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums Rule; decisions ADR-245 | tests validate-work-package-warnings |
-| SA-142 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-245 | tests document-progress-work-packages; tests document-testplan-by-package |
+| SA-142 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-245 | tests document-progress-work-packages; tests document-progress-work-packages-for-everyone; tests document-testplan-by-package; tests document-testplan-by-package-for-everyone |
 
 ## 3. Gaps
 

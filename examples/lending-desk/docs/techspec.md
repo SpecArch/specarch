@@ -12,7 +12,7 @@ Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
 
-**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/problem]
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/requirements]
 
 ## 1. Introduction and goals
 

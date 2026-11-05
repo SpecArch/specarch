@@ -161,8 +161,8 @@ Version 1.5.1-dev of the specification: 10 needs, 136 requirements, and 1 gap. E
 | SA-133 | GOAL-2, GOAL-4 | NEED-1, NEED-8 | commands approve; decisions ADR-239 | tests approve-refuses-session-absent; tests approve-refuses-session-missing; tests approve-refuses-unheard; tests approve-warns-no-session; tests approve-writes-record; tests validate-approval-session |
 | SA-134 | GOAL-3 | NEED-3 | commands document; decisions ADR-241 | tests document-language-id; tests document-language-needs-out; tests document-language-no-regions; tests document-language-out-is-output; tests document-language-unknown |
 | SA-135 | GOAL-2, GOAL-1 | NEED-1, NEED-6 | decisions ADR-244 | tests validate-intent-references |
-| SA-136 | GOAL-2, GOAL-4 | NEED-1, NEED-8 | decisions ADR-244 | tests validate-intent-problem-missing; tests validate-intent-problem-missing-lean; tests validate-intent-warnings |
-| SA-137 | GOAL-3, GOAL-1 | NEED-3, NEED-6 | enums DocumentTarget; commands document; decisions ADR-244 | tests document-intent; tests document-intent-missing; tests document-progress-goals; tests document-techspec-intent; tests document-traceability-goals |
+| SA-136 | GOAL-2, GOAL-4 | NEED-1, NEED-8 | decisions ADR-244 | tests validate-intent-problem-missing; tests validate-intent-problem-missing-earlier-meta-model; tests validate-intent-problem-missing-held; tests validate-intent-problem-missing-lean; tests validate-intent-warnings |
+| SA-137 | GOAL-3, GOAL-1 | NEED-3, NEED-6 | enums DocumentTarget; commands document; decisions ADR-244 | tests document-intent; tests document-intent-missing; tests document-progress-goals; tests document-progress-goals-met; tests document-techspec-intent; tests document-traceability-goals |
 | SA-138 | GOAL-4 | NEED-8 | commands gaps; decisions ADR-244 | tests gaps-next-asks-problem; tests gaps-next-asks-problem-lean; tests gaps-next-asks-unmeasured-goal; tests gaps-next-json-intent |
 | SA-139 | GOAL-4 | NEED-8 | commands init; decisions ADR-244 | tests init-intent-empty; tests init-writes-intent |
 

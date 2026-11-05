@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose goal GOAL-1 is served by a requirement of a released release, one of a planned release and a rejected one, and whose goal GOAL-2 no need names"
+when: "document progress is run"
+then: "the Goals section counts GOAL-1 as 1 of 2, since the rejected requirement is not counted and only the released release's requirement is met, says none serves it for GOAL-2, and exits 0"
+verifies: [SA-137]

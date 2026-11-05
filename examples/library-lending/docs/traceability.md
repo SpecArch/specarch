@@ -4,6 +4,10 @@
 
 Version 0.1.0 of the specification: 4 needs, 8 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
+
 ## 1. Needs to requirements
 
 | Need | Status | Refined by |

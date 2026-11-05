@@ -1,7 +1,7 @@
 arguments: [validate, project]
 exitStatus: 1
 standardOutput: |
-  project/specarch.yaml:9:3: warning: /problem: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@specarch.yaml#/problem]
+  project/specarch.yaml:9:3: warning: /requirements: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@specarch.yaml#/requirements]
   records/test-runs/TR-1.yaml:4:14: error: /environment: record_ref: uat is not an environment of the specification; use one of staging [record_ref@../records/test-runs/TR-1.yaml#/environment]
   records/test-runs/TR-1.yaml:5:10: error: /version: record_ref: 2.0.0 is not a release: there is no records/releases/2.0.0.yaml [record_ref@../records/test-runs/TR-1.yaml#/version]
   records/test-runs/TR-1.yaml:8:5: error: /by: record_ref: analyst is not a stakeholder of the specification; use one of owner, tester [record_ref@../records/test-runs/TR-1.yaml#/by]

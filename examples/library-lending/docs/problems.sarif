@@ -37,14 +37,14 @@
               },
               "logicalLocations": [
                 {
-                  "fullyQualifiedName": "/problem",
+                  "fullyQualifiedName": "/requirements",
                   "kind": "element"
                 }
               ]
             }
           ],
           "partialFingerprints": {
-            "specarchId/v1": "problem_missing@requirements/requirements/lending.yaml#/problem"
+            "specarchId/v1": "problem_missing@requirements/requirements/lending.yaml#/requirements"
           }
         }
       ],

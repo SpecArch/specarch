@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.5.1-dev of the specification: 1056 design tests, 533 golden and 523 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.5.1-dev of the specification: 1059 design tests, 536 golden and 523 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.5.1-dev of the specification: 1056 design tests, 533 golden and 523 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1052 |
+| system | 1055 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1278,6 +1278,14 @@ Scenario: golden; level: system; verifies SA-137.
 - Given: a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order
 - When: document progress is run
 - Then: the progress report has a Goals section with each goal's baseline, target, the latest reading as none recorded and the requirements serving it that are met, and exits 0
+
+#### document-progress-goals-met
+
+Scenario: golden; level: system; verifies SA-137.
+
+- Given: a specification whose goal GOAL-1 is served by a requirement of a released release, one of a planned release and a rejected one, and whose goal GOAL-2 no need names
+- When: document progress is run
+- Then: the Goals section counts GOAL-1 as 1 of 2, since the rejected requirement is not counted and only the released release's requirement is met, says none serves it for GOAL-2, and exits 0
 
 #### document-progress-stakeholders-confirmed
 
@@ -6643,7 +6651,23 @@ Scenario: red; level: system; verifies SA-136.
 
 - Given: a specification on meta-model 1.0.0 with requirements and no problem
 - When: validate is run
-- Then: it warns problem_missing at /problem, anchored at the requirements, naming the key that ends the warning, and exits 0, since a warning is not an error
+- Then: it warns problem_missing at /requirements, anchored at the requirements, naming the key that ends the warning, and exits 0, since a warning is not an error
+
+#### validate-intent-problem-missing-earlier-meta-model
+
+Scenario: golden; level: system; verifies SA-136.
+
+- Given: a specification on meta-model 0.3, whose schema has no problem, with requirements and no problem
+- When: validate is run
+- Then: it prints no problem_missing, since the file could not hold the key the remedy names, and gives only the meta_model_version and unheard warnings, and exits 0
+
+#### validate-intent-problem-missing-held
+
+Scenario: golden; level: system; verifies SA-136.
+
+- Given: a specification on meta-model 1.0.0 with requirements, no problem, and a must question that blocks the problem
+- When: validate is run
+- Then: it prints no problem_missing, only the unheard warning at the clerk, since no record shows the clerk was heard, and exits 0: the must question holds problem_missing, since the gap is already asked about
 
 #### validate-intent-problem-missing-lean
 

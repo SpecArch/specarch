@@ -6,7 +6,9 @@ Version 1.0.0 of the specification: 1 stakeholder, 1 need and 1 requirement. The
 
 **Draft:** 1 open question concerns this document (Q-1); see the open questions document, or run specarch gaps.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@specarch.yaml#/requirements]
 
 ## 1. Purpose and scope
 

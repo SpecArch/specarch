@@ -4,6 +4,10 @@
 
 Version 0.1.0 of the specification: 4 stakeholders, 4 needs and 8 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
+
 ## 1. Purpose and scope
 
 A small public library lends books to its members. Members borrow a copy,

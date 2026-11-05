@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification on meta-model 0.3, whose schema has no problem, with requirements and no problem"
+when: "validate is run"
+then: "it prints no problem_missing, since the file could not hold the key the remedy names, and gives only the meta_model_version and unheard warnings, and exits 0"
+verifies: [SA-136]

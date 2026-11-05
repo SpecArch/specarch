@@ -1,4 +1,3 @@
-# specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/problem]
 stakeholders:
   # specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
   # specarch-problem: warning: unheard: host-owner was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement RW-1, requirement RW-2 and requirement RW-3 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/requirements.yaml#/stakeholders/host-owner]
@@ -12,6 +11,7 @@ needs:
     status: accepted
 
 requirements:
+  # specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/requirements]
   RW-1:
     statement: The release watcher shall install a new release of a service within two minutes of its publication in the registry.
     kind: functional

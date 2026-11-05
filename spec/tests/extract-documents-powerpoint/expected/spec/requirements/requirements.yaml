@@ -1,4 +1,3 @@
-# specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/problem]
 stakeholders:
   # specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
   system-owner:
@@ -6,6 +5,7 @@ stakeholders:
     origin: inferred
     why: The surface names no one, and every question needs a stakeholder to decide it.
 requirements:
+  # specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/requirements]
   # specarch-problem: warning: acceptance_missing: requirement LOANBRIEFING-1 has no acceptance criteria, so no test can show it is met; add acceptance with one verifiable sentence per criterion [acceptance_missing@requirements/requirements.yaml#/requirements/LOANBRIEFING-1]
   # specarch-problem: warning: requirement_unsatisfied: no design element satisfies requirement LOANBRIEFING-1; add satisfies: [LOANBRIEFING-1] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@requirements/requirements.yaml#/requirements/LOANBRIEFING-1]
   LOANBRIEFING-1:

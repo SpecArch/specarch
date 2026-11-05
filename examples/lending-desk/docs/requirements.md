@@ -8,9 +8,11 @@ Version 0.1.0 of the specification: 4 stakeholders, 0 needs and 7 requirements. 
 
 **Draft:** 3 open questions concern this document (Q-1, Q-2, Q-3); see the open questions document, or run specarch gaps.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
+
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/requirements]
 
 ## 1. Purpose and scope
 

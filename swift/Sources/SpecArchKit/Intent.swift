@@ -61,7 +61,7 @@ extension Checker {
         }
 
         if d.problemMissing && !d.lean {
-            warn(d.root.child("requirements"), "/problem", .problemMissing, problemMissingMessage)
+            warn(d.root.child("requirements"), "/requirements", .problemMissing, problemMissingMessage)
         }
         let firstGoal = pairs(d.root.child("goals")).first?.key.value ?? ""
         var served = Set<String>()

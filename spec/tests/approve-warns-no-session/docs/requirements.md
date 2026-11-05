@@ -4,6 +4,10 @@
 
 Version 1.0.0 of the specification: 1 stakeholder, 1 need and 1 requirement. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@specarch.yaml#/requirements]
+
 ## 1. Purpose and scope
 
 ## 2. Stakeholders

@@ -68,7 +68,7 @@ func (c *checker) checkIntent(d *design) {
 	}
 
 	if ProblemMissing(d.root) && !d.lean() {
-		c.warn(source.Child(d.root, "requirements"), "/problem", RuleProblemMissing, "%s", problemMissing)
+		c.warn(source.Child(d.root, "requirements"), "/requirements", RuleProblemMissing, "%s", problemMissing)
 	}
 	firstGoal := ""
 	if gs := source.Pairs(source.Child(d.root, "goals")); len(gs) > 0 {

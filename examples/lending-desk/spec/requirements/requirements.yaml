@@ -1,5 +1,4 @@
 # yaml-language-server: $schema=../../../../schema/specarch-fragment-requirements-1.0.schema.json
-# specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/problem]
 stakeholders:
   # specarch-problem: warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
   desk-staff:
@@ -23,6 +22,7 @@ stakeholders:
     why: Neither source names who decides; someone must settle where the manual and the code disagree, and the desk's own head is the nearest role to it.
 
 requirements:
+  # specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/requirements]
   LEND-1:
     statement: Desk staff shall register a member by card number and full name.
     kind: functional

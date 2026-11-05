@@ -4,6 +4,10 @@
 
 Version 0.1.0 of the specification: 199 design tests, 56 golden and 142 red, about 49 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
+
 1 test is marked not applicable, with the reason.
 
 Of the 198 tests that apply, the tests target writes 68 with their bodies, from their input and expected outcome, and 130 with a body written by hand (section 1).

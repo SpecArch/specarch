@@ -25,20 +25,20 @@ requirements:
     priority: must
     status: proposed
     acceptance:
-      - validate on a full-profile specification with requirements and no problem warns problem_missing at /problem, at the line of the requirements, and exits 0; on the lean profile it prints no problem_missing and the profile warning says the problem is asked by gaps --next.
+      - validate on a full-profile specification with requirements and no problem warns problem_missing at /requirements, at the line of the requirements, with its mark in the file above the requirements key, and exits 0; a must question that blocks the problem holds it, and a file on a meta-model before 1.0.0 is not warned; on the lean profile it prints no problem_missing and the profile warning says the problem is asked by gaps --next.
       - validate on a specification with each of the other five gaps warns that rule at that entry and exits 0.
       - A specification with no goals is never warned need_without_goal, so an upgrade brings at most problem_missing.
     verification: test
     needs: [NEED-1, NEED-8]
     why: Every later answer rests on the problem and the measured goals, so their absence is shown first; a compiler for specifications never refuses to read a specification for missing intent, so each is a warning, and on a small tool's lean specification a warning that shows on every run teaches people to skip warnings, so there it is a question (the owner's decision 3 of ADR-242).
   SA-137:
-    statement: specarch document intent shall write intent.md with the problem, the goals with their measures, what is out of scope and the quality goals in rank order; the techspec shall open with an Intent chapter in the shape of arc42 section 1 and the traceability matrix shall gain a goal column, both only when the specification states intent; and document progress shall add, per goal, the baseline, the target, the latest value a monitor read and the share of its requirements met.
+    statement: specarch document intent shall write intent.md with the problem, the goals with their measures, what is out of scope and the quality goals in rank order; the techspec's chapter 1, Introduction and goals, shall open with the intent parts in the shape of arc42 section 1 and the traceability matrix shall gain a goal column, both only when the specification states intent; and document progress shall add, per goal, the baseline, the target, the latest value a monitor read and the share of its requirements met.
     kind: functional
     priority: must
     status: proposed
     acceptance:
       - document intent on a specification with intent writes intent.md with one section per part, the goals with measure, baseline, target and by, the quality goals in rank order; on one without intent it writes the page saying what is missing and the key to add.
-      - The techspec of a specification with intent opens with the Intent chapter, and its traceability matrix has a Goals column naming the goals each requirement's needs serve; the outputs of a specification without intent are as before.
+      - The techspec of a specification with intent opens its chapter 1, Introduction and goals, with the intent parts, and its traceability matrix has a Goals column naming the goals each requirement's needs serve; the outputs of a specification without intent are as before.
       - document progress lists each goal with its baseline, its target, the latest reading (none recorded, since no record holds a monitor's reading yet) and how many of the requirements that serve it are met.
     verification: test
     needs: [NEED-3, NEED-6]

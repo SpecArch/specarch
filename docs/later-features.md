@@ -57,3 +57,76 @@ use dxlib.
 - **Before it is started**: a project names the framework. Until then no
   framework is chosen on a guess, since each one's routing, middleware and
   error model differ and the target's settings follow from them.
+
+## 3. A fresh environment for Kubernetes and for a VM
+
+`generate deploy` writes Docker Compose files, Kubernetes manifests and
+cloud-init for a VM, but only the Compose output can be rebuilt from
+nothing for a full regression run: the fresh-environment mode refuses the
+other two. This entry brings Kubernetes and VMs to the same level, so a
+full regression can run on a clean copy of whichever target a deployment
+names.
+
+- **Reads**: the deployment's environment, its build, method and
+  infrastructure, the seed the specification gives and the images by
+  digest, as the Compose mode does.
+- **Writes**: for Kubernetes, a script that creates a throwaway namespace
+  or local cluster, applies the manifests, loads the seed, runs the full
+  test package and removes it all; for a VM, the same around a new VM
+  started from the cloud-init file on the named hypervisor.
+- **Checked by**: the conformance cases of the Compose mode, repeated for
+  each target, and one end-to-end run per target in CI.
+- **Before it is started**: a project deploys to Kubernetes or to VMs and
+  names the cluster or hypervisor the throwaway environment runs on.
+
+## 4. An early warning when the schedule slips
+
+`document progress` shows the size, the open work, the effort a change
+records and a burn-up per release. Nothing says when the trend no longer
+meets the date a release is planned for.
+
+- **Reads**: the burn-up and effort `document progress` already computes,
+  and a planned date per release.
+- **Writes**: a warning in the progress document and in `problems` when
+  the projected finish passes the planned date, naming the release, the
+  gap in days and the open work that drives it.
+- **Checked by**: a conformance case with a release on track and one that
+  slips, beside the progress cases.
+- **Before it is started**: a release can carry its planned date, and the
+  owner decides how the projection is made (the recent rate of work closed,
+  or the effort recorded against what is open).
+
+## 5. Templates per project type
+
+`specarch init` starts one shape of specification, with the lean profile
+as the only option. A team that builds the same kinds of system again and
+again would start from a template of that kind instead.
+
+- **Reads**: a named template: the modules, the stages filled in, the
+  roles, the environments and the decisions that kind of project always
+  takes, with the questions it always has to ask.
+- **Writes**: the starting specification, as `init` does now, from the
+  template given with `init --template <name>`, and a list of the
+  templates with `specarch help start`.
+- **Checked by**: a conformance case per template that validates clean
+  and asks its open questions in `gaps --next`.
+- **Before it is started**: two or more finished projects of the same kind,
+  so a template is taken from what they share rather than designed ahead of
+  them.
+
+## 6. Test results from spreadsheets and documents
+
+`specarch log test-run` reads JUnit XML only. Results a customer reports in
+a spreadsheet or a document have to be turned into JUnit XML by hand first.
+
+- **Reads**: a results sheet in Excel, CSV or TSV through the reader
+  `extract tables` uses, and a results table in a Word or PDF report
+  through the `extract documents` readers; a mapping of columns to the
+  test name, the outcome, the date and the remark.
+- **Writes**: the same test-run records `log test-run` writes from JUnit
+  XML, each result matched to its test or derived case, and a problem at
+  every row that names no test.
+- **Checked by**: conformance cases with a sheet and a document whose
+  results equal a JUnit XML case's, so the three give the same records.
+- **Before it is started**: a real results report, so the column mapping
+  and the outcome words come from one and are not guessed.

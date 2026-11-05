@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.6.0 of the specification: 1065 design tests, 541 golden and 524 red, about 32 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.6.0 of the specification: 1078 design tests, 550 golden and 528 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.6.0 of the specification: 1065 design tests, 541 golden and 524 red, a
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1061 |
+| system | 1074 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -5107,6 +5107,104 @@ Scenario: golden; level: system; verifies SA-74.
 - When: model is run on it
 - Then: it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0
 
+### Command plan
+
+#### plan-brief
+
+Scenario: golden; level: system; verifies SA-144.
+
+- Given: a planned package holding the loan and fine requirements, met by entities, a setting and a migration and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order
+- When: plan --brief is run for the package
+- Then: it prints that it can start, each requirement with its acceptance criteria, the elements and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0
+
+#### plan-brief-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-144.
+
+- Given: a specification with one work package, WP-1
+- When: plan --brief is run for WP-9
+- Then: it refuses, naming WP-1, and exits 1
+
+#### plan-export-csv
+
+Scenario: golden; level: system; verifies SA-145.
+
+- Given: a done package with its effort and a planned package whose title holds commas
+- When: plan --export csv is run
+- Then: it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, the title quoted and each list in one cell, and exits 0
+
+#### plan-export-json
+
+Scenario: golden; level: system; verifies SA-145.
+
+- Given: a done package with its effort and a planned package whose title holds commas
+- When: plan --export json is run
+- Then: it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array and missing hours null, and exits 0
+
+#### plan-import
+
+Scenario: golden; level: system; verifies SA-145.
+
+- Given: a done package and a planned package with an assignee and an estimate, and a tracker CSV that leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read
+- When: plan --import is run with the CSV
+- Then: it writes the status, assignee and estimate into the planned package's record, its comment, key order and other keys kept, warns at the release and after with both values, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0
+
+#### plan-import-json
+
+Scenario: golden; level: system; verifies SA-145.
+
+- Given: a planned package with an assignee and an estimate, and a tracker JSON file that empties its assignee and estimate, gives a status that is not a work package's and negative spent hours, and adds a requirement
+- When: plan --import is run with the JSON file
+- Then: it takes the assignee and the estimate out of the record, keeps its status and writes no spent hours, warning at each with both values, warns at the requirements with both values, and exits 0
+
+#### plan-next
+
+Scenario: golden; level: system; verifies SA-143.
+
+- Given: a done package, a planned package after it whose requirement is accepted with acceptance criteria and no open question, and a planned package after that one
+- When: plan --next is run
+- Then: it prints the package after the done one, with its release, status, assignee, requirements, after and the brief command, and exits 0
+
+#### plan-next-none
+
+Scenario: red; level: system; covers exit 1; verifies SA-143.
+
+- Given: a package in progress, a planned package after it, a ready package whose requirement is proposed with no acceptance criteria, and a proposed package
+- When: plan --next is run
+- Then: it prints that no package can start and, for each planned or ready package, what it waits on, leaves out the proposed package, and exits 1
+
+#### plan-proposes
+
+Scenario: golden; level: system; verifies SA-143.
+
+- Given: a specification with planned releases 1.0.0 and 1.1.0, a done package holding the member requirement, accepted requirements met by a loan entity that needs the member, a fine entity that needs the loan, a shelf and a branch entity that need each other, a proposed requirement, and an accepted requirement of 1.1.0
+- When: plan is run
+- Then: it writes proposed packages for 1.0.0 in order, the loan after the done package, the fine after the loan, the shelf and the branch in one package, then one for 1.1.0 after the done package, names the proposed requirement as left out, and exits 0
+
+#### plan-proposes-dry-run
+
+Scenario: golden; level: system; verifies SA-143.
+
+- Given: the specification and records of plan-proposes
+- When: plan --dry-run is run
+- Then: it prints the same proposals and would write for each record, writes nothing and exits 0
+
+#### plan-release-unknown
+
+Scenario: red; level: system; covers exit 1; verifies SA-143.
+
+- Given: a specification with release records 1.0.0 and 1.1.0
+- When: plan --release 2.0.0 is run
+- Then: it refuses, naming the release records there are, writes nothing and exits 1
+
+#### plan-usage-error
+
+Scenario: red; level: system; covers usage error, exit 2; verifies SA-143.
+
+- Given: a specification
+- When: plan is run with both --next and --export
+- Then: it prints that it takes one mode at a time and the usage, and exits 2
+
 ### Command run
 
 #### run-package-no-answer
@@ -7213,6 +7311,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-5.
 - When: validate is run
 - Then: the missing description is covered by the question, and it still reports permission_ungranted and exits 1
 
+#### validate-plan-proposals
+
+Scenario: golden; level: system; verifies SA-143.
+
+- Given: the specification and records of plan-proposes with the packages plan proposed for it
+- When: validate is run
+- Then: it warns no work_package rule at the proposed packages: no order, overlap, release or cycle, and exits 0, in the Go build and the Swift build alike
+
 #### validate-processes-must-question
 
 Scenario: golden; level: system; verifies SA-109.
@@ -8633,7 +8739,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-635 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+645 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9272,6 +9378,16 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-142 | acceptance 2 | golden | SA-142 names no harm |
 | requirement SA-142 | acceptance 3 | golden | SA-142 names no harm |
 | requirement SA-142 | acceptance 4 | golden | SA-142 names no harm |
+| requirement SA-143 | acceptance 1 | golden | SA-143 names no harm |
+| requirement SA-143 | acceptance 2 | golden | SA-143 names no harm |
+| requirement SA-143 | acceptance 3 | golden | SA-143 names no harm |
+| requirement SA-143 | acceptance 4 | golden | SA-143 names no harm |
+| requirement SA-143 | acceptance 5 | golden | SA-143 names no harm |
+| requirement SA-144 | acceptance 1 | golden | SA-144 names no harm |
+| requirement SA-144 | acceptance 2 | golden | SA-144 names no harm |
+| requirement SA-145 | acceptance 1 | golden | SA-145 names no harm |
+| requirement SA-145 | acceptance 2 | golden | SA-145 names no harm |
+| requirement SA-145 | acceptance 3 | golden | SA-145 names no harm |
 
 The checks run on the installed system before it is handed over are in the commissioning procedure.
 

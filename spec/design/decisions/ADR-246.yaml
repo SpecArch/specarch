@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-246:
+    title: Intent phase 3 builds specarch plan - proposals for the accepted requirements of a planned release that no live package holds, grouped by a common built element and ordered by the reference graph with mutually needing groups merged; --next by the validator's own readiness and order checks; --brief and --export on standard output; --import by the file's ending, writing only status, assignedTo and effort and warning on the command's output, not in the problems file
+    status: accepted
+    date: "2026-11-05"
+    context: |
+      ADR-242 designs specarch plan (proposals, --next, --brief, --export
+      and --import, the ownership split between the specification and the
+      tracker) and ADR-245 builds the record and its rules. Building the
+      command raised forks neither settles: which requirements a proposal
+      takes, how requirements are grouped and what happens when groups
+      need each other, which packages --next considers, where the brief and
+      the export go, how a list sits in a CSV cell, how the import tells
+      CSV from JSON, and where a field changed on the wrong side is warned.
+    decision: |
+      1. plan proposes for the requirements document progress lists as
+         unplanned: accepted, of a planned release, held by no package that
+         is not withdrawn. --release names one release, which must have a
+         record, and takes with its own requirements the accepted ones that
+         name no release, since such a requirement takes its package's
+         (ADR-245); without it, those are named as left out. A requirement
+         that is not accepted is named as left out too. Each release is
+         proposed on its own, earliest first, so no proposal mixes releases.
+      2. Requirements met by a common element go into one group; a
+         decision that satisfies a requirement explains it and builds
+         nothing, so it groups nothing. A requirement no element meets is a
+         group of its own. A group comes after the package that builds an
+         element its elements need (ModelReferences without satisfies,
+         verifies and decidedIn, as work_package_order reads them): a
+         recorded package not withdrawn first, then a package proposed for
+         an earlier release, then a group of the same release. Groups that
+         need each other, directly or through others, are merged into one,
+         and the rest are ordered so a group comes after the groups it
+         needs, the group whose first requirement comes first in the
+         specification first. Each takes the next free WP number, in that
+         order, with status proposed, a title naming at most three of the
+         elements it builds and a why saying how it was grouped.
+      3. --next considers the packages that are planned or ready, by ID as
+         gaps orders IDs (WP-2 before WP-10), and prints the first whose
+         after packages are each done or withdrawn and whose readiness
+         check finds nothing: the reasons work_package_not_ready names,
+         read from the same code whatever the package's status, and the
+         elements work_package_order warns of. When none can start it
+         prints each candidate with what it waits on and exits 1.
+      4. --brief and --export print on standard output, as gaps and
+         decision do; the caller redirects them where it wants them. The
+         brief is the same page for a person and an agent.
+      5. The export's columns are id, title, release, status, assignedTo,
+         estimatedHours, spentHours, after and requirements. A CSV is RFC
+         4180, a list of IDs in one cell separated by a comma and a space;
+         a JSON export holds workPackages, its lists as arrays and the
+         hours as numbers or null.
+      6. --import reads a file ending in .csv or .json, as the export
+         writes it. A column it does not read is named once; a column left
+         out is no opinion. It writes into each record status, assignedTo
+         and effort when the file changes them, the record's other keys,
+         their order and its comments kept, and an empty cell takes the key
+         out. It warns, and writes nothing of that field, at a title,
+         release, after or requirements the file changes (naming both
+         values), at a status that is not a work package's, at hours that
+         are not a positive number, at a row with no ID, a second row of an
+         ID and an ID with no record.
+      7. The import's warnings are lines on its own standard output, the
+         file and row they are at first, and exit 0: the validator reads no
+         tracker file, so the problems file cannot hold them, and a plan is
+         never refused (ADR-242).
+    why: |
+      One definition of an unplanned requirement (document progress,
+      ADR-245) keeps the report and the proposal from disagreeing on what is
+      left to plan. Grouping by a common built element puts the work on one
+      entity, path or page in one pair of hands, which is what "requirements
+      that satisfy the same subject" means; a decision is reasoning, and
+      grouping by it would merge every requirement one design decision
+      explains. Merging groups that need each other is the only order that
+      a cycle allows without proposing a work_package_cycle, which is an
+      error. --next reads the validator's own checks so that what it calls
+      ready is what validate would accept as ready, and a proposed package
+      is a suggestion nobody has accepted, so it is not taken next.
+      Standard output keeps the command free of a file layout the analyst
+      did not choose. The ending decides the format because a tracker's
+      export names its own file and both formats are the export's own. A
+      field changed on the wrong side is said with both values and never
+      taken, so the plan does not drift and nothing is silently dropped
+      (docs/principles.md, the compiler).
+    alternatives:
+      - option: Propose for proposed requirements too
+        why: |
+          It plans earlier, but a requirement not yet accepted may still
+          change or be rejected, and a package built on it is the work the
+          readiness check would stop anyway.
+      - option: One package per element, or per requirement
+        why: |
+          Per element splits one requirement across packages, which
+          work_package_overlap warns; per requirement leaves two requirements
+          on one entity to two people who change the same code.
+      - option: Write the brief and the export to files under --out
+        why: |
+          It saves a redirect, but adds a file layout and a --check to keep
+          current for pages that are read once and handed over.
+      - option: The import's warnings in the problems file, as rules
+        why: |
+          The problems file is what validate finds in the specification and
+          its records; the tracker file is not one of them, and a rule that
+          only one command can raise would be a rule validate never shows.
+      - option: Let the tracker add packages on import
+        why: |
+          The specification owns the scope (ADR-242, decision 2); a package
+          made in the tracker names no requirement the specification has
+          checked, so it is warned and proposed or written as a record.
+    consequences: |
+      A specification with no work-package record proposes, exports an
+      empty list and imports nothing. A project manager runs plan, accepts
+      or reshapes the proposals, exports them to the tracker and imports the
+      tracker's statuses back; whoever takes a package reads its brief.
+      Proposals for a specification whose requirements name no release
+      need --release, so a release record comes first.
+    weighs: [QG-1, QG-2]
+    satisfies: [SA-143, SA-144, SA-145]
+    restsOn: [ADR-242, ADR-245]

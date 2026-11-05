@@ -1,0 +1,6 @@
+arguments: [plan, --export, csv, project]
+exitStatus: 0
+standardOutput: |
+  id,title,release,status,assignedTo,estimatedHours,spentHours,after,requirements
+  WP-1,Know a member,1.0.0,done,alex,8,10,,CASE-1
+  WP-2,"Lend, and fine, a book",1.0.0,planned,,,,WP-1,"CASE-2, CASE-3"

@@ -1,0 +1,7 @@
+arguments: [plan, --import, tracker.json, project]
+exitStatus: 0
+standardOutput: |
+  tracker.json: workPackages[0]: warning: WP-2 requirements: the tracker has "CASE-2, CASE-3" and the specification "CASE-2"; the specification owns requirements, so the record keeps "CASE-2"; if the tracker is right, change it in records/work-packages/WP-2.yaml and export again
+  tracker.json: workPackages[0]: warning: WP-2 status: the tracker has "finished", which is not a status of a work package, so the record keeps "planned"; use one of proposed, planned, ready, in-progress, done, withdrawn
+  tracker.json: workPackages[0]: warning: WP-2 spentHours: the tracker has "-3", which is not a positive number of hours, so the record keeps "none"; give the hours as a number above 0, or leave the cell empty
+  WP-2 (records/work-packages/WP-2.yaml): assignedTo from alex to nobody, estimatedHours from 12 to none

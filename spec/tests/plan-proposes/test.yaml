@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "a specification with planned releases 1.0.0 and 1.1.0, a done package holding the member requirement, accepted requirements met by a loan entity that needs the member, a fine entity that needs the loan, a shelf and a branch entity that need each other, a proposed requirement, and an accepted requirement of 1.1.0"
+when: "plan is run"
+then: "it writes proposed packages for 1.0.0 in order, the loan after the done package, the fine after the loan, the shelf and the branch in one package, then one for 1.1.0 after the done package, names the proposed requirement as left out, and exits 0"
+verifies: [SA-143]

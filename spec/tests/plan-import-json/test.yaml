@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "a planned package with an assignee and an estimate, and a tracker JSON file that empties its assignee and estimate, gives a status that is not a work package's and negative spent hours, and adds a requirement"
+when: "plan --import is run with the JSON file"
+then: "it takes the assignee and the estimate out of the record, keeps its status and writes no spent hours, warning at each with both values, warns at the requirements with both values, and exits 0"
+verifies: [SA-145]

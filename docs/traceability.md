@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.6.0 of the specification: 10 needs, 139 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.6.0 of the specification: 10 needs, 142 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -18,12 +18,12 @@ Version 1.6.0 of the specification: 10 needs, 139 requirements, and 1 gap. Each 
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-137, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
-| NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118, SA-140, SA-141, SA-142 |
+| NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118, SA-140, SA-141, SA-142, SA-143, SA-144, SA-145 |
 | NEED-6 | accepted | SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
 | NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
-| NEED-10 | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100, SA-140, SA-141, SA-142 |
+| NEED-10 | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100, SA-140, SA-141, SA-142, SA-143, SA-144, SA-145 |
 
 ## 2. Requirements to design and verification
 
@@ -168,6 +168,9 @@ Version 1.6.0 of the specification: 10 needs, 139 requirements, and 1 gap. Each 
 | SA-140 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums Rule; decisions ADR-245 | tests validate-work-package-cycle |
 | SA-141 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums Rule; decisions ADR-245 | tests validate-work-package-warnings |
 | SA-142 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | enums DocumentTarget; commands document; decisions ADR-245 | tests document-progress-work-packages; tests document-progress-work-packages-for-everyone; tests document-testplan-by-package; tests document-testplan-by-package-for-everyone |
+| SA-143 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-next; tests plan-next-none; tests plan-proposes; tests plan-proposes-dry-run; tests plan-release-unknown; tests plan-usage-error; tests validate-plan-proposals |
+| SA-144 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-unknown |
+| SA-145 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-export-csv; tests plan-export-json; tests plan-import; tests plan-import-json |
 
 ## 3. Gaps
 

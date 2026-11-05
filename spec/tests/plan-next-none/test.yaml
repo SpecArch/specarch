@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: red
+covers: [exit 1]
+given: "a package in progress, a planned package after it, a ready package whose requirement is proposed with no acceptance criteria, and a proposed package"
+when: "plan --next is run"
+then: "it prints that no package can start and, for each planned or ready package, what it waits on, leaves out the proposed package, and exits 1"
+verifies: [SA-143]

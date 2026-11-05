@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: test-run
+id: TR-1
+environment: production
+version: 1.0.0
+build: git:4f2a9c1
+at: "2026-11-03T14:05:00+07:00"
+by: owner
+results:
+  - { name: TestMemberKey, test: member-key, outcome: passed }

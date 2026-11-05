@@ -230,15 +230,9 @@ func (rc *recordChecks) checkWorkPackages(recs []*record) {
 			if rv := source.Str(source.Child(node, "release")); release != "" && rv != "" && rv != release {
 				r.c.warn(item, ptr, RuleWorkPackageRelease, "requirement %s is meant for release %s and %s for release %s; move the requirement to a package of release %s, or change its release", req, rv, id, release, rv)
 			}
-			for _, element := range pl.satisfied[req] {
-				for _, need := range pl.needs[element] {
-					in := pl.builtIn(need)
-					if len(in) == 0 || anyIn(in, before) {
-						continue
-					}
-					misordered = true
-					r.c.warn(item, ptr, RuleWorkPackageOrder, "requirement %s is met by %s, which needs %s, and only %s %s it, outside the after chain of %s; add %s to after, or move what %s needs into this package", req, element, need, strings.Join(in, ", "), pick(len(in) == 1, "builds", "build"), id, in[0], element)
-				}
+			for _, m := range pl.misorders(req, before) {
+				misordered = true
+				r.c.warn(item, ptr, RuleWorkPackageOrder, "%s", m.text(id))
 			}
 			if anyValue {
 				for _, setting := range pl.settingsOf(req) {
@@ -262,6 +256,33 @@ func (rc *recordChecks) checkWorkPackages(recs []*record) {
 			}
 		}
 	}
+}
+
+// misorder is one element a package's requirement needs that only
+// packages outside its after chain build.
+type misorder struct {
+	requirement, element, need string
+	builtIn                    []string
+}
+
+func (m misorder) text(id string) string {
+	return fmt.Sprintf("requirement %s is met by %s, which needs %s, and only %s %s it, outside the after chain of %s; add %s to after, or move what %s needs into this package", m.requirement, m.element, m.need, strings.Join(m.builtIn, ", "), pick(len(m.builtIn) == 1, "builds", "build"), id, m.builtIn[0], m.element)
+}
+
+// misorders is what work_package_order warns at a requirement of a
+// package whose after chain, the package included, is before.
+func (pl *packagePlan) misorders(req string, before map[string]bool) []misorder {
+	var out []misorder
+	for _, element := range pl.satisfied[req] {
+		for _, need := range pl.needs[element] {
+			in := pl.builtIn(need)
+			if len(in) == 0 || anyIn(in, before) {
+				continue
+			}
+			out = append(out, misorder{req, element, need, in})
+		}
+	}
+	return out
 }
 
 func without(list []string, s string) []string {

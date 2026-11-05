@@ -655,6 +655,15 @@ PATH dan apa yang ditulis dan tidak ditulis masing-masing.
       background-jobs 1.0.0: shipped
     ... 12 more idioms, then the JavaScript, Swift and TypeScript files
 
+**Membagi pekerjaan.** `specarch plan spec` mengusulkan work package untuk
+requirement yang sudah accepted di release yang planned, urut menurut
+reference graph, sebagai record dengan status `proposed`; project manager
+menerima, memecah atau menggabungkannya. `specarch plan --next spec`
+menyebut package yang bisa mulai sekarang, `specarch plan --brief WP-3
+spec` mencetak satu halaman yang dipakai programmer atau agent untuk
+bekerja, dan `--export csv` serta `--import` menyelaraskan package dengan
+tracker, yang memegang status, assignee dan effort.
+
 **Yang perlu diperhatikan.** Plug-in menulis apa yang dicakup targetnya,
 menandai setiap entri yang tidak bisa ditulisnya pada tempatnya, dan
 menyebut apa yang tidak pernah ditulisnya; sisanya ditulis dengan tangan,

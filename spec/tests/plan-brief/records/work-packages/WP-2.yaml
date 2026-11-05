@@ -1,0 +1,10 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-2
+release: 1.0.0
+title: Lend a book and fine a late loan
+requirements: [CASE-2, CASE-3]
+after: [WP-1]
+assignedTo: lending team
+status: planned
+why: Lending needs the member of WP-1.

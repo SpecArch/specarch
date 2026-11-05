@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "a done package, a planned package after it whose requirement is accepted with acceptance criteria and no open question, and a planned package after that one"
+when: "plan --next is run"
+then: "it prints the package after the done one, with its release, status, assignee, requirements, after and the brief command, and exits 0"
+verifies: [SA-143]

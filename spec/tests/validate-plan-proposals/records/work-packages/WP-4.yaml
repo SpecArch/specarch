@@ -1,0 +1,9 @@
+# Proposed by specarch plan. Accept it by setting status to planned, or split or merge it first.
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-4
+release: 1.0.0
+title: Build entities Shelf and entities Branch
+requirements: [CASE-5, CASE-6]
+status: proposed
+why: 'Proposed by specarch plan: the requirements met by entities Shelf and entities Branch.'

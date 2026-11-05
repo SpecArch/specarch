@@ -17,6 +17,7 @@
 //	specarch compare [--test-run|--results|--scan|--measurements <name>=<value>]... [--out <folder>] [--dry-run] <folder> <implementation file>...
 //	specarch idioms [diff <idiom>] <folder>...
 //	specarch decision why|rests <decision> <folder>
+//	specarch plan [--release <version>] [--next | --brief <package> | --export csv|json | --import <file>] [--dry-run] <folder>
 //	specarch try <algorithm or operation> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
 //	specarch model <folder or file>...
 //	specarch version
@@ -112,6 +113,12 @@ const usage = `usage:
   specarch decision why <decision> <folder> print the chain of decisions a decision rests on, earliest first
   specarch decision rests <decision> <folder>
                                             print the decisions that rest on a decision, nearest first
+  specarch plan [--release <version>] [--dry-run] <folder>
+                                            propose work packages for the accepted requirements of a planned
+                                            release that no package holds, in the order of the reference graph
+  specarch plan --next | --brief <package> | --export csv|json | --import <file> [--dry-run] <folder>
+                                            print the package to take next, one package's brief, or the
+                                            packages for a tracker; --import writes back what the tracker owns
   specarch try <algorithm or operation> [--example <name> | --inputs <mapping>] [--file <file>] <folder>
                                             evaluate an algorithm on its worked examples or on the inputs
                                             given, and print each step of its formula with its value;
@@ -165,6 +172,7 @@ var commands = map[string]func(args []string, stdout, stderr io.Writer) int{
 	"run":          runRun,
 	"facts":        runFacts,
 	"model":        runModel,
+	"plan":         runPlan,
 	"version":      runVersionCommand,
 	"help":         runHelp,
 	"capabilities": runCapabilities,

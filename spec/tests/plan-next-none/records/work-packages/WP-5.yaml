@@ -1,0 +1,7 @@
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-5
+release: 1.0.0
+title: Shelves and branches
+requirements: [CASE-5, CASE-6]
+status: proposed

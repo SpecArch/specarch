@@ -1,0 +1,65 @@
+arguments: [plan, --brief, WP-2, project]
+exitStatus: 0
+standardOutput: |
+  # WP-2, Lend a book and fine a late loan
+
+  Release 1.0.0, status planned, assigned to lending team. Lending needs the member of WP-1.
+
+  ## Can it start
+
+  Yes: every package it comes after is done, and the readiness check finds nothing.
+
+  ## Requirements
+
+  ### CASE-2
+
+  A member shall borrow a book for the days the library sets.
+
+  Priority must, status accepted.
+
+  Acceptance:
+
+  - A loan names its member and its due date.
+
+  ### CASE-3
+
+  A late loan shall be fined.
+
+  Priority must, status accepted.
+
+  Acceptance:
+
+  - A loan returned a day late is fined once.
+
+  ## Design elements to build
+
+  - /entities/Loan, meets CASE-2
+  - /configuration/loanDays, meets CASE-2
+  - /migrations/add-due-date, meets CASE-2
+  - /entities/Fine, meets CASE-3
+
+  ## Tests that must pass
+
+  - loan-member (golden), verifies CASE-2: then the loan names the member and its due date
+  - loan-unknown-member (red), verifies CASE-2: then the loan is refused
+
+  ## Goals it serves
+
+  - GOAL-1: Fewer loans run late. Measure: Share of loans returned after their due date; baseline 30 percent (October 2026), target 10 percent.
+
+  ## Out of scope near it
+
+  - OUT-1: Members cannot reserve a book online. It rules out NEED-2, which serves GOAL-1 as this package does.
+
+  Out of scope elsewhere: OUT-2.
+
+  ## Quality goals, in rank order
+
+  1. QG-1, functional-suitability: A loan shown as returned has been returned.
+  2. QG-2, interaction-capability: A member finds their loans in under 30 seconds.
+
+  ## What it changes in operation
+
+  - Settings: loanDays
+  - Migrations: add-due-date
+  - Monitors: late-loans

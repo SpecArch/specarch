@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: user manual
 
-Version 1.6.0 of the specification: 0 tasks, 0 pages and 30 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
+Version 1.6.0 of the specification: 0 tasks, 0 pages and 31 commands. For the people who use the system: who may open which page, how to reach it, the tasks done across pages step by step, what each page asks for and answers, and what each command takes, does and answers.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ language, library or build tool in it; how one stack implements it is in
 
 The specification has no role a person holds; the roles under roles, with the permissions the pages need, say who may open each page.
 
-Anyone who has the program runs these commands: approve, capabilities, check, compare, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, log, log test-run, mcp, merge, model, run, skill, try, upgrade, validate, version.
+Anyone who has the program runs these commands: approve, capabilities, check, compare, decide, decision rests, decision why, derive, diff, document, extract, facts, gaps, generate, guide, help, idioms, idioms diff, init, log, log test-run, mcp, merge, model, plan, run, skill, try, upgrade, validate, version.
 
 ## 2. Finding your way
 
@@ -4674,6 +4674,103 @@ On standard error: A usage message on a usage error, and the reason on a path th
 | 0 | printed |   |
 | 2 | usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
+### specarch plan
+
+Propose, order and brief the work packages, and round-trip them with a tracker.
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065), and exits
+1 then. Reads the work-package records beside the specification as
+validate does (ADR-245, ADR-246).
+
+With no mode it proposes packages. Per release, earliest first, it
+takes the accepted requirements of that release that no package not
+withdrawn holds: each planned release, or the one `--release` names,
+which must have a record and then takes the accepted requirements
+that name no release as well. Requirements met by a common design
+element, a decision left aside, go into one group; groups that need
+each other through the reference graph are merged; the rest are
+ordered so a group comes after the package that builds what its
+elements need. Each is written as a record with status proposed
+under the next free WP number, with its release, a title, its
+requirements, after and why. It prints the requirements it left out
+and why, then one line per package proposed: its ID, requirements,
+after and title. A release with nothing to plan says so.
+
+With `--next` it prints the first package by ID that is planned or
+ready, whose after packages are each done or withdrawn and whose
+readiness check (the reasons work_package_not_ready names and
+work_package_order) finds nothing: its title, release, status,
+assignee, requirements and after, and the brief command. When none
+can start it prints each candidate with what it waits on.
+
+With `--brief <package>` it prints one page in Markdown: whether the
+package can start and why not, its requirements with their acceptance
+criteria, the design elements that meet them, the tests that verify
+them, the goals the needs of its requirements serve, the out-of-scope
+entries that rule out one of those needs and the others by ID, the
+quality goals in rank order, and what it changes in operation: the
+settings, migrations, jobs, processes and monitors it builds or
+reaches.
+
+With `--export csv` or `--export json` it prints every package for a
+tracker: id, title, release, status, assignedTo, estimatedHours,
+spentHours, after and requirements; a CSV list of IDs sits in one
+cell separated by a comma and a space, a JSON list is an array.
+
+With `--import <file>`, a .csv or .json file as the export writes it,
+it writes into each record what the tracker owns and the file
+changes: status, assignedTo and effort, an empty cell taking the key
+out, the record's other keys and comments kept; it prints one line
+per record written with each change. It warns, one line each with the
+file and row first, at a title, release, after or requirements the
+file changes (naming both values; the record keeps its own), at a
+status that is not a work package's, at hours that are not a positive
+number, at a row with no ID, a repeated ID or an ID with no record,
+and at a column it does not read.
+
+**Insight:** The project manager plans with packages, the analyst answers questions, QA tests a package as it lands and DevOps reads what it changes in operation; all of it is in the specification and the records already, so the command reads it there instead of asking for a second plan. The tracker keeps what changes daily, the specification what defines the work, and a change on the wrong side is said, never taken.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.3.1: The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned. <https://www.iso.org/standard/63712.html>
+
+```
+specarch plan <folder> [--release <release>] [--next] [--brief <brief>] [--export <export>] [--import <import>] [--dry-run]
+```
+
+Anyone who has the program runs it.
+
+| Argument | What to give | Required |
+|---|---|---|
+| `<folder>` | The folder holding the specification. | yes |
+
+| Option | What it does | Required |
+|---|---|---|
+| `--release <release>` | The release to propose packages for, one with a record; its accepted requirements and those naming no release are planned. |  |
+| `--next` | Print the first planned or ready package that can start now, or what each waits on. |  |
+| `--brief <brief>` | Print one package's brief, by its ID, for whoever takes it. |  |
+| `--export <export>` | Print every package for a tracker, as csv or json. One of: csv, json. |  |
+| `--import <import>` | Read a tracker file, .csv or .json as the export writes it, and write back the status, assignee and effort it changes. |  |
+| `--dry-run` | Propose or import as usual and write nothing; list each record it would write as would write <path>. |  |
+
+It reads:
+
+- `{folder}`: The specification and its implementation files, and the records beside it: work packages, releases and test runs.
+- `{import}`: The tracker file, for --import.
+
+It writes:
+
+- `records/work-packages/WP-<n>.yaml`: Each package proposed, under the next numbers, refused when a file of that name exists; with --import, each record whose status, assignee or effort the file changes.
+
+On standard output: The errors of an invalid specification; then the requirements left out and one line per package proposed, or the next package or what each waits on, or the brief, or the export, or one line per record the import writes and one per warning.
+
+On standard error: A usage message on a usage error, the reason a refusal, and one line saying how many records were written.
+
+| Exit status | It means | What to do |
+|---|---|---|
+| 0 | done; for --next, a package can start |   |
+| 1 | refused (a release with no record, a package with no record), no package can start for --next, or the specification has errors | Read what standard output or standard error names: record the release, give the ID of a package it lists, settle what each package waits on, or run specarch validate and settle the errors. |
+| 2 | usage error, a folder or tracker file that could not be read, or a record that could not be written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+
 ### specarch run
 
 Run a test package against its environment and write the results as JUnit XML.
@@ -5147,6 +5244,7 @@ Every source a Note in this document cites.
 |---|---|---|---|---|
 | adr-nygard | Documenting architecture decisions | 2011 | Michael Nygard | https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions |
 | arc42 | arc42, the template for architecture documentation | 8.2 | Gernot Starke and Peter Hruschka | https://arc42.org/overview |
+| iso-12207 | ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes | 2017 | ISO, IEC and IEEE | https://www.iso.org/standard/63712.html |
 | iso-29119-3 | ISO/IEC/IEEE 29119-3, Software and systems engineering, Software testing, Part 3, Test documentation | 2021 | ISO, IEC and IEEE | https://www.iso.org/standard/79429.html |
 | iso-29148 | ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering | 2018 | ISO, IEC and IEEE | https://www.iso.org/standard/72089.html |
 | protoc-plugins | Protocol buffers compiler plug-in protocol, plugin.proto | 2024 | The protocol buffers project | https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/compiler/plugin.proto |

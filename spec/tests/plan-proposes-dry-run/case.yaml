@@ -1,0 +1,12 @@
+arguments: [plan, --dry-run, project]
+exitStatus: 0
+standardOutput: |
+  Release 1.0.0: left out, since only an accepted requirement is planned: CASE-4 (proposed).
+  WP-2: CASE-2; after WP-1; Build entities Loan, configuration loanDays and migrations add-due-date
+  would write records/work-packages/WP-2.yaml
+  WP-3: CASE-3; after WP-2; Build entities Fine
+  would write records/work-packages/WP-3.yaml
+  WP-4: CASE-5, CASE-6; Build entities Shelf and entities Branch
+  would write records/work-packages/WP-4.yaml
+  WP-5: CASE-7; after WP-1; Build entities Holding
+  would write records/work-packages/WP-5.yaml

@@ -1,0 +1,5 @@
+{
+  "workPackages": [
+    { "id": "WP-2", "title": "Lend a book", "release": "1.0.0", "status": "finished", "assignedTo": "", "estimatedHours": null, "spentHours": -3, "after": ["WP-1"], "requirements": ["CASE-2", "CASE-3"] }
+  ]
+}

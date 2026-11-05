@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "a done package and a planned package with an assignee and an estimate, and a tracker CSV that leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read"
+when: "plan --import is run with the CSV"
+then: "it writes the status, assignee and estimate into the planned package's record, its comment, key order and other keys kept, warns at the release and after with both values, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0"
+verifies: [SA-145]

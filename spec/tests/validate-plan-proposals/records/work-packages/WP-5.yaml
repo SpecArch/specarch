@@ -1,0 +1,10 @@
+# Proposed by specarch plan. Accept it by setting status to planned, or split or merge it first.
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-5
+release: 1.1.0
+title: Build entities Holding
+requirements: [CASE-7]
+after: [WP-1]
+status: proposed
+why: 'Proposed by specarch plan: the requirement met by entities Holding, after the packages that build what it needs.'

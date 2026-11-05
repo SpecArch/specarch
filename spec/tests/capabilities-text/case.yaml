@@ -100,6 +100,10 @@ standardOutput: |
         Merge the partial specifications the readers wrote into one.
     specarch model <paths>...
         Print the specifications as one JSON document, for a program.
+    specarch plan <folder> [--release <release>] [--next] [--brief <brief>]
+      [--export <export>] [--import <import>] [--dry-run]
+        Propose, order and brief the work packages, and round-trip them with a
+        tracker.
     specarch run <package> [--results <results>] [--base-url <base-url>]
       [--server <server>] [--callers <callers>] [--setup <setup>] [--dry-run]
         Run a test package against its environment and write the results as

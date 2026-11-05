@@ -394,6 +394,14 @@ Error codes of --json:
   exit 0: printed
   exit 2: usage error, a path could not be read, or a folder holds no
   specification, no implementation file and no estate
+- `specarch plan <folder> [--release <release>] [--next] [--brief <brief>] [--export <export>] [--import <import>] [--dry-run]`
+  Propose, order and brief the work packages, and round-trip them with a
+  tracker.
+  exit 0: done; for --next, a package can start
+  exit 1: refused (a release with no record, a package with no record), no
+  package can start for --next, or the specification has errors
+  exit 2: usage error, a folder or tracker file that could not be read, or a
+  record that could not be written
 - `specarch run <package> [--results <results>] [--base-url <base-url>] [--server <server>] [--callers <callers>] [--setup <setup>] [--dry-run]`
   Run a test package against its environment and write the results as JUnit
   XML.
@@ -471,6 +479,7 @@ Protocol.
 - [mcp](references/mcp.md): Serve every command as a tool of the Model Context Protocol, over standard input and output.
 - [merge](references/merge.md): Merge the partial specifications the readers wrote into one.
 - [model](references/model.md): Print the specifications as one JSON document, for a program.
+- [plan](references/plan.md): Propose, order and brief the work packages, and round-trip them with a tracker.
 - [run](references/run.md): Run a test package against its environment and write the results as JUnit XML.
 - [skill](references/skill.md): Write an agent skill for SpecArch, in the Agent Skills format, from the program's own command definitions.
 - [try](references/try.md): Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step.

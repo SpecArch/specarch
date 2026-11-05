@@ -1,0 +1,12 @@
+# Lending, split from the first plan.
+specarchRecord: "1.0.0"
+kind: work-package
+id: WP-2
+release: 1.0.0
+title: Lend a book
+requirements: [CASE-2]
+after: [WP-1]
+assignedTo: sam
+status: in-progress
+effort: {estimatedHours: 16}
+why: Lending needs the member of WP-1.

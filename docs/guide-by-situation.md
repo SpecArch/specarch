@@ -623,6 +623,15 @@ idioms:
       background-jobs 1.0.0: shipped
     ... 12 more idioms, then the JavaScript, Swift and TypeScript files
 
+**Splitting the work.** `specarch plan spec` proposes work packages for the
+accepted requirements of a planned release, in the order of the reference
+graph, as records with status `proposed`; a project manager accepts,
+splits or merges them. `specarch plan --next spec` names the package that
+can start now, `specarch plan --brief WP-3 spec` prints the page a
+programmer or an agent works from, and `--export csv` and `--import`
+round-trip the packages with a tracker, which owns the status, the
+assignee and the effort.
+
 **What to watch for.** A plug-in writes what its target covers, marks each
 entry it could not write at its place, and names what it never writes; the
 rest is written by hand, in files the target does not write, since

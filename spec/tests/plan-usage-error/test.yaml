@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: red
+covers: [usage error, exit 2]
+given: "a specification"
+when: "plan is run with both --next and --export"
+then: "it prints that it takes one mode at a time and the usage, and exits 2"
+verifies: [SA-143]

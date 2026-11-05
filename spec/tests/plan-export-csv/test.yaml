@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "a done package with its effort and a planned package whose title holds commas"
+when: "plan --export csv is run"
+then: "it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, the title quoted and each list in one cell, and exits 0"
+verifies: [SA-145]

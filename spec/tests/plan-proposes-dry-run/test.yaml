@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: plan
+level: system
+scenario: golden
+given: "the specification and records of plan-proposes"
+when: "plan --dry-run is run"
+then: "it prints the same proposals and would write for each record, writes nothing and exits 0"
+verifies: [SA-143]

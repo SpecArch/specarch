@@ -1,0 +1,7 @@
+arguments: [plan, --next, project]
+exitStatus: 1
+standardOutput: |
+  No work package can start now: 2 packages are planned or ready, and each waits.
+
+  - WP-3, Fine a late loan: it comes after WP-2, which is in-progress
+  - WP-4, Remind a member: requirement CASE-4 is proposed, not accepted; requirement CASE-4 has no acceptance criteria

@@ -42,3 +42,47 @@ requirements:
     verification: test
     needs: [NEED-5, NEED-10]
     why: The project manager reads per package what is done, in progress or blocked and by what, and QA tests each package as it lands; a specification without work packages keeps the documents it had (ADR-242, ADR-245).
+  SA-143:
+    statement: specarch plan shall propose work packages for the accepted requirements of a planned release (or of the release --release names, with the accepted requirements that name no release) that no package not withdrawn holds, grouping requirements met by a common design element, merging groups that need each other and ordering the rest by the reference graph so a package comes after the packages that build what its elements need, and write each as a work-package record with status proposed under the next free ID; and specarch plan --next shall print the first package by ID that is planned or ready, whose after packages are done or withdrawn and that neither work_package_not_ready nor work_package_order would warn of, or each candidate with what it waits on when none can start.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - plan on a specification whose planned release has accepted requirements no package holds writes one proposed record per group, a package after the package that builds the entity its path names, and the records it writes validate with no work-package warning but work_package_unconfigured.
+      - Two groups whose elements name each other are proposed as one package, and no proposal names a release other than its requirements'.
+      - A requirement that is proposed, rejected or held by a package not withdrawn is not planned, and the ones left out are named.
+      - plan --next prints the first planned or ready package that can start with its brief command, and, when none can, each candidate with what it waits on, and exits 1.
+      - With --dry-run nothing is written and each record is listed as would write.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: A project manager starts from the requirements and the design, not from an empty tracker, and the order is already in the reference graph the diagrams draw; proposing from it and checking readiness with the validator's own rules answers who takes what next, and whether they can start now (ADR-242, ADR-246).
+    cites:
+      - source: iso-12207
+        clause: "6.3.1"
+        says: "The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned."
+  SA-144:
+    statement: specarch plan --brief shall print one page for a work package that a programmer or an agent can work from alone - whether it can start and why not, its requirements with their acceptance criteria, the design elements that meet them, the tests that verify them, the goals its requirements' needs serve, the out-of-scope entries that rule out one of those needs and the others by ID, the quality goals in rank order, and for DevOps the settings, migrations, jobs, processes and monitors it adds or reaches.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - plan --brief on a package prints each section, naming the elements, tests, goals, out-of-scope entries, quality goals and operation changes the specification links to its requirements, and exits 0.
+      - plan --brief on an ID with no work-package record names the packages there are and exits 1.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: Whoever takes a package should not have to walk the satisfy, verify and needs links by hand, and the same page serves a person and an agent; DevOps sees what a package changes in operation before it lands (ADR-242, ADR-246).
+  SA-145:
+    statement: specarch plan --export shall write every work package for a tracker as CSV (RFC 4180, a list of IDs in one cell separated by commas) or JSON on standard output, and specarch plan --import shall read such a file back and write into each record only what the tracker owns - status, assignedTo and effort - warning, with both values, at a field the specification owns (title, release, after, requirements) that the file changes, at a status or hours that are not valid, at a row naming no package, and at a column it does not read.
+    kind: functional
+    priority: must
+    status: proposed
+    acceptance:
+      - plan --export csv and --export json write one row or object per package with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements.
+      - plan --import of a file changing a package's status, assignee and hours writes them into the record, its other keys and comments kept, and a file changing its release or after is warned with both values and leaves them as they were.
+      - A row naming no package, a status not of a work package and hours that are not a positive number are warned and nothing of them is written.
+    verification: test
+    needs: [NEED-5, NEED-10]
+    why: The project manager keeps the tracker they already use; each side wins on its own fields and a change on the wrong side is said, never taken silently, so the plan does not drift (ADR-242, ADR-246).
+    cites:
+      - source: rfc-4180
+        says: "Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes."

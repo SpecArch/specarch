@@ -130,6 +130,7 @@ var commandFiles = map[string][]string{
 	"idioms.go":      {"idioms", "idioms diff"},
 	"merge.go":       {"merge"},
 	"model.go":       {"model"},
+	"plan.go":        {"plan"},
 	"upgrade.go":     {"upgrade"},
 	"try.go":         {"try"},
 	"problems.go":    {"document"},

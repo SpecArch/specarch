@@ -1,0 +1,9 @@
+specarchImplementation: "1.0.0"
+info: { title: Case in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+deployments:
+  production:
+    description: The library's hosts.
+    environment: production
+    configuration: { loanDays: 21 }

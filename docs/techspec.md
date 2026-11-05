@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.6.0 of the specification: 139 requirements, 5 entities, 30 commands, 7 algorithms, 1065 tests, 228 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.6.0 of the specification: 142 requirements, 5 entities, 31 commands, 7 algorithms, 1078 tests, 229 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -145,6 +145,7 @@ The interfaces the system offers, as its clients see them.
 | mcp | Serve every command as a tool of the Model Context Protocol, over standard input and output | public | 0: standard input ended; 2: usage error, --json given, or standard input or output that could not be read or written |
 | merge | Merge the partial specifications the readers wrote into one | public | 0: the merged specification was written; 1: a tree could not be merged: it does not track origin, validate reports an error in it, it holds implementation files or records or a test that is not the draft derive writes for it, or it declares a source another tree declares differently, or whose paths changed after the commit a tree read them at; or a vocabulary that is not one this build reads; 2: usage error, fewer than two trees, two vocabularies of one language, or a folder or file that could not be read or written |
 | model | Print the specifications as one JSON document, for a program | public | 0: printed; 2: usage error, a path could not be read, or a folder holds no specification, no implementation file and no estate |
+| plan | Propose, order and brief the work packages, and round-trip them with a tracker | public | 0: done; for --next, a package can start; 1: refused (a release with no record, a package with no record), no package can start for --next, or the specification has errors; 2: usage error, a folder or tracker file that could not be read, or a record that could not be written |
 | run | Run a test package against its environment and write the results as JUnit XML | public | 0: the results are written and no case failed or errored; a skipped case does not change the status; 1: the results are written and a case failed or errored; 2: usage error, a package, callers file or setup program that could not be read or found, no server chosen, or a results file that could not be written |
 | skill | Write an agent skill for SpecArch, in the Agent Skills format, from the program's own command definitions | public | 0: written, or with --check the skill on disk is current; 1: with --check, a file differs, is missing or is not the skill's; 2: usage error, a folder specarch under --out that this command did not write, or a file that could not be read or written |
 | try | Evaluate an algorithm, or the mappings of an operation's calls, on their worked examples and print each step | public | 0: every evaluation is computed and every example evaluated holds; 1: refused, the algorithm, the operation or the example is not the specification's, a name is both an algorithm's and an operation's, --inputs or --file is given with an operation, or the formula does not check or the table cannot be read; or a rule no inputs reach, or an example fails, cannot be computed or cannot be read; or the specification has errors; 2: usage error, or a folder or file that could not be read |
@@ -5162,6 +5163,93 @@ sequenceDiagram
   P->>F: read {paths}
   P->>F: read each estate's modules, at their location
   P-->>U: exit status 0, 2
+```
+
+### Command plan
+
+Validates its input first and prints the errors of an invalid
+specification, then works on what could be read (ADR-065), and exits
+1 then. Reads the work-package records beside the specification as
+validate does (ADR-245, ADR-246).
+
+With no mode it proposes packages. Per release, earliest first, it
+takes the accepted requirements of that release that no package not
+withdrawn holds: each planned release, or the one `--release` names,
+which must have a record and then takes the accepted requirements
+that name no release as well. Requirements met by a common design
+element, a decision left aside, go into one group; groups that need
+each other through the reference graph are merged; the rest are
+ordered so a group comes after the package that builds what its
+elements need. Each is written as a record with status proposed
+under the next free WP number, with its release, a title, its
+requirements, after and why. It prints the requirements it left out
+and why, then one line per package proposed: its ID, requirements,
+after and title. A release with nothing to plan says so.
+
+With `--next` it prints the first package by ID that is planned or
+ready, whose after packages are each done or withdrawn and whose
+readiness check (the reasons work_package_not_ready names and
+work_package_order) finds nothing: its title, release, status,
+assignee, requirements and after, and the brief command. When none
+can start it prints each candidate with what it waits on.
+
+With `--brief <package>` it prints one page in Markdown: whether the
+package can start and why not, its requirements with their acceptance
+criteria, the design elements that meet them, the tests that verify
+them, the goals the needs of its requirements serve, the out-of-scope
+entries that rule out one of those needs and the others by ID, the
+quality goals in rank order, and what it changes in operation: the
+settings, migrations, jobs, processes and monitors it builds or
+reaches.
+
+With `--export csv` or `--export json` it prints every package for a
+tracker: id, title, release, status, assignedTo, estimatedHours,
+spentHours, after and requirements; a CSV list of IDs sits in one
+cell separated by a comma and a space, a JSON list is an array.
+
+With `--import <file>`, a .csv or .json file as the export writes it,
+it writes into each record what the tracker owns and the file
+changes: status, assignedTo and effort, an empty cell taking the key
+out, the record's other keys and comments kept; it prints one line
+per record written with each change. It warns, one line each with the
+file and row first, at a title, release, after or requirements the
+file changes (naming both values; the record keeps its own), at a
+status that is not a work package's, at hours that are not a positive
+number, at a row with no ID, a repeated ID or an ID with no record,
+and at a column it does not read.
+
+**Insight:** The project manager plans with packages, the analyst answers questions, QA tests a package as it lands and DevOps reads what it changes in operation; all of it is in the specification and the records already, so the command reads it there instead of asking for a second plan. The tracker keeps what changes daily, the specification what defines the work, and a change on the wrong side is said, never taken.
+
+**Note:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.3.1: The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned. <https://www.iso.org/standard/63712.html>
+
+| Argument or option | Type | Required | Description |
+|---|---|---|---|
+| `<folder>` | string | yes | The folder holding the specification. |
+| `--release` | string |   | The release to propose packages for, one with a record; its accepted requirements and those naming no release are planned. |
+| `--next` | bool |   | Print the first planned or ready package that can start now, or what each waits on. |
+| `--brief` | string |   | Print one package's brief, by its ID, for whoever takes it. |
+| `--export` | string |   | Print every package for a tracker, as csv or json. |
+| `--import` | string |   | Read a tracker file, .csv or .json as the export writes it, and write back the status, assignee and effort it changes. |
+| `--dry-run` | bool |   | Propose or import as usual and write nothing; list each record it would write as would write <path>. |
+
+Reads `{folder}`: The specification and its implementation files, and the records beside it: work packages, releases and test runs; `{import}`: The tracker file, for --import.
+
+Writes `records/work-packages/WP-<n>.yaml`: Each package proposed, under the next numbers, refused when a file of that name exists; with --import, each record whose status, assignee or effort the file changes.
+
+Standard output: The errors of an invalid specification; then the requirements left out and one line per package proposed, or the next package or what each waits on, or the brief, or the export, or one line per record the import writes and one per warning.
+
+Standard error: A usage message on a usage error, the reason a refusal, and one line saying how many records were written.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant P as SpecArch toolchain
+  participant F as Files
+  U->>P: plan <folder>
+  P->>F: read {folder}
+  P->>F: read {import}
+  P->>F: write records/work-packages/WP-<n>.yaml
+  P-->>U: exit status 0, 1, 2
 ```
 
 ### Command run
@@ -19450,6 +19538,95 @@ work_package_not_ready nor work_package_order.
 
 **Insight:** One way to say one thing (docs/principles.md): a record's reference to what does not exist is record_ref wherever it stands, and effort already has a shape the progress report reads (ADR-237). A cycle makes the plan impossible to follow, so it is an error, as a decision chain that rests on itself is; everything else is a plan that can still be followed with care, so it is a warning, and nothing refuses a specification for a plan (the compiler rule of ADR-242). A withdrawn package is no longer part of the delivery, so a warning about it, or because of it, would ask for work nobody plans. The order rule reads the same graph the diagrams draw, so what the analyst sees linked is what the rule judges; leaving out the meets links keeps an element from needing its own requirement. Warning an element no package builds would warn every package of a plan made one package at a time, while the progress report already lists it as unplanned. Any open question counts against ready because QA's entry criterion is that nothing about the work is undecided, whatever its priority. Any passed result counts as a passing run, since a later failure is the test-run document's to show and a done package is reopened by setting its status, not by the validator guessing which run is the current one. A secret's value never stands in a deployment (the validator refuses it as secret_value) and a default is a value, so neither is warned; before any deployment gives a value, the implementation is not yet written down and every setting would warn. New sections only where packages exist keep the promise that a specification without them reads as it did.
 
+### ADR-246: Intent phase 3 builds specarch plan - proposals for the accepted requirements of a planned release that no live package holds, grouped by a common built element and ordered by the reference graph with mutually needing groups merged; --next by the validator's own readiness and order checks; --brief and --export on standard output; --import by the file's ending, writing only status, assignedTo and effort and warning on the command's output, not in the problems file
+
+Status: accepted, 2026-11-05.
+
+Rests on: [ADR-242](#adr-242-a-specification-states-its-intent-in-the-requirements-stage-a-problem-measured-goals-what-is-out-of-scope-and-quality-goals-in-rank-order-the-work-is-split-into-work-package-records-beside-the-release-records-each-naming-requirements-only-and-specarch-plan-proposes-orders-and-briefs-the-packages-and-round-trips-them-with-a-tracker-every-new-rule-is-a-warning-never-a-refusal), [ADR-245](#adr-245-intent-phase-2-builds-the-work-package-record-kind-work-package-in-recordswork-packages-its-effort-in-the-change-records-shape-assignedto-a-free-name-its-references-under-record_ref-work_package_cycle-as-an-error-at-each-link-on-the-cycle-six-warnings-held-to-live-packages-only-and-read-from-the-designs-reference-graph-the-test-run-records-and-the-deployments-and-the-work-packages-section-of-document-progress-and-the-tests-by-work-package-section-of-the-test-plan-both-only-once-a-package-is-recorded).
+
+Quality goals weighed, highest rank first: QG-1 (rank 1, functional-suitability), QG-2 (rank 2, interaction-capability).
+
+Alternatives not taken: Propose for proposed requirements too: It plans earlier, but a requirement not yet accepted may still
+change or be rejected, and a package built on it is the work the
+readiness check would stop anyway. One package per element, or per requirement: Per element splits one requirement across packages, which
+work_package_overlap warns; per requirement leaves two requirements
+on one entity to two people who change the same code. Write the brief and the export to files under --out: It saves a redirect, but adds a file layout and a --check to keep
+current for pages that are read once and handed over. The import's warnings in the problems file, as rules: The problems file is what validate finds in the specification and
+its records; the tracker file is not one of them, and a rule that
+only one command can raise would be a rule validate never shows. Let the tracker add packages on import: The specification owns the scope (ADR-242, decision 2); a package
+made in the tracker names no requirement the specification has
+checked, so it is warned and proposed or written as a record.
+
+Context: ADR-242 designs specarch plan (proposals, --next, --brief, --export
+and --import, the ownership split between the specification and the
+tracker) and ADR-245 builds the record and its rules. Building the
+command raised forks neither settles: which requirements a proposal
+takes, how requirements are grouped and what happens when groups
+need each other, which packages --next considers, where the brief and
+the export go, how a list sits in a CSV cell, how the import tells
+CSV from JSON, and where a field changed on the wrong side is warned.
+
+Decision: 1. plan proposes for the requirements document progress lists as
+   unplanned: accepted, of a planned release, held by no package that
+   is not withdrawn. --release names one release, which must have a
+   record, and takes with its own requirements the accepted ones that
+   name no release, since such a requirement takes its package's
+   (ADR-245); without it, those are named as left out. A requirement
+   that is not accepted is named as left out too. Each release is
+   proposed on its own, earliest first, so no proposal mixes releases.
+2. Requirements met by a common element go into one group; a
+   decision that satisfies a requirement explains it and builds
+   nothing, so it groups nothing. A requirement no element meets is a
+   group of its own. A group comes after the package that builds an
+   element its elements need (ModelReferences without satisfies,
+   verifies and decidedIn, as work_package_order reads them): a
+   recorded package not withdrawn first, then a package proposed for
+   an earlier release, then a group of the same release. Groups that
+   need each other, directly or through others, are merged into one,
+   and the rest are ordered so a group comes after the groups it
+   needs, the group whose first requirement comes first in the
+   specification first. Each takes the next free WP number, in that
+   order, with status proposed, a title naming at most three of the
+   elements it builds and a why saying how it was grouped.
+3. --next considers the packages that are planned or ready, by ID as
+   gaps orders IDs (WP-2 before WP-10), and prints the first whose
+   after packages are each done or withdrawn and whose readiness
+   check finds nothing: the reasons work_package_not_ready names,
+   read from the same code whatever the package's status, and the
+   elements work_package_order warns of. When none can start it
+   prints each candidate with what it waits on and exits 1.
+4. --brief and --export print on standard output, as gaps and
+   decision do; the caller redirects them where it wants them. The
+   brief is the same page for a person and an agent.
+5. The export's columns are id, title, release, status, assignedTo,
+   estimatedHours, spentHours, after and requirements. A CSV is RFC
+   4180, a list of IDs in one cell separated by a comma and a space;
+   a JSON export holds workPackages, its lists as arrays and the
+   hours as numbers or null.
+6. --import reads a file ending in .csv or .json, as the export
+   writes it. A column it does not read is named once; a column left
+   out is no opinion. It writes into each record status, assignedTo
+   and effort when the file changes them, the record's other keys,
+   their order and its comments kept, and an empty cell takes the key
+   out. It warns, and writes nothing of that field, at a title,
+   release, after or requirements the file changes (naming both
+   values), at a status that is not a work package's, at hours that
+   are not a positive number, at a row with no ID, a second row of an
+   ID and an ID with no record.
+7. The import's warnings are lines on its own standard output, the
+   file and row they are at first, and exit 0: the validator reads no
+   tracker file, so the problems file cannot hold them, and a plan is
+   never refused (ADR-242).
+
+Consequences: A specification with no work-package record proposes, exports an
+empty list and imports nothing. A project manager runs plan, accepts
+or reshapes the proposals, exports them to the tracker and imports the
+tracker's statuses back; whoever takes a package reads its brief.
+Proposals for a specification whose requirements name no release
+need --release, so a release record comes first.
+
+**Insight:** One definition of an unplanned requirement (document progress, ADR-245) keeps the report and the proposal from disagreeing on what is left to plan. Grouping by a common built element puts the work on one entity, path or page in one pair of hands, which is what "requirements that satisfy the same subject" means; a decision is reasoning, and grouping by it would merge every requirement one design decision explains. Merging groups that need each other is the only order that a cycle allows without proposing a work_package_cycle, which is an error. --next reads the validator's own checks so that what it calls ready is what validate would accept as ready, and a proposed package is a suggestion nobody has accepted, so it is not taken next. Standard output keeps the command free of a file layout the analyst did not choose. The ending decides the format because a tracker's export names its own file and both formats are the export's own. A field changed on the wrong side is said with both values and never taken, so the plan does not drift and nothing is silently dropped (docs/principles.md, the compiler).
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -20082,6 +20259,18 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | model-tenant-rules | command model | system | golden | a specification on 0.3 whose tenant scope names organisationId as property and key and Country as shared, a member with its own rules over Organisation and Loan, and staff with its own rule over Organisation only | model is run on it | the document holds the rule organisationId == caller.organisationId under the rows of staff for Loan, at the position of tenant, keeps the member's own rule over Loan, derives nothing for Country or Organisation, and exits 0 |
 | model-usage-error | command model | system | red | no folder or file | model is run with no argument | it prints how to use it and exits 2 |
 | model-writes-json | command model | system | golden | a specification with a requirement, an entity, a permission, a role, an operation, a channel carried by a dependency, two tests, an implementation file that names an operation, an element the specification lacks and a server that is the dependency, and a folder that is not a stage | model is run on it | it prints one JSON document in canonical form with the merged document, the position of every node, the references that resolve and the keyword of each, the layout problem of the folder, and the implementation file with its two resolved references, and exits 0 |
+| plan-brief | command plan | system | golden | a planned package holding the loan and fine requirements, met by entities, a setting and a migration and verified by tests and a monitor, whose needs serve a goal another need ruled out of scope also serves, with quality goals written out of rank order | plan --brief is run for the package | it prints that it can start, each requirement with its acceptance criteria, the elements and the tests, the goal, the out-of-scope entry near it and the other by ID, the quality goals in rank order, and the setting, migration and monitor it changes in operation, and exits 0 |
+| plan-brief-unknown | command plan | system | red | a specification with one work package, WP-1 | plan --brief is run for WP-9 | it refuses, naming WP-1, and exits 1 |
+| plan-export-csv | command plan | system | golden | a done package with its effort and a planned package whose title holds commas | plan --export csv is run | it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, the title quoted and each list in one cell, and exits 0 |
+| plan-export-json | command plan | system | golden | a done package with its effort and a planned package whose title holds commas | plan --export json is run | it prints both packages with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements, each list an array and missing hours null, and exits 0 |
+| plan-import | command plan | system | golden | a done package and a planned package with an assignee and an estimate, and a tracker CSV that leaves the done package as it is, moves the planned one in progress to another assignee with a new estimate while changing its release and after, names a package with no record, has a row with no ID, repeats an ID and has a column plan does not read | plan --import is run with the CSV | it writes the status, assignee and estimate into the planned package's record, its comment, key order and other keys kept, warns at the release and after with both values, at the unknown package, the row with no ID, the repeated ID and the column, leaves the done package's record as it was, and exits 0 |
+| plan-import-json | command plan | system | golden | a planned package with an assignee and an estimate, and a tracker JSON file that empties its assignee and estimate, gives a status that is not a work package's and negative spent hours, and adds a requirement | plan --import is run with the JSON file | it takes the assignee and the estimate out of the record, keeps its status and writes no spent hours, warning at each with both values, warns at the requirements with both values, and exits 0 |
+| plan-next | command plan | system | golden | a done package, a planned package after it whose requirement is accepted with acceptance criteria and no open question, and a planned package after that one | plan --next is run | it prints the package after the done one, with its release, status, assignee, requirements, after and the brief command, and exits 0 |
+| plan-next-none | command plan | system | red | a package in progress, a planned package after it, a ready package whose requirement is proposed with no acceptance criteria, and a proposed package | plan --next is run | it prints that no package can start and, for each planned or ready package, what it waits on, leaves out the proposed package, and exits 1 |
+| plan-proposes | command plan | system | golden | a specification with planned releases 1.0.0 and 1.1.0, a done package holding the member requirement, accepted requirements met by a loan entity that needs the member, a fine entity that needs the loan, a shelf and a branch entity that need each other, a proposed requirement, and an accepted requirement of 1.1.0 | plan is run | it writes proposed packages for 1.0.0 in order, the loan after the done package, the fine after the loan, the shelf and the branch in one package, then one for 1.1.0 after the done package, names the proposed requirement as left out, and exits 0 |
+| plan-proposes-dry-run | command plan | system | golden | the specification and records of plan-proposes | plan --dry-run is run | it prints the same proposals and would write for each record, writes nothing and exits 0 |
+| plan-release-unknown | command plan | system | red | a specification with release records 1.0.0 and 1.1.0 | plan --release 2.0.0 is run | it refuses, naming the release records there are, writes nothing and exits 1 |
+| plan-usage-error | command plan | system | red | a specification | plan is run with both --next and --export | it prints that it takes one mode at a time and the usage, and exits 2 |
 | run-package-no-answer | command run | system | red | a test package with one server and one public case whose server does not answer | run is run on it with --results and no --base-url | it sends the request to the package's one server, gets no answer, writes the case as an error naming the request and what the client said, prints the case as errored, and exits 1 |
 | run-package-servers | command run | system | red | a test package whose environment has two servers that answer requests | run is run on it with --results and neither --base-url nor --server | it names both servers with their deployment and address, says to choose one with --server or give --base-url, makes no request, writes nothing and exits 2 |
 | run-package-skips | command run | system | golden | the test package of a kept note, whose cases each sign in as a role, need a record in place or cannot run from outside, and no callers file or setup program | run is run on it with --base-url and --results results/acceptance.xml | it makes no request, writes results/acceptance.xml as JUnit XML with one testcase per case, named as the case, each skipped with its reason (the role --callers does not give, the records and --setup, or the package's own reason), prints the test the package holds back and the counts, and exits 0 |
@@ -20344,6 +20533,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-permission-undeclared | command validate | system | red | an operation whose permission is not declared | validate is run | it reports permission_undeclared and exits 1 |
 | validate-permission-ungranted | command validate | system | red | a declared permission that no role grants | validate is run | it reports permission_ungranted and exits 1 |
 | validate-permission-ungranted-without-description | command validate | system | red | a declared permission that no role grants and that has no description, with a must question that blocks its description, as an extracted tree writes it | validate is run | the missing description is covered by the question, and it still reports permission_ungranted and exits 1 |
+| validate-plan-proposals | command validate | system | golden | the specification and records of plan-proposes with the packages plan proposed for it | validate is run | it warns no work_package rule at the proposed packages: no order, overlap, release or cycle, and exits 0, in the Go build and the Swift build alike |
 | validate-processes-must-question | command validate | system | golden | a scheduled process with no job and no time, and a process restarted on failure with no limit, each key asked for by an open must question, as extract systemd writes them | validate is run | it reports no process error, since each waits for its question's answer, lists the two questions, and exits 0 |
 | validate-processes-refused | command validate | system | red | processes on the lean profile that name a job, a setting and a monitor that do not exist, run a job another process runs, write a time while they run always, while they run jobs or twice, write none while scheduled with no job, run a consumer while scheduled or on demand, are restarted with no limit, write restart keys while never restarted, never restart on a status they lack, and one given up after its limit with no monitor | validate is run | it reports each as process at its key, the process with no monitor as a process warning, derives no permission or caller case for any process, and exits 1 |
 | validate-processes-should-question | command validate | system | red | the same two processes, each key asked for by an open should question | validate is run | it reports the process error at each, since only a must question holds an error, and exits 1 |
@@ -20697,6 +20887,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-140 | A specification shall keep beside it, as records in records/work-packages/, each work package of the delivery - its ID, its release, a title, the requirements it holds by ID (its only content), the packages it comes after, the person or team it is assigned to, its status (proposed, planned, ready, in-progress, done, withdrawn), its effort in the change record's shape and why - and specarch validate shall report, in both builds, a requirement that is not one of the specification or is named by pointer, a release with no record and a package with no record as record_ref at the entry, and a chain of after links that comes back to its package as work_package_cycle, an error at each link on the cycle naming the chain. | functional | must | proposed | test | A work-package record whose requirements, release and after resolve validates with no error, and a specification with no work-package record reads as before. Two packages that come after each other are each reported work_package_cycle at their after link, a package after itself at its own, and validate exits 1. A requirement that is not one of the specification, a requirement named by pointer, a release with no record and a package with no record are record_ref at the entry. Both validator builds print the same lines for the same records. | NEED-5, NEED-10 |
 | SA-141 | specarch validate shall warn, at the work-package record and in the problems file, in both builds and never at a withdrawn package, work_package_order at a requirement whose satisfying element names an element that only packages outside the package's after chain build, work_package_overlap at a requirement two packages hold, work_package_release at a requirement whose release is not the package's, work_package_unconfigured at a requirement that adds a setting with no default that no deployment of an implementation file gives a value once any deployment gives one, work_package_not_ready at a package marked ready whose requirement is not accepted or has no acceptance criteria, whose satisfying element an open question blocks, or which warns work_package_order, and work_package_unverified at a package marked done with a golden or red test of its requirements that has no passed result in the test-run records. | functional | must | proposed | test | validate on records with each of the six gaps warns that rule at that entry, naming what to do, and exits 0. A done package whose tests all passed, a setting with a default or a secret, and a withdrawn package are not warned. Both validator builds print the same lines for the same records. | NEED-5, NEED-10 |
 | SA-142 | specarch document progress shall list, once a work-package record exists, each package with its release, status, assignee, the packages it comes after, its requirements, its effort and what blocks it, and the accepted requirements of a planned release that no package holds as unplanned; and specarch document testplan shall group the design tests by the work package whose requirements they verify, so a package is tested as it lands. | functional | must | proposed | test | document progress on a specification with work-package records writes a Work packages section with one row per package and the unplanned requirements named; without such a record it writes no such section. document testplan on a specification with work-package records writes a Tests by work package section with each package's requirements and the tests that verify them, and the tests no package covers; without such a record it writes no such section. A package that comes after a withdrawn package is not blocked by it. With --audience external, neither section names a requirement the document for everyone withholds. | NEED-5, NEED-10 |
+| SA-143 | specarch plan shall propose work packages for the accepted requirements of a planned release (or of the release --release names, with the accepted requirements that name no release) that no package not withdrawn holds, grouping requirements met by a common design element, merging groups that need each other and ordering the rest by the reference graph so a package comes after the packages that build what its elements need, and write each as a work-package record with status proposed under the next free ID; and specarch plan --next shall print the first package by ID that is planned or ready, whose after packages are done or withdrawn and that neither work_package_not_ready nor work_package_order would warn of, or each candidate with what it waits on when none can start. | functional | must | proposed | test | plan on a specification whose planned release has accepted requirements no package holds writes one proposed record per group, a package after the package that builds the entity its path names, and the records it writes validate with no work-package warning but work_package_unconfigured. Two groups whose elements name each other are proposed as one package, and no proposal names a release other than its requirements'. A requirement that is proposed, rejected or held by a package not withdrawn is not planned, and the ones left out are named. plan --next prints the first planned or ready package that can start with its brief command, and, when none can, each candidate with what it waits on, and exits 1. With --dry-run nothing is written and each record is listed as would write. | NEED-5, NEED-10 |
+| SA-144 | specarch plan --brief shall print one page for a work package that a programmer or an agent can work from alone - whether it can start and why not, its requirements with their acceptance criteria, the design elements that meet them, the tests that verify them, the goals its requirements' needs serve, the out-of-scope entries that rule out one of those needs and the others by ID, the quality goals in rank order, and for DevOps the settings, migrations, jobs, processes and monitors it adds or reaches. | functional | must | proposed | test | plan --brief on a package prints each section, naming the elements, tests, goals, out-of-scope entries, quality goals and operation changes the specification links to its requirements, and exits 0. plan --brief on an ID with no work-package record names the packages there are and exits 1. | NEED-5, NEED-10 |
+| SA-145 | specarch plan --export shall write every work package for a tracker as CSV (RFC 4180, a list of IDs in one cell separated by commas) or JSON on standard output, and specarch plan --import shall read such a file back and write into each record only what the tracker owns - status, assignedTo and effort - warning, with both values, at a field the specification owns (title, release, after, requirements) that the file changes, at a status or hours that are not valid, at a row naming no package, and at a column it does not read. | functional | must | proposed | test | plan --export csv and --export json write one row or object per package with the columns id, title, release, status, assignedTo, estimatedHours, spentHours, after and requirements. plan --import of a file changing a package's status, assignee and hours writes them into the record, its other keys and comments kept, and a file changing its release or after is warned with both values and leaves them as they were. A row naming no package, a status not of a work package and hours that are not a positive number are warned and nothing of them is written. | NEED-5, NEED-10 |
 
 **Insight on SA-31:** A test the specification implies is worth most when it runs; what differs between two projects in one language (how a caller signs in, how a record is stored, how a request is sent) is the harness, so the generated file needs nothing but it.
 
@@ -21012,6 +21205,16 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Insight on SA-142:** The project manager reads per package what is done, in progress or blocked and by what, and QA tests each package as it lands; a specification without work packages keeps the documents it had (ADR-242, ADR-245).
 
+**Insight on SA-143:** A project manager starts from the requirements and the design, not from an empty tracker, and the order is already in the reference graph the diagrams draw; proposing from it and checking readiness with the validator's own rules answers who takes what next, and whether they can start now (ADR-242, ADR-246).
+
+**Note on SA-143:** From ISO/IEC/IEEE 12207, Systems and software engineering, Software life cycle processes, 2017, clause 6.3.1: The project planning process defines the work of the project and divides it into packages of activities and tasks that can be estimated, scheduled and assigned. <https://www.iso.org/standard/63712.html>
+
+**Insight on SA-144:** Whoever takes a package should not have to walk the satisfy, verify and needs links by hand, and the same page serves a person and an agent; DevOps sees what a package changes in operation before it lands (ADR-242, ADR-246).
+
+**Insight on SA-145:** The project manager keeps the tracker they already use; each side wins on its own fields and a change on the wrong side is said, never taken silently, so the plan does not drift (ADR-242, ADR-246).
+
+**Note on SA-145:** From RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files, 2005: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes. <https://www.rfc-editor.org/rfc/rfc4180>
+
 ### Traceability
 
 What satisfies and what verifies each requirement. An empty cell is a gap.
@@ -21157,6 +21360,9 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-140 | enums Rule; decisions ADR-245 | tests validate-work-package-cycle |
 | SA-141 | enums Rule; decisions ADR-245 | tests validate-work-package-warnings |
 | SA-142 | enums DocumentTarget; commands document; decisions ADR-245 | tests document-progress-work-packages; tests document-progress-work-packages-for-everyone; tests document-testplan-by-package; tests document-testplan-by-package-for-everyone |
+| SA-143 | commands plan; decisions ADR-246 | tests plan-next; tests plan-next-none; tests plan-proposes; tests plan-proposes-dry-run; tests plan-release-unknown; tests plan-usage-error; tests validate-plan-proposals |
+| SA-144 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-unknown |
+| SA-145 | commands plan; decisions ADR-246 | tests plan-export-csv; tests plan-export-json; tests plan-import; tests plan-import-json |
 
 ## Sources
 

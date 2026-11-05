@@ -1,0 +1,12 @@
+arguments: [plan, --next, project]
+exitStatus: 0
+standardOutput: |
+  Next: WP-2, Lend a book
+
+  - Release: 1.0.0
+  - Status: planned
+  - Assigned to: nobody named
+  - Requirements: CASE-2
+  - After: WP-1 (done)
+
+  Its brief: specarch plan --brief WP-2 project

@@ -26,6 +26,7 @@ standardOutput: |
   skills/specarch/references/mcp.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/merge.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/model.md: missing; run specarch skill --out skills without --check
+  skills/specarch/references/plan.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/run.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/skill.md: missing; run specarch skill --out skills without --check
   skills/specarch/references/try.md: missing; run specarch skill --out skills without --check

@@ -563,6 +563,32 @@ requirements of a planned release that no package holds, as unplanned.
 The test plan adds Tests by work package, so QA tests each package as it
 lands.
 
+`specarch plan` works the packages (ADR-246):
+
+- `specarch plan <folder>` proposes packages for the accepted requirements
+  of each planned release that no package holds (`--release <version>`
+  for one release, with the accepted requirements that name none).
+  Requirements met by a common element go together, groups that need each
+  other become one, and each comes after the package that builds what its
+  elements need. Each is written as a record with status `proposed`; a
+  person accepts it by setting `planned`, or splits or merges it first.
+- `specarch plan --next <folder>` prints the first planned or ready package
+  whose `after` packages are done and that the readiness check
+  (`work_package_not_ready`, `work_package_order`) passes, or what each
+  waits on.
+- `specarch plan --brief WP-3 <folder>` prints one page for whoever takes
+  the package, a person or an agent: whether it can start, its
+  requirements with their acceptance criteria, the elements to build, the
+  tests that must pass, the goals it serves, what is out of scope near it,
+  the quality goals in rank order, and the settings, migrations, jobs,
+  processes and monitors it changes in operation.
+- `specarch plan --export csv|json <folder>` prints the packages for a
+  tracker; `--import <file>` reads the tracker's file back. The
+  specification owns `title`, `release`, `after` and `requirements`, the
+  tracker `status`, `assignedTo` and `effort`: the import writes the
+  tracker's fields and warns, with both values, at a field of the
+  specification the file changes.
+
 ## Stack-neutral and stack-specific
 
 | In the specification or the records (stack-neutral) | In the implementation file (one stack) |

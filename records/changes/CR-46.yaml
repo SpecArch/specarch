@@ -1,0 +1,29 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-46
+title: Read tables from a tagged PDF's structure tree, and refuse a PDF with no text layer
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: The PDF reader read a table by the position of its text, so a table in a tagged PDF came out as loose lines and lost its rows; a scanned PDF with no text layer gave one could question per page instead of saying it cannot be read; and a page the page tree counted but held no page for was silently skipped.
+cause: omitted
+affects:
+  adds:
+    - "#/tests/extract-documents-pdf-markdown-twin"
+    - "#/tests/extract-documents-pdf-no-text"
+    - "#/tests/extract-documents-pdf-tagged"
+    - "#/tests/extract-documents-pdf-untagged"
+  changes:
+    - "#/commands/extract"
+    - "#/decisions/ADR-212"
+    - "#/requirements/SA-110"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: "extract documents reads the tables of a tagged PDF from its structure tree, keeping a table's continuation on the next page and bounding the walk by a budget counted on every entry it reads; a PDF none of whose pages holds text is refused with status 1 as a scanned document with no text layer, a page with no page object is a line naming it, and a PDF gives the requirements and questions its Markdown twin gives (ADR-212, SA-110). A scanned PDF that gave exit 0 with a question per page on 1.5.0 is refused now; it never gave a requirement, so no extracted specification loses one, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.6.0
+status: released

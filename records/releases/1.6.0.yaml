@@ -1,0 +1,8 @@
+specarchRecord: "1.0.0"
+kind: release
+version: 1.6.0
+status: released
+date: "2026-11-05"
+specificationVersion: 1.6.0
+implementations: { go: 0.1.0, swift: 0.1.0 }
+includes: [CR-43, CR-44, CR-45, CR-46, CR-47, CR-48, CR-49, CR-50, CR-51]

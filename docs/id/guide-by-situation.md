@@ -1202,7 +1202,7 @@ dengan status 1. Jalannya yang kedua tidak mengubah apa pun.
 **Contoh.**
 
     $ specarch version
-    specarch 1.5.0
+    specarch 1.6.0
     specifications: meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning
     implementation files, records, idioms and estates: 1.0.0 and any later 1.0 patch, and 0.1 with a warning
     vocabularies: 1.0.0 and any later 1.0 patch, and 0.1
@@ -1259,7 +1259,7 @@ perintah. `specarch help agents` menjelaskan kedua jalan masuk itu.
     $ specarch skill --out skills --check
     specarch skill --check: 28 files checked, 0 files differ
     $ specarch model examples/library-lending | head -c 120
-    {"estates":[],"implementations":[],"program":"1.5.0","specarchModel":"1.0.0","specifications":[{"document":{"accessibility":
+    {"estates":[],"implementations":[],"program":"1.6.0","specarchModel":"1.0.0","specifications":[{"document":{"accessibility":
 
 **Yang perlu diperhatikan.** Program tidak bertanya dan tidak meminta apa
 pun: langkah yang membutuhkan orang adalah perintah yang dijalankan orang

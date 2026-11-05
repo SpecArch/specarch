@@ -17,7 +17,7 @@ import (
 )
 
 // The schema line of every root file a reader writes.
-const SchemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.5.0/schema/specarch-design-1.0.schema.json\n"
+const SchemaLine = "# yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.6.0/schema/specarch-design-1.0.schema.json\n"
 
 // Node builders. A tree is built from yaml.Node values, never from Go
 // maps, so its keys keep the order they were added in.

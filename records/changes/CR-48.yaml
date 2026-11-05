@@ -1,0 +1,22 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-48
+title: Advise f(x) for a method call only when the expression subset has f
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: The refusal of a method call such as code.startsWith("a/") advised writing startsWith(code), a function the subset does not have, so an author who followed it was refused again (BUG-074).
+cause: wrong
+affects:
+  adds:
+    - "#/tests/validate-expression-method-form"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: Both validator builds advise f(x) only when f is a function of the subset and otherwise name the functions it has; the expression is refused as before and only the advice in the message changes, so a patch-sized entry carries it (BUG-074).
+release: 1.6.0
+status: released

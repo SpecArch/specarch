@@ -1,0 +1,22 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-50
+title: Propose stating the intent in the requirements stage and splitting the work into work-package records
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: A specification said what the system must do but not what problem it solves, which outcomes count as success or what it will not do, and nothing split the work into packages a team can take one at a time, so neither a goal nor a package could be traced to the requirements it rests on.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-242"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: ADR-242 is recorded as proposed; its first phase, the intent, is built under ADR-244 (CR-51), and the work-package records are not built, so this entry changes no file's output, error or exit status and the release takes it as a patch-sized entry.
+release: 1.6.0
+status: released

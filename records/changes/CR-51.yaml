@@ -1,0 +1,74 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-51
+title: State the intent, a problem, measured goals, what is out of scope and ranked quality goals, and validate, document and ask for it first
+raisedBy: specification-author
+raised: "2026-11-05"
+phase: development
+type: additive
+urgency: normal
+reason: A specification held what the system must do but not why, so no requirement could be judged against the problem it should solve or a goal it should reach, a request outside the scope was taken like any other, and gaps --next and init asked for requirements before anyone had said what the system is for.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-244"
+    - "#/goals/GOAL-1"
+    - "#/goals/GOAL-2"
+    - "#/goals/GOAL-3"
+    - "#/goals/GOAL-4"
+    - "#/outOfScope/OUT-1"
+    - "#/outOfScope/OUT-2"
+    - "#/outOfScope/OUT-3"
+    - "#/problem/stakeholders"
+    - "#/problem/statement"
+    - "#/problem/why"
+    - "#/qualityGoals/QG-1"
+    - "#/qualityGoals/QG-2"
+    - "#/qualityGoals/QG-3"
+    - "#/requirements/SA-135"
+    - "#/requirements/SA-136"
+    - "#/requirements/SA-137"
+    - "#/requirements/SA-138"
+    - "#/requirements/SA-139"
+    - "#/tests/document-intent"
+    - "#/tests/document-intent-missing"
+    - "#/tests/document-progress-goals"
+    - "#/tests/document-progress-goals-met"
+    - "#/tests/document-techspec-intent"
+    - "#/tests/document-traceability-goals"
+    - "#/tests/gaps-next-asks-problem"
+    - "#/tests/gaps-next-asks-problem-lean"
+    - "#/tests/gaps-next-asks-unmeasured-goal"
+    - "#/tests/gaps-next-json-intent"
+    - "#/tests/init-intent-empty"
+    - "#/tests/init-writes-intent"
+    - "#/tests/validate-intent-problem-missing"
+    - "#/tests/validate-intent-problem-missing-earlier-meta-model"
+    - "#/tests/validate-intent-problem-missing-held"
+    - "#/tests/validate-intent-problem-missing-lean"
+    - "#/tests/validate-intent-references"
+    - "#/tests/validate-intent-warnings"
+  changes:
+    - "#/commands/document"
+    - "#/commands/gaps"
+    - "#/commands/init"
+    - "#/enums/DocumentTarget"
+    - "#/enums/Rule"
+    - "#/needs/NEED-1"
+    - "#/needs/NEED-2"
+    - "#/needs/NEED-3"
+    - "#/needs/NEED-4"
+    - "#/needs/NEED-5"
+    - "#/needs/NEED-6"
+    - "#/needs/NEED-7"
+    - "#/needs/NEED-8"
+    - "#/needs/NEED-9"
+    - "#/needs/NEED-10"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: "Intent phase 1 (ADR-244, SA-135 to SA-139): problem, goals, outOfScope and qualityGoals are optional requirements-stage keys of the 1.0 schemas; validate warns problem_missing, goal_unmeasured, goal_unserved, need_without_goal, scope_conflict and quality_goal_rank, gated as stakeholders_unconfirmed is; document intent writes intent.md and the techspec, traceability and progress documents show the intent where it is stated; gaps --next asks for the intent first; init takes --problem, --goal and --out-of-scope and, on a terminal with none given, asks the three questions. SpecArch's own specification states its intent, and its needs name the goals they serve. Every key is optional and every new rule a warning, so a specification clean on 1.5.0 gets no new error: validate on v1.5.0's own tree gives 0 errors and four problem_missing warnings with this build. init on a pipe or in a script writes what it wrote before; on a terminal it now asks before writing, which specarch diff counts as a major change to what init writes. The owner decided on 2026-11-05 to release it as 1.6.0, a minor step."
+release: 1.6.0
+status: released

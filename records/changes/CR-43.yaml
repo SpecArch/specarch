@@ -1,0 +1,36 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-43
+title: Refuse an approval by a role never heard, and name the session, test session or communication record in which the documents were read
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: approve accepted any stakeholder, so a role nobody had ever talked to could approve the documents and be the first to object at acceptance, and an approval record did not say where, or with whom, the documents were read.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-239"
+    - "#/requirements/SA-133"
+    - "#/tests/approve-refuses-session-absent"
+    - "#/tests/approve-refuses-session-missing"
+    - "#/tests/approve-refuses-unheard"
+    - "#/tests/approve-warns-no-session"
+    - "#/tests/validate-approval-session"
+  changes:
+    - "#/commands/approve"
+    - "#/enums/Rule"
+    - "#/tests/approve-after-document-records-and-site"
+    - "#/tests/approve-refuses-stale-document"
+    - "#/tests/approve-stakeholders-complete"
+    - "#/tests/approve-warns-stakeholders-unconfirmed"
+    - "#/tests/approve-writes-record"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: "approve refuses, with exit 1, a --by role that no communication, session, test session, interview or decision names, the same definition of heard as the rule unheard; --session names the record in which the role read the documents and is written into the approval record, a record that does not list the role is the new error approval_session, and approve without --session warns and still writes the record (ADR-239, SA-133). This is a break: specarch approve --by a role never heard exited 0 and wrote the record on 1.5.0, and exits 1 now, so specarch diff asks for 2.0.0. The owner decided on 2026-11-05 to release it as 1.6.0, a minor step, as for the record schema's cause in 1.5.0 (CR-27). No specification file clean on 1.5.0 gets a new error: validate on v1.5.0's own tree gives 0 errors with this build."
+release: 1.6.0
+status: released

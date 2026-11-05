@@ -1,0 +1,30 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-45
+title: Write every document target in English or Indonesian with document --language
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: additive
+urgency: normal
+reason: The documents were written in English only, so a team whose stakeholders read Indonesian translated them by hand, and the translation drifted from the specification at the next generation.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-241"
+    - "#/requirements/SA-134"
+    - "#/tests/document-language-id"
+    - "#/tests/document-language-needs-out"
+    - "#/tests/document-language-no-regions"
+    - "#/tests/document-language-out-is-output"
+    - "#/tests/document-language-unknown"
+  changes:
+    - "#/commands/document"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: "specarch document --language en or id writes every document target in English or Indonesian from a catalog of the texts the code writes, the technical terms kept in English; a language other than en needs --out and is refused over the folder the implementation files name for the English documents, and it writes no region of specarch.md (ADR-241, SA-134). The refusals specarch diff counts as a major change to document's exit status 2 come only with the new option, so no command line accepted on 1.5.0 reads differently, and a minor release carries it (ADR-186, ADR-083)."
+release: 1.6.0
+status: released

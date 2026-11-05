@@ -1,0 +1,23 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-47
+title: Say that the state machines and date-times are designed and not yet built, with no release named
+raisedBy: specification-author
+raised: "2026-11-04"
+phase: development
+type: perfective
+urgency: normal
+reason: ADR-192 and ADR-194 said release 1.4.0 carries the state machines and date-times, though neither 1.4.0 nor 1.5.0 builds them (BUG-073).
+cause: wrong
+affects:
+  changes:
+    - "#/decisions/ADR-192"
+    - "#/decisions/ADR-194"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-05"
+  outcome: approved
+  why: The two decisions say the step is designed, not yet built and has no release assigned; their design text is unchanged and no file's output, error or exit status changes, so a patch-sized entry carries it (BUG-073).
+release: 1.6.0
+status: released

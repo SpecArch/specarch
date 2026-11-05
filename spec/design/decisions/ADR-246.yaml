@@ -47,8 +47,11 @@ decisions:
          decision do; the caller redirects them where it wants them. The
          brief is the same page for a person and an agent.
       5. The export's columns are id, title, release, status, assignedTo,
-         estimatedHours, spentHours, after and requirements. A CSV is RFC
-         4180, a list of IDs in one cell separated by a comma and a space;
+         estimatedHours, spentHours, after and requirements. A CSV is quoted
+         as RFC 4180 quotes (a cell with a comma, a quote or a line break in
+         double quotes, a quote doubled) and ends each line with LF, not the
+         CRLF RFC 4180 names; a list of IDs sits in one cell separated by a
+         comma and a space;
          a JSON export holds workPackages, its lists as arrays and the
          hours as numbers or null.
       6. --import reads a file ending in .csv or .json, as the export
@@ -77,6 +80,11 @@ decisions:
       error. --next reads the validator's own checks so that what it calls
       ready is what validate would accept as ready, and a proposed package
       is a suggestion nobody has accepted, so it is not taken next.
+      RFC 4180 asks for CRLF to protect a reader that splits records on
+      CRLF only; the trackers' CSV importers and the import's own reader
+      take LF and CRLF alike, the export goes to a terminal or a redirect on
+      a system whose lines end in LF, and the quoting, which is what keeps a
+      comma in a title from splitting a row, is kept as the RFC has it.
       Standard output keeps the command free of a file layout the analyst
       did not choose. The ending decides the format because a tracker's
       export names its own file and both formats are the export's own. A

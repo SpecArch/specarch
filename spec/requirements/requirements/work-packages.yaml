@@ -72,7 +72,7 @@ requirements:
     needs: [NEED-5, NEED-10]
     why: Whoever takes a package should not have to walk the satisfy, verify and needs links by hand, and the same page serves a person and an agent; DevOps sees what a package changes in operation before it lands (ADR-242, ADR-246).
   SA-145:
-    statement: specarch plan --export shall write every work package for a tracker as CSV (RFC 4180, a list of IDs in one cell separated by commas) or JSON on standard output, and specarch plan --import shall read such a file back and write into each record only what the tracker owns - status, assignedTo and effort - warning, with both values, at a field the specification owns (title, release, after, requirements) that the file changes, at a status or hours that are not valid, at a row naming no package, and at a column it does not read.
+    statement: specarch plan --export shall write every work package for a tracker as CSV (quoted as RFC 4180 quotes, with LF line breaks, a list of IDs in one cell separated by commas) or JSON on standard output, and specarch plan --import shall read such a file back and write into each record only what the tracker owns - status, assignedTo and effort - warning, with both values, at a field the specification owns (title, release, after, requirements) that the file changes, at a status or hours that are not valid, at a row naming no package, and at a column it does not read.
     kind: functional
     priority: must
     status: proposed

@@ -40,8 +40,9 @@ commands:
 
       With `--export csv` or `--export json` it prints every package for a
       tracker: id, title, release, status, assignedTo, estimatedHours,
-      spentHours, after and requirements; a CSV list of IDs sits in one
-      cell separated by a comma and a space, a JSON list is an array.
+      spentHours, after and requirements; a CSV is quoted as RFC 4180 quotes,
+      with LF line breaks, a list of IDs in one cell separated by a comma
+      and a space; a JSON list is an array.
 
       With `--import <file>`, a .csv or .json file as the export writes it,
       it writes into each record what the tracker owns and the file

@@ -69,7 +69,7 @@ names.
 
 - **Reads**: the deployment's environment, its build, method and
   infrastructure, the seed the specification gives and the images by
-  digest, as the Compose mode does.
+  tag or digest, as the Compose mode does.
 - **Writes**: for Kubernetes, a script that creates a throwaway namespace
   or local cluster, applies the manifests, loads the seed, runs the full
   test package and removes it all; for a VM, the same around a new VM
@@ -98,9 +98,10 @@ meets the date a release is planned for.
 
 ## 5. Templates per project type
 
-`specarch init` starts one shape of specification, with the lean profile
-as the only option. A team that builds the same kinds of system again and
-again would start from a template of that kind instead.
+`specarch init` starts one shape of specification, the smallest that
+validates, with `--profile lean` or `--profile full` as the only choice. A
+team that builds the same kinds of system again and again would start from
+a template of that kind instead.
 
 - **Reads**: a named template: the modules, the stages filled in, the
   roles, the environments and the decisions that kind of project always

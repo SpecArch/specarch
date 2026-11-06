@@ -1,0 +1,4 @@
+arguments: [diff, old/spec, new/spec]
+exitStatus: 1
+standardOutput: |
+  error: version: the new specification keeps info.version 1.0.0, which old/records/releases/1.0.0.yaml marks released; a released version is never given to another release, so step info.version before the next release, such as 1.0.1

@@ -2,4 +2,4 @@ arguments: [diff, old/spec, new/spec]
 exitStatus: 1
 standardOutput: |
   minor changed #/enums/Colour: gains the value blue
-  error: version: the new specification keeps info.version 1.0.0, but old/records/releases/1.0.0.yaml marks 1.0.0 released, so a new release would ship under its number; step info.version to the version of the new release, such as 1.1.0
+  error: version: the new specification keeps info.version 1.0.0, which old/records/releases/1.0.0.yaml marks released; a released version is never given to another release, so step info.version before the next release, such as 1.1.0

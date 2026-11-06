@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.6.1-dev of the specification: 142 requirements, 5 entities, 31 commands, 7 algorithms, 1080 tests, 229 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.6.1-dev of the specification: 142 requirements, 5 entities, 31 commands, 7 algorithms, 1082 tests, 229 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -1477,9 +1477,12 @@ only the coverage is checked, against the release record of that
 version (ADR-224). That holds only for a version not yet released:
 when a release record beside the old folder marks that exact
 version released, the version check fails, naming the record and
-the version to step to, since a specification that keeps the
-version of a shipped release would ship the next one under the
-same number. A version that is not a semantic version fails the
+the version to step to, since a released version is never given to
+another release. It fails with no element changed as well: a
+release of only defect fixes changes no element, and this check is
+the only one that catches it keeping the shipped version; a
+released tree compared with itself fails it too, and is not a
+step of a release. A version that is not a semantic version fails the
 version check, naming the version and the folder, and the release
 is not checked further. Each failed check is one line starting
 `error:`; an
@@ -1495,7 +1498,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 | `<old>` | string | yes | The folder of the earlier specification, normally the previous release's tag checked out on its own, or the approval record's commit checked out on its own for a second approval. |
 | `<new>` | string | yes | The folder of the later specification, normally the working tree. |
 
-Reads `{old}`: The earlier specification; `{new}`: The later specification; `records/ beside {new}`: The release record of the new version and the change and defect records it includes.
+Reads `{old}`: The earlier specification; `{new}`: The later specification; `records/ beside {new}`: The release record of the new version and the change and defect records it includes; `records/ beside {old}`: The release record of the old version, read only when both folders carry the same info.version, to tell whether that version has shipped.
 
 Standard output: The errors of an invalid specification, one line each, then the change list, then the transition lines of each workflow that keeps an as-is, then one line per failed check.
 
@@ -1510,6 +1513,7 @@ sequenceDiagram
   P->>F: read {old}
   P->>F: read {new}
   P->>F: read records/ beside {new}
+  P->>F: read records/ beside {old}
   P-->>U: exit status 0, 1, 2
 ```
 
@@ -19756,7 +19760,9 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | diff-no-release | command diff | system | red | a new version 1.1.0 with no release record beside it | diff is run | it lists the change, reports version for the missing record and exits 1 |
 | diff-not-covered | command diff | system | red | a release whose only change names the entity, while the requirement changed too | diff is run | it reports covered for the requirement and exits 1 |
 | diff-same-version | command diff | system | golden | two folders of the same pre-release 1.1.0-dev, the approved one and the working tree, where a value was added to a public enum, a planned release 1.1.0 including the change request that names the enum | diff is run | it lists the enum as minor, leaves the version check out since both carry the same version, finds the change covered, and exits 0 |
+| diff-same-version-planned | command diff | system | golden | two folders of the same plain version 1.1.0, the approved one and the working tree, each with a release record of 1.1.0 still planned that includes the change request naming the enum, where a value was added to a public enum | diff is run | it lists the enum as minor, leaves the version check out since a planned release has not shipped, finds the change covered, and exits 0 |
 | diff-same-version-released | command diff | system | red | the folder of the released 1.0.0, whose records mark 1.0.0 released, and a working tree that adds a value to a public enum and still carries info.version 1.0.0 | diff is run | it lists the enum as minor and reports version, naming the record that marks 1.0.0 released and 1.1.0 as the version to step to, and exits 1 |
+| diff-same-version-released-unchanged | command diff | system | red | the folder of the released 1.0.0, whose records mark 1.0.0 released, and a working tree with no element changed that still carries info.version 1.0.0, as a release of only defect fixes would | diff is run | it lists no element and reports version, naming the record that marks 1.0.0 released and 1.0.1 as the version to step to, and exits 1 |
 | diff-tracker-unknown | command diff | system | golden | a release that includes only TRK-4, an ID of a declared change-set | diff is run | the changed element is a covered warning, since the tracker may name it, and it exits 0 |
 | diff-usage-error | command diff | system | red | one folder | diff is run with only the old folder | it prints how to use it and exits 2 |
 | diff-version-step | command diff | system | red | a new version that removes a value from a public enum, released as 1.0.1 | diff is run | it lists the enum as major and reports version, naming 2.0.0, and exits 1 |
@@ -21276,7 +21282,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-22 | commands document; decisions ADR-020 | tests document-testplan-left-out; tests document-traceability-harm; tests document-writes-traceability |
 | SA-23 | enums Rule; commands validate | tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered; tests validate-change-applied; tests validate-change-decision; tests validate-commissioning-record; tests validate-defect-duplicate; tests validate-defect-test; tests validate-incident-link; tests validate-layout-records-in-spec; tests validate-record-name; tests validate-record-ref; tests validate-record-schema; tests validate-record-tracker; tests validate-records-valid |
 | SA-24 | enums Rule; commands validate; decisions ADR-061 | tests document-testplan-by-release; tests validate-release-bump; tests validate-release-contents; tests validate-release-version; tests validate-releases-valid; tests validate-requirement-release |
-| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-same-version; tests diff-same-version-released; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
+| SA-25 | commands diff | tests diff-classifies-changes; tests diff-invalid-spec; tests diff-lists-changes; tests diff-map-values; tests diff-no-release; tests diff-not-covered; tests diff-same-version; tests diff-same-version-planned; tests diff-same-version-released; tests diff-same-version-released-unchanged; tests diff-tracker-unknown; tests diff-usage-error; tests diff-version-step; tests diff-version-unreadable |
 | SA-26 | enums DocumentTarget; commands document | tests document-writes-changes; tests document-writes-changes-reach; tests document-writes-releases |
 | SA-27 | enums Rule; commands validate | tests validate-test-data; tests validate-test-data-folder; tests validate-test-data-valid |
 | SA-28 | commands derive; decisions ADR-055 | tests derive-invalid-spec; tests derive-keeps-existing; tests derive-meta-model-0-2; tests derive-meta-model-0-2-other-error; tests derive-name-taken; tests derive-names-from-ids; tests derive-page-elements; tests derive-page-named-after-operation; tests derive-root-tests; tests derive-skips-blocked; tests derive-task-page-checks; tests derive-usage-error; tests derive-writes-drafts; tests merge-takes-derived-drafts; tests validate-question-holds-one-method; tests validate-test-name-capital-run |
@@ -21308,7 +21314,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-54 | decisions ADR-069; decisions ADR-079 | tests generate-ui-typescript; tests generate-ui-typescript-refused; tests generate-ui-typescript-value-objects; tests generate-ui-typescript-value-objects-refused |
 | SA-55 | decisions ADR-071 | tests generate-ui-typescript; tests generate-ui-typescript-refused |
 | SA-56 | decisions ADR-074 | tests generate-ui-typescript; tests generate-ui-typescript-paged-whole; tests generate-ui-typescript-paged-whole-refused; tests generate-ui-typescript-refused |
-| SA-57 | commands approve; commands diff; commands document; commands generate; commands validate; decisions ADR-083 | tests diff-same-version; tests diff-same-version-released; tests document-writes-changes-reach; tests generate-environment-unknown; tests generate-go-dxlib-trace; tests generate-trace-without-out; tests generate-ui-trace; tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered; tests validate-environment-trace |
+| SA-57 | commands approve; commands diff; commands document; commands generate; commands validate; decisions ADR-083 | tests diff-same-version; tests diff-same-version-planned; tests diff-same-version-released; tests diff-same-version-released-unchanged; tests document-writes-changes-reach; tests generate-environment-unknown; tests generate-go-dxlib-trace; tests generate-trace-without-out; tests generate-ui-trace; tests validate-acceptance-record; tests validate-acceptance-valid; tests validate-change-answered; tests validate-environment-trace |
 | SA-58 | commands generate; decisions ADR-085; decisions ADR-139 | tests extract-workflows-reads-generated-bpmn; tests extract-workflows-reads-generated-last-approval; tests generate-bpmn; tests generate-bpmn-approved |
 | SA-59 | commands generate; decisions ADR-086 | tests generate-draft-open-questions; tests generate-skips-no-output-folder; tests generate-sql-refuses-draft-migration |
 | SA-60 | enums DocumentTarget; commands document; decisions ADR-088 | tests document-html-integer-forms; tests document-html-marks-problems; tests document-writes-html |

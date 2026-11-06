@@ -35,9 +35,12 @@ only the coverage is checked, against the release record of that
 version (ADR-224). That holds only for a version not yet released:
 when a release record beside the old folder marks that exact
 version released, the version check fails, naming the record and
-the version to step to, since a specification that keeps the
-version of a shipped release would ship the next one under the
-same number. A version that is not a semantic version fails the
+the version to step to, since a released version is never given to
+another release. It fails with no element changed as well: a
+release of only defect fixes changes no element, and this check is
+the only one that catches it keeping the shipped version; a
+released tree compared with itself fails it too, and is not a
+step of a release. A version that is not a semantic version fails the
 version check, naming the version and the folder, and the release
 is not checked further. Each failed check is one line starting
 `error:`; an
@@ -54,6 +57,7 @@ includes an ID kept in a tracker is a line starting `warning:`.
 - `{old}`: The earlier specification.
 - `{new}`: The later specification.
 - `records/ beside {new}`: The release record of the new version and the change and defect records it includes.
+- `records/ beside {old}`: The release record of the old version, read only when both folders carry the same info.version, to tell whether that version has shipped.
 
 ## Standard output
 

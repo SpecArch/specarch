@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.6.1-dev of the specification: 1080 design tests, 551 golden and 529 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.6.1-dev of the specification: 1082 design tests, 552 golden and 530 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.6.1-dev of the specification: 1080 design tests, 551 golden and 529 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1076 |
+| system | 1078 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -821,6 +821,14 @@ Scenario: golden; level: system; verifies SA-25, SA-57.
 - When: diff is run
 - Then: it lists the enum as minor, leaves the version check out since both carry the same version, finds the change covered, and exits 0
 
+#### diff-same-version-planned
+
+Scenario: golden; level: system; verifies SA-25, SA-57.
+
+- Given: two folders of the same plain version 1.1.0, the approved one and the working tree, each with a release record of 1.1.0 still planned that includes the change request naming the enum, where a value was added to a public enum
+- When: diff is run
+- Then: it lists the enum as minor, leaves the version check out since a planned release has not shipped, finds the change covered, and exits 0
+
 #### diff-same-version-released
 
 Scenario: red; level: system; covers exit 1; verifies SA-25, SA-57.
@@ -828,6 +836,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-25, SA-57.
 - Given: the folder of the released 1.0.0, whose records mark 1.0.0 released, and a working tree that adds a value to a public enum and still carries info.version 1.0.0
 - When: diff is run
 - Then: it lists the enum as minor and reports version, naming the record that marks 1.0.0 released and 1.1.0 as the version to step to, and exits 1
+
+#### diff-same-version-released-unchanged
+
+Scenario: red; level: system; covers exit 1; verifies SA-25, SA-57.
+
+- Given: the folder of the released 1.0.0, whose records mark 1.0.0 released, and a working tree with no element changed that still carries info.version 1.0.0, as a release of only defect fixes would
+- When: diff is run
+- Then: it lists no element and reports version, naming the record that marks 1.0.0 released and 1.0.1 as the version to step to, and exits 1
 
 #### diff-tracker-unknown
 

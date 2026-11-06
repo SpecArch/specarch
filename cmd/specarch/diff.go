@@ -103,11 +103,12 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 		// as between an approval and the working tree in a round of
 		// acceptance: the version cannot have stepped, so only the
 		// coverage is checked (ADR-224). A version the old folder's
-		// records mark released is spent: a specification that keeps it
-		// would ship a new release under the old one's number.
+		// records mark released is spent, and the new folder cannot be
+		// released under it, even with no element changed: a release of
+		// only defect fixes changes no element.
 		if r := releasedRecord(readRecords(oldSpec), oldText); r != nil {
 			need, _ := neededStep(oldV, changes)
-			problems = append(problems, fmt.Sprintf("error: version: the new specification keeps info.version %s, but %s marks %s released, so a new release would ship under its number; step info.version to the version of the new release, such as %s", newText, r.path, oldText, semver.Next(oldV, max(need, semver.Patch))))
+			problems = append(problems, fmt.Sprintf("error: version: the new specification keeps info.version %s, which %s marks released; a released version is never given to another release, so step info.version before the next release, such as %s", newText, r.path, semver.Next(oldV, max(need, semver.Patch))))
 		}
 		cov, warn := coverageProblems(rs, release, ver, changes)
 		problems = append(problems, cov...)

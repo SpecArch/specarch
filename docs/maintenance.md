@@ -307,6 +307,10 @@ line per failed check, starting `error:`. The checks:
   commit checked out beside the working tree, inside one pre-release
   during a round of acceptance (`docs/acceptance.md`, step 8); the release
   record of that version is still required and `covered` still runs.
+  Not left out when a release record beside the old folder marks that
+  version released: a released version is never given to another
+  release, so the line names the version to step to, even with no
+  element changed.
 - `covered`: every element in the list is named by an entry of the
   `affects` of a change request, or of the `violates` of a defect, that
   the release includes. An entry names an element when one of the two

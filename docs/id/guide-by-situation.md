@@ -1093,7 +1093,8 @@ tidak akan membaca tiga ratus halaman lagi demi satu lajur.
 Catatan penyetujuan menyimpan commit tempat ia dibuat. `diff` antara
 commit itu dan pohon kerja mendaftar setiap elemen yang berubah beserta
 permintaan perubahan atau cacat yang mencakupnya, pemeriksaan versinya
-dilewati bila kedua sisi membawa `info.version` yang sama. Penyetuju
+dilewati bila kedua sisi membawa `info.version` yang sama dari versi
+yang belum dirilis. Penyetuju
 membaca daftarnya, bukan spesifikasinya, dan menyetujui lagi, seutuhnya.
 
 **Contoh.** Satu pra-rilis dibandingkan dengan dirinya sendiri, satu

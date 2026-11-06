@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: diff
+level: system
+scenario: red
+covers: [exit 1]
+given: "the folder of the released 1.0.0, whose records mark 1.0.0 released, and a working tree with no element changed that still carries info.version 1.0.0, as a release of only defect fixes would"
+when: "diff is run"
+then: "it lists no element and reports version, naming the record that marks 1.0.0 released and 1.0.1 as the version to step to, and exits 1"
+verifies: [SA-25, SA-57]

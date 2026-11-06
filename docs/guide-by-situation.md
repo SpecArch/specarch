@@ -1038,7 +1038,8 @@ approver will not read three hundred pages again for a column.
 The approval record holds the commit it was made at. `diff` between that
 commit and the working tree lists every changed element with the change
 request or defect that covers it, its version check skipped when both
-sides carry the same `info.version`. The approver reads the list, not the
+sides carry the same `info.version` of a version not yet released. The
+approver reads the list, not the
 specification, and approves again, whole.
 
 **A worked example.** One pre-release compared with itself, one enum

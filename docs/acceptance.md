@@ -231,7 +231,10 @@ check fails, since the new version is not after the old one. So the
 approval record gains the `commit` it was made at, as a release record
 has one, and `diff` skips the `version` check when both sides have the
 same `info.version`, the case of a round of acceptance inside one
-pre-release, while `covered` still runs (step 8).
+pre-release, while `covered` still runs (step 8). The skip holds only for
+a version not yet released: when a release record beside the old folder
+marks that version released, `version` fails, since a new release under
+the number of a shipped one breaks Semantic Versioning.
 
 ## 5. Regenerate and show again
 

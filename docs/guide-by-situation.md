@@ -1154,7 +1154,7 @@ exits 1. A second run changes nothing.
 **A worked example.**
 
     $ specarch version
-    specarch 1.6.0
+    specarch 1.7.0
     specifications: meta-model 1.0.0 and any later 1.0 patch, and 0.3, 0.2 and 0.1 with a warning
     implementation files, records, idioms and estates: 1.0.0 and any later 1.0 patch, and 0.1 with a warning
     vocabularies: 1.0.0 and any later 1.0 patch, and 0.1
@@ -1210,7 +1210,7 @@ in.
     $ specarch skill --out skills --check
     specarch skill --check: 28 files checked, 0 files differ
     $ specarch model examples/library-lending | head -c 120
-    {"estates":[],"implementations":[],"program":"1.6.0","specarchModel":"1.0.0","specifications":[{"document":{"accessibility":
+    {"estates":[],"implementations":[],"program":"1.7.0","specarchModel":"1.0.0","specifications":[{"document":{"accessibility":
 
 **What to watch for.** The program asks nothing and prompts for nothing: a
 step that needs a person is a command the person runs (`decide`,

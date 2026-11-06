@@ -1,0 +1,35 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-52
+title: Record the work packages of a delivery beside the specification, check them with seven rules, and show them in the progress and test plan documents
+raisedBy: specification-author
+raised: "2026-11-05"
+phase: development
+type: additive
+urgency: normal
+reason: A delivery is built in pieces, but the specification had no place for them, so who builds what, in which order and for which release lived outside it, unchecked against the requirements, the design and the tests.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-245"
+    - "#/requirements/SA-140"
+    - "#/requirements/SA-141"
+    - "#/requirements/SA-142"
+    - "#/tests/document-progress-work-packages"
+    - "#/tests/document-progress-work-packages-for-everyone"
+    - "#/tests/document-testplan-by-package"
+    - "#/tests/document-testplan-by-package-for-everyone"
+    - "#/tests/validate-work-package-cycle"
+    - "#/tests/validate-work-package-warnings"
+  changes:
+    - "#/commands/document"
+    - "#/enums/DocumentTarget"
+    - "#/enums/Rule"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-06"
+  outcome: approved
+  why: "Intent phase 2 (ADR-245, SA-140 to SA-142): the work-package record (kind work-package in records/work-packages/) with its release, requirements, after, status and effort; validate errors work_package_cycle and warns work_package_order, work_package_overlap, work_package_release, work_package_not_ready, work_package_unverified and work_package_unconfigured in both builds; document progress lists the packages and document testplan groups the tests by package. A specification with no work-package record reads and validates as it did on 1.6.0, so nothing breaks; the new record kind and the new rules are a minor step. Released in 1.7.0 by the owner's decision of 2026-11-06."
+release: 1.7.0
+status: released

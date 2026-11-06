@@ -1,0 +1,40 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-53
+title: Propose, order, brief, export and import work packages with specarch plan
+raisedBy: specification-author
+raised: "2026-11-05"
+phase: development
+type: additive
+urgency: normal
+reason: Once work packages are records, splitting the accepted requirements into them, picking the next one to start, handing one to a programmer or an agent, and keeping a tracker in step were still done by hand.
+cause: omitted
+affects:
+  adds:
+    - "#/commands/plan"
+    - "#/decisions/ADR-246"
+    - "#/requirements/SA-143"
+    - "#/requirements/SA-144"
+    - "#/requirements/SA-145"
+    - "#/tests/plan-brief"
+    - "#/tests/plan-brief-requirement-set"
+    - "#/tests/plan-brief-unknown"
+    - "#/tests/plan-export-csv"
+    - "#/tests/plan-export-json"
+    - "#/tests/plan-import"
+    - "#/tests/plan-import-json"
+    - "#/tests/plan-next"
+    - "#/tests/plan-next-none"
+    - "#/tests/plan-proposes"
+    - "#/tests/plan-proposes-dry-run"
+    - "#/tests/plan-release-unknown"
+    - "#/tests/plan-usage-error"
+    - "#/tests/validate-plan-proposals"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-06"
+  outcome: approved
+  why: "Intent phase 3 (ADR-246, SA-143 to SA-145): specarch plan proposes work packages for the accepted requirements of a planned release that no live package holds, --next names the package to start, --brief prints one page to work from, --export writes CSV or JSON for a tracker and --import reads status, assignee and hours back. A new command adds and changes nothing a 1.6.0 user ran, so it is a minor step. Released in 1.7.0 by the owner's decision of 2026-11-06."
+release: 1.7.0
+status: released

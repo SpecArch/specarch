@@ -211,7 +211,7 @@ the program and are built once in your cache with their toolchains). It has two 
 the same design.
 The Go build has every verb. With Go 1.27.3 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v1.6.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v1.7.0
 
 or, from a clone of this repository:
 
@@ -258,22 +258,22 @@ script of a fresh environment that builds, loads, tests and tears down
 a Compose deployment, every secret referenced and never written. Install
 them at the same tag as `specarch`:
 
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-seed@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-vue-htm@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.6.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-deploy@v1.6.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-seed@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-vue-htm@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch-gen-deploy@v1.7.0
 
 The Swift build, for macOS, has the validate, model, upgrade, try and
 version verbs and gives the same output. With Swift 6:

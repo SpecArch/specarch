@@ -1,0 +1,27 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-54
+title: Fail specarch diff's version check when a specification keeps the version of a released one
+raisedBy: specification-author
+raised: "2026-11-05"
+phase: development
+type: perfective
+urgency: normal
+reason: When both folders carried the same info.version, diff left the version check out for any version, a released one too, so a release whose info.version never stepped passed the version step and shipped under the number of the release before it (BUG-075).
+cause: wrong
+affects:
+  adds:
+    - "#/tests/diff-same-version-planned"
+    - "#/tests/diff-same-version-released"
+    - "#/tests/diff-same-version-released-unchanged"
+  changes:
+    - "#/commands/diff"
+    - "#/decisions/ADR-224"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-06"
+  outcome: approved
+  why: "In the same-version case diff reads the release record beside the old folder, and when that exact version is released it reports error: version: naming the record and the version to step to, and exits 1; a version not yet released, compared with itself, keeps only the coverage check (ADR-224). specarch diff rates the new path diff reads as a major change, and a run that exited 0 on 1.6.0 for a released version kept unchanged exits 1 now. That run passed only because of the bug: it is the outcome the design of diff always asked for, and no correct release relied on it. The owner decided on 2026-11-06 to release it in 1.7.0, a minor step, as for 1.6.0 (CR-51)."
+release: 1.7.0
+status: released

@@ -89,14 +89,14 @@ no source for.
 
 ### 1. Install
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v1.6.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v1.7.0
     go version -m "$(go env GOPATH)/bin/specarch"
-    SA="$HOME/specarch-v1.6.0"
-    git clone --depth 1 --branch v1.6.0 https://github.com/SpecArch/specarch.git "$SA"
+    SA="$HOME/specarch-v1.7.0"
+    git clone --depth 1 --branch v1.7.0 https://github.com/SpecArch/specarch.git "$SA"
 
 `go version -m` names the module version and its `h1:` checksum;
-compare it with the one the Go checksum database holds for v1.6.0,
-`curl -s https://sum.golang.org/lookup/github.com/SpecArch/specarch@v1.6.0`. The generator
+compare it with the one the Go checksum database holds for v1.7.0,
+`curl -s https://sum.golang.org/lookup/github.com/SpecArch/specarch@v1.7.0`. The generator
 plug-ins (`specarch-gen-sql` and the others, listed in the README) are only
 needed later, to generate code from an approved specification.
 

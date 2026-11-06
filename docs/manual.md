@@ -848,7 +848,12 @@ request or defect it includes names every element in the list
 approved commit and the working tree do inside one pre-release
 during a round of acceptance, the version check is left out and
 only the coverage is checked, against the release record of that
-version (ADR-224). A version that is not a semantic version fails the
+version (ADR-224). That holds only for a version not yet released:
+when a release record beside the old folder marks that exact
+version released, the version check fails, naming the record and
+the version to step to, since a specification that keeps the
+version of a shipped release would ship the next one under the
+same number. A version that is not a semantic version fails the
 version check, naming the version and the folder, and the release
 is not checked further. Each failed check is one line starting
 `error:`; an

@@ -1062,3 +1062,17 @@ Expected: the advice `write f(x)` only when `f` is a function of the subset (`na
 To repeat: before this fix, `specarch validate` on a specification whose formula is `code.startsWith("a/")`.
 
 Fix: both validator builds (`internal/expr/parse.go`, `swift/Sources/SpecArchKit/ExprParse.swift`) advise `f(x)` only when `f` is one of the subset's functions; any other method is refused with `the method form x.startsWith() is not part of SpecArch expressions, and startsWith is not a function of them; the functions are int, uint, ...`, the list the refusal of the function form gives. A method given arguments, `total.round(2)`, is advised `write round(x, ...)`, so the place of its arguments is not lost. The design test `validate-expression-method-form` covers the method form and the function form of `startsWith` and the method form of `size`; unit tests in both builds check the four messages, `x.exists()` included. `docs/conventions.md` (Expressions) says when the advice is given. No string-prefix function is added: the subset stays as it is.
+
+## BUG-075 — specarch diff names no version problem when a specification keeps the version of a released one
+
+- Reported: 2026-11-05, found while checking a release against the release checklist, against 1.6.0
+- Closed: 2026-11-06, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-075`
+
+When both folders carry the same `info.version`, `specarch diff` leaves the version check out and checks only the coverage (`cmd/specarch/diff.go`, the `oldText == newText` case). That skip is meant for one pre-release compared with itself in a round of acceptance (ADR-224), but it holds for any version, a released one too. So `specarch diff` from the folder of the released 0.1.0 to a working tree still at `info.version: 0.1.0` names no version problem, and a release 0.2.0 whose `info.version` never stepped passes the version step of the release checklist, shipping under the number of the release before it.
+
+Expected: when the release record beside the old folder marks the old version released, diff reports the version that never stepped and exits 1; a version not yet released, compared with itself, still has only its coverage checked.
+
+To repeat: a folder at `info.version: 1.0.0` with `records/releases/1.0.0.yaml` at `status: released` beside it, and a copy that adds a value to a public enum and keeps `info.version: 1.0.0`; `specarch diff old/spec new/spec` exits 0 with no `error: version:` line.
+
+Fix: in the same-version case diff reads the records beside the old folder, and when the release record of exactly that version says `released`, it reports `error: version:` naming that record and the version to step to (the next version the change list needs, at least a patch step), and exits 1; the coverage is still checked. A version whose record is planned, or that has none, compared with itself, keeps only the coverage check, as ADR-224 means. A `withdrawn` release is not counted as spent, since the validator reads it as one that never ships (ADR-061). The old folder's records decide, not the new one's: a round that ends by marking the release released has the approved commit still at `planned`. The test `diff-same-version-released` covers the released case; `diff-same-version` still passes unchanged as the pre-release case. The design of `diff` and the consequences of ADR-224 say the skip holds only for a version not yet released.

@@ -5,16 +5,6 @@ seen, what was expected and how to repeat it. The next free number is
 BUG-076. When the fix is on `main`, with `Fixes BUG-NNN` in its commit
 message, the entry moves to `BUG_HISTORY.md` with the fixing commit.
 
-## BUG-075 — specarch diff names no version problem when a specification keeps the version of a released one
-
-- Reported: 2026-11-05, found while checking a release against the release checklist, against 1.6.0
-
-When both folders carry the same `info.version`, `specarch diff` leaves the version check out and checks only the coverage (`cmd/specarch/diff.go`, the `oldText == newText` case). That skip is meant for one pre-release compared with itself in a round of acceptance (ADR-224), but it holds for any version, a released one too. So `specarch diff` from the folder of the released 0.1.0 to a working tree still at `info.version: 0.1.0` names no version problem, and a release 0.2.0 whose `info.version` never stepped passes the version step of the release checklist, shipping under the number of the release before it.
-
-Expected: when the release record beside the old folder marks the old version released, diff reports the version that never stepped and exits 1; a version not yet released, compared with itself, still has only its coverage checked.
-
-To repeat: a folder at `info.version: 1.0.0` with `records/releases/1.0.0.yaml` at `status: released` beside it, and a copy that adds a value to a public enum and keeps `info.version: 1.0.0`; `specarch diff old/spec new/spec` exits 0 with no `error: version:` line.
-
 ## BUG-072 — Open Dependabot alert for minimatch in the library lending example's web lock
 
 - Reported: 2026-11-03 by the owner, from the repository's security tab (alert 100), against 1.5.0

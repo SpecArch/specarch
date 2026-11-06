@@ -99,10 +99,16 @@ func runDiff(args []string, stdout, stderr io.Writer) int {
 	case release == nil:
 		problems = append(problems, fmt.Sprintf("error: version: there is no records/releases/%s.yaml for the new version %s; add it with the changes and defects it includes", ver, newText))
 	case oldText == newText:
-		// One pre-release edited and compared with itself, as between an
-		// approval and the working tree in a round of acceptance: the
-		// version cannot have stepped, so only the coverage is checked
-		// (ADR-224).
+		// One version not yet released, edited and compared with itself,
+		// as between an approval and the working tree in a round of
+		// acceptance: the version cannot have stepped, so only the
+		// coverage is checked (ADR-224). A version the old folder's
+		// records mark released is spent: a specification that keeps it
+		// would ship a new release under the old one's number.
+		if r := releasedRecord(readRecords(oldSpec), oldText); r != nil {
+			need, _ := neededStep(oldV, changes)
+			problems = append(problems, fmt.Sprintf("error: version: the new specification keeps info.version %s, but %s marks %s released, so a new release would ship under its number; step info.version to the version of the new release, such as %s", newText, r.path, oldText, semver.Next(oldV, max(need, semver.Patch))))
+		}
 		cov, warn := coverageProblems(rs, release, ver, changes)
 		problems = append(problems, cov...)
 		warnings = warn
@@ -138,12 +144,7 @@ func versionProblems(oldV semver.Version, oldText, ver string, changes []diff.Ch
 	if semver.Compare(newV, oldV) <= 0 {
 		return []string{fmt.Sprintf("error: version: %s is not after the old version %s", ver, oldText)}
 	}
-	need, why := semver.None, ""
-	for _, c := range changes {
-		if n := semver.Needed(oldV, c.Impact); n > need {
-			need, why = n, c.Pointer
-		}
-	}
+	need, why := neededStep(oldV, changes)
 	step := semver.Step(oldV, newV)
 	if step >= need {
 		return nil
@@ -153,6 +154,29 @@ func versionProblems(oldV semver.Version, oldText, ver string, changes []diff.Ch
 		stepText = "no step of major, minor or patch"
 	}
 	return []string{fmt.Sprintf("error: version: %s to %s is %s, but #%s needs a %s step; release it as %s", oldText, ver, stepText, why, semver.StepNames[need], semver.Next(oldV, need))}
+}
+
+// neededStep is the largest step from the old version the change list
+// needs, and the pointer of the change that needs it.
+func neededStep(oldV semver.Version, changes []diff.Change) (need int, why string) {
+	for _, c := range changes {
+		if n := semver.Needed(oldV, c.Impact); n > need {
+			need, why = n, c.Pointer
+		}
+	}
+	return need, why
+}
+
+// releasedRecord returns the release record that marks exactly version
+// released, or nil: a version that has shipped is never given to another
+// release (Semantic Versioning, rule 3). A withdrawn release is not
+// counted, as the validator reads it: a release that will never ship
+// (ADR-061).
+func releasedRecord(rs records, version string) *recordFile {
+	if r := rs.find("release", version); r != nil && source.Str(source.Child(r.root, "status")) == "released" {
+		return r
+	}
+	return nil
 }
 
 // coverageProblems checks that a change request or defect the release
@@ -231,6 +255,7 @@ func namedBy(el []string, names [][]string) bool {
 // recordFile is one record file beside the new specification, parsed.
 type recordFile struct {
 	kind, key string
+	path      string
 	root      *yaml.Node
 }
 
@@ -259,7 +284,7 @@ func readRecords(s *spec.Spec) records {
 		if kind == "release" {
 			key = source.Str(source.Child(doc.Root, "version"))
 		}
-		out = append(out, &recordFile{kind: kind, key: key, root: doc.Root})
+		out = append(out, &recordFile{kind: kind, key: key, path: f.Path, root: doc.Root})
 	}
 	return out
 }

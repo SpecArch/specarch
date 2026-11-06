@@ -23,7 +23,12 @@ decisions:
       the same info.version.
     consequences: |-
       This decision rests on ADR-083, which stays as it is written unless this
-      decision supersedes it.
+      decision supersedes it. The version check is skipped only inside one
+      version not yet released, as a round of acceptance is: when a release
+      record beside the old folder marks that version released, diff reports
+      the version that never stepped, because a release under the number of
+      one already shipped breaks Semantic Versioning's rule that a released
+      version's contents never change.
     answers: [Q-4]
     decidedBy: owner
     restsOn: [ADR-083]

@@ -1,13 +1,18 @@
 # SpecArch
 
+**One specification as the single source of truth for a system's whole
+life cycle.**
+
 SpecArch is a specification language for whole systems through their whole
-life cycle. One folder tree describes the stakeholders and requirements, the
-data model, the API, the events, the screens, the permissions, the
-algorithms, the tests, the deployment and the commissioning checks, and the
-decisions behind them, each traced to the others. People read the files, and
-so do AI assistants. Documents, diagrams and code are made from them.
-Its goal is to make each human decision in a specification cheap to take,
-cheap to review and traceable to the decisions it rests on.
+life cycle, and the `specarch` program that reads it, checks it and makes
+documents, diagrams and code from it. One folder tree describes the
+stakeholders and requirements, the data model, the API, the events, the
+screens, the permissions, the algorithms, the tests, the deployment and the
+commissioning checks, and the decisions behind them, each traced to the
+others. People read the files, and so do AI assistants. Gaps, sources that
+disagree and stakeholders nobody has heard are reported before code is
+written. Its goal is to make each human decision in a specification cheap to
+take, cheap to review and traceable to the decisions it rests on.
 
 SpecArch is personally owned and published under Apache-2.0. Anyone may use it
 under that licence, including for commercial work. See `NOTICE` for the name
@@ -22,6 +27,195 @@ It follows the Low IQ Tax: every file, key and message should cost its
 reader as little thinking as possible. And a change carries its reason at
 the entry it changes, so a review reads decisions, not lines of
 difference.
+
+## Why SpecArch
+
+In most projects the requirements live in documents, the design in slides,
+the code in repositories and the tests in spreadsheets. When something
+changes they drift apart, and the difference shows late: at the user
+acceptance test, as a bug, or as a delay.
+
+SpecArch treats the specification of a system like source code:
+
+- **A draft is read, never refused.** Start on the first day with what is
+  known. SpecArch reports what is missing and where sources disagree as open
+  questions, each with a priority (`must`, `should` or `could`) and the
+  stakeholder role that decides it.
+- **Built on existing standards.** JSON Schema for data, OpenAPI 3.1 for
+  endpoints, AsyncAPI for events, BPMN 2.0 for workflows, and ISO/IEC/IEEE
+  29148 for requirements, 29119 for testing and 12207 for the life cycle.
+- **Fail-closed and traced.** Design elements name the requirements they
+  satisfy, and tests the requirements they verify; every gap is reported.
+  An operation with no permission is a validation error, not a public
+  endpoint.
+
+## SpecArch across the life cycle
+
+### 1. Discovery and extraction: `specarch extract`, `specarch merge`
+
+A specification is written from scratch, or read out of what exists:
+
+- **Documents and data.** `extract documents` reads Markdown, PDF, Word,
+  PowerPoint, Excel and email files; `extract tables` reads CSV, TSV and
+  Excel registers into entities; `extract workflows` reads BPMN 2.0 files
+  and workflow tables; `extract tests` reads Gherkin feature files and test
+  sheets. What a stakeholder said in an interview, a meeting, a chat, an
+  email or a call is kept with `specarch log` and cited by the decisions it
+  supports.
+- **Existing code, as an as-built specification.** Readers for Go, Swift,
+  JavaScript and TypeScript (Vue included) and Dart, and for database
+  schemas, routers, OpenAPI documents, permission tables, pages, gateway
+  tables and systemd units. `specarch merge` joins what each reader wrote
+  into one specification, and `specarch check` compares a specification with
+  dumps of its code.
+
+### 2. Validation, gaps and stakeholders: `specarch validate`, `specarch gaps`
+
+Flaws in the requirements and the design show in the first week, not the
+twelfth month:
+
+- **Sources that disagree.** When the code and a document say different
+  things, both are kept with their citations and an open question asks
+  which holds. In `examples/lending-desk/` the desk manual says a loan lasts
+  21 days and the Go service (`lending/model.go:8`) says 14.
+- **Unheard stakeholders.** The `unheard` warning names every role an
+  accepted requirement or a page needs that no communication, session,
+  interview or decision shows was ever heard, so the risk of that role
+  objecting first at acceptance shows early.
+- **Open questions.** `specarch gaps` lists every question by priority with
+  what it holds up and which documents and code targets are ready, drafts or
+  waiting. A specification with an open `must` or `should` question cannot be
+  approved.
+
+### 3. Decisions and approval: `specarch decide`, `specarch approve`, `specarch decision`
+
+- **Decision records.** A decision records why a technology or a design was
+  chosen and which simpler options were set aside. `specarch decide` answers
+  an open question with one; `specarch decision why` prints the chain of
+  decisions it rests on, and `specarch decision rests` the decisions that
+  rest on it.
+- **Complexity that needs a reason.** The `technology_unjustified` warning
+  marks a framework an implementation file brings in that no element of the
+  design needs, no idiom approves and no decision justifies.
+- **Sign-off by role.** `specarch approve --by <role>` records an approval
+  only from a known stakeholder that the records show was heard, only with no
+  errors and no open `must` or `should` question, and only when the documents
+  are current.
+
+### 4. Code, data and deployment: `specarch generate`
+
+`specarch generate <target>` writes the repetitive layers from the approved
+specification, through sixteen plug-ins:
+
+- **Backend and API.** A Go service on
+  [dxlib](https://github.com/donnyhardyanto/dxlib) (`go-dxlib`) and the
+  OpenAPI 3.1 document (`openapi`).
+- **Screens.** The `ui` target writes the web in plain JavaScript, TypeScript
+  on Next.js and Carbon for a TypeScript implementation file, the web with no
+  build step on Vue and htm, or SwiftUI for the iPhone. With `--unapproved`
+  it writes draft screens from a specification not approved yet, every file
+  marked a draft, to show users early.
+- **Databases.** Migrations (`sql`) and a development seed (`seed`) for
+  PostgreSQL, SQL Server, Oracle and MariaDB; sqlc queries for PostgreSQL
+  (`sqlc`); guarded scripts for data changes on PostgreSQL and MariaDB
+  (`scripts`); a register template per entity (`register`).
+- **Workflows.** Each workflow as a BPMN 2.0 file with its diagram (`bpmn`).
+- **Deployment.** Compose files, Kubernetes manifests or a cloud-init file per
+  host, the release, rollback and migration runbooks, and a script that builds
+  a fresh Compose environment, tests it and tears it down (`deploy`).
+- **Tests.** Go, Swift and Dart tests (`tests`), one per design test and per
+  worked example of an algorithm.
+- **Drift check.** `specarch generate --check` writes nothing and exits 1 when
+  a generated file on disk differs; run it in CI.
+
+The documents (the technical specification, requirements, test plan,
+traceability matrix, commissioning procedure, release notes and the rest)
+come from `specarch document`, below.
+
+### 5. Tests and regression: `specarch derive`, `specarch run`, `specarch log test-run`
+
+- **Derived tests.** `specarch derive` writes a draft test for every subject
+  with no golden (success) test and for every derived case no test covers,
+  red paths included: denied, not found, a missing field, a value past its
+  limit.
+- **A test loop with the customer.** `specarch generate tests --package
+  <environment>` writes a test package for an environment, `specarch run`
+  runs it and writes JUnit XML, and `specarch log test-run` records the
+  results, each test case mapped back to its test and from there to the
+  elements and requirements.
+
+### 6. Change and comparison: `specarch diff`, `specarch compare`
+
+- **What a change touches.** `specarch diff` lists what changed between two
+  versions and checks the release between them. A change request records
+  why the result was not what was wanted: `omitted`, `wrong`, `changed` or
+  `unheard`.
+- **Measured technology choices.** The design stays neutral about technology
+  (the SpecArch Definition, SDF), and each stack is an implementation file
+  (SIF). `specarch compare` puts several implementation files of one
+  specification in one table, from their test results, scans and
+  measurements, so competing choices are measured against the same tests.
+
+## Seeing the specification
+
+A specification is structured data, so what shows it is made from it and
+does not drift from it:
+
+- `specarch document html` writes the whole specification as one page to
+  open from the disk: the overview, every element under its own anchor, the
+  entity diagram, the workflows, the generated screens, the traceability
+  matrix, the open questions and the problems, linked both ways with the
+  entries they mark.
+- `specarch document techspec` draws Mermaid diagrams from the YAML: entity
+  relations, state machines, request sequences and flows. Each workflow is
+  also written as BPMN 2.0.
+- `specarch model` prints the specifications as one JSON document for an
+  editor: the merged document, where every node came from, the references
+  and the layout problems. An editor can build live views on it, such as
+  readiness and open questions by role, the traceability matrix with the
+  latest test results, and the elements a change to one element reaches.
+- The JSON Schema of the format gives an editor validation and completion
+  (`yaml-language-server`, below).
+- `specarch generate ui --unapproved` gives clickable draft screens before the
+  backend exists.
+
+## Quick start
+
+Install `specarch` and the plug-ins (below), then:
+
+```sh
+# Start a specification in a new folder
+specarch init --title "Lending desk" spec/
+
+# Check it, and list the open questions and what they hold up
+specarch validate spec/
+specarch gaps spec/
+
+# Write a draft test for every case no test covers
+specarch derive spec/
+
+# Answer an open question with a decision record
+specarch decide Q-1 spec/ --by <role> --answer "<answer>"
+
+# Write draft screens from the specification before it is approved
+specarch generate ui --unapproved spec/
+
+# Write the documents the stakeholders read, then record their approval
+specarch document techspec spec/
+specarch approve --by <role> --session <session> spec/
+
+# Generate from the approved specification
+specarch generate openapi spec/
+specarch generate sql spec/
+specarch generate go-dxlib spec/
+specarch generate deploy spec/
+```
+
+`specarch guide` prints the whole order of work, and `specarch help start`
+a first entity and operation that validate. Generating needs an
+implementation file that names the targets (`specarch help generate`), and
+approval needs the documents the implementation file configures to be
+current.
 
 ## The format
 
@@ -132,7 +326,7 @@ a defect in the roadmap, not an accepted state.
 | `schema/specarch-idiom-1.0.schema.json` | the meta-model of an idiom, shipped or a project's; `-0.1` beside it |
 | `schema/specarch-estate-1.0.schema.json` | an estate: the modules' specifications it lists and pins (`docs/conventions.md`, Estates); `-0.1` beside it |
 | `schema/specarch-fragment-*-1.0.schema.json` | one schema per kind of file under a stage folder, written from the design schema by `tools/fragment-schemas` (`docs/conventions.md`, The tree); `-0.3` beside them |
-| `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: fifteen, each a stack-neutral contract and its Go rendering, such as `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation` and `error-response`; `ui-components`, what draws each page and field on Next.js with Carbon; and `design-tokens`, which Carbon token takes each colour of the theme |
+| `idioms/` | the idioms SpecArch ships, one folder per concern, embedded into the program: seventeen, each a stack-neutral contract and its Go rendering, such as `type-rendering` (what each field type becomes in Go and in PostgreSQL, SQL Server, Oracle and MariaDB), `paginated-list`, `request-validation` and `error-response`; `ui-components`, what draws each page and field on Next.js with Carbon; and `design-tokens`, which Carbon token takes each colour of the theme |
 | `spec/` | SpecArch's own specification: every stage, the design of the `specarch` command, its Go and Swift implementation files, and in `spec/tests/` the conformance suite every implementation of `specarch` must pass |
 | `docs/techspec.md` | SpecArch's technical specification, generated from `spec/` |
 | `docs/requirements.md`, `testplan.md`, `traceability.md`, `deployment.md`, `commissioning.md`, `questions.md` | SpecArch's other documents, generated from `spec/` |
@@ -176,6 +370,7 @@ a defect in the roadmap, not an accepted state.
 | `examples/library-lending/` | a small complete example: a specification with every stage in `spec/`, its document in `docs/` |
 | `examples/lending-desk/` | a partial specification written from a desk manual and a small Go service that disagree, by `docs/from-sources.md`, and `extract.sh`, which reads the same sources with every reader and merges them |
 | `examples/estate/` | an estate of three modules, the lending desk above, a small catalogue service it depends on, and a gateway in front of both that forwards by the access token's audience: `specarch-estate.yaml` lists and pins them, and `docs/estate.md` is their module map |
+| `examples/notice-board/` | a small Go service on dxlib, read by `extract openapi` from the OpenAPI document it prints and by `extract go` from its source, and `extract.sh`, which reads both and merges them |
 | `examples/reading-list/` | an iPhone app on SwiftUI and SwiftData and the Vapor server it calls, with the code-facts dumps of their Swift source and `extract.sh`, which reads both and merges them |
 | `examples/release-watcher/` | a daemon and a nightly program under systemd: their unit files, the specification of the two processes with every test they imply, and its technical specification and operations guide |
 | `examples/room-booking/` | one Express service written in TypeScript and in plain JavaScript, with the code-facts dumps of both and `extract.sh`, which reads both and lists the questions only one of them asks |
@@ -190,13 +385,18 @@ question with a decision record and takes the question out, `approve`
 records that the documents were read and the specification is approved, `generate` from
 the approved specification to code, `extract` from one surface of
 existing code or documents to a specification (its outline, database,
-router, documents (Markdown, PDF, Word, PowerPoint, Excel and email), tables (CSV, TSV and Excel registers), OpenAPI, permissions, pages, workflows, Go,
-Swift, JavaScript and Dart readers, as `docs/extraction.md` lists), `merge` joins the
+router, documents (Markdown, PDF, Word, PowerPoint, Excel and email), tables (CSV, TSV and Excel registers), OpenAPI, permissions, pages, workflows, gateway, systemd and tests
+readers, and the Go, Swift, JavaScript and Dart readers, as `docs/extraction.md` lists), `merge` joins the
 trees extract writes into one, `check` compares a specification with the
 dumps of its code and fails on a difference its allowlist does not name,
-and `diff` compares two versions of a
-specification and checks the release between them, and `derive` writes a
-draft test for every derived case no test covers, `idioms` lists the
+`diff` compares two versions of a
+specification and checks the release between them, `derive` writes a
+draft test for every derived case no test covers, `log` records what a
+stakeholder said and `log test-run` the results of a test run from a
+JUnit XML file, `run` runs a test package against its environment,
+`compare` puts several implementation files of one specification in one
+table, `plan` proposes and orders the work packages of a release,
+`upgrade` moves a specification to the newest format, `idioms` lists the
 idioms each implementation file uses, `decision why` prints the chain of
 decisions a decision rests on and `decision rests` the decisions that
 rest on it, `try` evaluates an algorithm on its worked examples or on
@@ -356,8 +556,9 @@ the commands it was built with:
     specarch mcp                   # every command as a tool, for an agent's MCP client
     specarch skill --out .agents/skills   # an agent skill, in the Agent Skills format
 
-The help topics are format, validate, gaps, generate, extract, upgrade,
-plugins, conventions, agents and examples, and every command by name.
+The help topics are format, start, asking, situations, conventions,
+plugins, agents and examples, and every command by name (`specarch help`
+lists them all).
 `capabilities --json` is an MCP-compatible tool listing: one entry per
 command, and per target a plug-in on PATH writes, each with a `name`, a
 `description` and an `inputSchema` in JSON Schema draft 2020-12, beside
@@ -403,9 +604,17 @@ requirements specification), `testplan` (the test plan and test cases),
 guide), `commissioning` (the commissioning procedure and sign-off sheet),
 `handover` (what a customer who builds and runs an environment from the
 source receives), `questions` (the open questions and what they hold
-up) and `comparison` (the old documents against the refined
-specification: kept, clarified, added or corrected, and dropped), each as
-`<target>.md`. Wherever the specification says why an element is so, or
+up), `comparison` (the old documents against the refined
+specification: kept, clarified, added or corrected, and dropped), `intent`
+(one page on the problem, the goals, what is out of scope and the quality
+goals), `manual` (the user manual) and `operations` (the operations guide),
+each as `<target>.md`. From the records beside the specification come
+`changes` (the change and defect register), `releases` (the release
+notes), `communications` (who said what to whom and when), `timeline`
+(every event in one time order), `testruns` (the test runs and their
+failure trend) and `progress` (the progress report). `--language id`
+writes a document in Indonesian, and `--audience external` leaves out the
+internal elements. Wherever the specification says why an element is so, or
 cites a standard for it, the document shows an Insight or a Note next to
 the element; wherever it says how an element is known, an Origin line; and
 wherever an open question blocks an element, the question.
@@ -456,8 +665,8 @@ answers with. `docs/generators.md` has the protocol.
 Version 1.0.0 of the meta-model, October 2026, the first stable version;
 a file written against 0.3, 0.2 or 0.1 is read beside it with a warning, a
 0.1 file with its missing tests as warnings, and `specarch upgrade` moves
-it. Release 1.6.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
-specification, six examples, the validator in Go and in Swift, fifteen
+it. Release 1.7.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
+specification, seven examples, the validator in Go and in Swift, twenty
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`
 and the sixteen code plug-ins, the guarded scripts among them, exist; the rest is on the roadmap (`docs/roadmap.md`, which says where

@@ -6,3 +6,4 @@ date: "2026-11-07"
 specificationVersion: 1.7.0
 implementations: { go: 0.1.0, swift: 0.1.0 }
 includes: [CR-52, CR-53, CR-54]
+commit: 4000c26146e41ba9194fd7485185bca35199cf8f

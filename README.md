@@ -194,8 +194,8 @@ specarch gaps spec/
 # Write a draft test for every case no test covers
 specarch derive spec/
 
-# Answer an open question with a decision record
-specarch decide Q-1 spec/ --by <role> --answer "<answer>"
+# Answer an open question with a decision record, citing where the answer came from
+specarch decide Q-1 spec/ --by <role> --answer "<answer>" --source <source>
 
 # Write draft screens from the specification before it is approved
 specarch generate ui --unapproved spec/
@@ -556,9 +556,9 @@ the commands it was built with:
     specarch mcp                   # every command as a tool, for an agent's MCP client
     specarch skill --out .agents/skills   # an agent skill, in the Agent Skills format
 
-The help topics are format, start, asking, situations, conventions,
-plugins, agents and examples, and every command by name (`specarch help`
-lists them all).
+The help topics are format, start, asking, situations, validate, gaps,
+generate, extract, upgrade, plugins, conventions, agents and examples, and
+every command by name (`specarch help` lists them all).
 `capabilities --json` is an MCP-compatible tool listing: one entry per
 command, and per target a plug-in on PATH writes, each with a `name`, a
 `description` and an `inputSchema` in JSON Schema draft 2020-12, beside

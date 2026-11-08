@@ -102,7 +102,36 @@ twelfth month:
   errors and no open `must` or `should` question, and only when the documents
   are current.
 
-### 4. Code, data and deployment: `specarch generate`
+### 4. Planning the work: `specarch plan`
+
+A work package is a record under `records/work-packages/`: the accepted
+requirements of one release that one team builds together, with the
+packages it comes `after`, who it is `assignedTo`, its `status`
+(proposed, planned, ready, in-progress, done or withdrawn) and its
+`effort`. `examples/library-lending/` keeps three.
+
+- **Propose.** `specarch plan --release 0.2.0 <folder>` writes a package for
+  each group of accepted requirements of that release that no package holds
+  yet, in the order of the reference graph, so what an element needs is
+  built before it.
+- **Take the next one.** `specarch plan --next <folder>` prints the first
+  package that can start now, or what each one waits on; `--brief WP-2`
+  prints one package's brief for whoever takes it.
+- **Round-trip with a tracker.** `--export csv` or `--export json` prints
+  every package for a tracker; `--import <file>` reads the same file back
+  and writes the status, assignee and effort the tracker changed.
+- **Checked by `specarch validate`.** `work_package_cycle` (an error) marks
+  packages whose `after` entries come back to themselves. The rest are
+  warnings: `work_package_order` (a package built before what it needs),
+  `work_package_overlap` (a requirement held by two packages),
+  `work_package_release` (a requirement of another release),
+  `work_package_not_ready` (a package marked ready whose requirements are not
+  accepted, have no acceptance criteria or wait on an open question),
+  `work_package_unverified` (a package marked done whose tests have no passed
+  result in the test-run records) and `work_package_unconfigured` (a setting
+  the package needs that no deployment gives a value).
+
+### 5. Code, data and deployment: `specarch generate`
 
 `specarch generate <target>` writes the repetitive layers from the approved
 specification, through sixteen plug-ins:
@@ -132,7 +161,7 @@ The documents (the technical specification, requirements, test plan,
 traceability matrix, commissioning procedure, release notes and the rest)
 come from `specarch document`, below.
 
-### 5. Tests and regression: `specarch derive`, `specarch run`, `specarch log test-run`
+### 6. Tests and regression: `specarch derive`, `specarch run`, `specarch log test-run`
 
 - **Derived tests.** `specarch derive` writes a draft test for every subject
   with no golden (success) test and for every derived case no test covers,
@@ -144,7 +173,7 @@ come from `specarch document`, below.
   results, each test case mapped back to its test and from there to the
   elements and requirements.
 
-### 6. Change and comparison: `specarch diff`, `specarch compare`
+### 7. Change and comparison: `specarch diff`, `specarch compare`
 
 - **What a change touches.** `specarch diff` lists what changed between two
   versions and checks the release between them. A change request records
@@ -377,39 +406,11 @@ a defect in the roadmap, not an accepted state.
 
 ## Installing and running
 
-`specarch` is one program with verbs named by direction: `init` writes
-the smallest specification that validates, `validate`
-checks, `gaps` lists the open questions and what they hold up, `document`
-goes from the specification to a document, `decide` answers an open
-question with a decision record and takes the question out, `approve`
-records that the documents were read and the specification is approved, `generate` from
-the approved specification to code, `extract` from one surface of
-existing code or documents to a specification (its outline, database,
-router, documents (Markdown, PDF, Word, PowerPoint, Excel and email), tables (CSV, TSV and Excel registers), OpenAPI, permissions, pages, workflows, gateway, systemd and tests
-readers, and the Go, Swift, JavaScript and Dart readers, as `docs/extraction.md` lists), `merge` joins the
-trees extract writes into one, `check` compares a specification with the
-dumps of its code and fails on a difference its allowlist does not name,
-`diff` compares two versions of a
-specification and checks the release between them, `derive` writes a
-draft test for every derived case no test covers, `log` records what a
-stakeholder said and `log test-run` the results of a test run from a
-JUnit XML file, `run` runs a test package against its environment,
-`compare` puts several implementation files of one specification in one
-table, `plan` proposes and orders the work packages of a release,
-`upgrade` moves a specification to the newest format, `idioms` lists the
-idioms each implementation file uses, `decision why` prints the chain of
-decisions a decision rests on and `decision rests` the decisions that
-rest on it, `try` evaluates an algorithm on its worked examples or on
-given inputs and prints each step of its formula with its value, `model` prints the specifications
-as one JSON document for a program such as an editor (the merged
-document, where every node came from, the references and the layout
-problems), and `facts` writes the code-facts
-dump extract reads of a committed folder of JavaScript, TypeScript and
-Vue (its reader is inside the program, on the TypeScript compiler's own
-Go source, so it needs no Node), Swift or Dart (their readers come with
-the program and are built once in your cache with their toolchains). It has two builds from
-the same design.
-The Go build has every verb. With Go 1.27.3 or later:
+### Install
+
+SpecArch has two builds from the same design.
+
+**The Go build** has every command. With Go 1.27.3 or later:
 
     go install github.com/SpecArch/specarch/cmd/specarch@v1.7.0
 
@@ -417,130 +418,197 @@ or, from a clone of this repository:
 
     go install ./cmd/specarch
 
-Code targets are plug-ins on PATH. This repository has sixteen:
-`specarch-gen-openapi`, which `specarch generate openapi` runs to write the
-OpenAPI 3.1 document of a specification, `specarch-gen-sql`, which
-`specarch generate sql` runs to write its migrations in PostgreSQL, SQL
-Server, Oracle or MariaDB, `specarch-gen-seed`, which `specarch generate
-seed` runs to write a development seed for those tables, made-up rows
-drawn from the entities with a fixed seed so the file is the same on
-every run, `specarch-gen-sqlc`, which `specarch generate
-sqlc` runs to write the sqlc queries the design derives against those
-migrations, `specarch-gen-scripts`, which `specarch generate scripts` runs
-to write a guarded script for each data change the design guards, for
-psql on PostgreSQL or the mariadb client on MariaDB,
-`specarch-gen-tests-go`, which `specarch
-generate tests` runs to write its Go tests, `specarch-gen-tests-swift` and
-`specarch-gen-tests-dart`, which `specarch generate tests` runs instead of
-the Go one for an implementation file in Swift (Swift Testing) or in Dart
-(`package:test` or `flutter_test`, so a Flutter app too),
-`specarch-gen-go-dxlib`, which `specarch generate go-dxlib` runs to write
-the tables, handlers, seeds and tasks of a Go service on dxlib, and
-`specarch-gen-ui`, which `specarch generate ui` runs to write the list,
-view, form, task and content pages for the web in plain JavaScript,
-the route of each custom page around a screen the project writes,
-with the redirect to an identity provider's sign-in,
-`specarch-gen-ui-typescript`, which it runs instead for an implementation
-file in TypeScript to write the screens on Next.js and Carbon,
-`specarch-gen-ui-vue-htm`, which it runs for a `ui` target of framework
-vue-htm to write the same screens for the web with no build step, on
-Vue's runtime-only build and htm, with the menus, pages and actions as
-data files and a vendor manifest, `specarch-gen-ui-swiftui`, which it runs
-for a `ui` target of platform iphone to write the same screens in SwiftUI
-into a Swift package, `specarch-gen-bpmn`, which `specarch
-generate bpmn` runs to write each workflow as a BPMN 2.0 file with its
-diagram, and the diagram as SVG, `specarch-gen-register`, which `specarch
-generate register` runs to write each entity's register template, and
-`specarch-gen-deploy`, which `specarch generate deploy` runs to write
-each deployment as a Compose file, Kubernetes manifests or a cloud-init
-file per host, the release, rollback and migration runbooks, and the
-script of a fresh environment that builds, loads, tests and tears down
-a Compose deployment, every secret referenced and never written. Install
-them at the same tag as `specarch`:
-
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-openapi@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sql@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-seed@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-sqlc@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-go@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-swift@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-tests-dart@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-go-dxlib@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-typescript@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-vue-htm@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-bpmn@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-ui-swiftui@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-scripts@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-register@v1.7.0
-    go install github.com/SpecArch/specarch/cmd/specarch-gen-deploy@v1.7.0
-
-The Swift build, for macOS, has the validate, model, upgrade, try and
-version verbs and gives the same output. With Swift 6:
+**The Swift build** (macOS) has `validate`, `model`, `upgrade`, `try` and `version`, with the same output. With
+Swift 6:
 
     swift build -c release --package-path swift
     swift/.build/release/specarch validate spec examples
 
-Start a specification; `init` writes the smallest one that validates,
-the meta-model version and the title and version the format requires, and
-nothing a person has not decided:
+**Code generators** are separate programs on your `PATH`; `specarch generate <target>` runs the one for that
+target. Install them at the same tag as `specarch`:
+
+    for g in openapi sql seed sqlc scripts tests-go tests-swift tests-dart go-dxlib \
+             ui ui-typescript ui-vue-htm ui-swiftui bpmn register deploy; do
+      go install github.com/SpecArch/specarch/cmd/specarch-gen-$g@v1.7.0
+    done
+
+| Generator | Run by | Writes |
+|---|---|---|
+| `specarch-gen-openapi` | `generate openapi` | the OpenAPI 3.1 document of the specification |
+| `specarch-gen-sql` | `generate sql` | database migrations for PostgreSQL, SQL Server, Oracle or MariaDB |
+| `specarch-gen-seed` | `generate seed` | a development seed for those tables: made-up rows from the entities, the same on every run |
+| `specarch-gen-sqlc` | `generate sqlc` | the sqlc queries the design derives, against those migrations |
+| `specarch-gen-scripts` | `generate scripts` | a guarded script for each data change the design guards (psql or the mariadb client) |
+| `specarch-gen-tests-go` | `generate tests` | Go tests, one per design test and per worked example of an algorithm |
+| `specarch-gen-tests-swift` | `generate tests`, for a Swift implementation file | Swift Testing tests |
+| `specarch-gen-tests-dart` | `generate tests`, for a Dart implementation file | `package:test` or `flutter_test` tests (Flutter apps too) |
+| `specarch-gen-go-dxlib` | `generate go-dxlib` | the tables, handlers, seeds and tasks of a Go service on dxlib |
+| `specarch-gen-ui` | `generate ui` | web pages in plain JavaScript: list, view, form, task and content pages, the routes of custom pages, the sign-in redirect |
+| `specarch-gen-ui-typescript` | `generate ui`, for a TypeScript implementation file | the same screens on Next.js and Carbon |
+| `specarch-gen-ui-vue-htm` | `generate ui`, framework `vue-htm` | the same screens with no build step (Vue runtime-only build and htm), menus, pages and actions as data files, a vendor manifest |
+| `specarch-gen-ui-swiftui` | `generate ui`, platform `iphone` | the same screens in SwiftUI, as a Swift package |
+| `specarch-gen-bpmn` | `generate bpmn` | each workflow as a BPMN 2.0 file with its diagram, and the diagram as SVG |
+| `specarch-gen-register` | `generate register` | each entity's register template |
+| `specarch-gen-deploy` | `generate deploy` | each deployment as Compose, Kubernetes manifests or cloud-init per host; release, rollback and migration runbooks; a fresh-environment script that builds, loads, tests and tears down a Compose deployment. Secrets are referenced, never written |
+
+`generate tests --package <environment>` is not a generator of its own: the program writes the test package itself.
+
+### Commands
+
+Commands are named by direction: from the specification to something (`document`, `generate`), or from something
+to the specification (`extract`, `decide`, `log`). `specarch help <command>` explains each one, with every option.
+Every example below runs from the root of this repository, on its examples, in the order of the tables: the
+`extract` example writes the trees `merge` joins, and `merge` the specification `diff` compares. A test runs them,
+all but those that need the generators, a server, an agent's client or the repository's history, and fails when a
+command of the usage has no row here.
+
+**Write and check a specification**
+
+| Command | Does | Example |
+|---|---|---|
+| `init` | writes the smallest specification that validates | `specarch init --title "Lending desk" --profile lean notes/` |
+| `validate` | checks specifications and implementation files | `specarch validate examples/library-lending/spec` |
+| `gaps` | lists the open questions and what each holds up; `--next` only the one to ask next | `specarch gaps --next examples/lending-desk/spec` |
+| `upgrade` | moves a specification to the newest format | `specarch upgrade --dry-run examples/library-lending/spec` |
+
+**Decide and approve**
+
+| Command | Does | Example |
+|---|---|---|
+| `decide` | answers an open question with a decision record and takes the question out | `specarch decide Q-3 --by desk-staff --answer "One test per requirement" --source desk-manual examples/lending-desk/spec` |
+| `decision why` | prints the chain of decisions a decision rests on, earliest first | `specarch decision why ADR-004 examples/library-lending/spec` |
+| `decision rests` | prints the decisions that rest on a decision, nearest first | `specarch decision rests ADR-001 examples/library-lending/spec` |
+| `log` | records what a stakeholder said, as a communication record; an option not given comes back as the question to ask | `specarch log --dry-run --direction in --from member --to librarian --at 2026-10-09T10:15:00Z --channel call --type request --words "May I keep the book a week longer?" --form summary --recorded-by librarian examples/library-lending/spec` |
+| `approve` | records that the documents were read and the specification is approved, in the session `--session` names | `specarch approve --by library-board --session SES-1 examples/library-lending/spec` |
+
+**Produce from the specification**
+
+| Command | Does | Example |
+|---|---|---|
+| `document <target>` | writes a document for people to read (the targets below) | `specarch document techspec examples/library-lending/spec` |
+| `generate <target>` | writes code or data from the approved specification (the generators above); `--unapproved` writes drafts before the approval, `--check` fails when a file on disk differs | `specarch generate openapi --out openapi examples/library-lending/spec` |
+| `model` | prints the specifications as one JSON document for a program such as an editor: the merged document, where each node came from, the references, the layout problems | `specarch model examples/library-lending/spec` |
+| `try` | evaluates an algorithm on its worked examples or given inputs, printing each step of the formula with its value; `--file` reads a proposed algorithm instead | `specarch try lateFee --example "one week late" examples/library-lending/spec` |
+| `plan` | proposes and orders the work packages of a release; `--next`, `--brief <package>`, `--export csv\|json` and `--import <file>` take them from there (life cycle, step 4) | `specarch plan --brief WP-2 examples/library-lending/spec` |
+
+`try` also takes inputs of its own: `specarch try lateFee --inputs "{daysLate: 7, dailyRate: '0.50', replacementCost:
+'25.00'}" examples/library-lending/spec`.
+
+The document targets, each written into the folder the implementation file names, or `--out`:
+
+| Target | Writes |
+|---|---|
+| `intent` | `intent.md`: one page on the problem, the goals, what is out of scope and the quality goals |
+| `techspec` | `techspec.md`: an arc42 technical specification with Mermaid diagrams of the entities, states, operations, commands, pages and permissions, the deployment and commissioning stages, the requirements and the traceability matrix |
+| `requirements` | `requirements.md`: the requirements specification |
+| `testplan` | `testplan.md`: the test plan and the test cases |
+| `traceability` | `traceability.md`: the traceability matrix and its gaps |
+| `deployment` | `deployment.md`: the deployment guide |
+| `commissioning` | `commissioning.md`: the commissioning procedure and the sign-off sheet |
+| `handover` | `handover.md`: what a customer who builds and runs an environment from the source receives |
+| `questions` | `questions.md`: the open questions and what they hold up |
+| `problems` | `problems.txt` and `problems.sarif`: every error, warning and open question, and a mark at each entry in the YAML |
+| `comparison` | `comparison.md`: the old documents against the refined specification: kept, clarified, added or corrected, and dropped |
+| `changes` | `changes.md`: the change and defect register, from the records |
+| `releases` | `releases.md`: the release notes, from the records |
+| `communications` | `communications.md`: who said what to whom and when, from the records |
+| `timeline` | `timeline.md`: every event in one time order, from the records |
+| `testruns` | `testruns.md`: the test runs and their failure trend, from the records |
+| `progress` | `progress.md`: the progress report: size by stage, open questions, unheard roles, effort and a burn-up per release |
+| `html` | `index.html`: the whole specification as one page to open from the disk |
+| `manual` | `manual.md`: the user manual |
+| `operations` | `operations.md`: the operations guide |
+
+**Start from existing code or documents**
+
+| Command | Does | Example |
+|---|---|---|
+| `extract <source>` | writes a specification from one surface of existing code or documents (`docs/extraction.md` lists the readers) | `specarch extract documents --out trees/manual examples/lending-desk/sources/manual.md` and `specarch extract openapi --out trees/openapi examples/lending-desk/sources/openapi/openapi.yaml` |
+| `merge` | joins the trees `extract` writes into one specification | `specarch merge --out trees/merged trees/manual trees/openapi` |
+| `facts <language>` | writes the code-facts dump `extract` reads, for a committed folder of JavaScript/TypeScript/Vue (`javascript`), Swift (`swift`) or Dart (`dart`) | `specarch facts javascript examples/room-booking/sources/ts ts.json` |
+| `check` | compares a specification with the route tables, permission tables, catalogue dumps and gateway tables of its code; fails on a difference its allowlist does not name, on an allowlist line that names none, and on one added since the revision `--since` names | `specarch check --allowlist examples/lending-desk/check-allowlist.txt examples/lending-desk/spec examples/lending-desk/sources/routes/routes.json` |
+
+`extract` reads: outline, database, router, documents (Markdown, PDF, Word, PowerPoint, Excel, email), tables (CSV,
+TSV, Excel registers), openapi, permissions, pages, workflows (BPMN 2.0, or a workflow table with `--table`),
+gateway, systemd and tests (Gherkin feature files and test sheets), plus Go (`go`), Swift (`swift`), JavaScript
+(`javascript`) and Dart (`dart`) code. The JavaScript/TypeScript/Vue reader is built into the program (no Node
+needed); the Swift and Dart readers ship with it and are built once in your cache with their own toolchains. Keep
+the trees in a folder of their own, as `trees/` here: a `records/` folder beside a tree is read as its records.
+
+**Test and compare**
+
+| Command | Does | Example |
+|---|---|---|
+| `derive` | writes a draft test for every derived case no test covers; `--fill` also adds the fixture, input and expect the design fixes | `specarch derive --dry-run examples/library-lending/spec` |
+| `generate tests` | writes a test package for an environment: every test and every derived case no test covers, as requests to its servers | `specarch generate tests --package staging --out package examples/library-lending/spec` |
+| `run` | runs a test package against its environment and writes the results as JUnit XML | `specarch run --results results.xml --server api --dry-run package` |
+| `log test-run` | records a test run's results from a JUnit XML file, each test case mapped to its test | `specarch log test-run --dry-run --results examples/library-lending/records/evidence/TR-2-junit.xml --environment staging --at 2026-10-15T09:30:00Z --by library-it examples/library-lending/spec` |
+| `compare` | puts several implementation files of one specification in one table, from their test results, scans and measurements | `specarch compare examples/library-lending/spec examples/library-lending/spec/implementation/go/library-lending.go.specarch-implementation.yaml examples/library-lending/spec/implementation/typescript/library-lending.typescript.specarch-implementation.yaml` |
+| `diff` | compares two versions of a specification and checks the release between them | `specarch diff examples/lending-desk/spec trees/merged` |
+| `idioms` | lists the idioms each implementation file uses, shipped or overridden | `specarch idioms examples/library-lending/spec` |
+| `idioms diff` | prints a shipped idiom's parts beside each override's | `specarch idioms diff ui-components examples/library-lending/spec` |
+
+**Learn the program** (more in the next section)
+
+| Command | Does | Example |
+|---|---|---|
+| `help` | explains an area or a command | `specarch help plan` |
+| `guide` | prints the order of work, for a person or, with `--agent`, an agent | `specarch guide --agent` |
+| `capabilities` | lists what the program and the plug-ins on `PATH` can do; `--json` as a tool listing | `specarch capabilities --json` |
+| `mcp` | serves every command as a tool of the Model Context Protocol, over standard input and output | `specarch mcp` |
+| `skill` | writes an agent skill in the Agent Skills format | `specarch skill --out .agents/skills` |
+| `version` | prints the program version and the format versions it reads | `specarch version` |
+
+### First steps
+
+Start a specification. `init` writes only what the format requires (the meta-model version, the title and the
+version) and nothing a person has not decided:
 
     specarch init --profile lean notes/
 
-`specarch help start` shows the next step, a first entity and operation
-that validate. On the lean profile, for a small tool or an internal
-daemon, a test the design implies and nobody has written yet is a warning
-rather than an error, and one warning at `info.profile` says so; every
-other rule, a permission on every operation among them, is as on full.
-`specarch derive` writes the missing tests into the tests stage's
-folder once `stages` lists it, and `profile: full`, or no
-profile, makes them errors again. The idea of setting a project up in one
-command comes from Spec Kit (github.com/github/spec-kit).
+`specarch help start` shows the next step, a first entity and operation that validate. The **lean** profile is for
+a small tool or an internal daemon: a test the design implies but nobody has written is a warning, not an error,
+and one warning at `info.profile` says so. Every other rule, a permission on every operation among them, is the
+same as on **full**, which `profile: full` or no profile at all chooses. `specarch derive` writes those missing
+tests into the tests stage's folder once `stages` lists it. The idea of setting a project up in one command comes
+from Spec Kit (github.com/github/spec-kit).
 
-Check specifications; a folder is searched for them, and a folder holding
-`specarch.yaml` is read as one specification:
+Check it. A folder is searched for specifications; a folder holding `specarch.yaml` is one specification:
 
     specarch validate spec/ examples/
 
-Every problem is one line, in the form compilers use: the file, the line,
-the column, `error` or `warning`, the YAML path in the specification, the
-rule, one sentence saying what is wrong and how to fix it, and the
-problem's id in brackets, which stays the same while lines move.
+Each problem is one line, in the form compilers use: file, line, column, severity, YAML path, rule, what is wrong and
+how to fix it, and an id in brackets that stays the same while lines move:
 
     design/entities/order.yaml:12:17: error: /entities/Order/relations/customer/target: relation_target: Custmer is not an entity of the specification; did you mean Customer? [relation_target@design/entities/order.yaml#/entities/Order/relations/customer/target]
 
-The exit status is 0 when every input is valid (warnings may be printed), 1
-when any has an error, and 2 for a usage error, a path that cannot be
-read, or a folder with no specification in it. `specarch version` prints the
-program version and the versions of each format it reads.
+| Exit status | Meaning |
+|---|---|
+| 0 | every input is valid (warnings may be printed) |
+| 1 | an input has an error |
+| 2 | a usage error, a path that cannot be read, or a folder with no specification |
 
-A specification names the meta-model version it is written against on its
-`specarch:` line, `"1.0.0"` today. One written against an earlier version,
-0.3, 0.2 or 0.1, is still read by its own rules, with one warning at that
-line; `specarch upgrade` moves it and every file beside it to 1.0.0,
-editing only the version lines, the editor hints and the keys 1.0.0
-renamed, and lists what it cannot do by itself:
+### What `validate` checks
 
-    specarch upgrade --dry-run spec/   # print every change, write nothing
-    specarch upgrade spec/
+The layout of the tree and the JSON Schema of the merged specification, then what a schema cannot express:
+references across files, fail-closed access, the design/implementation boundary, expressions and their types,
+worked examples evaluated to the last digit, concrete integer types, the test scenarios each subject needs,
+citations, environments and secrets, and traceability from needs to requirements, design and tests.
+`docs/conventions.md` describes every rule; the rule names are the `Rule` enum in `spec/design/enums/`.
 
-The compatibility promise: SpecArch specifications are written against a
-meta-model version, the `specarch:` line of the root file. From 1.0.0 the
-meta-model follows Semantic Versioning: a file valid on 1.0.0 stays valid
-and means the same on every 1.x; a 1.x only adds. A keyword is deprecated
-with a warning before a 2.0.0 removes it. Every earlier version, 0.3, 0.2
-and 0.1, is read beside 1.0.0 with a warning; `specarch upgrade` moves a
-file on one of them. The program's own version (`specarch version`) is a
-separate number.
+### Versions
 
-The validator checks the layout of the tree, applies the JSON Schema to the
-merged specification, then checks what a schema cannot express: references
-across the tree, fail-closed access, the boundary between design and
-implementation, expressions and their types, worked examples evaluated to
-the last digit, concrete integer types, the test scenarios each subject
-needs, citations, environments and secrets, and traceability from needs
-through requirements to design and tests. `docs/conventions.md` describes
-every rule; the rule names are the `Rule` enum in `spec/design/enums/`.
+- **The format:** a specification names its meta-model version on its `specarch:` line (`"1.0.0"` today). From 1.0.0
+  it follows Semantic Versioning: a file valid on 1.0.0 stays valid and means the same on every 1.x; a 1.x only
+  adds, and a keyword is deprecated with a warning before a 2.0.0 removes it.
+- **Older files:** 0.3, 0.2 and 0.1 are still read by their own rules, with one warning at the version line.
+  `specarch upgrade` moves a file and those beside it to 1.0.0, editing only the version lines, editor hints and
+  renamed keys, and lists what it cannot do by itself:
+
+      specarch upgrade --dry-run spec/   # print every change, write nothing
+      specarch upgrade spec/
+
+- **The program:** `specarch version` prints its own version (a separate number) and the format versions it reads.
 
 ## What the program says about itself
 
@@ -598,21 +666,8 @@ and the command exits 1. With `--check` it writes nothing and exits 1 when
 the committed output differs, which is how CI keeps the documents current.
 `docs/techspec.md` is SpecArch's own, made from `spec/`.
 
-The other document targets work the same way: `requirements` (the
-requirements specification), `testplan` (the test plan and test cases),
-`traceability` (the matrix and its gaps), `deployment` (the deployment
-guide), `commissioning` (the commissioning procedure and sign-off sheet),
-`handover` (what a customer who builds and runs an environment from the
-source receives), `questions` (the open questions and what they hold
-up), `comparison` (the old documents against the refined
-specification: kept, clarified, added or corrected, and dropped), `intent`
-(one page on the problem, the goals, what is out of scope and the quality
-goals), `manual` (the user manual) and `operations` (the operations guide),
-each as `<target>.md`. From the records beside the specification come
-`changes` (the change and defect register), `releases` (the release
-notes), `communications` (who said what to whom and when), `timeline`
-(every event in one time order), `testruns` (the test runs and their
-failure trend) and `progress` (the progress report). `--language id`
+The other document targets work the same way; the table under Commands
+(Installing and running) names each one and the file it writes. `--language id`
 writes a document in Indonesian, and `--audience external` leaves out the
 internal elements. Wherever the specification says why an element is so, or
 cites a standard for it, the document shows an Insight or a Note next to

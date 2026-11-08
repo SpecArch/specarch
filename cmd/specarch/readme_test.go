@@ -241,10 +241,15 @@ func TestReadmeExamples(t *testing.T) {
 	for _, args := range [][]string{
 		{"init", "-q"},
 		{"add", "-A"},
-		{"-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "examples"},
+		{"commit", "-q", "-m", "examples"},
 	} {
+		// As internal/extract's tests run git: a fixed author and no
+		// configuration of this machine, so its hooks and signing stay out.
 		cmd := exec.Command("git", args...)
 		cmd.Dir = work
+		cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_CONFIG_NOSYSTEM=1",
+			"GIT_AUTHOR_NAME=SpecArch test", "GIT_AUTHOR_EMAIL=test@specarch.invalid",
+			"GIT_COMMITTER_NAME=SpecArch test", "GIT_COMMITTER_EMAIL=test@specarch.invalid")
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
 		}

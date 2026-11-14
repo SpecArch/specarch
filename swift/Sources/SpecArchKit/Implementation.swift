@@ -12,7 +12,7 @@ let designKeys: Set<String> = [
     "requestBody", "parameters", "permission", "formula", "examples",
     "properties", "primaryKey", "stateField", "messages", "payload",
     "calls", "idempotencyKey", "guard", "validity",
-    "sensitivity", "atRest", "lookup", "audited", "deletion",
+    "sensitivity", "atRest", "lookup", "audited", "deletion", "appendOnly", "controls",
     "listOf", "limits", "problem", "errors", "jobs", "processes", "gateways", "menus", "workflows",
     "views", "count", "schemas",
 ]

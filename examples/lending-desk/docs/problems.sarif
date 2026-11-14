@@ -9,6 +9,14 @@
           "informationUri": "https://github.com/SpecArch/specarch",
           "rules": [
             {
+              "id": "internal_key_exposed",
+              "properties": {
+                "tags": [
+                  "security"
+                ]
+              }
+            },
+            {
               "id": "open_question"
             },
             {
@@ -26,6 +34,182 @@
       "columnKind": "unicodeCodePoints",
       "results": [
         {
+          "ruleId": "internal_key_exposed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the 201 response of lendBook carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 151,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans/post/responses/201",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "internal_key_exposed@design/design.yaml#/paths/~1loans/post/responses/201"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 160,
+                  "startColumn": 11
+                }
+              },
+              "message": {
+                "text": "source desk-manual, clause 3.1: Desk staff lend a book by scanning the member's card and the book's barcode."
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 59,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "internal_key_exposed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "returnBook carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 165,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1return/parameters/0",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1return/parameters/0"
+          }
+        },
+        {
+          "ruleId": "internal_key_exposed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "renewLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 180,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}~1renew/parameters/0",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1renew/parameters/0"
+          }
+        },
+        {
+          "ruleId": "internal_key_exposed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the 200 response of listMemberLoans carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/design/design.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 201,
+                  "startColumn": 9
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1members~1{cardNumber}~1loans/get/responses/200",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "internal_key_exposed@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get/responses/200"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../sources/code/lending/routes.go",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 91,
+                  "startColumn": 1
+                }
+              },
+              "message": {
+                "text": "source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member's loans."
+              }
+            }
+          ]
+        },
+        {
           "ruleId": "open_question",
           "kind": "open",
           "level": "none",
@@ -40,7 +224,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 220,
+                  "startLine": 224,
                   "startColumn": 3
                 }
               },
@@ -64,7 +248,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 209,
+                  "startLine": 213,
                   "startColumn": 3
                 }
               },
@@ -80,7 +264,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 229,
+                  "startLine": 233,
                   "startColumn": 9
                 }
               },

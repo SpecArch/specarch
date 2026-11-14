@@ -6,7 +6,7 @@ Version 1.0.0 of the specification: 3 requirements, 19 tests and 1 environment. 
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
 
@@ -75,6 +75,8 @@ Runs when a job it runs is due; started and watched by the service manager, acti
 | registryAddress | string |   | The address of the registry the watcher asks for new releases. |
 | registryToken | string | yes | The token the watcher reads the registry with, from the environment file only root reads. |
 | logLevel | string |   | How much the watcher logs. |
+
+**Problem on registryToken:** warning: secret_unprotected: setting registryToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration.yaml#/configuration/registryToken/secret]
 
 ### Monitors
 

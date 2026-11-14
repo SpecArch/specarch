@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:41:16: warning: /paths/~1loans~1{loanId}/get/responses/403: refusal_reveals_record: getLoan reaches one Loan by its key, and its permission signedIn is held by every caller once signed in, so a 403 can only refuse that record, which tells the caller that a Loan with that key exists; answer 404, as for a key no record has [refusal_reveals_record@specarch.yaml#/paths/~1loans~1{loanId}/get/responses/403]

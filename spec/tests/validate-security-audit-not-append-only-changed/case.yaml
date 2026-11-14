@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:15:15: warning: /entities/FeeChange/deletion: audit_not_append_only: FeeChange is append-only, and soft deletion changes a record to mark it deleted; remove deletion [audit_not_append_only@specarch.yaml#/entities/FeeChange/deletion]
+  specarch.yaml:24:5: warning: /paths/~1fee-changes~1{feeChangeId}/delete: audit_not_append_only: FeeChange is append-only, and deleteFeeChange changes or deletes a record of it; record the change as a new FeeChange, or leave appendOnly out [audit_not_append_only@specarch.yaml#/paths/~1fee-changes~1{feeChangeId}/delete]

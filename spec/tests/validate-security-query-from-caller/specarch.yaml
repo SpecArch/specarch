@@ -1,0 +1,58 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+permissions:
+  loans.read: { description: Read a loan. }
+roles:
+  clerk:
+    description: A desk clerk, who reads every loan.
+    permissions: [loans.read]
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List the loans.
+      permission: loans.read
+      parameters:
+        - { name: sort, in: query, schema: { type: string, maxLength: 40 } }
+        - { name: filter, in: query, schema: { type: string, maxLength: 200 } }
+      responses:
+        "200":
+          description: The loans.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+  /loans/search:
+    post:
+      operationId: searchLoans
+      summary: Search the loans.
+      permission: loans.read
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sql: { type: string, maxLength: 2000 }
+      responses:
+        "200":
+          description: The loans found.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Loan" } }
+tests:
+  list-loans-denied-without-loans-read: { level: system, operation: listLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "listLoans is called", then: "it is refused as not allowed" }
+  list-loans-succeeds: { level: system, operation: listLoans, scenario: golden, given: "a caller with loans.read", when: "listLoans is called with values inside every limit", then: "it answers 200: The loans." }
+  search-loans-denied-without-loans-read: { level: system, operation: searchLoans, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "searchLoans is called", then: "it is refused as not allowed" }
+  search-loans-succeeds: { level: system, operation: searchLoans, scenario: golden, given: "a caller with loans.read", when: "searchLoans is called with values inside every limit", then: "it answers 200: The loans found." }

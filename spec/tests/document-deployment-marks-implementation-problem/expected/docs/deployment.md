@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 2 environments, 3 settings and 1 migration. Secrets are named here with where their value comes from, never with a value.
 
-**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error and 1 warning concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Environments
 
@@ -24,6 +24,8 @@ The customer builds, installs and runs production from the source; what the cust
 | taxRate | decimal(4, 2) |   | The sales tax rate. |
 | databaseUrl | string | yes | Where the database is; it comes from the host's secret store. |
 | auditNote | string |   | A note the vendor's own build writes into the audit log. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/databaseUrl/secret]
 
 **Audience on auditNote:** internal, left out of a document for everyone.
 

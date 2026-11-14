@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an operation that reads one loan by its key with permission signedIn, answering 200 and 403, over a loan the member role reaches only through a row policy"
+when: validate is run
+then: "it warns refusal_reveals_record at the 403, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

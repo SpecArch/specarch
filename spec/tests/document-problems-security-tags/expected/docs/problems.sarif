@@ -1,0 +1,128 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "specarch",
+          "informationUri": "https://github.com/SpecArch/specarch",
+          "rules": [
+            {
+              "id": "object_unscoped",
+              "properties": {
+                "tags": [
+                  "security"
+                ]
+              }
+            },
+            {
+              "id": "stakeholders_unconfirmed"
+            }
+          ]
+        }
+      },
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "ruleId": "stakeholders_unconfirmed",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/stakeholders",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "stakeholders_unconfirmed@specarch.yaml#/stakeholders"
+          }
+        },
+        {
+          "ruleId": "object_unscoped",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "getLoan reaches one Loan by its key, and its permission signedIn is held by every caller once signed in, with no row policy on Loan, so any caller reaches any Loan by changing the key; give the operation a permission a role grants, or give the roles a row policy on Loan that compares a field of it with caller.<property>"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 23,
+                  "startColumn": 19
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{loanId}/get/permission",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "object_unscoped@specarch.yaml#/paths/~1loans~1{loanId}/get/permission"
+          }
+        },
+        {
+          "ruleId": "object_unscoped",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "replaceLoan reaches one Loan by its key, and its permission public is held by every caller, signed in or not, with no row policy on Loan, so any caller reaches any Loan by changing the key; give the operation a permission a role grants, or give the roles a row policy on Loan that compares a field of it with caller.<property>"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../project/specarch.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 19
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/paths/~1loans~1{id}/put/permission",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "object_unscoped@specarch.yaml#/paths/~1loans~1{id}/put/permission"
+          }
+        }
+      ],
+      "properties": {
+        "specification": "../project",
+        "title": "Case",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

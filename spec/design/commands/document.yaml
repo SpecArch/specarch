@@ -281,8 +281,10 @@ commands:
       as one paragraph, its priority, kind, certainty, decider, options,
       blocked entries and Insight), the specification's folder relative
       to the log, its title and its version as the run's properties, and
-      the rules used listed under the tool; the property keys are the
-      agent queue's interface and stay (ADR-156). A specification that cannot be read at
+      the rules used listed under the tool, each design security rule
+      with properties.tags [security] (ADR-247); the property keys and the
+      rule ids are the interface of the tools that read the log and stay
+      (ADR-156). A specification that cannot be read at
       all, such as one whose root file has no entry that parses, gets its
       problems too, and a file that does not parse is read as far as its
       entries parse (ADR-080).
@@ -430,7 +432,7 @@ commands:
       "1": "Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
     algorithm: checkStatus
-    satisfies: [SA-7, SA-8, SA-134, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86, SA-111, SA-117, SA-132, SA-57, SA-125, SA-130, SA-137, SA-142]
+    satisfies: [SA-7, SA-8, SA-134, SA-15, SA-16, SA-19, SA-22, SA-26, SA-51, SA-60, SA-66, SA-67, SA-68, SA-73, SA-86, SA-111, SA-117, SA-132, SA-57, SA-125, SA-130, SA-137, SA-142, SA-147]
     why: Documents are read by more people than the YAML, so they come first among the targets and are made from the specification rather than kept beside it.
     cites:
       - source: arc42

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "the same list with sort an enum of the loan's fields and filter a closed object, and a search whose body has memberId and order"
+when: validate is run
+then: "it warns nothing, the body property order included, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

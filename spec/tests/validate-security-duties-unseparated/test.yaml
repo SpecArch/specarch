@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a requirement whose controls list separationOfDuties with no set satisfying it, and another whose satisfying set leaves out a permission that satisfies it"
+when: validate is run
+then: "it warns duties_unseparated at the first requirement's controls entry and at the permission left out, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

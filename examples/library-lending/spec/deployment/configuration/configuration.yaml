@@ -7,10 +7,12 @@ configuration:
     satisfies: [LIB-5]
   databaseUrl:
     description: Where the database is; it carries the password, so it comes from the host's secret store and is never written here.
+    # specarch-problem: warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret]
     secret: true
     schema: { type: string, format: uri }
   feeLedgerToken:
     description: The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here.
+    # specarch-problem: warning: secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret]
     secret: true
     schema: { type: string }
   notificationChannelUrl:

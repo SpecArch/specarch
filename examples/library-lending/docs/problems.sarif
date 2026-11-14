@@ -12,6 +12,14 @@
               "id": "problem_missing"
             },
             {
+              "id": "secret_unprotected",
+              "properties": {
+                "tags": [
+                  "security"
+                ]
+              }
+            },
+            {
               "id": "work_package_unverified"
             }
           ]
@@ -48,6 +56,68 @@
           ],
           "partialFingerprints": {
             "specarchId/v1": "work_package_unverified@../records/work-packages/WP-1.yaml#/status"
+          }
+        },
+        {
+          "ruleId": "secret_unprotected",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/deployment/configuration/configuration.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 13
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/configuration/databaseUrl/secret",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret"
+          }
+        },
+        {
+          "ruleId": "secret_unprotected",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/deployment/configuration/configuration.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 13
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/configuration/feeLedgerToken/secret",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret"
           }
         },
         {

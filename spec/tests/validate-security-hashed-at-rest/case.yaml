@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  specarch.yaml:13:18: error: /entities/Member/primaryKey/0: at_rest: password is hashed at rest, so only a one-way hash of it is kept and it cannot be part of the primary key; give the entity another key, or keep the field encrypted with lookup: hash [at_rest@specarch.yaml#/entities/Member/primaryKey/0]
+  specarch.yaml:15:46: error: /entities/Member/constraints/one_password/fields/0: at_rest: password is hashed at rest, so only a one-way hash of it is kept and it cannot be part of a unique constraint; give the entity another key, or keep the field encrypted with lookup: hash [at_rest@specarch.yaml#/entities/Member/constraints/one_password/fields/0]
+  specarch.yaml:28:44: error: /paths/~1members/get/listOf/sortable/0: list_of: password is hashed at rest, so only a one-way hash of it is kept and it cannot be sortable; leave it out of sortable [list_of@specarch.yaml#/paths/~1members/get/listOf/sortable/0]

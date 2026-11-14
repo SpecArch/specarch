@@ -1,0 +1,38 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+problem:
+  statement: Desk staff lose track of who did what with a loan or a fee.
+requirements:
+  CASE-1:
+    statement: Every change to a fee shall be kept where nobody can change it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Each change to a fee leaves a record that is never changed or deleted.]
+    controls: [auditTrail]
+  CASE-2:
+    statement: Every refusal of a caller shall be kept.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Each refusal leaves a record.]
+    controls: [auditTrail]
+entities:
+  FeeChange:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      note: { type: string, maxLength: 200 }
+    required: [id, note]
+    primaryKey: [id]
+    appendOnly: true
+    satisfies: [CASE-1, CASE-2]
+permissions:
+  fees.audit: { description: Read and manage the record of fee changes. }
+roles:
+  auditor:
+    description: Reads the record of fee changes.
+    permissions: [fees.audit]

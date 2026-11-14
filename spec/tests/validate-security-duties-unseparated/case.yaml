@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:15:16: warning: /requirements/CASE-1/controls/0: duties_unseparated: CASE-1 asks for separation of duties, and no set under separationOfDuties satisfies it, so nothing keeps one person from holding the permissions it would separate; add a set naming them, with satisfies: [CASE-1] [duties_unseparated@specarch.yaml#/requirements/CASE-1/controls/0]
+  specarch.yaml:28:16: warning: /permissions/fees.refund: duties_unseparated: fees.refund satisfies CASE-2, which asks for separation of duties, and no set satisfying CASE-2 names it, so a role may grant it beside the permissions it should be kept from; name it in the set [duties_unseparated@specarch.yaml#/permissions/fees.refund]

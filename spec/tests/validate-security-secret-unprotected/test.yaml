@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an entity with a password field and a field of sensitivity credential, both with no atRest, and a secret setting with no rotation"
+when: validate is run
+then: "it warns secret_unprotected at both fields and at the setting's secret, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

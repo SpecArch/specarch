@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:22:19: warning: /paths/~1loans~1{loanId}/get/permission: object_unscoped: getLoan reaches one Loan by its key, and its permission signedIn is held by every caller once signed in, with no row policy on Loan, so any caller reaches any Loan by changing the key; give the operation a permission a role grants, or give the roles a row policy on Loan that compares a field of it with caller.<property> [object_unscoped@specarch.yaml#/paths/~1loans~1{loanId}/get/permission]
+  specarch.yaml:36:19: warning: /paths/~1loans~1{id}/put/permission: object_unscoped: replaceLoan reaches one Loan by its key, and its permission public is held by every caller, signed in or not, with no row policy on Loan, so any caller reaches any Loan by changing the key; give the operation a permission a role grants, or give the roles a row policy on Loan that compares a field of it with caller.<property> [object_unscoped@specarch.yaml#/paths/~1loans~1{id}/put/permission]

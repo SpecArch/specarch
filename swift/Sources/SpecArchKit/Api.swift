@@ -39,6 +39,10 @@ extension Checker {
                     add(item, ptr, .listOf, "\(item.value) is not a field of \(str(entNode)), so it cannot be \(list)\(suggest(item.value, fields))")
                     continue
                 }
+                if str(f.child("atRest")) == "hashed" {
+                    add(item, ptr, .listOf, "\(item.value) is hashed at rest, so only a one-way hash of it is kept and it cannot be \(list); leave it out of \(list)")
+                    continue
+                }
                 guard str(f.child("atRest")) == "encrypted" else { continue }
                 if list != "filterable" {
                     add(item, ptr, .listOf, "\(item.value) is encrypted at rest, so it cannot be \(list): storage cannot read it; leave it out of \(list)")

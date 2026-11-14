@@ -1,0 +1,38 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+entities:
+  Member:
+    type: object
+    properties:
+      password: { type: string, maxLength: 200, writeOnly: true, sensitivity: credential, atRest: hashed }
+      email: { type: string, format: email, maxLength: 254 }
+    required: [password, email]
+    primaryKey: [password]
+    constraints:
+      one_password: { kind: unique, fields: [password], message: Two members cannot share a password. }
+permissions:
+  members.read: { description: Read members. }
+roles:
+  clerk:
+    description: A desk clerk.
+    permissions: [members.read]
+paths:
+  /members:
+    get:
+      operationId: listMembers
+      summary: List the members.
+      permission: members.read
+      listOf: { entity: Member, sortable: [password], pageSize: { default: 20, maximum: 100 } }
+      responses:
+        "200":
+          description: The members.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/entities/Member" } }
+tests:
+  one-password-succeeds: { level: system, entity: Member, constraint: one_password, scenario: golden, given: "no Member with the same values exists", when: "a Member is saved", then: "it is saved" }
+  list-members-denied-without-members-read: { level: system, operation: listMembers, scenario: red, covers: [denied without members.read], given: "a caller without members.read", when: "listMembers is called", then: "it is refused as not allowed" }
+  list-members-succeeds: { level: system, operation: listMembers, scenario: golden, given: "a caller with members.read", when: "listMembers is called", then: "it answers 200: The members." }

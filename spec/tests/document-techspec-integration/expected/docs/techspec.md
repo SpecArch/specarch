@@ -6,7 +6,7 @@ Version 1.0.0 of the specification: 1 requirement, 1 entity, 2 HTTP operations, 
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the specification lists no stakeholders, so no role has confirmed that the list is complete; list under stakeholders every role with an interest in the system, then add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@specarch.yaml#/stakeholders]
 
@@ -182,6 +182,8 @@ flowchart LR
 | Setting | Type | Secret | Description |
 |---|---|---|---|
 | feeLedgerToken | string | yes | The token the fee ledger issued to this system; from the host's secret store. |
+
+**Problem on feeLedgerToken:** warning: secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/feeLedgerToken/secret]
 
 ## 8. Cross-cutting concepts
 

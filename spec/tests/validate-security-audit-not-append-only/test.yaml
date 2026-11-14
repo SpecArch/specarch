@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "two requirements whose controls list auditTrail, one that no entity or securityEvents satisfies and one an entity satisfies that is not appendOnly"
+when: validate is run
+then: "it warns audit_not_append_only at the unsatisfied requirement's controls entry and at the entity, besides requirement_unsatisfied, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

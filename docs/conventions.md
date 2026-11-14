@@ -953,7 +953,9 @@ redefined.
 | `validity`, `from`, `until` | SpecArch | the fields that bound when a record is current |
 | `guard`, `precondition`, `recordsChanged` | SpecArch | what is checked together with a data change |
 | `writes`, `set`, `delete`, `given` | SpecArch | what a guarded change writes when no keyword of its entry says it: the fields it sets, each to the value the operator gives or a literal, or that it deletes the records; no standard says what an operator's correction writes (ADR-168) |
-| `sensitivity`, `atRest`, `lookup`, `audited`, `deletion` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity |
+| `sensitivity`, `atRest`, `lookup`, `audited`, `deletion`, `appendOnly` | SpecArch | how sensitive a field is and how it is stored, and what the system keeps about each record of an entity; `atRest: hashed` after NIST SP 800-63B's salted one-way hash of a memorised secret (ADR-247) |
+| `controls` on a requirement | SpecArch | the security controls a requirement asks for, `separationOfDuties` and `auditTrail`, which the validator then looks for in the design (ADR-247) |
+| `rotation` on a secret setting | SpecArch, after NIST SP 800-57 Part 1's cryptoperiod | the longest time one value of a secret is used before it is replaced, an ISO 8601 duration (ADR-247) |
 | `listOf`, `searchable`, `filterable`, `sortable`, `pageSize` | SpecArch | a list's whitelists and page size, which a client must know |
 | `limits`, `maxRequestBytes`, `maxResponseBytes`, `rate`, `requests`, `per`, `burst` | SpecArch | the request size and rate a client keeps to, and the largest download it must be ready for |
 | `handshakes`, `keyAgreement`, `signature`, `cipher`, `establishedBy`, `lifetime`, `uses`, `handshake` | SpecArch, after RFC 7748 (the key agreements), RFC 8032 (the signatures) and OpenSSL's cipher names | a key exchange a client performs once, after which the operations that name it travel in an encrypted, signed envelope; declared once, named by each operation that travels in it (ADR-145) |
@@ -1902,10 +1904,20 @@ key, unique, or found by equality. An encrypted field in a primary key or a
 unique constraint needs the lookup, and a lookup on a field that is not
 encrypted is refused (`at_rest`).
 
+`atRest: hashed` keeps only a salted one-way hash of the value, for a
+password or another secret the system compares with what a caller sends
+and never reads back. A hashed field is never a key, unique, searched,
+filtered or sorted (`at_rest`, `list_of`). A credential field with no
+`atRest` is warned about (`secret_unprotected`): hashed for what is only
+compared, encrypted for what the system must send on.
+
 An entity may be `audited: true`: every record carries `createdAt`,
 `createdBy`, `lastModifiedAt` and `lastModifiedBy`, set by the system and
 never by a caller. With `deletion: soft`, a delete sets a `deleted` flag and
 keeps the record; a deleted record is not listed and reads as not found.
+With `appendOnly: true`, a record is written once and never changed or
+deleted, as an audit trail is kept: an operation that changes or deletes
+one, or soft deletion, is warned about (`audit_not_append_only`).
 The entity does not declare those fields, since the keyword already says
 them (`audited`). The derivation gives a list of such an entity the golden
 case `deleted <Entity> not listed`, and a read of one by id the red case

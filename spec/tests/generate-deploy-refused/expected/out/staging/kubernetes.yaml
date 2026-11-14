@@ -25,6 +25,7 @@ data:
 # specarch-problem: error: generator: the setting dailyRate has no value in the deployment staging of project/case.go.specarch-implementation.yaml and no default; write it under deployments.staging.configuration.dailyRate, or give the setting a default [generator@specarch.yaml#/configuration/dailyRate]
 # DAILY_RATE: no value in the deployment staging and no default
 # specarch: #/configuration/databaseUrl
+# specarch-problem: warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/databaseUrl/secret]
 # DATABASE_URL: databaseUrl is a secret of the specification, never written here; a key of the Secret case-desk-secrets
 # api: no image under settings.images.api of the deploy target; not written
 ---

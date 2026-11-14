@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:11:17: warning: /entities/Member/properties/password: secret_unprotected: Member.password is a credential kept as it is, so whoever reads the table or a backup of it reads the value; add atRest: hashed for a value the system only compares with what a caller sends, such as a password, or atRest: encrypted for one it must send on, such as a key to another system, and mark it sensitivity: credential [secret_unprotected@specarch.yaml#/entities/Member/properties/password]
+  specarch.yaml:12:21: warning: /entities/Member/properties/feeLedgerKey: secret_unprotected: Member.feeLedgerKey is a credential kept as it is, so whoever reads the table or a backup of it reads the value; add atRest: hashed for a value the system only compares with what a caller sends, such as a password, or atRest: encrypted for one it must send on, such as a key to another system [secret_unprotected@specarch.yaml#/entities/Member/properties/feeLedgerKey]
+  specarch.yaml:18:13: warning: /configuration/ledgerToken/secret: secret_unprotected: setting ledgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/ledgerToken/secret]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an operation that reads one loan by loanId with permission signedIn and one that replaces a loan by id with permission public, with no row policy on the loan"
+when: validate is run
+then: "it warns object_unscoped at each operation's permission and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

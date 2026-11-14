@@ -939,6 +939,10 @@ func (g *gen) fieldColumn(tableName, at, f string, field map[string]any, require
 		}
 	}
 	var check string
+	if text(field["atRest"]) == "hashed" {
+		g.problem(at+"/properties/"+f, "%s is hashed at rest, and a column for a one-way hash is not written yet; keep the field encrypted, or leave the entity out of this target", f)
+		return fc, false
+	}
 	if text(field["atRest"]) == "encrypted" {
 		enc := names(g.rendering("encrypted-column", "column", g.dialect))
 		if enc["ciphertext"] == "" {
@@ -1156,8 +1160,8 @@ func (t *translator) tr(n *expr.Node, cond bool) string {
 		if f == nil {
 			return t.fail("%s is not a field of the entity", n.Text)
 		}
-		if text(f["atRest"]) == "encrypted" {
-			return t.fail("%s is encrypted at rest, and the engine cannot read it in a check", n.Text)
+		if at := text(f["atRest"]); at == "encrypted" || at == "hashed" {
+			return t.fail("%s is %s at rest, and the engine cannot read it in a check", n.Text, at)
 		}
 		if cond && numericBool && t.isBoolean(n) {
 			return "(" + snake(n.Text) + " = 1)"

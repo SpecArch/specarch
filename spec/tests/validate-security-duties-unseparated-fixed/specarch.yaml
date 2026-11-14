@@ -1,0 +1,47 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+problem:
+  statement: Desk staff lose track of who did what with a loan or a fee.
+requirements:
+  CASE-1:
+    statement: Whoever lends a copy shall not be able to write its loss off.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [No role grants both lending and writing off.]
+    controls: [separationOfDuties]
+  CASE-2:
+    statement: Whoever asks for a fee to be waived shall not be able to waive it.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [No role grants both asking for and granting a waiver.]
+    controls: [separationOfDuties]
+permissions:
+  loans.create: { description: Lend a copy., satisfies: [CASE-1] }
+  loans.writeoff: { description: Write a lost copy off., satisfies: [CASE-1] }
+  fees.request: { description: Ask for a fee to be waived., satisfies: [CASE-2] }
+  fees.waive: { description: Waive a fee., satisfies: [CASE-2] }
+  fees.refund: { description: Refund a fee., satisfies: [CASE-2] }
+roles:
+  clerk:
+    description: Lends and asks for waivers.
+    permissions: [loans.create, fees.request]
+  supervisor:
+    description: Writes off, waives and refunds.
+    permissions: [loans.writeoff, fees.waive]
+  cashier:
+    description: Refunds.
+    permissions: [fees.refund]
+separationOfDuties:
+  lend-and-write-off:
+    description: Whoever lends a copy must not be able to write the loss off.
+    permissions: [loans.create, loans.writeoff]
+    satisfies: [CASE-1]
+  ask-and-waive:
+    description: Whoever asks for a waiver must not be able to grant it.
+    permissions: [fees.request, fees.waive, fees.refund]
+    satisfies: [CASE-2]

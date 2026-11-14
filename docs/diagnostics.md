@@ -212,6 +212,33 @@ log and has no JSON form of SpecArch's own; the property keys are its
 interface and stay (ADR-156; `docs/refinement.md`, Fit with the agent
 queue, lists them). The outputs table stays in the questions document.
 
+### 4.1 The design security rules
+
+Seven rules find weaknesses a specification shows before any code is
+written (ADR-247). Each is a warning at the element to change, so the
+specification is still read whole and valid; the SARIF log lists each one
+it uses under `tool.driver.rules` with `properties.tags: [security]`, the
+tag SARIF readers group security results by. A rule's id is its name
+below and does not change between releases, since a tool that traces a
+finding from the specification into the code cites it; a rename would be
+a breaking change of the problems file.
+
+| Rule | What it finds | What to change |
+|---|---|---|
+| `object_unscoped` | An operation that reaches one record by its key in the path (a parameter `<entity>Id`, or `id`) whose permission every caller holds (`signedIn`, or `public` on anything but a read), on an entity no role limits with a row policy: any caller reaches any record by changing the key (broken object level authorisation). At the `permission`. | Give the operation a permission a role grants, or give the roles a row policy on the entity that compares a field with `caller.<property>`. |
+| `internal_key_exposed` | A path or query parameter named as an identifier (`id`, or ending in `Id`, `ID`, `_id`) whose schema is a whole number, and a request body or response that carries an entity's whole-number primary key or a whole number named as an identifier: a caller counts through records nobody gave it. At the parameter, the request body or the response. | Address and carry the record by a public identifier, a field of format `uuid` with `generatedDefault: identifier`, and keep the number inside the system. |
+| `refusal_reveals_record` | A `403` on an operation that reaches one record by its key with a permission every caller holds: the 403 can only refuse that record, so it tells that the record exists. At the `403`. A missing `404` is not warned, since a key no record has, or one outside a row policy, is derived as refused as not found either way. | Answer `404`, as for a key no record has (RFC 9110 lets a server hide that a record exists this way). |
+| `query_from_caller` | A parameter named as the field to sort by, a filter, the fields to return or a query (`sort`, `orderBy`, `filter`, `where`, `fields`, `sql` and the like), and a request body property named as a query (`sql`, `rawQuery`, `statement`), whose schema lists no values it allows. At the parameter or the property. | List the fields under `listOf.sortable` or `listOf.filterable`, give the parameter an `enum`, or a closed object with `additionalProperties: false`; name what a caller may ask for as operations of their own rather than taking a query. |
+| `duties_unseparated` | A requirement whose `controls` list `separationOfDuties` that no set under `separationOfDuties` satisfies, and a permission that satisfies it that no satisfying set names. At the `controls` entry or the permission. A workflow's approval is not warned: its derived case already refuses a requester who approves their own request. | Add a set naming the permissions, with `satisfies: [<requirement>]`, or name the permission in it. |
+| `secret_unprotected` | An entity's field of `sensitivity: credential`, or named as one (ending in `password`, `passphrase`, `secret`, `apiKey`, `privateKey`, `accessToken`, `refreshToken`) with no sensitivity, that has no `atRest`; and a setting marked `secret` with no `rotation`. At the field, or at the setting's `secret`. | `atRest: hashed` for a value only compared (a password), `atRest: encrypted` for one the system sends on; `rotation`, such as `P90D`, on the setting. |
+| `audit_not_append_only` | A requirement whose `controls` list `auditTrail` that no entity and no `securityEvents` satisfies, an entity that satisfies it and is not `appendOnly`, and an `appendOnly` entity with soft deletion or an operation that changes or deletes one (a PUT, PATCH or DELETE on it, or a `guard` naming it). | Name the entity that keeps the trail, with `appendOnly: true` and `satisfies`; record a change as a new record, and take soft deletion away. |
+
+Where the rules come from: OWASP API Security Top 10 (API1:2023, broken
+object level authorisation) for the first three, the OWASP Authorization
+Cheat Sheet's deny by default, NIST SP 800-63B for hashing a password and
+NIST SP 800-57 Part 1 for a secret's cryptoperiod, and ANSI INCITS 359's
+static separation of duty, which `separationOfDuties` already follows.
+
 ## 5. Marks at the entry
 
 Every file SpecArch writes marks the entry a problem touches with the

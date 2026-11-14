@@ -35,6 +35,10 @@ extension Checker {
         func keys(_ list: YNode?, _ ptr: [String], _ what: String) {
             for (i, item) in items(list).enumerated() {
                 let f = fields[item.value]
+                if str(child(f, "atRest")) == "hashed" {
+                    add(item, pointer(ptr + ["\(i)"]), .atRest, "\(item.value) is hashed at rest, so only a one-way hash of it is kept and it cannot be \(what); give the entity another key, or keep the field encrypted with lookup: hash")
+                    continue
+                }
                 if str(child(f, "atRest")) == "encrypted" && str(child(f, "lookup")) != "hash" {
                     add(item, pointer(ptr + ["\(i)"]), .atRest, "\(item.value) is encrypted at rest, so it cannot be \(what) unless it is looked up by a hash; add lookup: hash to it")
                 }

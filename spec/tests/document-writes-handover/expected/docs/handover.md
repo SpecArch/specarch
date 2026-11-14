@@ -4,6 +4,8 @@
 
 Version 1.0.0 of Shop. The customer builds, installs and runs production from the source. This document says what the customer receives, what stays whose responsibility, how a release is built and installed, what the hosts must provide, and how the installed system is checked and accepted. It is written for the customer's engineers and needs nothing else to be read.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 Each release is handed to the shop's IT staff as source; the vendor runs staging and never reaches the shop's host.
 
 **Insight:** The shop's accountant asks who can reach the sales ledger.
@@ -94,6 +96,8 @@ Every setting the system reads at run time. A secret's value is never written he
 | taxRate | decimal(4, 2) |   | The sales tax rate. |
 | databaseUrl | string | yes | Where the database is; it comes from the host's secret store. |
 | auditNote | string |   | A note the vendor's own build writes into the audit log. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/databaseUrl/secret]
 
 **Audience on auditNote:** internal, left out of a document for everyone.
 

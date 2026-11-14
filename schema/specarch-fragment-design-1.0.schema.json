@@ -966,10 +966,11 @@
           ]
         },
         "atRest": {
-          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way. The engine function and the key are the encrypted-column idiom.",
+          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way; the engine function and the key are the encrypted-column idiom. hashed: only a salted one-way hash of the value is stored, as for a password the system compares with what a caller sends and never reads back, so it cannot be searched, sorted, filtered or part of a key (ADR-247).",
           "type": "string",
           "enum": [
-            "encrypted"
+            "encrypted",
+            "hashed"
           ]
         },
         "lookup": {
@@ -1316,6 +1317,10 @@
           "enum": [
             "soft"
           ]
+        },
+        "appendOnly": {
+          "description": "SpecArch keyword. true: a record is written once and never changed or deleted, as an audit trail is kept, so no operation changes or deletes one and the entity has no soft deletion; an operation that would is the warning audit_not_append_only (ADR-247).",
+          "const": true
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"

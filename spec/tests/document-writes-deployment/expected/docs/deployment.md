@@ -4,6 +4,8 @@
 
 Version 1.0.0 of the specification: 2 environments, 2 settings and 1 migration. Secrets are named here with where their value comes from, never with a value.
 
+**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Environments
 
 A release goes to staging, then production.
@@ -19,6 +21,8 @@ A release goes to staging, then production.
 |---|---|---|---|
 | taxRate | decimal(4, 2) |   | The sales tax rate. |
 | databaseUrl | string | yes | Where the database is; it comes from the host's secret store. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/databaseUrl/secret]
 
 ## 3. Installations: Shop in Go
 

@@ -18,8 +18,10 @@ write_files:
       # specarch: #/configuration/notificationChannelUrl
       NOTIFICATION_CHANNEL_URL=https://notify.library.example/events
       # specarch: #/configuration/databaseUrl
+      # specarch-problem: warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret]
       # DATABASE_URL: databaseUrl is a secret of the specification, never written here
       # specarch: #/configuration/feeLedgerToken
+      # specarch-problem: warning: secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret]
       # FEE_LEDGER_TOKEN: feeLedgerToken is a secret of the specification, never written here
   - path: "/etc/containers/systemd/worker.container"
     permissions: "0644"

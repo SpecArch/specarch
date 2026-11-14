@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 1 requirement, 2 tests, 2 environments and 2 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error and 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** The specification has 1 error, so it is invalid, and this document shows what could be read of it. 1 error and 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: meta_model_version: the implementation file is written against version 0.1 of its format, an earlier version read beside 1.0.0 with this warning; run specarch upgrade --dry-run on the specification to see what moving it to 1.0.0 changes, and specarch upgrade to move it [meta_model_version@shop.go.specarch-implementation.yaml#/specarchImplementation]
 
@@ -34,6 +34,8 @@ Version 1.0.0 of the specification: 1 requirement, 2 tests, 2 environments and 2
 | taxRate | decimal(4, 2) |   | The sales tax rate. |
 | databaseUrl | string | yes | Where the database is; it comes from the host's secret store. |
 | auditNote | string |   | A note the vendor's own build writes into the audit log. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/databaseUrl/secret]
 
 **Audience on auditNote:** internal, left out of a document for everyone.
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.7.1-dev of the specification: 1082 design tests, 552 golden and 530 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.7.1-dev of the specification: 1099 design tests, 568 golden and 531 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.7.1-dev of the specification: 1082 design tests, 552 golden and 530 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1078 |
+| system | 1095 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1278,6 +1278,14 @@ Scenario: golden; level: system; verifies SA-51.
 - Given: a specification with no error, no warning and no open question
 - When: document problems is run
 - Then: it writes problems.txt saying there are no problems and problems.sarif with no results, and exits 0
+
+#### document-problems-security-tags
+
+Scenario: golden; level: system; verifies SA-147.
+
+- Given: a specification whose two operations warn object_unscoped, a design security rule, and which warns stakeholders_unconfirmed, which is not one
+- When: document problems is run
+- Then: it writes problems.sarif listing both rules under tool.driver.rules, object_unscoped with properties.tags [security] and stakeholders_unconfirmed with no properties, and problems.txt with the three warnings, and exits 0
 
 #### document-progress-effort-not-counted
 
@@ -7911,6 +7919,134 @@ Scenario: red; level: system; covers exit 1; verifies SA-42.
 - When: validate is run
 - Then: it reports page four times and field once, and exits 1
 
+#### validate-security-audit-not-append-only
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: two requirements whose controls list auditTrail, one that no entity or securityEvents satisfies and one an entity satisfies that is not appendOnly
+- When: validate is run
+- Then: it warns audit_not_append_only at the unsatisfied requirement's controls entry and at the entity, besides requirement_unsatisfied, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-audit-not-append-only-changed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an appendOnly entity with soft deletion and an operation that deletes a record of it
+- When: validate is run
+- Then: it warns audit_not_append_only at deletion and at the operation, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-audit-not-append-only-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an appendOnly entity that satisfies both requirements and that no operation changes or deletes
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-duties-unseparated
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: a requirement whose controls list separationOfDuties with no set satisfying it, and another whose satisfying set leaves out a permission that satisfies it
+- When: validate is run
+- Then: it warns duties_unseparated at the first requirement's controls entry and at the permission left out, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-duties-unseparated-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: a set satisfying each requirement and naming every permission that satisfies it, the roles split so no role breaks a set
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-hashed-at-rest
+
+Scenario: red; level: system; covers exit 1; verifies SA-33, SA-146.
+
+- Given: a field hashed at rest that is the primary key, in a unique constraint and sortable in a list
+- When: validate is run
+- Then: it reports at_rest at the key and the constraint and list_of at sortable, and exits 1, in the Go build and the Swift build alike
+
+#### validate-security-internal-key-exposed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: a loan whose primary key is a string of format int64, read by a path parameter loanId of the same type, whose 200 response carries the loan
+- When: validate is run
+- Then: it warns internal_key_exposed at the parameter and at the 200 response and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-internal-key-exposed-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: the same loan and operation with a uuid key
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-object-unscoped
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an operation that reads one loan by loanId with permission signedIn and one that replaces a loan by id with permission public, with no row policy on the loan
+- When: validate is run
+- Then: it warns object_unscoped at each operation's permission and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-object-unscoped-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: the same operations with permissions loans.read and loans.write, which a role grants
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-query-from-caller
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: a list of loans with query parameters sort and filter of type string and no enum, and a search whose request body has a property sql
+- When: validate is run
+- Then: it warns query_from_caller at both parameters and at the body property, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-query-from-caller-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: the same list with sort an enum of the loan's fields and filter a closed object, and a search whose body has memberId and order
+- When: validate is run
+- Then: it warns nothing, the body property order included, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-refusal-reveals-record
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an operation that reads one loan by its key with permission signedIn, answering 200 and 403, over a loan the member role reaches only through a row policy
+- When: validate is run
+- Then: it warns refusal_reveals_record at the 403, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-refusal-reveals-record-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: the same operation answering 200 and 404
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-secret-unprotected
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an entity with a password field and a field of sensitivity credential, both with no atRest, and a secret setting with no rotation
+- When: validate is run
+- Then: it warns secret_unprotected at both fields and at the setting's secret, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-secret-unprotected-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: the password hashed at rest, the credential encrypted at rest and the setting with rotation P90D
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
 #### validate-separation-of-duties
 
 Scenario: red; level: system; covers exit 1; verifies SA-5.
@@ -8771,7 +8907,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-645 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+656 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9106,6 +9242,17 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-134 | acceptance 2 | golden | SA-134 names no harm |
 | requirement SA-134 | acceptance 3 | golden | SA-134 names no harm |
 | requirement SA-134 | acceptance 4 | golden | SA-134 names no harm |
+| requirement SA-146 | acceptance 1 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 2 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 3 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 4 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 5 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 6 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 7 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 8 | golden | SA-146 names no harm |
+| requirement SA-146 | acceptance 9 | golden | SA-146 names no harm |
+| requirement SA-147 | acceptance 1 | golden | SA-147 names no harm |
+| requirement SA-147 | acceptance 2 | golden | SA-147 names no harm |
 | requirement SA-7 | acceptance 1 | golden | SA-7 names no harm |
 | requirement SA-7 | acceptance 2 | golden | SA-7 names no harm |
 | requirement SA-8 | acceptance 1 | golden | SA-8 names no harm |

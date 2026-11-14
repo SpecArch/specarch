@@ -39,6 +39,10 @@ func (c *checker) checkStored(name string, e *yaml.Node, fields map[string]*yaml
 	keys := func(list *yaml.Node, ptr []string, what string) {
 		for i, item := range source.Items(list) {
 			f := fields[item.Value]
+			if source.Str(source.Child(f, "atRest")) == "hashed" {
+				c.add(item, source.Pointer(append(ptr, fmt.Sprint(i))...), RuleAtRest, "%s is hashed at rest, so only a one-way hash of it is kept and it cannot be %s; give the entity another key, or keep the field encrypted with lookup: hash", item.Value, what)
+				continue
+			}
 			if source.Str(source.Child(f, "atRest")) == "encrypted" && source.Str(source.Child(f, "lookup")) != "hash" {
 				c.add(item, source.Pointer(append(ptr, fmt.Sprint(i))...), RuleAtRest, "%s is encrypted at rest, so it cannot be %s unless it is looked up by a hash; add lookup: hash to it", item.Value, what)
 			}

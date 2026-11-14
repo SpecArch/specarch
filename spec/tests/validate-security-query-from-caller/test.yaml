@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a list of loans with query parameters sort and filter of type string and no enum, and a search whose request body has a property sql"
+when: validate is run
+then: "it warns query_from_caller at both parameters and at the body property, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

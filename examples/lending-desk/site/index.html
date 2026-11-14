@@ -116,7 +116,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#open-questions">Open questions</a><ol>
 <li><a href="#/questions">Questions</a> <span class="count">8</span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">11</span></li>
+<li><a href="#problems">Problems</a> <span class="count">15</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
@@ -126,7 +126,7 @@ ol.problems p{margin:2px 0}
 <p class="notice"><strong>Stakeholders unconfirmed:</strong> nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.</p>
 <p class="notice draft"><strong>Draft:</strong> 8 must or should questions hold up what this page shows (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see <a href="#/questions">Open questions</a>.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/0.1.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 3 warnings and 8 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 7 warnings and 8 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>4</td></tr>
 <tr><td><a href="#/requirements">Requirements</a></td><td>7</td></tr>
@@ -935,6 +935,7 @@ ol.problems p{margin:2px 0}
 <th scope="col">content</th>
 </tr></thead><tbody>
 <tr id="/paths/~1loans/post/responses/201"><th scope="row">201 <a class="ptr" href="#/paths/~1loans/post/responses/201">/paths/~1loans/post/responses/201</a>
+<p class="mark warning"><a href="#problem-internal_key_exposed@design/design.yaml%23/paths/~1loans/post/responses/201">warning</a> internal_key_exposed: the 201 response of lendBook carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans/post/responses/201]</p>
 </th>
 <td>The loan.</td>
 <td><code>{application/json: {schema: {$ref: #/entities/Loan}}}</code></td>
@@ -960,6 +961,7 @@ ol.problems p{margin:2px 0}
 <dd>
 <ol class="items">
 <li id="/paths/~1loans~1%7BloanId%7D~1return/parameters/0">
+<p class="mark warning"><a href="#problem-internal_key_exposed@design/design.yaml%23/paths/~1loans~1%7BloanId%7D~1return/parameters/0">warning</a> internal_key_exposed: returnBook carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1return/parameters/0]</p>
 <dl>
 <dt>name</dt>
 <dd>loanId</dd>
@@ -1022,6 +1024,7 @@ ol.problems p{margin:2px 0}
 <dd>
 <ol class="items">
 <li id="/paths/~1loans~1%7BloanId%7D~1renew/parameters/0">
+<p class="mark warning"><a href="#problem-internal_key_exposed@design/design.yaml%23/paths/~1loans~1%7BloanId%7D~1renew/parameters/0">warning</a> internal_key_exposed: renewLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1renew/parameters/0]</p>
 <dl>
 <dt>name</dt>
 <dd>loanId</dd>
@@ -1124,6 +1127,7 @@ ol.problems p{margin:2px 0}
 <th scope="col">content</th>
 </tr></thead><tbody>
 <tr id="/paths/~1members~1%7BcardNumber%7D~1loans/get/responses/200"><th scope="row">200 <a class="ptr" href="#/paths/~1members~1%7BcardNumber%7D~1loans/get/responses/200">/paths/~1members~1{cardNumber}~1loans/get/responses/200</a>
+<p class="mark warning"><a href="#problem-internal_key_exposed@design/design.yaml%23/paths/~1members~1%7BcardNumber%7D~1loans/get/responses/200">warning</a> internal_key_exposed: the 200 response of listMemberLoans carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get/responses/200]</p>
 </th>
 <td>The member&#39;s loans.</td>
 <td><code>{application/json: {schema: {type: array, items: {$ref: #/entities/Loan}}}}</code></td>
@@ -2258,10 +2262,29 @@ ol.problems p{margin:2px 0}
 <h2>Problems</h2>
 <p>Every error, warning and open question, in the order of the problems file, each with the file and line it is at and the entry it marks. The same problems are in problems.txt and problems.sarif.</p>
 <ol class="problems">
+<li class="warning" data-search id="problem-internal_key_exposed@design/design.yaml%23/paths/~1loans/post/responses/201">
+<p><code>../spec/design/design.yaml:151:9: warning: /paths/~1loans/post/responses/201: internal_key_exposed: the 201 response of lendBook carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans/post/responses/201]</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:160:11: note: source desk-manual, clause 3.1: Desk staff lend a book by scanning the member&#39;s card and the book&#39;s barcode.</code></p>
+<p class="problem-note"><code>../sources/code/lending/routes.go:59:1: note: source desk-code, clause lending/routes.go:59: LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise.</code></p>
+<p>Marked at <a href="#/paths/~1loans/post/responses/201">/paths/~1loans/post/responses/201</a>.</p>
+</li>
+<li class="warning" data-search id="problem-internal_key_exposed@design/design.yaml%23/paths/~1loans~1%7BloanId%7D~1return/parameters/0">
+<p><code>../spec/design/design.yaml:165:9: warning: /paths/~1loans~1{loanId}~1return/parameters/0: internal_key_exposed: returnBook carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1return/parameters/0]</code></p>
+<p>Marked at <a href="#/paths/~1loans~1%7BloanId%7D~1return/parameters/0">/paths/~1loans~1{loanId}~1return/parameters/0</a>.</p>
+</li>
+<li class="warning" data-search id="problem-internal_key_exposed@design/design.yaml%23/paths/~1loans~1%7BloanId%7D~1renew/parameters/0">
+<p><code>../spec/design/design.yaml:180:9: warning: /paths/~1loans~1{loanId}~1renew/parameters/0: internal_key_exposed: renewLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1renew/parameters/0]</code></p>
+<p>Marked at <a href="#/paths/~1loans~1%7BloanId%7D~1renew/parameters/0">/paths/~1loans~1{loanId}~1renew/parameters/0</a>.</p>
+</li>
+<li class="warning" data-search id="problem-internal_key_exposed@design/design.yaml%23/paths/~1members~1%7BcardNumber%7D~1loans/get/responses/200">
+<p><code>../spec/design/design.yaml:201:9: warning: /paths/~1members~1{cardNumber}~1loans/get/responses/200: internal_key_exposed: the 200 response of listMemberLoans carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get/responses/200]</code></p>
+<p class="problem-note"><code>../sources/code/lending/routes.go:91:1: note: source desk-code, clause lending/routes.go:91: ListMemberLoans answers 200 with the member&#39;s loans.</code></p>
+<p>Marked at <a href="#/paths/~1members~1%7BcardNumber%7D~1loans/get/responses/200">/paths/~1members~1{cardNumber}~1loans/get/responses/200</a>.</p>
+</li>
 <li class="question" data-search id="problem-Q-8">
-<p><code>../spec/design/design.yaml:220:3: question: /questions/Q-8: open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</code></p>
-<p class="problem-note"><code>../spec/design/design.yaml:209:3: note: blocks #/dependencies/catalogue/timeout, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/design/design.yaml:229:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
+<p><code>../spec/design/design.yaml:224:3: question: /questions/Q-8: open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:213:3: note: blocks #/dependencies/catalogue/timeout, which is not given yet</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:233:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:6:1: note: source desk-code, clause migrations/001_init.sql:6: CREATE TABLE books.</code></p>
 <p>Marked at <a href="#/questions/Q-8">/questions/Q-8</a>.</p>
 </li>

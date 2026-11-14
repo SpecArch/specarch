@@ -4,6 +4,8 @@
 
 Version 0.1.0 of the specification: 2 monitors, 1 job, 2 dependencies and 20 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
 
+**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
 ## 1. Where it runs
 
 | Environment | Purpose | Run by | Promotes to |
@@ -172,6 +174,10 @@ Every setting the system reads at run time. A secret's value is never written he
 | databaseUrl | string | yes | Where the database is; it carries the password, so it comes from the host's secret store and is never written here. |
 | feeLedgerToken | string | yes | The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here. |
 | notificationChannelUrl | string |  | Where the notification service listens for loan events. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret]
+
+**Problem on feeLedgerToken:** warning: secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret]
 
 ## 10. Backing up
 

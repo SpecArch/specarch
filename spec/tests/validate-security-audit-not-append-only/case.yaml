@@ -1,0 +1,6 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:16:3: warning: /requirements/CASE-2: requirement_unsatisfied: no design element satisfies requirement CASE-2; add satisfies: [CASE-2] to the entity, operation, command, page, algorithm or decision that meets it [requirement_unsatisfied@specarch.yaml#/requirements/CASE-2]
+  specarch.yaml:22:16: warning: /requirements/CASE-2/controls/0: audit_not_append_only: CASE-2 asks for an audit trail, and no entity or securityEvents satisfies it, so nothing in the design keeps one; name the entity that keeps it, with appendOnly: true and satisfies: [CASE-2] [audit_not_append_only@specarch.yaml#/requirements/CASE-2/controls/0]
+  specarch.yaml:24:3: warning: /entities/FeeChange: audit_not_append_only: FeeChange keeps the audit trail CASE-1 asks for, and nothing stops a record of it from being changed or deleted; add appendOnly: true [audit_not_append_only@specarch.yaml#/entities/FeeChange]

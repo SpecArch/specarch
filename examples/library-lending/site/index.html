@@ -149,7 +149,7 @@ ol.problems p{margin:2px 0}
 <li><a href="#/backup">Backup</a> <span class="count"></span></li>
 <li><a href="#/restore">Restore</a> <span class="count"></span></li>
 </ol></li>
-<li><a href="#problems">Problems</a> <span class="count">2</span></li>
+<li><a href="#problems">Problems</a> <span class="count">4</span></li>
 </ol></nav>
 <main>
 <section class="group" id="overview">
@@ -157,7 +157,7 @@ ol.problems p{margin:2px 0}
 <p>A small public library lends books to its members. Members borrow a copy, keep it for a fixed loan period, and pay a late fee when they return it after the due date. This example exists to exercise every concept of the meta-model in one place, across every stage of the life cycle; it is not a real library&#39;s system.</p>
 <p>Version 0.1.0; meta-model 1.0.0; stages requirements, design, implementation, tests, deployment, commissioning, operation; owners example-maintainers.</p>
 <p class="notice"><strong>Approval:</strong> not approved: there is no records/approvals/0.1.0.yaml beside the specification</p>
-<p><a href="#problems">0 errors, 2 warnings and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
+<p><a href="#problems">0 errors, 4 warnings and 0 open questions</a>; each is listed under Problems and marked at the entry it concerns.</p>
 <table class="counts"><thead><tr><th scope="col">Section</th><th scope="col">Elements</th></tr></thead><tbody>
 <tr><td><a href="#/stakeholders">Stakeholders</a></td><td>4</td></tr>
 <tr><td><a href="#/stakeholdersComplete">Stakeholder list confirmed</a></td><td>one</td></tr>
@@ -13412,6 +13412,7 @@ label {
 <td><a href="#/requirements/LIB-5">LIB-5</a></td>
 </tr>
 <tr data-search id="/configuration/databaseUrl"><th scope="row">databaseUrl <a class="ptr" href="#/configuration/databaseUrl">/configuration/databaseUrl</a>
+<p class="mark warning"><a href="#problem-secret_unprotected@deployment/configuration/configuration.yaml%23/configuration/databaseUrl/secret">warning</a> secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret]</p>
 </th>
 <td>Where the database is; it carries the password, so it comes from the host&#39;s secret store and is never written here.</td>
 <td>true</td>
@@ -13419,6 +13420,7 @@ label {
 <td></td>
 </tr>
 <tr data-search id="/configuration/feeLedgerToken"><th scope="row">feeLedgerToken <a class="ptr" href="#/configuration/feeLedgerToken">/configuration/feeLedgerToken</a>
+<p class="mark warning"><a href="#problem-secret_unprotected@deployment/configuration/configuration.yaml%23/configuration/feeLedgerToken/secret">warning</a> secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret]</p>
 </th>
 <td>The token the finance team issued for the fee ledger; it comes from the host&#39;s secret store and is never written here.</td>
 <td>true</td>
@@ -14026,6 +14028,14 @@ label {
 <li class="warning" data-search id="problem-work_package_unverified@../records/work-packages/WP-1.yaml%23/status">
 <p><code>../records/work-packages/WP-1.yaml:8:9: warning: /status: work_package_unverified: WP-1 is marked done, but the tests browse-catalogue, register-member and register-member-email-taken have no passed result in the test-run records; record a run that passes with specarch log test-run, or set status to in-progress [work_package_unverified@../records/work-packages/WP-1.yaml#/status]</code></p>
 <p>Not at an entry of the specification; the file and line above say where it is.</p>
+</li>
+<li class="warning" data-search id="problem-secret_unprotected@deployment/configuration/configuration.yaml%23/configuration/databaseUrl/secret">
+<p><code>../spec/deployment/configuration/configuration.yaml:11:13: warning: /configuration/databaseUrl/secret: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret]</code></p>
+<p>Marked at <a href="#/configuration/databaseUrl">/configuration/databaseUrl</a>.</p>
+</li>
+<li class="warning" data-search id="problem-secret_unprotected@deployment/configuration/configuration.yaml%23/configuration/feeLedgerToken/secret">
+<p><code>../spec/deployment/configuration/configuration.yaml:16:13: warning: /configuration/feeLedgerToken/secret: secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret]</code></p>
+<p>Marked at <a href="#/configuration/feeLedgerToken">/configuration/feeLedgerToken</a>.</p>
 </li>
 <li class="warning" data-search id="problem-problem_missing@requirements/requirements/lending.yaml%23/requirements">
 <p><code>../spec/requirements/requirements/lending.yaml:4:3: warning: /requirements: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]</code></p>

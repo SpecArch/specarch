@@ -8,7 +8,15 @@ Version 0.1.0 of the specification: 0 needs, 7 requirements, and 8 gaps. Each re
 
 **Draft:** 5 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-5); see the open questions document, or run specarch gaps.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 6 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+
+**Problem:** warning: internal_key_exposed: the 201 response of lendBook carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans/post/responses/201]
+
+**Problem:** warning: internal_key_exposed: returnBook carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1return/parameters/0]
+
+**Problem:** warning: internal_key_exposed: renewLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1renew/parameters/0]
+
+**Problem:** warning: internal_key_exposed: the 200 response of listMemberLoans carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get/responses/200]
 
 **Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements.yaml#/requirements]
 

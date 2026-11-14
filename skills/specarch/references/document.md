@@ -284,8 +284,10 @@ related locations, a question's fields as properties (the question
 as one paragraph, its priority, kind, certainty, decider, options,
 blocked entries and Insight), the specification's folder relative
 to the log, its title and its version as the run's properties, and
-the rules used listed under the tool; the property keys are the
-agent queue's interface and stay (ADR-156). A specification that cannot be read at
+the rules used listed under the tool, each design security rule
+with properties.tags [security] (ADR-247); the property keys and the
+rule ids are the interface of the tools that read the log and stay
+(ADR-156). A specification that cannot be read at
 all, such as one whose root file has no entry that parses, gets its
 problems too, and a file that does not parse is read as far as its
 entries parse (ADR-080).

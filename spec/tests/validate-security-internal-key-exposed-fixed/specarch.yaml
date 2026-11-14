@@ -1,0 +1,39 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+permissions:
+  loans.read: { description: Read a loan. }
+roles:
+  clerk:
+    description: A desk clerk, who reads every loan.
+    permissions: [loans.read]
+paths:
+  /loans/{loanId}:
+    get:
+      operationId: getLoan
+      summary: Read one loan.
+      permission: loans.read
+      parameters:
+        - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "404": { description: No loan has that key. }
+tests:
+  get-loan-denied-without-loans-read: { level: system, operation: getLoan, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "getLoan is called", then: "it is refused as not allowed" }
+  get-loan-loan-id-not-a-valid-uuid: { level: system, operation: getLoan, scenario: red, covers: [loanId not a valid uuid], given: "a signed-in caller", when: "getLoan is called with loanId that is not a valid uuid", then: "it is refused" }
+  get-loan-not-found-loan-id: { level: system, operation: getLoan, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "getLoan is called with that loanId", then: "it is refused as not found" }
+  get-loan-succeeds: { level: system, operation: getLoan, scenario: golden, given: "a caller with loans.read", when: "getLoan is called with values inside every limit", then: "it answers 200: The loan." }

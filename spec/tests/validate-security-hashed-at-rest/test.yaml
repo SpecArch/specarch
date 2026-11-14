@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "a field hashed at rest that is the primary key, in a unique constraint and sortable in a list"
+when: validate is run
+then: "it reports at_rest at the key and the constraint and list_of at sortable, and exits 1, in the Go build and the Swift build alike"
+verifies: [SA-33, SA-146]

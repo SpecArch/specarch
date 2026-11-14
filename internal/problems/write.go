@@ -8,6 +8,8 @@ import (
 	"path"
 	"sort"
 	"strings"
+
+	"github.com/SpecArch/specarch/internal/validate"
 )
 
 // Names of the two files the problems target writes.
@@ -104,7 +106,16 @@ type sarifDriver struct {
 }
 
 type sarifRule struct {
-	ID string `json:"id"`
+	ID         string               `json:"id"`
+	Properties *sarifRuleProperties `json:"properties,omitempty"`
+}
+
+// sarifRuleProperties tags a rule as SARIF's property bag allows: a design
+// security rule is tagged security, the tag GitHub code scanning and the
+// SARIF viewers group security results by, so a tool reading the log beside
+// its code findings sorts it there.
+type sarifRuleProperties struct {
+	Tags []string `json:"tags"`
 }
 
 type sarifMessage struct {
@@ -215,8 +226,16 @@ func SARIF(name, version, relRoot string, ps []Problem) string {
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
+	security := map[string]bool{}
+	for _, r := range validate.SecurityRules {
+		security[string(r)] = true
+	}
 	for _, id := range ids {
-		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, sarifRule{ID: id})
+		rule := sarifRule{ID: id}
+		if security[id] {
+			rule.Properties = &sarifRuleProperties{Tags: []string{"security"}}
+		}
+		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
 	}
 	log := sarifLog{
 		Schema:  "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",

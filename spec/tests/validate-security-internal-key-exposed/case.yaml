@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:27:11: warning: /paths/~1loans~1{loanId}/get/parameters/0: internal_key_exposed: getLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@specarch.yaml#/paths/~1loans~1{loanId}/get/parameters/0]
+  specarch.yaml:29:9: warning: /paths/~1loans~1{loanId}/get/responses/200: internal_key_exposed: the 200 response of getLoan carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@specarch.yaml#/paths/~1loans~1{loanId}/get/responses/200]

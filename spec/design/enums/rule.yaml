@@ -190,6 +190,13 @@ enums:
       - work_package_not_ready
       - work_package_unverified
       - work_package_unconfigured
+      - object_unscoped
+      - internal_key_exposed
+      - refusal_reveals_record
+      - query_from_caller
+      - duties_unseparated
+      - secret_unprotected
+      - audit_not_append_only
     valueDescriptions:
       file_kind: a file given by name is neither `specarch.yaml` nor `*.specarch-implementation.yaml`, is part of a specification that should be checked as a whole, or its root key does not match its name
       yaml_syntax: an entry of the file, or the file as a whole, is not well-formed YAML; the entries that parse are still read (ADR-080)
@@ -301,9 +308,9 @@ enums:
       idiom_version_behind: "an override was copied from an older version of the shipped idiom and does not say it stays behind on purpose (a warning)"
       idiom_contract: "an override changes a shipped contract statement, or a field has no row in a type rendering for a stack of the implementation file"
       sensitivity_exposed: "a credential field that is not writeOnly can appear in a response; a personal field can appear in the response of a public operation (a warning)"
-      at_rest: "lookup without atRest encrypted, or an encrypted field that is a key or unique without lookup hash"
+      at_rest: "lookup without atRest encrypted, an encrypted field that is a key or unique without lookup hash, or a hashed field that is a key or unique"
       audited: "an audited entity declares a field the system sets (createdAt, createdBy, lastModifiedAt, lastModifiedBy), or one with soft deletion declares deleted"
-      list_of: "a listOf names an entity or a view the specification does not have, a view that carries rows, or a field the entity does not have, puts an encrypted field in searchable or sortable or in filterable without lookup hash, or has a default page size above its maximum"
+      list_of: "a listOf names an entity or a view the specification does not have, a view that carries rows, or a field the entity does not have, puts an encrypted field in searchable or sortable or in filterable without lookup hash, puts a hashed field in any of them, or has a default page size above its maximum"
       limits: "a rate's time is zero, or its burst is below its requests"
       problem: "a response or a middleware's refusal names a problem type not under errors, or one of another status, or the specification declares errors and a 4xx or 5xx response or a refusal names none"
       job: "a job acts as a role the specification does not have, reads or writes an entity it does not have, or consumes a message no channel declares"
@@ -375,4 +382,11 @@ enums:
       work_package_not_ready: "as a warning, at the `status` of a work package marked ready: a requirement it holds is not accepted or has no acceptance criteria, an open question blocks an element that satisfies one, or it warns work_package_order, so QA's entry criterion does not hold (ADR-245)"
       work_package_unverified: "as a warning, at the `status` of a work package marked done: a golden or red test that verifies one of its requirements has no passed result in the test-run records, so QA's exit criterion does not hold (ADR-245)"
       work_package_unconfigured: "as a warning, at a work package's `requirements` entry: a setting that satisfies the requirement, or that a process satisfying it reads, has no default and no deployment of an implementation file gives it a value, once any deployment gives a setting a value (ADR-245)"
-    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93, SA-109, SA-114, SA-126, SA-129, SA-140, SA-141]
+      object_unscoped: "as a warning and a design security rule, at the `permission` of an operation that reaches one record by its key in the path (a parameter <entity>Id, or id) with a permission every caller holds (signedIn, or public on anything but a read) when no role limits the entity with a row policy, so any caller reaches any record by changing the key (ADR-247)"
+      internal_key_exposed: "as a warning and a design security rule, at a path or query parameter named as an identifier whose schema is a whole number, and at a request body or response that carries an entity's whole-number primary key or a whole-number field named as an identifier, where a public identifier should be (ADR-247)"
+      refusal_reveals_record: "as a warning and a design security rule, at the 403 of an operation that reaches one record by its key with a permission every caller holds, since the 403 can only refuse that record and so tells that it exists (ADR-247)"
+      query_from_caller: "as a warning and a design security rule, at a parameter named as the field to sort by, a filter, the fields to return or a query, or a request body property named as a query, whose schema lists no values it allows (ADR-247)"
+      duties_unseparated: "as a warning and a design security rule, at a requirement's `controls` entry separationOfDuties that no set under separationOfDuties satisfies, and at a permission satisfying it that no such set names (ADR-247)"
+      secret_unprotected: "as a warning and a design security rule, at an entity's field of sensitivity credential, or named as one with no sensitivity, that has no `atRest`, and at the `secret` of a setting with no `rotation` (ADR-247)"
+      audit_not_append_only: "as a warning and a design security rule, at a requirement's `controls` entry auditTrail that no entity and no securityEvents satisfies, at an entity that satisfies it and is not appendOnly, and at the soft deletion of an appendOnly entity or an operation that changes or deletes one (ADR-247)"
+    satisfies: [SA-2, SA-3, SA-4, SA-5, SA-6, SA-9, SA-10, SA-11, SA-12, SA-13, SA-17, SA-18, SA-23, SA-24, SA-27, SA-29, SA-41, SA-42, SA-47, SA-48, SA-49, SA-50, SA-62, SA-63, SA-67, SA-68, SA-69, SA-73, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-93, SA-109, SA-114, SA-126, SA-129, SA-140, SA-141, SA-146]

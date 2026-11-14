@@ -230,6 +230,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkSignIn(d)
 	c.checkImplies(d)
 	c.checkSeparationOfDuties(d)
+	c.checkSecurity(d)
 	c.checkExpressions(d)
 	c.checkMetaModelVersion(d)
 	c.checkProfile(d)

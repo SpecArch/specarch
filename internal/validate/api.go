@@ -54,6 +54,10 @@ func (c *checker) checkListOf(d *design, o operation) {
 				c.add(item, ptr, RuleListOf, "%s is not a field of %s, so it cannot be %s%s", item.Value, entNode.Value, list, suggest(item.Value, fields))
 				continue
 			}
+			if source.Str(source.Child(f, "atRest")) == "hashed" {
+				c.add(item, ptr, RuleListOf, "%s is hashed at rest, so only a one-way hash of it is kept and it cannot be %s; leave it out of %s", item.Value, list, list)
+				continue
+			}
 			if source.Str(source.Child(f, "atRest")) != "encrypted" {
 				continue
 			}

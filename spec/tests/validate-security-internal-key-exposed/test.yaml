@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a loan whose primary key is a string of format int64, read by a path parameter loanId of the same type, whose 200 response carries the loan"
+when: validate is run
+then: "it warns internal_key_exposed at the parameter and at the 200 response and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

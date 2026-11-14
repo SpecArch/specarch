@@ -147,6 +147,7 @@ paths:
                 barcode: { type: string, minLength: 1, maxLength: 20 }
               required: [cardNumber, barcode]
       responses:
+        # specarch-problem: warning: internal_key_exposed: the 201 response of lendBook carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans/post/responses/201]
         "201":
           description: The loan.
           content:
@@ -160,6 +161,7 @@ paths:
         - { source: desk-code, clause: "lending/routes.go:59", says: "LendBook answers 409 when the member has MaxOpenLoans books out, and 201 otherwise." }
   /loans/{loanId}/return:
     parameters:
+      # specarch-problem: warning: internal_key_exposed: returnBook carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1return/parameters/0]
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
     post:
       operationId: returnBook
@@ -174,6 +176,7 @@ paths:
         - { source: desk-code, clause: "lending/routes.go:73", says: "ReturnBook closes the loan and answers 200." }
   /loans/{loanId}/renew:
     parameters:
+      # specarch-problem: warning: internal_key_exposed: renewLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1renew/parameters/0]
       - { name: loanId, in: path, required: true, schema: { type: integer, format: int64, minimum: 1, maximum: 9007199254740991 } }
     post:
       operationId: renewLoan
@@ -194,6 +197,7 @@ paths:
       summary: The loans of one member
       permission: loans.read
       responses:
+        # specarch-problem: warning: internal_key_exposed: the 200 response of listMemberLoans carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get/responses/200]
         "200":
           description: The member's loans.
           content:

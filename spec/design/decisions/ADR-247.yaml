@@ -1,0 +1,172 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-247:
+    title: Seven design security rules warn, at the element to change and in the problems file, about weaknesses a specification shows before code exists - object_unscoped, internal_key_exposed, refusal_reveals_record, query_from_caller, duties_unseparated, secret_unprotected and audit_not_append_only - read from the design's structure and four keywords (a requirement's controls, an entity's appendOnly, atRest hashed and a secret setting's rotation), each tagged security in the SARIF log under a name that stays
+    status: accepted
+    date: "2026-11-14"
+    context: |
+      The owner asks that a specification be checked for design
+      vulnerabilities before any code is written: an operation that reaches
+      any record by its key, an internal sequence number handed to callers,
+      a refusal that tells whether a record exists, a query built from what
+      a caller sends, roles with no separation of duties where a requirement
+      asks for it, a secret kept as it is, and an audit trail that can be
+      changed. A tool that reads the problems file beside its findings in
+      the code cites a finding by its rule, so the names must stay.
+
+      Building the rules raised forks: whether they are errors or warnings,
+      what "no permission" means when public and signedIn exist, how a
+      requirement asks for a control without matching its words, where raw
+      SQL shows in a design that names no stack, how a password is kept,
+      how long a secret lives, and how SARIF marks a security rule.
+    decision: |
+      1. Each rule is a warning at the element to change, so a
+         specification with a weakness still reads whole and is valid (the
+         compiler rule of docs/principles.md); the names are stable, listed
+         once in the Rule enum, and the problems file's SARIF log lists each
+         used under tool.driver.rules with properties.tags [security].
+      2. object_unscoped: an operation that reaches one record by its key in
+         the path - a parameter <entity>Id, or id on an operation whose
+         entity is known - whose permission every caller holds (signedIn,
+         or public on anything but a read) and whose entity no role limits
+         with a row policy, the tenant's derived rule included. It points at
+         the permission. A public read is open on purpose; what it shows is
+         sensitivity_exposed's to judge.
+      3. internal_key_exposed: a path or query parameter named as an
+         identifier (id, or ending in Id, ID or _id) whose schema is a whole
+         number, and a request body or response that carries an entity's
+         whole-number primary key or a whole-number field named as an
+         identifier. It points at the parameter, the request body or the
+         response, once per place.
+      4. refusal_reveals_record: a 403 on an operation that reaches one
+         record by its key when every caller holds its permission, since the
+         403 can only be about that record. A missing 404 is not warned: a
+         key no record has, and one outside a row policy, are derived as
+         refused as not found whether or not the operation lists a 404
+         (ADR-095).
+      5. query_from_caller: a parameter named as the field to sort by, a
+         filter, the fields to return or a query, and a request body
+         property named as a query, whose schema lists no values it allows
+         (no enum or const, no $ref, not a boolean or number, not an object
+         closed with additionalProperties false). The design names no stack,
+         so raw SQL shows as a query a caller sends, not as a library call.
+         A body property named order, condition or fields is read as a
+         value of the record.
+      6. duties_unseparated: a requirement whose controls list
+         separationOfDuties that no set under separationOfDuties satisfies,
+         and a permission that satisfies it and no satisfying set names. A
+         workflow's approval step is left alone: its derived case already
+         refuses a requester who approves their own request.
+      7. secret_unprotected: an entity's field of sensitivity credential, or
+         named as one (password, passphrase, secret, apiKey, privateKey,
+         accessToken, refreshToken at the end) with no sensitivity, that has
+         no atRest; and a setting marked secret with no rotation.
+      8. audit_not_append_only: a requirement whose controls list
+         auditTrail that no entity and no securityEvents satisfies, an entity
+         that satisfies it and is not appendOnly, and an appendOnly entity
+         with soft deletion or an operation that changes or deletes one (a
+         PUT, PATCH or DELETE on it, or a guard naming it).
+      9. Four keywords give the rules what to read: a requirement's
+         controls (separationOfDuties, auditTrail), an entity's appendOnly:
+         true, atRest: hashed beside encrypted, and a secret setting's
+         rotation, a duration. A hashed field is never a key, unique,
+         searched, filtered or sorted (at_rest and list_of), and the sql
+         generator reports one rather than writing a plain column.
+    why: |
+      A warning keeps the promise that a specification is read whole and
+      that a weakness is marked where it is, not a reason to stop reading;
+      a weakness is a judgement the designer may have taken on purpose (a
+      catalogue every signed-in reader sees), so refusing the specification
+      would be wrong. The structure already says who may call an operation,
+      which rows a role reaches and what a response carries, so six of the
+      rules read it as it is; a requirement's wording would have to be
+      matched by words in one language, which the Low IQ Tax rules out as
+      ambiguity, so a requirement names the control it asks for as a
+      keyword. signedIn and public are held by every caller, so an
+      operation with either has no permission in the sense of OWASP's
+      broken object level authorisation; a role-granted permission or a
+      row policy is the scope that answers it. RFC 9110 lets a server hide
+      that a record exists by answering 404, and a row policy already does
+      so (ADR-095), so a design that declares a 403 where only the record
+      could be refused contradicts itself. A sequence number in a URL lets a caller count
+      through records nobody gave it; the design's own generatedDefault
+      identifier gives the public key. A password is checked, never read
+      back, so the right storage is a salted one-way hash, not encryption
+      (NIST SP 800-63B); encryption stays for a secret the system must send
+      on. A secret's cryptoperiod (NIST SP 800-57 Part 1) bounds how long a
+      leaked value stays good. An audit trail that can be changed proves
+      nothing, so the entity that keeps it says it is written once. SARIF's
+      property bag is where a rule's tags go; security is the tag code
+      scanning tools group by, so a reader sorts these beside its own
+      security findings with no key of SpecArch's own (ADR-156 keeps the
+      result keys as they are).
+    alternatives:
+      - option: Errors, so a specification with a weakness is invalid
+        why: |
+          It forces attention, but a weakness may be taken on purpose and
+          an error blocks every generator over the whole specification for
+          one entry, which the compiler rule rules out.
+      - option: Read a requirement's statement for words such as audit or separation
+        why: |
+          It needs no keyword, but it matches by words in one language,
+          misses a statement worded otherwise and fires on one that only
+          mentions the word; ambiguity is an error by the Low IQ Tax.
+      - option: A keyword for raw SQL on a data access
+        why: |
+          The design names no stack, and how a query is written is the
+          implementation file's; a query the caller sends is what the
+          design can see, so the rule reads parameters and body properties.
+      - option: atRest encrypted for a password, as for any credential
+        why: |
+          Encryption can be undone with the key, so whoever holds the key
+          reads every password; a password is only compared, so a one-way
+          hash is the storage NIST SP 800-63B asks for.
+      - option: A SARIF property of SpecArch's own, such as specarchSecurity
+        why: |
+          A reader would need to know it; properties.tags with security is
+          what SARIF readers already group by.
+      - option: duties_unseparated also at a workflow approver who holds the permission that starts the workflow
+        why: |
+          A workflow already refuses a requester who approves their own
+          request, a case derived for every approval step, so one person
+          holding both permissions never approves their own request; the
+          warning would ask for a set the design does not need.
+      - option: refusal_reveals_record also at a keyed operation over a row-limited entity that declares no 404
+        why: |
+          The derivation already answers a key outside the row policy as not
+          found, listed 404 or not, so the design says nothing that reveals
+          the record; the warning would ask for a line that changes nothing.
+      - option: Warn about query parameters in a request body under every name
+        why: |
+          A body's order, condition or fields is as often a value of the
+          record (a purchase order, the condition of a copy) as part of a
+          query, so it would warn about ordinary records.
+    consequences: |
+      A specification without controls, appendOnly, rotation or hashed
+      reads as before, and warns only where its structure shows one of the
+      seven weaknesses: the examples warn where an internal sequence number
+      is in a URL or a response and where a secret setting has no rotation.
+      The rules' names are the interface a tool that traces a finding into
+      the code cites, so a rename is a breaking change of the problems
+      file. Storing a hashed field is not written by the sql generator yet:
+      it reports such a field and writes no column for it.
+    cites:
+      - source: owasp-api-security-top-10
+        clause: "API1:2023"
+        says: "Broken object level authorisation: an endpoint that takes an object's identifier must check that the caller may act on that object, or a caller reaches other users' objects by changing the identifier."
+      - source: rfc-9110
+        clause: "15.5.4"
+        says: "An origin server that wishes to hide the current existence of a forbidden target resource may instead respond with 404 (Not Found)."
+      - source: nist-sp-800-63b
+        says: "Memorised secrets are stored as a salted one-way hash with a suitable key derivation function, never in a form that can be read back."
+      - source: nist-sp-800-57-1
+        clause: "5.3"
+        says: "Each key has a cryptoperiod, the time span during which it may be used, after which it is replaced."
+      - source: owasp-authorization
+        says: "Deny by default, enforce authorisation on every record a caller names, and do not reveal through the answer whether a record the caller may not reach exists."
+      - source: sarif
+        clause: "3.8"
+        says: "A property bag holds properties not defined by the format; its tags property is a set of strings that classify the object it belongs to."
+    weighs: [QG-1, QG-2]
+    satisfies: [SA-146, SA-147]
+    restsOn: [ADR-065, ADR-156, ADR-095, ADR-053, ADR-024, ADR-179]

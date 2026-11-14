@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification whose two operations warn object_unscoped, a design security rule, and which warns stakeholders_unconfirmed, which is not one"
+when: "document problems is run"
+then: "it writes problems.sarif listing both rules under tool.driver.rules, object_unscoped with properties.tags [security] and stakeholders_unconfirmed with no properties, and problems.txt with the three warnings, and exits 0"
+verifies: [SA-147]

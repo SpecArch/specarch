@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.7.1-dev of the specification: 10 needs, 142 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.7.1-dev of the specification: 10 needs, 144 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -14,12 +14,12 @@ Version 1.7.1-dev of the specification: 10 needs, 142 requirements, and 1 gap. E
 
 | Need | Status | Refined by |
 |---|---|---|
-| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-135, SA-136, SA-72, SA-129, SA-133, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
+| NEED-1 | accepted | SA-33, SA-34, SA-35, SA-47, SA-48, SA-50, SA-75, SA-77, SA-82, SA-83, SA-84, SA-91, SA-102, SA-103, SA-130, SA-104, SA-105, SA-106, SA-109, SA-114, SA-146, SA-147, SA-135, SA-136, SA-72, SA-129, SA-133, SA-1, SA-2, SA-3, SA-4, SA-5, SA-6, SA-51, SA-95, SA-100, SA-126 |
 | NEED-2 | accepted | SA-33, SA-34, SA-36, SA-37, SA-38, SA-39, SA-40, SA-41, SA-42, SA-43, SA-80, SA-81, SA-52, SA-53, SA-54, SA-55, SA-56, SA-49, SA-62, SA-63, SA-65, SA-66, SA-70, SA-77, SA-78, SA-82, SA-83, SA-84, SA-88, SA-89, SA-91, SA-92, SA-93, SA-94, SA-98, SA-99, SA-115, SA-46, SA-61, SA-71, SA-87, SA-116, SA-32, SA-127, SA-9, SA-10 |
 | NEED-3 | accepted | SA-22, SA-36, SA-67, SA-75, SA-77, SA-82, SA-83, SA-84, SA-88, SA-91, SA-134, SA-7, SA-8, SA-26, SA-16, SA-58, SA-59, SA-60, SA-90, SA-121, SA-137, SA-19, SA-74 |
 | NEED-4 | accepted | SA-11, SA-2 |
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118, SA-140, SA-141, SA-142, SA-143, SA-144, SA-145 |
-| NEED-6 | accepted | SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
+| NEED-6 | accepted | SA-146, SA-147, SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
 | NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
 | NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
@@ -61,7 +61,7 @@ Version 1.7.1-dev of the specification: 10 needs, 142 requirements, and 1 gap. E
 | SA-30 | GOAL-4 | NEED-8 | commands gaps; decisions ADR-022 | tests gaps-coverage; tests gaps-outline-not-read; tests validate-mapping-origin; tests validate-source-clause |
 | SA-31 | GOAL-2 | NEED-9 | commands generate; decisions ADR-041; decisions ADR-078 | tests generate-stack-fallback; tests generate-stack-plugin; tests generate-tests-dart; tests generate-tests-dart-hand-written-bodies; tests generate-tests-framework-refused; tests generate-tests-go; tests generate-tests-swift; tests generate-tests-value-objects |
 | SA-32 | GOAL-3 | NEED-2 | commands idioms; commands idioms diff; decisions ADR-023; decisions ADR-028 | tests idioms-after-dash; tests idioms-diff; tests idioms-diff-after-dash; tests idioms-diff-unknown; tests idioms-diff-usage-error; tests idioms-lists; tests idioms-lists-ui-framework; tests idioms-usage-error; tests validate-idiom-override; tests validate-idiom-problems; tests validate-idiom-stack-framework |
-| SA-33 | GOAL-2, GOAL-3 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-stored-data; tests validate-stored-data-valid |
+| SA-33 | GOAL-2, GOAL-3 | NEED-1, NEED-2 | decisions ADR-024 | tests validate-security-hashed-at-rest; tests validate-stored-data; tests validate-stored-data-valid |
 | SA-34 | GOAL-2, GOAL-3 | NEED-1, NEED-2 | decisions ADR-025; decisions ADR-130; decisions ADR-131; decisions ADR-140; decisions ADR-144 | tests validate-handler-source; tests validate-interface-problems; tests validate-interface-response-key-empty; tests validate-interface-response-key-empty-only; tests validate-interface-response-key-empty-two-operations; tests validate-interface-unwritten; tests validate-interface-valid; tests validate-middlewares; tests validate-schema-field-name-entity-and-page-status; tests validate-schema-field-name-entity-and-schema |
 | SA-35 | GOAL-2, GOAL-1 | NEED-1, NEED-5 | decisions ADR-026 | tests validate-jobs-menus; tests validate-jobs-menus-valid |
 | SA-36 | GOAL-3 | NEED-2, NEED-3 | decisions ADR-027; decisions ADR-062 | tests generate-openapi; tests generate-openapi-ref-siblings; tests generate-openapi-view-ref-path; tests generate-openapi-wire-names |
@@ -171,6 +171,8 @@ Version 1.7.1-dev of the specification: 10 needs, 142 requirements, and 1 gap. E
 | SA-143 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-next; tests plan-next-none; tests plan-proposes; tests plan-proposes-dry-run; tests plan-release-unknown; tests plan-usage-error; tests validate-plan-proposals |
 | SA-144 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-brief; tests plan-brief-requirement-set; tests plan-brief-unknown |
 | SA-145 | GOAL-1, GOAL-4 | NEED-5, NEED-10 | commands plan; decisions ADR-246 | tests plan-export-csv; tests plan-export-json; tests plan-import; tests plan-import-json |
+| SA-146 | GOAL-2, GOAL-1 | NEED-1, NEED-6 | enums Rule; decisions ADR-247 | tests validate-security-audit-not-append-only; tests validate-security-audit-not-append-only-changed; tests validate-security-audit-not-append-only-fixed; tests validate-security-duties-unseparated; tests validate-security-duties-unseparated-fixed; tests validate-security-hashed-at-rest; tests validate-security-internal-key-exposed; tests validate-security-internal-key-exposed-fixed; tests validate-security-object-unscoped; tests validate-security-object-unscoped-fixed; tests validate-security-query-from-caller; tests validate-security-query-from-caller-fixed; tests validate-security-refusal-reveals-record; tests validate-security-refusal-reveals-record-fixed; tests validate-security-secret-unprotected; tests validate-security-secret-unprotected-fixed |
+| SA-147 | GOAL-2, GOAL-1 | NEED-1, NEED-6 | commands document; decisions ADR-247 | tests document-problems-security-tags |
 
 ## 3. Gaps
 

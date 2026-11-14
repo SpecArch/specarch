@@ -720,6 +720,19 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "controls": {
+          "description": "SpecArch keyword. The security controls the requirement asks for, which the validator then looks for in the design (ADR-247). separationOfDuties: no one person holds the permissions a set separates, so a set under separationOfDuties satisfies the requirement, and names every permission that satisfies it. auditTrail: a record of what was done that nobody changes or deletes, so an entity that satisfies the requirement is appendOnly, or securityEvents satisfies it. A control the design does not show is the warning duties_unseparated or audit_not_append_only at the requirement.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "separationOfDuties",
+              "auditTrail"
+            ]
+          }
+        },
         "release": {
           "description": "SpecArch keyword. The release the requirement is meant for, by version: records/releases/ must hold a release of that version, planned or released. The test plan groups the requirements by it.",
           "type": "string",

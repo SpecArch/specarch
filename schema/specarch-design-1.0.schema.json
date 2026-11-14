@@ -1674,6 +1674,19 @@
           "minItems": 1,
           "uniqueItems": true
         },
+        "controls": {
+          "description": "SpecArch keyword. The security controls the requirement asks for, which the validator then looks for in the design (ADR-247). separationOfDuties: no one person holds the permissions a set separates, so a set under separationOfDuties satisfies the requirement, and names every permission that satisfies it. auditTrail: a record of what was done that nobody changes or deletes, so an entity that satisfies the requirement is appendOnly, or securityEvents satisfies it. A control the design does not show is the warning duties_unseparated or audit_not_append_only at the requirement.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "separationOfDuties",
+              "auditTrail"
+            ]
+          }
+        },
         "release": {
           "description": "SpecArch keyword. The release the requirement is meant for, by version: records/releases/ must hold a release of that version, planned or released. The test plan groups the requirements by it.",
           "type": "string",
@@ -2134,10 +2147,11 @@
           ]
         },
         "atRest": {
-          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way. The engine function and the key are the encrypted-column idiom.",
+          "description": "SpecArch keyword. encrypted: the value is stored encrypted, so it cannot be searched, sorted or compared in storage unless lookup gives a way; the engine function and the key are the encrypted-column idiom. hashed: only a salted one-way hash of the value is stored, as for a password the system compares with what a caller sends and never reads back, so it cannot be searched, sorted, filtered or part of a key (ADR-247).",
           "type": "string",
           "enum": [
-            "encrypted"
+            "encrypted",
+            "hashed"
           ]
         },
         "lookup": {
@@ -2484,6 +2498,10 @@
           "enum": [
             "soft"
           ]
+        },
+        "appendOnly": {
+          "description": "SpecArch keyword. true: a record is written once and never changed or deleted, as an audit trail is kept, so no operation changes or deletes one and the entity has no soft deletion; an operation that would is the warning audit_not_append_only (ADR-247).",
+          "const": true
         },
         "satisfies": {
           "$ref": "#/$defs/satisfies"
@@ -7313,6 +7331,10 @@
         "secret": {
           "description": "True when the value must never be written in a specification or a document: a password, a key, a token. The validator refuses a default or a deployment value for a secret.",
           "type": "boolean"
+        },
+        "rotation": {
+          "description": "SpecArch keyword. On a secret: the longest time one value is used before it is replaced, after the cryptoperiod of NIST SP 800-57 Part 1, such as P90D. A secret without one is the warning secret_unprotected (ADR-247).",
+          "$ref": "#/$defs/duration"
         },
         "schema": {
           "$ref": "#/$defs/field"

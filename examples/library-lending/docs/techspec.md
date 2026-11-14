@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 199 tests, 5 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 2 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: work_package_unverified: WP-1 is marked done, but the tests browse-catalogue, register-member and register-member-email-taken have no passed result in the test-run records; record a run that passes with specarch log test-run, or set status to in-progress [work_package_unverified@../records/work-packages/WP-1.yaml#/status]
 
@@ -1097,6 +1097,10 @@ flowchart LR
 | databaseUrl | string | yes | Where the database is; it carries the password, so it comes from the host's secret store and is never written here. |
 | feeLedgerToken | string | yes | The token the finance team issued for the fee ledger; it comes from the host's secret store and is never written here. |
 | notificationChannelUrl | string |   | Where the notification service listens for loan events. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/databaseUrl/secret]
+
+**Problem on feeLedgerToken:** warning: secret_unprotected: setting feeLedgerToken is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@deployment/configuration/configuration.yaml#/configuration/feeLedgerToken/secret]
 
 ### Release
 

@@ -1,0 +1,37 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+entities:
+  FeeChange:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      note: { type: string, maxLength: 200 }
+    required: [id, note]
+    primaryKey: [id]
+    appendOnly: true
+    deletion: soft
+permissions:
+  fees.audit: { description: Read and manage the record of fee changes. }
+roles:
+  auditor:
+    description: Reads the record of fee changes.
+    permissions: [fees.audit]
+paths:
+  /fee-changes/{feeChangeId}:
+    delete:
+      operationId: deleteFeeChange
+      summary: Delete a fee change.
+      permission: fees.audit
+      parameters:
+        - { name: feeChangeId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Deleted. }
+        "404": { description: No fee change has that key. }
+tests:
+  delete-fee-change-denied-without-fees-audit: { level: system, operation: deleteFeeChange, scenario: red, covers: [denied without fees.audit], given: "a caller without fees.audit", when: "deleteFeeChange is called", then: "it is refused as not allowed" }
+  delete-fee-change-fee-change-id-not-a-valid-uuid: { level: system, operation: deleteFeeChange, scenario: red, covers: [feeChangeId not a valid uuid], given: "a signed-in caller", when: "deleteFeeChange is called with feeChangeId that is not a valid uuid", then: "it is refused" }
+  delete-fee-change-not-found-fee-change-id: { level: system, operation: deleteFeeChange, scenario: red, covers: [not found feeChangeId], given: "no record has that feeChangeId", when: "deleteFeeChange is called with that feeChangeId", then: "it is refused as not found" }
+  delete-fee-change-succeeds: { level: system, operation: deleteFeeChange, scenario: golden, given: "a caller with fees.audit", when: "deleteFeeChange is called with values inside every limit", then: "it answers 204: Deleted." }

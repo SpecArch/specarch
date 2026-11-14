@@ -198,6 +198,13 @@ const (
 	RuleWorkPackageNotReady     Rule = "work_package_not_ready"
 	RuleWorkPackageUnverified   Rule = "work_package_unverified"
 	RuleWorkPackageUnconfigured Rule = "work_package_unconfigured"
+	RuleObjectUnscoped          Rule = "object_unscoped"
+	RuleInternalKeyExposed      Rule = "internal_key_exposed"
+	RuleRefusalRevealsRecord    Rule = "refusal_reveals_record"
+	RuleQueryFromCaller         Rule = "query_from_caller"
+	RuleDutiesUnseparated       Rule = "duties_unseparated"
+	RuleSecretUnprotected       Rule = "secret_unprotected"
+	RuleAuditNotAppendOnly      Rule = "audit_not_append_only"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -386,6 +393,13 @@ var Rules = []Rule{
 	RuleWorkPackageNotReady,
 	RuleWorkPackageUnverified,
 	RuleWorkPackageUnconfigured,
+	RuleObjectUnscoped,
+	RuleInternalKeyExposed,
+	RuleRefusalRevealsRecord,
+	RuleQueryFromCaller,
+	RuleDutiesUnseparated,
+	RuleSecretUnprotected,
+	RuleAuditNotAppendOnly,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

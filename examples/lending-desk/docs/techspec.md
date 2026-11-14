@@ -8,7 +8,7 @@ Version 0.1.0 of the specification: 7 requirements, 3 entities, 1 schema, 5 HTTP
 
 **Draft:** 8 open questions concern this document (Q-1, Q-2, Q-3, Q-8, Q-4, Q-6, Q-7, Q-5); see the open questions document, or run specarch gaps.
 
-**Problems:** 3 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: stakeholders_unconfirmed: the stakeholder list is not confirmed complete, so a role with an interest in the system may still be missing from it; once it is complete, add stakeholdersComplete with by, the role that confirms it, and date, and name under source the declared source that records the confirmation, when there is one; the key ends this warning, the banner on every generated document and the warning of specarch approve [stakeholders_unconfirmed@requirements/requirements.yaml#/stakeholders]
 
@@ -252,6 +252,8 @@ Responses:
 | 201 | The loan. | [Loan](#loan) |
 | 409 | The member already has five books on loan. | none |
 
+**Problem on response 201:** warning: internal_key_exposed: the 201 response of lendBook carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans/post/responses/201]
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -273,6 +275,8 @@ Parameters:
 | Parameter | In | Type | Required | Limits | Description |
 |---|---|---|---|---|---|
 | loanId | path | int64 | yes | at least 1, at most 9007199254740991 |   |
+
+**Problem on parameter loanId:** warning: internal_key_exposed: returnBook carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1return/parameters/0]
 
 Takes no request body.
 
@@ -303,6 +307,8 @@ Parameters:
 | Parameter | In | Type | Required | Limits | Description |
 |---|---|---|---|---|---|
 | loanId | path | int64 | yes | at least 1, at most 9007199254740991 |   |
+
+**Problem on parameter loanId:** warning: internal_key_exposed: renewLoan carries loanId in the URL as a whole number, which a caller counts up or down to reach records nobody gave it; address the record by a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1loans~1{loanId}~1renew/parameters/0]
 
 Takes no request body.
 
@@ -339,6 +345,8 @@ Responses:
 | Status | Meaning | Body |
 |---|---|---|
 | 200 | The member's loans. | list of [Loan](#loan) |
+
+**Problem on response 200:** warning: internal_key_exposed: the 200 response of listMemberLoans carries Loan.id, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/design.yaml#/paths/~1members~1{cardNumber}~1loans/get/responses/200]
 
 ```mermaid
 sequenceDiagram

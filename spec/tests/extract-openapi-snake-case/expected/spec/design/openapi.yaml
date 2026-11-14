@@ -18,6 +18,7 @@ paths:
                 barcode: {type: string, maxLength: 20}
               required: [cardNumber, barcode]
       responses:
+        # specarch-problem: warning: internal_key_exposed: the 201 response of lendBook carries Loan.loanId, a whole number a caller counts up or down to reach records nobody gave it; carry a public identifier instead, a field of format uuid with generatedDefault: identifier, and keep the number inside the system [internal_key_exposed@design/openapi.yaml#/paths/~1loans/post/responses/201]
         "201":
           description: The new loan.
           content:

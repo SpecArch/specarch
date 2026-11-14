@@ -529,6 +529,23 @@ sources:
     edition: "2013"
     author: JSON-RPC Working Group
     url: https://www.jsonrpc.org/specification
+  owasp-api-security-top-10:
+    kind: document
+    title: OWASP API Security Top 10
+    edition: "2023"
+    author: OWASP
+    url: https://owasp.org/API-Security/editions/2023/en/0x11-t10/
+  nist-sp-800-57-1:
+    kind: standard
+    title: NIST SP 800-57 Part 1 Rev. 5, Recommendation for Key Management, General
+    edition: "2020"
+    author: NIST
+    url: https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final
+  nist-sp-800-63b:
+    kind: standard
+    title: NIST SP 800-63B, Digital Identity Guidelines, Authentication and Lifecycle Management
+    author: NIST
+    url: https://pages.nist.gov/800-63-4/sp800-63b.html
   agent-skills:
     kind: document
     title: Agent Skills specification

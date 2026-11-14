@@ -4,7 +4,7 @@
 
 Version 1.0.0 of the specification: 2 monitors, 4 jobs, 2 dependencies and 2 endpoints. For the people who run the live system: where it runs, what to look at each day, what to do when a monitor's objective is missed, what runs on its own, what it depends on, and how its data is saved and brought back.
 
-**Problems:** 22 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 23 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 ## 1. Where it runs
 
@@ -171,6 +171,8 @@ Every setting the system reads at run time. A secret's value is never written he
 |---|---|---|---|
 | taxRate | decimal(4, 2) |  | The sales tax rate. |
 | databaseUrl | string | yes | Where the database is; it comes from the host's secret store. |
+
+**Problem on databaseUrl:** warning: secret_unprotected: setting databaseUrl is a secret with no rotation, so a value that leaks stays good until someone notices; add rotation, the longest time one value is used before it is replaced, such as P90D [secret_unprotected@specarch.yaml#/configuration/databaseUrl/secret]
 
 ## 10. Backing up
 

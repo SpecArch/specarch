@@ -293,6 +293,7 @@ extension Checker {
         checkSignIn(d)
         checkImplies(d)
         checkSeparationOfDuties(d)
+        checkSecurity(d)
         checkExpressions(d)
         checkMetaModelVersion(d)
         checkProfile(d)

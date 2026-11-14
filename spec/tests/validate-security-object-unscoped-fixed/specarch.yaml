@@ -1,0 +1,62 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      memberId: { type: string, format: uuid }
+    required: [id, memberId]
+    primaryKey: [id]
+permissions:
+  loans.read: { description: Read a loan. }
+  loans.write: { description: Change a loan. }
+roles:
+  clerk:
+    description: A desk clerk, who reads and changes every loan.
+    permissions: [loans.read, loans.write]
+paths:
+  /loans/{loanId}:
+    get:
+      operationId: getLoan
+      summary: Read one loan.
+      permission: loans.read
+      parameters:
+        - { name: loanId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: The loan.
+          content:
+            application/json:
+              schema: { $ref: "#/entities/Loan" }
+        "404": { description: No loan has that key. }
+  /loans/{id}:
+    put:
+      operationId: replaceLoan
+      summary: Replace one loan.
+      permission: loans.write
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/Loan" }
+      responses:
+        "204": { description: Replaced. }
+        "404": { description: No loan has that key. }
+tests:
+  get-loan-denied-without-loans-read: { level: system, operation: getLoan, scenario: red, covers: [denied without loans.read], given: "a caller without loans.read", when: "getLoan is called", then: "it is refused as not allowed" }
+  get-loan-loan-id-not-a-valid-uuid: { level: system, operation: getLoan, scenario: red, covers: [loanId not a valid uuid], given: "a signed-in caller", when: "getLoan is called with loanId that is not a valid uuid", then: "it is refused" }
+  get-loan-not-found-loan-id: { level: system, operation: getLoan, scenario: red, covers: [not found loanId], given: "no record has that loanId", when: "getLoan is called with that loanId", then: "it is refused as not found" }
+  get-loan-succeeds: { level: system, operation: getLoan, scenario: golden, given: "a caller with loans.read", when: "getLoan is called with values inside every limit", then: "it answers 200: The loan." }
+  replace-loan-denied-without-loans-write: { level: system, operation: replaceLoan, scenario: red, covers: [denied without loans.write], given: "a caller without loans.write", when: "replaceLoan is called", then: "it is refused as not allowed" }
+  replace-loan-id-not-a-valid-uuid: { level: system, operation: replaceLoan, scenario: red, covers: [id not a valid uuid], given: "a signed-in caller", when: "replaceLoan is called with id that is not a valid uuid", then: "it is refused" }
+  replace-loan-member-id-not-a-valid-uuid: { level: system, operation: replaceLoan, scenario: red, covers: [memberId not a valid uuid], given: "a signed-in caller", when: "replaceLoan is called with memberId that is not a valid uuid", then: "it is refused" }
+  replace-loan-missing-id: { level: system, operation: replaceLoan, scenario: red, covers: [missing id], given: "a signed-in caller", when: "replaceLoan is called without id", then: "it is refused" }
+  replace-loan-missing-member-id: { level: system, operation: replaceLoan, scenario: red, covers: [missing memberId], given: "a signed-in caller", when: "replaceLoan is called without memberId", then: "it is refused" }
+  replace-loan-not-found-id: { level: system, operation: replaceLoan, scenario: red, covers: [not found id], given: "no record has that id", when: "replaceLoan is called with that id", then: "it is refused as not found" }
+  replace-loan-succeeds: { level: system, operation: replaceLoan, scenario: golden, given: "a caller with loans.write", when: "replaceLoan is called with values inside every limit", then: "it answers 204: Replaced." }

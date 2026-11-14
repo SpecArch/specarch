@@ -287,8 +287,8 @@ func (t *rowsTranslator) column(n *expr.Node) string {
 	if f == nil {
 		return t.fail("%s is not a field of %s", n.Text, t.entity)
 	}
-	if text(f["atRest"]) == "encrypted" {
-		return t.fail("%s is encrypted at rest, and the engine cannot compare it", n.Text)
+	if at := text(f["atRest"]); at == "encrypted" || at == "hashed" {
+		return t.fail("%s is %s at rest, and the engine cannot compare it", n.Text, at)
 	}
 	return genopenapi.Wire(n.Text)
 }

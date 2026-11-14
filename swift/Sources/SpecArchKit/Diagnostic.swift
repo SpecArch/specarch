@@ -187,6 +187,13 @@ public enum Rule: String, CaseIterable, Sendable {
     case workPackageNotReady = "work_package_not_ready"
     case workPackageUnverified = "work_package_unverified"
     case workPackageUnconfigured = "work_package_unconfigured"
+    case objectUnscoped = "object_unscoped"
+    case internalKeyExposed = "internal_key_exposed"
+    case refusalRevealsRecord = "refusal_reveals_record"
+    case queryFromCaller = "query_from_caller"
+    case dutiesUnseparated = "duties_unseparated"
+    case secretUnprotected = "secret_unprotected"
+    case auditNotAppendOnly = "audit_not_append_only"
 }
 
 /// Whether a diagnostic makes the file invalid.

@@ -1,0 +1,5 @@
+arguments: [generate, sql, --unapproved, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:11:17: error: /entities/Member/properties/password: generator: password is hashed at rest, and a column for a one-way hash is not written yet; keep the field encrypted, or leave the entity out of this target [generator@specarch.yaml#/entities/Member/properties/password]
+plugins: [sql]

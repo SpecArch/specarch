@@ -31,6 +31,7 @@ configuration:
   databaseUrl:
     description: Where the database is; it carries the password, so it comes from the host's secret store.
     secret: true
+    rotation: P90D
     schema: { type: string, format: uri }
   pageSize:
     description: Rows per page of a list.

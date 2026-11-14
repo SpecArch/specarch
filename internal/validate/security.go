@@ -7,6 +7,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 )
 
@@ -49,7 +50,12 @@ func (c *checker) checkSecurity(d *design) {
 		c.checkCallerQuery(o, seen)
 	}
 	c.checkDutiesSeparated(d)
-	c.checkSecrets(d)
+	// atRest hashed and rotation are 1.0 keywords, so a file on an
+	// earlier meta-model is not warned for lacking them, as problem_missing
+	// is not; specarch upgrade moves it.
+	if !metamodel.Design.IsEarlier(d.metaModelVersion()) {
+		c.checkSecrets(d)
+	}
 	c.checkAuditTrail(d)
 }
 

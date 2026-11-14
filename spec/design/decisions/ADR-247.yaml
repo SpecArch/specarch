@@ -60,7 +60,10 @@ decisions:
       7. secret_unprotected: an entity's field of sensitivity credential, or
          named as one (password, passphrase, secret, apiKey, privateKey,
          accessToken, refreshToken at the end) with no sensitivity, that has
-         no atRest; and a setting marked secret with no rotation.
+         no atRest; and a setting marked secret with no rotation. It holds
+         for a file on meta-model 1.0 or later, whose schema has hashed
+         and rotation; an earlier file is not warned, as problem_missing
+         is not (ADR-244), and specarch upgrade moves it.
       8. audit_not_append_only: a requirement whose controls list
          auditTrail that no entity and no securityEvents satisfies, an entity
          that satisfies it and is not appendOnly, and an appendOnly entity

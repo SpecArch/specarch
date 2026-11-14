@@ -76,6 +76,7 @@ configuration:
   feeLedgerToken:
     description: The token the fee ledger issued to this system; from the host's secret store.
     secret: true
+    rotation: P90D
     schema: { type: string }
 paths:
   /loans/{loanId}/return:

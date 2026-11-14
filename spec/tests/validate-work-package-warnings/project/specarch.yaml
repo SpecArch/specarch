@@ -75,6 +75,7 @@ configuration:
   catalogueKey:
     description: The key the catalogue is read with; the deployment's vault gives it.
     secret: true
+    rotation: P90D
     schema: { type: string, maxLength: 200 }
     satisfies: [CASE-3]
   region:

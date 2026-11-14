@@ -2,7 +2,7 @@ specarch: "1.0.0"
 info: { title: Release watcher, version: 1.0.0 }
 configuration:
   registryAddress: { description: The address of the registry., secret: false, schema: { type: string, format: uri } }
-  registryToken: { description: The token the registry is read with., secret: true, schema: { type: string } }
+  registryToken: { description: The token the registry is read with., secret: true, rotation: P90D, schema: { type: string } }
 environments:
   production: { description: The host the watcher runs on. }
 monitors:

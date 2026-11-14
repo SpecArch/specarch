@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: generate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an entity whose password field is hashed at rest, with its sql target on PostgreSQL; specarch-gen-sql built from this repository on PATH"
+when: "generate sql is run with --unapproved"
+then: "it writes nothing, reports at the password field that a column for a one-way hash is not written yet, and exits 1"
+verifies: [SA-146]

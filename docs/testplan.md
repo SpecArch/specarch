@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.7.1-dev of the specification: 1099 design tests, 568 golden and 531 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.7.1-dev of the specification: 1100 design tests, 568 golden and 532 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.7.1-dev of the specification: 1099 design tests, 568 golden and 531 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1095 |
+| system | 1096 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3767,6 +3767,14 @@ Scenario: red; level: system; verifies SA-70.
 - When: generate sql is run with --unapproved
 - Then: it writes nothing, reports at the id field's generatedDefault that type-rendering names no oracle expression for identifier and that an override of its defaults part can add one, and exits 1
 
+#### generate-sql-hashed-refused
+
+Scenario: red; level: system; covers exit 1; verifies SA-146.
+
+- Given: an entity whose password field is hashed at rest, with its sql target on PostgreSQL; specarch-gen-sql built from this repository on PATH
+- When: generate sql is run with --unapproved
+- Then: it writes nothing, reports at the password field that a column for a one-way hash is not written yet, and exits 1
+
 #### generate-sql-identifier-length
 
 Scenario: red; level: system; verifies SA-50.
@@ -6589,7 +6597,7 @@ Scenario: red; level: system; covers exit 1; verifies SA-29.
 
 - Given: a guarded PUT of the entity by its key and a guarded DELETE by its key that also say writes, an entry that triggers a transition and writes delete, a command whose writes sets a field the entity lacks, its key, its state field, a value worked out from a field, null on a required field, a number on a string, a value no enum has, a decimal with more digits than its scale, a string on a date and a number an int32 cannot hold, and a PATCH whose writes sets given values and literals of each field's type
 - When: validate is run
-- Then: it reports guard at the PUT's and the DELETE's writes, at the delete beside the transition, and at each of the command's ten fields, nothing for the PATCH, and exits 1
+- Then: it reports guard at the PUT's and the DELETE's writes, at the delete beside the transition, and at each of the command's ten fields, no guard problem for the PATCH, warns object_unscoped at the permission of each public operation that reaches a loan by its key, and exits 1
 
 #### validate-handler-source
 

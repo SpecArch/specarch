@@ -142,7 +142,12 @@ extension Checker {
             checkCallerQuery(o, &seen)
         }
         checkDutiesSeparated(d)
-        checkSecrets(d)
+        // atRest hashed and rotation are 1.0 keywords, so a file on an
+        // earlier meta-model is not warned for lacking them, as
+        // problem_missing is not; specarch upgrade moves it.
+        if !MetaModelFormat.design.isEarlier(d.metaModelVersion) {
+            checkSecrets(d)
+        }
         checkAuditTrail(d)
     }
 

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.7.1-dev of the specification: 1100 design tests, 568 golden and 532 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.7.1-dev of the specification: 1102 design tests, 570 golden and 532 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.7.1-dev of the specification: 1100 design tests, 568 golden and 532 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1096 |
+| system | 1098 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -7948,6 +7948,22 @@ Scenario: golden; level: system; verifies SA-146.
 Scenario: golden; level: system; verifies SA-146.
 
 - Given: an appendOnly entity that satisfies both requirements and that no operation changes or deletes
+- When: validate is run
+- Then: it warns nothing and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-audit-not-append-only-moved
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an appendOnly entity with a transition from one state to another, triggered by an operation that has no guard, and a command whose guard names the entity
+- When: validate is run
+- Then: it warns audit_not_append_only at the entity's transitions and at the command, and exits 0, in the Go build and the Swift build alike
+
+#### validate-security-audit-not-append-only-moved-fixed
+
+Scenario: golden; level: system; verifies SA-146.
+
+- Given: an appendOnly entity with no transitions, whose voiding is kept as a new record of another appendOnly entity, by an operation and a command that change no record
 - When: validate is run
 - Then: it warns nothing and exits 0, in the Go build and the Swift build alike
 

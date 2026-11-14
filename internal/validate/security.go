@@ -397,8 +397,9 @@ func (c *checker) checkSecrets(d *design) {
 
 // checkAuditTrail warns about a requirement asking for an audit trail that
 // no entity or securityEvents satisfies, an entity that satisfies it and is
-// not appendOnly, and an append-only entity that an operation changes or
-// deletes, or that has soft deletion (audit_not_append_only).
+// not appendOnly, and an append-only entity that an operation or a command
+// changes or deletes, that has transitions, or that has soft deletion
+// (audit_not_append_only).
 func (c *checker) checkAuditTrail(d *design) {
 	entities := source.Pairs(source.Child(d.root, "entities"))
 	for _, ctl := range d.controlsOf(controlAuditTrail) {
@@ -433,6 +434,16 @@ func (c *checker) checkAuditTrail(d *design) {
 			if changes && d.rowsEntity(o) == name || source.Str(source.Child(source.Child(o.node, "guard"), "entity")) == name {
 				c.warn(source.Key(o.pathItem, o.method), o.pointer(), RuleAuditNotAppendOnly,
 					"%s is append-only, and %s changes or deletes a record of it; record the change as a new %s, or leave appendOnly out", name, o.id, name)
+			}
+		}
+		if source.Child(e.Value, "transitions") != nil {
+			c.warn(source.Key(e.Value, "transitions"), source.Pointer("entities", name, "transitions"), RuleAuditNotAppendOnly,
+				"%s is append-only, and its transitions move a record of it from one state to another, which changes it; record each move as a new record, or leave appendOnly out", name)
+		}
+		for _, cmd := range source.Pairs(source.Child(d.root, "commands")) {
+			if source.Str(source.Child(source.Child(cmd.Value, "guard"), "entity")) == name {
+				c.warn(cmd.Key, source.Pointer("commands", cmd.Key.Value), RuleAuditNotAppendOnly,
+					"%s is append-only, and command %s changes or deletes a record of it; record the change as a new %s, or leave appendOnly out", name, cmd.Key.Value, name)
 			}
 		}
 	}

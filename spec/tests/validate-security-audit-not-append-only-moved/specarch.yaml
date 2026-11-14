@@ -1,0 +1,60 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+enums:
+  FeeChangeStatus:
+    type: string
+    enum: [recorded, voided]
+entities:
+  FeeChange:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      note: { type: string, maxLength: 200 }
+      status: { $ref: "#/enums/FeeChangeStatus" }
+    required: [id, note, status]
+    primaryKey: [id]
+    appendOnly: true
+    stateField: status
+    transitions:
+      - { from: recorded, to: voided, trigger: voidFeeChange }
+permissions:
+  fees.audit: { description: Read and manage the record of fee changes. }
+roles:
+  auditor:
+    description: Reads the record of fee changes.
+    permissions: [fees.audit]
+paths:
+  /fee-changes/{feeChangeId}/void:
+    post:
+      operationId: voidFeeChange
+      summary: Void a fee change.
+      permission: fees.audit
+      parameters:
+        - { name: feeChangeId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: Voided. }
+        "404": { description: No fee change has that key. }
+commands:
+  rewrite notes:
+    summary: Rewrite the note of fee changes.
+    permission: fees.audit
+    exitCodes: { "0": done }
+    guard:
+      entity: FeeChange
+      recordsChanged: 1
+      writes:
+        set: { note: given }
+tests:
+  fee-change-recorded-to-voided-from-wrong-state: { level: system, entity: FeeChange, transition: { from: recorded, to: voided }, scenario: red, covers: [from wrong state], given: "the FeeChange is not recorded", when: "voidFeeChange happens", then: "it is refused and the state stays as it was" }
+  fee-change-recorded-to-voided-succeeds: { level: system, entity: FeeChange, transition: { from: recorded, to: voided }, scenario: golden, given: "the FeeChange is recorded", when: "voidFeeChange happens", then: "the FeeChange is voided" }
+  void-fee-change-denied-without-fees-audit: { level: system, operation: voidFeeChange, scenario: red, covers: [denied without fees.audit], given: "a caller without fees.audit", when: "voidFeeChange is called", then: "it is refused as not allowed" }
+  void-fee-change-fee-change-id-not-a-valid-uuid: { level: system, operation: voidFeeChange, scenario: red, covers: [feeChangeId not a valid uuid], given: "a signed-in caller", when: "voidFeeChange is called with feeChangeId that is not a valid uuid", then: "it is refused" }
+  void-fee-change-not-found-fee-change-id: { level: system, operation: voidFeeChange, scenario: red, covers: [not found feeChangeId], given: "no record has that feeChangeId", when: "voidFeeChange is called with that feeChangeId", then: "it is refused as not found" }
+  void-fee-change-succeeds: { level: system, operation: voidFeeChange, scenario: golden, given: "a caller with fees.audit", when: "voidFeeChange is called with values inside every limit", then: "it answers 200: Voided." }
+  rewrite-notes-concurrent-write: { level: system, command: rewrite notes, scenario: red, covers: [concurrent write], given: "another caller changed the FeeChange after this caller read it", when: "rewrite notes is run", then: "it is refused and the other caller's change stands" }
+  rewrite-notes-denied-without-fees-audit: { level: system, command: rewrite notes, scenario: red, covers: [denied without fees.audit], given: "a caller without fees.audit", when: "rewrite notes is run", then: "it is refused as not allowed" }
+  rewrite-notes-usage-error: { level: system, command: rewrite notes, scenario: red, covers: [usage error], given: "a caller with fees.audit", when: "rewrite notes is run with arguments it does not accept", then: "it prints how to use it and exits with the usage status" }
+  rewrite-notes-succeeds: { level: system, command: rewrite notes, scenario: golden, given: "a caller with fees.audit", when: "rewrite notes is run with arguments it accepts", then: "it exits 0: done" }

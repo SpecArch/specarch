@@ -306,8 +306,9 @@ extension Checker {
 
     /// Warns about a requirement asking for an audit trail that no entity or
     /// securityEvents satisfies, an entity that satisfies it and is not
-    /// appendOnly, and an append-only entity that an operation changes or
-    /// deletes, or that has soft deletion (audit_not_append_only).
+    /// appendOnly, and an append-only entity that an operation or a command
+    /// changes or deletes, that has transitions, or that has soft deletion
+    /// (audit_not_append_only).
     func checkAuditTrail(_ d: Design) {
         let entities = pairs(d.root.child("entities"))
         for ctl in d.controlsOf(controlAuditTrail) {
@@ -337,6 +338,14 @@ extension Checker {
                     warn(o.pathItem.key(o.method), o.pointer(), .auditNotAppendOnly,
                          "\(name) is append-only, and \(o.id) changes or deletes a record of it; record the change as a new \(name), or leave appendOnly out")
                 }
+            }
+            if e.value.child("transitions") != nil {
+                warn(e.value.key("transitions"), SpecArchKit.pointer("entities", name, "transitions"), .auditNotAppendOnly,
+                     "\(name) is append-only, and its transitions move a record of it from one state to another, which changes it; record each move as a new record, or leave appendOnly out")
+            }
+            for cmd in pairs(d.root.child("commands")) where str(cmd.value.child("guard")?.child("entity")) == name {
+                warn(cmd.key, SpecArchKit.pointer("commands", cmd.key.value), .auditNotAppendOnly,
+                     "\(name) is append-only, and command \(cmd.key.value) changes or deletes a record of it; record the change as a new \(name), or leave appendOnly out")
             }
         }
     }

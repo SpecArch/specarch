@@ -1916,8 +1916,9 @@ An entity may be `audited: true`: every record carries `createdAt`,
 never by a caller. With `deletion: soft`, a delete sets a `deleted` flag and
 keeps the record; a deleted record is not listed and reads as not found.
 With `appendOnly: true`, a record is written once and never changed or
-deleted, as an audit trail is kept: an operation that changes or deletes
-one, or soft deletion, is warned about (`audit_not_append_only`).
+deleted, as an audit trail is kept: an operation or a command that changes
+or deletes one, transitions that move one from state to state, or soft
+deletion, is warned about (`audit_not_append_only`).
 The entity does not declare those fields, since the keyword already says
 them (`audited`). The derivation gives a list of such an entity the golden
 case `deleted <Entity> not listed`, and a read of one by id the red case

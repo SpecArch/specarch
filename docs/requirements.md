@@ -1275,7 +1275,7 @@ Acceptance criteria:
 - A query parameter sort or filter of type string with no enum, and a request body property sql, are warned query_from_caller; a sort parameter with an enum and a body property order are not.
 - A requirement whose controls list separationOfDuties with no set satisfying it, and a permission that satisfies such a requirement and no satisfying set names, are warned duties_unseparated; a set satisfying the requirement and naming the permission quiets both.
 - An entity's password field with no atRest, and a secret setting with no rotation, are warned secret_unprotected; atRest hashed and rotation P90D quiet them.
-- A requirement whose controls list auditTrail with no entity satisfying it, an entity that satisfies it without appendOnly, and an appendOnly entity that an operation deletes, are warned audit_not_append_only; an appendOnly entity that nothing changes quiets them.
+- A requirement whose controls list auditTrail with no entity satisfying it, an entity that satisfies it without appendOnly, an appendOnly entity that an operation deletes, and an appendOnly entity with transitions or that a command's guard names, are warned audit_not_append_only; an appendOnly entity that nothing changes quiets them.
 - A hashed field in a primary key, a unique constraint, or a list's searchable, filterable or sortable is reported as at_rest or list_of.
 - Both validator builds print the same lines for each case.
 

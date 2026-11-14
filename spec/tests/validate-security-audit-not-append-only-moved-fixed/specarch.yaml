@@ -1,0 +1,59 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+stakeholders:
+  owner: { description: The product owner. }
+stakeholdersComplete: { by: owner, date: "2026-11-14" }
+entities:
+  FeeChange:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      note: { type: string, maxLength: 200 }
+    required: [id, note]
+    primaryKey: [id]
+    appendOnly: true
+  FeeChangeVoid:
+    type: object
+    description: That a fee change no longer counts, kept as a record of its own.
+    properties:
+      id: { type: string, format: uuid }
+      feeChangeId: { type: string, format: uuid }
+      reason: { type: string, maxLength: 200 }
+    required: [id, feeChangeId, reason]
+    primaryKey: [id]
+    appendOnly: true
+permissions:
+  fees.audit: { description: Read and manage the record of fee changes. }
+roles:
+  auditor:
+    description: Reads the record of fee changes.
+    permissions: [fees.audit]
+paths:
+  /fee-change-voids:
+    post:
+      operationId: voidFeeChange
+      summary: Void a fee change by recording a FeeChangeVoid.
+      permission: fees.audit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/entities/FeeChangeVoid" }
+      responses:
+        "201": { description: Recorded. }
+commands:
+  void fee changes:
+    summary: Record a FeeChangeVoid for each fee change named in a file.
+    permission: fees.audit
+    exitCodes: { "0": done }
+tests:
+  void-fee-change-denied-without-fees-audit: { level: system, operation: voidFeeChange, scenario: red, covers: [denied without fees.audit], given: "a caller without fees.audit", when: "voidFeeChange is called", then: "it is refused as not allowed" }
+  void-fee-change-fee-change-id-not-a-valid-uuid: { level: system, operation: voidFeeChange, scenario: red, covers: [feeChangeId not a valid uuid], given: "a caller with fees.audit", when: "voidFeeChange is called with feeChangeId that is not a valid uuid", then: "it is refused" }
+  void-fee-change-id-not-a-valid-uuid: { level: system, operation: voidFeeChange, scenario: red, covers: [id not a valid uuid], given: "a caller with fees.audit", when: "voidFeeChange is called with id that is not a valid uuid", then: "it is refused" }
+  void-fee-change-missing-fee-change-id: { level: system, operation: voidFeeChange, scenario: red, covers: [missing feeChangeId], given: "a caller with fees.audit", when: "voidFeeChange is called without feeChangeId", then: "it is refused" }
+  void-fee-change-missing-id: { level: system, operation: voidFeeChange, scenario: red, covers: [missing id], given: "a caller with fees.audit", when: "voidFeeChange is called without id", then: "it is refused" }
+  void-fee-change-missing-reason: { level: system, operation: voidFeeChange, scenario: red, covers: [missing reason], given: "a caller with fees.audit", when: "voidFeeChange is called without reason", then: "it is refused" }
+  void-fee-change-succeeds: { level: system, operation: voidFeeChange, scenario: golden, given: "a caller with fees.audit", when: "voidFeeChange is called with values inside every limit", then: "it answers 201: Recorded." }
+  void-fee-changes-denied-without-fees-audit: { level: system, command: void fee changes, scenario: red, covers: [denied without fees.audit], given: "a caller without fees.audit", when: "void fee changes is run", then: "it is refused as not allowed" }
+  void-fee-changes-usage-error: { level: system, command: void fee changes, scenario: red, covers: [usage error], given: "a caller with fees.audit", when: "void fee changes is run with arguments it does not accept", then: "it prints how to use it and exits with the usage status" }
+  void-fee-changes-succeeds: { level: system, command: void fee changes, scenario: golden, given: "a caller with fees.audit", when: "void fee changes is run with arguments it accepts", then: "it exits 0: done" }

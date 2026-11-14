@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:21:5: warning: /entities/FeeChange/transitions: audit_not_append_only: FeeChange is append-only, and its transitions move a record of it from one state to another, which changes it; record each move as a new record, or leave appendOnly out [audit_not_append_only@specarch.yaml#/entities/FeeChange/transitions]
+  specarch.yaml:41:3: warning: /commands/rewrite notes: audit_not_append_only: FeeChange is append-only, and command rewrite notes changes or deletes a record of it; record the change as a new FeeChange, or leave appendOnly out [audit_not_append_only@specarch.yaml#/commands/rewrite notes]

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "an appendOnly entity with a transition from one state to another, triggered by an operation that has no guard, and a command whose guard names the entity"
+when: validate is run
+then: "it warns audit_not_append_only at the entity's transitions and at the command, and exits 0, in the Go build and the Swift build alike"
+verifies: [SA-146]

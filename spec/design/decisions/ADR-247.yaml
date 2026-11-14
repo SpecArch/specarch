@@ -67,8 +67,10 @@ decisions:
       8. audit_not_append_only: a requirement whose controls list
          auditTrail that no entity and no securityEvents satisfies, an entity
          that satisfies it and is not appendOnly, and an appendOnly entity
-         with soft deletion or an operation that changes or deletes one (a
-         PUT, PATCH or DELETE on it, or a guard naming it).
+         with soft deletion, with transitions (a move from one state to
+         another changes the record), or that an operation or a command
+         changes or deletes (a PUT, PATCH or DELETE on it, or an
+         operation's or a command's guard naming it).
       9. Four keywords give the rules what to read: a requirement's
          controls (separationOfDuties, auditTrail), an entity's appendOnly:
          true, atRest: hashed beside encrypted, and a secret setting's

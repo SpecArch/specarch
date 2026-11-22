@@ -8,6 +8,8 @@ import (
 	"encoding/binary"
 
 	reader "github.com/ledongthuc/pdf"
+
+	"github.com/SpecArch/specarch/internal/mdbook"
 )
 
 var testTexts = Texts{
@@ -247,35 +249,35 @@ func TestBookNoMarks(t *testing.T) {
 }
 
 func TestParseMarkdown(t *testing.T) {
-	blocks := parseMarkdown(testRequirements + "\n" + testTraceability)
-	kinds := map[blockKind]int{}
+	blocks := mdbook.Parse(testRequirements + "\n" + testTraceability)
+	kinds := map[mdbook.BlockKind]int{}
 	for _, b := range blocks {
-		kinds[b.kind]++
+		kinds[b.Kind]++
 	}
-	for k, want := range map[blockKind]int{headingBlock: 5, listBlock: 2, codeBlock: 1, quoteBlock: 1, ruleBlock: 1, tableBlock: 2} {
+	for k, want := range map[mdbook.BlockKind]int{mdbook.HeadingBlock: 5, mdbook.ListBlock: 2, mdbook.CodeBlock: 1, mdbook.QuoteBlock: 1, mdbook.RuleBlock: 1, mdbook.TableBlock: 2} {
 		if kinds[k] != want {
 			t.Errorf("%d blocks of kind %d, want %d", kinds[k], k, want)
 		}
 	}
-	var list, table *block
+	var list, table *mdbook.Block
 	for i := range blocks {
 		switch {
-		case blocks[i].kind == listBlock && list == nil:
+		case blocks[i].Kind == mdbook.ListBlock && list == nil:
 			list = &blocks[i]
-		case blocks[i].kind == tableBlock && table == nil:
+		case blocks[i].Kind == mdbook.TableBlock && table == nil:
 			table = &blocks[i]
 		}
 	}
-	if len(list.items) != 2 || len(list.items[0].sub) != 1 || plainText(list.items[0].text) != "first item with code continued on a second line" {
-		t.Errorf("the bullet list reads as %+v", list.items)
+	if len(list.Items) != 2 || len(list.Items[0].Sub) != 1 || mdbook.PlainText(list.Items[0].Text) != "first item with code continued on a second line" {
+		t.Errorf("the bullet list reads as %+v", list.Items)
 	}
-	if got := plainText(table.rows[1][2]); got != "a | b" {
+	if got := mdbook.PlainText(table.Rows[1][2]); got != "a | b" {
 		t.Errorf("an escaped pipe in a code span reads as %q, want a | b", got)
 	}
-	spans := parseInline("a **b** *c* `d` [e](#f) <https://example.org> snake_case_name")
+	spans := mdbook.ParseInline("a **b** *c* `d` [e](#f) <https://example.org> snake_case_name")
 	var got []string
 	for _, s := range spans {
-		got = append(got, s.text+"/"+s.link)
+		got = append(got, s.Text+"/"+s.Link)
 	}
 	if strings.Join(got, ",") != "a /,b/, /,c/, /,d/, /,e/#f, /,https://example.org/https://example.org, snake_case_name/" {
 		t.Errorf("the inline text reads as %q", got)

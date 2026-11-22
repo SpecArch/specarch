@@ -165,10 +165,10 @@ func (b *book) pieces(part string, spans []span, size float64, base face, self s
 	group := 0
 	for i, s := range spans {
 		f := base
-		if s.style&strong != 0 {
+		if s.Style&strong != 0 {
 			f = bold
 		}
-		if s.style&emphasis != 0 {
+		if s.Style&emphasis != 0 {
 			if f == bold {
 				f = boldItalic
 			} else {
@@ -176,60 +176,39 @@ func (b *book) pieces(part string, spans []span, size float64, base face, self s
 			}
 		}
 		sz := size
-		if s.style&code != 0 {
+		if s.Style&monoStyle != 0 {
 			f, sz = mono, size*0.92
 		}
-		if s.link != "" {
-			d, u := b.resolve(part, s.link)
+		if s.Link != "" {
+			d, u := b.mb.Resolve(part, s.Link)
 			if d == "" && u == "" {
-				out = append(out, piece{text: s.text, face: f, size: sz, color: black})
-				if i+1 >= len(spans) || spans[i+1].link != s.link {
-					out = append(out, piece{text: " (" + s.link + ")", face: regular, size: size * 0.9, color: grey})
+				out = append(out, piece{text: s.Text, face: f, size: sz, color: black})
+				if i+1 >= len(spans) || spans[i+1].Link != s.Link {
+					out = append(out, piece{text: " (" + s.Link + ")", face: regular, size: size * 0.9, color: grey})
 				}
 				continue
 			}
-			if i == 0 || spans[i-1].link != s.link {
+			if i == 0 || spans[i-1].Link != s.Link {
 				group++
 			}
-			out = append(out, piece{text: s.text, face: f, size: sz, color: linkBlue, dest: d, uri: u, group: group})
+			out = append(out, piece{text: s.Text, face: f, size: sz, color: linkBlue, dest: d, uri: u, group: group})
 			continue
 		}
-		if s.style&code != 0 || len(b.idDest) == 0 {
-			out = append(out, piece{text: s.text, face: f, size: sz, color: black})
+		if s.Style&monoStyle != 0 || len(b.mb.IDDest) == 0 {
+			out = append(out, piece{text: s.Text, face: f, size: sz, color: black})
 			continue
 		}
 		// Element ids inside the text.
-		text := s.text
-		start := 0
-		for i := 0; i < len(text); {
-			if !isIDByte(text[i]) || (i > 0 && isIDByte(text[i-1])) {
-				i++
+		for _, seg := range b.mb.IDLinks(s.Text, self) {
+			if seg.Dest == "" {
+				out = append(out, piece{text: seg.Text, face: f, size: sz, color: black})
 				continue
 			}
-			j := i
-			for j < len(text) && isIDByte(text[j]) {
-				j++
-			}
-			word := strings.TrimRight(text[i:j], ".")
-			if d := b.idDest[word]; d != "" && d != self {
-				if start < i {
-					out = append(out, piece{text: text[start:i], face: f, size: sz, color: black})
-				}
-				group++
-				out = append(out, piece{text: word, face: f, size: sz, color: linkBlue, dest: d, group: group})
-				start = i + len(word)
-			}
-			i = j
-		}
-		if start < len(text) {
-			out = append(out, piece{text: text[start:], face: f, size: sz, color: black})
+			group++
+			out = append(out, piece{text: seg.Text, face: f, size: sz, color: linkBlue, dest: seg.Dest, group: group})
 		}
 	}
 	return out
-}
-
-func isIDByte(c byte) bool {
-	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '-' || c == '_' || c == '.'
 }
 
 // lines breaks pieces into lines no wider than max: at spaces, and inside
@@ -407,11 +386,11 @@ const bodySize = 9.5
 
 func (b *book) layout() {
 	b.newPage()
-	for i, bl := range b.parts[0].blocks {
-		if i == 0 && bl.kind == headingBlock {
+	for i, bl := range b.mb.Parts[0].Blocks {
+		if i == 0 && bl.Kind == headingBlock {
 			b.y += 60
 		}
-		b.block("front", &b.parts[0].blocks[i], b.root, left, i == 0)
+		b.block("front", &b.mb.Parts[0].Blocks[i], b.root, left, i == 0)
 	}
 
 	b.newPage()
@@ -421,18 +400,18 @@ func (b *book) layout() {
 	b.place(h, b.lines([]piece{{text: b.opt.Texts.Contents, face: bold, size: headingSize[1], color: black}}, width), left, headingSize[1]*1.4, nil)
 	b.y += 8
 	toc := b.add(b.root, "TOC")
-	for _, t := range b.toc {
+	for _, t := range b.mb.TOC {
 		b.tocEntry(toc, t)
 	}
 	// The problems and gaps list ends the book; its page is known once the
 	// layout is done, as every other entry's is.
-	b.tocEntry(toc, tocEntry{level: 1, text: b.opt.Texts.Problems, dest: "problems"})
+	b.tocEntry(toc, tocEntry{Level: 1, Text: b.opt.Texts.Problems, Dest: "problems"})
 
-	for pi := 1; pi < len(b.parts); pi++ {
+	for pi := 1; pi < len(b.mb.Parts); pi++ {
 		b.newPage()
-		p := &b.parts[pi]
-		for i := range p.blocks {
-			b.block(p.name, &p.blocks[i], b.root, left, false)
+		p := &b.mb.Parts[pi]
+		for i := range p.Blocks {
+			b.block(p.Name, &p.Blocks[i], b.root, left, false)
 		}
 	}
 
@@ -442,13 +421,13 @@ func (b *book) layout() {
 func (b *book) tocEntry(toc *elem, t tocEntry) {
 	size := 9.5
 	f := regular
-	if t.level == 1 {
+	if t.Level == 1 {
 		f, size = bold, 10
 	}
 	leading := size * 1.45
-	indent := float64(t.level-1) * 14
-	ls := b.lines([]piece{{text: t.text, face: f, size: size, color: black}}, width-indent-40)
-	if t.level == 1 {
+	indent := float64(t.Level-1) * 14
+	ls := b.lines([]piece{{text: t.Text, face: f, size: size, color: black}}, width-indent-40)
+	if t.Level == 1 {
 		b.y += 4
 	}
 	b.ensure(leading * float64(len(ls)))
@@ -456,7 +435,7 @@ func (b *book) tocEntry(toc *elem, t tocEntry) {
 	le := b.add(item, "Link")
 	y0 := b.y
 	b.place(le, ls, left+indent, leading, nil)
-	name := t.dest
+	name := t.Dest
 	o := op{kind: textOp, x: right, y: b.y - leading*0.24, face: f, size: size, color: black, alignRight: true, deferred: func() string {
 		if d := b.dests[name]; d != nil && d.page != nil {
 			return strconv.Itoa(d.page.n)
@@ -466,28 +445,28 @@ func (b *book) tocEntry(toc *elem, t tocEntry) {
 	b.mark(le, &o)
 	b.cur.ops = append(b.cur.ops, o)
 	// ensure kept the entry on one page.
-	b.link(le, left+indent, y0, width-indent, b.y-y0, name, "", t.text)
+	b.link(le, left+indent, y0, width-indent, b.y-y0, name, "", t.Text)
 }
 
 // block lays out one block of a part under parent, from x.
 func (b *book) block(part string, bl *block, parent *elem, x float64, title bool) {
 	avail := right - x
-	switch bl.kind {
+	switch bl.Kind {
 	case headingBlock:
-		lvl := bl.level
+		lvl := bl.Level
 		size := headingSize[lvl]
 		if title {
 			size = 22
 		}
 		leading := size * 1.3
-		ls := b.lines(b.pieces(part, bl.text, size, bold, bl.dest), avail)
+		ls := b.lines(b.pieces(part, bl.Text, size, bold, bl.Dest), avail)
 		if b.y > top {
 			b.y += []float64{0, 14, 12, 9, 7, 6, 6}[lvl]
 		}
 		b.ensure(leading*float64(len(ls)) + 3*bodySize*1.4)
-		b.setDest(bl.dest)
+		b.setDest(bl.Dest)
 		if lvl <= 4 {
-			b.outline = append(b.outline, outlineEntry{level: lvl, title: plainText(bl.text), dest: bl.dest})
+			b.outline = append(b.outline, outlineEntry{level: lvl, title: plainText(bl.Text), dest: bl.Dest})
 		}
 		h := b.add(parent, fmt.Sprintf("H%d", lvl))
 		b.place(h, ls, x, leading, nil)
@@ -497,22 +476,22 @@ func (b *book) block(part string, bl *block, parent *elem, x float64, title bool
 		}
 	case paragraphBlock:
 		e := b.add(parent, "P")
-		ps := b.pieces(part, bl.text, bodySize, regular, "")
+		ps := b.pieces(part, bl.Text, bodySize, regular, "")
 		leading := bodySize * 1.38
 		var bx *box
-		if bl.mark != nil {
+		if bl.Mark != nil {
 			// The mark's lead links to its entry in the list.
 			for i := range ps {
 				if i > 0 && ps[i].face != bold {
 					break
 				}
-				ps[i].dest, ps[i].uri, ps[i].group, ps[i].color = bl.mark.back, "", markGroup, linkBlue
+				ps[i].dest, ps[i].uri, ps[i].group, ps[i].color = bl.Mark.Back, "", markGroup, linkBlue
 			}
 			bx = &box{fill: &markFill, bar: &markBar, pad: 5}
 			x += 6
 			b.y += 3
 			b.ensure(leading * 2)
-			b.setDest(bl.mark.dest)
+			b.setDest(bl.Mark.Dest)
 			ls := b.lines(ps, right-x-4)
 			b.place(e, ls, x, leading, bx)
 			b.y += 8
@@ -523,7 +502,7 @@ func (b *book) block(part string, bl *block, parent *elem, x float64, title bool
 	case quoteBlock:
 		e := b.add(parent, "BlockQuote")
 		leading := bodySize * 1.38
-		ls := b.lines(b.pieces(part, bl.text, bodySize, italic, ""), avail-12)
+		ls := b.lines(b.pieces(part, bl.Text, bodySize, italic, ""), avail-12)
 		b.place(e, ls, x+12, leading, &box{bar: &quoteGrey, pad: 6})
 		b.y += 5
 	case ruleBlock:
@@ -531,14 +510,14 @@ func (b *book) block(part string, bl *block, parent *elem, x float64, title bool
 		b.rect(x, b.y+4, avail, 0.6, ruleGrey)
 		b.y += 10
 	case codeBlock:
-		if bl.lang == "mermaid" {
+		if bl.Lang == "mermaid" {
 			p := b.add(parent, "P")
 			b.place(p, b.lines([]piece{{text: b.opt.Texts.Mermaid, face: italic, size: 8.5, color: grey}}, avail), x, 8.5*1.4, nil)
 		}
 		e := b.add(parent, "Code")
 		size := 7.5
 		var ls []line
-		for _, l := range strings.Split(strings.ReplaceAll(bl.code, "\t", "    "), "\n") {
+		for _, l := range strings.Split(strings.ReplaceAll(bl.Code, "\t", "    "), "\n") {
 			ps := []piece{{text: l, face: mono, size: size, color: black}}
 			if l == "" {
 				ps[0].text = " "
@@ -584,21 +563,21 @@ func (b *book) list(part string, bl *block, parent *elem, x float64) {
 	l := b.add(parent, "L")
 	leading := bodySize * 1.38
 	indent := 14.0
-	if bl.ordered {
+	if bl.Ordered {
 		indent = 20
 	}
-	for i := range bl.items {
-		it := &bl.items[i]
+	for i := range bl.Items {
+		it := &bl.Items[i]
 		li := b.add(l, "LI")
-		ls := b.lines(b.pieces(part, it.text, bodySize, regular, ""), right-x-indent)
+		ls := b.lines(b.pieces(part, it.Text, bodySize, regular, ""), right-x-indent)
 		b.ensure(leading)
 		lbl := b.add(li, "Lbl")
-		b.draw(lbl, x+2, b.y+leading*0.76, regular, bodySize, black, it.label)
+		b.draw(lbl, x+2, b.y+leading*0.76, regular, bodySize, black, it.Label)
 		body := b.add(li, "LBody")
 		b.place(body, ls, x+indent, leading, nil)
 		b.y += 1.5
-		for j := range it.sub {
-			b.block(part, &it.sub[j], body, x+indent, false)
+		for j := range it.Sub {
+			b.block(part, &it.Sub[j], body, x+indent, false)
 		}
 	}
 	b.y += 4
@@ -608,11 +587,11 @@ func (b *book) list(part string, bl *block, parent *elem, x float64) {
 // header row repeated on each page the table crosses (as an artifact
 // there), and a row taller than a page cut between its lines.
 func (b *book) table(part string, bl *block, parent *elem, x float64) {
-	if len(bl.rows) == 0 {
+	if len(bl.Rows) == 0 {
 		return
 	}
 	cols := 0
-	for _, r := range bl.rows {
+	for _, r := range bl.Rows {
 		cols = max(cols, len(r))
 	}
 	size := 8.0
@@ -622,10 +601,10 @@ func (b *book) table(part string, bl *block, parent *elem, x float64) {
 	const pad = 3.0
 	leading := size * 1.3
 	avail := right - x
-	cells := make([][][]piece, len(bl.rows))
+	cells := make([][][]piece, len(bl.Rows))
 	minW := make([]float64, cols)
 	natW := make([]float64, cols)
-	for r, row := range bl.rows {
+	for r, row := range bl.Rows {
 		cells[r] = make([][]piece, cols)
 		for c := 0; c < cols; c++ {
 			var spans []span
@@ -637,8 +616,8 @@ func (b *book) table(part string, bl *block, parent *elem, x float64) {
 				base = bold
 			}
 			self := ""
-			if bl.rowDest != nil && c == 0 {
-				self = bl.rowDest[r]
+			if bl.RowDest != nil && c == 0 {
+				self = bl.RowDest[r]
 			}
 			ps := b.pieces(part, spans, size, base, self)
 			cells[r][c] = ps
@@ -674,8 +653,8 @@ func (b *book) table(part string, bl *block, parent *elem, x float64) {
 			widths[c] = minW[c] + extra*(natW[c]-minW[c])/(sumNat-sumMin)
 		}
 	}
-	rowLines := make([][][]line, len(bl.rows))
-	for r := range bl.rows {
+	rowLines := make([][][]line, len(bl.Rows))
+	for r := range bl.Rows {
 		rowLines[r] = make([][]line, cols)
 		for c := 0; c < cols; c++ {
 			rowLines[r][c] = b.lines(cells[r][c], widths[c]-2*pad)
@@ -733,12 +712,12 @@ func (b *book) table(part string, bl *block, parent *elem, x float64) {
 		return n
 	}
 	var group *elem
-	for r := range bl.rows {
+	for r := range bl.Rows {
 		switch r {
 		case 0:
 			group = b.add(t, "THead")
 			need := height(0, 0)
-			if len(bl.rows) > 1 {
+			if len(bl.Rows) > 1 {
 				need += min(height(1, 0), 3*leading+2*pad)
 			}
 			b.ensure(need)
@@ -766,8 +745,8 @@ func (b *book) table(part string, bl *block, parent *elem, x float64) {
 					drawRow(0, 0, nil)
 				}
 			}
-			if from == 0 && bl.rowDest != nil && bl.rowDest[r] != "" {
-				b.setDest(bl.rowDest[r])
+			if from == 0 && bl.RowDest != nil && bl.RowDest[r] != "" {
+				b.setDest(bl.RowDest[r])
 			}
 			from += drawRow(r, from, cellElems)
 		}
@@ -803,22 +782,22 @@ func (b *book) problems() {
 	b.y += 6
 	p := b.add(b.root, "P")
 	intro := tx.NoProblems
-	if len(b.marks) > 0 {
-		intro = fmt.Sprintf(tx.ProblemsIntro, len(b.marks))
+	if len(b.mb.Marks) > 0 {
+		intro = fmt.Sprintf(tx.ProblemsIntro, len(b.mb.Marks))
 	}
 	b.place(p, b.lines([]piece{{text: intro, face: regular, size: bodySize, color: black}}, width), left, bodySize*1.38, nil)
 	b.y += 6
-	if len(b.marks) == 0 {
+	if len(b.mb.Marks) == 0 {
 		return
 	}
 	leading := 8.5 * 1.38
 	var l *elem
 	part := ""
-	for _, mk := range b.marks {
-		if l == nil || mk.part != part {
+	for _, mk := range b.mb.Marks {
+		if l == nil || mk.Part != part {
 			// The marks of each document under its title.
-			part = mk.part
-			title := b.titles[part]
+			part = mk.Part
+			title := b.mb.Titles[part]
 			if part == "front" {
 				// The front matter's first heading is the book's title,
 				// which a document's own heading may repeat.
@@ -832,22 +811,22 @@ func (b *book) problems() {
 			l = b.add(b.root, "L")
 		}
 		li := b.add(l, "LI")
-		label := fmt.Sprintf("%d.", mk.n)
+		label := fmt.Sprintf("%d.", mk.N)
 		at := ""
-		if d := b.dests[mk.dest]; d != nil && d.page != nil {
+		if d := b.dests[mk.Dest]; d != nil && d.page != nil {
 			at = fmt.Sprintf(tx.OnPage, d.page.n)
 		}
 		ps := []piece{
-			{text: mk.text + " ", face: regular, size: 8.5, color: black},
-			{text: at, face: regular, size: 8.5, color: linkBlue, dest: mk.dest, group: 1},
+			{text: mk.Text + " ", face: regular, size: 8.5, color: black},
+			{text: at, face: regular, size: 8.5, color: linkBlue, dest: mk.Dest, group: 1},
 		}
 		ls := b.lines(ps, width-26)
 		b.ensure(leading)
-		b.setDest(mk.back)
+		b.setDest(mk.Back)
 		lbl := b.add(li, "Lbl")
 		le := b.add(lbl, "Link")
 		b.draw(le, left, b.y+leading*0.76, bold, 8.5, linkBlue, label)
-		b.link(le, left, b.y, 22, leading, mk.dest, "", label)
+		b.link(le, left, b.y, 22, leading, mk.Dest, "", label)
 		body := b.add(li, "LBody")
 		b.place(body, ls, left+26, leading, nil)
 		b.y += 3

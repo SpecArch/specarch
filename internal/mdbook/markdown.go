@@ -1,4 +1,4 @@
-package pdf
+package mdbook
 
 import (
 	"strings"
@@ -11,61 +11,61 @@ import (
 // spans, links and autolinks inside. An HTML comment is left out; a line
 // of any other kind is a paragraph, printed as it is.
 
-type blockKind int
+type BlockKind int
 
 const (
-	paragraphBlock blockKind = iota
-	headingBlock
-	tableBlock
-	listBlock
-	codeBlock
-	quoteBlock
-	ruleBlock
+	ParagraphBlock BlockKind = iota
+	HeadingBlock
+	TableBlock
+	ListBlock
+	CodeBlock
+	QuoteBlock
+	RuleBlock
 )
 
-type block struct {
-	kind  blockKind
-	level int    // a heading's level
-	text  []span // a heading's, a paragraph's or a quote's text
-	// rows are a table's rows, the header first; align is unused, every
+type Block struct {
+	Kind  BlockKind
+	Level int    // a heading's level
+	Text  []Span // a heading's, a paragraph's or a quote's text
+	// Rows are a table's Rows, the header first; align is unused, every
 	// cell is set left as the documents write them.
-	rows [][][]span
-	// items are a list's items; ordered says it is numbered.
-	items   []item
-	ordered bool
-	code    string // a fenced block's text
-	lang    string // its info string
+	Rows [][][]Span
+	// Items are a list's Items; ordered says it is numbered.
+	Items   []Item
+	Ordered bool
+	Code    string // a fenced block's text
+	Lang    string // its info string
 
 	// Set while the book is prepared: a heading's destination, the mark a
 	// paragraph is, and the destination of each table row an id starts.
-	dest    string
-	mark    *mark
-	rowDest []string
+	Dest    string
+	Mark    *Mark
+	RowDest []string
 }
 
-type item struct {
-	label string // "1." or the bullet
-	text  []span
-	sub   []block // the blocks nested in the item: a list, mostly
+type Item struct {
+	Label string // "1." or the bullet
+	Text  []Span
+	Sub   []Block // the blocks nested in the item: a list, mostly
 }
 
-type style int
+type Style int
 
 const (
-	plain  style = 0
-	strong style = 1 << iota
-	emphasis
-	code
+	Plain  Style = 0
+	Strong Style = 1 << iota
+	Emphasis
+	Mono
 )
 
-type span struct {
-	text  string
-	style style
-	link  string // the link's target, as written
+type Span struct {
+	Text  string
+	Style Style
+	Link  string // the link's target, as written
 }
 
-// parseMarkdown reads a document into blocks.
-func parseMarkdown(text string) []block {
+// Parse reads a document into blocks.
+func Parse(text string) []Block {
 	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
 	p := &mdParser{lines: lines}
 	return p.blocks(0, len(lines))
@@ -90,8 +90,8 @@ func indentOf(l string) int {
 	return n
 }
 
-func (p *mdParser) blocks(from, to int) []block {
-	var out []block
+func (p *mdParser) blocks(from, to int) []Block {
+	var out []Block
 	i := from
 	for i < to {
 		raw := p.lines[i]
@@ -117,14 +117,14 @@ func (p *mdParser) blocks(from, to int) []block {
 				i++
 			}
 			i++
-			out = append(out, block{kind: codeBlock, code: strings.Join(body, "\n"), lang: lang})
+			out = append(out, Block{Kind: CodeBlock, Code: strings.Join(body, "\n"), Lang: lang})
 		case headingLevel(l) > 0:
 			lvl := headingLevel(l)
 			t := strings.TrimSpace(strings.TrimRight(strings.TrimSpace(l[lvl:]), "#"))
-			out = append(out, block{kind: headingBlock, level: lvl, text: parseInline(t)})
+			out = append(out, Block{Kind: HeadingBlock, Level: lvl, Text: ParseInline(t)})
 			i++
 		case isRule(l):
-			out = append(out, block{kind: ruleBlock})
+			out = append(out, Block{Kind: RuleBlock})
 			i++
 		case strings.HasPrefix(l, "|"):
 			j := i
@@ -143,7 +143,7 @@ func (p *mdParser) blocks(from, to int) []block {
 				q = append(q, strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(p.lines[i]), ">")))
 				i++
 			}
-			out = append(out, block{kind: quoteBlock, text: parseInline(strings.Join(q, " "))})
+			out = append(out, Block{Kind: QuoteBlock, Text: ParseInline(strings.Join(q, " "))})
 		default:
 			var para []string
 			for i < to {
@@ -154,7 +154,7 @@ func (p *mdParser) blocks(from, to int) []block {
 				para = append(para, t)
 				i++
 			}
-			out = append(out, block{kind: paragraphBlock, text: parseInline(strings.Join(para, " "))})
+			out = append(out, Block{Kind: ParagraphBlock, Text: ParseInline(strings.Join(para, " "))})
 		}
 	}
 	return out
@@ -211,10 +211,10 @@ func listMarker(l string) string {
 	return ""
 }
 
-func (p *mdParser) list(from, to int) (block, int) {
+func (p *mdParser) list(from, to int) (Block, int) {
 	base := indentOf(p.lines[from])
 	first := listMarker(strings.TrimSpace(p.lines[from]))
-	b := block{kind: listBlock, ordered: first[0] >= '0' && first[0] <= '9'}
+	b := Block{Kind: ListBlock, Ordered: first[0] >= '0' && first[0] <= '9'}
 	i := from
 	for i < to {
 		l := p.lines[i]
@@ -230,7 +230,7 @@ func (p *mdParser) list(from, to int) (block, int) {
 				i = j
 				continue
 			}
-			if j < to && indentOf(p.lines[j]) > base && len(b.items) > 0 {
+			if j < to && indentOf(p.lines[j]) > base && len(b.Items) > 0 {
 				i = j
 				continue
 			}
@@ -255,10 +255,10 @@ func (p *mdParser) list(from, to int) (block, int) {
 				i++
 			}
 			label := "•"
-			if b.ordered {
+			if b.Ordered {
 				label = m
 			}
-			b.items = append(b.items, item{label: label, text: parseInline(strings.Join(text, " "))})
+			b.Items = append(b.Items, Item{Label: label, Text: ParseInline(strings.Join(text, " "))})
 			continue
 		}
 		// Indented deeper: blocks nested in the last item.
@@ -279,8 +279,8 @@ func (p *mdParser) list(from, to int) (block, int) {
 			}
 			j++
 		}
-		last := &b.items[len(b.items)-1]
-		last.sub = append(last.sub, p.blocks(i, j)...)
+		last := &b.Items[len(b.Items)-1]
+		last.Sub = append(last.Sub, p.blocks(i, j)...)
 		i = j
 	}
 	return b, i
@@ -296,18 +296,18 @@ func sameKind(m, first string) bool {
 	return isNum(m) == isNum(first)
 }
 
-func (p *mdParser) table(from, to int) block {
-	b := block{kind: tableBlock}
+func (p *mdParser) table(from, to int) Block {
+	b := Block{Kind: TableBlock}
 	for i := from; i < to; i++ {
 		cells := splitRow(strings.TrimSpace(p.lines[i]))
 		if i == from+1 && isSeparator(cells) {
 			continue
 		}
-		row := make([][]span, len(cells))
+		row := make([][]Span, len(cells))
 		for c, cell := range cells {
-			row[c] = parseInline(strings.TrimSpace(cell))
+			row[c] = ParseInline(strings.TrimSpace(cell))
 		}
-		b.rows = append(b.rows, row)
+		b.Rows = append(b.Rows, row)
 	}
 	return b
 }
@@ -356,16 +356,16 @@ func isSeparator(cells []string) bool {
 	return len(cells) > 0
 }
 
-// parseInline reads the inline text of a block: **bold**, *italic* and
+// ParseInline reads the inline text of a block: **bold**, *italic* and
 // _italic_, `code`, [text](target), <scheme:target>, and a backslash that
 // escapes the next punctuation.
-func parseInline(s string) []span {
-	var out []span
+func ParseInline(s string) []Span {
+	var out []Span
 	var cur strings.Builder
-	st := plain
+	st := Plain
 	flush := func() {
 		if cur.Len() > 0 {
-			out = append(out, span{text: cur.String(), style: st})
+			out = append(out, Span{Text: cur.String(), Style: st})
 			cur.Reset()
 		}
 	}
@@ -392,15 +392,15 @@ func parseInline(s string) []span {
 			if len(text) > 1 && text[0] == ' ' && text[len(text)-1] == ' ' {
 				text = text[1 : len(text)-1]
 			}
-			out = append(out, span{text: text, style: st | code})
+			out = append(out, Span{Text: text, Style: st | Mono})
 			i += n + end + n
 		case c == '*' && i+1 < len(s) && s[i+1] == '*':
 			flush()
-			st ^= strong
+			st ^= Strong
 			i += 2
-		case (c == '*' || c == '_') && emphasisToggle(s, i, st&emphasis != 0):
+		case (c == '*' || c == '_') && emphasisToggle(s, i, st&Emphasis != 0):
 			flush()
-			st ^= emphasis
+			st ^= Emphasis
 			i++
 		case c == '[':
 			text, target, n := linkAt(s[i:])
@@ -410,9 +410,9 @@ func parseInline(s string) []span {
 				continue
 			}
 			flush()
-			for _, sp := range parseInline(text) {
-				sp.style |= st
-				sp.link = target
+			for _, sp := range ParseInline(text) {
+				sp.Style |= st
+				sp.Link = target
 				out = append(out, sp)
 			}
 			i += n
@@ -424,7 +424,7 @@ func parseInline(s string) []span {
 			}
 			if strings.HasPrefix(inner, "http://") || strings.HasPrefix(inner, "https://") || strings.HasPrefix(inner, "mailto:") {
 				flush()
-				out = append(out, span{text: inner, style: st, link: inner})
+				out = append(out, Span{Text: inner, Style: st, Link: inner})
 				i += end + 1
 				continue
 			}
@@ -498,11 +498,11 @@ func linkAt(s string) (text, target string, n int) {
 	return "", "", 0
 }
 
-// plainText is the text of spans, without their styles.
-func plainText(spans []span) string {
+// PlainText is the text of spans, without their styles.
+func PlainText(spans []Span) string {
 	var b strings.Builder
 	for _, s := range spans {
-		b.WriteString(s.text)
+		b.WriteString(s.Text)
 	}
 	return b.String()
 }

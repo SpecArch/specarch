@@ -7,16 +7,12 @@
 package pdf
 
 import (
-	"fmt"
-	"strings"
+	"github.com/SpecArch/specarch/internal/mdbook"
 )
 
 // Part is one document of a book, by the name its links use ("techspec"
 // for a link to techspec.md) and its Markdown.
-type Part struct {
-	Name     string
-	Markdown string
-}
+type Part = mdbook.Part
 
 // Texts are the words a book writes of its own, in the document's
 // language.
@@ -94,42 +90,26 @@ var (
 	quoteGrey = rgb{0.75, 0.75, 0.75}
 )
 
-// docPart is a part read into blocks, with the anchors of its headings.
-type docPart struct {
-	name   string
-	blocks []block
-}
-
 type book struct {
-	opt   Options
-	m     [faces]*metrics
-	parts []docPart // the front matter first
+	opt Options
+	m   [faces]*metrics
+	// mb is the book read into blocks, with its destinations, table of
+	// contents and marks.
+	mb *mdbook.Book
 	// dests are the destinations a link can name, and where each is once
-	// laid out.
+	// laid out; a document's name shares its first heading's.
 	dests map[string]*dest
-	// idDest is the destination of each element id that has one.
-	idDest map[string]string
-	toc    []tocEntry
-	marks  []*mark
-	pages  []*page
-	cur    *page
-	y      float64
-	root   *elem
+	pages []*page
+	cur   *page
+	y     float64
+	root  *elem
 	// outline holds the headings to the fourth level, in book order.
 	outline []outlineEntry
-	// titles are each part's first heading, by the part's name.
-	titles map[string]string
 }
 
 type dest struct {
 	page *page
 	y    float64
-}
-
-type tocEntry struct {
-	level int
-	text  string
-	dest  string
 }
 
 type outlineEntry struct {
@@ -138,131 +118,22 @@ type outlineEntry struct {
 	dest  string
 }
 
-type mark struct {
-	n    int
-	part string
-	text string
-	dest string // the mark's, "mark/<n>"
-	back string // the list entry's, "problem/<n>"
-}
-
 func newBook(opt Options, m [faces]*metrics) *book {
-	if opt.Slug == nil {
-		opt.Slug = func(s string) string { return s }
-	}
-	if opt.IsMark == nil {
-		opt.IsMark = func(string, string) bool { return false }
-	}
-	return &book{opt: opt, m: m, dests: map[string]*dest{}, idDest: map[string]string{}, titles: map[string]string{}, root: &elem{typ: "Document"}}
+	return &book{opt: opt, m: m, dests: map[string]*dest{}, root: &elem{typ: "Document"}}
 }
 
 // prepare reads the parts and gives every heading, mark and id its
 // destination, so that a link laid out before what it names finds it.
 func (b *book) prepare() {
-	b.parts = append(b.parts, docPart{name: "front", blocks: parseMarkdown(b.opt.FrontMatter)})
-	for _, p := range b.opt.Parts {
-		b.parts = append(b.parts, docPart{name: p.Name, blocks: parseMarkdown(p.Markdown)})
-	}
-	b.dests["contents"] = &dest{}
-	b.dests["problems"] = &dest{}
-	for pi := range b.parts {
-		p := &b.parts[pi]
-		slugs := map[string]int{}
-		first := true
-		walk(p.blocks, func(bl *block) {
-			switch bl.kind {
-			case headingBlock:
-				text := plainText(bl.text)
-				anchor := b.opt.Slug(text)
-				if n := slugs[anchor]; n > 0 {
-					slugs[anchor] = n + 1
-					anchor = fmt.Sprintf("%s-%d", anchor, n)
-				} else {
-					slugs[anchor] = 1
-				}
-				name := p.name + "/" + anchor
-				bl.dest = name
-				b.dests[name] = &dest{}
-				if first {
-					// A link to the document itself goes to its first heading.
-					b.dests[p.name] = b.dests[name]
-					b.titles[p.name] = text
-					first = false
-				}
-				if b.opt.IDs[text] && b.idDest[text] == "" {
-					b.idDest[text] = name
-				}
-				if pi > 0 && bl.level <= 3 {
-					b.toc = append(b.toc, tocEntry{level: bl.level, text: text, dest: name})
-				}
-			case paragraphBlock:
-				if len(bl.text) > 0 && bl.text[0].style&strong != 0 && b.opt.IsMark(bl.text[0].text, plainText(bl.text)) {
-					n := len(b.marks) + 1
-					mk := &mark{n: n, part: p.name, text: plainText(bl.text), dest: fmt.Sprintf("mark/%d", n), back: fmt.Sprintf("problem/%d", n)}
-					b.marks = append(b.marks, mk)
-					bl.mark = mk
-					b.dests[mk.dest] = &dest{}
-					b.dests[mk.back] = &dest{}
-				}
-			}
-		})
-	}
-	// A table row is an id's destination when no heading is.
-	for pi := range b.parts {
-		walk(b.parts[pi].blocks, func(bl *block) {
-			if bl.kind != tableBlock {
-				return
-			}
-			bl.rowDest = make([]string, len(bl.rows))
-			for r, row := range bl.rows {
-				if r == 0 || len(row) == 0 {
-					continue
-				}
-				id := strings.TrimSpace(plainText(row[0]))
-				if b.opt.IDs[id] && b.idDest[id] == "" {
-					name := "row/" + id
-					b.idDest[id] = name
-					b.dests[name] = &dest{}
-					bl.rowDest[r] = name
-				}
-			}
-		})
-	}
-}
-
-// walk visits every block, the ones nested in list items too.
-func walk(blocks []block, f func(*block)) {
-	for i := range blocks {
-		f(&blocks[i])
-		for j := range blocks[i].items {
-			walk(blocks[i].items[j].sub, f)
+	b.mb = mdbook.Prepare(mdbook.Options{FrontMatter: b.opt.FrontMatter, Parts: b.opt.Parts, IDs: b.opt.IDs, Slug: b.opt.Slug, IsMark: b.opt.IsMark})
+	for _, name := range b.mb.Names {
+		if target := b.mb.Dests[name]; target == name {
+			b.dests[name] = &dest{}
 		}
 	}
-}
-
-// resolve is where a link written in a part goes: a destination in the
-// book, a URI, or nowhere.
-func (b *book) resolve(part, target string) (dest, uri string) {
-	switch {
-	case strings.HasPrefix(target, "http://"), strings.HasPrefix(target, "https://"), strings.HasPrefix(target, "mailto:"):
-		return "", target
-	case strings.HasPrefix(target, "#"):
-		name := part + "/" + target[1:]
-		if b.dests[name] != nil {
-			return name, ""
+	for _, name := range b.mb.Names {
+		if target := b.mb.Dests[name]; target != name {
+			b.dests[name] = b.dests[target]
 		}
-		return "", ""
 	}
-	file, anchor, _ := strings.Cut(target, "#")
-	if strings.Contains(file, "/") || !strings.HasSuffix(file, ".md") {
-		return "", ""
-	}
-	name := strings.TrimSuffix(file, ".md")
-	if anchor != "" {
-		name += "/" + anchor
-	}
-	if b.dests[name] != nil {
-		return name, ""
-	}
-	return "", ""
 }

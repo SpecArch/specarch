@@ -1,5 +1,6 @@
-# The words of the pdf target's books: the front matter, the table of
-# contents, the problems and gaps list and the footer.
+# The words of the books, of the books target and of a document written as
+# docx or pdf: the front matter, the table of contents, the problems and
+# gaps list, the header and the footer.
 translations:
   "business requirements document": "business requirements document"
   "requirements specification": "requirements specification"
@@ -16,7 +17,8 @@ translations:
   "No problem or gap is marked in this book.": "Tidak ada masalah atau gap yang ditandai di buku ini."
   "page %d": "halaman %d"
   "Page %d of %d": "Halaman %d dari %d"
-  "Mermaid diagram, printed as its source: the PDF does not draw it, and the html document draws the entity diagram and the workflows.": "Diagram Mermaid, dicetak sebagai source-nya: PDF ini tidak menggambarnya, sedangkan dokumen html menggambar diagram entity dan workflow."
+  "Mermaid diagram, printed as its source: this document does not draw it, and the html document draws the entity diagram and the workflows.": "Diagram Mermaid, dicetak sebagai source-nya: dokumen ini tidak menggambarnya, sedangkan dokumen html menggambar diagram entity dan workflow."
+  "%s, version %s": "%s, versi %s"
   "not approved": "belum di-approve"
   "a draft: %s concern it (%s)": "masih draft: %s menyangkut buku ini (%s)"
   "| Item | Value |": "| Item | Nilai |"

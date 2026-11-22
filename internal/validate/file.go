@@ -333,6 +333,7 @@ func (c *checker) runImplementation(data []byte, s *spec.Spec, load ...Loader) {
 	c.checkSchema(KindImplementation, doc.Value)
 	c.checkChangeLog()
 	c.checkBoundaryImplementation()
+	c.checkTargetFormats()
 	var l Loader
 	if len(load) > 0 {
 		l = load[0]

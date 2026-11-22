@@ -1,0 +1,7 @@
+arguments: [validate, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:4:10: warning: /stakeholders/clerk: unheard: clerk was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement TILL-1 relies on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/clerk]
+  project/till.go.specarch-implementation.yaml:7:39: error: /targets/books/formats/0: document_format: books has no format md: a book is made from the Markdown documents, which each document target writes as <target>.md; its formats are pdf and docx [document_format@till.go.specarch-implementation.yaml#/targets/books/formats/0]
+  project/till.go.specarch-implementation.yaml:8:37: error: /targets/html/formats: document_format: html writes index.html only and takes no formats; remove formats [document_format@till.go.specarch-implementation.yaml#/targets/html/formats]
+  project/till.go.specarch-implementation.yaml:9:42: error: /targets/sql/formats: document_format: sql is not a document target, so formats says nothing for it; formats is read only for a document target and for books; remove it [document_format@till.go.specarch-implementation.yaml#/targets/sql/formats]

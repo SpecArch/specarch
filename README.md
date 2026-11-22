@@ -519,7 +519,7 @@ The document targets, each written into the folder the implementation file names
 | `manual` | `manual.md`: the user manual |
 | `operations` | `operations.md`: the operations guide |
 | `brd` | `brd.md`: the business requirements document, in the order of ISO/IEC/IEEE 29148 |
-| `pdf` | `brd.pdf`, `requirements.pdf`, `technical.pdf` and `qa.pdf`: four tagged A4 books made from the documents above, with front matter, contents, linked ids and every problem and gap marked and listed |
+| `books` | `business-requirements`, `requirements-specification`, `technical-specification` and `test-document`, as `.pdf` (tagged) or `.docx`: four A4 books made from the documents above, with front matter, contents, linked ids and every problem and gap marked and listed |
 
 **Start from existing code or documents**
 
@@ -683,8 +683,16 @@ entity diagram, the workflows and the generated screens, and the problems
 linked to the entries they mark. It needs no server and makes no request.
 The examples keep theirs in `site/`.
 
-`specarch document pdf` writes the four books a project files and a
-customer signs, as PDF: the business requirements document, the
+Every document above that is Markdown can be written as Word or PDF too:
+`--format docx`, `--format pdf`, several separated by commas, or
+`--format all`, beside `<target>.md` in the same folder, or listed once
+under `formats` in the target's entry under `targets`. The Word and PDF
+forms are made from the Markdown, so they say the same and mark the same
+gaps, and each is a book of its own with front matter, a table of contents
+and the list of its problems and gaps.
+
+`specarch document books` writes the four books a project files and a
+customer signs, as PDF, or as Word with `--format docx`: the business requirements document, the
 requirements specification with its traceability matrix, the technical
 specification with the deployment and operations guides, and the test
 document with the matrix of what verifies each requirement. Each is made
@@ -694,7 +702,8 @@ of contents, and ends with the list of every problem and gap the book
 marks, each linked to its mark. A specification with gaps still gets all
 four books, with the gaps shown where they are. The same specification
 writes the same bytes, so `--check` and `approve` compare the books like
-any document. `docs/pdf-documents.md` says what each book holds.
+any document, in every format. `docs/document-formats.md` says what
+each format and each book holds.
 
 `specarch document problems` writes `problems.txt` and `problems.sarif`,
 every error, warning and open question as one compiler line each, and

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+covers: [exit 1]
+given: "an implementation file whose targets give formats md for books, formats for html and formats for sql, a target that is not a document's, beside a requirements entry with md and pdf"
+when: "validate is run"
+then: "it reports document_format at the md of books, at the formats of html and at the formats of sql, nothing at requirements, and exits 1"
+verifies: [SA-149]

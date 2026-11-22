@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+covers: [usage error]
+given: "--format pdf for the html target"
+when: "document html is run"
+then: "it prints the usage error saying html writes index.html only and takes no --format, writes nothing, and exits 2"
+verifies: [SA-149]

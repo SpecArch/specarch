@@ -246,13 +246,13 @@ func TestBookMarksInEveryLanguage(t *testing.T) {
 	counts := func(tag, sentence string) map[string]int {
 		out := filepath.Join(t.TempDir(), tag)
 		var stdout, stderr bytes.Buffer
-		if status := run([]string{"document", "pdf", "--language", tag, "--out", out, "../../spec/tests/document-pdf-gaps/project"}, &stdout, &stderr); status == 2 {
-			t.Fatalf("document pdf --language %s: exit 2: %s%s", tag, stdout.String(), stderr.String())
+		if status := run([]string{"document", "books", "--language", tag, "--out", out, "../../spec/tests/document-books-gaps/project"}, &stdout, &stderr); status == 2 {
+			t.Fatalf("document books --language %s: exit 2: %s%s", tag, stdout.String(), stderr.String())
 		}
 		before, after, _ := strings.Cut(sentence, "%d")
 		found := regexp.MustCompile(regexp.QuoteMeta(before) + `(\d+)` + regexp.QuoteMeta(after))
 		got := map[string]int{}
-		for _, name := range generate.BookFiles {
+		for _, name := range bookFiles() {
 			data, err := os.ReadFile(filepath.Join(out, name))
 			if err != nil {
 				t.Fatal(err)
@@ -280,7 +280,7 @@ func TestBookMarksInEveryLanguage(t *testing.T) {
 		return got
 	}
 	english := counts("en", intro)
-	for _, name := range generate.BookFiles {
+	for _, name := range bookFiles() {
 		if english[name] == 0 {
 			t.Errorf("%s in en lists no problem or gap; the specification has both", name)
 		}
@@ -296,10 +296,19 @@ func TestBookMarksInEveryLanguage(t *testing.T) {
 			t.Fatalf("the catalog of %s gives the problems list's sentence as %q, with no %%d for the count", tag, sentence)
 		}
 		got := counts(tag, sentence)
-		for _, name := range generate.BookFiles {
+		for _, name := range bookFiles() {
 			if got[name] != english[name] {
 				t.Errorf("%s in %s lists %d problems and gaps; in en it lists %d", name, tag, got[name], english[name])
 			}
 		}
 	}
+}
+
+// bookFiles are the files the books target writes as PDF.
+func bookFiles() []string {
+	var out []string
+	for _, n := range generate.BookNames {
+		out = append(out, n+".pdf")
+	}
+	return out
 }

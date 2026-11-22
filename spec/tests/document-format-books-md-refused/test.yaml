@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+covers: [usage error]
+given: "--format md for the books target"
+when: "document books is run"
+then: "it prints the usage error saying a book is made from the Markdown documents and its formats are pdf and docx, writes nothing, and exits 2"
+verifies: [SA-149]

@@ -1,9 +1,0 @@
-# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
-command: document
-level: system
-scenario: red
-covers: [exit 1]
-given: "a specification with a relation to an entity that does not exist, a requirement no test verifies and with no acceptance criteria, an open must question, no problem, no release record and no approval"
-when: "document pdf is run"
-then: "it prints the error, still writes all four books, each with the version marked not dated, every Problem, Open question and Draft paragraph marked at its entry and listed in its Problems and gaps list, and exits 1"
-verifies: [SA-148]

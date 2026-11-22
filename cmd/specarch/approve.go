@@ -130,7 +130,12 @@ func approve(l loaded, by, session, date string, w *disk.Writer, stdout, stderr 
 		}
 		// What cannot be drawn for the site was said when document wrote it.
 		impls, st := l.documentInputs(target, folder, io.Discard)
-		files, err := documentFiles(target, root, relSlash(folder, l.spec.RootFile), folder, impls, st)
+		formats, msg := l.formats(target, nil)
+		if msg != "" {
+			fmt.Fprintln(stderr, msg)
+			return 2
+		}
+		files, err := documentFiles(target, formats, root, relSlash(folder, l.spec.RootFile), folder, impls, st)
 		if err != nil {
 			fmt.Fprintf(stderr, "specarch approve: cannot make the %s documents of %s to compare: %v\n", target, l.spec.Dir, err)
 			return 2

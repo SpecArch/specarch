@@ -147,6 +147,7 @@ const (
 	RuleValueObjectUnchecked    Rule = "value_object_unchecked"
 	RuleWireName                Rule = "wire_name"
 	RuleOutputFolder            Rule = "output_folder"
+	RuleDocumentFormat          Rule = "document_format"
 	RuleMetaModelVersion        Rule = "meta_model_version"
 	RuleMetaModelDeprecated     Rule = "meta_model_deprecated"
 	RuleAudience                Rule = "audience"
@@ -342,6 +343,7 @@ var Rules = []Rule{
 	RuleValueObjectUnchecked,
 	RuleWireName,
 	RuleOutputFolder,
+	RuleDocumentFormat,
 	RuleMetaModelVersion,
 	RuleMetaModelDeprecated,
 	RuleAudience,

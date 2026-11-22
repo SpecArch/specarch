@@ -96,6 +96,6 @@ standardOutput: |+
   | manual document | draft | 2 in design (Q-5 and Q-6) |
   | operations document | ready | |
   | brd document | ready | |
-  | pdf document | draft | 6 in design (Q-1, Q-2, Q-3 and 3 more) |
+  | books document | draft | 6 in design (Q-1, Q-2, Q-3 and 3 more) |
   | code generation | waits | 6 in design (Q-1, Q-2, Q-3 and 3 more); not approved: there is no records/approvals/0.1.0.yaml beside the specification |
 

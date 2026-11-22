@@ -1247,38 +1247,57 @@ business level, its statement, priority, status, the needs it
 refines and the goals those serve, with no design or test links;
 the constraints, the assumptions and the glossary.
 
-The pdf target writes four PDF books into its folder (ADR-248):
-`brd.pdf` from the brd document, `requirements.pdf` from the
-requirements and traceability documents, `technical.pdf` from the
-techspec, deployment and operations documents, and `qa.pdf` from the
-testplan and traceability documents, each written from the Markdown
-those targets write for the same specification, audience and
-language. A book opens with front matter: the book's title, the
-specification's title, version, date, status (the approval and the
-open must and should questions), owners, the root file and the
-meta-model, and the change history, one row per release record
-newest first. The date is the approval's when the version is
-approved, else the release record's of that version, else the front
-matter says the version is not dated and marks it as a gap; nothing
-comes from the clock, so a second run writes the same bytes. A table
-of contents of the headings to the third level with page numbers
-follows, its last entry the Problems and gaps list, which ends the
-book: every Problem, Open question, Open change request, Draft and
-Stakeholders unconfirmed paragraph of its documents and every gap of
-the front matter, each drawn as a marked box at its entry and listed
-in book order under the heading of its document (Front matter for
-the front matter's), the two linked both ways. Each heading is a bookmark and a
-link target, a link between the documents of a book goes to its
-heading, an element's id (a key holding a digit or a hyphen) in a
-sentence or a table cell links to the first heading that is that id
-or else the first table row it starts, and a link that leads outside
-the book is printed with its target. The pages are A4 with the book
-named in the header and the page in the footer, both artifacts; the
-text is real text in the embedded Go fonts with its Unicode map, a
-character the fonts lack written as its code point; the file is
-tagged with the document's language; a table that crosses a page
-repeats its header row; a Mermaid block is printed as its labelled
-source.
+Every document written as Markdown can be written in three formats
+(ADR-249), chosen with --format, or else by the formats its entry
+under targets lists, or else md: md writes `<target>.md`; docx and
+pdf write `<target>.docx` and `<target>.pdf`, the same document as a
+book of its own, rendered from that Markdown, so the three carry the
+same text, ids, links, tables and marks. html and problems write
+their own files and take no --format.
+
+The books target writes four books into its folder (ADR-248,
+ADR-249), as PDF unless --format names docx:
+`business-requirements` from the brd document,
+`requirements-specification` from the requirements and traceability
+documents, `technical-specification` from the techspec, deployment
+and operations documents, and `test-document` from the testplan and
+traceability documents, each written from the Markdown those
+targets write for the same specification, audience and language.
+A book, of the books target or of one document, opens with front
+matter: the book's title, the specification's title, version, date,
+status (the approval and the open must and should questions),
+owners, the root file and the meta-model, the documents it holds,
+and the change history, one row per release record newest first.
+The date is the approval's when the version is approved, else the
+release record's of that version, else the front matter says the
+version is not dated and marks it as a gap; nothing comes from the
+clock, so a second run writes the same bytes in every format. A
+table of contents of the headings to the third level follows, its
+last entry the Problems and gaps list, which ends the book: every
+Problem, Open question, Open change request, Draft and Stakeholders
+unconfirmed paragraph of its documents and every gap of the front
+matter, each marked at its entry and listed in book order under the
+heading of its document (Front matter for the front matter's), the
+two linked both ways. Each heading is a bookmark and a link target,
+a link between the documents of a book goes to its heading, an
+element's id (a key holding a digit or a hyphen) in a sentence or a
+table cell links to the first heading that is that id or else the
+first table row it starts, and a link that leads outside the book is
+printed with its target. The pages are A4 with the book and the
+specification's version in the header and the page in the footer;
+a table that crosses a page repeats its header row; a Mermaid block
+is printed as its labelled source.
+
+A pdf is tagged with the document's language, its header and footer
+artifacts, its text real text in the embedded Go fonts with its
+Unicode map, a character the fonts lack written as its code point,
+and its table of contents gives each entry's page. A docx uses
+Word's own heading styles, so the navigation pane finds the
+headings; its fonts are named (Calibri, and Courier New for code),
+not embedded; its table of contents is a field whose entries are
+written and linked, and Word adds their page numbers when the reader
+updates it; the Problems and gaps list links each number to its
+mark.
 
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
@@ -1325,7 +1344,7 @@ and the html page in place of what satisfies and verifies it.
 **Note:** From arc42, the template for architecture documentation, 8.2: The twelve chapters of an architecture document, from introduction and goals to glossary. <https://arc42.org/overview>
 
 ```
-specarch document <target> <paths>... [--out <out>] [--check] [--audience <audience>] [--language <language>] [--dry-run]
+specarch document <target> <paths>... [--out <out>] [--check] [--audience <audience>] [--language <language>] [--format <format>] [--dry-run]
 ```
 
 Anyone who has the program runs it.
@@ -1341,6 +1360,7 @@ Anyone who has the program runs it.
 | `--check` | Make the output in memory and fail when the files on disk differ. Writes nothing. |  |
 | `--audience <audience>` | external writes a document for everyone, without the internal elements (ADR-119). Needs --out, a folder other than the one the implementation files name for the target; not for the problems target. One of: external. |  |
 | `--language <language>` | The language the documents are written in, en (the default) or id (Indonesian), with the technical terms practitioners say in English kept (ADR-241). A language other than en needs --out, a folder other than the one the implementation files name for the target. One of: en, id. |  |
+| `--format <format>` | The formats to write, md, docx or pdf, several of them separated by commas, or all for every format the target writes (ADR-249): <target>.md, <target>.docx and <target>.pdf in the target's folder, written in that order. Without it, the formats the target's entry under targets lists in formats, where the implementation files that name them agree; without that, md. The books target writes pdf (by default) and docx; html and problems take no --format. |  |
 | `--dry-run` | Make the documents in memory and write nothing; print each file it would write, the problem marks in the specification included, as would write <path>. Not with --check. |  |
 
 It reads:
@@ -1352,9 +1372,11 @@ It reads:
 
 It writes:
 
-- `{out}/<target>.md`: The document. Nothing is written with `--check`.
+- `{out}/<target>.md`: The document, in the md format. Nothing is written with `--check`.
+- `{out}/<target>.docx`: The document as a Word book of its own, in the docx format: front matter, contents, the document and its problems and gaps. Nothing is written with `--check`.
+- `{out}/<target>.pdf`: The document as a PDF book of its own, in the pdf format. Nothing is written with `--check`.
 - `{out}/index.html`: The page, for the html target. Nothing is written with `--check`.
-- `{out}/brd.pdf`: The business requirements book, for the pdf target, with requirements.pdf, technical.pdf and qa.pdf beside it. Nothing is written with `--check`.
+- `{out}/business-requirements.pdf`: The business requirements book, for the books target, with requirements-specification, technical-specification and test-document beside it, each .pdf, or .docx in the docx format. Nothing is written with `--check`.
 - `specarch.md`: Only the regions between markers. Nothing is written with `--check`.
 - `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`.
 - `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.
@@ -1372,7 +1394,7 @@ On standard error: A usage message on a usage error, the reason a file cannot be
 |---|---|---|
 | 0 | written, or with `--check` the output is current |   |
 | 1 | a specification has an error (after its files are written, or with `--check` compared), a marker is wrong, or with `--check` the output differs | Settle the errors and the markers it prints; with --check, run it once without --check to write the current output, then run it again. |
-| 2 | usage error, a target this build does not offer, --audience with a value other than external, without --out or for the problems target, --language with a value other than en or id, or other than en without --out, --audience external or a language other than en with an --out that is the folder the implementation files name for the target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
+| 2 | usage error, a target this build does not offer, --format with a value other than md, docx, pdf or all, a format the target does not write, or for html or problems, the implementation files of one naming different formats for the target, --audience with a value other than external, without --out or for the problems target, --language with a value other than en or id, or other than en without --out, --audience external or a language other than en with an --out that is the folder the implementation files name for the target, no output folder in any specification given (or, for the handover target, no handover in any), the implementation files of one naming different output folders, or a file that could not be read or written | Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again. |
 
 ### specarch extract
 

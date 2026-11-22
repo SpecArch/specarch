@@ -215,13 +215,13 @@ requirements:
     needs: [NEED-3, NEED-10]
     why: A compose file, a set of manifests or a host image written by hand repeats what the implementation file's deployment already says and drifts from it at the next setting or port; a full regression run on an environment an earlier test left behind passes or fails on what that test wrote; and the quickest way to run a thing by hand is to write its password next to it, so the generated files leave every secret to the host (ADR-227).
   SA-148:
-    statement: specarch document brd shall write brd.md, the business requirements document in the order of the business requirements specification of ISO/IEC/IEEE 29148, and specarch document pdf shall write four PDF books from the same documents the Markdown targets write - brd.pdf, requirements.pdf, technical.pdf and qa.pdf - each with front matter taken from the specification and its records, a table of contents, bookmarks, ids that link to the entry describing them, the problems and gaps marked at their entries and gathered in one list, tagged structure and real text on A4 pages, the same bytes for the same input; an incomplete or invalid specification shall still get all four books.
+    statement: specarch document brd shall write brd.md, the business requirements document in the order of the business requirements specification of ISO/IEC/IEEE 29148, and specarch document books shall write four books from the same documents the Markdown targets write - business-requirements, requirements-specification, technical-specification and test-document, as PDF or Word (ADR-249) - each with front matter taken from the specification and its records, a table of contents, bookmarks, ids that link to the entry describing them, the problems and gaps marked at their entries and gathered in one list, tagged structure and real text on A4 pages, the same bytes for the same input; an incomplete or invalid specification shall still get all four books.
     kind: functional
     priority: should
     status: accepted
     acceptance:
       - document brd writes brd.md with the purpose, the intent parts the specification states (a part it does not state says so and names the key), the stakeholders, the needs with the requirements refining each, each requirement at business level (statement, priority, status, the needs it refines and the goals they serve, no design or test links), the constraints, the assumptions and the glossary.
-      - document pdf writes brd.pdf from the brd document, requirements.pdf from the requirements and traceability documents, technical.pdf from the techspec, deployment and operations documents, and qa.pdf from the testplan and traceability documents; each opens with front matter (title, specification version, date, status, owners and the change history from the release records), then a table of contents with page numbers, and ends with the list of problems and gaps.
+      - document books writes business-requirements.pdf from the brd document, requirements-specification.pdf from the requirements and traceability documents, technical-specification.pdf from the techspec, deployment and operations documents, and test-document.pdf from the testplan and traceability documents; each opens with front matter (title, specification version, date, status, owners and the change history from the release records), then a table of contents with page numbers, and ends with the list of problems and gaps.
       - The date is the approval's when the version is approved, else the release record's of that version, else the front matter says the version is not dated and marks it as a gap; nothing is taken from the clock, so a second run writes the same bytes and --check compares them.
       - Each heading is a bookmark and a link target, a link between the documents of one book goes to its heading, and an element's id in a table or a sentence links to the heading or table row that describes it; a link that leads nowhere in the book is printed with its target.
       - Every Problem, Open question, Open change request, Draft and Stakeholders unconfirmed paragraph of the documents, and every gap of the front matter, is marked at its entry and listed in the book's Problems and gaps list, each linking to the other; over an invalid specification all four books are written and the run exits 1.
@@ -236,3 +236,22 @@ requirements:
       - source: iso-32000-2
         clause: "14.8"
         says: "A tagged PDF carries a logical structure of standard types, headings, paragraphs, lists, tables and links, beside the page content, so the text can be extracted, reflowed and read by assistive technology; content not part of the document, such as running headers and page numbers, is marked as an artifact."
+  SA-149:
+    statement: specarch document shall write every Markdown document as Markdown, Word (.docx) or PDF, and the books as PDF or Word, chosen with one option, --format md, docx, pdf, several of them or all, or by the formats the target's entry under targets lists; the Word and PDF forms shall be rendered from the Markdown and carry its text, ids, links, tables, table of contents and the marks of every problem and gap with one list of them, and every format shall be the same bytes for the same input, so --check and approve compare each.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - document <target> --format all writes <target>.md, <target>.docx and <target>.pdf into the target's folder; --format docx,pdf writes the two; without --format the formats the targets entry lists are written, and without those the Markdown alone.
+      - document books writes business-requirements, requirements-specification, technical-specification and test-document as .pdf, or as .docx with --format docx; --format md for books, and --format for html or problems, is a usage error that says what the target writes.
+      - "The .docx opens in Word and LibreOffice without a repair: every part has a content type and is reached through a relationship, every element's children are in the schema's order, every table cell holds a paragraph, and every bookmark, hyperlink, style and numbering it names exists; LibreOffice converts it to PDF."
+      - The .docx and the .pdf of a document hold its front matter, a table of contents linking every heading to the third level, the document with Word's own heading styles (the .docx) or tagged headings (the .pdf), each element id linking to what describes it, every mark at its entry, and the Problems and gaps list linking each mark both ways; an invalid specification gets every format, and the run exits 1.
+      - A second run writes the same bytes in every format, and --check reports a file of any format that differs or is missing.
+      - formats under a targets entry naming a format the target does not write, or on html, problems or a target that is not a document's, is an error at that entry (document_format).
+    verification: test
+    needs: [NEED-3]
+    why: The formal documents go to readers who work in different tools - Markdown in the repository, Word for review and sign-off, PDF for distribution - and each form written from the one Markdown keeps them from saying different things (ADR-249).
+    cites:
+      - source: iso-29500
+        clause: "11.3"
+        says: "A WordprocessingML package holds the main document part and the parts it is related to, such as the styles, the numbering definitions, the headers and the footers, each reached through a relationship of its own type."

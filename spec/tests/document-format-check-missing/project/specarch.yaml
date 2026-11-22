@@ -1,0 +1,47 @@
+specarch: "1.0.0"
+info: { title: Till, version: 1.0.0, owners: [clerk] }
+stakeholders:
+  clerk: { description: Staff at the till. }
+stakeholdersComplete: { by: clerk, date: "2026-11-05" }
+problem:
+  statement: Clerks cannot find an item by name, so a sale waits while they search.
+  stakeholders: [clerk]
+goals:
+  GOAL-1: { statement: Sales wait less., measure: Seconds from request to counter., baseline: 90 seconds, target: 20 seconds, priority: must, status: accepted }
+needs:
+  NEED-1: { statement: Items must be findable by name., stakeholders: [clerk], status: accepted, goals: [GOAL-1] }
+requirements:
+  TILL-1:
+    statement: An item shall have a non-empty name.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Saving an item with an empty name is refused.]
+    verification: test
+    needs: [NEED-1]
+entities:
+  Item:
+    type: object
+    properties:
+      id: { type: string, format: uuid, readOnly: true }
+      name: { type: string, minLength: 1, maxLength: 80 }
+    required: [id, name]
+    primaryKey: [id]
+    satisfies: [TILL-1]
+tests:
+  item-named:
+    requirement: TILL-1
+    level: system
+    scenario: golden
+    given: an item named Tea
+    when: it is saved
+    then: it is saved
+    verifies: [TILL-1]
+  item-unnamed:
+    requirement: TILL-1
+    level: system
+    scenario: red
+    given: an item with an empty name
+    when: it is saved
+    then: it is refused
+    verifies: [TILL-1]

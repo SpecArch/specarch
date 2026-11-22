@@ -44,7 +44,7 @@ standardOutput: |
         Compare two versions of a specification and check the release between
         them.
     specarch document <target> [--out <out>] [--check] [--audience <audience>]
-      [--language <language>] [--dry-run] <paths>...
+      [--language <language>] [--format <format>] [--dry-run] <paths>...
         Write a document from a specification.
     specarch extract <source> --out <out> [--implementation <implementation>]
       [--facts <facts>] [--routes <routes>] [--language <language>]
@@ -126,7 +126,7 @@ standardOutput: |
   Document targets: intent, techspec, requirements, testplan, traceability,
     deployment, commissioning, handover, questions, problems, comparison,
     changes, releases, communications, timeline, testruns, progress, html,
-    manual, operations, brd, pdf
+    manual, operations, brd, books
   Extract sources: outline, database, router, documents, tables, openapi,
     permissions, pages, workflows, gateway, systemd, go, swift, javascript,
     dart, tests

@@ -1,0 +1,9 @@
+specarchImplementation: "1.0.0"
+info: { title: Till in Go, version: 1.0.0 }
+implements: { file: specarch.yaml, version: 1.0.0 }
+stack: { language: { name: Go, version: "1.26" } }
+targets:
+  requirements: { output: ../docs, formats: [md, pdf] }
+  books: { output: ../docs, formats: [md, docx] }
+  html: { output: ../site, formats: [pdf] }
+  sql: { output: ../migrations, formats: [md] }

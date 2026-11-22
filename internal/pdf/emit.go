@@ -206,7 +206,7 @@ func (b *book) emit() ([]byte, error) {
 	}
 	e.obj(catalogObj, "<< /Type /Catalog /Pages %d 0 R /Outlines %d 0 R /PageMode /UseOutlines /Dests << %s >> /StructTreeRoot %d 0 R /MarkInfo << /Marked true >> /Lang %s /ViewerPreferences << /DisplayDocTitle true >> >>",
 		pagesObj, outlinesObj, strings.Join(dests, " "), structObj, literal(lang))
-	e.obj(infoObj, "<< /Title %s /Producer (SpecArch) /Creator (specarch document pdf) >>", textString(b.opt.Title))
+	e.obj(infoObj, "<< /Title %s /Producer (SpecArch) /Creator (specarch document) >>", textString(b.opt.Title))
 
 	return e.file(), nil
 }
@@ -293,7 +293,11 @@ func (e *emitter) content(p *page) []byte {
 	b := e.b
 	var s bytes.Buffer
 	s.WriteString("/Artifact BMC\n")
-	e.text(&s, regular, 7.5, grey, left, headerY, b.opt.Title)
+	header := b.opt.Header
+	if header == "" {
+		header = b.opt.Title
+	}
+	e.text(&s, regular, 7.5, grey, left, headerY, header)
 	fmt.Fprintf(&s, "%s RG 0.4 w %s %s m %s %s l S\n", colour(ruleGrey), num(left), num(pageH-headerY-5), num(right), num(pageH-headerY-5))
 	footer := fmt.Sprintf(b.opt.Texts.PageOf, p.n, len(b.pages))
 	e.text(&s, regular, 7.5, grey, (pageW-b.m[regular].width(footer, 7.5))/2, footerY, footer)

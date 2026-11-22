@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.7.1-dev of the specification: 1105 design tests, 572 golden and 533 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.7.1-dev of the specification: 1112 design tests, 574 golden and 538 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.7.1-dev of the specification: 1105 design tests, 572 golden and 533 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1101 |
+| system | 1108 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -919,6 +919,30 @@ Scenario: red; level: system; covers usage error; verifies SA-67.
 - When: document is run
 - Then: it prints the usage error naming external as the one value and exits 2 without reading the folder
 
+#### document-books
+
+Scenario: golden; level: system; verifies SA-148.
+
+- Given: a valid specification with a requirement, an entity satisfying it, two tests verifying it and a release record of its version dated 2026-11-20
+- When: document books is run
+- Then: it writes business-requirements.pdf, requirements-specification.pdf, technical-specification.pdf and test-document.pdf, each dated 2026-11-20 from the release record, with front matter, contents, the documents and the problems and gaps list, and exits 0
+
+#### document-books-docx
+
+Scenario: golden; level: system; verifies SA-149.
+
+- Given: a valid specification with a requirement, an entity satisfying it, two tests verifying it and a release record of its version dated 2026-11-20
+- When: document books is run with --format docx
+- Then: it writes business-requirements.docx, requirements-specification.docx, technical-specification.docx and test-document.docx, each dated 2026-11-20 from the release record, with front matter, a table of contents, the documents in Word's heading styles and the problems and gaps list, and exits 0
+
+#### document-books-gaps
+
+Scenario: red; level: system; covers exit 1; verifies SA-148.
+
+- Given: a specification with a relation to an entity that does not exist, a requirement no test verifies and with no acceptance criteria, an open must question, no problem, no release record and no approval
+- When: document books is run
+- Then: it prints the error, still writes all four books, each with the version marked not dated, every Problem, Open question and Draft paragraph marked at its entry and listed in its Problems and gaps list, and exits 1
+
 #### document-brd
 
 Scenario: golden; level: system; verifies SA-148.
@@ -1030,6 +1054,46 @@ Scenario: golden; level: system; verifies SA-66.
 - Given: an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder
 - When: document techspec is run on the estate file
 - Then: it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0
+
+#### document-format-books-md-refused
+
+Scenario: red; level: system; covers usage error; verifies SA-149.
+
+- Given: --format md for the books target
+- When: document books is run
+- Then: it prints the usage error saying a book is made from the Markdown documents and its formats are pdf and docx, writes nothing, and exits 2
+
+#### document-format-check-missing
+
+Scenario: red; level: system; covers exit 1; verifies SA-149.
+
+- Given: no requirements.docx written yet
+- When: document requirements is run with --format docx and --check
+- Then: it names the missing docx and exits 1, writing nothing
+
+#### document-format-from-targets
+
+Scenario: golden; level: system; verifies SA-149.
+
+- Given: an implementation file whose targets entry for brd names the folder docs and the formats pdf and md
+- When: document brd is run with no --out and no --format
+- Then: it writes docs/brd.md and docs/brd.pdf, md first, and exits 0
+
+#### document-format-gaps
+
+Scenario: red; level: system; covers exit 1; verifies SA-149.
+
+- Given: a specification with a relation to an entity that does not exist, a requirement no test verifies and with no acceptance criteria, an open must question and no release record
+- When: document requirements is run with --format all
+- Then: it prints the error, still writes requirements.md, requirements.docx and requirements.pdf with the same Problem, Open question and Draft paragraphs marked at their entries, the docx and the pdf each listing them in its Problems and gaps list, and exits 1
+
+#### document-format-html-refused
+
+Scenario: red; level: system; covers usage error; verifies SA-149.
+
+- Given: --format pdf for the html target
+- When: document html is run
+- Then: it prints the usage error saying html writes index.html only and takes no --format, writes nothing, and exits 2
 
 #### document-handover-links-without-infrastructure
 
@@ -1214,22 +1278,6 @@ Scenario: golden; level: system.
 - Given: a hand-written document with a flowchart pages marker
 - When: document techspec is run
 - Then: the region holds the pages and the operation the Pay action runs, and it exits 0
-
-#### document-pdf-books
-
-Scenario: golden; level: system; verifies SA-148.
-
-- Given: a valid specification with a requirement, an entity satisfying it, two tests verifying it and a release record of its version dated 2026-11-20
-- When: document pdf is run
-- Then: it writes brd.pdf, requirements.pdf, technical.pdf and qa.pdf, each dated 2026-11-20 from the release record, with front matter, contents, the documents and the problems and gaps list, and exits 0
-
-#### document-pdf-gaps
-
-Scenario: red; level: system; covers exit 1; verifies SA-148.
-
-- Given: a specification with a relation to an entity that does not exist, a requirement no test verifies and with no acceptance criteria, an open must question, no problem, no release record and no approval
-- When: document pdf is run
-- Then: it prints the error, still writes all four books, each with the version marked not dated, every Problem, Open question and Draft paragraph marked at its entry and listed in its Problems and gaps list, and exits 1
 
 #### document-permissions-table
 
@@ -6263,6 +6311,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-10.
 - When: validate is run
 - Then: it reports each wrong package and target, the repeated name, the package on the database, the undeclared dependency and the kind and runs beside it as server at the entry with the name each may mean, the name and the kind as schema errors, nothing for the server without the keys, and exits 1
 
+#### validate-document-format
+
+Scenario: red; level: system; covers exit 1; verifies SA-149.
+
+- Given: an implementation file whose targets give formats md for books, formats for html and formats for sql, a target that is not a document's, beside a requirements entry with md and pdf
+- When: validate is run
+- Then: it reports document_format at the md of books, at the formats of html and at the formats of sql, nothing at requirements, and exits 1
+
 #### validate-duplicate-key
 
 Scenario: red; level: system; covers exit 1.
@@ -8955,7 +9011,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-662 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+668 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9370,6 +9426,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-148 | acceptance 4 | golden | SA-148 names no harm |
 | requirement SA-148 | acceptance 5 | golden | SA-148 names no harm |
 | requirement SA-148 | acceptance 6 | golden | SA-148 names no harm |
+| requirement SA-149 | acceptance 1 | golden | SA-149 names no harm |
+| requirement SA-149 | acceptance 2 | golden | SA-149 names no harm |
+| requirement SA-149 | acceptance 3 | golden | SA-149 names no harm |
+| requirement SA-149 | acceptance 4 | golden | SA-149 names no harm |
+| requirement SA-149 | acceptance 5 | golden | SA-149 names no harm |
+| requirement SA-149 | acceptance 6 | golden | SA-149 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

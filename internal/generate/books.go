@@ -8,34 +8,47 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/docx"
+	"github.com/SpecArch/specarch/internal/mdbook"
 	"github.com/SpecArch/specarch/internal/pdf"
 	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/spec"
 )
 
-// The pdf target (ADR-248): four books, each made from the Markdown the
-// document targets write for the same specification, state, audience and
-// language, with front matter of its own.
+// The books target (ADR-248) and the docx and pdf form of every Markdown
+// document (ADR-249): each a book made from the Markdown the document
+// targets write for the same specification, state, audience and language,
+// with front matter of its own, written by internal/pdf or internal/docx
+// from the one model internal/mdbook reads.
 
-// book is one PDF the pdf target writes: its file, its title and the
-// documents it is made of, in order.
+// bookDef is one book: the base name of its file, its title, and the
+// documents it is made of, in order, with what each is called in the
+// front matter.
 type bookDef struct {
-	file    string
-	title   string
-	targets []string
+	name     string
+	title    string
+	targets  []string
+	contains []string
 }
 
 func bookDefs() []bookDef {
-	return []bookDef{
-		{"brd.pdf", tr("business requirements document"), []string{"brd"}},
-		{"requirements.pdf", tr("requirements specification"), []string{"requirements", "traceability"}},
-		{"technical.pdf", tr("technical specification"), []string{"techspec", "deployment", "operations"}},
-		{"qa.pdf", tr("test document"), []string{"testplan", "traceability"}},
+	defs := []bookDef{
+		{name: "business-requirements", title: tr("business requirements document"), targets: []string{"brd"}},
+		{name: "requirements-specification", title: tr("requirements specification"), targets: []string{"requirements", "traceability"}},
+		{name: "technical-specification", title: tr("technical specification"), targets: []string{"techspec", "deployment", "operations"}},
+		{name: "test-document", title: tr("test document"), targets: []string{"testplan", "traceability"}},
 	}
+	for i := range defs {
+		for _, t := range defs[i].targets {
+			defs[i].contains = append(defs[i].contains, documentTitle(t))
+		}
+	}
+	return defs
 }
 
-// BookFiles are the files the pdf target writes, in order.
-var BookFiles = []string{"brd.pdf", "requirements.pdf", "technical.pdf", "qa.pdf"}
+// BookNames are the base names of the files the books target writes, in
+// order; each is written as <name>.pdf or <name>.docx.
+var BookNames = []string{"business-requirements", "requirements-specification", "technical-specification", "test-document"}
 
 // File is one file a target writes.
 type File struct {
@@ -43,46 +56,98 @@ type File struct {
 	Data []byte
 }
 
-// Books writes the four books of the pdf target.
-func Books(root *yaml.Node, relRoot string, impls []Implementation, state *State) ([]File, error) {
+// Books writes the four books of the books target in format, pdf or docx.
+func Books(format string, root *yaml.Node, relRoot string, impls []Implementation, state *State) ([]File, error) {
 	if state == nil {
 		state = &State{}
 	}
 	info := get(root, "info")
-	ids := elementIDs(root)
 	var out []File
 	for _, def := range bookDefs() {
-		var parts []pdf.Part
+		var parts []mdbook.Part
 		for _, t := range def.targets {
 			text, _ := Document(t, root, relRoot, impls, state)
-			parts = append(parts, pdf.Part{Name: t, Markdown: text})
+			parts = append(parts, mdbook.Part{Name: t, Markdown: text})
 		}
 		title := fmt.Sprintf("%s: %s", str(info, "title"), def.title)
-		data, err := pdf.Write(pdf.Options{
-			Title:       title,
-			Lang:        activeLanguage(),
-			FrontMatter: frontMatter(root, relRoot, state, title, def),
-			Parts:       parts,
-			IDs:         ids,
-			Slug:        slug,
-			IsMark:      isMark,
+		data, err := writeBook(format, root, relRoot, state, title, def, parts)
+		if err != nil {
+			return nil, fmt.Errorf("%s.%s: %v", def.name, format, err)
+		}
+		out = append(out, File{Name: def.name + "." + format, Data: data})
+	}
+	return out, nil
+}
+
+// DocumentBook writes the Markdown document of target as a book of its own
+// in format, pdf or docx: the front matter, the table of contents, the
+// document and its problems and gaps, the same text the Markdown holds.
+func DocumentBook(target, format string, root *yaml.Node, relRoot string, impls []Implementation, state *State) (File, error) {
+	if state == nil {
+		state = &State{}
+	}
+	text, _ := Document(target, root, relRoot, impls, state)
+	title := firstHeading(text)
+	if title == "" {
+		title = target
+	}
+	what := strings.TrimPrefix(title, str(get(root, "info"), "title")+": ")
+	def := bookDef{name: target, title: what, targets: []string{target}, contains: []string{what}}
+	name := target + "." + format
+	data, err := writeBook(format, root, relRoot, state, title, def, []mdbook.Part{{Name: target, Markdown: text}})
+	if err != nil {
+		return File{}, fmt.Errorf("%s: %v", name, err)
+	}
+	return File{Name: name, Data: data}, nil
+}
+
+// firstHeading is the text of the first heading of a Markdown document.
+func firstHeading(text string) string {
+	for _, b := range mdbook.Parse(text) {
+		if b.Kind == mdbook.HeadingBlock {
+			return mdbook.PlainText(b.Text)
+		}
+	}
+	return ""
+}
+
+// writeBook writes one book in format with the writer of that format.
+func writeBook(format string, root *yaml.Node, relRoot string, state *State, title string, def bookDef, parts []mdbook.Part) ([]byte, error) {
+	header := fmt.Sprintf(tr("%s, version %s"), title, str(get(root, "info"), "version"))
+	front := frontMatter(root, relRoot, state, title, def, format)
+	ids := elementIDs(root)
+	mermaid := tr("Mermaid diagram, printed as its source: this document does not draw it, and the html document draws the entity diagram and the workflows.")
+	intro := tr("%d problems and gaps are marked in this book, each at its entry; each number links to the mark, and the mark's label links back here.")
+	switch format {
+	case "pdf":
+		return pdf.Write(pdf.Options{
+			Title: title, Header: header, Lang: activeLanguage(), FrontMatter: front, Parts: parts, IDs: ids, Slug: slug, IsMark: isMark,
 			Texts: pdf.Texts{
 				Contents:      tr("Contents"),
 				FrontMatter:   tr("Front matter"),
 				Problems:      tr("Problems and gaps"),
-				ProblemsIntro: tr("%d problems and gaps are marked in this book, each at its entry; each number links to the mark, and the mark's label links back here."),
+				ProblemsIntro: intro,
 				NoProblems:    tr("No problem or gap is marked in this book."),
 				OnPage:        tr("page %d"),
 				PageOf:        tr("Page %d of %d"),
-				Mermaid:       tr("Mermaid diagram, printed as its source: the PDF does not draw it, and the html document draws the entity diagram and the workflows."),
+				Mermaid:       mermaid,
 			},
 		})
-		if err != nil {
-			return nil, fmt.Errorf("%s: %v", def.file, err)
-		}
-		out = append(out, File{Name: def.file, Data: data})
+	case "docx":
+		return docx.Write(docx.Options{
+			Title: title, Header: header, Lang: activeLanguage(), FrontMatter: front, Parts: parts, IDs: ids, Slug: slug, IsMark: isMark,
+			Texts: docx.Texts{
+				Contents:      tr("Contents"),
+				FrontMatter:   tr("Front matter"),
+				Problems:      tr("Problems and gaps"),
+				ProblemsIntro: intro,
+				NoProblems:    tr("No problem or gap is marked in this book."),
+				PageOf:        tr("Page %d of %d"),
+				Mermaid:       mermaid,
+			},
+		})
 	}
-	return out, nil
+	return nil, fmt.Errorf("no writer for the format %s; the formats of a book are pdf and docx", format)
 }
 
 // markLeads are the bold leads of the paragraphs that mark a problem or a
@@ -144,7 +209,7 @@ func elementIDs(root *yaml.Node) map[string]bool {
 // frontMatter is the Markdown of a book's front matter: what the book is,
 // the specification's version, date and status, its owners, what it was
 // made from, and the change history from the release records.
-func frontMatter(root *yaml.Node, relRoot string, state *State, title string, def bookDef) string {
+func frontMatter(root *yaml.Node, relRoot string, state *State, title string, def bookDef, format string) string {
 	d := &doc{}
 	info := get(root, "info")
 	version := str(info, "version")
@@ -158,10 +223,6 @@ func frontMatter(root *yaml.Node, relRoot string, state *State, title string, de
 	if ids := holding(questionsOf(root), bookReads(def)); len(ids) > 0 {
 		status += "; " + fmt.Sprintf(tr("a draft: %s concern it (%s)"), countText(len(ids), tr("open question"), tr("open questions")), strings.Join(ids, ", "))
 	}
-	var titles []string
-	for _, t := range def.targets {
-		titles = append(titles, documentTitle(t))
-	}
 	d.line(tr("| Item | Value |"))
 	d.line("|---|---|")
 	d.line(tr("| Document | %s |"), cell(def.title))
@@ -173,12 +234,14 @@ func frontMatter(root *yaml.Node, relRoot string, state *State, title string, de
 		d.line(tr("| Owners | %s |"), cell(strings.Join(owners, ", ")))
 	}
 	d.line(tr("| Made from | %s, meta-model %s |"), cell(relRoot), cell(str(root, "specarch")))
-	d.line(tr("| Contains | %s |"), cell(strings.Join(titles, "; ")))
+	d.line(tr("| Contains | %s |"), cell(strings.Join(def.contains, "; ")))
 	d.blank()
 	if !dated {
 		d.para(fmt.Sprintf(tr("**Gap:** version %s is not dated: it is not approved, and no release record of it gives a date. Approve it with specarch approve, or record its release under records/releases/ with its date, and the book takes that date."), version))
 	}
-	d.para(tr("*Set in the Go fonts, copyright 2016 Bigelow & Holmes Inc., under the BSD 3-Clause licence of the Go project, embedded as subsets.*"))
+	if format == "pdf" {
+		d.para(tr("*Set in the Go fonts, copyright 2016 Bigelow & Holmes Inc., under the BSD 3-Clause licence of the Go project, embedded as subsets.*"))
+	}
 	d.heading(2, tr("Change history"))
 	releases := recordsOf(state, "release")
 	sort.SliceStable(releases, func(i, j int) bool {

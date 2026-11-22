@@ -17275,9 +17275,23 @@ let implementationSchemaJSON = #"""
       "type": "object",
       "properties": {
         "output": {
-          "description": "The folder this target owns, relative to this implementation file. A document target writes <target>.md there.",
+          "description": "The folder this target owns, relative to this implementation file. A document target writes <target>.md there, and <target>.docx and <target>.pdf in the formats it is written in; the books target writes its four books there.",
           "type": "string",
           "minLength": 1
+        },
+        "formats": {
+          "description": "SpecArch keyword. For a document target: the formats specarch document writes it in when --format is not given, md (the Markdown document), docx (Word) and pdf, each a file <target>.<format> in the output folder; for the books target pdf and docx. Without it a document is written as md and the books as pdf. html and problems write their own files and take none (ADR-249).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "md",
+              "docx",
+              "pdf"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "tool": {
           "description": "The downstream tool that takes the generator's output, if any, such as an OpenAPI code generator.",

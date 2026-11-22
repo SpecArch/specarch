@@ -1,0 +1,198 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-249:
+    title: specarch document --format md|docx|pdf|all writes every Markdown document as Markdown, Word or PDF, the Word and PDF forms rendered by SpecArch's own writers from the one model of the Markdown, the books target writes its four books as pdf or docx under names of their own, a targets entry may list its formats, and --check compares every format byte for byte
+    status: accepted
+    date: "2026-11-23"
+    context: |
+      The owner asks for every document in the form each reader uses:
+      Markdown for the repository, Word for review and sign-off, PDF for
+      distribution, chosen with one option. ADR-248 gave the pdf target,
+      four PDF books rendered by SpecArch's own writer from the Markdown
+      the document targets write, and no other document in PDF or Word.
+
+      A Word document is an Office Open XML package (ISO/IEC 29500): a zip
+      of XML parts tied together by relationships. Word refuses, or offers
+      to repair, a package whose parts are untyped or unreachable, whose
+      elements break the schema's order, whose table cells hold no
+      paragraph, or whose links and bookmarks lead nowhere; LibreOffice is
+      more lenient. Word lays the pages out itself, so a writer of the
+      package cannot know the page numbers. SpecArch is a public Go
+      program with no Node.js; the Go libraries that write Word files are
+      under a commercial licence (unioffice), or carry far more than a
+      document needs, and every one writes the parts of its own choosing.
+      A document that --check and approve compare has to be the same bytes
+      on every run, so nothing in it may come from the clock or from the
+      order of a map.
+
+      The pdf target's books are named brd.pdf and requirements.pdf, the
+      names a PDF of the brd and requirements documents would take in the
+      same folder, and a target named pdf that writes Word reads wrong.
+    decision: |
+      1. specarch document takes --format: md, docx or pdf, several
+         separated by commas (--format md,pdf), or all, every format the
+         target writes. Each format writes one file in the target's
+         folder: <target>.md, <target>.docx, <target>.pdf. The formats are
+         written in the order md, docx, pdf whatever order they are given
+         in. Without --format, the formats the target's entry under
+         targets lists in formats (the implementation files that name one
+         must agree, as for the output folder); without that, a document
+         is written as md, as before.
+      2. Every Markdown document target writes md, docx and pdf. The books
+         target, which ADR-248 named pdf, writes its four books as pdf
+         (when no format is named) or docx, under names of their own:
+         business-requirements, requirements-specification,
+         technical-specification and test-document. A book is made from
+         the Markdown documents, so books has no md format. html writes
+         index.html and problems writes problems.txt and problems.sarif,
+         and they take no --format: a usage error (exit 2). specarch
+         document pdf is a usage error that names books and --format pdf.
+      3. Markdown is the source form: the docx and the pdf of a document
+         are rendered from the Markdown the md format writes, through the
+         one model of it that internal/mdbook reads (the blocks, the
+         anchor of every heading, the destination of every element id,
+         mark and list entry, the table of contents and the marks of the
+         problems and gaps), so the three carry the same text, ids,
+         links, tables and marks. A docx or pdf of one document is a
+         book of that document alone, as ADR-248's books are of several:
+         front matter (the document, the specification's version, date,
+         status and owners, what it was made from and the change
+         history), the table of contents, the document, and the Problems
+         and gaps list, every mark linking to its entry and back.
+      4. The Word writer (internal/docx) is SpecArch's own, on the
+         standard library: [Content_Types].xml, the package and document
+         relationships, document.xml, styles.xml, numbering.xml,
+         settings.xml, fontTable.xml, one header and one footer, and the
+         core and extended properties. The headings use Word's own
+         heading 1 to heading 6 styles with their outline levels, so the
+         navigation pane, the table of contents and a reader's heading
+         numbering find them. Tables are Word tables whose header row
+         repeats on every page; bullet and numbered lists use numbering,
+         each numbered list starting at its own first number; every
+         heading, element id, mark and list entry is a bookmark, and
+         every link between them a hyperlink to it; a link outside the
+         book is a hyperlink to its URI, and one that leads nowhere is
+         written with its target in brackets. Pages are A4 with 20 mm
+         margins; the header names the book and the specification's
+         version, the footer the page and the number of pages as fields.
+         The fonts are named, not embedded: Calibri for the text and
+         Courier New for code. A character XML cannot hold is written as
+         its code point in brackets, never dropped.
+      5. What each format loses. md has no page numbers, no front matter
+         and no Problems and gaps list of its own: the marks are at their
+         entries, and the problems target lists them all. pdf prints a
+         Mermaid diagram as its source (ADR-248). docx prints a Mermaid
+         diagram as its source too, embeds no font, and its table of
+         contents is a TOC field whose entries are already written and
+         linked but carry no page numbers, which Word adds when the reader
+         updates the field; the Problems and gaps list links each number
+         to its mark instead of giving its page. Word lays out the pages,
+         so a docx has no fixed page breaks beyond the one before each
+         document and before the list.
+      6. Every format is the same bytes for the same input, so --check and
+         approve compare each byte for byte and no structural comparison
+         is needed: the docx's parts are written in a fixed order with
+         [Content_Types].xml first, every zip entry is dated 1980-01-01,
+         the earliest an MS-DOS date holds, bookmark names come from the
+         destinations in book order and their ids count up, numbering ids
+         count up per list, and no part holds a date, a revision id or a
+         random id. The entries are compressed with the standard
+         library's flate, whose output is the same for one Go release; a
+         Go release that changes it changes the bytes once, which --check
+         reports, as for the PDF (ADR-248).
+      7. formats under a targets entry is a list of md, docx and pdf. A
+         value the target does not write, formats on html or problems, and
+         formats on a target that is not a document's are errors at that
+         entry (document_format); the file is still read, and specarch
+         document writes the formats of the list the target has, or its
+         first format when none is left. approve compares every file of
+         the formats the entry lists.
+      8. An error of a writer names the target, the format, the file and
+         what the writer said.
+    why: |
+      One option on specarch document keeps one way to say one thing (the
+      Low IQ Tax): the output folder, --check, --dry-run, --audience,
+      --language and approve work for every format as they do for the
+      Markdown. Rendering every other form from the Markdown keeps one
+      place where each sentence, id, mark and gap is decided, which
+      ADR-248 chose for the books; one model read by both writers keeps
+      the PDF and the Word document from drifting apart in their anchors,
+      their id links or the marks they list. The part of Office Open XML
+      a document needs (paragraphs with styles, runs, tables, lists,
+      bookmarks, hyperlinks, fields, one section) is small enough to write
+      and test here, as SpecArch already writes the PDF, SARIF and XLSX,
+      and a writer of its own gives the same bytes on every run, which
+      --check needs. Word's own heading styles are what make the document
+      navigable and its table of contents updatable; a heading drawn in a
+      bold paragraph of its own style would read the same and navigate
+      nowhere. A page number in the table of contents is a fact of Word's
+      layout, not of the document, so writing one would be guessing; the
+      TOC field keeps the entries readable and linked at once and lets
+      Word fill the numbers. Calibri and Courier New are the fonts Word
+      and LibreOffice have or replace by metrics everywhere; embedding a
+      font would make the file large and its licence a question for every
+      reader. Giving the books names of their own is what lets a folder
+      hold brd.pdf (the brd document) and business-requirements.pdf (the
+      book) side by side, and books says what the target writes in either
+      format. A list of formats under targets is how a project says once
+      that its requirements go out as PDF too, so a plain specarch
+      document requirements and approve cover it.
+    alternatives:
+      - option: A docx command or a target per format (requirements-docx, requirements-pdf)
+        why: |
+          Every document would get two more targets, or a command of its
+          own with its own options, and approve would have to learn each;
+          one option on the existing targets says the same with nothing
+          new to learn.
+      - option: Keep the target named pdf, writing Word books with --format docx
+        why: |
+          specarch document pdf --format docx reads as a contradiction,
+          and its brd.pdf and requirements.pdf would be written over by
+          document brd --format pdf and document requirements --format
+          pdf in the same folder.
+      - option: unioffice, or another Go library that writes Word files
+        why: |
+          unioffice needs a commercial licence key, which the umbrella's
+          rules refuse; the MIT-licensed ones write the parts and the
+          element order of their own choosing, take a template file, and
+          stamp dates, so the bytes would differ per run and --check could
+          not compare them.
+      - option: Pandoc or LibreOffice to convert the Markdown
+        why: |
+          They need a native tool on the machine, give different bytes per
+          version, and know nothing of the ids, marks and problems list.
+      - option: Write the page numbers into the table of contents
+        why: |
+          Only Word knows where a page breaks, which depends on its fonts
+          and version; a number written in advance would be wrong on most
+          readers' machines.
+      - option: A structural comparison for --check of a docx
+        why: |
+          The writer gives the same bytes for the same input, so a byte
+          comparison is exact and simpler; a structural comparison would
+          only be needed for a writer that varies.
+      - option: md for the books, the documents of a book concatenated
+        why: |
+          The links between the documents of a book name their files
+          (traceability.md#matrix), so a concatenated file breaks them, and
+          each document already has its own Markdown.
+    consequences: |
+      Every Markdown document can be filed as Word or PDF, with the same
+      marks and gaps as the Markdown and one list of them. A project
+      lists its formats once under targets. specarch document pdf, which
+      no release carried, is now specarch document books, and the four
+      books are named business-requirements, requirements-specification,
+      technical-specification and test-document in either format. The
+      PDF's header names the specification's version, as the Word
+      document's does. A reader of a docx updates its table of contents
+      (in Word, Update Field) to see the page numbers.
+    cites:
+      - source: iso-29500
+        clause: "17.3.1 and 17.16"
+        says: "A paragraph's properties include its style and outline level; the TOC field builds a table of contents from the paragraphs at the outline levels it names, and a field's result is the text it last produced; a hyperlink goes to a bookmark of the document or to a target outside it."
+      - source: iso-29500
+        clause: "11.3"
+        says: "A WordprocessingML package holds the main document part and the parts it is related to, such as the styles, the numbering definitions, the settings, the font table, the headers and the footers, each reached through a relationship of its own type."
+    weighs: [QG-2, QG-3]
+    satisfies: [SA-149]
+    restsOn: [ADR-248, ADR-065, ADR-119, ADR-241]

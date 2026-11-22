@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"intent", "techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "progress", "html", "manual", "operations", "brd", "pdf"}
-	BuiltDocuments  = map[string]bool{"intent": true, "techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true, "brd": true, "pdf": true}
+	DocumentTargets = spec.DocumentTargets
+	BuiltDocuments  = map[string]bool{"intent": true, "techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true, "brd": true, "books": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -34,7 +34,7 @@ var documentReads = map[string][]string{
 	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors", "commands"},
 	"operations":    {"environments", "monitors", "jobs", "processes", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
 	"brd":           {"problem", "goals", "outOfScope", "qualityGoals", "stakeholders", "stakeholdersComplete", "needs", "requirements", "constraints", "assumptions", "glossary"},
-	"pdf":           {"*"},
+	"books":         {"*"},
 }
 
 // RefinementDocuments are the documents about the refinement itself, read

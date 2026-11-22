@@ -567,7 +567,8 @@ itu.
     specarch document requirements --out docs spec
     specarch document problems --out docs spec
     specarch document brd --out docs spec
-    specarch document pdf --out docs/books spec
+    specarch document requirements --format pdf,docx --out docs spec
+    specarch document books --out docs/books spec
     specarch approve --dry-run --by librarian --session SES-1 spec
     specarch approve --by librarian --session SES-1 spec
 
@@ -584,10 +585,12 @@ tersebut; tanpa `--session`, `approve` memberi peringatan lalu tetap
 jalan. `document problems` menulis `problems.txt` dan `problems.sarif`,
 setiap kesalahan, peringatan dan pertanyaan terbuka satu baris
 masing-masing, untuk dibaca penyetuju lebih dulu. `document brd` menulis
-business requirements document, dan `document pdf` empat buku yang
+business requirements document, dan `document books` empat buku yang
 ditandatangani customer (business requirements, requirements, technical,
-test), masing-masing dengan front matter, daftar isi, dan setiap gap
-ditandai serta didaftar (`docs/pdf-documents.md`). Sesudah disetujui,
+test), sebagai PDF atau, dengan `--format docx`, sebagai Word,
+masing-masing dengan front matter, daftar isi, dan setiap gap ditandai
+serta didaftar; dokumen apa pun bisa ditulis sebagai Word atau PDF di
+samping Markdown-nya dengan `--format` (`docs/document-formats.md`). Sesudah disetujui,
 buku-buku itu memakai tanggal penyetujuan.
 
 **Contoh.**

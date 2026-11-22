@@ -229,6 +229,7 @@ final class Checker {
         checkSchema(.implementation, doc.value)
         checkChangeLog()
         checkBoundaryImplementation()
+        checkTargetFormats()
         checkImplementation(s, load)
         diags = withoutHeld(diags, heldIn(file, doc))
     }

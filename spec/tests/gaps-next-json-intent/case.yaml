@@ -45,7 +45,7 @@ standardOutput: |
             "traceability document",
             "html document",
             "brd document",
-            "pdf document",
+            "books document",
             "code generation"
           ],
           "options": [],

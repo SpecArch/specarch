@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a valid specification with a requirement, an entity satisfying it, two tests verifying it and a release record of its version dated 2026-11-20"
+when: "document books is run"
+then: "it writes business-requirements.pdf, requirements-specification.pdf, technical-specification.pdf and test-document.pdf, each dated 2026-11-20 from the release record, with front matter, contents, the documents and the problems and gaps list, and exits 0"
+verifies: [SA-148]

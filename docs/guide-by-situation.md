@@ -538,7 +538,8 @@ for use may be generated only from a specification that person approved.
     specarch document requirements --out docs spec
     specarch document problems --out docs spec
     specarch document brd --out docs spec
-    specarch document pdf --out docs/books spec
+    specarch document requirements --format pdf,docx --out docs spec
+    specarch document books --out docs/books spec
     specarch approve --dry-run --by librarian --session SES-1 spec
     specarch approve --by librarian --session SES-1 spec
 
@@ -553,9 +554,11 @@ documents, and it must list the role; without it `approve` warns and goes
 on. `document problems` writes `problems.txt` and
 `problems.sarif`, every error, warning and open question one line each,
 for the approver to read first. `document brd` writes the business
-requirements document, and `document pdf` the four books a customer signs
-(business requirements, requirements, technical, test), each with front
-matter, contents and every gap marked and listed (`docs/pdf-documents.md`).
+requirements document, and `document books` the four books a customer signs
+(business requirements, requirements, technical, test), as PDF or with
+`--format docx` as Word, each with front matter, contents and every gap
+marked and listed; any document is written as Word or PDF beside its
+Markdown with `--format` (`docs/document-formats.md`).
 Once approved, the books carry the approval's date.
 
 **A worked example.**

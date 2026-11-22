@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "an implementation file whose targets entry for brd names the folder docs and the formats pdf and md"
+when: "document brd is run with no --out and no --format"
+then: "it writes docs/brd.md and docs/brd.pdf, md first, and exits 0"
+verifies: [SA-149]

@@ -195,11 +195,22 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	if msg == "" {
 		language, args, msg = languageArg(args)
 	}
+	var given []string
+	if msg == "" {
+		given, args, msg = formatArg(args)
+	}
 	if msg != "" {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
+	if len(args) > 0 && args[0] == "pdf" {
+		fmt.Fprintf(stderr, "specarch document has no target pdf: the four books are specarch document books (pdf by default, --format docx for Word), and any document as PDF is specarch document <target> --format pdf\n\n%s", usage)
+		return 2
+	}
 	target, out, check, paths, set, msg := parseTargetArgs("document", documentTargets, []string{"dry-run"}, args)
+	if msg == "" && given != nil {
+		given, msg = formatsFor(target, given)
+	}
 	if msg == "" && language != generate.DefaultLanguage && out == "" {
 		msg = fmt.Sprintf("specarch document --language %s needs --out: the folder the implementation files name holds the documents in English, which approve compares, and a document in another language is written beside them, not over them", language)
 	}
@@ -238,7 +249,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	var plan []planned
-	if target == "techspec" {
+	if target == "techspec" && (given == nil || slices.Contains(given, "md")) {
 		for _, ce := range estates {
 			plan = append(plan, estatePlan(ce, specs, out))
 		}
@@ -265,6 +276,11 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 			return 2
 		}
+		formats, msg := l.formats(target, given)
+		if msg != "" {
+			fmt.Fprintln(stderr, msg)
+			return 2
+		}
 		impls, st := l.documentInputs(target, folder, stderr)
 		root := l.spec.Root
 		if everyone {
@@ -273,15 +289,16 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 				impls[i].Node = st.Withheld.ForEveryoneImplementation(impls[i].Node)
 			}
 		}
-		files, err := documentFiles(target, root, relSlash(folder, l.spec.RootFile), folder, impls, st)
+		files, err := documentFiles(target, formats, root, relSlash(folder, l.spec.RootFile), folder, impls, st)
 		if err != nil {
-			fmt.Fprintf(stderr, "specarch document %s: cannot write the books of %s: %v\n", target, l.spec.Dir, err)
+			fmt.Fprintf(stderr, "specarch document %s: %v\n", target, err)
 			return 2
 		}
 		plan = append(plan, files...)
 		// A document for everyone or in another language writes no region
-		// of specarch.md, which is written in English for every element.
-		if target != "techspec" || everyone || language != generate.DefaultLanguage {
+		// of specarch.md, which is written in English for every element,
+		// and nor does a run that writes no Markdown.
+		if target != "techspec" || everyone || language != generate.DefaultLanguage || !slices.Contains(formats, "md") && formats != nil {
 			continue
 		}
 
@@ -325,22 +342,145 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 	return status
 }
 
-// documentFiles are the files a document target writes into folder: the
-// one document, or for the pdf target the four books (ADR-248).
-func documentFiles(target string, root *yaml.Node, relRoot, folder string, impls []generate.Implementation, st *generate.State) ([]planned, error) {
-	if target == "pdf" {
-		books, err := generate.Books(root, relRoot, impls, st)
-		if err != nil {
-			return nil, err
-		}
-		var out []planned
-		for _, b := range books {
-			out = append(out, planned{path: filepath.Join(folder, b.Name), content: string(b.Data), binary: true})
-		}
-		return out, nil
+// documentFiles are the files a document target writes into folder in
+// each of formats: the Markdown document, the same document as a book in
+// docx or pdf, or the four books of the books target (ADR-248, ADR-249).
+// An error names the target's file, the format and what the writer said.
+func documentFiles(target string, formats []string, root *yaml.Node, relRoot, folder string, impls []generate.Implementation, st *generate.State) ([]planned, error) {
+	var out []planned
+	if len(formats) == 0 {
+		formats = []string{""} // the one file of html
 	}
-	text, _ := generate.Document(target, root, relRoot, impls, st)
-	return []planned{{path: filepath.Join(folder, generate.DocumentName(target)), content: text}}, nil
+	for _, format := range formats {
+		switch {
+		case target == "books":
+			books, err := generate.Books(format, root, relRoot, impls, st)
+			if err != nil {
+				return nil, fmt.Errorf("cannot write the %s books into %s: %v", format, folder, err)
+			}
+			for _, b := range books {
+				out = append(out, planned{path: filepath.Join(folder, b.Name), content: string(b.Data), binary: true})
+			}
+		case format == "md" || format == "":
+			text, _ := generate.Document(target, root, relRoot, impls, st)
+			out = append(out, planned{path: filepath.Join(folder, generate.DocumentName(target)), content: text})
+		default:
+			f, err := generate.DocumentBook(target, format, root, relRoot, impls, st)
+			if err != nil {
+				return nil, fmt.Errorf("cannot write %s as %s into %s: %v", target, format, folder, err)
+			}
+			out = append(out, planned{path: filepath.Join(folder, f.Name), content: string(f.Data), binary: true})
+		}
+	}
+	return out, nil
+}
+
+// formatArg takes --format out of the arguments: one format, several
+// separated by commas, or all (ADR-249). nil means it was not given.
+func formatArg(args []string) (formats []string, rest []string, msg string) {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		value, ok := "", false
+		switch {
+		case a == "--":
+			return formats, append(rest, args[i:]...), ""
+		case a == "--format":
+			if i+1 >= len(args) {
+				return nil, nil, "--format needs a value: md, docx, pdf, several of them separated by commas, or all"
+			}
+			value, ok = args[i+1], true
+			i++
+		case strings.HasPrefix(a, "--format="):
+			value, ok = strings.TrimPrefix(a, "--format="), true
+		}
+		if !ok {
+			rest = append(rest, a)
+			continue
+		}
+		if formats != nil {
+			return nil, nil, "--format is given twice; name every format in one, separated by commas, such as --format md,pdf"
+		}
+		formats = []string{}
+		for _, v := range strings.Split(value, ",") {
+			if v != "all" && !slices.Contains(spec.DocumentFormats, v) {
+				return nil, nil, fmt.Sprintf("--format has no value %q: the formats are md, docx and pdf, several of them separated by commas, or all for every format the target writes", v)
+			}
+			if v == "all" && value != "all" {
+				return nil, nil, fmt.Sprintf("--format %s names all beside other formats; give all alone, or the formats separated by commas", value)
+			}
+			if slices.Contains(formats, v) {
+				return nil, nil, fmt.Sprintf("--format %s names %s twice", value, v)
+			}
+			formats = append(formats, v)
+		}
+	}
+	return formats, rest, ""
+}
+
+// formatsFor checks the formats given with --format against those the
+// target writes, and returns them in the target's order, all as every one.
+func formatsFor(target string, given []string) ([]string, string) {
+	has := spec.FormatsOf(target)
+	if has == nil {
+		return nil, fmt.Sprintf("specarch document %s takes no --format: it writes %s only; --format is for the documents written as md, docx or pdf and for books", target, spec.OwnFiles(target))
+	}
+	if len(given) == 1 && given[0] == "all" {
+		return has, ""
+	}
+	var out []string
+	for _, f := range has {
+		if slices.Contains(given, f) {
+			out = append(out, f)
+		}
+	}
+	for _, f := range given {
+		if !slices.Contains(has, f) {
+			if target == "books" && f == "md" {
+				return nil, "specarch document books has no format md: a book is made from the Markdown documents, which each document target writes as <target>.md; its formats are pdf and docx"
+			}
+			return nil, fmt.Sprintf("specarch document %s has no format %s; its formats are %s", target, f, strings.Join(has, ", "))
+		}
+	}
+	return out, ""
+}
+
+// formats are the formats target is written in for this specification:
+// those given with --format, else those the implementation files name
+// under targets (they must agree), else the target's first. A value the
+// target does not write is an error of the specification (document_format)
+// and is passed over here, so the documents are still written.
+func (l loaded) formats(target string, given []string) ([]string, string) {
+	has := spec.FormatsOf(target)
+	if has == nil {
+		return nil, "" // html and problems write their own files only
+	}
+	if given != nil {
+		return given, ""
+	}
+	var named []string
+	from := ""
+	for _, i := range l.impls {
+		node := source.Child(source.Child(source.Child(i.Node, "targets"), target), "formats")
+		if node == nil {
+			continue
+		}
+		var these []string
+		for _, f := range has {
+			for _, item := range source.Items(node) {
+				if item.Value == f && !slices.Contains(these, f) {
+					these = append(these, f)
+				}
+			}
+		}
+		if from != "" && !slices.Equal(these, named) {
+			return nil, fmt.Sprintf("specarch: the implementation files of %s name different formats for %s (%s in %s, %s in %s); name the same formats in both, or give --format", l.spec.Dir, target, strings.Join(named, ", "), from, strings.Join(these, ", "), i.Path)
+		}
+		named, from = these, i.Path
+	}
+	if len(named) > 0 {
+		return named, ""
+	}
+	return has[:1], ""
 }
 
 // overConfigured refuses a document for everyone or in another language

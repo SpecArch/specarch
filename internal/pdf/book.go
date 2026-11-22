@@ -32,6 +32,8 @@ type Options struct {
 	// Title is the book's title: the header of every page, the document
 	// title and the first bookmark.
 	Title string
+	// Header is the line at the top of every page; Title when empty.
+	Header string
 	// Lang is the document's language tag, en or id.
 	Lang string
 	// FrontMatter is the Markdown of the front matter, before the table of

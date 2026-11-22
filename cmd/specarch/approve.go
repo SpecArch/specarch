@@ -130,18 +130,27 @@ func approve(l loaded, by, session, date string, w *disk.Writer, stdout, stderr 
 		}
 		// What cannot be drawn for the site was said when document wrote it.
 		impls, st := l.documentInputs(target, folder, io.Discard)
-		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, st)
-		p := filepath.Join(folder, generate.DocumentName(target))
-		old, err := os.ReadFile(p)
-		switch {
-		case os.IsNotExist(err):
-			fmt.Fprintf(stdout, "%s: missing; run specarch document %s and read it\n", p, target)
-			stale++
-		case err != nil:
-			fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", p, err)
+		files, err := documentFiles(target, root, relSlash(folder, l.spec.RootFile), folder, impls, st)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch approve: cannot make the %s documents of %s to compare: %v\n", target, l.spec.Dir, err)
 			return 2
-		case !bytes.Equal(old, []byte(text)):
-			fmt.Fprintf(stdout, "%s: differs from what the specification says now; run specarch document %s and read it again\n", p, target)
+		}
+		current := true
+		for _, f := range files {
+			old, err := os.ReadFile(f.path)
+			switch {
+			case os.IsNotExist(err):
+				fmt.Fprintf(stdout, "%s: missing; run specarch document %s and read it\n", f.path, target)
+				current = false
+			case err != nil:
+				fmt.Fprintf(stderr, "specarch: cannot read %s: %v\n", f.path, err)
+				return 2
+			case !bytes.Equal(old, []byte(f.content)):
+				fmt.Fprintf(stdout, "%s: differs from what the specification says now; run specarch document %s and read it again\n", f.path, target)
+				current = false
+			}
+		}
+		if !current {
 			stale++
 		}
 		documents = append(documents, target)

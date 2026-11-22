@@ -518,6 +518,8 @@ The document targets, each written into the folder the implementation file names
 | `html` | `index.html`: the whole specification as one page to open from the disk |
 | `manual` | `manual.md`: the user manual |
 | `operations` | `operations.md`: the operations guide |
+| `brd` | `brd.md`: the business requirements document, in the order of ISO/IEC/IEEE 29148 |
+| `pdf` | `brd.pdf`, `requirements.pdf`, `technical.pdf` and `qa.pdf`: four tagged A4 books made from the documents above, with front matter, contents, linked ids and every problem and gap marked and listed |
 
 **Start from existing code or documents**
 
@@ -680,6 +682,19 @@ its pointer as its id, so `index.html#/entities/Loan` opens at it, the
 entity diagram, the workflows and the generated screens, and the problems
 linked to the entries they mark. It needs no server and makes no request.
 The examples keep theirs in `site/`.
+
+`specarch document pdf` writes the four books a project files and a
+customer signs, as PDF: the business requirements document, the
+requirements specification with its traceability matrix, the technical
+specification with the deployment and operations guides, and the test
+document with the matrix of what verifies each requirement. Each is made
+from the same Markdown the documents above are, opens with front matter
+dated from the approval or the release record of the version, then a table
+of contents, and ends with the list of every problem and gap the book
+marks, each linked to its mark. A specification with gaps still gets all
+four books, with the gaps shown where they are. The same specification
+writes the same bytes, so `--check` and `approve` compare the books like
+any document. `docs/pdf-documents.md` says what each book holds.
 
 `specarch document problems` writes `problems.txt` and `problems.sarif`,
 every error, warning and open question as one compiler line each, and

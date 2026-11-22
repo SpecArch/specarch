@@ -342,6 +342,48 @@ question. A search box hides the elements that do not hold the text,
 and the page follows the system's light or dark colours, with a
 button to switch.
 
+The brd target writes `brd.md`, the business requirements document
+in the order of the business requirements specification of
+ISO/IEC/IEEE 29148 (ADR-248): the purpose, from the description and
+the owners; the intent parts the specification states, a part it
+does not state said so with its key named; the stakeholders; the
+needs with the requirements refining each; each requirement at
+business level, its statement, priority, status, the needs it
+refines and the goals those serve, with no design or test links;
+the constraints, the assumptions and the glossary.
+
+The pdf target writes four PDF books into its folder (ADR-248):
+`brd.pdf` from the brd document, `requirements.pdf` from the
+requirements and traceability documents, `technical.pdf` from the
+techspec, deployment and operations documents, and `qa.pdf` from the
+testplan and traceability documents, each written from the Markdown
+those targets write for the same specification, audience and
+language. A book opens with front matter: the book's title, the
+specification's title, version, date, status (the approval and the
+open must and should questions), owners, the root file and the
+meta-model, and the change history, one row per release record
+newest first. The date is the approval's when the version is
+approved, else the release record's of that version, else the front
+matter says the version is not dated and marks it as a gap; nothing
+comes from the clock, so a second run writes the same bytes. A table
+of contents of the headings to the third level with page numbers
+follows, and the Problems and gaps list ends the book: every
+Problem, Open question, Open change request, Draft and Stakeholders
+unconfirmed paragraph of its documents and every gap of the front
+matter, each drawn as a marked box at its entry and listed in book
+order, the two linked both ways. Each heading is a bookmark and a
+link target, a link between the documents of a book goes to its
+heading, an element's id (a key holding a digit or a hyphen) in a
+sentence or a table cell links to the first heading that is that id
+or else the first table row it starts, and a link that leads outside
+the book is printed with its target. The pages are A4 with the book
+named in the header and the page in the footer, both artifacts; the
+text is real text in the embedded Go fonts with its Unicode map, a
+character the fonts lack written as its code point; the file is
+tagged with the document's language; a table that crosses a page
+repeats its header row; a Mermaid block is printed as its labelled
+source.
+
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
 
@@ -384,7 +426,7 @@ and the html page in place of what satisfies and verifies it.
 
 ## Arguments
 
-- `<target>` (required; one of `intent`, `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `progress`, `html`, `manual`, `operations`): The document to write, one of DocumentTarget's values.
+- `<target>` (required; one of `intent`, `techspec`, `requirements`, `testplan`, `traceability`, `deployment`, `commissioning`, `handover`, `questions`, `problems`, `comparison`, `changes`, `releases`, `communications`, `timeline`, `testruns`, `progress`, `html`, `manual`, `operations`, `brd`, `pdf`): The document to write, one of DocumentTarget's values.
 - `<paths>` (required; one or more): Folders holding specifications, searched as validate searches them.
 
 ## Options
@@ -406,6 +448,7 @@ and the html page in place of what satisfies and verifies it.
 
 - `{out}/<target>.md`: The document. Nothing is written with `--check`.
 - `{out}/index.html`: The page, for the html target. Nothing is written with `--check`.
+- `{out}/brd.pdf`: The business requirements book, for the pdf target, with requirements.pdf, technical.pdf and qa.pdf beside it. Nothing is written with `--check`.
 - `specarch.md`: Only the regions between markers. Nothing is written with `--check`.
 - `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`.
 - `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target.

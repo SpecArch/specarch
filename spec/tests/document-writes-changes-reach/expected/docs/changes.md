@@ -36,7 +36,7 @@ Reaches, as the specification is now:
 - elements `#/entities/Loan`.
 - the operation listLoans, reading an entity or an enum it touches.
 - the code target sql of ../project/case.go.specarch-implementation.yaml, whose reads take a section it touches.
-- the documents techspec, traceability, html.
+- the documents techspec, traceability, html, pdf.
 - no approval to void: not approved: there is no records/approvals/1.1.0-dev.yaml beside the specification.
 
 ### CR-2: Show the weekday beside the due date
@@ -62,7 +62,7 @@ Reaches, as the specification is now:
 - elements `#/entities/Loan`.
 - the operation listLoans, reading an entity or an enum it touches.
 - the code target sql of ../project/case.go.specarch-implementation.yaml, whose reads take a section it touches.
-- the documents techspec, traceability, html.
+- the documents techspec, traceability, html, pdf.
 - no approval to void: not approved: there is no records/approvals/1.1.0-dev.yaml beside the specification.
 
 ## 2. Defects

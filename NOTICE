@@ -18,3 +18,9 @@ This product includes the Go source of the TypeScript compiler
 (typescript-go), copyright Microsoft Corporation, licensed under the Apache
 License, Version 2.0, in third_party/typescript-go. Its LICENSE and
 NOTICE.txt are kept there, and UPSTREAM names the release it was copied from.
+
+This product includes the Go fonts (Go Regular, Bold, Italic, Bold Italic and
+Mono), copyright 2016 Bigelow & Holmes Inc., licensed under the BSD 3-Clause
+licence of the Go project, through the module golang.org/x/image. The licence
+is kept in third_party/go-fonts/LICENSE. The PDF books specarch document pdf
+writes embed subsets of these fonts and name them in their front matter.

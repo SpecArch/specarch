@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.7.1-dev of the specification: 144 requirements, 5 entities, 31 commands, 7 algorithms, 1102 tests, 230 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.7.1-dev of the specification: 145 requirements, 5 entities, 31 commands, 7 algorithms, 1105 tests, 231 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -77,13 +77,13 @@ The qualities that matter most, in rank order: when two pull apart, the higher r
 | ci-job | The continuous-integration job that checks every change of a project that uses SpecArch. | Every check runs with one command and answers with an exit status |
 | owner | The person who owns SpecArch, decides its design where a question is put to them, and approves its releases. | A design choice put to them is explained in plain words with an example, so it can be settled in one reading; What was decided, by whom and on what date is written in the specification, not in a conversation |
 
-**Problem on specification-author:** warning: unheard: specification-author was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-1, requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-134, requirement SA-14, requirement SA-146, requirement SA-147, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-21, requirement SA-22, requirement SA-26, requirement SA-27, requirement SA-28, requirement SA-29, requirement SA-3, requirement SA-30, requirement SA-31, requirement SA-33, requirement SA-34, requirement SA-35, requirement SA-36, requirement SA-4, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-48, requirement SA-5, requirement SA-50, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-6, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91, requirement SA-95 and requirement SA-96 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/specification-author]
+**Problem on specification-author:** warning: unheard: specification-author was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-1, requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-134, requirement SA-14, requirement SA-146, requirement SA-147, requirement SA-148, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-21, requirement SA-22, requirement SA-26, requirement SA-27, requirement SA-28, requirement SA-29, requirement SA-3, requirement SA-30, requirement SA-31, requirement SA-33, requirement SA-34, requirement SA-35, requirement SA-36, requirement SA-4, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-48, requirement SA-5, requirement SA-50, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-6, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91, requirement SA-95 and requirement SA-96 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/specification-author]
 
 **Note on specification-author:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: Stakeholders are identified at the start, and their needs are the input to every requirement. <https://www.iso.org/standard/72089.html>
 
 **Problem on implementer:** warning: unheard: implementer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-1, requirement SA-10, requirement SA-146, requirement SA-147, requirement SA-2, requirement SA-21, requirement SA-22, requirement SA-27, requirement SA-28, requirement SA-29, requirement SA-3, requirement SA-31, requirement SA-32, requirement SA-33, requirement SA-34, requirement SA-35, requirement SA-36, requirement SA-37, requirement SA-38, requirement SA-39, requirement SA-4, requirement SA-40, requirement SA-41, requirement SA-42, requirement SA-43, requirement SA-46, requirement SA-47, requirement SA-48, requirement SA-49, requirement SA-5, requirement SA-50, requirement SA-51, requirement SA-52, requirement SA-53, requirement SA-54, requirement SA-55, requirement SA-56, requirement SA-6, requirement SA-61, requirement SA-62, requirement SA-63, requirement SA-65, requirement SA-66, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-77, requirement SA-78, requirement SA-80, requirement SA-81, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-87, requirement SA-88, requirement SA-89, requirement SA-9, requirement SA-91, requirement SA-92, requirement SA-93, requirement SA-94, requirement SA-95 and requirement SA-98 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/implementer]
 
-**Problem on reviewer:** warning: unheard: reviewer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-12, requirement SA-13, requirement SA-134, requirement SA-146, requirement SA-147, requirement SA-15, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-22, requirement SA-23, requirement SA-24, requirement SA-25, requirement SA-26, requirement SA-30, requirement SA-35, requirement SA-36, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-68, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-73, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91 and requirement SA-97 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/reviewer]
+**Problem on reviewer:** warning: unheard: reviewer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-12, requirement SA-13, requirement SA-134, requirement SA-146, requirement SA-147, requirement SA-148, requirement SA-15, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-22, requirement SA-23, requirement SA-24, requirement SA-25, requirement SA-26, requirement SA-30, requirement SA-35, requirement SA-36, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-68, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-73, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91 and requirement SA-97 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/reviewer]
 
 **Problem on operator:** warning: unheard: operator was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-12, requirement SA-16, requirement SA-23, requirement SA-24, requirement SA-25, requirement SA-26, requirement SA-35, requirement SA-47, requirement SA-68, requirement SA-73 and requirement SA-90 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/operator]
 
@@ -330,6 +330,8 @@ Primary key: path.
 | DocumentTarget | html | index.html, the whole specification as one page that needs no server and makes no request: an overview first, every element under an anchor named by its pointer, the entity diagram, each workflow's BPMN diagram, each generated screen, the traceability matrix, the open questions, and the problems linked both ways with the entries they mark |
 | DocumentTarget | manual | user manual, for the people who use the system: the roles a person holds and the pages each opens, the menus, each flow as numbered steps, and each page with how it is reached, who opens it, its fields or columns, its actions, and for each problem it names the message, the condition and the remedy, and each command with its usage line, who runs it, its arguments, options, files and output, and each exit status with its meaning and remedy (ADR-160, ADR-165) |
 | DocumentTarget | operations | operations guide, for the people who run the live system: the environments and the hosts each implementation deploys there, a daily checklist of the monitors, jobs and dependencies, each monitor with how it is watched and the response when its objective is missed, the jobs, the channels with their carriers, publishers and consumers, the dependencies with what uses them, the endpoints with their permissions, the settings, and the backup, restore and rollback steps (ADR-160) |
+| DocumentTarget | brd | brd.md, the business requirements document in the order of the business requirements specification of ISO/IEC/IEEE 29148: the purpose, the intent parts the specification states, the stakeholders, the needs, each requirement at business level with the needs it refines and the goals they serve, the constraints, the assumptions and the glossary (ADR-248) |
+| DocumentTarget | pdf | brd.pdf, requirements.pdf, technical.pdf and qa.pdf, four tagged A4 books made from the brd, requirements and traceability, techspec, deployment and operations, and testplan and traceability documents, each with front matter, a table of contents, bookmarks, linked ids and every problem and gap marked at its entry and listed (ADR-248) |
 | GeneratorTarget | openapi | OpenAPI 3.1 document |
 | GeneratorTarget | sql | forward SQL migrations, new files only |
 | GeneratorTarget | ui | page definitions for the target component library |
@@ -718,7 +720,8 @@ flowchart LR
   package_internal_validate --> package_schema
   subgraph libraries
     library_github_com_santhosh_tekuri_jsonschema_v6["github.com/santhosh-tekuri/jsonschema/v6 v6.0.3"]
-    library_golang_org_x_text["golang.org/x/text v0.43.0"]
+    library_golang_org_x_text["golang.org/x/text v0.44.0"]
+    library_golang_org_x_image["golang.org/x/image v0.48.0"]
     library_go_yaml_in_yaml_v3["go.yaml.in/yaml/v3 v3.0.5"]
     library_cel_dev_cel_go["cel.dev/cel-go v0.32.0"]
     library_cel_dev_expr["cel.dev/expr v0.25.3"]
@@ -1862,6 +1865,48 @@ question. A search box hides the elements that do not hold the text,
 and the page follows the system's light or dark colours, with a
 button to switch.
 
+The brd target writes `brd.md`, the business requirements document
+in the order of the business requirements specification of
+ISO/IEC/IEEE 29148 (ADR-248): the purpose, from the description and
+the owners; the intent parts the specification states, a part it
+does not state said so with its key named; the stakeholders; the
+needs with the requirements refining each; each requirement at
+business level, its statement, priority, status, the needs it
+refines and the goals those serve, with no design or test links;
+the constraints, the assumptions and the glossary.
+
+The pdf target writes four PDF books into its folder (ADR-248):
+`brd.pdf` from the brd document, `requirements.pdf` from the
+requirements and traceability documents, `technical.pdf` from the
+techspec, deployment and operations documents, and `qa.pdf` from the
+testplan and traceability documents, each written from the Markdown
+those targets write for the same specification, audience and
+language. A book opens with front matter: the book's title, the
+specification's title, version, date, status (the approval and the
+open must and should questions), owners, the root file and the
+meta-model, and the change history, one row per release record
+newest first. The date is the approval's when the version is
+approved, else the release record's of that version, else the front
+matter says the version is not dated and marks it as a gap; nothing
+comes from the clock, so a second run writes the same bytes. A table
+of contents of the headings to the third level with page numbers
+follows, and the Problems and gaps list ends the book: every
+Problem, Open question, Open change request, Draft and Stakeholders
+unconfirmed paragraph of its documents and every gap of the front
+matter, each drawn as a marked box at its entry and listed in book
+order, the two linked both ways. Each heading is a bookmark and a
+link target, a link between the documents of a book goes to its
+heading, an element's id (a key holding a digit or a hyphen) in a
+sentence or a table cell links to the first heading that is that id
+or else the first table row it starts, and a link that leads outside
+the book is printed with its target. The pages are A4 with the book
+named in the header and the page in the footer, both artifacts; the
+text is real text in the embedded Go fonts with its Unicode map, a
+character the fonts lack written as its code point; the file is
+tagged with the document's language; a table that crosses a page
+repeats its header row; a Mermaid block is printed as its labelled
+source.
+
 In every document an element's why is an Insight and each citation
 a Note (ADR-015), and a document that cites sources ends with them.
 
@@ -1918,7 +1963,7 @@ and the html page in place of what satisfies and verifies it.
 
 Reads `{paths}`: The specifications and their implementation files; `specarch.md`: The hand-written document beside each root file, when there is one; `records/ beside each specification's folder`: The change, defect and release records, for the changes and releases targets; every record, for the communications, timeline and progress targets; the test-run and defect records, for the testruns target; `{out}`: The current output, with `--check`.
 
-Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `{out}/index.html`: The page, for the html target. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target; `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
+Writes `{out}/<target>.md`: The document. Nothing is written with `--check`; `{out}/index.html`: The page, for the html target. Nothing is written with `--check`; `{out}/brd.pdf`: The business requirements book, for the pdf target, with requirements.pdf, technical.pdf and qa.pdf beside it. Nothing is written with `--check`; `specarch.md`: Only the regions between markers. Nothing is written with `--check`; `{out}/problems.txt`: The problems, for the problems target, written whether or not the specification is valid. Nothing is written with `--check`; `{out}/problems.sarif`: The same problems as a SARIF 2.1.0 log, for the problems target; `{paths}`: For the problems target, the marks of the problems in every YAML file of the specification it read; no other line of a file changes. Nothing is written with `--check`.
 
 Standard output: The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
@@ -1941,6 +1986,7 @@ sequenceDiagram
   P->>P: checkStatus
   P->>F: write {out}/<target>.md
   P->>F: write {out}/index.html
+  P->>F: write {out}/brd.pdf
   P->>F: write specarch.md
   P->>F: write {out}/problems.txt
   P->>F: write {out}/problems.sarif
@@ -5786,7 +5832,8 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | Library | Version | Licence | Purpose |
 |---|---|---|---|
 | github.com/santhosh-tekuri/jsonschema/v6 | v6.0.3 | Apache-2.0 | JSON Schema 2020-12 validation against the schemas in `schema/`; the same library the repository's pinned `jv` check used. |
-| golang.org/x/text | v0.43.0 | BSD-3-Clause | Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970. |
+| golang.org/x/text | v0.44.0 | BSD-3-Clause | Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970. |
+| golang.org/x/image | v0.48.0 | BSD-3-Clause | The Go fonts embedded in the PDF books of specarch document pdf (ADR-248), and sfnt to read their glyphs and advances; no image decoder is used. Its licence, and the fonts', is in third_party/go-fonts/LICENSE and NOTICE. |
 | go.yaml.in/yaml/v3 | v3.0.5 | MIT AND Apache-2.0 | YAML parsing into a node tree, which keeps the line of every value for diagnostics. |
 | cel.dev/cel-go | v0.32.0 | Apache-2.0 | The CEL parser; only its parser is used. |
 | cel.dev/expr | v0.25.3 | Apache-2.0 | CEL's expression tree types, needed by the parser. |
@@ -5918,6 +5965,7 @@ cli: standard library. Hand-written argument handling over `os.Args`; three comm
 | intent | ../../../docs |   |
 | techspec | ../../../docs |   |
 | requirements | ../../../docs |   |
+| brd | ../../../docs |   |
 | testplan | ../../../docs |   |
 | traceability | ../../../docs |   |
 | deployment | ../../../docs |   |
@@ -19791,6 +19839,155 @@ it reports such a field and writes no column for it.
 
 **Note:** From Static Analysis Results Interchange Format (SARIF) Version 2.1.0, 2020, clause 3.8: A property bag holds properties not defined by the format; its tags property is a set of strings that classify the object it belongs to. <https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html>
 
+### ADR-248: specarch document brd writes the business requirements document in Markdown, and specarch document pdf writes four PDF books - brd, requirements, technical and qa - rendered by SpecArch's own PDF writer from the Markdown the document targets write, with front matter from the specification and its records, a table of contents, bookmarks, linked ids, the marks of every problem and gap with one list of them, tagged structure on A4 and the same bytes for the same input
+
+Status: accepted, 2026-11-22.
+
+Rests on: [ADR-065](#adr-065-every-problem-is-one-record-listed-in-one-problems-file-with-its-sarif-form-and-marked-at-the-entry-in-every-file-specarch-writes), [ADR-119](#adr-119-an-element-says-it-is-internal-with-audience-document---audience-external-leaves-it-out-and-counts-it-and-a-requirement-another-stakeholders-component-fulfils-carries-ownedby-and-fulfilledby), [ADR-241](#adr-241-document---language-writes-every-document-target-in-english-or-indonesian-from-a-catalog-of-the-texts-the-code-writes-the-technical-terms-kept-in-english).
+
+Quality goals weighed, highest rank first: QG-2 (rank 2, interaction-capability), QG-3 (rank 3, maintainability).
+
+Alternatives not taken: A doc command of its own, specarch doc brd|requirements|technical|qa --out <file.pdf> and doc all --out <dir>: It reads well, but it is a second way to write a document beside
+specarch document, with its own options for the output, the
+audience, the language and --check, and approve would not see
+its files. Render the PDF from the specification directly, with a layout of its own per book: It repeats what the Markdown documents decide (the order, the
+marks, the gaps, the translations) and drifts from them at the
+next change of a document. gofpdf, its forks or gopdf: MIT licensed and mature, but none writes a structure tree, so the
+books would not be tagged, which the request asks for; adding the
+structure tree from outside means writing most of what SpecArch's
+writer does anyway. unipdf or seehuhn.de/go/pdf: They write tagged PDF, but unipdf is AGPL or needs a commercial
+key, and seehuhn's library is GPL; the umbrella's rules allow
+neither without the owner's word, and a permissive path exists. HTML to PDF through a browser or wkhtmltopdf: It needs a browser or a native tool on the machine and gives
+different bytes per version of it, so --check could not compare
+the books. The date of the run: Every run would write different bytes, so --check and approve
+could never pass, and the date would say when the file was made,
+not when the version was settled. Draw Mermaid diagrams: Mermaid's layout lives in its JavaScript renderer; a second
+renderer in Go would draw differently from every other reader of
+the techspec. The source is the diagram's text and stays legible.
+
+Context: The owner asks for the formal documents of a project as PDF, built
+from the specification so they never drift from it: a business
+requirements document, a requirements specification, a technical
+specification and a test document. The Markdown documents already
+hold most of it (requirements, traceability, techspec, deployment,
+operations, testplan), with the Problem, Open question, Open change
+request, Draft and Stakeholders unconfirmed paragraphs placed at the
+entries they concern; no document is the business requirements
+document, whose order ISO/IEC/IEEE 29148 gives in its clause 9.3.
+
+A PDF a customer files has to print on A4, carry real text a reader
+can search and copy, and, to be read by assistive technology, a
+logical structure (a tagged PDF) with its language. SpecArch is a
+public Go program with no Node.js, and every library it takes must
+be under an OSI licence, permissive or MPL-2.0. The Go PDF libraries
+under such a licence (the gofpdf family and its forks, gopdf, maroto
+on top of gofpdf, pdfcpu) lay out text or edit existing files, and
+none writes the structure tree a tagged PDF needs; the ones that do
+are under the GPL or the AGPL, or need a commercial key. A document
+that is checked with --check and approved has to be the same bytes
+on every run, so nothing in it may come from the clock.
+
+Decision: 1. The command stays specarch document: brd and pdf are two more
+   values of DocumentTarget, written into the folder the target owns
+   like every other, with --out, --check, --dry-run, --audience and
+   --language as they are. brd writes brd.md. pdf writes brd.pdf,
+   requirements.pdf, technical.pdf and qa.pdf into its folder, the
+   four at once, so one implementation file entry and one --check
+   cover them.
+2. brd.md follows the business requirements specification of
+   ISO/IEC/IEEE 29148 (9.3): the purpose (the description and the
+   owners), the intent parts the specification states - problem,
+   goals, out of scope, quality goals - with a part it does not
+   state said so and its key named, the stakeholders, the needs with
+   the requirements refining each, the business requirements (each
+   requirement's statement, priority, status, the needs it refines
+   and the goals those serve, without design or test links, which
+   are the requirements specification's), the constraints, the
+   assumptions and the glossary.
+3. A book is made from the Markdown the document targets write for
+   the same specification, state, audience and language, never from
+   text of its own: brd.pdf from brd; requirements.pdf from
+   requirements and traceability; technical.pdf from techspec,
+   deployment and operations; qa.pdf from testplan and traceability,
+   whose matrix of what verifies each requirement and whose gaps are
+   the requirement-to-test coverage. A book opens with front matter,
+   written as Markdown too so it is translated like the rest: the
+   book's title, the specification's title, version, date, status
+   (the approval sentence and the open must and should questions),
+   owners, the root file and meta-model it was made from, and the
+   change history, one row per release record newest first with its
+   version, status, date and the changes it includes. The date is
+   the approval's when the version is approved, else the date of the
+   release record of that version, else the front matter says the
+   version is not dated and marks it as a gap. A table of contents
+   of the headings down to the third level, with page numbers, comes
+   next, and the Problems and gaps list last.
+4. The PDF is written by SpecArch's own writer on the standard
+   library, with the Go fonts (regular, bold, italic and mono, from
+   golang.org/x/image, BSD-3-Clause) embedded as subsets, as CID
+   fonts with Identity-H encoding and a ToUnicode map, so every
+   character is real text. A character none of the fonts has is
+   written as its code point in brackets, never dropped. The writer
+   reads the Markdown the documents use: headings, paragraphs,
+   lists, tables, fenced blocks, block quotes, bold, italic, code
+   spans, links and autolinks; an HTML comment is left out and any
+   other line is printed as it is.
+5. Each page is A4 (595.28 by 841.89 points) with 20 mm margins; the
+   header names the book and the footer the page, both marked as
+   artifacts. The file is tagged: the catalogue says it is marked
+   and names the document's language, and the structure tree holds
+   Document, H1 to H6, P, L, LI, LBody, Table, TR, TH, TD, Code,
+   Link with its annotation, TOC and TOCI, each holding its marked
+   content by page. Each heading is a bookmark (the outline down to
+   the fourth level) and a named destination; a table that crosses
+   a page repeats its header row; a word wider than its column is
+   broken.
+6. Links: a link to a heading of the same document or of another
+   document in the book goes to that heading, with the anchors of
+   each document kept apart, since two documents of a book have
+   headings of the same name. An element's id - a key under one of
+   the specification's sections holding a digit or a hyphen, so an
+   ordinary word is never one - becomes a link wherever it is a word
+   of a sentence or a table cell, to the first heading whose text is
+   that id, else the first table row it starts. A link to a file or
+   heading outside the book is printed with its target in brackets.
+7. Every Problem, Open question, Open change request, Draft and
+   Stakeholders unconfirmed paragraph, and every gap of the front
+   matter, is drawn as a marked box at its entry and listed, in the
+   order of the book, in its Problems and gaps list, the mark and
+   the entry each linking to the other. An invalid specification
+   gets its four books, and the run exits 1 as every document does
+   (ADR-065).
+8. A Mermaid block is printed as its source in a labelled box: no Go
+   renderer of Mermaid exists, and the html target draws the
+   entity diagram and the workflows.
+9. The same input gives the same bytes: objects in a fixed order,
+   glyph subsets and width arrays sorted, no creation or
+   modification date, and the file identifier a hash of the content.
+   The streams are compressed with the standard library's flate,
+   whose output is the same for one Go release; a Go release that
+   changes it changes the bytes once, which --check reports.
+10. One layout, the one above: no theme or template option.
+
+Consequences: brd joins the documents an approval is of and the outputs table of
+the open questions document; pdf joins them too, so a must question
+on what a book reads makes it a draft. An implementation file names
+the pdf target's folder under targets like any document's. The books
+grow with the specification: a large techspec gives a book of
+hundreds of pages, written in a second or two. Fonts are embedded as
+subsets of the characters a book uses, so a book of a small
+specification stays small; the Go fonts' licence travels in NOTICE.
+Mermaid diagrams are printed as their source until a Go renderer
+exists.
+
+**Insight:** A book is the same text as the Markdown documents in another form, so writing it from that Markdown keeps one place where each sentence, mark and gap is decided; a PDF writer of its own reading the specification would repeat every document and drift from them. Keeping the command specarch document, rather than a doc command of its own, keeps one way to say one thing (the Low IQ Tax): the options, the output folder named under targets, --check and approve work for it as for every document. Writing the four books at once keeps --check one call and costs little. ISO/IEC/IEEE 29148 names what a business requirements specification holds before the system's requirements, which is the specification's requirements stage seen from the business: why, for whom, what success is and what is out, not how it is verified. A tagged PDF (ISO 32000, 14.8) is what lets a screen reader and a text extractor read the headings, tables and order of a document; without its structure tree a PDF is ink on a page. No OSI-licensed Go library writes one, and the part of PDF the books need (pages, text in embedded fonts, links, outlines, the structure tree) is small enough to write and test here, as SpecArch already writes SARIF, XLSX and OOXML itself. The Go fonts are BSD licensed, cover the Latin, Greek and Cyrillic scripts the documents' languages use, and come with the Go module the program already builds with. A date from the clock would make every run differ, so --check and approve could never pass; the approval and the release records are the dates the project itself recorded, and their absence is a gap to show, not to fill. An id turned into a link at the PDF stage needs no change to the Markdown documents, whose readers on a code host already have the headings; limiting it to keys with a digit or a hyphen keeps a role named member from turning every "member" into a link. A theme is a matter of taste no specification states, and every option on the layout is one more way for two runs to differ; one A4 layout prints everywhere the books are filed.
+
+**Note:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 9.3: The business requirements specification describes the organisation's purpose for the system, its scope, the stakeholders, the business goals and the business requirements. <https://www.iso.org/standard/72089.html>
+
+**Note:** From ISO 32000-2, Document management, Portable document format, Part 2, PDF 2.0, 2020, clause 14.8: A tagged PDF carries a logical structure of standard structure types beside the page content; content not part of the document, such as running headers and page numbers, is marked as an artifact. <https://www.iso.org/standard/75839.html>
+
+**Note:** From Web Content Accessibility Guidelines (WCAG) 2.2, 2023, clause 1.3.1: Information, structure and relationships conveyed through presentation can be programmatically determined or are available in text. <https://www.w3.org/TR/WCAG22/>
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -19903,6 +20100,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-audience-needs-out | command document | system | red | --audience external with no --out | document is run | it prints the usage error saying a document for everyone is written beside the full documents, not over them, and exits 2 |
 | document-audience-problems-refused | command document | system | red | --audience external for the problems target | document is run | it prints the usage error saying the problems file holds every element and exits 2 |
 | document-audience-value-refused | command document | system | red | --audience internal, a value it does not have | document is run | it prints the usage error naming external as the one value and exits 2 without reading the folder |
+| document-brd | command document | system | golden | a specification with its intent, a stakeholder, a need serving a goal, a requirement refining it, one refining none, a constraint, an assumption and a glossary term | document brd is run | brd.md holds the purpose, the intent parts, the stakeholders, the business needs with their goals, each requirement at business level with the goals its needs serve, the requirement that refines no need named, the constraints, the assumptions and the glossary, and it exits 0 |
 | document-changes-transition | command document | system | golden | a specification whose workflow keeps its as-is, with an inbox page at an approval step the to-be changes, a test about the workflow and a test about an operation only the as-is calls, and no records | document changes is run | it writes changes.md with a section Transitions after the defects that lists, for the workflow, the messages it publishes, the steps added, removed and changed, the approvers and performers added and removed at each step, the operations it calls and no longer calls, the inbox page and the two tests; and exits 0 |
 | document-check-current | command document | system | golden | output that matches the design file | document techspec is run with --check | it writes nothing, prints nothing and exits 0 |
 | document-check-differs | command document | system | red | a generated file edited by hand | document techspec is run with --check | it names the file that differs, writes nothing and exits 1 |
@@ -19939,6 +20137,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-operations-none | command document | system | golden | a specification with no environment, monitor, job, channel, dependency, endpoint, setting or procedure, and an implementation file naming an output folder for operations | document operations is run | it writes operations.md all the same, each empty section one sentence naming the key that fills it, and exits 0 |
 | document-operations-processes | command document | system | golden | a specification with a process that runs always with settings, signals, exit statuses, a restart limit, health and a monitor, a scheduled process started at its job's time and never restarted, and one with its own every | document operations is run | the guide writes a daily checklist line per process, and a Processes section with how each runs, its jobs and restart, and per process its settings, signals, exit statuses with the one never restarted on, health and monitor, or a sentence naming the signals key it lacks, and exits 0 |
 | document-pages-flowchart | command document | system | golden | a hand-written document with a flowchart pages marker | document techspec is run | the region holds the pages and the operation the Pay action runs, and it exits 0 |
+| document-pdf-books | command document | system | golden | a valid specification with a requirement, an entity satisfying it, two tests verifying it and a release record of its version dated 2026-11-20 | document pdf is run | it writes brd.pdf, requirements.pdf, technical.pdf and qa.pdf, each dated 2026-11-20 from the release record, with front matter, contents, the documents and the problems and gaps list, and exits 0 |
+| document-pdf-gaps | command document | system | red | a specification with a relation to an entity that does not exist, a requirement no test verifies and with no acceptance criteria, an open must question, no problem, no release record and no approval | document pdf is run | it prints the error, still writes all four books, each with the version marked not dated, every Problem, Open question and Draft paragraph marked at its entry and listed in its Problems and gaps list, and exits 1 |
 | document-permissions-table | command document | system | golden | a hand-written document with a permissions marker | document techspec is run | the region holds the table of permissions and roles, with public granted to everyone, and it exits 0 |
 | document-problem-without-element | command document | system | red | a specification with an error under info, which the technical specification shows no element for, and an error at a relation | document techspec is run | it prints both errors, writes techspec.md with the info error's Problem paragraph under the Problems notice and the relation's at the entity, and exits 1 |
 | document-problems-check-marks | command document | system | red | a specification whose fragments lack the marks of its problems and hold the mark of a problem that is fixed, beside current problems files | document problems is run with --check | it writes nothing, names each fragment whose marks are not the ones it would write as differing, and the problems files, whose lines the marks would move, and exits 1 |
@@ -21018,6 +21218,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-90 | specarch document shall write the user manual from the flows, menus, pages, roles, problem types and commands, and the operations guide from the endpoints, jobs, channels, dependencies, monitors, procedures, settings and deployments, and a problem type shall say what the person who meets it does next, a command what the person who ran it does after each status it fails with, a monitor what the operator does when its objective is missed, and a job that keeps an item apart who handles a kept item, where it is kept and what they do with it. | functional | should | accepted | test | specarch document manual writes manual.md with the roles that open a page, each with the pages it opens, a role a job acts as or a client holds left out unless a flow names it as its actor; the menus; each flow's steps as numbered instructions; and each page's purpose, who opens it, its fields or columns, its actions with their confirmation, and per problem it names the message, the condition and the remedy. The manual has a section per command with its usage line from the program's name and the command's words, who runs it, its arguments and options, what it reads, writes and prints, and each exit status with what it means and its remedy. specarch document operations writes operations.md with the environments and their hosts, a checklist row per monitor, job and dependency, each monitor's response, each job's trigger, role and retries, each channel's carrier, publishers and consumers, each dependency's callers, the endpoints with their permissions, the settings, and the backup, restore and rollback steps. The operations guide writes, under the jobs, for each job that keeps an item apart, where a kept item is, the role that handles it and the steps to look at it, try it again or discard it, or one sentence naming deadLetter when the job has none. A specification with no pages, flows, commands, monitors or jobs still gets both documents, each empty section one sentence naming the key that fills it, and its errors marked as in every document. A problem type without remedy, a command without remedies or a program name, and a monitor without response are read as before, with no error or warning, the same in both builds. A job's deadLetter whose role is not a role, or on a job whose retries do not keep an item apart, is refused as job, the same in both builds. A command's remedy keyed by status 0, or by a status its exitCodes does not list, is refused as exit_code, the same in both builds. | NEED-3, NEED-5 |
 | SA-116 | specarch generate seed shall write, through specarch-gen-seed, a development seed for the tables generate sql writes, made-up rows drawn from the entities with a fixed seed, so that the file is the same bytes on every run, loads into a database the migrations have just built, and holds nothing about a real person. | functional | should | proposed | test | seed.sql holds one INSERT per row, the tables in an order every foreign key can be satisfied in, the count of each entity from settings.rows (ten where it names none), a header naming the dialect, the type-rendering version and the seed, and the same bytes on every run with the same specification and settings; another seed gives other rows. Every value follows its field, as the type-rendering idiom renders the column; an integer, a number and a decimal lie within the field's minimum, maximum, exclusive bounds and multipleOf, at its precision and scale; text has its minLength and maxLength and names the field and the row, or holds the row's number padded to minLength where the field's words do not fit; a pattern gives a value matching it; an enum one of its values; a date, an instant, a time, a duration, a uuid and binary data each in the dialect's literal; an email, a URI, a host name and an address lie in the ranges reserved for documentation; a field's examples are the first rows' values, read from the design's field when the column keeps a value object as JSON, each member of an object example typed by the schema's part, and a key or unique counts on from after them, repeating none. A key and a unique constraint never repeat across the rows; a check constraint holds for every row, evaluated as a fixture's record is, a list given as its length; an optional field is NULL in some rows and given in others; a value object kept in columns is present or absent as a whole with its required parts set; one kept as JSON, a list and a map are JSON text, a list of scalars PostgreSQL's array; a foreign key points at a row of the file, an optional one at NULL in some rows, a relation to the entity itself at an earlier row, and a one-to-one relation at the row of the same rank, NULL beyond the other side's rows when it is optional; the audit columns hold a fixed instant and the actor seed, and the soft-delete flag is false; a generated default is written out, so a child's key names it. The dialect is the seed target's, the sql target's when it names none, PostgreSQL otherwise, and two that differ are an error at the target; a required field encrypted at rest, a required relation to an entity that gets no rows or that another stakeholder owns, a cycle of required relations, a required one-to-one relation with too few rows on the other side, and an entity no row of which satisfies its constraints in a hundred draws are errors at the entry, the entity gets no rows and the file says so, the rest is written, and the run exits 1; a field that is a key or unique whose values are fewer than the rows is an error at the field naming the count. An entity another stakeholder owns gets no rows; settings.rows naming an entity that is not one, or one another stakeholder owns, a count below zero or a seed that is not a whole number is an error at the target. The plug-in never truncates, deletes or runs against a database. | NEED-2, NEED-10 |
 | SA-121 | specarch generate deploy shall write, through specarch-gen-deploy, each deployment of an implementation file as a Compose file, Kubernetes manifests or a cloud-init file per host, as the deploy target's settings name the form, from the specification's environments, configuration, migrations, release and rollback and the deployment's servers, links and values; shall write the release, the rollback and each migration as a runbook; shall write, for a Compose deployment named under fresh, the script that builds an environment from nothing, loads the migrations and the seed, runs the implementation's test suite there and tears it down; and shall reference every secret where the form reads it from the host, never writing a value for it. | functional | should | proposed | test | A compose deployment is written as <deployment>/compose.yaml with one service per server that runs something of the implementation, the database server as a container of the sql target's dialect with a named volume, the ports it listens on published, the links from a server as depends_on, and <deployment>/<deployment>.env holding every non-secret setting's value, the deployment's or the schema's default; a kubernetes deployment as <deployment>/kubernetes.yaml with a Namespace, a ConfigMap of the values, a Deployment and a Service per service server, a StatefulSet with a volume claim of the size settings.storage names per database server, and a NetworkPolicy allowing the links into a server and nothing else; a cloud-init deployment as one <deployment>/<server>.cloud-init.yaml per host, installing podman and running the server's image under systemd through a Quadlet unit with the values in a file the unit reads. A secret setting appears in every file only as a reference, in Compose as ${NAME:?reason}, on Kubernetes as a secretKeyRef into the Secret <system>-secrets, in cloud-init as /etc/<system>/secrets.env, whose variables the unit checks before it starts; a database's password is referenced the same way as <SERVER>_PASSWORD in every form, the host unit copying that line of secrets.env under the image's own variable into /run/<system>/<server>.env before it starts; no file holds a value for either; and a setting's variable is its key in upper snake case in every form. release.sh, rollback.sh and migrations/<name>.sh print each step of the stage with its action and its check, in order, and go on only on yes; --yes answers every step; a migration's --rollback runs its rollback steps, and a migration without them refuses --rollback with its description. For a compose deployment named under settings.fresh, <deployment>/fresh.sh runs the build task, starts the Compose project under a name made for the run alone, waits for the database, creates on postgresql each role of the design as the database role the row policies name, loads the sql target's migrations in order and the seed target's seed.sql into it through the container's own client, runs testing.run with the values in the environment, and takes the project down with its volumes on any exit, an interrupt, a termination or a hang-up included; the secrets of the run come from the environment the script runs in, and the run publishes the deployment's own ports, so the suite reaches each server at localhost on its port. A deployment with no form or a form that is not compose, kubernetes or cloud-init, a deployment named in the settings that the file does not have, a kubernetes or cloud-init deployment named under fresh, a server with no image, a Kubernetes database with no storage, a database of a dialect other than postgresql or mariadb, and a setting with no value in a deployment and no default are each an error at the target or the setting, the server or value left out is named in a comment where it would be, the rest is written, and the run exits 1; a server that is a dependency of the design is named with its URL and gets no container. | NEED-3, NEED-10 |
+| SA-148 | specarch document brd shall write brd.md, the business requirements document in the order of the business requirements specification of ISO/IEC/IEEE 29148, and specarch document pdf shall write four PDF books from the same documents the Markdown targets write - brd.pdf, requirements.pdf, technical.pdf and qa.pdf - each with front matter taken from the specification and its records, a table of contents, bookmarks, ids that link to the entry describing them, the problems and gaps marked at their entries and gathered in one list, tagged structure and real text on A4 pages, the same bytes for the same input; an incomplete or invalid specification shall still get all four books. | functional | should | accepted | test | document brd writes brd.md with the purpose, the intent parts the specification states (a part it does not state says so and names the key), the stakeholders, the needs with the requirements refining each, each requirement at business level (statement, priority, status, the needs it refines and the goals they serve, no design or test links), the constraints, the assumptions and the glossary. document pdf writes brd.pdf from the brd document, requirements.pdf from the requirements and traceability documents, technical.pdf from the techspec, deployment and operations documents, and qa.pdf from the testplan and traceability documents; each opens with front matter (title, specification version, date, status, owners and the change history from the release records), then a table of contents with page numbers, and ends with the list of problems and gaps. The date is the approval's when the version is approved, else the release record's of that version, else the front matter says the version is not dated and marks it as a gap; nothing is taken from the clock, so a second run writes the same bytes and --check compares them. Each heading is a bookmark and a link target, a link between the documents of one book goes to its heading, and an element's id in a table or a sentence links to the heading or table row that describes it; a link that leads nowhere in the book is printed with its target. Every Problem, Open question, Open change request, Draft and Stakeholders unconfirmed paragraph of the documents, and every gap of the front matter, is marked at its entry and listed in the book's Problems and gaps list, each linking to the other; over an invalid specification all four books are written and the run exits 1. The pages are A4, the text is real text with its Unicode mapping, the file is tagged (headings, paragraphs, lists, tables, links, the table of contents) with the document's language, and header and footer are artifacts; a Mermaid diagram is printed as its source, labelled. | NEED-3 |
 | SA-32 | SpecArch shall ship versioned idioms that say how each recurring implementation concern is done per stack, apply them to every implementation file by default, let a file exclude or override one with the reason, and check the result, starting with the type rendering of every field on Go and on PostgreSQL, SQL Server, Oracle and MariaDB. | functional | must | accepted | test | An idiom key naming no idiom, an exclusion or override without why, an override naming an unknown part or defining one it does not list, rendering a stack that is not the file's, or changing a shipped contract statement is each reported under its rule in both builds; an override copied from an older version is warned about. A field that no row of the type rendering matches for a stack of the implementation file, such as a decimal wider than Oracle holds, is reported as idiom_contract. An override that replaces the Oracle text rows for MAX_STRING_SIZE = EXTENDED validates without a diagnostic. The shipped set holds the fifteen idioms of the first set and ui-components, each statement marked with what checks it, and every one passes the idiom schema and cites only the sources it declares. A ui target's framework, given or by its platform's default, is a stack of its implementation file, so specarch idioms lists ui-components for a TypeScript file whose ui target is nextjs-carbon and not for one on plain-javascript, and an override rendering nextjs-carbon in a file on plain-javascript is reported as idiom_stack in both builds. | NEED-2 |
 | SA-135 | A specification shall state its intent in the requirements stage, every key optional, with problem (one per specification), goals with measure, baseline, target, by, priority, status and measuredBy, outOfScope with until and the needs it rules out, and qualityGoals with rank, a quality characteristic of ISO/IEC 25010 and the quality requirements that make it concrete; a need shall name the goals it serves under goals and a decision the quality goals it weighed under weighs, and specarch validate shall report a reference to a stakeholder, monitor, need, requirement, goal or quality goal that does not exist as the error of that kind at the entry, and a goal's by or an out-of-scope entry's until that names no planned or released release as record_ref. | functional | must | proposed | test | A specification with problem, goals, outOfScope and qualityGoals whose references resolve validates with no error, and one without any of them reads as before. A problem stakeholder, a goal's measuredBy, an out-of-scope entry's needs, a quality goal's requirements, a need's goals and a decision's weighs that name nothing are the errors stakeholder, monitor, need, requirement, goal and quality_goal at the entry, each with the closest name when there is one. Both validator builds print the same lines for the same specification. | NEED-1, NEED-6 |
 | SA-136 | specarch validate shall warn, at the entry and in the problems file, problem_missing when a specification on meta-model 1.0.0 or later has requirements and no problem and no must question blocks it, goal_unmeasured at an accepted goal without measure or target, goal_unserved at an accepted goal no accepted need names, need_without_goal at an accepted need naming no goal once any goal exists, scope_conflict at an accepted requirement's need that an out-of-scope entry rules out, and quality_goal_rank at quality goals that share a rank; on the lean profile problem_missing shall not be warned but asked as the first question of specarch gaps --next. | functional | must | proposed | test | validate on a full-profile specification with requirements and no problem warns problem_missing at /requirements, at the line of the requirements, with its mark in the file above the requirements key, and exits 0; a must question that blocks the problem holds it, and a file on a meta-model before 1.0.0 is not warned; on the lean profile it prints no problem_missing and the profile warning says the problem is asked by gaps --next. validate on a specification with each of the other five gaps warns that rule at that entry and exits 0. A specification with no goals is never warned need_without_goal, so an upgrade brings at most problem_missing. | NEED-1, NEED-8 |
@@ -21262,6 +21463,12 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Insight on SA-116:** A project writes the fake records its developers work against by hand, in SQL, and they drift from the specification at every change of a field, an enum or a relation; drawing them from the entities with a fixed seed keeps them in step and byte-identical, so generate --check reads a stale seed as it reads a stale migration.
 
 **Insight on SA-121:** A compose file, a set of manifests or a host image written by hand repeats what the implementation file's deployment already says and drifts from it at the next setting or port; a full regression run on an environment an earlier test left behind passes or fails on what that test wrote; and the quickest way to run a thing by hand is to write its password next to it, so the generated files leave every secret to the host (ADR-227).
+
+**Insight on SA-148:** A business requirements document, a requirements specification, a technical specification and a test document are what a customer signs and files, as PDF; written from the specification they cannot drift from it, and a book written from an incomplete specification shows its gaps where they are instead of hiding them (ADR-248).
+
+**Note on SA-148:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 9.3: The business requirements specification describes the organisation's motivation for the system: its purpose, scope, stakeholders, goals and the business requirements, before the system requirements. <https://www.iso.org/standard/72089.html>
+
+**Note on SA-148:** From ISO 32000-2, Document management, Portable document format, Part 2, PDF 2.0, 2020, clause 14.8: A tagged PDF carries a logical structure of standard types, headings, paragraphs, lists, tables and links, beside the page content, so the text can be extracted, reflowed and read by assistive technology; content not part of the document, such as running headers and page numbers, is marked as an artifact. <https://www.iso.org/standard/75839.html>
 
 **Insight on SA-32:** How a decimal, a text column or a missing value is held on a stack is decided once and read by every generator and every agent; without the table each implementation file restates it in prose, each a little differently.
 
@@ -21561,6 +21768,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-145 | commands plan; decisions ADR-246 | tests plan-export-csv; tests plan-export-json; tests plan-import; tests plan-import-json |
 | SA-146 | enums Rule; decisions ADR-247 | tests generate-sql-hashed-refused; tests validate-security-audit-not-append-only; tests validate-security-audit-not-append-only-changed; tests validate-security-audit-not-append-only-fixed; tests validate-security-audit-not-append-only-moved; tests validate-security-audit-not-append-only-moved-fixed; tests validate-security-duties-unseparated; tests validate-security-duties-unseparated-fixed; tests validate-security-hashed-at-rest; tests validate-security-internal-key-exposed; tests validate-security-internal-key-exposed-fixed; tests validate-security-object-unscoped; tests validate-security-object-unscoped-fixed; tests validate-security-query-from-caller; tests validate-security-query-from-caller-fixed; tests validate-security-refusal-reveals-record; tests validate-security-refusal-reveals-record-fixed; tests validate-security-secret-unprotected; tests validate-security-secret-unprotected-fixed |
 | SA-147 | commands document; decisions ADR-247 | tests document-problems-security-tags |
+| SA-148 | enums DocumentTarget; commands document; decisions ADR-248 | tests document-brd; tests document-pdf-books; tests document-pdf-gaps |
 
 ## Sources
 

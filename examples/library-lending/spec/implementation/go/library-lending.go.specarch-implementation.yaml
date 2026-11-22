@@ -93,6 +93,9 @@ targets:
   operations:
     output: ../../../docs
     description: What the library's IT staff look at and do each day to keep the system running, kept current by CI.
+  brd:
+    output: ../../../docs
+    description: The business requirements document the library board signs, kept current by CI.
   questions:
     output: ../../../docs
   problems:

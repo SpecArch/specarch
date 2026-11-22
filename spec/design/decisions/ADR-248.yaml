@@ -1,0 +1,205 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-248:
+    title: specarch document brd writes the business requirements document in Markdown, and specarch document pdf writes four PDF books - brd, requirements, technical and qa - rendered by SpecArch's own PDF writer from the Markdown the document targets write, with front matter from the specification and its records, a table of contents, bookmarks, linked ids, the marks of every problem and gap with one list of them, tagged structure on A4 and the same bytes for the same input
+    status: accepted
+    date: "2026-11-22"
+    context: |
+      The owner asks for the formal documents of a project as PDF, built
+      from the specification so they never drift from it: a business
+      requirements document, a requirements specification, a technical
+      specification and a test document. The Markdown documents already
+      hold most of it (requirements, traceability, techspec, deployment,
+      operations, testplan), with the Problem, Open question, Open change
+      request, Draft and Stakeholders unconfirmed paragraphs placed at the
+      entries they concern; no document is the business requirements
+      document, whose order ISO/IEC/IEEE 29148 gives in its clause 9.3.
+
+      A PDF a customer files has to print on A4, carry real text a reader
+      can search and copy, and, to be read by assistive technology, a
+      logical structure (a tagged PDF) with its language. SpecArch is a
+      public Go program with no Node.js, and every library it takes must
+      be under an OSI licence, permissive or MPL-2.0. The Go PDF libraries
+      under such a licence (the gofpdf family and its forks, gopdf, maroto
+      on top of gofpdf, pdfcpu) lay out text or edit existing files, and
+      none writes the structure tree a tagged PDF needs; the ones that do
+      are under the GPL or the AGPL, or need a commercial key. A document
+      that is checked with --check and approved has to be the same bytes
+      on every run, so nothing in it may come from the clock.
+    decision: |
+      1. The command stays specarch document: brd and pdf are two more
+         values of DocumentTarget, written into the folder the target owns
+         like every other, with --out, --check, --dry-run, --audience and
+         --language as they are. brd writes brd.md. pdf writes brd.pdf,
+         requirements.pdf, technical.pdf and qa.pdf into its folder, the
+         four at once, so one implementation file entry and one --check
+         cover them.
+      2. brd.md follows the business requirements specification of
+         ISO/IEC/IEEE 29148 (9.3): the purpose (the description and the
+         owners), the intent parts the specification states - problem,
+         goals, out of scope, quality goals - with a part it does not
+         state said so and its key named, the stakeholders, the needs with
+         the requirements refining each, the business requirements (each
+         requirement's statement, priority, status, the needs it refines
+         and the goals those serve, without design or test links, which
+         are the requirements specification's), the constraints, the
+         assumptions and the glossary.
+      3. A book is made from the Markdown the document targets write for
+         the same specification, state, audience and language, never from
+         text of its own: brd.pdf from brd; requirements.pdf from
+         requirements and traceability; technical.pdf from techspec,
+         deployment and operations; qa.pdf from testplan and traceability,
+         whose matrix of what verifies each requirement and whose gaps are
+         the requirement-to-test coverage. A book opens with front matter,
+         written as Markdown too so it is translated like the rest: the
+         book's title, the specification's title, version, date, status
+         (the approval sentence and the open must and should questions),
+         owners, the root file and meta-model it was made from, and the
+         change history, one row per release record newest first with its
+         version, status, date and the changes it includes. The date is
+         the approval's when the version is approved, else the date of the
+         release record of that version, else the front matter says the
+         version is not dated and marks it as a gap. A table of contents
+         of the headings down to the third level, with page numbers, comes
+         next, and the Problems and gaps list last.
+      4. The PDF is written by SpecArch's own writer on the standard
+         library, with the Go fonts (regular, bold, italic and mono, from
+         golang.org/x/image, BSD-3-Clause) embedded as subsets, as CID
+         fonts with Identity-H encoding and a ToUnicode map, so every
+         character is real text. A character none of the fonts has is
+         written as its code point in brackets, never dropped. The writer
+         reads the Markdown the documents use: headings, paragraphs,
+         lists, tables, fenced blocks, block quotes, bold, italic, code
+         spans, links and autolinks; an HTML comment is left out and any
+         other line is printed as it is.
+      5. Each page is A4 (595.28 by 841.89 points) with 20 mm margins; the
+         header names the book and the footer the page, both marked as
+         artifacts. The file is tagged: the catalogue says it is marked
+         and names the document's language, and the structure tree holds
+         Document, H1 to H6, P, L, LI, LBody, Table, TR, TH, TD, Code,
+         Link with its annotation, TOC and TOCI, each holding its marked
+         content by page. Each heading is a bookmark (the outline down to
+         the fourth level) and a named destination; a table that crosses
+         a page repeats its header row; a word wider than its column is
+         broken.
+      6. Links: a link to a heading of the same document or of another
+         document in the book goes to that heading, with the anchors of
+         each document kept apart, since two documents of a book have
+         headings of the same name. An element's id - a key under one of
+         the specification's sections holding a digit or a hyphen, so an
+         ordinary word is never one - becomes a link wherever it is a word
+         of a sentence or a table cell, to the first heading whose text is
+         that id, else the first table row it starts. A link to a file or
+         heading outside the book is printed with its target in brackets.
+      7. Every Problem, Open question, Open change request, Draft and
+         Stakeholders unconfirmed paragraph, and every gap of the front
+         matter, is drawn as a marked box at its entry and listed, in the
+         order of the book, in its Problems and gaps list, the mark and
+         the entry each linking to the other. An invalid specification
+         gets its four books, and the run exits 1 as every document does
+         (ADR-065).
+      8. A Mermaid block is printed as its source in a labelled box: no Go
+         renderer of Mermaid exists, and the html target draws the
+         entity diagram and the workflows.
+      9. The same input gives the same bytes: objects in a fixed order,
+         glyph subsets and width arrays sorted, no creation or
+         modification date, and the file identifier a hash of the content.
+         The streams are compressed with the standard library's flate,
+         whose output is the same for one Go release; a Go release that
+         changes it changes the bytes once, which --check reports.
+      10. One layout, the one above: no theme or template option.
+    why: |
+      A book is the same text as the Markdown documents in another form,
+      so writing it from that Markdown keeps one place where each
+      sentence, mark and gap is decided; a PDF writer of its own reading
+      the specification would repeat every document and drift from them.
+      Keeping the command specarch document, rather than a doc command of
+      its own, keeps one way to say one thing (the Low IQ Tax): the
+      options, the output folder named under targets, --check and approve
+      work for it as for every document. Writing the four books at once
+      keeps --check one call and costs little. ISO/IEC/IEEE 29148 names
+      what a business requirements specification holds before the
+      system's requirements, which is the specification's requirements
+      stage seen from the business: why, for whom, what success is and
+      what is out, not how it is verified. A tagged PDF (ISO 32000, 14.8)
+      is what lets a screen reader and a text extractor read the headings,
+      tables and order of a document; without its structure tree a PDF is
+      ink on a page. No OSI-licensed Go library writes one, and the part
+      of PDF the books need (pages, text in embedded fonts, links,
+      outlines, the structure tree) is small enough to write and test
+      here, as SpecArch already writes SARIF, XLSX and OOXML itself. The
+      Go fonts are BSD licensed, cover the Latin, Greek and Cyrillic
+      scripts the documents' languages use, and come with the Go module
+      the program already builds with. A date from the clock would make
+      every run differ, so --check and approve could never pass; the
+      approval and the release records are the dates the project itself
+      recorded, and their absence is a gap to show, not to fill. An id
+      turned into a link at the PDF stage needs no change to the Markdown
+      documents, whose readers on a code host already have the headings;
+      limiting it to keys with a digit or a hyphen keeps a role named
+      member from turning every "member" into a link. A theme is a matter
+      of taste no specification states, and every option on the layout is
+      one more way for two runs to differ; one A4 layout prints everywhere
+      the books are filed.
+    alternatives:
+      - option: A doc command of its own, specarch doc brd|requirements|technical|qa --out <file.pdf> and doc all --out <dir>
+        why: |
+          It reads well, but it is a second way to write a document beside
+          specarch document, with its own options for the output, the
+          audience, the language and --check, and approve would not see
+          its files.
+      - option: Render the PDF from the specification directly, with a layout of its own per book
+        why: |
+          It repeats what the Markdown documents decide (the order, the
+          marks, the gaps, the translations) and drifts from them at the
+          next change of a document.
+      - option: gofpdf, its forks or gopdf
+        why: |
+          MIT licensed and mature, but none writes a structure tree, so the
+          books would not be tagged, which the request asks for; adding the
+          structure tree from outside means writing most of what SpecArch's
+          writer does anyway.
+      - option: unipdf or seehuhn.de/go/pdf
+        why: |
+          They write tagged PDF, but unipdf is AGPL or needs a commercial
+          key, and seehuhn's library is GPL; the umbrella's rules allow
+          neither without the owner's word, and a permissive path exists.
+      - option: HTML to PDF through a browser or wkhtmltopdf
+        why: |
+          It needs a browser or a native tool on the machine and gives
+          different bytes per version of it, so --check could not compare
+          the books.
+      - option: The date of the run
+        why: |
+          Every run would write different bytes, so --check and approve
+          could never pass, and the date would say when the file was made,
+          not when the version was settled.
+      - option: Draw Mermaid diagrams
+        why: |
+          Mermaid's layout lives in its JavaScript renderer; a second
+          renderer in Go would draw differently from every other reader of
+          the techspec. The source is the diagram's text and stays legible.
+    consequences: |
+      brd joins the documents an approval is of and the outputs table of
+      the open questions document; pdf joins them too, so a must question
+      on what a book reads makes it a draft. An implementation file names
+      the pdf target's folder under targets like any document's. The books
+      grow with the specification: a large techspec gives a book of
+      hundreds of pages, written in a second or two. Fonts are embedded as
+      subsets of the characters a book uses, so a book of a small
+      specification stays small; the Go fonts' licence travels in NOTICE.
+      Mermaid diagrams are printed as their source until a Go renderer
+      exists.
+    cites:
+      - source: iso-29148
+        clause: "9.3"
+        says: "The business requirements specification describes the organisation's purpose for the system, its scope, the stakeholders, the business goals and the business requirements."
+      - source: iso-32000-2
+        clause: "14.8"
+        says: "A tagged PDF carries a logical structure of standard structure types beside the page content; content not part of the document, such as running headers and page numbers, is marked as an artifact."
+      - source: wcag-2-2
+        clause: "1.3.1"
+        says: "Information, structure and relationships conveyed through presentation can be programmatically determined or are available in text."
+    weighs: [QG-2, QG-3]
+    satisfies: [SA-148]
+    restsOn: [ADR-065, ADR-119, ADR-241]

@@ -50,10 +50,10 @@ build_tools() {
 }
 
 documents() {
-	for target in intent techspec requirements testplan traceability deployment commissioning handover; do
+	for target in intent techspec requirements testplan traceability deployment commissioning handover brd; do
 		"$bin/specarch" document $target spec examples || return 1
 	done
-	for target in techspec requirements testplan traceability deployment commissioning handover manual operations questions problems changes releases communications timeline testruns progress html; do
+	for target in techspec requirements testplan traceability deployment commissioning handover manual operations brd questions problems changes releases communications timeline testruns progress html; do
 		"$bin/specarch" document $target spec examples/library-lending || return 1
 	done
 	for target in techspec requirements traceability questions problems html; do

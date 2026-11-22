@@ -21,6 +21,8 @@ func Document(target string, root *yaml.Node, relRoot string, impls []Implementa
 	switch target {
 	case "intent":
 		write = func() string { return Intent(root, relRoot, impls, state) }
+	case "brd":
+		write = func() string { return BRD(root, relRoot, impls, state) }
 	case "techspec":
 		write = func() string { return Techspec(root, relRoot, impls, state) }
 	case "requirements":

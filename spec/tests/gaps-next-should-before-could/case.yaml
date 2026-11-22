@@ -7,7 +7,7 @@ standardOutput: |
 
   - Decided by: owner
   - Blocks: #/entities/Member/properties/id
-  - Holds up: techspec document, traceability document, html document and code generation
+  - Holds up: techspec document, traceability document, html document, pdf document and code generation
   - Options:
     1. yes, an opaque string
     2. no, the card number

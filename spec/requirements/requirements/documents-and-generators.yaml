@@ -214,3 +214,25 @@ requirements:
     verification: test
     needs: [NEED-3, NEED-10]
     why: A compose file, a set of manifests or a host image written by hand repeats what the implementation file's deployment already says and drifts from it at the next setting or port; a full regression run on an environment an earlier test left behind passes or fails on what that test wrote; and the quickest way to run a thing by hand is to write its password next to it, so the generated files leave every secret to the host (ADR-227).
+  SA-148:
+    statement: specarch document brd shall write brd.md, the business requirements document in the order of the business requirements specification of ISO/IEC/IEEE 29148, and specarch document pdf shall write four PDF books from the same documents the Markdown targets write - brd.pdf, requirements.pdf, technical.pdf and qa.pdf - each with front matter taken from the specification and its records, a table of contents, bookmarks, ids that link to the entry describing them, the problems and gaps marked at their entries and gathered in one list, tagged structure and real text on A4 pages, the same bytes for the same input; an incomplete or invalid specification shall still get all four books.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - document brd writes brd.md with the purpose, the intent parts the specification states (a part it does not state says so and names the key), the stakeholders, the needs with the requirements refining each, each requirement at business level (statement, priority, status, the needs it refines and the goals they serve, no design or test links), the constraints, the assumptions and the glossary.
+      - document pdf writes brd.pdf from the brd document, requirements.pdf from the requirements and traceability documents, technical.pdf from the techspec, deployment and operations documents, and qa.pdf from the testplan and traceability documents; each opens with front matter (title, specification version, date, status, owners and the change history from the release records), then a table of contents with page numbers, and ends with the list of problems and gaps.
+      - The date is the approval's when the version is approved, else the release record's of that version, else the front matter says the version is not dated and marks it as a gap; nothing is taken from the clock, so a second run writes the same bytes and --check compares them.
+      - Each heading is a bookmark and a link target, a link between the documents of one book goes to its heading, and an element's id in a table or a sentence links to the heading or table row that describes it; a link that leads nowhere in the book is printed with its target.
+      - Every Problem, Open question, Open change request, Draft and Stakeholders unconfirmed paragraph of the documents, and every gap of the front matter, is marked at its entry and listed in the book's Problems and gaps list, each linking to the other; over an invalid specification all four books are written and the run exits 1.
+      - The pages are A4, the text is real text with its Unicode mapping, the file is tagged (headings, paragraphs, lists, tables, links, the table of contents) with the document's language, and header and footer are artifacts; a Mermaid diagram is printed as its source, labelled.
+    verification: test
+    needs: [NEED-3]
+    why: A business requirements document, a requirements specification, a technical specification and a test document are what a customer signs and files, as PDF; written from the specification they cannot drift from it, and a book written from an incomplete specification shows its gaps where they are instead of hiding them (ADR-248).
+    cites:
+      - source: iso-29148
+        clause: "9.3"
+        says: "The business requirements specification describes the organisation's motivation for the system: its purpose, scope, stakeholders, goals and the business requirements, before the system requirements."
+      - source: iso-32000-2
+        clause: "14.8"
+        says: "A tagged PDF carries a logical structure of standard types, headings, paragraphs, lists, tables and links, beside the page content, so the text can be extracted, reflowed and read by assistive technology; content not part of the document, such as running headers and page numbers, is marked as an artifact."

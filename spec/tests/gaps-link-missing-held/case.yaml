@@ -34,5 +34,7 @@ standardOutput: |+
   | html document | draft | 1 in deployment (Q-1) |
   | manual document | ready | |
   | operations document | draft | 1 in deployment (Q-1) |
+  | brd document | ready | |
+  | pdf document | draft | 1 in deployment (Q-1) |
   | code generation | waits | 1 in deployment (Q-1); not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

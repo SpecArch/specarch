@@ -1,0 +1,13 @@
+translations:
+  "# %s: business requirements document": "# %s: business requirements document"
+  "Version %s of the specification: why the system is built, for whom, and what the business asks of it, %s, %s and %s, in the order of the business requirements specification of ISO/IEC/IEEE 29148. How each requirement is designed and verified is in the requirements specification.": "Spesifikasi versi %s: kenapa sistem ini dibangun, untuk siapa, dan apa yang diminta bisnis dari sistem ini, %s, %s dan %s, mengikuti urutan business requirements specification ISO/IEC/IEEE 29148. Desain dan verifikasi tiap requirement ada di requirements specification."
+  "The specification has no description, so nothing here says what the system is in a few sentences; add info.description.": "Spesifikasi ini belum punya deskripsi, jadi belum ada penjelasan singkat sistem ini apa; tambahkan info.description."
+  "No stakeholder is written, so nothing says whom the system serves; add stakeholders, each with description and concerns.": "Belum ada stakeholder yang ditulis, jadi belum jelas sistem ini melayani siapa; tambahkan stakeholders, masing-masing dengan description dan concerns."
+  "Business needs": "Kebutuhan bisnis"
+  "What the stakeholders said they need, the goals each need serves, and the requirements that refine it.": "Apa yang disampaikan stakeholder sebagai kebutuhan, goal yang didukung tiap kebutuhan, dan requirement yang merincinya."
+  "| Need | Statement | Stakeholders | Goals | Status | Refined by |": "| Kebutuhan | Pernyataan | Stakeholder | Goal | Status | Dirinci oleh |"
+  "Business requirements": "Business requirement"
+  "No requirement is written, so nothing says what the business asks of the system; add requirements, each with statement, priority and the needs it refines.": "Belum ada requirement yang ditulis, jadi belum jelas apa yang diminta bisnis dari sistem ini; tambahkan requirements, masing-masing dengan statement, priority dan kebutuhan yang dirincinya."
+  "Each requirement as the business asks it: its statement, how important it is, where it stands, the needs it refines and the goals those needs serve.": "Tiap requirement seperti yang diminta bisnis: pernyataannya, seberapa penting, statusnya sekarang, kebutuhan yang dirincinya, dan goal yang didukung kebutuhan itu."
+  "| Requirement | Statement | Priority | Status | Needs | Goals |": "| Requirement | Pernyataan | Prioritas | Status | Kebutuhan | Goal |"
+  "%s refine no need, so nothing says which stakeholder asks for them: %s.": "%s belum merinci kebutuhan apa pun, jadi belum jelas stakeholder mana yang memintanya: %s."

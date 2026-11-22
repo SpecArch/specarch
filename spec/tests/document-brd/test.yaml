@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with its intent, a stakeholder, a need serving a goal, a requirement refining it, one refining none, a constraint, an assumption and a glossary term"
+when: "document brd is run"
+then: "brd.md holds the purpose, the intent parts, the stakeholders, the business needs with their goals, each requirement at business level with the goals its needs serve, the requirement that refines no need named, the constraints, the assumptions and the glossary, and it exits 0"
+verifies: [SA-148]

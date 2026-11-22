@@ -97,6 +97,11 @@ func (l loaded) state() *generate.State {
 	}
 	version := source.Str(source.Child(source.Child(l.spec.Root, "info"), "version"))
 	st.Approved, st.Approval = approval.State(l.spec.Dir, version)
+	if st.Approved {
+		if rec, err := approval.Read(l.spec.Dir, version); err == nil && rec != nil {
+			st.ApprovedOn = rec.Date
+		}
+	}
 	for _, r := range l.spec.Records {
 		if doc := source.Parse(r.Data); doc.Root != nil {
 			st.Records = append(st.Records, doc.Root)
@@ -268,8 +273,12 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 				impls[i].Node = st.Withheld.ForEveryoneImplementation(impls[i].Node)
 			}
 		}
-		text, _ := generate.Document(target, root, relSlash(folder, l.spec.RootFile), impls, st)
-		plan = append(plan, planned{path: filepath.Join(folder, generate.DocumentName(target)), content: text})
+		files, err := documentFiles(target, root, relSlash(folder, l.spec.RootFile), folder, impls, st)
+		if err != nil {
+			fmt.Fprintf(stderr, "specarch document %s: cannot write the books of %s: %v\n", target, l.spec.Dir, err)
+			return 2
+		}
+		plan = append(plan, files...)
 		// A document for everyone or in another language writes no region
 		// of specarch.md, which is written in English for every element.
 		if target != "techspec" || everyone || language != generate.DefaultLanguage {
@@ -314,6 +323,24 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return status
+}
+
+// documentFiles are the files a document target writes into folder: the
+// one document, or for the pdf target the four books (ADR-248).
+func documentFiles(target string, root *yaml.Node, relRoot, folder string, impls []generate.Implementation, st *generate.State) ([]planned, error) {
+	if target == "pdf" {
+		books, err := generate.Books(root, relRoot, impls, st)
+		if err != nil {
+			return nil, err
+		}
+		var out []planned
+		for _, b := range books {
+			out = append(out, planned{path: filepath.Join(folder, b.Name), content: string(b.Data), binary: true})
+		}
+		return out, nil
+	}
+	text, _ := generate.Document(target, root, relRoot, impls, st)
+	return []planned{{path: filepath.Join(folder, generate.DocumentName(target)), content: text}}, nil
 }
 
 // overConfigured refuses a document for everyone or in another language

@@ -23,9 +23,13 @@ libraries:
     licence: Apache-2.0
     purpose: JSON Schema 2020-12 validation against the schemas in `schema/`; the same library the repository's pinned `jv` check used.
   golang.org/x/text:
-    version: v0.43.0
+    version: v0.44.0
     licence: BSD-3-Clause
     purpose: Message printing for the schema library. Pinned above 0.39.0, which fixes GO-2026-5970.
+  golang.org/x/image:
+    version: v0.48.0
+    licence: BSD-3-Clause
+    purpose: "The Go fonts embedded in the PDF books of specarch document pdf (ADR-248), and sfnt to read their glyphs and advances; no image decoder is used. Its licence, and the fonts', is in third_party/go-fonts/LICENSE and NOTICE."
   go.yaml.in/yaml/v3:
     version: v3.0.5
     licence: MIT AND Apache-2.0
@@ -318,6 +322,9 @@ targets:
   requirements:
     output: ../../../docs
     description: The requirements specification, kept current by CI.
+  brd:
+    output: ../../../docs
+    description: The business requirements document, kept current by CI.
   testplan:
     output: ../../../docs
     description: The test plan and test cases, kept current by CI.

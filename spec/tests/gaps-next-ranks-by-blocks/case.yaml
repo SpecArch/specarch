@@ -9,7 +9,7 @@ standardOutput: |
 
   - Decided by: owner
   - Blocks: #/entities/Loan (primaryKey, properties and type missing), #/entities/Member
-  - Holds up: techspec document, traceability document, html document and code target sql
+  - Holds up: techspec document, traceability document, html document, pdf document and code target sql
   - Options:
     1. both are kept
     2. both are removed

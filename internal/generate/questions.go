@@ -14,8 +14,8 @@ import (
 // DocumentTargets are the document targets of the design, in the order
 // they are listed; BuiltDocuments says which this program has.
 var (
-	DocumentTargets = []string{"intent", "techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "progress", "html", "manual", "operations"}
-	BuiltDocuments  = map[string]bool{"intent": true, "techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true}
+	DocumentTargets = []string{"intent", "techspec", "requirements", "testplan", "traceability", "deployment", "commissioning", "handover", "questions", "problems", "comparison", "changes", "releases", "communications", "timeline", "testruns", "progress", "html", "manual", "operations", "brd", "pdf"}
+	BuiltDocuments  = map[string]bool{"intent": true, "techspec": true, "requirements": true, "testplan": true, "traceability": true, "deployment": true, "commissioning": true, "handover": true, "questions": true, "problems": true, "comparison": true, "changes": true, "releases": true, "communications": true, "timeline": true, "testruns": true, "progress": true, "html": true, "manual": true, "operations": true, "brd": true, "pdf": true}
 )
 
 // documentReads says which sections each document reads, so that a
@@ -33,6 +33,8 @@ var documentReads = map[string][]string{
 	"html":          {"*"},
 	"manual":        {"flows", "menus", "pages", "roles", "permissions", "errors", "commands"},
 	"operations":    {"environments", "monitors", "jobs", "processes", "channels", "dependencies", "paths", "configuration", "backup", "restore", "rollback"},
+	"brd":           {"problem", "goals", "outOfScope", "qualityGoals", "stakeholders", "stakeholdersComplete", "needs", "requirements", "constraints", "assumptions", "glossary"},
+	"pdf":           {"*"},
 }
 
 // RefinementDocuments are the documents about the refinement itself, read
@@ -56,7 +58,10 @@ type State struct {
 	Missing  map[string][]string // element pointer -> the keys missing there, as the validator found them
 	Approval string              // one sentence: approved on, not approved because
 	Approved bool
-	LeftOut  []LeftOut // the derived cases of rank other no test covers, for the test plan
+	// ApprovedOn is the date of the approval of this version, when it is
+	// approved; a book's front matter is dated with it (ADR-248).
+	ApprovedOn string
+	LeftOut    []LeftOut // the derived cases of rank other no test covers, for the test plan
 	// Records are the record files beside the specification, parsed, in
 	// path order, and RecordsRel their folder as the document names it.
 	Records    []*yaml.Node

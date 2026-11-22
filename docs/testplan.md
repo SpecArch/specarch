@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.7.1-dev of the specification: 1102 design tests, 570 golden and 532 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.7.1-dev of the specification: 1105 design tests, 572 golden and 533 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.7.1-dev of the specification: 1102 design tests, 570 golden and 532 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1098 |
+| system | 1101 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -919,6 +919,14 @@ Scenario: red; level: system; covers usage error; verifies SA-67.
 - When: document is run
 - Then: it prints the usage error naming external as the one value and exits 2 without reading the folder
 
+#### document-brd
+
+Scenario: golden; level: system; verifies SA-148.
+
+- Given: a specification with its intent, a stakeholder, a need serving a goal, a requirement refining it, one refining none, a constraint, an assumption and a glossary term
+- When: document brd is run
+- Then: brd.md holds the purpose, the intent parts, the stakeholders, the business needs with their goals, each requirement at business level with the goals its needs serve, the requirement that refines no need named, the constraints, the assumptions and the glossary, and it exits 0
+
 #### document-changes-transition
 
 Scenario: golden; level: system; verifies SA-130.
@@ -1206,6 +1214,22 @@ Scenario: golden; level: system.
 - Given: a hand-written document with a flowchart pages marker
 - When: document techspec is run
 - Then: the region holds the pages and the operation the Pay action runs, and it exits 0
+
+#### document-pdf-books
+
+Scenario: golden; level: system; verifies SA-148.
+
+- Given: a valid specification with a requirement, an entity satisfying it, two tests verifying it and a release record of its version dated 2026-11-20
+- When: document pdf is run
+- Then: it writes brd.pdf, requirements.pdf, technical.pdf and qa.pdf, each dated 2026-11-20 from the release record, with front matter, contents, the documents and the problems and gaps list, and exits 0
+
+#### document-pdf-gaps
+
+Scenario: red; level: system; covers exit 1; verifies SA-148.
+
+- Given: a specification with a relation to an entity that does not exist, a requirement no test verifies and with no acceptance criteria, an open must question, no problem, no release record and no approval
+- When: document pdf is run
+- Then: it prints the error, still writes all four books, each with the version marked not dated, every Problem, Open question and Draft paragraph marked at its entry and listed in its Problems and gaps list, and exits 1
 
 #### document-permissions-table
 
@@ -8931,7 +8955,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-656 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+662 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9340,6 +9364,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-121 | acceptance 3 | golden | SA-121 names no harm |
 | requirement SA-121 | acceptance 4 | golden | SA-121 names no harm |
 | requirement SA-121 | acceptance 5 | golden | SA-121 names no harm |
+| requirement SA-148 | acceptance 1 | golden | SA-148 names no harm |
+| requirement SA-148 | acceptance 2 | golden | SA-148 names no harm |
+| requirement SA-148 | acceptance 3 | golden | SA-148 names no harm |
+| requirement SA-148 | acceptance 4 | golden | SA-148 names no harm |
+| requirement SA-148 | acceptance 5 | golden | SA-148 names no harm |
+| requirement SA-148 | acceptance 6 | golden | SA-148 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

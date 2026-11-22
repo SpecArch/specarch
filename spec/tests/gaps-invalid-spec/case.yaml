@@ -29,5 +29,7 @@ standardOutput: |+
   | html document | draft | 1 error |
   | manual document | ready | |
   | operations document | ready | |
+  | brd document | draft | 1 error |
+  | pdf document | draft | 1 error |
   | code generation | waits | 1 error; not approved: there is no records/approvals/1.0.0.yaml beside the specification |
 

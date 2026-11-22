@@ -44,6 +44,8 @@ standardOutput: |
             "testplan document",
             "traceability document",
             "html document",
+            "brd document",
+            "pdf document",
             "code generation"
           ],
           "options": [],

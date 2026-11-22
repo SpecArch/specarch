@@ -1,3 +1,4 @@
 arguments: [document, pdf, project]
 exitStatus: 2
-standardOutput: ""
+standardOutput: |
+  project/specarch.yaml:1:1: warning: /: output_folder: no implementation file names an output folder for pdf under targets, so this specification has no pdf document; name one, or give --out [output_folder@specarch.yaml#/]

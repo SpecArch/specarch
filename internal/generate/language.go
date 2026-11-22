@@ -143,6 +143,14 @@ func UseLanguage(tag string) (release func(), err error) {
 	}, nil
 }
 
+// activeLanguage is the tag of the language documents are written in now.
+func activeLanguage() string {
+	if active == nil || active.Language == "" {
+		return DefaultLanguage
+	}
+	return active.Language
+}
+
 // Missed is the English texts the documents made in the last language
 // other than English asked for and its catalog does not hold, sorted;
 // the test of each language requires none.

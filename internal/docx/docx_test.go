@@ -70,7 +70,7 @@ const testTraceability = `# Lending: traceability
 |---|---|
 | with | two columns |
 
-**Open question Q-1 (must):** Who decides? Decided by the owner.
+**Open question Q-1 (must) on REQ-1:** Who decides? Decided by the owner.
 `
 
 func testOptions() Options {
@@ -505,6 +505,11 @@ func checkXML(t *testing.T, part, text string, styles, nums, rels map[string]boo
 				}
 				delete(open, attr("id"))
 			case "hyperlink":
+				for _, up := range stack {
+					if up.name == "hyperlink" {
+						t.Errorf("%s: a hyperlink inside another hyperlink", part)
+					}
+				}
 				if a := attr("anchor"); a != "" {
 					anchors = append(anchors, a)
 				} else if !rels[attr("id")] {

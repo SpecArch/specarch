@@ -264,7 +264,10 @@ func (w *writer) block(part string, bl *mdbook.Block, depth int, title bool) {
 					for lead < len(bl.Text) && bl.Text[lead].Style&mdbook.Strong != 0 {
 						lead++
 					}
-					w.link(w.bookmark(bl.Mark.Back), "", func() { w.spans(part, bl.Text[:lead], runStyle{}, "") })
+					// The lead links to its entry in the list as a whole, as
+					// the PDF's does: an id in it is not a link of its own,
+					// since a hyperlink never holds another.
+					w.link(w.bookmark(bl.Mark.Back), "", func() { w.plain(bl.Text[:lead], runStyle{link: true}) })
 					w.spans(part, bl.Text[lead:], runStyle{}, "")
 				})
 			})

@@ -52,6 +52,14 @@ that entry (`document_format`); the file is still read, and the formats
 of the list the target has are written. `specarch approve` compares every
 file of the formats the entry lists.
 
+The module map that `techspec` writes over an estate file, `estate.md`,
+is Markdown only. An estate has no implementation file, approval or
+release records to give a book its front matter, and the map's rows link
+to each module's `specarch.yaml`, which only the Markdown can follow. With
+`--format docx` or `pdf`, `estate.md` is still written, a warning
+(`document_format`) at the estate file says so, and each module's
+techspec is written in the formats asked.
+
 ## What each format holds
 
 The Markdown is the source form. The Word and PDF forms of a document are

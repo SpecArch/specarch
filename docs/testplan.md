@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.7.1-dev of the specification: 1112 design tests, 574 golden and 538 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.7.1-dev of the specification: 1113 design tests, 575 golden and 538 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.7.1-dev of the specification: 1112 design tests, 574 golden and 538 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1108 |
+| system | 1109 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1054,6 +1054,14 @@ Scenario: golden; level: system; verifies SA-66.
 - Given: an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder
 - When: document techspec is run on the estate file
 - Then: it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0
+
+#### document-estate-map-markdown-only
+
+Scenario: golden; level: system; verifies SA-149.
+
+- Given: an estate file listing two modules, and no implementation file naming a techspec folder
+- When: document techspec --format pdf is run on the estate file
+- Then: it writes docs/estate.md, the module map, as Markdown, prints a document_format warning at the estate file saying the map is written as Markdown only and why, passes over each module with a warning, and exits 0
 
 #### document-format-books-md-refused
 

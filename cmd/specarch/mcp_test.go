@@ -90,7 +90,7 @@ var targetFirst = map[string]string{"document": "techspec", "generate": "sql", "
 
 // misread is what a command says when the server put an input where the
 // command does not read it.
-var misread = regexp.MustCompile(`has no option|takes no argument|no command|is not a target name|has no target "-|does not read the source -|not given together`)
+var misread = regexp.MustCompile(`has no option|takes no argument|no command|is not a target name|has no target "-|takes its target first|does not read the source -|not given together`)
 
 // TestMCPCallEveryTool calls every tool with every input given, in a
 // folder of its own, and checks that each command reads the command line

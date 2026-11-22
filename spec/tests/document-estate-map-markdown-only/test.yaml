@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "an estate file listing two modules, and no implementation file naming a techspec folder"
+when: "document techspec --format pdf is run on the estate file"
+then: "it writes docs/estate.md, the module map, as Markdown, prints a document_format warning at the estate file saying the map is written as Markdown only and why, passes over each module with a warning, and exits 0"
+verifies: [SA-149]

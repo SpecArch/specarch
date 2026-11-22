@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.7.1-dev of the specification: 146 requirements, 5 entities, 31 commands, 7 algorithms, 1112 tests, 232 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.7.1-dev of the specification: 146 requirements, 5 entities, 31 commands, 7 algorithms, 1113 tests, 232 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -471,7 +471,7 @@ Primary key: path.
 | Rule | value_object_unchecked | as a warning, an entity's field kept in columns holds a schema of another module, or a value with a part that does, and the run does not give that module, so the rules on the parts of the value that need it are not checked; give the module in the same run or through the estate, or store the field as json (ADR-184) |
 | Rule | wire_name | the specification names its wire names (info.wireNames) and two properties of one object, an entity's, a view's with its entity's, or a body's, a parameter's or a message's, go on the wire under one name; or it names its roles' wire names (info.roleNames) and two roles go on the wire under one name |
 | Rule | output_folder | document or generate is given no --out, and no implementation file of a specification names an output folder for the target under targets, so that specification has no such output (a warning, ADR-073, ADR-086) |
-| Rule | document_format | an implementation file's targets entry lists under formats a format the target does not write (md for books), or formats on html, problems or a target that is not a document's; the file is still read, and specarch document writes the formats of the list the target has (ADR-249) |
+| Rule | document_format | an implementation file's targets entry lists under formats a format the target does not write (md for books), or formats on html, problems or a target that is not a document's; the file is still read, and specarch document writes the formats of the list the target has (ADR-249). As a warning at an estate file: techspec was given a --format that names docx or pdf, and the estate's module map is written as Markdown only |
 | Rule | meta_model_version | the file says `specarch: "0.1"`, `"0.2"` or `"0.3"`, earlier versions read beside 1.0.0, a warning naming `specarch upgrade` (and for 0.1 `specarch derive` first) (ADR-055, ADR-094, ADR-186); or, as an error, a version line this program does not read: a later version, a version of 1 or more in fewer than three parts (`"1.0"`) or what is no version, the file then read as 1.0.0 so that every other problem is still listed (ADR-186) |
 | Rule | meta_model_deprecated | as a warning, a file on 1.0 gives a key under the spelling meta-model 1.0.0 deprecated, a role's `rows` (now `rowPolicies`) or the handover's `source` (now `sourceDelivery`), read as the new key until 2.0.0; as an error, it gives both spellings in one object (ADR-186) |
 | Rule | audience | an element for everyone (no `audience`) names an element whose audience is internal through a `$ref`, a relation's `target`, a page's `entity` or a requirement's `needs`, so a document for everyone would name what it may not show (ADR-119) |
@@ -1615,6 +1615,10 @@ entries, and the references between the modules through their
 dependencies as a Mermaid flowchart and a table, a specification a
 dependency names that the estate does not list drawn apart. The
 modules' own documents are written as when each is named (ADR-113).
+The module map is Markdown only, whatever the formats: with a
+`--format` that names docx or pdf it is still written as `estate.md`,
+and a warning (`document_format`) at the estate file says so, while
+each module's techspec is written in the formats asked (ADR-249).
 
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
@@ -1995,7 +1999,9 @@ Writes `{out}/<target>.md`: The document, in the md format. Nothing is written w
 Standard output: The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
 output folder for the target, or, for the handover target, with no
-handover. With `--check`, one line per file that differs or is
+handover; for techspec over an estate with a `--format` that names
+docx or pdf, a warning that the module map is written as Markdown
+only. With `--check`, one line per file that differs or is
 missing.
 
 Standard error: A usage message on a usage error, the reason a file cannot be read or written, for html the reason a workflow diagram or screen preview could not be made, and a one-line count at the end.
@@ -20044,7 +20050,13 @@ version, and know nothing of the ids, marks and problems list. Write the page nu
 and version; a number written in advance would be wrong on most
 readers' machines. A structural comparison for --check of a docx: The writer gives the same bytes for the same input, so a byte
 comparison is exact and simpler; a structural comparison would
-only be needed for a writer that varies. md for the books, the documents of a book concatenated: The links between the documents of a book name their files
+only be needed for a writer that varies. The estate's module map as a Word or PDF book too: A book's front matter is the specification's version, date,
+approval, owners and change history, and an estate has none of
+them: no implementation file, no approval and no release
+records. Its rows link to each module's specarch.yaml, which a
+Word or PDF book can only print as a target in brackets. Writing
+it as Markdown and saying so keeps the map readable where its
+links work and leaves nothing out without a word. md for the books, the documents of a book concatenated: The links between the documents of a book name their files
 (traceability.md#matrix), so a concatenated file breaks them, and
 each document already has its own Markdown.
 
@@ -20152,6 +20164,13 @@ Decision: 1. specarch document takes --format: md, docx or pdf, several
    the formats the entry lists.
 8. An error of a writer names the target, the format, the file and
    what the writer said.
+9. The estate's module map, which techspec writes over an estate
+   file (ADR-113), is Markdown only: estate.md is written whatever
+   the formats, and when --format names docx or pdf a warning at the
+   estate file (document_format) says the map is written as
+   Markdown only and why, while each module's techspec is written in
+   the formats asked. A targets entry's formats are a module's and
+   never reach the estate, which has no implementation file.
 
 Consequences: Every Markdown document can be filed as Word or PDF, with the same
 marks and gaps as the Markdown and one list of them. A project
@@ -20298,6 +20317,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-entity-diagram | command document | system | golden | a hand-written document with an erDiagram marker | document techspec is run | the region holds the entity diagram, every other line is unchanged, and it exits 0 |
 | document-errors-elsewhere | command document | system | red | a specification with errors only under info and entities, which the requirements document does not read | document requirements is run | it prints both errors, writes requirements.md with a Problems notice saying the specification is invalid and that none of its errors is in what the document covers, and exits 1 |
 | document-estate-map | command document | system | golden | an estate file listing two modules, one of which depends on the other and on a specification the estate does not list, and no implementation file naming a techspec folder | document techspec is run on the estate file | it writes docs/estate.md beside the estate file, the modules with their versions and links and the references between them drawn as a flowchart, the unlisted specification apart, passes over each module with a warning, and exits 0 |
+| document-estate-map-markdown-only | command document | system | golden | an estate file listing two modules, and no implementation file naming a techspec folder | document techspec --format pdf is run on the estate file | it writes docs/estate.md, the module map, as Markdown, prints a document_format warning at the estate file saying the map is written as Markdown only and why, passes over each module with a warning, and exits 0 |
 | document-format-books-md-refused | command document | system | red | --format md for the books target | document books is run | it prints the usage error saying a book is made from the Markdown documents and its formats are pdf and docx, writes nothing, and exits 2 |
 | document-format-check-missing | command document | system | red | no requirements.docx written yet | document requirements is run with --format docx and --check | it names the missing docx and exits 1, writing nothing |
 | document-format-from-targets | command document | system | golden | an implementation file whose targets entry for brd names the folder docs and the formats pdf and md | document brd is run with no --out and no --format | it writes docs/brd.md and docs/brd.pdf, md first, and exits 0 |
@@ -21962,7 +21982,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-146 | enums Rule; decisions ADR-247 | tests generate-sql-hashed-refused; tests validate-security-audit-not-append-only; tests validate-security-audit-not-append-only-changed; tests validate-security-audit-not-append-only-fixed; tests validate-security-audit-not-append-only-moved; tests validate-security-audit-not-append-only-moved-fixed; tests validate-security-duties-unseparated; tests validate-security-duties-unseparated-fixed; tests validate-security-hashed-at-rest; tests validate-security-internal-key-exposed; tests validate-security-internal-key-exposed-fixed; tests validate-security-object-unscoped; tests validate-security-object-unscoped-fixed; tests validate-security-query-from-caller; tests validate-security-query-from-caller-fixed; tests validate-security-refusal-reveals-record; tests validate-security-refusal-reveals-record-fixed; tests validate-security-secret-unprotected; tests validate-security-secret-unprotected-fixed |
 | SA-147 | commands document; decisions ADR-247 | tests document-problems-security-tags |
 | SA-148 | enums DocumentTarget; commands document; decisions ADR-248 | tests document-books; tests document-books-gaps; tests document-brd |
-| SA-149 | enums DocumentFormat; enums DocumentTarget; commands document; decisions ADR-249 | tests document-books-docx; tests document-format-books-md-refused; tests document-format-check-missing; tests document-format-from-targets; tests document-format-gaps; tests document-format-html-refused; tests validate-document-format |
+| SA-149 | enums DocumentFormat; enums DocumentTarget; commands document; decisions ADR-249 | tests document-books-docx; tests document-estate-map-markdown-only; tests document-format-books-md-refused; tests document-format-check-missing; tests document-format-from-targets; tests document-format-gaps; tests document-format-html-refused; tests validate-document-format |
 
 ## Sources
 

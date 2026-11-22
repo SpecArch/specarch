@@ -86,6 +86,10 @@ entries, and the references between the modules through their
 dependencies as a Mermaid flowchart and a table, a specification a
 dependency names that the estate does not list drawn apart. The
 modules' own documents are written as when each is named (ADR-113).
+The module map is Markdown only, whatever the formats: with a
+`--format` that names docx or pdf it is still written as `estate.md`,
+and a warning (`document_format`) at the estate file says so, while
+each module's techspec is written in the formats asked (ADR-249).
 
 The requirements target writes `requirements.md`: the stakeholders,
 the needs with the requirements that refine them, and each
@@ -482,7 +486,9 @@ and the html page in place of what satisfies and verifies it.
 The errors of an invalid specification and the errors of a
 marker, one line each; a warning for each specification with no
 output folder for the target, or, for the handover target, with no
-handover. With `--check`, one line per file that differs or is
+handover; for techspec over an estate with a `--format` that names
+docx or pdf, a warning that the module map is written as Markdown
+only. With `--check`, one line per file that differs or is
 missing.
 
 ## Standard error

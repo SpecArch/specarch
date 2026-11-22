@@ -203,7 +203,7 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "%s\n\n%s", msg, usage)
 		return 2
 	}
-	if len(args) > 0 && args[0] == "pdf" {
+	if firstPositional(args) == "pdf" {
 		fmt.Fprintf(stderr, "specarch document has no target pdf: the four books are specarch document books (pdf by default, --format docx for Word), and any document as PDF is specarch document <target> --format pdf\n\n%s", usage)
 		return 2
 	}
@@ -249,9 +249,13 @@ func runDocument(args []string, stdout, stderr io.Writer) int {
 		return status
 	}
 	var plan []planned
-	if target == "techspec" && (given == nil || slices.Contains(given, "md")) {
+	if target == "techspec" {
 		for _, ce := range estates {
-			plan = append(plan, estatePlan(ce, specs, out))
+			p := estatePlan(ce, specs, out)
+			plan = append(plan, p)
+			if d, ok := estateMarkdownOnly(ce, p.path, given); ok {
+				fmt.Fprintln(stdout, d.String())
+			}
 		}
 	}
 	failed := false
@@ -866,6 +870,9 @@ func parseTargetArgs(verb string, known, flags []string, args []string) (target,
 		return "", "", false, nil, set, fmt.Sprintf("specarch %s needs a target and at least one folder", verb)
 	}
 	target = args[0]
+	if strings.HasPrefix(target, "-") && len(target) > 1 && target != "--" {
+		return "", "", false, nil, set, fmt.Sprintf("specarch %s takes its target first, before the option %s: specarch %s <target> [options] <folder>...", verb, target, verb)
+	}
 	if known != nil {
 		found := false
 		for _, t := range known {
@@ -915,6 +922,24 @@ func parseTargetArgs(verb string, known, flags []string, args []string) (target,
 	return target, out, check, paths, set, ""
 }
 
+// firstPositional is the first argument that is neither an option nor
+// the folder of --out: the target a reader meant, wherever the options
+// stand.
+func firstPositional(args []string) string {
+	for i := 0; i < len(args); i++ {
+		switch a := args[i]; {
+		case a == "--":
+			return ""
+		case a == "--out":
+			i++
+		case strings.HasPrefix(a, "-") && len(a) > 1:
+		default:
+			return a
+		}
+	}
+	return ""
+}
+
 func contains(list []string, s string) bool {
 	for _, v := range list {
 		if v == s {
@@ -932,6 +957,27 @@ func idiomUses(path string, root *yaml.Node, s *spec.Spec) []generate.IdiomUse {
 		out = append(out, generate.IdiomUse{Name: u.Name, Version: u.Version, As: u.As, From: u.From, Why: u.Why, Parts: u.Parts})
 	}
 	return out
+}
+
+// estateMarkdownOnly is the warning, at the estate file, that its module
+// map is written as Markdown only when --format names docx or pdf
+// (ADR-249): an estate has no front matter for a book.
+func estateMarkdownOnly(ce checkedEstate, path string, given []string) (validate.Diagnostic, bool) {
+	var others []string
+	for _, f := range given {
+		if f != "md" {
+			others = append(others, f)
+		}
+	}
+	if len(others) == 0 {
+		return validate.Diagnostic{}, false
+	}
+	d := validate.Diagnostic{File: ce.estate.Path, Line: 1, Column: 1, Severity: validate.Warning, Path: "/", Rule: validate.RuleDocumentFormat,
+		Message: fmt.Sprintf("the estate's module map is written as Markdown only, %s, not as %s: an estate has no implementation file, approval or release record to give a book its front matter, and its rows link to each module's specarch.yaml; each module's techspec is written in the formats asked",
+			filepath.ToSlash(path), strings.Join(others, " or "))}
+	ds := []validate.Diagnostic{d}
+	(&validate.Placer{Dir: filepath.Dir(ce.estate.Path)}).Place(ds)
+	return ds[0], true
 }
 
 // estatePlan is the module map of an estate, written to --out or to the

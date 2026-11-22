@@ -109,6 +109,13 @@ decisions:
          the formats the entry lists.
       8. An error of a writer names the target, the format, the file and
          what the writer said.
+      9. The estate's module map, which techspec writes over an estate
+         file (ADR-113), is Markdown only: estate.md is written whatever
+         the formats, and when --format names docx or pdf a warning at the
+         estate file (document_format) says the map is written as
+         Markdown only and why, while each module's techspec is written in
+         the formats asked. A targets entry's formats are a module's and
+         never reach the estate, which has no implementation file.
     why: |
       One option on specarch document keeps one way to say one thing (the
       Low IQ Tax): the output folder, --check, --dry-run, --audience,
@@ -171,6 +178,15 @@ decisions:
           The writer gives the same bytes for the same input, so a byte
           comparison is exact and simpler; a structural comparison would
           only be needed for a writer that varies.
+      - option: The estate's module map as a Word or PDF book too
+        why: |
+          A book's front matter is the specification's version, date,
+          approval, owners and change history, and an estate has none of
+          them: no implementation file, no approval and no release
+          records. Its rows link to each module's specarch.yaml, which a
+          Word or PDF book can only print as a target in brackets. Writing
+          it as Markdown and saying so keeps the map readable where its
+          links work and leaves nothing out without a word.
       - option: md for the books, the documents of a book concatenated
         why: |
           The links between the documents of a book name their files

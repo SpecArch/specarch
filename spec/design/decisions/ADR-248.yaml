@@ -61,7 +61,8 @@ decisions:
          release record of that version, else the front matter says the
          version is not dated and marks it as a gap. A table of contents
          of the headings down to the third level, with page numbers, comes
-         next, and the Problems and gaps list last.
+         next, its last entry the Problems and gaps list, which ends the
+         book, so a reader of the printed book finds the list's page.
       4. The PDF is written by SpecArch's own writer on the standard
          library, with the Go fonts (regular, bold, italic and mono, from
          golang.org/x/image, BSD-3-Clause) embedded as subsets, as CID
@@ -95,7 +96,10 @@ decisions:
          Stakeholders unconfirmed paragraph, and every gap of the front
          matter, is drawn as a marked box at its entry and listed, in the
          order of the book, in its Problems and gaps list, the mark and
-         the entry each linking to the other. An invalid specification
+         the entry each linking to the other. The list groups the marks
+         under the first heading of their document, and the front
+         matter's under Front matter: its first heading is the book's
+         title, which the first document's own heading may repeat. An invalid specification
          gets its four books, and the run exits 1 as every document does
          (ADR-065).
       8. A Mermaid block is printed as its source in a labelled box: no Go

@@ -22,6 +22,7 @@ type Part struct {
 // language.
 type Texts struct {
 	Contents      string // the table of contents' heading
+	FrontMatter   string // the front matter's heading in the problems and gaps list
 	Problems      string // the problems and gaps list's heading
 	ProblemsIntro string // the sentence under it, with %d for the count
 	NoProblems    string // the sentence when there is none

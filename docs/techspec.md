@@ -1890,11 +1890,12 @@ approved, else the release record's of that version, else the front
 matter says the version is not dated and marks it as a gap; nothing
 comes from the clock, so a second run writes the same bytes. A table
 of contents of the headings to the third level with page numbers
-follows, and the Problems and gaps list ends the book: every
-Problem, Open question, Open change request, Draft and Stakeholders
-unconfirmed paragraph of its documents and every gap of the front
-matter, each drawn as a marked box at its entry and listed in book
-order, the two linked both ways. Each heading is a bookmark and a
+follows, its last entry the Problems and gaps list, which ends the
+book: every Problem, Open question, Open change request, Draft and
+Stakeholders unconfirmed paragraph of its documents and every gap of
+the front matter, each drawn as a marked box at its entry and listed
+in book order under the heading of its document (Front matter for
+the front matter's), the two linked both ways. Each heading is a bookmark and a
 link target, a link between the documents of a book goes to its
 heading, an element's id (a key holding a digit or a hyphen) in a
 sentence or a table cell links to the first heading that is that id
@@ -19921,7 +19922,8 @@ Decision: 1. The command stays specarch document: brd and pdf are two more
    release record of that version, else the front matter says the
    version is not dated and marks it as a gap. A table of contents
    of the headings down to the third level, with page numbers, comes
-   next, and the Problems and gaps list last.
+   next, its last entry the Problems and gaps list, which ends the
+   book, so a reader of the printed book finds the list's page.
 4. The PDF is written by SpecArch's own writer on the standard
    library, with the Go fonts (regular, bold, italic and mono, from
    golang.org/x/image, BSD-3-Clause) embedded as subsets, as CID
@@ -19955,7 +19957,10 @@ Decision: 1. The command stays specarch document: brd and pdf are two more
    Stakeholders unconfirmed paragraph, and every gap of the front
    matter, is drawn as a marked box at its entry and listed, in the
    order of the book, in its Problems and gaps list, the mark and
-   the entry each linking to the other. An invalid specification
+   the entry each linking to the other. The list groups the marks
+   under the first heading of their document, and the front
+   matter's under Front matter: its first heading is the book's
+   title, which the first document's own heading may repeat. An invalid specification
    gets its four books, and the run exits 1 as every document does
    (ADR-065).
 8. A Mermaid block is printed as its source in a labelled box: no Go
@@ -20198,7 +20203,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-traceability-goals | command document | system | golden | a specification stating its problem, a goal, an out-of-scope entry and two quality goals written out of rank order | document traceability is run | the traceability matrix has a Goals column naming the goals each requirement's needs serve, and exits 0 |
 | document-traceability-harm | command document | acceptance | golden | a specification with two requirements, one of which names two harms | document traceability is run | it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0 |
 | document-two-implementations | command document | system | golden | a specification with two implementation files, one of which names techspec's output folder | document techspec is run on it | chapter 7 has one part for each implementation, the header names both, and it exits 0 |
-| document-unknown-target | command document | system | red | a target name that does not exist | document is run with target pdf | it names the targets there are and exits 2 |
+| document-unknown-target | command document | system | red | a target name that does not exist | document is run with target no-such-target | it names the targets there are and exits 2 |
 | document-usage-error | command document | system | red | no target | document is run without arguments | it prints how to use it and exits 2 |
 | document-writes-changes | command document | system | golden | a specification with an approved and a released change request and a confirmed defect in the records beside it | document changes is run | it writes changes.md with the open change first, each item's affects and decision, the defect with what it violates, and exits 0 |
 | document-writes-changes-reach | command document | system | golden | an approved and an analysed change request from the acceptance test, each with the build it is against, where it was seen, what was observed and expected and its cause, the second with the question its analysis raised; a defect from acceptance; a test verifying the requirement one names, an operation whose answer reads the entity, an implementation file whose sql target reads entities and whose go-dxlib target reads paths | document changes is run | it writes changes.md with each remark's build, place, observed and expected, its cause and questions, and under each open change what it reaches: the elements, the test, the operation, the sql target, the documents and the approval it would void, and exits 0 |

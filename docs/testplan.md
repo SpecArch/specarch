@@ -1708,7 +1708,7 @@ Scenario: golden; level: system; verifies SA-7, SA-8.
 Scenario: red; level: system; covers exit 2.
 
 - Given: a target name that does not exist
-- When: document is run with target pdf
+- When: document is run with target no-such-target
 - Then: it names the targets there are and exits 2
 
 #### document-usage-error

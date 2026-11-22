@@ -10,6 +10,7 @@ translations:
   "operations guide": "panduan operasional"
   "test plan": "test plan"
   "Contents": "Daftar isi"
+  "Front matter": "Halaman depan"
   "Problems and gaps": "Masalah dan gap"
   "%d problems and gaps are marked in this book, each at its entry; each number links to the mark, and the mark's label links back here.": "Ada %d masalah dan gap yang ditandai di buku ini, masing-masing di entry-nya; tiap nomor menuju tandanya, dan label tanda itu kembali ke sini."
   "No problem or gap is marked in this book.": "Tidak ada masalah atau gap yang ditandai di buku ini."

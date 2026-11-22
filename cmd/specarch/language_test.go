@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/SpecArch/specarch/internal/generate"
+	pdfreader "github.com/ledongthuc/pdf"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -232,4 +233,73 @@ func githubSlug(s string) string {
 		}
 	}
 	return b.String()
+}
+
+// TestBookMarksInEveryLanguage writes the pdf target from a specification
+// with gaps and problems in every language a catalog gives, and requires
+// each book to mark and list as many problems and gaps as the English
+// book: the marks are found by their translated leads, so a lead the
+// catalog words differently from what the documents write would drop
+// marks from the list.
+func TestBookMarksInEveryLanguage(t *testing.T) {
+	const intro = "%d problems and gaps are marked in this book, each at its entry"
+	counts := func(tag, sentence string) map[string]int {
+		out := filepath.Join(t.TempDir(), tag)
+		var stdout, stderr bytes.Buffer
+		if status := run([]string{"document", "pdf", "--language", tag, "--out", out, "../../spec/tests/document-pdf-gaps/project"}, &stdout, &stderr); status == 2 {
+			t.Fatalf("document pdf --language %s: exit 2: %s%s", tag, stdout.String(), stderr.String())
+		}
+		before, after, _ := strings.Cut(sentence, "%d")
+		found := regexp.MustCompile(regexp.QuoteMeta(before) + `(\d+)` + regexp.QuoteMeta(after))
+		got := map[string]int{}
+		for _, name := range generate.BookFiles {
+			data, err := os.ReadFile(filepath.Join(out, name))
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, err := pdfreader.NewReader(bytes.NewReader(data), int64(len(data)))
+			if err != nil {
+				t.Fatalf("%s in %s does not read as a PDF: %v", name, tag, err)
+			}
+			var all strings.Builder
+			for i := 1; i <= r.NumPage(); i++ {
+				text, err := r.Page(i).GetPlainText(nil)
+				if err != nil {
+					t.Fatalf("%s in %s, page %d: %v", name, tag, i, err)
+				}
+				all.WriteString(text)
+			}
+			text := strings.Join(strings.Fields(all.String()), " ")
+			m := found.FindStringSubmatch(text)
+			if m == nil {
+				t.Errorf("%s in %s holds no %q sentence:\n%s", name, tag, sentence, text)
+				continue
+			}
+			got[name], _ = strconv.Atoi(m[1])
+		}
+		return got
+	}
+	english := counts("en", intro)
+	for _, name := range generate.BookFiles {
+		if english[name] == 0 {
+			t.Errorf("%s in en lists no problem or gap; the specification has both", name)
+		}
+	}
+	for _, tag := range generate.Languages()[1:] {
+		catalog, err := generate.LoadCatalog(tag)
+		if err != nil {
+			t.Fatal(err)
+		}
+		sentence := catalog.Translations[intro+"; each number links to the mark, and the mark's label links back here."]
+		sentence, _, _ = strings.Cut(sentence, ",")
+		if !strings.Contains(sentence, "%d") {
+			t.Fatalf("the catalog of %s gives the problems list's sentence as %q, with no %%d for the count", tag, sentence)
+		}
+		got := counts(tag, sentence)
+		for _, name := range generate.BookFiles {
+			if got[name] != english[name] {
+				t.Errorf("%s in %s lists %d problems and gaps; in en it lists %d", name, tag, got[name], english[name])
+			}
+		}
+	}
 }

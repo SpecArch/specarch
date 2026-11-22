@@ -51,10 +51,11 @@ verifies among them.
    was made from, the documents the book contains, and the change history,
    one row per release record, newest first.
 2. **Contents**: every heading to the third level, with its page, each a
-   link.
+   link, and last the Problems and gaps list.
 3. **The documents**, each starting on a new page.
-4. **Problems and gaps**: every mark of the book, grouped by document,
-   each with the page of its mark.
+4. **Problems and gaps**: every mark of the book, grouped by document
+   (the front matter's under Front matter), each with the page of its
+   mark.
 
 The date is the approval's when the version is approved
 (`specarch approve`), else the date of the release record of that version

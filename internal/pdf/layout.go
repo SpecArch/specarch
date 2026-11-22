@@ -424,6 +424,9 @@ func (b *book) layout() {
 	for _, t := range b.toc {
 		b.tocEntry(toc, t)
 	}
+	// The problems and gaps list ends the book; its page is known once the
+	// layout is done, as every other entry's is.
+	b.tocEntry(toc, tocEntry{level: 1, text: b.opt.Texts.Problems, dest: "problems"})
 
 	for pi := 1; pi < len(b.parts); pi++ {
 		b.newPage()
@@ -815,10 +818,16 @@ func (b *book) problems() {
 		if l == nil || mk.part != part {
 			// The marks of each document under its title.
 			part = mk.part
+			title := b.titles[part]
+			if part == "front" {
+				// The front matter's first heading is the book's title,
+				// which a document's own heading may repeat.
+				title = tx.FrontMatter
+			}
 			b.y += 6
 			b.ensure(12 * 1.3 * 3)
 			h := b.add(b.root, "H2")
-			b.place(h, b.lines([]piece{{text: b.titles[part], face: bold, size: 12, color: black}}, width), left, 12*1.3, nil)
+			b.place(h, b.lines([]piece{{text: title, face: bold, size: 12, color: black}}, width), left, 12*1.3, nil)
 			b.y += 3
 			l = b.add(b.root, "L")
 		}

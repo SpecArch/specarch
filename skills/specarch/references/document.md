@@ -367,11 +367,12 @@ approved, else the release record's of that version, else the front
 matter says the version is not dated and marks it as a gap; nothing
 comes from the clock, so a second run writes the same bytes. A table
 of contents of the headings to the third level with page numbers
-follows, and the Problems and gaps list ends the book: every
-Problem, Open question, Open change request, Draft and Stakeholders
-unconfirmed paragraph of its documents and every gap of the front
-matter, each drawn as a marked box at its entry and listed in book
-order, the two linked both ways. Each heading is a bookmark and a
+follows, its last entry the Problems and gaps list, which ends the
+book: every Problem, Open question, Open change request, Draft and
+Stakeholders unconfirmed paragraph of its documents and every gap of
+the front matter, each drawn as a marked box at its entry and listed
+in book order under the heading of its document (Front matter for
+the front matter's), the two linked both ways. Each heading is a bookmark and a
 link target, a link between the documents of a book goes to its
 heading, an element's id (a key holding a digit or a hyphen) in a
 sentence or a table cell links to the first heading that is that id

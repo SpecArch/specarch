@@ -68,6 +68,7 @@ func Books(root *yaml.Node, relRoot string, impls []Implementation, state *State
 			IsMark:      isMark,
 			Texts: pdf.Texts{
 				Contents:      tr("Contents"),
+				FrontMatter:   tr("Front matter"),
 				Problems:      tr("Problems and gaps"),
 				ProblemsIntro: tr("%d problems and gaps are marked in this book, each at its entry; each number links to the mark, and the mark's label links back here."),
 				NoProblems:    tr("No problem or gap is marked in this book."),

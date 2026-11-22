@@ -12,6 +12,7 @@ import (
 
 var testTexts = Texts{
 	Contents:      "Contents",
+	FrontMatter:   "Front matter",
 	Problems:      "Problems and gaps",
 	ProblemsIntro: "%d problems and gaps are marked.",
 	NoProblems:    "No problem or gap is marked.",
@@ -216,6 +217,15 @@ func TestBookText(t *testing.T) {
 		if !strings.Contains(text, want) {
 			t.Errorf("the book's text does not hold %q:\n%s", want, text)
 		}
+	}
+	// The front matter's marks go under a heading of their own, not under
+	// the book's title; the contents name the problems and gaps list, so
+	// its heading shows twice in the page text.
+	if !strings.Contains(text, "Front matter 1. Gap: version 1.0.0") {
+		t.Errorf("the problems and gaps list does not put the front matter's mark under \"Front matter\":\n%s", text)
+	}
+	if n := strings.Count(text, "Problems and gaps"); n < 2 {
+		t.Errorf("the book's text names \"Problems and gaps\" %d times; want the contents entry and the list's heading", n)
 	}
 	// The contents (one per heading), the matrix link, the ids, the two
 	// marks and their two list entries at least.

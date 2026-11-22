@@ -83,13 +83,13 @@ libraries:
     licence: MIT
     purpose: "Needed by xxh3 to choose its instructions. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
   golang.org/x/sync:
-    version: v0.24.0
+    version: v0.25.0
     licence: BSD-3-Clause
-    purpose: "Wait groups for the TypeScript compiler's parallel work; typescript-go v7.0.2 pins v0.21.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+    purpose: "Wait groups for the TypeScript compiler's parallel work; typescript-go v7.0.2 pins v0.21.0, and the newer release the module graph already holds is taken (golang.org/x/text v0.44.0, which golang.org/x/image v0.48.0 requires, requires v0.25.0). SBOM scan on 2026-11-22: syft 1.57.1, grype 0.121.3, osv-scanner 2.7.1 and govulncheck 1.9.0 found no vulnerability."
   golang.org/x/sys:
-    version: v0.47.0
+    version: v0.50.0
     licence: BSD-3-Clause
-    purpose: "The operating system's file system for the TypeScript compiler; typescript-go v7.0.2 pins v0.46.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability."
+    purpose: "The operating system's file system for the TypeScript compiler; typescript-go v7.0.2 pins v0.46.0, and the newer release the module graph already holds is taken (golang.org/x/image v0.48.0 requires v0.50.0). SBOM scan on 2026-11-22: syft 1.57.1, grype 0.121.3, osv-scanner 2.7.1 and govulncheck 1.9.0 found no vulnerability."
   analyzer:
     version: 14.4.0
     licence: BSD-3-Clause

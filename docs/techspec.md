@@ -735,8 +735,8 @@ flowchart LR
     library_github_com_go_json_experiment_json["github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68"]
     library_github_com_zeebo_xxh3["github.com/zeebo/xxh3 v1.1.0"]
     library_github_com_klauspost_cpuid_v2["github.com/klauspost/cpuid/v2 v2.2.10"]
-    library_golang_org_x_sync["golang.org/x/sync v0.24.0"]
-    library_golang_org_x_sys["golang.org/x/sys v0.47.0"]
+    library_golang_org_x_sync["golang.org/x/sync v0.25.0"]
+    library_golang_org_x_sys["golang.org/x/sys v0.50.0"]
     library_analyzer["analyzer 14.4.0"]
   end
 ```
@@ -5847,8 +5847,8 @@ Stack: language Go 1.27; toolchain go 1.27.3; platforms darwin/arm64, darwin/amd
 | github.com/go-json-experiment/json | v0.0.0-20260623181947-01eb4420fa68 | BSD-3-Clause | JSON for the TypeScript compiler's configuration files and diagnostics, at the version typescript-go v7.0.2 pins. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
 | github.com/zeebo/xxh3 | v1.1.0 | BSD-2-Clause | The hash the TypeScript compiler keys its caches by, at the version typescript-go v7.0.2 pins. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
 | github.com/klauspost/cpuid/v2 | v2.2.10 | MIT | Needed by xxh3 to choose its instructions. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
-| golang.org/x/sync | v0.24.0 | BSD-3-Clause | Wait groups for the TypeScript compiler's parallel work; typescript-go v7.0.2 pins v0.21.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
-| golang.org/x/sys | v0.47.0 | BSD-3-Clause | The operating system's file system for the TypeScript compiler; typescript-go v7.0.2 pins v0.46.0, and the newer release the module graph already holds is taken. SBOM scan on 2026-10-14: syft 1.54.1, grype 0.120.1, osv-scanner 2.6.0 and govulncheck 1.8.0 found no vulnerability. |
+| golang.org/x/sync | v0.25.0 | BSD-3-Clause | Wait groups for the TypeScript compiler's parallel work; typescript-go v7.0.2 pins v0.21.0, and the newer release the module graph already holds is taken (golang.org/x/text v0.44.0, which golang.org/x/image v0.48.0 requires, requires v0.25.0). SBOM scan on 2026-11-22: syft 1.57.1, grype 0.121.3, osv-scanner 2.7.1 and govulncheck 1.9.0 found no vulnerability. |
+| golang.org/x/sys | v0.50.0 | BSD-3-Clause | The operating system's file system for the TypeScript compiler; typescript-go v7.0.2 pins v0.46.0, and the newer release the module graph already holds is taken (golang.org/x/image v0.48.0 requires v0.50.0). SBOM scan on 2026-11-22: syft 1.57.1, grype 0.121.3, osv-scanner 2.7.1 and govulncheck 1.9.0 found no vulnerability. |
 | analyzer | 14.4.0 | BSD-3-Clause | Parses Dart source with parseString in the Dart reader of specarch extract, readers/dart (ADR-092); not linked into specarch. Pinned exactly in readers/dart/pubspec.yaml, with its tree in pubspec.lock: _fe_analyzer_shared 108.0.0, async 2.13.1, collection 1.19.1, convert 3.1.2, crypto 3.0.7, file 7.0.1, glob 2.2.0, meta 1.19.0, package_config 3.0.0, path 1.9.1, pub_semver 2.2.1, source_span 1.10.2, string_scanner 1.4.1, term_glyph 1.2.2, typed_data 1.4.0 and watcher 1.2.1 (BSD-3-Clause), and yaml 3.1.4 (MIT). The Go build refuses a dump another version made. SBOM scan on 2026-10-09: syft 1.54.0, grype 0.120.0 and osv-scanner 2.6.0 found no vulnerability. |
 
 #### Layout

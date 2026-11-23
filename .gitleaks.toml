@@ -1,0 +1,19 @@
+# gitleaks configuration: the default rules, plus one allowance.
+#
+# govulncheck's JSON reports under sbom/<tag>/reports/ quote each advisory's
+# references, among them public commit links of the Go project
+# (https://go.googlesource.com/<repo>/+/<40-hex commit>). The default rule
+# sourcegraph-access-token matches any bare 40-hex string, so every such link
+# reads as a token. Only a line holding such a link, in such a report, is
+# allowed; a token anywhere else, or on another line of the report, is still
+# found.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Go project commit links in govulncheck reports"
+condition = "AND"
+regexTarget = "line"
+paths = ['''^sbom/[^/]+/reports/govulncheck-[0-9]+\.json$''']
+regexes = ['''https://go\.googlesource\.com/[a-z]+/\+/[0-9a-f]{40}''']

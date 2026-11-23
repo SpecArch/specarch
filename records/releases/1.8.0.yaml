@@ -6,3 +6,4 @@ date: "2026-11-23"
 specificationVersion: 1.8.0
 implementations: { go: 0.1.0, swift: 0.1.0 }
 includes: [CR-55, CR-56, CR-57]
+commit: 0137de3e9bf40f9284eb2c33212fb3608d7dabcb

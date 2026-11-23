@@ -1,0 +1,51 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-55
+title: Warn about seven design security weaknesses in the specification, at the element to change and in the problems file
+raisedBy: specification-author
+raised: "2026-11-14"
+phase: development
+type: additive
+urgency: normal
+reason: A specification could describe an operation that reaches any record by its key, an internal sequence number handed to callers, a refusal that tells whether a record exists, a query built from what a caller sends, roles with no separation of duties, a secret kept as it is or an audit trail that can be changed, and nothing said so before code was written from it.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-247"
+    - "#/requirements/SA-146"
+    - "#/requirements/SA-147"
+    - "#/sources/nist-sp-800-57-1"
+    - "#/sources/nist-sp-800-63b"
+    - "#/sources/owasp-api-security-top-10"
+    - "#/tests/document-problems-security-tags"
+    - "#/tests/generate-sql-hashed-refused"
+    - "#/tests/validate-security-audit-not-append-only"
+    - "#/tests/validate-security-audit-not-append-only-changed"
+    - "#/tests/validate-security-audit-not-append-only-fixed"
+    - "#/tests/validate-security-audit-not-append-only-moved"
+    - "#/tests/validate-security-audit-not-append-only-moved-fixed"
+    - "#/tests/validate-security-duties-unseparated"
+    - "#/tests/validate-security-duties-unseparated-fixed"
+    - "#/tests/validate-security-hashed-at-rest"
+    - "#/tests/validate-security-internal-key-exposed"
+    - "#/tests/validate-security-internal-key-exposed-fixed"
+    - "#/tests/validate-security-object-unscoped"
+    - "#/tests/validate-security-object-unscoped-fixed"
+    - "#/tests/validate-security-query-from-caller"
+    - "#/tests/validate-security-query-from-caller-fixed"
+    - "#/tests/validate-security-refusal-reveals-record"
+    - "#/tests/validate-security-refusal-reveals-record-fixed"
+    - "#/tests/validate-security-secret-unprotected"
+    - "#/tests/validate-security-secret-unprotected-fixed"
+  changes:
+    - "#/commands/document"
+    - "#/enums/Rule"
+    - "#/tests/validate-guard-writes"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-14"
+  outcome: approved
+  why: "ADR-247, SA-146 and SA-147: validate warns object_unscoped, internal_key_exposed, refusal_reveals_record, query_from_caller, duties_unseparated, secret_unprotected and audit_not_append_only in both builds, each at the element to change, and the problems file's SARIF tags them as security rules; a hashed field that is a key, unique or searchable is refused under at_rest and list_of, and generate sql refuses one. secret_unprotected's rotation part holds only on meta-model 1.0 or later. Every new rule is a warning, so a specification valid on 1.7.0 stays valid; the hashed-field refusals reach only a design that could never have worked. The owner decided on 2026-11-23 to release it as 1.8.0, a minor step."
+release: 1.8.0
+status: released

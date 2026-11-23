@@ -1,0 +1,36 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-57
+title: Write every Markdown document as Markdown, Word or PDF with one --format option
+raisedBy: specification-author
+raised: "2026-11-23"
+phase: development
+type: additive
+urgency: normal
+reason: Every reader uses a document in a form of their own, Markdown in the repository, Word for review and sign-off, PDF for distribution, but only the books were written as PDF and no document as Word.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-249"
+    - "#/enums/DocumentFormat"
+    - "#/requirements/SA-149"
+    - "#/tests/document-books-docx"
+    - "#/tests/document-estate-map-markdown-only"
+    - "#/tests/document-format-books-md-refused"
+    - "#/tests/document-format-check-missing"
+    - "#/tests/document-format-from-targets"
+    - "#/tests/document-format-gaps"
+    - "#/tests/document-format-html-refused"
+    - "#/tests/validate-document-format"
+  changes:
+    - "#/commands/document"
+    - "#/enums/DocumentTarget"
+    - "#/enums/Rule"
+impact: minor
+decision:
+  by: specification-author
+  date: "2026-11-23"
+  outcome: approved
+  why: "ADR-249 and SA-149: document takes --format md, docx, pdf, several of them or all, and without it the formats a targets entry lists, else md as before; the Word and PDF forms are rendered by SpecArch's own writers from the one model of the Markdown, and the books target writes its four books as pdf or docx under names of their own. The usage error (exit 2) now also names a --format the target does not write, which specarch diff counts as a major change to the document command; a run that worked on 1.7.0 works the same, since every new refusal needs the new option or a new key. validate warns document_format at a targets entry whose formats the target does not write. The owner decided on 2026-11-23 to release it as 1.8.0, a minor step."
+release: 1.8.0
+status: released

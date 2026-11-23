@@ -318,7 +318,7 @@ communications, sessions, test sessions and deploys). The same schema gives edit
 validation and completion through `yaml-language-server`: put this on the
 first line of a root file and most editors pick it up.
 
-    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.6.0/schema/specarch-design-1.0.schema.json
+    # yaml-language-server: $schema=https://raw.githubusercontent.com/SpecArch/specarch/v1.8.0/schema/specarch-design-1.0.schema.json
 
 ## The rules SpecArch serves
 
@@ -412,7 +412,7 @@ SpecArch has two builds from the same design.
 
 **The Go build** has every command. With Go 1.27.3 or later:
 
-    go install github.com/SpecArch/specarch/cmd/specarch@v1.7.0
+    go install github.com/SpecArch/specarch/cmd/specarch@v1.8.0
 
 or, from a clone of this repository:
 
@@ -429,7 +429,7 @@ target. Install them at the same tag as `specarch`:
 
     for g in openapi sql seed sqlc scripts tests-go tests-swift tests-dart go-dxlib \
              ui ui-typescript ui-vue-htm ui-swiftui bpmn register deploy; do
-      go install github.com/SpecArch/specarch/cmd/specarch-gen-$g@v1.7.0
+      go install github.com/SpecArch/specarch/cmd/specarch-gen-$g@v1.8.0
     done
 
 | Generator | Run by | Writes |
@@ -744,7 +744,7 @@ answers with. `docs/generators.md` has the protocol.
 Version 1.0.0 of the meta-model, October 2026, the first stable version;
 a file written against 0.3, 0.2 or 0.1 is read beside it with a warning, a
 0.1 file with its missing tests as warnings, and `specarch upgrade` moves
-it. Release 1.7.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
+it. Release 1.8.0 is the latest. The schemas, the tree layout and the seven stages, SpecArch's own
 specification, seven examples, the validator in Go and in Swift, twenty
 documents, open questions with the gaps report, `decide` and the
 comparison, the approval gate on generation, the extract readers with `merge`, `check`, `diff`, `derive`

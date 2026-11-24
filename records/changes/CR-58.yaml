@@ -1,0 +1,28 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-58
+title: Draw every Mermaid diagram in a document's pdf instead of printing its source
+raisedBy: specification-author
+raised: "2026-11-24"
+phase: development
+type: additive
+urgency: normal
+reason: A reader of a document's pdf, or of the technical specification book, saw the source lines of an erDiagram or a flowchart where the entity diagram and the workflows should be, since a PDF reader has no Mermaid renderer.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-250"
+    - "#/tests/document-diagrams-drawn-in-pdf"
+    - "#/tests/document-html-draws-diagrams"
+  changes:
+    - "#/commands/document"
+    - "#/requirements/SA-148"
+    - "#/requirements/SA-149"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-24"
+  outcome: approved
+  why: "ADR-250: a pdf draws each Mermaid diagram its Markdown carries, laid out by SpecArch's own renderer of the Mermaid the document targets write, as a tagged figure with its description; a block it cannot read is printed as its source with the reason. No option, exit code or output of Markdown, html or docx changes, so a run that worked on 1.8.0 works the same; only the pdf's pages differ."
+release: 1.8.1
+status: released

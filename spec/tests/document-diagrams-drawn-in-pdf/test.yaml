@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with two related entities and a workflow with two approvals and an operation"
+when: "document techspec is run with --format md,pdf"
+then: "techspec.md carries the entity diagram and the workflow as Mermaid blocks, techspec.pdf draws both as tagged figures with their labels as text and prints no Mermaid source, and it exits 0"
+verifies: [SA-149]

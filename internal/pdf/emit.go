@@ -147,6 +147,12 @@ func (b *book) emit() ([]byte, error) {
 		if pg != nil {
 			extra = fmt.Sprintf(" /Pg %d 0 R", pg.obj)
 		}
+		if x.alt != "" {
+			extra += " /Alt " + textString(x.alt)
+		}
+		if x.bbox != nil {
+			extra += fmt.Sprintf(" /A << /O /Layout /BBox [%s %s %s %s] >>", num(x.bbox[0]), num(x.bbox[1]), num(x.bbox[2]), num(x.bbox[3]))
+		}
 		e.obj(x.obj, "<< /Type /StructElem /S /%s /P %d 0 R%s /K [%s] >>", x.typ, parent, extra, strings.Join(kids, " "))
 	}
 	var nums []string
@@ -336,6 +342,8 @@ func (e *emitter) content(p *page) []byte {
 			fmt.Fprintf(&s, "%s rg %s %s %s %s re f\n", colour(o.color), num(o.x), num(pageH-o.y-o.h), num(o.w), num(o.h))
 		case strokeOp:
 			fmt.Fprintf(&s, "%s RG 0.4 w %s %s %s %s re S\n", colour(o.color), num(o.x), num(pageH-o.y-o.h), num(o.w), num(o.h))
+		case pathOp:
+			s.WriteString(o.text + "\n")
 		}
 	}
 	closeAll()

@@ -1,0 +1,138 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-250:
+    title: A pdf draws every Mermaid diagram its Markdown carries, laid out by SpecArch's own renderer of the Mermaid the documents write, as a tagged figure with a description; the Markdown keeps the Mermaid source, the html draws the entity diagram and the workflows, and a docx prints the source
+    status: accepted
+    date: "2026-11-24"
+    context: |
+      The owner opened the generated documents and found the diagrams as
+      source text in the pdf: a reader of the techspec's pdf, or of the
+      technical specification book, saw the lines of an erDiagram or a
+      flowchart where the entity diagram and the workflows should be.
+      ADR-248 chose to print a Mermaid block as its source, labelled,
+      because no Go renderer of Mermaid existed and a second renderer
+      would draw differently from every other reader of the Markdown;
+      ADR-249 kept that for every document's pdf and docx.
+
+      A PDF reader has no Mermaid renderer at all, so the choice in a pdf
+      is not between two drawings but between a drawing and none. Mermaid's
+      own renderer is JavaScript running in a browser: mermaid-cli drives a
+      headless Chromium, needs Node.js on the machine, and gives different
+      SVG for a different version of Mermaid, Chromium or the fonts, so
+      --check and approve, which compare a pdf byte for byte (ADR-249),
+      could not pass. The Mermaid in a document is SpecArch's own output,
+      a closed part of the language that the document targets write:
+      flowchart LR and TD with eleven node shapes, labelled solid and
+      dashed arrows and subgraphs one level deep; stateDiagram-v2 with
+      [*] and labelled transitions; erDiagram with attribute blocks and
+      the four cardinalities on each end; and sequenceDiagram with
+      participants, messages and notes. The html target already draws
+      the entity diagram from the specification and the workflows through
+      specarch-gen-bpmn, and the Markdown viewers that draw Mermaid
+      (GitHub, an editor's preview) draw the Markdown's blocks.
+    decision: |
+      1. The pdf of every document and book draws each Mermaid block as a
+         picture. internal/diagram reads the part of Mermaid the document
+         targets write, the four kinds above, and lays each out in points
+         with the metrics of the Go fonts the pdf is set in:
+         - a flowchart, a state diagram and an entity diagram as a layered
+           graph (Sugiyama's method): a cycle is broken at the arrows that
+           lead back, each node takes the rank of the longest path to it,
+           an arrow crossing ranks gets a point per rank and its label a
+           point the size of its text, the ranks are ordered to cross
+           fewer arrows, each node is placed as near its neighbours as the
+           order allows, and a subgraph is a titled frame around its
+           nodes, moved across when it would cover another node or frame;
+           nodes no arrow touches stand in a grid per subgraph below. It
+           is laid out across or down, whichever the page shows larger,
+           the source's direction winning a tie;
+         - an entity as a table of its attributes (type, name, keys), a
+           relation as a line with its cardinality drawn at each end as a
+           bar for one, a ring for zero and a crow's foot for many;
+         - a sequence diagram as a box per participant at the top and the
+           bottom with its lifeline, the messages down the page in order,
+           each arrow with its text above it, solid or dashed, and a note
+           in a box over the lifelines it names.
+         Every step reads the source in order and no map in its order, so
+         one source gives the same picture and the pdf the same bytes.
+      2. A drawing wider than the text column, or taller than a page, is
+         scaled down to fit them; its text stays vector text and can be
+         zoomed. A heading followed at once by a diagram keeps it on its
+         page.
+      3. The picture is a Figure of the pdf's structure tree with its
+         bounding box and a description for a reader who cannot see it:
+         the kind of diagram and what it draws (the nodes, states,
+         entities or participants, in order), in the document's language.
+         Its labels are real text in the Go fonts, so a search finds
+         them.
+      4. A block internal/diagram cannot read (a kind or a line the
+         document targets never write) is printed as its source, as
+         before, under a label that gives the line and why it was not
+         drawn. Nothing of a block is left out. A test reads every
+         Mermaid block in the repository's documents, the expected
+         outputs of the design tests and the examples', in both
+         languages, and draws each, so the label never shows for what
+         SpecArch writes.
+      5. The Markdown keeps its Mermaid blocks, unchanged: they are the
+         source form, and the viewers that draw Mermaid draw them. The
+         html target keeps drawing the entity diagram and the workflows.
+         A docx prints a Mermaid block as its labelled source, the label
+         saying that the pdf of the document draws it.
+    why: |
+      A diagram printed as source reads to most people as noise, and the
+      pdf is the form a document is filed, signed and read in by those who
+      never open the repository; drawing differently from Mermaid beats not
+      drawing at all, and the Markdown keeps Mermaid's own drawing for the
+      viewers that have it. Rendering the closed part of Mermaid that
+      SpecArch writes, not Mermaid as a whole, is what makes a renderer of
+      its own small enough to write and test here, as the pdf, docx, SARIF
+      and BPMN writers are; the test over every block the generators have
+      written is what keeps that part closed, since a new kind of line in
+      a generator fails it until the renderer draws it. A layered layout
+      is what Mermaid's own dagre layout and Graphviz's dot do for these
+      diagrams, so the picture reads the same way round: the flow along
+      the arrows, the labels on them, the subgraphs framed. Keeping the
+      unreadable block as its source under the reason follows the
+      compiler principle (docs/principles.md): nothing is dropped, and
+      the reason is at the entry.
+    alternatives:
+      - option: mermaid-cli or a headless browser at document time
+        why: |
+          It needs Node.js and Chromium on every machine that writes a
+          document, and its SVG changes with the version of Mermaid, the
+          browser and the fonts, so --check and approve could never compare
+          a pdf; SpecArch has no Node.js (ADR-249).
+      - option: Draw from the specification, as the html does, instead of from the Mermaid
+        why: |
+          The pdf is rendered from the Markdown so that it says nothing the
+          Markdown does not (ADR-248, ADR-249); a drawing made from the
+          specification beside it would be a second source of each diagram
+          and could drift from the block it stands for. Every diagram the
+          documents carry would need its own drawing code, where reading
+          their Mermaid draws them all, the sequence, context, deployment
+          and network diagrams included.
+      - option: Draw only the entity diagram and the workflows, and leave the rest as source
+        why: |
+          A reader would still find source text in the same book for the
+          state, sequence, context, component and deployment diagrams;
+          the four kinds of diagram cost little more than two.
+      - option: Draw the diagrams in the docx too
+        why: |
+          Word draws neither SVG without a PNG beside it nor a picture
+          SpecArch can write without a rasteriser or DrawingML shapes; the
+          request was for the Markdown, the html and the pdf, and the docx
+          says where the drawing is.
+    consequences: |
+      A pdf shows the entity diagram, the state diagrams, the workflows,
+      the sequences of the operations and commands and the context,
+      component, deployment and network diagrams as pictures, each a
+      tagged figure with its description, and no Mermaid source. The
+      picture is SpecArch's layout, not Mermaid's: the same nodes, arrows,
+      labels and frames, placed differently. A generator that writes a new
+      kind of Mermaid line fails the test over the generated blocks until
+      internal/diagram draws it. A large diagram is drawn small, at down
+      to about half its size on a page; its text zooms. The docx still
+      prints the source.
+    weighs: [QG-2, QG-3]
+    satisfies: [SA-149]
+    restsOn: [ADR-248, ADR-249]

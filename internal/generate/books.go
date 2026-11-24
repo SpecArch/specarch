@@ -116,7 +116,6 @@ func writeBook(format string, root *yaml.Node, relRoot string, state *State, tit
 	header := fmt.Sprintf(tr("%s, version %s"), title, str(get(root, "info"), "version"))
 	front := frontMatter(root, relRoot, state, title, def, format)
 	ids := elementIDs(root)
-	mermaid := tr("Mermaid diagram, printed as its source: this document does not draw it, and the html document draws the entity diagram and the workflows.")
 	intro := tr("%d problems and gaps are marked in this book, each at its entry; each number links to the mark, and the mark's label links back here.")
 	switch format {
 	case "pdf":
@@ -130,7 +129,13 @@ func writeBook(format string, root *yaml.Node, relRoot string, state *State, tit
 				NoProblems:    tr("No problem or gap is marked in this book."),
 				OnPage:        tr("page %d"),
 				PageOf:        tr("Page %d of %d"),
-				Mermaid:       mermaid,
+				Mermaid:       tr("Mermaid diagram, printed as its source, since it could not be drawn: %s."),
+				Figures: pdf.Figures{
+					Flowchart: tr("Flowchart of %s."),
+					State:     tr("State diagram of %s."),
+					Entity:    tr("Entity diagram of %s."),
+					Sequence:  tr("Sequence diagram between %s."),
+				},
 			},
 		})
 	case "docx":
@@ -143,7 +148,7 @@ func writeBook(format string, root *yaml.Node, relRoot string, state *State, tit
 				ProblemsIntro: intro,
 				NoProblems:    tr("No problem or gap is marked in this book."),
 				PageOf:        tr("Page %d of %d"),
-				Mermaid:       mermaid,
+				Mermaid:       tr("Mermaid diagram, printed as its source: a Word document does not draw it; the pdf of this document draws it, and the html document draws the entity diagram and the workflows."),
 			},
 		})
 	}

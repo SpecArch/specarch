@@ -20,7 +20,13 @@ var testTexts = Texts{
 	NoProblems:    "No problem or gap is marked.",
 	OnPage:        "page %d",
 	PageOf:        "Page %d of %d",
-	Mermaid:       "Mermaid diagram, printed as its source.",
+	Mermaid:       "Mermaid diagram, printed as its source: %s.",
+	Figures: Figures{
+		Flowchart: "Flowchart of %s.",
+		State:     "State diagram of %s.",
+		Entity:    "Entity diagram of %s.",
+		Sequence:  "Sequence diagram between %s.",
+	},
 }
 
 const testFront = "# Lending: test book\n\n| Item | Value |\n|---|---|\n| Version | 1.0.0 |\n\n**Gap:** version 1.0.0 is not dated.\n"
@@ -49,7 +55,11 @@ A member borrows a copy; see LEND-2 and NEED-1.
 
 Returns are recorded. ⌘ marks a character no font has.
 
-` + "```mermaid\nflowchart LR\n  a --> b\n```" + `
+` + "```mermaid\nflowchart LR\n  a[\"Member desk\"] -->|\"borrows from\"| b([\"Copy shelf\"])\n```" + `
+
+` + "```mermaid\nerDiagram\n  Member ||--o{ Loan : holds\n  Loan {\n    uuid id PK\n    date dueOn\n  }\n```" + `
+
+` + "```mermaid\npie\n  \"lent\" : 3\n```" + `
 
 > A quoted remark.
 
@@ -139,10 +149,17 @@ func TestBookStructure(t *testing.T) {
 		t.Fatal("the catalogue has no structure tree")
 	}
 	types := map[string]int{}
+	var alts []string
 	var walk func(v reader.Value)
 	walk = func(v reader.Value) {
 		if v.Kind() == reader.Dict && v.Key("Type").Name() == "StructElem" {
 			types[v.Key("S").Name()]++
+			if v.Key("S").Name() == "Figure" {
+				alts = append(alts, v.Key("Alt").Text())
+				if v.Key("A").Key("BBox").Len() != 4 {
+					t.Errorf("a Figure has no bounding box")
+				}
+			}
 		}
 		k := v.Key("K")
 		for i := 0; i < k.Len(); i++ {
@@ -150,10 +167,13 @@ func TestBookStructure(t *testing.T) {
 		}
 	}
 	walk(st)
-	for _, typ := range []string{"Document", "H1", "H2", "P", "L", "LI", "Lbl", "LBody", "Table", "TR", "TH", "TD", "Link", "TOC", "TOCI", "Code", "BlockQuote"} {
+	for _, typ := range []string{"Document", "H1", "H2", "P", "L", "LI", "Lbl", "LBody", "Table", "TR", "TH", "TD", "Link", "TOC", "TOCI", "Code", "BlockQuote", "Figure"} {
 		if types[typ] == 0 {
 			t.Errorf("the structure tree has no %s element; it has %v", typ, types)
 		}
+	}
+	if got, want := strings.Join(alts, "|"), "Flowchart of Member desk, Copy shelf.|Entity diagram of Member, Loan."; got != want {
+		t.Errorf("the figures are described as %q, want %q", got, want)
 	}
 	if r.NumPage() < 4 {
 		t.Fatalf("the book has %d pages; the front matter, the contents, each document and the list each start one", r.NumPage())
@@ -213,7 +233,8 @@ func TestBookText(t *testing.T) {
 	text := strings.Join(strings.Fields(all.String()), " ")
 	for _, want := range []string{
 		"Lending: test book", "Contents", "A member borrows a copy", "(../spec/specarch.yaml)", "[U+2318] marks a character",
-		"Mermaid diagram, printed as its source.", "flowchart LR", "a | b", "Problems and gaps", "2 problems and gaps are marked.",
+		"Member desk", "borrows from", "Copy shelf", "Loan", "dueOn", "holds",
+		"Mermaid diagram, printed as its source: line 1: \"pie\" is not a diagram kind this writer draws", "a | b", "Problems and gaps", "2 problems and gaps are marked.",
 		"Gap: version 1.0.0 is not dated.", "Problem: warning: unverified", "Page 1 of",
 	} {
 		if !strings.Contains(text, want) {
@@ -223,6 +244,17 @@ func TestBookText(t *testing.T) {
 	// The front matter's marks go under a heading of their own, not under
 	// the book's title; the contents name the problems and gaps list, so
 	// its heading shows twice in the page text.
+	// The diagrams it draws are pictures with their labels as text, never
+	// their Mermaid source; the one it cannot draw is its source, under
+	// the reason.
+	for _, source := range []string{"flowchart LR", "-->", "||--o{", "Loan {"} {
+		if strings.Contains(text, source) {
+			t.Errorf("the book prints the Mermaid source %q of a diagram it draws:\n%s", source, text)
+		}
+	}
+	if !strings.Contains(text, "\"lent\" : 3") {
+		t.Errorf("the diagram the writer cannot draw is not printed as its source:\n%s", text)
+	}
 	if !strings.Contains(text, "Front matter 1. Gap: version 1.0.0") {
 		t.Errorf("the problems and gaps list does not put the front matter's mark under \"Front matter\":\n%s", text)
 	}
@@ -254,7 +286,7 @@ func TestParseMarkdown(t *testing.T) {
 	for _, b := range blocks {
 		kinds[b.Kind]++
 	}
-	for k, want := range map[mdbook.BlockKind]int{mdbook.HeadingBlock: 5, mdbook.ListBlock: 2, mdbook.CodeBlock: 1, mdbook.QuoteBlock: 1, mdbook.RuleBlock: 1, mdbook.TableBlock: 2} {
+	for k, want := range map[mdbook.BlockKind]int{mdbook.HeadingBlock: 5, mdbook.ListBlock: 2, mdbook.CodeBlock: 3, mdbook.QuoteBlock: 1, mdbook.RuleBlock: 1, mdbook.TableBlock: 2} {
 		if kinds[k] != want {
 			t.Errorf("%d blocks of kind %d, want %d", kinds[k], k, want)
 		}

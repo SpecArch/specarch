@@ -3486,7 +3486,8 @@ edit inside the markers; edit the YAML.
 
 `specarch document techspec` fills every marked region of the `specarch.md`
 beside a root file, and writes the whole technical specification, every
-generated diagram included, to `techspec.md` in the folder it owns. A marker
+generated diagram included, to `techspec.md` in the folder it owns; its
+pdf draws every diagram (`docs/document-formats.md`, Diagrams in the pdf). A marker
 for something the specification does not have is an error. The example in
 `examples/library-lending/` shows both.
 

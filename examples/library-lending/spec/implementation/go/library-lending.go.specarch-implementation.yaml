@@ -74,6 +74,8 @@ bindings:
 targets:
   techspec:
     output: ../../../docs
+    formats: [md, pdf]
+    description: The technical specification, as Markdown for the repository and PDF, with every diagram drawn, for the library's IT staff to read and file.
   requirements:
     output: ../../../docs
   testplan:

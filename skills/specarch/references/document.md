@@ -394,8 +394,16 @@ table cell links to the first heading that is that id or else the
 first table row it starts, and a link that leads outside the book is
 printed with its target. The pages are A4 with the book and the
 specification's version in the header and the page in the footer;
-a table that crosses a page repeats its header row; a Mermaid block
-is printed as its labelled source.
+a table that crosses a page repeats its header row. A pdf draws
+every Mermaid block (ADR-250): internal/diagram reads the Mermaid the
+document targets write (flowchart, stateDiagram-v2, erDiagram and
+sequenceDiagram) and lays it out as a layered graph, a table per
+entity with its relations' cardinalities, or lifelines with the
+messages in order, scaled to the column and to a page, as a Figure
+with its description and its labels as text; a block it cannot read
+is printed as its source under a label giving the line and why. A
+docx prints a Mermaid block as its labelled source, and the
+Markdown keeps it as Mermaid.
 
 A pdf is tagged with the document's language, its header and footer
 artifacts, its text real text in the embedded Go fonts with its

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.8.1-dev of the specification: 1113 design tests, 575 golden and 538 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.8.1-dev of the specification: 1115 design tests, 577 golden and 538 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.8.1-dev of the specification: 1113 design tests, 575 golden and 538 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1109 |
+| system | 1111 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1023,6 +1023,14 @@ Scenario: red; level: system; verifies SA-51.
 - When: document deployment is run
 - Then: it prints the error and writes deployment.md with the error marked by a Problem paragraph at that deployment, once, and counted in the notice under the summary as concerning the document; it exits 1
 
+#### document-diagrams-drawn-in-pdf
+
+Scenario: golden; level: system; verifies SA-149.
+
+- Given: a specification with two related entities and a workflow with two approvals and an operation
+- When: document techspec is run with --format md,pdf
+- Then: techspec.md carries the entity diagram and the workflow as Mermaid blocks, techspec.pdf draws both as tagged figures with their labels as text and prints no Mermaid source, and it exits 0
+
 #### document-draft-notice
 
 Scenario: golden; level: system; verifies SA-18, SA-19.
@@ -1118,6 +1126,14 @@ Scenario: red; level: system; covers exit 2; verifies SA-73.
 - Given: a specification whose implementation file names an output folder for handover, and that has no handover and no environment the customer runs
 - When: document handover is run on it alone
 - Then: it prints a handover warning at the environments saying the specification has no handover document, writes nothing, and exits 2 since every specification given was passed over
+
+#### document-html-draws-diagrams
+
+Scenario: golden; level: system; verifies SA-149.
+
+- Given: a specification with two related entities and a workflow with two approvals and an operation
+- When: document html is run
+- Then: index.html draws the entity diagram as SVG, a box per entity linked to it and a line per relation, and the workflow as its BPMN diagram, prints no Mermaid source, and it exits 0
 
 #### document-html-integer-forms
 
@@ -9019,7 +9035,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-668 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+669 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9440,6 +9456,7 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-149 | acceptance 4 | golden | SA-149 names no harm |
 | requirement SA-149 | acceptance 5 | golden | SA-149 names no harm |
 | requirement SA-149 | acceptance 6 | golden | SA-149 names no harm |
+| requirement SA-149 | acceptance 7 | golden | SA-149 names no harm |
 | requirement SA-32 | acceptance 1 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 2 | golden | SA-32 names no harm |
 | requirement SA-32 | acceptance 3 | golden | SA-32 names no harm |

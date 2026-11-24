@@ -2,6 +2,7 @@ package pdf
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -14,6 +15,8 @@ type elem struct {
 	parent *elem
 	kids   []kid
 	obj    int
+	alt    string      // a Figure's description
+	bbox   *[4]float64 // a Figure's box on its page, in PDF coordinates
 }
 
 // kid is what an element holds, in reading order: an element, a sequence
@@ -37,6 +40,7 @@ const (
 	textOp opKind = iota
 	rectOp
 	strokeOp
+	pathOp // text holds the operators of a path, drawn as they are
 )
 
 // op is one thing drawn on a page; y grows downward from the top edge: a
@@ -411,6 +415,10 @@ func (b *book) layout() {
 		b.newPage()
 		p := &b.mb.Parts[pi]
 		for i := range p.Blocks {
+			b.keep = 0
+			if p.Blocks[i].Kind == headingBlock && i+1 < len(p.Blocks) {
+				b.keep = b.figureHeight(&p.Blocks[i+1], width)
+			}
 			b.block(p.Name, &p.Blocks[i], b.root, left, false)
 		}
 	}
@@ -463,7 +471,7 @@ func (b *book) block(part string, bl *block, parent *elem, x float64, title bool
 		if b.y > top {
 			b.y += []float64{0, 14, 12, 9, 7, 6, 6}[lvl]
 		}
-		b.ensure(leading*float64(len(ls)) + 3*bodySize*1.4)
+		b.ensure(leading*float64(len(ls)) + math.Max(3*bodySize*1.4, b.keep))
 		b.setDest(bl.Dest)
 		if lvl <= 4 {
 			b.outline = append(b.outline, outlineEntry{level: lvl, title: plainText(bl.Text), dest: bl.Dest})
@@ -511,8 +519,12 @@ func (b *book) block(part string, bl *block, parent *elem, x float64, title bool
 		b.y += 10
 	case codeBlock:
 		if bl.Lang == "mermaid" {
+			err := b.figure(parent, bl.Code, x, avail)
+			if err == nil {
+				return
+			}
 			p := b.add(parent, "P")
-			b.place(p, b.lines([]piece{{text: b.opt.Texts.Mermaid, face: italic, size: 8.5, color: grey}}, avail), x, 8.5*1.4, nil)
+			b.place(p, b.lines([]piece{{text: fmt.Sprintf(b.opt.Texts.Mermaid, err), face: italic, size: 8.5, color: grey}}, avail), x, 8.5*1.4, nil)
 		}
 		e := b.add(parent, "Code")
 		size := 7.5

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with two related entities and a workflow with two approvals and an operation"
+when: "document html is run"
+then: "index.html draws the entity diagram as SVG, a box per entity linked to it and a line per relation, and the workflow as its BPMN diagram, prints no Mermaid source, and it exits 0"
+verifies: [SA-149]

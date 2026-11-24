@@ -87,10 +87,37 @@ their anchors, their id links and the marks they list are the same.
 | Problems and gaps list | | each entry gives its page | each number links to its mark |
 | Headings | Markdown headings | tagged H1 to H6, bookmarks | Word's heading 1 to heading 6, so the navigation pane finds them |
 | Fonts | | the Go fonts, embedded as subsets | Calibri, and Courier New for code, named, not embedded |
-| Mermaid diagrams | the source, drawn by a Markdown viewer | the source, labelled | the source, labelled |
+| Mermaid diagrams | the source, drawn by a Markdown viewer | drawn, each a tagged figure | the source, labelled |
 | Same bytes for the same input | yes | yes | yes |
 
 The `html` document draws the entity diagram and the workflows.
+
+## Diagrams in the pdf
+
+The pdf draws every Mermaid diagram the Markdown carries: the entity
+diagram, each entity's states, each operation's and command's sequence,
+the pages, each workflow, the context, the components of an
+implementation and each deployment and its network (ADR-250). SpecArch
+lays them out itself from the Mermaid the documents write, so the pdf
+needs no browser and is the same bytes on every run:
+
+- a flowchart or a state diagram as layers along its arrows, across or
+  down, whichever shows it larger on the page; each label sits on its
+  arrow, and a subgraph is a titled frame around its nodes;
+- an entity diagram as a table per entity with its attributes, and a line
+  per relation with its cardinality at each end: a bar for one, a ring
+  for zero, a crow's foot for many;
+- a sequence diagram as a box per participant with its lifeline, and the
+  messages and notes in order down the page.
+
+A diagram wider than the column or taller than a page is scaled down to
+fit; its text stays text, so it zooms and a search finds it. Each is a
+Figure of the tagged pdf with a description, the kind of diagram and what
+it draws. The picture is SpecArch's own layout, not Mermaid's: the same
+nodes, arrows and labels, placed differently.
+
+A Mermaid block the pdf cannot read, which the documents never write, is
+printed as its source under a label that names the line and why.
 
 ## The four books
 

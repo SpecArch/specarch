@@ -24,7 +24,11 @@ type Texts struct {
 	NoProblems    string // the sentence when there is none
 	OnPage        string // "page %d", after a list entry
 	PageOf        string // "Page %d of %d", the footer
-	Mermaid       string // the label above a Mermaid block
+	// Mermaid is the label above a Mermaid block printed as its source
+	// because it could not be drawn, with %s for the reason.
+	Mermaid string
+	// Figures describe a drawn diagram to a reader who cannot see it.
+	Figures Figures
 }
 
 // Options are what a book is made of.
@@ -107,6 +111,9 @@ type book struct {
 	root  *elem
 	// outline holds the headings to the fourth level, in book order.
 	outline []outlineEntry
+	// keep is the height of the diagram right after the heading being
+	// laid out, which the heading keeps on its page.
+	keep float64
 }
 
 type dest struct {

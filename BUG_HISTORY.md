@@ -1076,3 +1076,17 @@ Expected: when the release record beside the old folder marks the old version re
 To repeat: a folder at `info.version: 1.0.0` with `records/releases/1.0.0.yaml` at `status: released` beside it, and a copy that adds a value to a public enum and keeps `info.version: 1.0.0`; `specarch diff old/spec new/spec` exits 0 with no `error: version:` line.
 
 Fix: in the same-version case diff reads the records beside the old folder, and when the release record of exactly that version says `released`, it reports `error: version:` naming that record and the version to step to (the next version the change list needs, at least a patch step), and exits 1; the coverage is still checked. A version whose record is planned, or that has none, compared with itself, keeps only the coverage check, as ADR-224 means. A `withdrawn` release is not counted as spent, since the validator reads it as one that never ships (ADR-061). The old folder's records decide, not the new one's: a round that ends by marking the release released has the approved commit still at `planned`. The test `diff-same-version-released` covers the released case; `diff-same-version` still passes unchanged as the pre-release case. The design of `diff` and the consequences of ADR-224 say the skip holds only for a version not yet released.
+
+## BUG-076 — TestReadmeExamples fails when examples/ holds local build folders
+
+- Reported: 2026-11-23, while running the landing check on a Mac, against 1.7.0 and main at 4cd3ba663
+- Closed: 2026-11-25, completed
+- Fixed by: the commit on `main` whose message says `Fixes BUG-076`
+
+`go test ./cmd/specarch` failed twice in three runs with `TempDir RemoveAll cleanup: unlinkat .../TestReadmeExamples*/002/.git: directory not empty` (`cmd/specarch/readme_test.go:231`), exit 1. The test copies all of `examples/` with `os.CopyFS`, which takes the folders the repository ignores at its root and that exist only where the examples were built (`web-nextjs/*/node_modules`, `.next`, `ios/.build`: 58,559 files against 881 tracked here), into a new git repository and commits them. A commit of that many objects starts `git gc --auto` in the background, which is still writing `.git` when the test removes its folder.
+
+Expected: the test passes whatever build folders the checkout holds, as it does on a clean checkout (the Linux runner) and on the third run here.
+
+To repeat: build the Next.js examples (`node_modules` present), then `go test -count=1 ./cmd/specarch -run TestReadmeExamples`.
+
+Fix: both of the ways the report named. The test copies only the files of `examples/` that `git ls-files` lists, with their permission bits, so a checkout where the examples were built gives it the same tree as a clean one. Where no git repository is around the source (a runner, which gets the tracked files alone) it copies the folder as before. The git commands that set up its own repository run with `gc.auto` 0, so no `git gc --auto` is left writing `.git` when the folder is removed (`GIT_CONFIG_COUNT`, `GIT_CONFIG_KEY_0`, `GIT_CONFIG_VALUE_0`). The owner chose this fix on 2026-11-25, when the bug blocked the finish of the 1.8.2 release on a Mac whose runner was refusing new jobs.

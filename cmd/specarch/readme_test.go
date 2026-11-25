@@ -235,9 +235,7 @@ func TestReadmeExamples(t *testing.T) {
 	noPlugins(t)
 	examples := readmeCommands(t)
 	work := t.TempDir()
-	if err := os.CopyFS(filepath.Join(work, "examples"), os.DirFS("../../examples")); err != nil {
-		t.Fatal(err)
-	}
+	copyExamples(t, filepath.Join(work, "examples"))
 	for _, args := range [][]string{
 		{"init", "-q"},
 		{"add", "-A"},
@@ -249,7 +247,10 @@ func TestReadmeExamples(t *testing.T) {
 		cmd.Dir = work
 		cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_CONFIG_NOSYSTEM=1",
 			"GIT_AUTHOR_NAME=SpecArch test", "GIT_AUTHOR_EMAIL=test@specarch.invalid",
-			"GIT_COMMITTER_NAME=SpecArch test", "GIT_COMMITTER_EMAIL=test@specarch.invalid")
+			"GIT_COMMITTER_NAME=SpecArch test", "GIT_COMMITTER_EMAIL=test@specarch.invalid",
+			// No git gc --auto in the background: it would still be
+			// writing .git when the test removes its folder.
+			"GIT_CONFIG_COUNT=1", "GIT_CONFIG_KEY_0=gc.auto", "GIT_CONFIG_VALUE_0=0")
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
 		}
@@ -263,6 +264,50 @@ func TestReadmeExamples(t *testing.T) {
 		var stdout, stderr bytes.Buffer
 		if code := run(words[1:], &stdout, &stderr); code == 2 {
 			t.Errorf("README.md example %q exited 2:\n%s", e.line, stderr.String())
+		}
+	}
+}
+
+// copyExamples copies the files of examples/ that the repository tracks into
+// dst, so a checkout where the examples were built (node_modules, .next,
+// .build) gives the test the same tree as a clean one. Where there is no git
+// repository around the source, as on a runner that gets the tracked files
+// alone, it copies the folder as it is.
+func copyExamples(t *testing.T, dst string) {
+	t.Helper()
+	out, err := exec.Command("git", "-C", "../..", "ls-files", "-z", "--", "examples").Output()
+	if err != nil || len(out) == 0 {
+		if err := os.CopyFS(dst, os.DirFS("../../examples")); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	for _, name := range strings.Split(strings.TrimRight(string(out), "\x00"), "\x00") {
+		rel, ok := strings.CutPrefix(name, "examples/")
+		if !ok {
+			t.Fatalf("git ls-files examples: %s is not under examples/", name)
+		}
+		src := filepath.Join("../..", filepath.FromSlash(name))
+		info, err := os.Lstat(src)
+		if os.IsNotExist(err) {
+			continue // tracked but removed in the working tree
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !info.Mode().IsRegular() {
+			t.Fatalf("copy examples: %s is not a regular file (%s)", src, info.Mode().Type())
+		}
+		data, err := os.ReadFile(src)
+		if err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(dst, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(target, data, info.Mode().Perm()); err != nil {
+			t.Fatal(err)
 		}
 	}
 }

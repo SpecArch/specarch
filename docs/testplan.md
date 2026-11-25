@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.8.2-dev of the specification: 1115 design tests, 577 golden and 538 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.8.2-dev of the specification: 1122 design tests, 581 golden and 541 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.8.2-dev of the specification: 1115 design tests, 577 golden and 538 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1111 |
+| system | 1118 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1455,6 +1455,14 @@ Scenario: golden; level: system; verifies SA-142.
 - When: document progress --audience external is run
 - Then: the Work packages section names no internal requirement in any package's row and no assignee, leaves the internal requirement out of the unplanned line, and exits 0
 
+#### document-requirements-scenarios
+
+Scenario: golden; level: system; verifies SA-150.
+
+- Given: a specification with a scenario of two steps, one a branch, its steps naming an operation, requirements, an entity and tests, and two tests that prove it
+- When: document requirements is run
+- Then: the requirements specification has a Scenarios section grouped by topic, the scenario with its stakeholder, its steps as a table, a sequence diagram drawn from them and the tests that prove it, and exits 0
+
 #### document-sequence-diagram
 
 Scenario: golden; level: system.
@@ -1655,6 +1663,14 @@ Scenario: golden; level: system; verifies SA-114.
 - When: document techspec is run
 - Then: the runtime view writes a Fixed routes table with each route's path, kind, permission and caching, and the application route's policy as its header reads, and exits 0
 
+#### document-techspec-scenarios
+
+Scenario: golden; level: system; verifies SA-150.
+
+- Given: a specification with a scenario of two steps, one a branch, its steps naming an operation, requirements, an entity and tests, and two tests that prove it
+- When: document techspec is run
+- Then: the technical specification's runtime view ends with the scenarios grouped by topic, each with its steps and sequence diagram, and exits 0
+
 #### document-techspec-shared-name
 
 Scenario: red; level: system; covers exit 1; verifies SA-7.
@@ -1766,6 +1782,14 @@ Scenario: golden; level: acceptance; verifies SA-22.
 - Given: a specification with two requirements, one of which names two harms
 - When: document traceability is run
 - Then: it writes traceability.md with a Harm column that holds the two harms of the one requirement and is empty for the other, and exits 0
+
+#### document-traceability-scenarios
+
+Scenario: golden; level: system; verifies SA-150.
+
+- Given: a specification with a scenario of two steps, one a branch, its steps naming an operation, requirements, an entity and tests, and two tests that prove it
+- When: document traceability is run
+- Then: the traceability matrix traces each requirement to the scenarios naming it and each scenario to its requirements, operations and tests, and exits 0
 
 #### document-two-implementations
 
@@ -7895,6 +7919,38 @@ Scenario: golden; level: system; verifies SA-82, SA-95.
 - When: validate is run
 - Then: it reports nothing and exits 0
 
+#### validate-scenario-coverage-error
+
+Scenario: red; level: system; verifies SA-150.
+
+- Given: a specification with info.scenarioCoverage error, two must requirements and no scenario
+- When: validate is run
+- Then: it reports scenario_uncovered at each must requirement as an error, and exits 1
+
+#### validate-scenario-problems
+
+Scenario: red; level: system; verifies SA-150.
+
+- Given: a specification whose scenarios name a stakeholder, an actor, an operation, a requirement, an entity and a test that do not exist, have a step naming nothing, a step with change and no entity, one scenario with an empty steps list and one with none, and a test whose proves names a scenario that does not exist
+- When: validate is run
+- Then: it reports each at its entry, the stakeholder and actor under stakeholder, the operation under operation, the requirement under requirement, the change without its entity under schema, and the rest under scenario, reads every other scenario and step, and exits 1
+
+#### validate-scenario-uncovered
+
+Scenario: red; level: system; verifies SA-150.
+
+- Given: a specification with a scenario whose steps name CASE-1 but not CASE-2, both of priority must, beside a should requirement, a rejected must requirement and a must requirement held elsewhere, none of them named
+- When: validate is run
+- Then: it warns scenario_uncovered at CASE-2 alone, and exits 0
+
+#### validate-scenarios
+
+Scenario: golden; level: system; verifies SA-150.
+
+- Given: a specification with a scenario of two steps, one a branch under when, whose steps name an operation, the requirements, an entity with its change and the tests, and two tests that prove it
+- When: validate is run
+- Then: it reports nothing about the scenario, every must requirement being named by a step, and exits 0
+
 #### validate-schema-algorithm-without-pseudocode
 
 Scenario: red; level: system; covers exit 1.
@@ -9035,7 +9091,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-669 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+675 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9370,6 +9426,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-134 | acceptance 2 | golden | SA-134 names no harm |
 | requirement SA-134 | acceptance 3 | golden | SA-134 names no harm |
 | requirement SA-134 | acceptance 4 | golden | SA-134 names no harm |
+| requirement SA-150 | acceptance 1 | golden | SA-150 names no harm |
+| requirement SA-150 | acceptance 2 | golden | SA-150 names no harm |
+| requirement SA-150 | acceptance 3 | golden | SA-150 names no harm |
+| requirement SA-150 | acceptance 4 | golden | SA-150 names no harm |
+| requirement SA-150 | acceptance 5 | golden | SA-150 names no harm |
+| requirement SA-150 | acceptance 6 | golden | SA-150 names no harm |
 | requirement SA-146 | acceptance 1 | golden | SA-146 names no harm |
 | requirement SA-146 | acceptance 2 | golden | SA-146 names no harm |
 | requirement SA-146 | acceptance 3 | golden | SA-146 names no harm |

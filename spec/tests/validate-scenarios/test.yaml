@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: golden
+given: "a specification with a scenario of two steps, one a branch under when, whose steps name an operation, the requirements, an entity with its change and the tests, and two tests that prove it"
+when: "validate is run"
+then: "it reports nothing about the scenario, every must requirement being named by a step, and exits 0"
+verifies: [SA-150]

@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-252:
+    title: A scenario is for one stakeholder, and a step names another stakeholder that takes part as its actor
+    status: accepted
+    date: "2026-11-25"
+    context: |
+      A case often has more than one party: a member brings a book back and
+      a librarian records the return. The scenario has to say whose case it
+      is, for the grouping and for the reader who looks for the cases of one
+      stakeholder, and each step who does it, for the table and the
+      sequence diagram.
+    decision: |
+      A scenario names one stakeholder, required, the one the case is for.
+      A step names under actor the stakeholder that does it; left out, the
+      scenario's stakeholder does it. Both name a key of stakeholders, and
+      a name that is none is an error under stakeholder. The sequence
+      diagram draws each actor once, the scenario's stakeholder first.
+    why: |
+      One stakeholder per scenario keeps the question "whose case is it"
+      with one answer, so a scenario stands in one place in a reader's
+      list, while the actors in the steps say who takes part without a
+      second list to keep in step with them. Naming stakeholders, not
+      roles, keeps the scenario readable before the roles and permissions
+      are designed, as the needs are.
+    alternatives:
+      - option: A list of stakeholders on the scenario
+        why: |
+          It would say twice who takes part, once on the scenario and once
+          in the steps, and leave open whose case it is.
+      - option: A step's actor names a role of the design
+        why: |
+          The roles come later than the case and change with the
+          permissions; a role is checked by the flows, which walk the
+          pages a role may open.
+    consequences: |
+      A case two stakeholders share is written once, for the one it serves,
+      with the other as the actor of its steps.
+    satisfies: [SA-150]
+    restsOn: [ADR-251]

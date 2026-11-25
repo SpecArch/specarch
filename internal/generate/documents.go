@@ -9,6 +9,7 @@ import (
 
 	"github.com/SpecArch/specarch/internal/semver"
 	"github.com/SpecArch/specarch/internal/source"
+	"github.com/SpecArch/specarch/internal/validate"
 )
 
 type sourcePair = source.Pair
@@ -177,6 +178,12 @@ func Requirements(root *yaml.Node, relRoot string, impls []Implementation, state
 			}
 			d.explain(r.Value)
 		}
+	}
+
+	if len(pairs(root, "scenarios")) > 0 {
+		d.section(tr("Scenarios"))
+		d.para(tr("Cases told as a sequence across the operations, requirements, entity changes and tests the design defines, grouped by topic (ADR-251); a step with a condition is an alternative or failure branch of the steps before it."))
+		d.scenarios(root, 3)
 	}
 
 	if cons := pairs(root, "constraints"); len(cons) > 0 {
@@ -556,7 +563,8 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 			unverified = append(unverified, id)
 		}
 	}
-	gaps := len(unrefined) + len(noAcceptance) + len(unsatisfied) + len(unverified)
+	uncovered := validate.UncoveredMust(root)
+	gaps := len(unrefined) + len(noAcceptance) + len(unsatisfied) + len(unverified) + len(uncovered)
 
 	d.line(tr("# %s: traceability matrix"), str(info, "title"))
 	d.blank()
@@ -612,6 +620,39 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 	}
 	d.blank()
 
+	if scs := pairs(root, "scenarios"); len(scs) > 0 {
+		inScenarios := validate.ScenarioRequirements(root)
+		d.section(tr("Requirements to scenarios"))
+		d.para(tr("Each requirement and the scenarios whose steps name it; a requirement of priority must that no scenario names is a gap below."))
+		d.line(tr("| Requirement | Priority | Scenarios |"))
+		d.line("|---|---|---|")
+		for _, r := range reqs {
+			if s := str(r.Value, "status"); s == "rejected" || s == "retired" {
+				continue
+			}
+			d.line("| %s | %s | %s |", markInternal(r.Key.Value, r.Value), cell(str(r.Value, "priority")), cell(strings.Join(inScenarios[r.Key.Value], ", ")))
+		}
+		d.blank()
+		provers := scenarioProvers(root)
+		d.section(tr("Scenarios to requirements"))
+		d.para(tr("Each scenario, the requirements its steps name, the operations they call and the tests that check a step or prove the scenario."))
+		d.line(tr("| Scenario | Topic | Requirements | Operations | Tests |"))
+		d.line("|---|---|---|---|---|")
+		for _, s := range scs {
+			var named, ops, tests []string
+			for _, st := range items(s.Value, "steps") {
+				named = append(named, strs(st, "requirements")...)
+				if op := str(st, "operation"); op != "" {
+					ops = append(ops, op)
+				}
+				tests = append(tests, strs(st, "tests")...)
+			}
+			tests = append(tests, provers[s.Key.Value]...)
+			d.line("| %s | %s | %s | %s | %s |", markInternal(s.Key.Value, s.Value), cell(str(s.Value, "topic")), cell(strings.Join(unique(named), ", ")), cell(strings.Join(unique(ops), ", ")), cell(strings.Join(unique(tests), ", ")))
+		}
+		d.blank()
+	}
+
 	if len(held) > 0 {
 		d.section(tr("Requirements held elsewhere"))
 		d.para(tr("The promises another stakeholder's component keeps: nothing in this specification satisfies or verifies them, so they are no gap here."))
@@ -640,6 +681,7 @@ func Traceability(root *yaml.Node, relRoot string, impls []Implementation, state
 			{noAcceptance, tr("Requirements without acceptance criteria")},
 			{unsatisfied, tr("Requirements no design element satisfies")},
 			{unverified, tr("Requirements no test, check or monitor verifies")},
+			{uncovered, tr("Requirements of priority must no scenario names")},
 		} {
 			if len(g.ids) > 0 {
 				d.line("- %s: %s.", g.what, strings.Join(g.ids, ", "))

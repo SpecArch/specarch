@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=../../../../../schema/specarch-fragment-requirements-1.0.schema.json
 requirements:
   # specarch-problem: warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
+  # specarch-problem: warning: scenario_uncovered: requirement LIB-1 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-1 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-1]
   LIB-1:
     statement: A member shall be identified by a unique card number and a unique email address.
     kind: functional
@@ -15,6 +16,7 @@ requirements:
       - source: lending-policy
         clause: "1"
         says: "Each member holds one card, and the card number identifies them at the desk."
+  # specarch-problem: warning: scenario_uncovered: requirement LIB-2 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-2 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-2]
   LIB-2:
     statement: Anyone shall be able to browse the catalogue without a card.
     kind: functional
@@ -84,6 +86,7 @@ requirements:
       - Registering a member and lending a book each take one form and one submit.
     verification: demonstration
     needs: [NEED-1]
+  # specarch-problem: warning: scenario_uncovered: requirement LIB-8 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-8 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-8]
   LIB-8:
     statement: A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it.
     kind: functional

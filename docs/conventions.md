@@ -754,7 +754,7 @@ folder and only the first four are in the root file.
 6. `paths`, `routes`
 7. `commands`
 8. `channels`, `dependencies`, `jobs`, `processes`, `gateways`, `workflows`, `errors`
-9. `pages`, `menus`
+9. `pages`, `menus`, `flows`, `scenarios`
 10. `algorithms`
 11. `tests`
 12. `decisions`
@@ -977,6 +977,7 @@ redefined.
 | `pages`, `kind`, `route`, `entity`, `source`, `submit`, `columns`, `fields`, `filters`, `actions` | SpecArch | UI page definitions; a page of kind `task` submits to an operation without loading a record |
 | `onSubmitted`, `onSelect`, `then`, `navigate`, `with`, `message` | SpecArch, after the events and navigation flows of OMG IFML 1.0 | where an event of a page leads, and the status message it carries (WCAG 2.2, 4.1.3); `navigate: signIn` leaves for the identity provider's sign-in (ADR-182), and `navigate: callerHome` leads a task page's answer to the caller's home (ADR-206) |
 | `flows`, `actor`, `steps`, `event`, `action` | SpecArch, after IFML's navigation flows | a task a person does across pages, step by step |
+| `scenarios`, `topic`, `stakeholder`, `steps`, `actor`, `when`, `precondition`, `operation`, `requirements`, `entity`, `change`, `tests`, `result`, a test's `proves`, `info.scenarioCoverage` | SpecArch, after the runtime scenarios of arc42 (section 6) and the scenarios of a use case | one case of the system as a sequence across operations, requirements, entity changes and tests, its branches steps under a condition in words (ADR-251) |
 | `states`, `empty`, `filteredEmpty`, `failed`, `message`, `field` | SpecArch | what a page shows when it is empty or fails |
 | `sections`, `title`, `fields` | SpecArch | a form's or a view's fields in titled groups, in reading order |
 | `compactColumns` | SpecArch, after the compact size class of Apple's Human Interface Guidelines and Material Design 3 | the columns a list keeps on a compact screen |
@@ -2484,6 +2485,69 @@ way and to take every action a step names. Each step is a page and the `event` o
 the next step's page (`flow`). The techspec draws each flow as its steps.
 A test names a flow as its subject with `flow: <name>`; its golden case
 walks the steps.
+
+### Scenarios
+
+A scenario is one case of the system told as a sequence across what the
+design defines: the operations it calls, the requirements it exercises,
+the entities it changes and the tests that check it. It is design, not a
+stakeholder's want: the needs say what is wanted, a scenario how one case
+runs through the design (ADR-251). Scenarios stand under `scenarios`,
+keyed `SC-` and a number (ADR-253):
+
+    SC-1:
+      title: A member returns a book late and the late fee is charged
+      topic: Returns
+      stakeholder: member
+      steps:
+        - description: The librarian takes the book back at the desk and records the return.
+          actor: librarian
+          operation: returnLoan
+          requirements: [LIB-5]
+          tests: [return-late]
+          result: The loan is returned with a late fee, and the copy is available again.
+        - description: The fee ledger does not answer, so nothing is charged.
+          actor: librarian
+          when: the fee ledger does not answer within 5 seconds
+          operation: returnLoan
+          tests: [return-loan-dependency-times-out-fee-ledger]
+          result: The desk is answered 503 and the loan stays as it was.
+
+- `title`, `topic` and `stakeholder` are required. The topic groups the
+  scenarios in the documents; the stakeholder, a key of `stakeholders`,
+  is the one the case is for. A step's `actor` names another stakeholder
+  that does the step; left out, the scenario's stakeholder does it
+  (ADR-252).
+- A step names what it exercises: an `operation` by operationId, the
+  `requirements` by ID, an `entity` with how it changes under `change`, the
+  `tests` by name; at least one of them. `precondition` and `result` say,
+  in one sentence each, what holds before and what is expected after.
+- A step with `when` is a branch: it runs under that condition, written as
+  a plain sentence, instead of going on as the steps before it lead. A step
+  without `when` is on the main path. The condition is words, not an
+  expression, since a scenario has no subject whose fields an expression
+  could read.
+- A design test names the scenarios it proves under `proves: [SC-1]`.
+
+What validate reports, each at its entry, the rest of the specification
+read as it is:
+
+| Rule | Where |
+|---|---|
+| `stakeholder` | a scenario's `stakeholder` or a step's `actor` that is no stakeholder |
+| `operation` | a step's `operation` that is no operationId |
+| `requirement` | a step's requirement that is none, as `satisfies` and `verifies` are checked |
+| `scenario` | a scenario with no step, a step that names no operation, requirements, entity or tests, a step's entity or test that does not exist, a test's `proves` that names no scenario |
+| `scenario_uncovered` | a warning at a requirement of priority `must`, neither rejected nor retired nor held elsewhere, that no step names, once the specification has a scenario; an error when `info.scenarioCoverage` is `error`, scenarios or none |
+
+A requirement is covered only when a step names it under `requirements`;
+an operation that satisfies it or a test that verifies it does not count,
+so the warning says what a reader sees in the scenario. The requirements
+specification has a section Scenarios and the techspec a part Scenarios
+at the end of its runtime view, each grouped by topic, each scenario with
+its steps as a table, a sequence diagram drawn from them and the tests that
+prove it; the traceability matrix traces requirements to scenarios and
+back and lists the uncovered must requirements among its gaps.
 
 ### Task pages
 

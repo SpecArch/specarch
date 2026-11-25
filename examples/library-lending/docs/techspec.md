@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: 8 requirements, 4 entities, 1 view, 2 schemas, 20 HTTP operations, 3 channels, 2 dependencies, 12 pages, 1 flow, 1 workflow, 2 algorithms, 199 tests, 5 decisions, 3 environments and 5 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
-**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 7 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: work_package_unverified: WP-1 is marked done, but the tests browse-catalogue, register-member and register-member-email-taken have no passed result in the test-run records; record a run that passes with specarch log test-run, or set status to in-progress [work_package_unverified@../records/work-packages/WP-1.yaml#/status]
 
@@ -1076,6 +1076,74 @@ flowchart LR
   s2 --> done
   s2 -->|"fails"| failed
 ```
+
+### Scenarios
+
+The runtime scenarios: each case as a sequence across the operations above, the requirements and the entity changes, grouped by topic (ADR-251); a step with a condition is an alternative or failure branch.
+
+#### Lending
+
+##### SC-2: A librarian lends a copy to a member at the desk
+
+A member asks for a book at the desk; the loan is opened unless the member is at their limit or owes a fee.
+
+For member; 3 steps, 2 branches.
+
+| Step | Actor | Before | What happens | Exercises | Result |
+|---|---|---|---|---|---|
+| 1 | librarian | The member holds fewer open loans than their tier allows and owes no fee. | The librarian lends the member a copy of the book. | operation createLoan; requirements LIB-3; entity Loan: An open loan is created, due at the end of the member's loan period; tests lend-a-copy | The loan is open, the book has one copy fewer available, and LoanCreated is published. |
+| 2, when the member already holds as many open loans as their tier allows | librarian |   | The loan is refused because the member is at their limit. | operation createLoan; requirements LIB-3; tests lend-limit-reached | The desk is answered 409 and no loan is created. |
+| 3, when the member has a late fee outstanding | librarian |   | The loan is refused because the member owes a fee. | operation createLoan; tests fees-block-lending | The desk is answered 409 and no loan is created. |
+
+```mermaid
+sequenceDiagram
+  actor A1 as member
+  actor A2 as librarian
+  participant S as Library Lending
+  A2->>S: 1. createLoan (POST /loans)
+  S->>S: Loan: An open loan is created, due at the end of the member's loan period
+  S-->>A2: The loan is open, the book has one copy fewer available, and LoanCreated is published.
+  Note over A2,S: 2. when the member already holds as many open loans as their tier allows
+  A2->>S: 2. createLoan (POST /loans)
+  S-->>A2: The desk is answered 409 and no loan is created.
+  Note over A2,S: 3. when the member has a late fee outstanding
+  A2->>S: 3. createLoan (POST /loans)
+  S-->>A2: The desk is answered 409 and no loan is created.
+```
+
+Proved by lend-a-copy, lend-limit-reached.
+
+#### Returns
+
+##### SC-1: A member returns a book late and the late fee is charged
+
+A member brings a book back a week after its due date; the desk records the return and the late fee, and the member sees the fee among their own loans.
+
+For member; 4 steps, 1 branch.
+
+| Step | Actor | Before | What happens | Exercises | Result |
+|---|---|---|---|---|---|
+| 1 | member | The loan is open and its due date was yesterday. | The member keeps the book past its due date, and the next night the loan is marked overdue. | requirements LIB-4; entity Loan: The loan's status goes from open to overdue, and the member is told; tests loan-becomes-overdue |   |
+| 2 | librarian |   | The librarian takes the book back at the desk and records the return. | operation returnLoan; requirements LIB-5; tests return-late | The loan is returned with a late fee of 3.50 for seven days, and the copy is available again. |
+| 3, when the fee ledger does not answer within 5 seconds | librarian |   | The fee ledger does not answer, so the return is not recorded and nothing is charged. | operation returnLoan; tests return-loan-dependency-times-out-fee-ledger | The desk is answered 503 and the loan stays as it was, to be returned again. |
+| 4 | member |   | The member lists their loans and sees the returned loan with its fee. | operation listLoans; requirements LIB-6; tests list-loans-shows-only-the-rows-of-member | Only the member's own loans are listed. |
+
+```mermaid
+sequenceDiagram
+  actor A1 as member
+  actor A2 as librarian
+  participant S as Library Lending
+  S->>S: 1. Loan: The loan's status goes from open to overdue, and the member is told
+  A2->>S: 2. returnLoan (POST /loans/{loanId}/return)
+  S-->>A2: The loan is returned with a late fee of 3.50 for seven days, and the copy is available again.
+  Note over A2,S: 3. when the fee ledger does not answer within 5 seconds
+  A2->>S: 3. returnLoan (POST /loans/{loanId}/return)
+  S-->>A2: The desk is answered 503 and the loan stays as it was, to be returned again.
+  A1->>S: 4. listLoans (GET /loans)
+  S-->>A1: Only the member's own loans are listed.
+```
+
+Proved by return-late.
 
 ## 7. Deployment and implementation
 
@@ -2446,7 +2514,11 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | LIB-7 | A desk task shall take a librarian under a minute, in one screen. | quality | should | accepted | demonstration | Registering a member and lending a book each take one form and one submit. | NEED-1 |
 | LIB-8 | A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it. | functional | must | accepted | test | A waiver a librarian asks for is approved by a desk supervisor before the fee is waived. A waiver nobody answers within three days is refused. | NEED-2 |
 
+**Problem on LIB-1:** warning: scenario_uncovered: requirement LIB-1 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-1 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-1]
+
 **Note on LIB-1:** From Lending policy of the library, 2026, clause 1: Each member holds one card, and the card number identifies them at the desk.
+
+**Problem on LIB-2:** warning: scenario_uncovered: requirement LIB-2 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-2 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-2]
 
 **Note on LIB-3:** From Lending policy of the library, 2026, clause 2: Standard members may hold three loans at a time and extended members six; no loan is made while a fee is unpaid.
 
@@ -2457,6 +2529,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 **Note on LIB-5:** From Lending policy of the library, 2026, clause 4: The late fee is a daily rate set by the board, and never more than the cost of replacing the book.
 
 **Note on LIB-6:** From The data-protection rules the library is bound by, 2024: Personal data is shown only to the person it is about and to the staff who need it.
+
+**Problem on LIB-8:** warning: scenario_uncovered: requirement LIB-8 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-8 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-8]
 
 **Insight on LIB-8:** A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.
 

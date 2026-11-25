@@ -269,6 +269,7 @@ extension Checker {
         checkEnabledBy(d)
         checkPageEvents(d)
         checkFlows(d)
+        checkScenarios(d)
         checkRoleHomes(d)
         checkNavigation(d)
         checkPageStates(d)
@@ -345,21 +346,26 @@ extension Checker {
         walk(root, base) { n, path in
             for key in ["satisfies", "verifies"] {
                 for (i, item) in items(n.child(key)).enumerated() {
-                    let link = str(item)
-                    if d.requirements[link] != nil { continue }
-                    let dash = link.firstIndex(of: "-")
-                    let prefix = dash.map { String(link[..<$0]) } ?? link
-                    if dash != nil && prefixes[prefix] != nil { continue }
-                    let ptr = pointer(path + [key, "\(i)"])
-                    if d.requirements.isEmpty && prefixes.isEmpty {
-                        add(item, ptr, .requirement, "\(link) is not a requirement: the specification has none under requirements and no source of kind requirement-set; add the requirement, or declare the set under sources with prefix \(prefix)")
-                    } else if !d.requirements.isEmpty {
-                        add(item, ptr, .requirement, "\(link) is not a requirement of the specification\(suggest(link, d.requirements))")
-                    } else {
-                        add(item, ptr, .requirement, "\(link) is not in a declared requirement set; the sets under sources have the prefixes \(prefixes.keys.sorted(by: byteLess).joined(separator: ", "))")
-                    }
+                    checkRequirementLink(d, prefixes, item, pointer(path + [key, "\(i)"]))
                 }
             }
+        }
+    }
+
+    /// Checks that one link names a requirement of the specification or of
+    /// a requirement set declared under sources.
+    func checkRequirementLink(_ d: Design, _ prefixes: [String: YNode], _ item: YNode, _ ptr: String) {
+        let link = str(item)
+        if d.requirements[link] != nil { return }
+        let dash = link.firstIndex(of: "-")
+        let prefix = dash.map { String(link[..<$0]) } ?? link
+        if dash != nil && prefixes[prefix] != nil { return }
+        if d.requirements.isEmpty && prefixes.isEmpty {
+            add(item, ptr, .requirement, "\(link) is not a requirement: the specification has none under requirements and no source of kind requirement-set; add the requirement, or declare the set under sources with prefix \(prefix)")
+        } else if !d.requirements.isEmpty {
+            add(item, ptr, .requirement, "\(link) is not a requirement of the specification\(suggest(link, d.requirements))")
+        } else {
+            add(item, ptr, .requirement, "\(link) is not in a declared requirement set; the sets under sources have the prefixes \(prefixes.keys.sorted(by: byteLess).joined(separator: ", "))")
         }
     }
 

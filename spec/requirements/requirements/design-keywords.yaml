@@ -786,3 +786,18 @@ requirements:
     verification: test
     needs: [NEED-3]
     why: Teams that deliver to Indonesian customers hand them documents in Indonesian, and translating a generated document by hand loses the next regeneration; the catalog makes the translation part of the program.
+  SA-150:
+    statement: A specification shall describe scenarios, each one case told as an ordered sequence of steps across the operations, requirements, entity changes and tests its design defines, for one stakeholder and under one topic, with alternative and failure branches as steps under a condition; specarch validate shall check every name a scenario gives and warn of a requirement of priority must that no scenario names, and the requirements, technical specification and traceability documents shall show the scenarios by topic with a sequence diagram and trace requirements to scenarios and back.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A scenario under scenarios, keyed SC-n, takes title, topic, stakeholder, description and steps; a step takes description, actor, when, precondition, operation, requirements, entity with change, tests and result, every key optional in the 1.0 schemas.
+      - A scenario's stakeholder or a step's actor that is no stakeholder is an error under stakeholder, a step's operation that is none under operation, a step's requirement that is none under requirement, and a scenario with no step, a step that names no operation, requirements, entity or tests, a step's entity or test that does not exist, and a test's proves that names no scenario are errors under scenario; two scenarios with one ID are duplicate_key. Every one stands at its entry, and the rest of the specification is read as it is.
+      - Once the specification has a scenario, a requirement of priority must, neither rejected nor retired nor held elsewhere, that no step names is warned of at the requirement (scenario_uncovered); info.scenarioCoverage error makes it an error, scenarios or none. A specification without scenarios gets no new warning.
+      - document requirements writes a Scenarios section and document techspec a Scenarios part of its runtime view, each grouped by topic, each scenario with its stakeholder, its steps as a table, a sequence diagram drawn from them, the tests that prove it and its problems marked; document traceability writes Requirements to scenarios and Scenarios to requirements, and lists the uncovered must requirements among the gaps.
+      - A design test names under proves the scenarios it proves, and the scenario lists it.
+      - Both validator builds print the same lines.
+    verification: test
+    needs: [NEED-1, NEED-3]
+    why: Needs, requirements and tests do not show one case as a sequence across requirements and operations; that sequence lived only in test steps, so a reader could not follow a case per topic and nothing checked it. A scenario holds it on the design side, where validate checks every name it gives (ADR-251).

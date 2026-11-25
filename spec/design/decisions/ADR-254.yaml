@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-254:
+    title: extract does not yet lift scenarios from feature files, and derive does not yet draft a test from a scenario; both are follow-up work
+    status: accepted
+    date: "2026-11-25"
+    context: |
+      Projects that already hold cases as Gherkin feature files could have
+      them lifted into scenarios by specarch extract, and specarch derive
+      could draft a golden test from a scenario's main path. Neither is
+      needed to write, check or read a scenario.
+    decision: |
+      extract reads no feature file and writes no scenario, and derive drafts
+      no test from a scenario, in the build that adds scenarios. Each is a
+      follow-up item of its own.
+    why: |
+      A feature file's steps are free text bound to step definitions in
+      code; lifting them means finding which operation, requirement and
+      entity each step means, a reading of the code of its own that
+      deserves its own design and cases. A design test is about one
+      subject, and a scenario runs across several operations, so a draft
+      from it would have to choose a subject and a fixture across steps the
+      scenario does not give; settling that is its own decision. Leaving
+      both out keeps this change to what the owner asked to check and
+      document.
+    alternatives:
+      - option: Lift Gherkin scenarios in this build, one step per line
+        why: |
+          Each step would name nothing in the design, so every lifted
+          scenario would be an error at every step until rewritten by hand.
+    consequences: |
+      A team with feature files writes its scenarios by hand for now, and
+      names under proves the tests that prove them.
+    satisfies: [SA-150]
+    restsOn: [ADR-251]

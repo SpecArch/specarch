@@ -206,6 +206,8 @@ const (
 	RuleDutiesUnseparated       Rule = "duties_unseparated"
 	RuleSecretUnprotected       Rule = "secret_unprotected"
 	RuleAuditNotAppendOnly      Rule = "audit_not_append_only"
+	RuleScenario                Rule = "scenario"
+	RuleScenarioUncovered       Rule = "scenario_uncovered"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -402,6 +404,8 @@ var Rules = []Rule{
 	RuleDutiesUnseparated,
 	RuleSecretUnprotected,
 	RuleAuditNotAppendOnly,
+	RuleScenario,
+	RuleScenarioUncovered,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a scenario of two steps, one a branch, its steps naming an operation, requirements, an entity and tests, and two tests that prove it"
+when: "document requirements is run"
+then: "the requirements specification has a Scenarios section grouped by topic, the scenario with its stakeholder, its steps as a table, a sequence diagram drawn from them and the tests that prove it, and exits 0"
+verifies: [SA-150]

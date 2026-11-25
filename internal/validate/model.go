@@ -96,6 +96,8 @@ const (
 	toRoute       = "route"
 	toSetting     = "setting"
 	toMonitor     = "monitor"
+	toTest        = "test"
+	toScenario    = "scenario"
 )
 
 // referencePlaces are where a keyword names an element of the
@@ -186,6 +188,11 @@ var referencePlaces = []struct {
 	{[]string{"tests", "*", "workflow"}, toWorkflow},
 	{[]string{"tests", "*", "flow"}, toFlow},
 	{[]string{"tests", "*", "requirement"}, toRequirement},
+	{[]string{"tests", "*", "proves"}, toScenario},
+	{[]string{"scenarios", "*", "steps", "*", "operation"}, toOperation},
+	{[]string{"scenarios", "*", "steps", "*", "requirements"}, toRequirement},
+	{[]string{"scenarios", "*", "steps", "*", "entity"}, toEntity},
+	{[]string{"scenarios", "*", "steps", "*", "tests"}, toTest},
 }
 
 // keyPlaces are where a key, not its value, names an element: a role's
@@ -290,6 +297,10 @@ func ModelReferences(root *yaml.Node) []ModelReference {
 			section = "configuration"
 		case toMonitor:
 			section = "monitors"
+		case toTest:
+			section = "tests"
+		case toScenario:
+			section = "scenarios"
 		}
 		if name == "" || source.Child(source.Child(root, section), name) == nil {
 			return ""

@@ -1,0 +1,96 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+problem: { statement: Members cannot tell which loans they hold. }
+stakeholders:
+  member: { description: A card holder. }
+  clerk: { description: Staff at the desk. }
+stakeholdersComplete: { by: clerk, date: "2026-11-25" }
+needs:
+  NEED-1: { statement: Members want to see their loans., stakeholders: [member, clerk], status: accepted }
+requirements:
+  CASE-1:
+    statement: A member shall see their loans.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Listing the loans answers 200 with the member's loans.]
+    verification: test
+    needs: [NEED-1]
+  CASE-2:
+    statement: A member without the permission shall be refused the list.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Listing the loans without loans.read answers 403.]
+    verification: test
+    needs: [NEED-1]
+  CASE-3:
+    statement: The list shall show a loan's title.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance: [Each listed loan has its title.]
+    verification: test
+    needs: [NEED-1]
+  CASE-4:
+    statement: The list shall be sorted by due date.
+    kind: functional
+    priority: must
+    status: rejected
+    needs: [NEED-1]
+  CASE-5:
+    statement: The card system shall identify the member.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [The card system answers the member's identity.]
+    verification: test
+    needs: [NEED-1]
+    ownedBy: clerk
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      title: { type: string, maxLength: 200 }
+    primaryKey: [id]
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read]
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      responses:
+        "200": { description: The loans. }
+      satisfies: [CASE-1, CASE-2]
+scenarios:
+  SC-1:
+    title: A member lists their loans
+    topic: Loans
+    stakeholder: member
+    description: A member asks the desk which loans they hold.
+    steps:
+      - description: The clerk lists the member's loans.
+        actor: clerk
+        precondition: The member holds two loans.
+        operation: listLoans
+        requirements: [CASE-1]
+        entity: Loan
+        change: Nothing changes; the loans are read.
+        tests: [list-loans-succeeds]
+        result: The two loans are listed.
+      - description: The list is refused.
+        actor: clerk
+        when: the clerk does not hold loans.read
+        operation: listLoans
+        tests: [list-loans-denied]
+        result: The clerk is answered 403.
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200, verifies: [CASE-1], proves: [SC-1] }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: listLoans is called, then: it is refused, verifies: [CASE-2], proves: [SC-1] }

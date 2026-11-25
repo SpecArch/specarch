@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: 4 stakeholders, 4 needs and 8 requirements. The order follows the requirements specification of ISO/IEC/IEEE 29148: who has a stake, what they need, then each requirement with its attributes.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
 
@@ -68,6 +68,8 @@ Acceptance criteria:
 - Registering a member with an email address already registered is refused with 409.
 - Two members never share a card number.
 
+**Problem:** warning: scenario_uncovered: requirement LIB-1 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-1 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-1]
+
 **Note:** From Lending policy of the library, 2026, clause 1: Each member holds one card, and the card number identifies them at the desk.
 
 ### LIB-2
@@ -79,6 +81,8 @@ Kind: functional; priority: must; status: accepted; verified by test; refines NE
 Acceptance criteria:
 
 - A visitor with no account lists books by title or author and gets the matching books.
+
+**Problem:** warning: scenario_uncovered: requirement LIB-2 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-2 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-2]
 
 ### LIB-3
 
@@ -153,9 +157,79 @@ Acceptance criteria:
 - A waiver a librarian asks for is approved by a desk supervisor before the fee is waived.
 - A waiver nobody answers within three days is refused.
 
+**Problem:** warning: scenario_uncovered: requirement LIB-8 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-8 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-8]
+
 **Insight:** A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.
 
-## 5. Constraints
+## 5. Scenarios
+
+Cases told as a sequence across the operations, requirements, entity changes and tests the design defines, grouped by topic (ADR-251); a step with a condition is an alternative or failure branch of the steps before it.
+
+### Lending
+
+#### SC-2: A librarian lends a copy to a member at the desk
+
+A member asks for a book at the desk; the loan is opened unless the member is at their limit or owes a fee.
+
+For member; 3 steps, 2 branches.
+
+| Step | Actor | Before | What happens | Exercises | Result |
+|---|---|---|---|---|---|
+| 1 | librarian | The member holds fewer open loans than their tier allows and owes no fee. | The librarian lends the member a copy of the book. | operation createLoan; requirements LIB-3; entity Loan: An open loan is created, due at the end of the member's loan period; tests lend-a-copy | The loan is open, the book has one copy fewer available, and LoanCreated is published. |
+| 2, when the member already holds as many open loans as their tier allows | librarian |   | The loan is refused because the member is at their limit. | operation createLoan; requirements LIB-3; tests lend-limit-reached | The desk is answered 409 and no loan is created. |
+| 3, when the member has a late fee outstanding | librarian |   | The loan is refused because the member owes a fee. | operation createLoan; tests fees-block-lending | The desk is answered 409 and no loan is created. |
+
+```mermaid
+sequenceDiagram
+  actor A1 as member
+  actor A2 as librarian
+  participant S as Library Lending
+  A2->>S: 1. createLoan (POST /loans)
+  S->>S: Loan: An open loan is created, due at the end of the member's loan period
+  S-->>A2: The loan is open, the book has one copy fewer available, and LoanCreated is published.
+  Note over A2,S: 2. when the member already holds as many open loans as their tier allows
+  A2->>S: 2. createLoan (POST /loans)
+  S-->>A2: The desk is answered 409 and no loan is created.
+  Note over A2,S: 3. when the member has a late fee outstanding
+  A2->>S: 3. createLoan (POST /loans)
+  S-->>A2: The desk is answered 409 and no loan is created.
+```
+
+Proved by lend-a-copy, lend-limit-reached.
+
+### Returns
+
+#### SC-1: A member returns a book late and the late fee is charged
+
+A member brings a book back a week after its due date; the desk records the return and the late fee, and the member sees the fee among their own loans.
+
+For member; 4 steps, 1 branch.
+
+| Step | Actor | Before | What happens | Exercises | Result |
+|---|---|---|---|---|---|
+| 1 | member | The loan is open and its due date was yesterday. | The member keeps the book past its due date, and the next night the loan is marked overdue. | requirements LIB-4; entity Loan: The loan's status goes from open to overdue, and the member is told; tests loan-becomes-overdue |   |
+| 2 | librarian |   | The librarian takes the book back at the desk and records the return. | operation returnLoan; requirements LIB-5; tests return-late | The loan is returned with a late fee of 3.50 for seven days, and the copy is available again. |
+| 3, when the fee ledger does not answer within 5 seconds | librarian |   | The fee ledger does not answer, so the return is not recorded and nothing is charged. | operation returnLoan; tests return-loan-dependency-times-out-fee-ledger | The desk is answered 503 and the loan stays as it was, to be returned again. |
+| 4 | member |   | The member lists their loans and sees the returned loan with its fee. | operation listLoans; requirements LIB-6; tests list-loans-shows-only-the-rows-of-member | Only the member's own loans are listed. |
+
+```mermaid
+sequenceDiagram
+  actor A1 as member
+  actor A2 as librarian
+  participant S as Library Lending
+  S->>S: 1. Loan: The loan's status goes from open to overdue, and the member is told
+  A2->>S: 2. returnLoan (POST /loans/{loanId}/return)
+  S-->>A2: The loan is returned with a late fee of 3.50 for seven days, and the copy is available again.
+  Note over A2,S: 3. when the fee ledger does not answer within 5 seconds
+  A2->>S: 3. returnLoan (POST /loans/{loanId}/return)
+  S-->>A2: The desk is answered 503 and the loan stays as it was, to be returned again.
+  A1->>S: 4. listLoans (GET /loans)
+  S-->>A1: Only the member's own loans are listed.
+```
+
+Proved by return-late.
+
+## 6. Constraints
 
 | Constraint | Kind | Statement |
 |---|---|---|
@@ -166,7 +240,7 @@ Acceptance criteria:
 
 **Insight on CON-2:** A loan due on the 21st is overdue from the start of the 22nd, library time, whatever the server's clock.
 
-## 6. Assumptions
+## 7. Assumptions
 
 | Assumption | Statement |
 |---|---|
@@ -175,7 +249,7 @@ Acceptance criteria:
 
 **Note on ASSUME-2:** From Lending policy of the library, 2026, clause 4: The board sets the daily rate once a year.
 
-## 7. Glossary
+## 8. Glossary
 
 | Term | Meaning |
 |---|---|

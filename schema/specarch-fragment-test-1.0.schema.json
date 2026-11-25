@@ -385,6 +385,15 @@
         "verifies": {
           "$ref": "#/$defs/verifies"
         },
+        "proves": {
+          "description": "SpecArch keyword. The scenarios this test proves, by ID: the test walks the scenario's main path, or one of its branches. Each must be a scenario of the specification (scenario).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^SC-[0-9]+$"
+          },
+          "uniqueItems": true
+        },
         "why": {
           "$ref": "#/$defs/why"
         },

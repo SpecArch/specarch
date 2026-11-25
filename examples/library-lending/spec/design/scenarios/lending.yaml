@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
+scenarios:
+  SC-2:
+    title: A librarian lends a copy to a member at the desk
+    topic: Lending
+    stakeholder: member
+    description: A member asks for a book at the desk; the loan is opened unless the member is at their limit or owes a fee.
+    steps:
+      - description: The librarian lends the member a copy of the book.
+        actor: librarian
+        precondition: The member holds fewer open loans than their tier allows and owes no fee.
+        operation: createLoan
+        entity: Loan
+        change: An open loan is created, due at the end of the member's loan period.
+        requirements: [LIB-3]
+        tests: [lend-a-copy]
+        result: The loan is open, the book has one copy fewer available, and LoanCreated is published.
+      - description: The loan is refused because the member is at their limit.
+        actor: librarian
+        when: the member already holds as many open loans as their tier allows
+        operation: createLoan
+        requirements: [LIB-3]
+        tests: [lend-limit-reached]
+        result: The desk is answered 409 and no loan is created.
+      - description: The loan is refused because the member owes a fee.
+        actor: librarian
+        when: the member has a late fee outstanding
+        operation: createLoan
+        tests: [fees-block-lending]
+        result: The desk is answered 409 and no loan is created.

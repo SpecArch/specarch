@@ -532,7 +532,8 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 	workflows := pairs(root, "workflows")
 	gateways := pairs(root, "gateways")
 	procs := pairs(root, "processes")
-	if len(states)+len(ops)+len(cmds)+len(jobs)+len(procs)+len(workflows)+len(gateways)+len(pairs(root, "routes")) == 0 {
+	scenarios := pairs(root, "scenarios")
+	if len(states)+len(ops)+len(cmds)+len(jobs)+len(procs)+len(workflows)+len(gateways)+len(pairs(root, "routes"))+len(scenarios) == 0 {
 		return
 	}
 	d.heading(2, tr("6. Runtime view"))
@@ -618,6 +619,11 @@ func runtime(d *doc, root *yaml.Node, impls []Implementation) {
 		commandDetails(d, c.Value)
 		guardText(d, c.Value)
 		d.block(commandSequence(root, c.Key.Value, c.Value))
+	}
+	if len(scenarios) > 0 {
+		d.heading(3, tr("Scenarios"))
+		d.para(tr("The runtime scenarios: each case as a sequence across the operations above, the requirements and the entity changes, grouped by topic (ADR-251); a step with a condition is an alternative or failure branch."))
+		d.scenarios(root, 4)
 	}
 }
 

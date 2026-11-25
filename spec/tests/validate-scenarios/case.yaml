@@ -1,0 +1,5 @@
+arguments: [validate, .]
+exitStatus: 0
+standardOutput: |
+  specarch.yaml:5:11: warning: /stakeholders/member: unheard: member was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement CASE-1 and requirement CASE-2 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/member]
+  specarch.yaml:6:10: warning: /stakeholders/clerk: unheard: clerk was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement CASE-1 and requirement CASE-2 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@specarch.yaml#/stakeholders/clerk]

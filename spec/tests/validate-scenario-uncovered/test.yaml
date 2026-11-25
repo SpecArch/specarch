@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a specification with a scenario whose steps name CASE-1 but not CASE-2, both of priority must, beside a should requirement, a rejected must requirement and a must requirement held elsewhere, none of them named"
+when: "validate is run"
+then: "it warns scenario_uncovered at CASE-2 alone, and exits 0"
+verifies: [SA-150]

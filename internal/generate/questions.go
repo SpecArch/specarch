@@ -24,9 +24,9 @@ var (
 var documentReads = map[string][]string{
 	"intent":        {"problem", "goals", "outOfScope", "qualityGoals", "needs", "requirements"},
 	"techspec":      {"*"},
-	"requirements":  {"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints"},
+	"requirements":  {"stakeholders", "stakeholdersComplete", "needs", "requirements", "glossary", "assumptions", "constraints", "scenarios"},
 	"testplan":      {"tests", "requirements"},
-	"traceability":  {"needs", "requirements", "tests", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "processes", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
+	"traceability":  {"needs", "requirements", "tests", "scenarios", "checks", "monitors", "enums", "entities", "views", "permissions", "roles", "separationOfDuties", "session", "middlewares", "handshakes", "paths", "commands", "channels", "dependencies", "jobs", "processes", "workflows", "errors", "pages", "menus", "algorithms", "decisions"},
 	"deployment":    {"environments", "configuration", "release", "rollback", "migrations", "handover", "monitors", "backup", "restore"},
 	"commissioning": {"checks", "signoff"},
 	"handover":      {"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore", "tests"},

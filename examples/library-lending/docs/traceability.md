@@ -2,11 +2,17 @@
 
 # Library Lending: traceability matrix
 
-Version 0.1.0 of the specification: 4 needs, 8 requirements, and 0 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 0.1.0 of the specification: 4 needs, 8 requirements, and 3 gaps. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
+
+**Problem:** warning: scenario_uncovered: requirement LIB-1 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-1 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-1]
+
+**Problem:** warning: scenario_uncovered: requirement LIB-2 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-2 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-2]
+
+**Problem:** warning: scenario_uncovered: requirement LIB-8 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-8 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-8]
 
 ## 1. Needs to requirements
 
@@ -30,7 +36,33 @@ Version 0.1.0 of the specification: 4 needs, 8 requirements, and 0 gaps. Each re
 | LIB-7 |   | NEED-1 | pages loan-form; pages member-form; flows lend-a-copy | tests lend-a-copy-at-the-desk; tests lend-a-copy-limit-reached; checks lend-and-return; monitors catalogue-latency |
 | LIB-8 |   | NEED-2 | entities FeeWaiverRequest; roles desk-supervisor; paths /loans/{loanId}/fee-waivers post; paths /fee-waivers get; paths /fee-waivers/{waiverId}/waive post; paths /fee-waivers/{waiverId}/approve post; paths /fee-waivers/{waiverId}/refuse post; channels fee.waivers; channels fee.waivers messages FeeWaiverDecided; workflows fee-waiver; pages fee-waiver-form; pages fee-waivers-inbox; decisions ADR-004 | tests approve-fee-waiver; tests fee-waiver; tests fee-waiver-approval-without-permission; tests fee-waiver-deadline-passes; tests fee-waiver-form-denied-with-expired-session; tests fee-waiver-form-denied-without-fees-request; tests fee-waiver-form-not-found-loan-id; tests fee-waiver-form-sent-for-approval; tests fee-waiver-form-succeeds; tests fee-waiver-large-fee; tests fee-waiver-refused; tests fee-waiver-requester-approves-own-request; tests fee-waiver-small-fee; tests fee-waiver-waive-fails; tests fee-waivers-inbox-denied-with-expired-session; tests fee-waivers-inbox-denied-without-fees-approve; tests fee-waivers-inbox-succeeds; tests list-fee-waivers-denied-with-expired-session; tests list-fee-waivers-denied-without-fees-approve; tests list-fee-waivers-succeeds; tests refuse-fee-waiver; tests request-fee-waiver; tests waive-fee |
 
-## 3. Gaps
+## 3. Requirements to scenarios
 
-None: every need is refined, and every requirement has acceptance criteria, is satisfied once there is a design, and is verified once there are tests, checks or monitors.
+Each requirement and the scenarios whose steps name it; a requirement of priority must that no scenario names is a gap below.
+
+| Requirement | Priority | Scenarios |
+|---|---|---|
+| LIB-1 | must |   |
+| LIB-2 | must |   |
+| LIB-3 | must | SC-2 |
+| LIB-4 | must | SC-1 |
+| LIB-5 | must | SC-1 |
+| LIB-6 | must | SC-1 |
+| LIB-7 | should |   |
+| LIB-8 | must |   |
+
+## 4. Scenarios to requirements
+
+Each scenario, the requirements its steps name, the operations they call and the tests that check a step or prove the scenario.
+
+| Scenario | Topic | Requirements | Operations | Tests |
+|---|---|---|---|---|
+| SC-2 | Lending | LIB-3 | createLoan | lend-a-copy, lend-limit-reached, fees-block-lending |
+| SC-1 | Returns | LIB-4, LIB-5, LIB-6 | returnLoan, listLoans | loan-becomes-overdue, return-late, return-loan-dependency-times-out-fee-ledger, list-loans-shows-only-the-rows-of-member |
+
+## 5. Gaps
+
+The work the specification still owes, the same gaps the validator warns about. Rejected needs and rejected or retired requirements are left out.
+
+- Requirements of priority must no scenario names: LIB-1, LIB-2, LIB-8.
 

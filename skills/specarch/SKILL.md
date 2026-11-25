@@ -47,30 +47,38 @@ situation.
    generated file; a generated file's first lines say which command made it.
 4. After every edit run `specarch validate <folder>`: exit 0 is valid, 1
    lists the errors one per line, 2 is a usage or read error.
-5. Run `specarch gaps <folder>` for the open questions and what each holds
+5. A case across the design, such as a member returning a book late and
+   paying the fee: write it as a scenario under scenarios, keyed SC-n, with
+   its stakeholder, topic and ordered steps, each step naming the operation,
+   requirements, entity or tests it exercises and a branch naming its
+   condition under when; validate checks every name it gives and warns of a
+   must requirement no scenario names, the requirements and techspec
+   documents show the scenarios by topic with a sequence diagram, and a test
+   names the scenarios it proves under proves.
+6. Run `specarch gaps <folder>` for the open questions and what each holds
    up; then ask: `specarch gaps --next <folder>` gives the one question to
    put next, put it to the stakeholder it names with two to five options and
    one recommended, record the answer with `specarch decide`, and run `gaps
    --next` again; `specarch help asking` is the procedure.
-6. What a stakeholder said in a meeting, a chat, an email or a call:
+7. What a stakeholder said in a meeting, a chat, an email or a call:
    `specarch log <folder>` with who, when, how, what and the words as
    options writes the communication record beside the specification, prints
    a line per missing option saying what to ask the analyst, and guesses
    nothing; for an answer it prints the `specarch decide --record` line;
    `specarch help asking` has the procedure.
-7. Write what people read with `specarch document <target> --out <folder>
+8. Write what people read with `specarch document <target> --out <folder>
    <folder>` (techspec, requirements, problems, questions, manual and the
    others); once the owner has read them, they record the approval with
    `specarch approve`.
-8. Write code with `specarch generate <target> <folder>`; it refuses an
+9. Write code with `specarch generate <target> <folder>`; it refuses an
    unapproved specification unless `--unapproved` makes the output a draft.
    `--dry-run` lists what it would write; `--check` fails when the files on
    disk differ, so run it before each commit and in CI.
-9. For a system that exists already: `specarch extract <source>` once per
-   surface (documents, database, router, code), `specarch merge` the trees,
-   then validate and gaps; `specarch check` compares the specification with
-   the code's own tables later.
-10. When a release moves the formats: `specarch upgrade --dry-run <folder>`
+10. For a system that exists already: `specarch extract <source>` once per
+    surface (documents, database, router, code), `specarch merge` the trees,
+    then validate and gaps; `specarch check` compares the specification with
+    the code's own tables later.
+11. When a release moves the formats: `specarch upgrade --dry-run <folder>`
     lists the changes and the steps left to the author, `specarch upgrade
     <folder>` makes them.
 

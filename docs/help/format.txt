@@ -9,7 +9,8 @@ life-cycle order:
                          requirements, glossary, assumptions, constraints
   design/                enums, entities, permissions, roles, endpoints,
                          routes, commands, channels, jobs, processes,
-                         workflows, pages, algorithms, decisions
+                         workflows, pages, scenarios, algorithms,
+                         decisions
   implementation/<stack>/  one implementation file per stack
   tests/<name>/          one folder per test: test.yaml and its files
   deployment/            environments, configuration, release, handover

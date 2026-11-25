@@ -2,7 +2,7 @@
 
 # Library Lending: progress
 
-Version 0.1.0 of the specification: 339 elements, 0 open questions, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing.
+Version 0.1.0 of the specification: 341 elements, 0 open questions, from the specification and the records beside it. Every figure is counted from what the specification and its records hold; no estimate is made, and an effort nobody recorded is shown as missing.
 
 ## 1. Size
 
@@ -11,12 +11,12 @@ The elements of each stage, a section of named elements counted by its entries a
 | Stage | Elements | Sections |
 |---|---|---|
 | requirements | 25 | stakeholders 4, stakeholdersComplete 1, needs 4, requirements 8, glossary 4, assumptions 2, constraints 2 |
-| design | 94 | enums 3, entities 4, views 1, schemas 2, permissions 11, roles 6, caller 1, clients 1, separationOfDuties 1, session 1, paths 18, channels 3, dependencies 2, jobs 1, workflows 1, errors 13, pages 12, menus 3, flows 1, accessibility 1, theme 1, algorithms 2, decisions 5 |
+| design | 96 | enums 3, entities 4, views 1, schemas 2, permissions 11, roles 6, caller 1, clients 1, separationOfDuties 1, session 1, paths 18, channels 3, dependencies 2, jobs 1, workflows 1, errors 13, pages 12, menus 3, flows 1, scenarios 2, accessibility 1, theme 1, algorithms 2, decisions 5 |
 | tests | 199 | tests 199 |
 | deployment | 11 | environments 3, configuration 4, release 1, rollback 1, migrations 1, handover 1 |
 | commissioning | 6 | checks 5, signoff 1 |
 | operation | 4 | monitors 2, backup 1, restore 1 |
-| Total | 339 | |
+| Total | 341 | |
 
 ## 2. Work packages
 
@@ -54,12 +54,12 @@ Confirmed: library-board confirmed the list of 4 stakeholders complete on 2026-0
 
 ## 7. Burn-up
 
-One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 339 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
+One point per release, oldest first. Each counts, from the first release to it, the distinct elements that the change requests it includes name under affects adds and changes, a requirement named by its ID or its pointer once and a pointer inside an element as that element, and a reference to what Size does not count named below the table and left out: approved once the request's decision approves it and it is not withdrawn or rejected, generated once the request is implemented or released, so the specification and the code carry it. The specification holds 341 elements now, the scope line. A release that includes no change request does not rise; the elements the first version was written with are counted under Size, not here.
 
 | Release | Status | Date | Change requests | Elements approved | Elements generated | Elements in the specification |
 |---|---|---|---|---|---|---|
-| 0.1.0 | released | 2026-10-07 | none | 0 | 0 | 339 |
-| 0.2.0 | planned | not yet | CR-1 | 2 | 0 | 339 |
+| 0.1.0 | released | 2026-10-07 | none | 0 | 0 | 341 |
+| 0.2.0 | planned | not yet | CR-1 | 2 | 0 | 341 |
 
 1 reference under affects is not counted, since Size does not count what it names:
 

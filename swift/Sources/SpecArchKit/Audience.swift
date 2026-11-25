@@ -7,7 +7,7 @@ import Foundation
 private let keyedElements: Set<String> = [
     "goals", "outOfScope", "qualityGoals", "stakeholders", "needs", "requirements", "glossary", "assumptions", "constraints",
     "enums", "entities", "views", "schemas", "permissions", "roles", "clients", "tokens", "separationOfDuties", "middlewares", "handshakes", "routes",
-    "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "flows",
+    "commands", "channels", "dependencies", "jobs", "processes", "gateways", "workflows", "errors", "pages", "flows", "scenarios",
     "algorithms", "tests", "decisions",
     "environments", "configuration", "migrations", "checks", "monitors",
 ]

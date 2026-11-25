@@ -206,6 +206,7 @@ func (c *checker) checkDesign(d *design) {
 	c.checkEnabledBy(d)
 	c.checkPageEvents(d)
 	c.checkFlows(d)
+	c.checkScenarios(d)
 	c.checkRoleHomes(d)
 	c.checkNavigation(d)
 	c.checkPageStates(d)
@@ -321,26 +322,31 @@ func (c *checker) checkRequirementLinks(root *yaml.Node, base []string, d *desig
 		for _, key := range []string{"satisfies", "verifies"} {
 			list := source.Child(n, key)
 			for i, item := range source.Items(list) {
-				link := source.Str(item)
-				if d.requirements[link] != nil {
-					continue
-				}
-				prefix, _, ok := strings.Cut(link, "-")
-				if ok && prefixes[prefix] != nil {
-					continue
-				}
-				ptr := source.Pointer(append(path, key, fmt.Sprint(i))...)
-				switch {
-				case len(d.requirements) == 0 && len(prefixes) == 0:
-					c.add(item, ptr, RuleRequirement, "%s is not a requirement: the specification has none under requirements and no source of kind requirement-set; add the requirement, or declare the set under sources with prefix %s", link, prefix)
-				case len(d.requirements) > 0:
-					c.add(item, ptr, RuleRequirement, "%s is not a requirement of the specification%s", link, suggest(link, d.requirements))
-				default:
-					c.add(item, ptr, RuleRequirement, "%s is not in a declared requirement set; the sets under sources have the prefixes %s", link, strings.Join(sortedKeys(prefixes), ", "))
-				}
+				c.checkRequirementLink(d, prefixes, item, source.Pointer(append(path, key, fmt.Sprint(i))...))
 			}
 		}
 	})
+}
+
+// checkRequirementLink checks that one link names a requirement of the
+// specification or of a requirement set declared under sources.
+func (c *checker) checkRequirementLink(d *design, prefixes map[string]*yaml.Node, item *yaml.Node, ptr string) {
+	link := source.Str(item)
+	if d.requirements[link] != nil {
+		return
+	}
+	prefix, _, ok := strings.Cut(link, "-")
+	if ok && prefixes[prefix] != nil {
+		return
+	}
+	switch {
+	case len(d.requirements) == 0 && len(prefixes) == 0:
+		c.add(item, ptr, RuleRequirement, "%s is not a requirement: the specification has none under requirements and no source of kind requirement-set; add the requirement, or declare the set under sources with prefix %s", link, prefix)
+	case len(d.requirements) > 0:
+		c.add(item, ptr, RuleRequirement, "%s is not a requirement of the specification%s", link, suggest(link, d.requirements))
+	default:
+		c.add(item, ptr, RuleRequirement, "%s is not in a declared requirement set; the sets under sources have the prefixes %s", link, strings.Join(sortedKeys(prefixes), ", "))
+	}
 }
 
 // checkCitations checks every citation names a declared source and, when

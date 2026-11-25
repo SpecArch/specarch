@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a specification whose scenarios name a stakeholder, an actor, an operation, a requirement, an entity and a test that do not exist, have a step naming nothing, a step with change and no entity, one scenario with an empty steps list and one with none, and a test whose proves names a scenario that does not exist"
+when: "validate is run"
+then: "it reports each at its entry, the stakeholder and actor under stakeholder, the operation under operation, the requirement under requirement, the change without its entity under schema, and the rest under scenario, reads every other scenario and step, and exits 1"
+verifies: [SA-150]

@@ -1,0 +1,51 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0, scenarioCoverage: error }
+problem: { statement: Members cannot tell which loans they hold. }
+stakeholders:
+  member: { description: A card holder. }
+  clerk: { description: Staff at the desk. }
+stakeholdersComplete: { by: clerk, date: "2026-11-25" }
+needs:
+  NEED-1: { statement: Members want to see their loans., stakeholders: [member, clerk], status: accepted }
+requirements:
+  CASE-1:
+    statement: A member shall see their loans.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Listing the loans answers 200 with the member's loans.]
+    verification: test
+    needs: [NEED-1]
+  CASE-2:
+    statement: A member without the permission shall be refused the list.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [Listing the loans without loans.read answers 403.]
+    verification: test
+    needs: [NEED-1]
+entities:
+  Loan:
+    type: object
+    properties:
+      id: { type: string, format: uuid }
+      title: { type: string, maxLength: 200 }
+    primaryKey: [id]
+permissions:
+  loans.read: { description: See loans. }
+roles:
+  member:
+    description: A card holder.
+    permissions: [loans.read]
+paths:
+  /loans:
+    get:
+      operationId: listLoans
+      summary: List loans
+      permission: loans.read
+      responses:
+        "200": { description: The loans. }
+      satisfies: [CASE-1, CASE-2]
+tests:
+  list-loans-succeeds: { operation: listLoans, level: system, scenario: golden, given: a caller with loans.read, when: listLoans is called, then: it answers 200, verifies: [CASE-1] }
+  list-loans-denied: { operation: listLoans, level: system, scenario: red, covers: [denied without loans.read], given: a caller without loans.read, when: listLoans is called, then: it is refused, verifies: [CASE-2] }

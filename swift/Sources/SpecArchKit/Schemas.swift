@@ -413,6 +413,16 @@ let designSchemaJSON = #"""
         "$ref": "#/$defs/flow"
       }
     },
+    "scenarios": {
+      "description": "SpecArch keyword. Cases told as a sequence across operations, requirements, entity changes and tests, keyed by ID such as SC-1: who the case is for, the topic it is grouped under, and its steps in order, a step that runs only under a condition naming it in when (ADR-251). A scenario is design, not a stakeholder's want: the needs say what is wanted, a scenario shows how one case runs through what the design defines, and validate checks every name it gives. The requirements and technical specification documents show each scenario with its steps and a sequence diagram, grouped by topic, and the traceability matrix traces requirements to scenarios and back.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^SC-[0-9]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
     "accessibility": {
       "description": "SpecArch keyword. The accessibility the user interface conforms to, by the standard and its level. With it, the validator checks what the design decides: a title for every field a page shows and a distinct label for every action of a page.",
       "type": "object",
@@ -987,6 +997,14 @@ let designSchemaJSON = #"""
           "enum": [
             "lean",
             "full"
+          ]
+        },
+        "scenarioCoverage": {
+          "description": "SpecArch keyword. How the validator treats a requirement of priority must that no step of any scenario names (scenario_uncovered). warning: it is warned of, once the specification has a scenario; error: it is an error, scenarios or none, for a project that wants every must requirement shown in a case. Left out, warning (ADR-251).",
+          "type": "string",
+          "enum": [
+            "warning",
+            "error"
           ]
         }
       },
@@ -4589,6 +4607,136 @@ let designSchemaJSON = #"""
       },
       "additionalProperties": false
     },
+    "scenario": {
+      "description": "SpecArch keyword. One case in sequence: the stakeholder it is for, its topic and its steps.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "What happens in the case, in a few words, such as 'A member returns a book late and the fee is charged'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "topic": {
+          "description": "The topic the documents group the scenario under, in a few words, such as 'Returns'; scenarios with the same topic stand together.",
+          "type": "string",
+          "minLength": 1
+        },
+        "stakeholder": {
+          "description": "The stakeholder the case is for, by key: one of stakeholders. A step names another stakeholder that takes part in it as its actor (ADR-252).",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "steps": {
+          "description": "The steps in order. Each names at least one of operation, requirements, entity or tests, what the step exercises; a step with when runs only under that condition, as an alternative or failure branch of the steps before it. A scenario with no step, or a step that names nothing, is an error at the entry (scenario).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scenarioStep"
+          }
+        },
+        "why": {
+          "$ref": "#/$defs/why"
+        },
+        "cites": {
+          "$ref": "#/$defs/citations"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "decidedIn": {
+          "$ref": "#/$defs/decidedIn"
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        }
+      },
+      "required": [
+        "title",
+        "topic",
+        "stakeholder"
+      ],
+      "propertyNames": {
+        "not": {
+          "$ref": "#/$defs/stackSpecificKey"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "scenarioStep": {
+      "description": "SpecArch keyword. One step of a scenario: what happens, who does it, under which condition, what it exercises in the design and the result expected.",
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "What happens in the step, in one plain sentence.",
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "description": "The stakeholder that does the step, by key; left out, the scenario's stakeholder.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        },
+        "when": {
+          "description": "The condition, in one plain sentence, under which this step runs instead of going on as the steps before it lead: an alternative or failure branch, such as 'the loan is overdue'. A step without when is on the scenario's main path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "precondition": {
+          "description": "What holds before the step, in one plain sentence.",
+          "type": "string",
+          "minLength": 1
+        },
+        "operation": {
+          "description": "The operation the step calls, by operationId.",
+          "$ref": "#/$defs/memberName"
+        },
+        "requirements": {
+          "description": "The requirements the step exercises, by ID. A requirement of priority must that no step of any scenario names is warned of (scenario_uncovered).",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirementLink"
+          },
+          "uniqueItems": true
+        },
+        "entity": {
+          "description": "The entity the step changes.",
+          "$ref": "#/$defs/typeName"
+        },
+        "change": {
+          "description": "For a step with entity: how the entity changes, in one plain sentence, such as 'the loan's status becomes returned'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "tests": {
+          "description": "The design tests that check the step, by name.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "uniqueItems": true
+        },
+        "result": {
+          "description": "What is expected once the step is done, in one plain sentence.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "dependentRequired": {
+        "change": [
+          "entity"
+        ]
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
     "workflow": {
       "type": "object",
       "properties": {
@@ -6912,6 +7060,15 @@ let designSchemaJSON = #"""
         },
         "verifies": {
           "$ref": "#/$defs/verifies"
+        },
+        "proves": {
+          "description": "SpecArch keyword. The scenarios this test proves, by ID: the test walks the scenario's main path, or one of its branches. Each must be a scenario of the specification (scenario).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^SC-[0-9]+$"
+          },
+          "uniqueItems": true
         },
         "why": {
           "$ref": "#/$defs/why"

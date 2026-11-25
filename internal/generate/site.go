@@ -60,6 +60,7 @@ var siteGroups = []struct {
 	{"Operations", []string{"paths", "commands", "channels", "dependencies", "jobs", "processes", "errors"}},
 	{"Pages and menus", []string{"pages", "menus", "flows", "accessibility", "theme"}},
 	{"Workflows", []string{"workflows"}},
+	{"Scenarios", []string{"scenarios"}},
 	{"Algorithms and decisions", []string{"algorithms", "decisions"}},
 	{"Tests and traceability", []string{"tests"}},
 	{"Deployment, commissioning and operation", []string{"environments", "configuration", "release", "rollback", "migrations", "handover", "checks", "signoff", "monitors", "backup", "restore"}},

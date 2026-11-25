@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-253:
+    title: A scenario's ID is SC- and a number, the one prefix every specification uses
+    status: accepted
+    date: "2026-11-25"
+    context: |
+      A test names the scenarios it proves, and a reader sees scenario IDs
+      beside requirement IDs in the traceability matrix. The requirements
+      take a project's own prefix, and the needs, goals and quality goals
+      are keyed by an ID whose prefix the schema leaves open; the decisions
+      are keyed ADR- and a number.
+    decision: |
+      A scenario is keyed SC- and a number (^SC-[0-9]+$), and a test's
+      proves takes the same form; any other key is a schema error at the
+      entry.
+    why: |
+      One way to say one thing: a fixed prefix tells a scenario from a
+      requirement at a glance in a table or a list of links, as ADR- tells a
+      decision, and gives a name nobody has to choose. SC is short and is
+      the prefix the request named.
+    alternatives:
+      - option: An ID with any upper-case prefix, as needs and goals take
+        why: |
+          Each specification would choose its own, and a mixed list of links
+          would no longer say which is a scenario.
+      - option: A kebab-case name, as flows and tests take
+        why: |
+          A scenario is cited beside requirement IDs and from a test's
+          proves, where an ID reads as a reference and a name as prose.
+    consequences: |
+      Every specification's scenarios read SC-1, SC-2 and on; a project that
+      kept its cases under another prefix renames them once.
+    satisfies: [SA-150]
+    restsOn: [ADR-251]

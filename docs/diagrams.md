@@ -705,6 +705,7 @@ Both builds, each with a case in `spec/tests/` and its design test:
 | deployment | `deployment <deployment>` | `servers` with `name`, `kind`, `runs`, `dependency` | techspec chapter 7, deployment guide; replaces the convention's hand-drawn deployment row |
 | network | `network <deployment>` | `zone`, `listens`, `links` | techspec chapter 7, deployment guide, handover document; a new row of the convention's table |
 | module map | none: `estate.md` | the estate (ADR-113) | built |
+| sequence of a scenario | none: written with each scenario | a scenario's `steps`: `actor`, `when`, `operation`, `entity`, `change`, `result` (ADR-251) | requirements specification, Scenarios; techspec chapter 6, Scenarios |
 
 ## Left out
 

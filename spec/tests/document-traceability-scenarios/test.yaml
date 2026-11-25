@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: golden
+given: "a specification with a scenario of two steps, one a branch, its steps naming an operation, requirements, an entity and tests, and two tests that prove it"
+when: "document traceability is run"
+then: "the traceability matrix traces each requirement to the scenarios naming it and each scenario to its requirements, operations and tests, and exits 0"
+verifies: [SA-150]

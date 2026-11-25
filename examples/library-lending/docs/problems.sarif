@@ -12,6 +12,9 @@
               "id": "problem_missing"
             },
             {
+              "id": "scenario_uncovered"
+            },
+            {
               "id": "secret_unprotected",
               "properties": {
                 "tags": [
@@ -135,7 +138,7 @@
                   "uriBaseId": "PROBLEMSDIR"
                 },
                 "region": {
-                  "startLine": 4,
+                  "startLine": 5,
                   "startColumn": 3
                 }
               },
@@ -149,6 +152,117 @@
           ],
           "partialFingerprints": {
             "specarchId/v1": "problem_missing@requirements/requirements/lending.yaml#/requirements"
+          }
+        },
+        {
+          "ruleId": "scenario_uncovered",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "requirement LIB-1 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-1 to the requirements of the scenario step that exercises it, or write a scenario for it"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/lending.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/LIB-1",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-1"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/lending.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 9
+                }
+              },
+              "message": {
+                "text": "source lending-policy, clause 1: Each member holds one card, and the card number identifies them at the desk."
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "scenario_uncovered",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "requirement LIB-2 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-2 to the requirements of the scenario step that exercises it, or write a scenario for it"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/lending.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/LIB-2",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-2"
+          }
+        },
+        {
+          "ruleId": "scenario_uncovered",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "requirement LIB-8 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-8 to the requirements of the scenario step that exercises it, or write a scenario for it"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "../spec/requirements/requirements/lending.yaml",
+                  "uriBaseId": "PROBLEMSDIR"
+                },
+                "region": {
+                  "startLine": 90,
+                  "startColumn": 3
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/requirements/LIB-8",
+                  "kind": "element"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "specarchId/v1": "scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-8"
           }
         }
       ],

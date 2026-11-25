@@ -1,0 +1,141 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-251:
+    title: A scenario is a design element under scenarios that tells one case as ordered steps across the operations, requirements, entity changes and tests the design defines, its branches steps under a condition in words, checked by validate, warned of where a must requirement is in no scenario, and shown by topic with a sequence diagram in the requirements and technical specification documents and traced both ways in the traceability matrix; it is an optional key of the 1.0 schemas
+    status: accepted
+    date: "2026-11-25"
+    context: |
+      The needs say what the stakeholders want, the requirements what the
+      system shall do with their acceptance, and the tests what must hold
+      for one subject at a time. Nothing showed one case as a sequence
+      across requirements and operations, such as a member returning a
+      book late and paying the fee: that sequence lived only in the steps
+      of tests, one subject each, so a reader could not follow a case per
+      topic and no rule checked it. The owner decided on 2026-11-25 that
+      it belongs on the design side, as a flow across operations, and not
+      as free-form user stories on the needs side, which would repeat the
+      needs and which nothing would check.
+
+      SpecArch has two neighbours. A flow (ADR-034) is a task a person does
+      across pages, step by step, a test subject the screens are tested
+      along; a workflow (ADR-054) is a request that finishes after people
+      approve it, run by the system. Neither is a case read across the
+      operations, the requirements, the entity changes and the tests.
+      Meta-model 1.0 promises that a 1.x only adds (ADR-186), and every
+      key added since 1.0.0 went into the 1.0 schemas as an optional key
+      (ADR-233, ADR-244), read by the 1.0.0 version line.
+    decision: |
+      1. scenarios is a section of the design stage, keyed SC-n (ADR-253).
+         A scenario has title, topic and stakeholder (required), description
+         and steps; a step has description, actor (ADR-252), when,
+         precondition, operation, requirements, entity with change, tests
+         and result. Every key is optional in the 1.0 schemas, as ADR-233
+         and ADR-244 added theirs; no meta-model 1.1 is opened for it.
+      2. A branch is a step with when, one plain sentence naming the
+         condition under which it runs instead of going on as the steps
+         before it lead ("the fee ledger does not answer within 5 seconds");
+         a step without when is on the main path. The condition is words,
+         not an expression: a scenario has no subject whose fields an
+         expression could read, and a test's given, when and then are words
+         too. The precondition and the expected result are precondition and
+         result, not a test's given and then, since a step's when means the
+         branch condition and a test's when the action.
+      3. validate checks, under the rule of the kind each names: a
+         scenario's stakeholder and a step's actor (stakeholder), a step's
+         operation (operation), each of its requirements (requirement, as
+         satisfies and verifies are checked), and under the new rule
+         scenario a scenario with no step, a step that names no operation,
+         requirements, entity or tests, a step's entity or test that does
+         not exist, and a test's proves that names no scenario. Two
+         scenarios with one ID are duplicate_key, as every key defined
+         twice is. Every problem stands at its entry and nothing else of
+         the specification is left unread.
+      4. scenario_uncovered warns at a requirement of priority must,
+         neither rejected nor retired nor held elsewhere, that no step of
+         any scenario names under requirements, once the specification has
+         a scenario. info.scenarioCoverage error makes it an error,
+         scenarios or none; warning, the default, leaves it a warning. A
+         requirement counts as covered only when a step names it: an
+         operation that satisfies it or a test that verifies it does not
+         count, so the matrix and the warning say the same thing a reader
+         sees in the step.
+      5. A design test names under proves the scenarios it proves, by ID.
+         A scenario carries no satisfies: the requirements it exercises are
+         named in its steps.
+      6. document requirements writes a section Scenarios after the
+         requirements and document techspec a part Scenarios at the end of
+         its runtime view, the arc42 chapter of runtime scenarios. Each
+         groups the scenarios by topic in the order the topics are first
+         named, and gives each scenario its description, its stakeholder
+         and the count of steps and branches, its problems marked, the
+         steps as a table (step and its condition, actor, before, what
+         happens, what it exercises, result), a Mermaid sequence diagram
+         drawn from the steps (the actors, the stakeholder first, and the
+         system; an operation step as a call and its result as the answer,
+         an entity change as the system's own step, a step naming only
+         requirements or tests as a note, a branch's condition as a note
+         before it) and the tests that prove it. The traceability matrix
+         writes Requirements to scenarios and Scenarios to requirements
+         and lists the uncovered must requirements among its gaps.
+      7. derive drafts no test from a scenario in this build; extract lifts
+         no scenario from feature files (ADR-254).
+    why: |
+      The decision a reader takes on a case is whether the system does the
+      right thing in the right order, which neither a requirement nor a
+      test of one subject shows; a scenario puts the case in one place,
+      and since every step names elements of the design, validate can
+      tell when an operation, a requirement or a test it names is gone.
+      Keeping the condition in words follows the compiler principle: an
+      analyst writes the case before the design has the fields an
+      expression would need, and an incomplete scenario is still read and
+      marked rather than refused. The coverage warning is silent until the
+      first scenario, as need_without_goal is until the first goal
+      (ADR-244), so a specification without scenarios reads as it did and
+      no 1.0 file gets a new problem it did not ask for; a project that
+      wants every must requirement in a case turns it into an error
+      itself. Optional keys of the 1.0 schemas keep the line every
+      specification already has: a meta-model 1.1 would make every
+      specification that uses a scenario change its version line, and
+      every reader of the line learn a second minor, for an addition the
+      1.x promise already allows.
+    alternatives:
+      - option: User stories under needs, as a member I want ... so that ...
+        why: |
+          They repeat what a need says, name no element of the design, and
+          so nothing could check them; the owner ruled them out.
+      - option: Extend flows with operation steps
+        why: |
+          A flow is a test subject walked across pages by the screen tests
+          (ADR-034), its steps a page and an event; mixing operations,
+          entity changes and branches into it would give one keyword two
+          meanings and change what a flow's golden test walks.
+      - option: The condition of a branch as an expression in SpecArch's subset of CEL
+        why: |
+          A scenario has no subject whose fields the expression could read,
+          and the analyst writes the case before those fields exist; an
+          expression would be a check nobody can evaluate.
+      - option: Count a requirement as covered when a step's operation satisfies it or a step's test verifies it
+        why: |
+          The trace would then hold links the reader cannot see in the
+          scenario, and a requirement satisfied by one operation would be
+          covered by every scenario that calls it, whatever the case shows.
+      - option: Meta-model 1.1.0 with a specarch-design-1.1 schema
+        why: |
+          The 1.x promise lets a minor add optional keys, and since 1.0.0
+          every addition went into the 1.0 schemas; opening 1.1 for this
+          one would make one keyword the reason every reader of the
+          version line learns a second minor. It stays a separate decision
+          for the owner.
+    consequences: |
+      A specification can show each case per topic with a diagram, and
+      validate reports a scenario whose step names an operation, a
+      requirement, an entity or a test that does not exist. A
+      specification that writes one scenario sees every must requirement
+      no scenario names as a warning, which is the point: the library
+      lending example shows three. The test's key scenario (golden or red)
+      and the section scenarios are two keys in two places, the first a
+      kind of test case and the second a case of the system; the test's key
+      is frozen by the 1.0 promise and keeps its meaning.
+    weighs: [QG-1, QG-2]
+    satisfies: [SA-150]
+    restsOn: [ADR-034, ADR-054, ADR-186, ADR-244]

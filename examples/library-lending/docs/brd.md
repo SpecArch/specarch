@@ -4,7 +4,7 @@
 
 Version 0.1.0 of the specification: why the system is built, for whom, and what the business asks of it, 4 stakeholders, 4 needs and 8 requirements, in the order of the business requirements specification of ISO/IEC/IEEE 29148. How each requirement is designed and verified is in the requirements specification.
 
-**Problems:** 1 warning concerns this document; it is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
+**Problems:** 4 warnings concern this document; each is marked by a Problem paragraph at its element, or below when the document shows no element for it. The problems file lists every problem, and specarch validate prints them.
 
 **Problem:** warning: problem_missing: the specification has requirements and no problem, so nothing says what the system is for, and no goal or requirement can be judged against it; add problem with statement, the problem the system solves in plain words, and, when they are known, the stakeholders it hurts, how things stand today and why [problem_missing@requirements/requirements/lending.yaml#/requirements]
 
@@ -75,7 +75,11 @@ Each requirement as the business asks it: its statement, how important it is, wh
 | LIB-7 | A desk task shall take a librarian under a minute, in one screen. | should | accepted | NEED-1 |   |
 | LIB-8 | A late fee above the desk's limit shall be waived only after a second person, not the one who asked, approves it. | must | accepted | NEED-2 |   |
 
+**Problem on LIB-1:** warning: scenario_uncovered: requirement LIB-1 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-1 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-1]
+
 **Note on LIB-1:** From Lending policy of the library, 2026, clause 1: Each member holds one card, and the card number identifies them at the desk.
+
+**Problem on LIB-2:** warning: scenario_uncovered: requirement LIB-2 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-2 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-2]
 
 **Note on LIB-3:** From Lending policy of the library, 2026, clause 2: Standard members may hold three loans at a time and extended members six; no loan is made while a fee is unpaid.
 
@@ -86,6 +90,8 @@ Each requirement as the business asks it: its statement, how important it is, wh
 **Note on LIB-5:** From Lending policy of the library, 2026, clause 4: The late fee is a daily rate set by the board, and never more than the cost of replacing the book.
 
 **Note on LIB-6:** From The data-protection rules the library is bound by, 2024: Personal data is shown only to the person it is about and to the staff who need it.
+
+**Problem on LIB-8:** warning: scenario_uncovered: requirement LIB-8 has priority must and no step of any scenario names it, so no case shows it in sequence with the operations it runs through; add LIB-8 to the requirements of the scenario step that exercises it, or write a scenario for it [scenario_uncovered@requirements/requirements/lending.yaml#/requirements/LIB-8]
 
 **Insight on LIB-8:** A fee waived by the person who asked for it is money the library loses with nobody having looked; a second person is the control the board asks for.
 

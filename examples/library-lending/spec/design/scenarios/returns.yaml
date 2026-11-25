@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=../../../../../schema/specarch-fragment-design-1.0.schema.json
+scenarios:
+  SC-1:
+    title: A member returns a book late and the late fee is charged
+    topic: Returns
+    stakeholder: member
+    description: A member brings a book back a week after its due date; the desk records the return and the late fee, and the member sees the fee among their own loans.
+    steps:
+      - description: The member keeps the book past its due date, and the next night the loan is marked overdue.
+        precondition: The loan is open and its due date was yesterday.
+        entity: Loan
+        change: The loan's status goes from open to overdue, and the member is told.
+        requirements: [LIB-4]
+        tests: [loan-becomes-overdue]
+      - description: The librarian takes the book back at the desk and records the return.
+        actor: librarian
+        operation: returnLoan
+        requirements: [LIB-5]
+        tests: [return-late]
+        result: The loan is returned with a late fee of 3.50 for seven days, and the copy is available again.
+      - description: The fee ledger does not answer, so the return is not recorded and nothing is charged.
+        actor: librarian
+        when: the fee ledger does not answer within 5 seconds
+        operation: returnLoan
+        tests: [return-loan-dependency-times-out-fee-ledger]
+        result: The desk is answered 503 and the loan stays as it was, to be returned again.
+      - description: The member lists their loans and sees the returned loan with its fee.
+        operation: listLoans
+        requirements: [LIB-6]
+        tests: [list-loans-shows-only-the-rows-of-member]
+        result: Only the member's own loans are listed.

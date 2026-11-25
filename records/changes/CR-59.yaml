@@ -1,0 +1,38 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-59
+title: Describe scenarios, one case as ordered steps across the design, checked by validate and shown in the documents
+raisedBy: specification-author
+raised: "2026-11-25"
+phase: development
+type: additive
+urgency: normal
+reason: A reader could not follow one case, such as a member returning a book late and paying the fee, as a sequence across requirements and operations; it lived only in the steps of tests, one subject each, and no rule checked it.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-251"
+    - "#/decisions/ADR-252"
+    - "#/decisions/ADR-253"
+    - "#/decisions/ADR-254"
+    - "#/requirements/SA-150"
+    - "#/tests/document-requirements-scenario-problems"
+    - "#/tests/document-requirements-scenarios"
+    - "#/tests/document-techspec-scenarios"
+    - "#/tests/document-traceability-scenarios"
+    - "#/tests/validate-scenario-coverage-error"
+    - "#/tests/validate-scenario-duplicate-id"
+    - "#/tests/validate-scenario-problems"
+    - "#/tests/validate-scenario-uncovered"
+    - "#/tests/validate-scenarios"
+  changes:
+    - "#/commands/document"
+    - "#/enums/Rule"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-25"
+  outcome: approved
+  why: "ADR-251: scenarios is an optional key of the 1.0 schemas, so a specification that worked on 1.8.1 validates the same; its new errors and warnings apply only to a specification that writes scenarios, and the documents gain sections only where scenarios exist."
+release: 1.8.2
+status: released

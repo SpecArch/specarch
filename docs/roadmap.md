@@ -6,7 +6,7 @@ the validator, and the real projects check all of it.
 
 Each entry says where it stands in the code: built, with the release that
 first carried it and the file or conformance case that shows it; partly
-built, with what is missing; or not built. A release is a tag; 1.8.1 is the
+built, with what is missing; or not built. A release is a tag; 1.8.2 is the
 latest.
 
 ## Releases
@@ -36,6 +36,7 @@ latest.
 | 1.7.0, 2026-11-07 | work packages as records in `records/work-packages/`, each with its release, requirements, the packages it comes after, a status, an assignee and effort, checked by the error `work_package_cycle` and the warnings `work_package_order`, `work_package_overlap`, `work_package_release`, `work_package_not_ready`, `work_package_unverified` and `work_package_unconfigured`, listed in `document progress` and grouping the tests in `document testplan` (ADR-245, SA-140 to SA-142); `specarch plan`, which proposes packages for the accepted requirements of a planned release, names the one to start with `--next`, prints a one-page `--brief`, and writes or reads a tracker's CSV or JSON with `--export` and `--import` (ADR-246, SA-143 to SA-145); `specarch diff` failing the version check when a specification keeps the version of a released one (BUG-075) |
 | 1.8.0, 2026-11-23 | seven design security warnings at the element to change, tagged as security rules in the problems file's SARIF: `object_unscoped`, `internal_key_exposed`, `refusal_reveals_record`, `query_from_caller`, `duties_unseparated`, `secret_unprotected` and `audit_not_append_only`, and a hashed field refused as a key, unique or searchable (ADR-247, SA-146, SA-147); `specarch document brd`, the business requirements document in the order of ISO/IEC/IEEE 29148, and `specarch document books`, the business requirements, requirements, technical and test books with front matter, a table of contents and the problems and gaps list (ADR-248, SA-148); `specarch document --format md\|docx\|pdf\|all`, every Markdown document as Markdown, Word or PDF, rendered by SpecArch's own writers, and `formats` on a targets entry with the warning `document_format` (ADR-249, SA-149) |
 | 1.8.1, 2026-11-25 | every pdf, a document's or a book's, draws the Mermaid diagrams its Markdown carries, the entity diagram, the state diagrams, the sequences, the pages, the workflows and the context, component, deployment and network diagrams, as tagged figures laid out by SpecArch's own renderer, instead of printing their source (ADR-250) |
+| 1.8.2, 2026-11-25 | scenarios, each one case of one stakeholder told as ordered steps across the operations, requirements, entity changes and tests, with branches as steps under a condition, checked by `validate` with a warning for a must requirement no scenario names, and shown by topic with a sequence diagram in the requirements and technical specification documents and traced both ways in the traceability matrix (ADR-251 to ADR-254, SA-150); a question's `consequences` per option, warned of where a must or should decision question leaves an option unexplained, and `gaps --next` printing why a question is asked and each option with its consequences, in text and `--json` (ADR-255, SA-151) |
 
 ## 1. Validator CLI
 

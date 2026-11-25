@@ -1,0 +1,31 @@
+specarchRecord: "1.0.0"
+kind: change
+id: CR-60
+title: Explain every option of a question and what follows from it before the question is asked
+raisedBy: specification-author
+raised: "2026-11-25"
+phase: development
+type: additive
+urgency: normal
+reason: A person was asked to approve an option by its ID alone, such as "is A-1 ok?", without being told what it is or what choosing it leads to, so the decision could not be made from the question.
+cause: omitted
+affects:
+  adds:
+    - "#/decisions/ADR-255"
+    - "#/requirements/SA-151"
+    - "#/tests/gaps-next-consequences"
+    - "#/tests/gaps-next-consequences-json"
+    - "#/tests/validate-question-consequences"
+  changes:
+    - "#/commands/gaps"
+    - "#/commands/merge"
+    - "#/enums/Rule"
+    - "#/requirements/SA-107"
+impact: patch
+decision:
+  by: specification-author
+  date: "2026-11-25"
+  outcome: approved
+  why: "ADR-255: consequences is an optional key of a question; an option left unexplained is a warning, not an error, so a specification that validated on 1.8.1 still validates. gaps --next words its brief differently (the insight line is now why it is asked, and each option has its consequences under it), and its --json keeps every field it had and adds consequences per question."
+release: 1.8.2
+status: released

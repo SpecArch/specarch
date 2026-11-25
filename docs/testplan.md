@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.8.2-dev of the specification: 1122 design tests, 581 golden and 541 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.8.2-dev of the specification: 1124 design tests, 581 golden and 543 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.8.2-dev of the specification: 1122 design tests, 581 golden and 541 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1118 |
+| system | 1120 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -1454,6 +1454,14 @@ Scenario: golden; level: system; verifies SA-142.
 - Given: a specification with work-package records, one holding a requirement marked audience internal, and an accepted requirement of a planned release that no package holds
 - When: document progress --audience external is run
 - Then: the Work packages section names no internal requirement in any package's row and no assignee, leaves the internal requirement out of the unplanned line, and exits 0
+
+#### document-requirements-scenario-problems
+
+Scenario: red; level: system; verifies SA-150.
+
+- Given: a specification whose scenarios name what does not exist, have a step naming nothing and two with no step
+- When: document requirements is run
+- Then: it writes the Scenarios section with every scenario, each problem marked under the scenario it stands in, a step's problem under its scenario, and exits 1
 
 #### document-requirements-scenarios
 
@@ -7926,6 +7934,14 @@ Scenario: red; level: system; verifies SA-150.
 - Given: a specification with info.scenarioCoverage error, two must requirements and no scenario
 - When: validate is run
 - Then: it reports scenario_uncovered at each must requirement as an error, and exits 1
+
+#### validate-scenario-duplicate-id
+
+Scenario: red; level: system; verifies SA-150.
+
+- Given: a specification whose two files under design/scenarios both define SC-1
+- When: validate is run
+- Then: it reports duplicate_key at the second definition, naming the file and line of the first, and exits 1
 
 #### validate-scenario-problems
 

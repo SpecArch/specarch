@@ -1,0 +1,4 @@
+problem: { statement: Members cannot tell which loans they hold. }
+stakeholders:
+  member: { description: A card holder. }
+stakeholdersComplete: { by: member, date: "2026-11-25" }

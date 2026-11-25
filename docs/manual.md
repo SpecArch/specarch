@@ -962,7 +962,10 @@ client does for it in five steps; an operation that names one says
 it travels in that envelope, its sequence diagram notes it and marks
 the request and the answer sealed, and one that streams a file says
 so with the media type and the bound in place of a field table, its
-success response reading the file, streamed (ADR-145, ADR-146). Chapter 7 comes from
+success response reading the file, streamed (ADR-145, ADR-146).
+Chapter 6 ends with the scenarios, grouped by topic, each with its
+steps as a table, a sequence diagram drawn from them and the tests
+that prove it (ADR-251). Chapter 7 comes from
 the deployment and commissioning stages and from each
 implementation file, chapter 12 from the glossary, and
 chapter 13 from the needs and requirements, with the traceability
@@ -987,8 +990,11 @@ and a warning (`document_format`) at the estate file says so, while
 each module's techspec is written in the formats asked (ADR-249).
 
 The requirements target writes `requirements.md`: the stakeholders,
-the needs with the requirements that refine them, and each
-requirement with its attributes and acceptance criteria. The
+the needs with the requirements that refine them, each
+requirement with its attributes and acceptance criteria, and, when
+the design has scenarios, the scenarios grouped by topic, each with
+its stakeholder, its steps as a table, a sequence diagram drawn from
+them, the tests that prove it and its problems marked (ADR-251). The
 testplan target writes `testplan.md`: when an implementation file
 declares the tests target, how many of the tests that apply that
 target writes with their bodies, a test of an
@@ -1002,8 +1008,11 @@ with the tests that walk it, then the derived cases left out: each
 case of rank other that no test covers, with its subject and the
 reason. The traceability target writes `traceability.md`: needs to
 requirements, requirements to what satisfies and verifies them, with
-their harm once a requirement names one, and the gaps the validator
-warns about.
+their harm once a requirement names one, requirements to the
+scenarios whose steps name them and each scenario to its
+requirements, operations and tests when the design has scenarios,
+and the gaps the validator warns about, the must requirements no
+scenario names among them (ADR-251).
 The deployment target writes `deployment.md`: the environments and
 the path a release takes, the settings, each installation of each
 implementation with its servers and setting values (a secret only

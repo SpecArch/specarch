@@ -1,0 +1,8 @@
+scenarios:
+  SC-1:
+    title: A member asks about lending
+    topic: Loans
+    stakeholder: member
+    steps:
+      - description: The member asks at the desk.
+        entity: Loan

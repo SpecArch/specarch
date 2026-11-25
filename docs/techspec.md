@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.8.2-dev of the specification: 147 requirements, 5 entities, 31 commands, 7 algorithms, 1122 tests, 237 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.8.2-dev of the specification: 147 requirements, 5 entities, 31 commands, 7 algorithms, 1124 tests, 237 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -1598,7 +1598,10 @@ client does for it in five steps; an operation that names one says
 it travels in that envelope, its sequence diagram notes it and marks
 the request and the answer sealed, and one that streams a file says
 so with the media type and the bound in place of a field table, its
-success response reading the file, streamed (ADR-145, ADR-146). Chapter 7 comes from
+success response reading the file, streamed (ADR-145, ADR-146).
+Chapter 6 ends with the scenarios, grouped by topic, each with its
+steps as a table, a sequence diagram drawn from them and the tests
+that prove it (ADR-251). Chapter 7 comes from
 the deployment and commissioning stages and from each
 implementation file, chapter 12 from the glossary, and
 chapter 13 from the needs and requirements, with the traceability
@@ -1623,8 +1626,11 @@ and a warning (`document_format`) at the estate file says so, while
 each module's techspec is written in the formats asked (ADR-249).
 
 The requirements target writes `requirements.md`: the stakeholders,
-the needs with the requirements that refine them, and each
-requirement with its attributes and acceptance criteria. The
+the needs with the requirements that refine them, each
+requirement with its attributes and acceptance criteria, and, when
+the design has scenarios, the scenarios grouped by topic, each with
+its stakeholder, its steps as a table, a sequence diagram drawn from
+them, the tests that prove it and its problems marked (ADR-251). The
 testplan target writes `testplan.md`: when an implementation file
 declares the tests target, how many of the tests that apply that
 target writes with their bodies, a test of an
@@ -1638,8 +1644,11 @@ with the tests that walk it, then the derived cases left out: each
 case of rank other that no test covers, with its subject and the
 reason. The traceability target writes `traceability.md`: needs to
 requirements, requirements to what satisfies and verifies them, with
-their harm once a requirement names one, and the gaps the validator
-warns about.
+their harm once a requirement names one, requirements to the
+scenarios whose steps name them and each scenario to its
+requirements, operations and tests when the design has scenarios,
+and the gaps the validator warns about, the must requirements no
+scenario names among them (ADR-251).
 The deployment target writes `deployment.md`: the environments and
 the path a release takes, the settings, each installation of each
 implementation with its servers and setting values (a secret only
@@ -20673,6 +20682,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | document-progress-uncounted-entries | command document | system | red | a specification whose stakeholdersComplete names auditor, who is not a stakeholder, whose open question Q-3 has the priority "Could" and no decidedBy, and a change request in the one release that names under affects a requirement of the specification, an ID it does not hold, an entity, the whole entities section, a question, an extension key under entities and an entity it does not hold | document progress is run | it prints the schema errors, writes progress.md whose stakeholder list gives the confirmation as written with the stakeholder error marked under it, where Q-3 is counted under Other priority on a row for no role named, named below the table with its priority as written, the rows add up to the total, and the burn-up counts the requirement and the entity and names the five other references with why they are not counted, and exits 1 |
 | document-progress-work-packages | command document | system | golden | a specification with four work-package records, done, ready and after the withdrawn one, done with a test not passed, and withdrawn, and an accepted requirement of a planned release that no package holds | document progress is run | it writes a Work packages section with one row per package giving its release, status, assignee, after, requirements, effort and the rules the validator warns it of, not the withdrawn package it comes after, names the requirement no package holds as unplanned with its release, and exits 0 |
 | document-progress-work-packages-for-everyone | command document | system | golden | a specification with work-package records, one holding a requirement marked audience internal, and an accepted requirement of a planned release that no package holds | document progress --audience external is run | the Work packages section names no internal requirement in any package's row and no assignee, leaves the internal requirement out of the unplanned line, and exits 0 |
+| document-requirements-scenario-problems | command document | system | red | a specification whose scenarios name what does not exist, have a step naming nothing and two with no step | document requirements is run | it writes the Scenarios section with every scenario, each problem marked under the scenario it stands in, a step's problem under its scenario, and exits 1 |
 | document-requirements-scenarios | command document | system | golden | a specification with a scenario of two steps, one a branch, its steps naming an operation, requirements, an entity and tests, and two tests that prove it | document requirements is run | the requirements specification has a Scenarios section grouped by topic, the scenario with its stakeholder, its steps as a table, a sequence diagram drawn from them and the tests that prove it, and exits 0 |
 | document-sequence-diagram | command document | system | golden | a hand-written document with a sequenceDiagram payOrder marker | document techspec is run | the region holds the call, the event on order.events and the 200 answer, and it exits 0 |
 | document-stakeholders-banner | command document | system | red | a specification with stakeholders and no stakeholdersComplete, and a configured requirements document | document requirements is run | the document carries the Stakeholders unconfirmed banner under its title and the warning marked as a problem, and the run exits 0 |
@@ -21477,6 +21487,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-row-policies | command validate | system | red | the roles of validate-0-3-rows on 1.0.0 under rowPolicies | validate is run | it reports the same three problems under row_policies, each pointing at rowPolicies, and exits 1 |
 | validate-row-policies-valid | command validate | system | golden | the specification of validate-0-3-rows-valid on 1.0.0 under rowPolicies | validate is run | it reports nothing and exits 0 |
 | validate-scenario-coverage-error | command validate | system | red | a specification with info.scenarioCoverage error, two must requirements and no scenario | validate is run | it reports scenario_uncovered at each must requirement as an error, and exits 1 |
+| validate-scenario-duplicate-id | command validate | system | red | a specification whose two files under design/scenarios both define SC-1 | validate is run | it reports duplicate_key at the second definition, naming the file and line of the first, and exits 1 |
 | validate-scenario-problems | command validate | system | red | a specification whose scenarios name a stakeholder, an actor, an operation, a requirement, an entity and a test that do not exist, have a step naming nothing, a step with change and no entity, one scenario with an empty steps list and one with none, and a test whose proves names a scenario that does not exist | validate is run | it reports each at its entry, the stakeholder and actor under stakeholder, the operation under operation, the requirement under requirement, the change without its entity under schema, and the rest under scenario, reads every other scenario and step, and exits 1 |
 | validate-scenario-uncovered | command validate | system | red | a specification with a scenario whose steps name CASE-1 but not CASE-2, both of priority must, beside a should requirement, a rejected must requirement and a must requirement held elsewhere, none of them named | validate is run | it warns scenario_uncovered at CASE-2 alone, and exits 0 |
 | validate-scenarios | command validate | system | golden | a specification with a scenario of two steps, one a branch under when, whose steps name an operation, the requirements, an entity with its change and the tests, and two tests that prove it | validate is run | it reports nothing about the scenario, every must requirement being named by a step, and exits 0 |
@@ -22301,7 +22312,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-147 | commands document; decisions ADR-247 | tests document-problems-security-tags |
 | SA-148 | enums DocumentTarget; commands document; decisions ADR-248 | tests document-books; tests document-books-gaps; tests document-brd |
 | SA-149 | enums DocumentFormat; enums DocumentTarget; commands document; decisions ADR-249; decisions ADR-250 | tests document-books-docx; tests document-diagrams-drawn-in-pdf; tests document-estate-map-markdown-only; tests document-format-books-md-refused; tests document-format-check-missing; tests document-format-from-targets; tests document-format-gaps; tests document-format-html-refused; tests document-html-draws-diagrams; tests validate-document-format |
-| SA-150 | enums Rule; decisions ADR-251; decisions ADR-252; decisions ADR-253; decisions ADR-254 | tests document-requirements-scenarios; tests document-techspec-scenarios; tests document-traceability-scenarios; tests validate-scenario-coverage-error; tests validate-scenario-problems; tests validate-scenario-uncovered; tests validate-scenarios |
+| SA-150 | enums Rule; commands document; decisions ADR-251; decisions ADR-252; decisions ADR-253; decisions ADR-254 | tests document-requirements-scenario-problems; tests document-requirements-scenarios; tests document-techspec-scenarios; tests document-traceability-scenarios; tests validate-scenario-coverage-error; tests validate-scenario-duplicate-id; tests validate-scenario-problems; tests validate-scenario-uncovered; tests validate-scenarios |
 
 ## Sources
 

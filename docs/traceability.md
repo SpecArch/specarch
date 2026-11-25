@@ -175,7 +175,7 @@ Version 1.8.2-dev of the specification: 10 needs, 147 requirements, and 1 gap. E
 | SA-147 | GOAL-2, GOAL-1 | NEED-1, NEED-6 | commands document; decisions ADR-247 | tests document-problems-security-tags |
 | SA-148 | GOAL-3 | NEED-3 | enums DocumentTarget; commands document; decisions ADR-248 | tests document-books; tests document-books-gaps; tests document-brd |
 | SA-149 | GOAL-3 | NEED-3 | enums DocumentFormat; enums DocumentTarget; commands document; decisions ADR-249; decisions ADR-250 | tests document-books-docx; tests document-diagrams-drawn-in-pdf; tests document-estate-map-markdown-only; tests document-format-books-md-refused; tests document-format-check-missing; tests document-format-from-targets; tests document-format-gaps; tests document-format-html-refused; tests document-html-draws-diagrams; tests validate-document-format |
-| SA-150 | GOAL-2, GOAL-3 | NEED-1, NEED-3 | enums Rule; decisions ADR-251; decisions ADR-252; decisions ADR-253; decisions ADR-254 | tests document-requirements-scenarios; tests document-techspec-scenarios; tests document-traceability-scenarios; tests validate-scenario-coverage-error; tests validate-scenario-problems; tests validate-scenario-uncovered; tests validate-scenarios |
+| SA-150 | GOAL-2, GOAL-3 | NEED-1, NEED-3 | enums Rule; commands document; decisions ADR-251; decisions ADR-252; decisions ADR-253; decisions ADR-254 | tests document-requirements-scenario-problems; tests document-requirements-scenarios; tests document-techspec-scenarios; tests document-traceability-scenarios; tests validate-scenario-coverage-error; tests validate-scenario-duplicate-id; tests validate-scenario-problems; tests validate-scenario-uncovered; tests validate-scenarios |
 
 ## 3. Gaps
 

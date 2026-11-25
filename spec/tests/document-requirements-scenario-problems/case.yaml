@@ -1,0 +1,14 @@
+arguments: [document, requirements, --out, docs, project]
+exitStatus: 1
+standardOutput: |
+  project/specarch.yaml:53:18: error: /scenarios/SC-1/stakeholder: stakeholder: membr is not a stakeholder of the specification; did you mean member? [stakeholder@specarch.yaml#/scenarios/SC-1/stakeholder]
+  project/specarch.yaml:56:16: error: /scenarios/SC-1/steps/0/actor: stakeholder: clrk is not a stakeholder of the specification; did you mean clerk? [stakeholder@specarch.yaml#/scenarios/SC-1/steps/0/actor]
+  project/specarch.yaml:57:20: error: /scenarios/SC-1/steps/0/operation: operation: listLoan is not an operationId of the specification; did you mean listLoans? [operation@specarch.yaml#/scenarios/SC-1/steps/0/operation]
+  project/specarch.yaml:58:40: error: /scenarios/SC-1/steps/0/requirements/2: requirement: CASE-9 is not a requirement of the specification; did you mean CASE-1? [requirement@specarch.yaml#/scenarios/SC-1/steps/0/requirements/2]
+  project/specarch.yaml:59:17: error: /scenarios/SC-1/steps/0/entity: scenario: Lone is not an entity of the specification; did you mean Loan? [scenario@specarch.yaml#/scenarios/SC-1/steps/0/entity]
+  project/specarch.yaml:60:17: error: /scenarios/SC-1/steps/0/tests/0: scenario: list-loan is not a test of the specification; use one of list-loans-denied, list-loans-succeeds [scenario@specarch.yaml#/scenarios/SC-1/steps/0/tests/0]
+  project/specarch.yaml:61:9: error: /scenarios/SC-1/steps/1: scenario: step 2 of scenario SC-1 names no operation, requirements, entity or tests, so nothing ties it to the design; name what the step exercises [scenario@specarch.yaml#/scenarios/SC-1/steps/1]
+  project/specarch.yaml:62:9: error: /scenarios/SC-1/steps/2: schema: entity is missing; add it here [schema@specarch.yaml#/scenarios/SC-1/steps/2]
+  project/specarch.yaml:69:5: error: /scenarios/SC-2: scenario: scenario SC-2 has no step, so it shows no case; add steps, each naming the operation, requirements, entity or tests it exercises [scenario@specarch.yaml#/scenarios/SC-2]
+  project/specarch.yaml:70:3: error: /scenarios/SC-3: scenario: scenario SC-3 has no step, so it shows no case; add steps, each naming the operation, requirements, entity or tests it exercises [scenario@specarch.yaml#/scenarios/SC-3]
+  project/specarch.yaml:75:192: error: /tests/list-loans-succeeds/proves/0: scenario: SC-9 is not a scenario of the specification; did you mean SC-1? [scenario@specarch.yaml#/tests/list-loans-succeeds/proves/0]

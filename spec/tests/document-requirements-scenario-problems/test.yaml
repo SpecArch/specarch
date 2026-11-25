@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: document
+level: system
+scenario: red
+given: "a specification whose scenarios name what does not exist, have a step naming nothing and two with no step"
+when: "document requirements is run"
+then: "it writes the Scenarios section with every scenario, each problem marked under the scenario it stands in, a step's problem under its scenario, and exits 1"
+verifies: [SA-150]

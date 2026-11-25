@@ -1,0 +1,4 @@
+arguments: [validate, .]
+exitStatus: 1
+standardOutput: |
+  design/scenarios/returns.yaml:2:3: error: /scenarios/SC-1: duplicate_key: SC-1 is already defined in design/scenarios/lending.yaml on line 2; a name is defined once in the whole specification [duplicate_key@design/scenarios/returns.yaml#/scenarios/SC-1]

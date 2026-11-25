@@ -110,6 +110,9 @@ questions:
     blocks: ['#/entities/DeskFines']
     decidedBy: system-owner
     options: ['Held: the migration that makes it is to be committed', 'Not held: the declaration is to go']
+    consequences:
+      'Held: the migration that makes it is to be committed': The table stays in the specification, and the migration that makes it is to be committed and run, so the database holds it before the code first uses it.
+      'Not held: the declaration is to go': The table leaves the specification, and its declaration in the code is to go, with whatever in the code uses it.
     why: Only the parsed source declares the table, and the catalogue is what the database holds; a table declared and not made fails when the code first uses it.
     cites:
       - {source: code, clause: 'db/model.go:15', says: NewModelDBTable declares table desk.fines with the columns id (its key).}
@@ -131,6 +134,9 @@ questions:
     blocks: ['#/roles/desk-staff/permissions', '#/permissions/loans.renew']
     decidedBy: system-owner
     options: ['Granted: the seed is to run again', 'Not granted: the seed is to change']
+    consequences:
+      'Granted: the seed is to run again': role desk-staff keeps loans.renew in the specification, and the seed at seed/seed.go:15 is to run again, so Permissions of access holds the grant the check reads.
+      'Not granted: the seed is to change': role desk-staff loses loans.renew in the specification, and the seed at seed/seed.go:15 is to change so it no longer grants it; whoever holds the role loses that permission.
     why: The permission table is what the check reads; a grant only a seed makes is one the running system does not hold.
     cites:
       - {source: code, clause: 'seed/seed.go:15', says: Grants LOANS.RENEW to desk-staff.}
@@ -150,6 +156,9 @@ questions:
     blocks: ['#/roles/clerk']
     decidedBy: system-owner
     options: ['Granted: the seed is to run again', 'Not granted: the seed is to change']
+    consequences:
+      'Granted: the seed is to run again': The grant stays in the specification, and the seed is to run again, so the permission table the check reads holds it.
+      'Not granted: the seed is to change': The grant leaves the specification, and the seed is to change so it no longer makes it; whoever held the role loses what it granted.
     why: Only the seed in the source grants it, and the permission table is what the check reads; a seed that did not run is not a grant.
     cites:
       - {source: code, clause: 'seed/seed.go:16', says: Inserts the role clerk.}

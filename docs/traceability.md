@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: traceability matrix
 
-Version 1.8.2-dev of the specification: 10 needs, 147 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
+Version 1.8.2-dev of the specification: 10 needs, 148 requirements, and 1 gap. Each requirement is traced back to the needs it refines and forward to what satisfies it in the design and what verifies it in the tests and commissioning checks.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -21,7 +21,7 @@ Version 1.8.2-dev of the specification: 10 needs, 147 requirements, and 1 gap. E
 | NEED-5 | accepted | SA-35, SA-47, SA-68, SA-103, SA-130, SA-26, SA-16, SA-90, SA-12, SA-23, SA-24, SA-25, SA-73, SA-101, SA-117, SA-132, SA-125, SA-118, SA-140, SA-141, SA-142, SA-143, SA-144, SA-145 |
 | NEED-6 | accepted | SA-146, SA-147, SA-15, SA-135, SA-137, SA-13, SA-117, SA-127, SA-97, SA-126 |
 | NEED-7 | accepted | SA-14, SA-96, SA-119, SA-112, SA-108, SA-74, SA-95 |
-| NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-51 |
+| NEED-8 | accepted | SA-131, SA-69, SA-70, SA-46, SA-59, SA-71, SA-136, SA-138, SA-139, SA-17, SA-18, SA-19, SA-107, SA-20, SA-30, SA-44, SA-45, SA-64, SA-110, SA-113, SA-72, SA-76, SA-79, SA-85, SA-86, SA-118, SA-129, SA-133, SA-151, SA-51 |
 | NEED-9 | accepted | SA-31, SA-120, SA-29, SA-28, SA-111, SA-27, SA-21, SA-22, SA-128, SA-131, SA-75 |
 | NEED-10 | accepted | SA-128, SA-102, SA-106, SA-58, SA-60, SA-116, SA-121, SA-101, SA-117, SA-132, SA-125, SA-108, SA-57, SA-100, SA-140, SA-141, SA-142, SA-143, SA-144, SA-145 |
 
@@ -135,7 +135,7 @@ Version 1.8.2-dev of the specification: 10 needs, 147 requirements, and 1 gap. E
 | SA-104 | GOAL-2 | NEED-1 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
 | SA-105 | GOAL-2 | NEED-1 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 | SA-106 | GOAL-2, GOAL-4 | NEED-1, NEED-10 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
-| SA-107 | GOAL-4 | NEED-8 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
+| SA-107 | GOAL-4 | NEED-8 | commands gaps; decisions ADR-209; decisions ADR-255 | tests gaps-next-consequences; tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
 | SA-108 | GOAL-4 | NEED-7, NEED-10 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | GOAL-2 | NEED-1 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | GOAL-4 | NEED-8 | commands extract; decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-pdf-markdown-twin; tests extract-documents-pdf-no-text; tests extract-documents-pdf-tagged; tests extract-documents-pdf-untagged; tests extract-documents-powerpoint; tests extract-documents-word |
@@ -176,6 +176,7 @@ Version 1.8.2-dev of the specification: 10 needs, 147 requirements, and 1 gap. E
 | SA-148 | GOAL-3 | NEED-3 | enums DocumentTarget; commands document; decisions ADR-248 | tests document-books; tests document-books-gaps; tests document-brd |
 | SA-149 | GOAL-3 | NEED-3 | enums DocumentFormat; enums DocumentTarget; commands document; decisions ADR-249; decisions ADR-250 | tests document-books-docx; tests document-diagrams-drawn-in-pdf; tests document-estate-map-markdown-only; tests document-format-books-md-refused; tests document-format-check-missing; tests document-format-from-targets; tests document-format-gaps; tests document-format-html-refused; tests document-html-draws-diagrams; tests validate-document-format |
 | SA-150 | GOAL-2, GOAL-3 | NEED-1, NEED-3 | enums Rule; commands document; decisions ADR-251; decisions ADR-252; decisions ADR-253; decisions ADR-254 | tests document-requirements-scenario-problems; tests document-requirements-scenarios; tests document-techspec-scenarios; tests document-traceability-scenarios; tests validate-scenario-coverage-error; tests validate-scenario-duplicate-id; tests validate-scenario-problems; tests validate-scenario-uncovered; tests validate-scenarios |
+| SA-151 | GOAL-4 | NEED-8 | enums Rule; commands gaps; commands merge; decisions ADR-255 | tests gaps-next-consequences; tests validate-question-consequences |
 
 ## 3. Gaps
 

@@ -26,6 +26,13 @@ commands:
       specification, numbered with the trees' other questions (ADR-235).
       A line counts the tests kept.
 
+      Every question the merge asks with options carries consequences,
+      what follows from each option, keyed by the option's text: which
+      side changes, what the specification writes, and what the documents
+      and the code made from it follow, so the merged specification does
+      not trip the warning question_consequences and whoever puts the
+      question explains every option from the same text (ADR-255).
+
       - The same element in two trees (an entry of a section by its name,
         an operation by its path and method, a field by its entity and
         name) becomes one element with the citations of both. A key only
@@ -326,5 +333,5 @@ commands:
     remedies:
       "1": "Read the reason on standard error and settle the tree it names, running specarch validate on it, then run it again."
       "2": "Read the usage message or the reason on standard error, correct the command line or the path it names, and run it again."
-    satisfies: [SA-45, SA-64, SA-131]
+    satisfies: [SA-45, SA-64, SA-131, SA-151]
     why: The readers write one tree per surface so that each is checked on its own; the comparison between surfaces, and between the documents and the code, is made once, here, where a disagreement becomes a question rather than a choice.

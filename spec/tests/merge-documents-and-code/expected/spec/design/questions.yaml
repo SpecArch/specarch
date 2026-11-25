@@ -7,6 +7,9 @@ questions:
     blocks: ['#/entities/Members/properties/cardNumber/maxLength']
     decidedBy: system-owner
     options: ['10, as Desk code has it', '12, as Desk manual has it']
+    consequences:
+      10, as Desk code has it: 'The specification writes 10 at #/entities/Members/properties/cardNumber/maxLength, and the documents and code made from it follow; Desk manual, which says otherwise, is then to change to match it.'
+      12, as Desk manual has it: 'The specification writes 12 at #/entities/Members/properties/cardNumber/maxLength, and the documents and code made from it follow; Desk code, which says otherwise, is then to change to match it.'
     why: 'The sources disagree: Desk code says 10, and Desk manual says 12. The merge leaves the key out rather than choose between them.'
     cites:
       - {source: code, clause: migrations public.members, says: Table public.members.}
@@ -19,6 +22,9 @@ questions:
     blocks: ['#/entities/Members/required']
     decidedBy: system-owner
     options: ['fullName required, as Desk code has it', 'fullName not required, as Desk manual has it']
+    consequences:
+      fullName required, as Desk code has it: 'The specification writes fullName required at #/entities/Members/required, and the documents and code made from it follow; Desk manual, which says otherwise, is then to change to match it.'
+      fullName not required, as Desk manual has it: 'The specification writes fullName not required at #/entities/Members/required, and the documents and code made from it follow; Desk code, which says otherwise, is then to change to match it.'
     why: 'The sources disagree: Desk code says fullName required, and Desk manual says fullName not required. The merge leaves the key out rather than choose between them.'
     cites:
       - {source: code, clause: migrations public.members, says: Table public.members.}
@@ -31,6 +37,9 @@ questions:
     blocks: ['#/permissions/loans.read/description']
     decidedBy: system-owner
     options: ['Read loans., as Desk code has it', 'Lets a desk clerk read the loans of a member., as Desk manual has it']
+    consequences:
+      Read loans., as Desk code has it: 'The specification writes Read loans. at #/permissions/loans.read/description, and the documents and code made from it follow; Desk manual, which says otherwise, is then to change to match it.'
+      Lets a desk clerk read the loans of a member., as Desk manual has it: 'The specification writes Lets a desk clerk read the loans of a member. at #/permissions/loans.read/description, and the documents and code made from it follow; Desk code, which says otherwise, is then to change to match it.'
     why: 'The sources disagree: Desk code says Read loans., and Desk manual says Lets a desk clerk read the loans of a member.. The merge leaves the key out rather than choose between them.'
     cites:
       - {source: code, clause: 'router GET /members/{cardNumber}/loans', says: It checks loans.read.}
@@ -43,6 +52,9 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/parameters/0/schema/maxLength']
     decidedBy: system-owner
     options: ['10, as Desk code has it', '12, as Desk manual has it']
+    consequences:
+      10, as Desk code has it: 'The specification writes 10 at #/paths/~1members~1{cardNumber}~1loans/parameters/0/schema/maxLength, and the documents and code made from it follow; Desk manual, which says otherwise, is then to change to match it.'
+      12, as Desk manual has it: 'The specification writes 12 at #/paths/~1members~1{cardNumber}~1loans/parameters/0/schema/maxLength, and the documents and code made from it follow; Desk code, which says otherwise, is then to change to match it.'
     why: 'The sources disagree: Desk code says 10, and Desk manual says 12. The merge leaves the key out rather than choose between them.'
     cites:
       - {source: code, clause: 'router GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read.'}
@@ -55,6 +67,9 @@ questions:
     blocks: ['#/entities/Shelves']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': entity Shelves stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at migrations public.shelves stays as it is.
+      'No: the code is to change': entity Shelves leaves the specification, and the code at migrations public.shelves is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
     cites:
       - {source: code, clause: migrations public.shelves, says: Table public.shelves.}
@@ -66,6 +81,9 @@ questions:
     blocks: ['#/paths/~1health/get']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': operation health (GET /health) stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at router GET /health stays as it is.
+      'No: the code is to change': operation health (GET /health) leaves the specification, and the code at router GET /health is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: router GET /health, says: GET /health checks loans.read.}

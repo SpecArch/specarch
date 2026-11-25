@@ -15,6 +15,10 @@ questions:
     blocks: ['#/schemas/Note']
     decidedBy: system-owner
     options: ['One element: the schema Note is the entity Note, as Database of migrations has it, and what refers to #/schemas/Note refers to #/entities/Note', 'Two elements: the schema Note takes another name, since a schema, an entity and a view are one namespace']
+    consequences:
+      ? 'One element: the schema Note is the entity Note, as Database of migrations has it, and what refers to #/schemas/Note refers to #/entities/Note'
+      : 'The schema Note leaves the specification and every reference to #/schemas/Note is written as #/entities/Note, so the documents and code made from it show one entity; Notes API, which gives it as a schema, is then to describe the entity instead.'
+      'Two elements: the schema Note takes another name, since a schema, an entity and a view are one namespace': 'Both stay; the schema Note is renamed in the specification and in Notes API, and every reference to #/schemas/Note follows the new name, in the specification, the documents and the code.'
     why: 'The sources give one name to two things: Notes API gives it as a schema, and Database of migrations gives it as an entity. A schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface. The merge keeps both rather than join them or rename one, and the validator holds the error at the schema while the question is open.'
     cites:
       - {source: openapi, clause: /components/schemas/Note, says: 'The schema Note, with the properties id and title.'}

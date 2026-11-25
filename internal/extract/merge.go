@@ -2003,6 +2003,10 @@ func (m *merger) disputeQuestions() int {
 			said = append(said, fmt.Sprintf("%s says %s", options[i], v))
 			opts = append(opts, fmt.Sprintf("%s, as %s has it", v, options[i]))
 		}
+		var follows []string
+		for i, v := range values {
+			follows = append(follows, fmt.Sprintf("The specification writes %s at %s, and the documents and code made from it follow; %s then to change to match it.", v, ptr, otherSources(othersThan(options, i))))
+		}
 		why := fmt.Sprintf("The sources disagree: %s. The merge leaves the key out rather than choose between them.", strings.Join(said, ", and "))
 		if differ := m.refs.disputed[k]; differ != "" {
 			why = fmt.Sprintf("The sources disagree on the shape: %s. The merge leaves the key out rather than choose between them.", differ)
@@ -2038,6 +2042,7 @@ func (m *merger) disputeQuestions() int {
 			"blocks", blocks,
 			"decidedBy", owner,
 			"options", opts,
+			"consequences", consequencesOf(opts, follows),
 			"why", why,
 		)
 		if len(cites.Content) > 0 {
@@ -2118,11 +2123,13 @@ func (m *merger) namespaceQuestions() int {
 		for _, o := range others {
 			given(o, entryWords[o.section])
 		}
-		var options []string
+		var options, follows []string
 		for _, o := range others {
 			options = append(options, fmt.Sprintf("One element: the %s %s is the %s %s, as %s has it, and what refers to #%s refers to #%s", word, name, entryWords[o.section], name, givers(o), ptr, source.Pointer(o.section, name)))
+			follows = append(follows, fmt.Sprintf("The %s %s leaves the specification and every reference to #%s is written as #%s, so the documents and code made from it show one %s; %s, which gives it as %s %s, is then to describe the %s instead.", word, name, ptr, source.Pointer(o.section, name), entryWords[o.section], givers(e), article(word), word, entryWords[o.section]))
 		}
 		options = append(options, fmt.Sprintf("Two elements: the %s %s takes another name, since a schema, an entity and a view are one namespace", word, name))
+		follows = append(follows, fmt.Sprintf("Both stay; the %s %s is renamed in the specification and in %s, and every reference to #%s follows the new name, in the specification, the documents and the code.", word, name, givers(e), ptr))
 		q := mapping(
 			"question", fmt.Sprintf("Is %s, %s, one element or two?", name, joinAnd(as)),
 			"kind", "decision",
@@ -2130,6 +2137,7 @@ func (m *merger) namespaceQuestions() int {
 			"blocks", []string{"#" + ptr},
 			"decidedBy", owner,
 			"options", options,
+			"consequences", consequencesOf(options, follows),
 			"why", fmt.Sprintf("The sources give one name to two things: %s. A schema, an entity and a view are one namespace, since each becomes a schema of its own in the interface. The merge keeps both rather than join them or rename one, and the validator holds the error at the %s while the question is open.", strings.Join(said, ", and "), word),
 		)
 		if len(cites.Content) > 0 {
@@ -2355,6 +2363,10 @@ func (m *merger) undocumented(e *element, n *yaml.Node, label, priority string) 
 		"blocks", []string{ptr},
 		"decidedBy", owner,
 		"options", []string{"Yes: the documents are to describe it", "No: the code is to change"},
+		"consequences", consequencesOf([]string{"Yes: the documents are to describe it", "No: the code is to change"}, []string{
+			fmt.Sprintf("%s stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at %s stays as it is.", label, where),
+			fmt.Sprintf("%s leaves the specification, and the code at %s is to change to remove it, with whatever in the code reads it; the documents stay as they are.", label, where),
+		}),
 		"why", m.priorityWhy(e, n, priority, "Only the code has it"),
 	)
 	if c := source.Child(n, "cites"); c != nil {
@@ -2408,6 +2420,10 @@ func (m *merger) notBuilt(e *element, n *yaml.Node, label, priority string) {
 		"blocks", []string{"implementation"},
 		"decidedBy", owner,
 		"options", []string{"Built: the code is to add it", "Dropped: the documents are to change"},
+		"consequences", consequencesOf([]string{"Built: the code is to add it", "Dropped: the documents are to change"}, []string{
+			fmt.Sprintf("%s stays in the specification as the documents state it, and the code is to add it: work in the implementation stage, with its tests.", label),
+			fmt.Sprintf("%s leaves the specification, and the documents that have it are to change; nothing is built for it, and whoever expected it from the documents loses it.", label),
+		}),
 		"why", m.priorityWhy(e, n, priority, "Only the documents have it"),
 	)
 	if len(cites.Content) > 0 {
@@ -2465,6 +2481,7 @@ type readingText struct {
 	declared, notListed, ask, why   string // an element only the parsed tree declares
 	notFound, notFoundWhere, notWhy string // an element only the printed tree has
 	options                         []string
+	consequences                    []string // what follows from each option, in its order
 	saysParsed, saysPrinted         string
 }
 
@@ -2474,8 +2491,12 @@ var readingWords = map[string]readingText{
 		ask:      "Is it code that is never reached, or reached only under a setting, or does the printer miss it?",
 		why:      "Only the parsed source declares it, and what the running system lists is what it serves; an operation declared and not served is dead code or switched on by a setting, and an operation is where an open endpoint is found.",
 		notFound: "Registered by code the reader does not follow", notFoundWhere: "such as a loop, a condition, a helper or a module",
-		notWhy:     "The running system lists it, so it is served; the parser only lacks its place in the source, and nothing waits for the answer.",
-		options:    []string{"Served: the printer is to list it", "Not served: the code is to change, or the setting that switches it on is to be named"},
+		notWhy:  "The running system lists it, so it is served; the parser only lacks its place in the source, and nothing waits for the answer.",
+		options: []string{"Served: the printer is to list it", "Not served: the code is to change, or the setting that switches it on is to be named"},
+		consequences: []string{
+			"The operation stays in the specification as served, and the printer that lists the running system's operations is to list it, so the next reading sees it in both.",
+			"The operation is dead code or served only under a setting: the code is to remove it, or the specification names the setting that switches it on; either way the running system and the specification agree on what is served.",
+		},
 		saysParsed: "declared in the source read, not registered by the running system", saysPrinted: "registered by the running system, not found in the source read",
 	},
 	"entities": {
@@ -2483,8 +2504,12 @@ var readingWords = map[string]readingText{
 		ask:      "Is the declaration unused, or is the migration that makes the table missing?",
 		why:      "Only the parsed source declares the table, and the catalogue is what the database holds; a table declared and not made fails when the code first uses it.",
 		notFound: "In the database, declared nowhere the reader follows", notFoundWhere: "such as a migration, a helper or a module",
-		notWhy:     "The catalogue holds it, so the database has it; the parser only lacks its declaration in the source, and nothing waits for the answer.",
-		options:    []string{"Held: the migration that makes it is to be committed", "Not held: the declaration is to go"},
+		notWhy:  "The catalogue holds it, so the database has it; the parser only lacks its declaration in the source, and nothing waits for the answer.",
+		options: []string{"Held: the migration that makes it is to be committed", "Not held: the declaration is to go"},
+		consequences: []string{
+			"The table stays in the specification, and the migration that makes it is to be committed and run, so the database holds it before the code first uses it.",
+			"The table leaves the specification, and its declaration in the code is to go, with whatever in the code uses it.",
+		},
 		saysParsed: "declared in the source read, not in the database's catalogue", saysPrinted: "in the database's catalogue, not found in the source read",
 	},
 	"roles": {
@@ -2492,8 +2517,12 @@ var readingWords = map[string]readingText{
 		ask:      "Did the seed not run, or did something remove its rows?",
 		why:      "Only the seed in the source grants it, and the permission table is what the check reads; a seed that did not run is not a grant.",
 		notFound: "Granted, seeded nowhere the reader follows", notFoundWhere: "such as a loop, a helper, a module or a change made by hand",
-		notWhy:     "The permission table holds it, so the check reads it; the parser only lacks the seed that made it, and nothing waits for the answer.",
-		options:    []string{"Granted: the seed is to run again", "Not granted: the seed is to change"},
+		notWhy:  "The permission table holds it, so the check reads it; the parser only lacks the seed that made it, and nothing waits for the answer.",
+		options: []string{"Granted: the seed is to run again", "Not granted: the seed is to change"},
+		consequences: []string{
+			"The grant stays in the specification, and the seed is to run again, so the permission table the check reads holds it.",
+			"The grant leaves the specification, and the seed is to change so it no longer makes it; whoever held the role loses what it granted.",
+		},
 		saysParsed: "seeded in the source read, not in the permission table", saysPrinted: "in the permission table, not seeded in the source read",
 	},
 }
@@ -2559,6 +2588,7 @@ func (m *merger) readingQuestionsOn(section string) int {
 				"blocks", []string{at},
 				"decidedBy", owner,
 				"options", words.options,
+				"consequences", consequencesOf(words.options, words.consequences),
 				"why", words.why,
 				"cites", flowItems(cites["parsed"]),
 			)
@@ -2650,6 +2680,10 @@ func (m *merger) grantQuestions(e *element, node *yaml.Node, label string) int {
 			"blocks", []string{at, "#" + source.Pointer("permissions", p)},
 			"decidedBy", owner,
 			"options", []string{"Granted: the seed is to run again", "Not granted: the seed is to change"},
+			"consequences", consequencesOf([]string{"Granted: the seed is to run again", "Not granted: the seed is to change"}, []string{
+				fmt.Sprintf("%s keeps %s in the specification, and the seed at %s is to run again, so %s holds the grant the check reads.", label, p, where, joinAnd(printers)),
+				fmt.Sprintf("%s loses %s in the specification, and the seed at %s is to change so it no longer grants it; whoever holds the role loses that permission.", label, p, where),
+			}),
 			"why", "The permission table is what the check reads; a grant only a seed makes is one the running system does not hold.",
 		)
 		if len(cites.Content) > 0 {
@@ -3023,10 +3057,11 @@ func (m *merger) roleNamesQuestion() int {
 		return 0
 	}
 	m.roleNamesDisputed = true
-	var said, opts []string
+	var said, opts, follows []string
 	for i, v := range values {
 		said = append(said, fmt.Sprintf("%s says %s", options[i], v))
 		opts = append(opts, fmt.Sprintf("%s, as %s has it", v, options[i]))
+		follows = append(follows, fmt.Sprintf("The specification takes %s, so a token's roles claim and the tables a permission check reads write each role that way; %s then to change to match it.", v, otherSources(othersThan(options, i))))
 	}
 	q := mapping(
 		"question", fmt.Sprintf("How do the roles go on the wire: %s?", strings.Join(values, " or ")),
@@ -3035,6 +3070,7 @@ func (m *merger) roleNamesQuestion() int {
 		"blocks", []string{"roles"},
 		"decidedBy", owner,
 		"options", opts,
+		"consequences", consequencesOf(opts, follows),
 		"why", fmt.Sprintf("The sources disagree: %s. A token's roles claim and the tables a permission check reads write each role one way, so the merge leaves info.roleNames out rather than choose between them.", strings.Join(said, ", and ")),
 	)
 	if len(cites.Content) > 0 {
@@ -3043,4 +3079,37 @@ func (m *merger) roleNamesQuestion() int {
 	m.addQuestion(q, questionFile(q))
 	m.res.say("question Q-%d (must): info.roleNames: the trees disagree", len(m.questions))
 	return 1
+}
+
+// consequencesOf is a question's consequences: what follows from each
+// option, keyed by the option's text (ADR-255).
+func consequencesOf(options, follows []string) *yaml.Node {
+	m := &yaml.Node{Kind: yaml.MappingNode}
+	for i, o := range options {
+		if i < len(follows) {
+			m.Content = append(m.Content, str(o), str(follows[i]))
+		}
+	}
+	return m
+}
+
+// othersThan lists every item of a list but the i-th.
+func othersThan(list []string, i int) []string {
+	var out []string
+	for j, v := range list {
+		if j != i {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
+// otherSources names the sources an answer goes against, with what follows
+// for them: "Desk manual, which says otherwise, is" or "A and B, which say
+// otherwise, are".
+func otherSources(names []string) string {
+	if len(names) == 1 {
+		return names[0] + ", which says otherwise, is"
+	}
+	return joinAnd(names) + ", which say otherwise, are"
 }

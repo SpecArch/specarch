@@ -330,3 +330,18 @@ requirements:
       - source: iso-29148
         clause: "6.3.3.6"
         says: "Requirements validation is subject to approval by the project authority and the key stakeholders."
+  SA-151:
+    statement: A question shall carry what follows from each of its options, keyed by the option's text; specarch validate shall warn of an option of a must or should decision question that says nothing of what choosing it leads to, and report an entry that names no option as an error; specarch gaps --next shall print why the question is asked and, per option, its consequences or what to explain when none is written; and the agent guide, AGENTS.md, the skill and specarch help asking shall state that an agent explains what the question is about, every option and its consequences, and its recommendation before it asks, and never asks by an option's ID alone.
+    kind: functional
+    priority: should
+    status: accepted
+    acceptance:
+      - A question's consequences, keyed by its options' text, validates with no problem; an entry naming no option of the question, or given on a question with no options, is an error under question_consequences at the entry.
+      - An option of a must or should decision question with no entry is warned of under question_consequences at the option; a could question, a material question and a question with no options are not.
+      - gaps --next prints a line Why it is asked and a Consequences line under every option, the written text or what to explain; with --json the question holds consequences beside options.
+      - specarch merge writes consequences for every question it asks with options.
+      - The Ask the owner list of the agent guide, AGENTS.md and the skill, and specarch help asking, give the rule with a bad and a good example.
+      - Both validator builds print the same lines.
+    verification: test
+    needs: [NEED-8]
+    why: A person asked to approve an option by its ID alone cannot decide from the question; written once beside the question, what each option leads to is reviewed with the specification and told the same way by everyone who asks (ADR-255).

@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: technical specification
 
-Version 1.8.2-dev of the specification: 147 requirements, 5 entities, 31 commands, 7 algorithms, 1124 tests, 237 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
+Version 1.8.2-dev of the specification: 148 requirements, 5 entities, 31 commands, 7 algorithms, 1126 tests, 238 decisions, 2 environments and 3 commissioning checks. The chapters follow arc42, and a chapter with nothing in the specification is left out.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -77,13 +77,13 @@ The qualities that matter most, in rank order: when two pull apart, the higher r
 | ci-job | The continuous-integration job that checks every change of a project that uses SpecArch. | Every check runs with one command and answers with an exit status |
 | owner | The person who owns SpecArch, decides its design where a question is put to them, and approves its releases. | A design choice put to them is explained in plain words with an example, so it can be settled in one reading; What was decided, by whom and on what date is written in the specification, not in a conversation |
 
-**Problem on specification-author:** warning: unheard: specification-author was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-1, requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-134, requirement SA-14, requirement SA-146, requirement SA-147, requirement SA-148, requirement SA-149, requirement SA-150, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-21, requirement SA-22, requirement SA-26, requirement SA-27, requirement SA-28, requirement SA-29, requirement SA-3, requirement SA-30, requirement SA-31, requirement SA-33, requirement SA-34, requirement SA-35, requirement SA-36, requirement SA-4, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-48, requirement SA-5, requirement SA-50, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-6, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91, requirement SA-95 and requirement SA-96 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/specification-author]
+**Problem on specification-author:** warning: unheard: specification-author was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-1, requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-134, requirement SA-14, requirement SA-146, requirement SA-147, requirement SA-148, requirement SA-149, requirement SA-150, requirement SA-151, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-21, requirement SA-22, requirement SA-26, requirement SA-27, requirement SA-28, requirement SA-29, requirement SA-3, requirement SA-30, requirement SA-31, requirement SA-33, requirement SA-34, requirement SA-35, requirement SA-36, requirement SA-4, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-48, requirement SA-5, requirement SA-50, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-6, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91, requirement SA-95 and requirement SA-96 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/specification-author]
 
 **Note on specification-author:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 5.2.2: Stakeholders are identified at the start, and their needs are the input to every requirement. <https://www.iso.org/standard/72089.html>
 
 **Problem on implementer:** warning: unheard: implementer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-1, requirement SA-10, requirement SA-146, requirement SA-147, requirement SA-150, requirement SA-2, requirement SA-21, requirement SA-22, requirement SA-27, requirement SA-28, requirement SA-29, requirement SA-3, requirement SA-31, requirement SA-32, requirement SA-33, requirement SA-34, requirement SA-35, requirement SA-36, requirement SA-37, requirement SA-38, requirement SA-39, requirement SA-4, requirement SA-40, requirement SA-41, requirement SA-42, requirement SA-43, requirement SA-46, requirement SA-47, requirement SA-48, requirement SA-49, requirement SA-5, requirement SA-50, requirement SA-51, requirement SA-52, requirement SA-53, requirement SA-54, requirement SA-55, requirement SA-56, requirement SA-6, requirement SA-61, requirement SA-62, requirement SA-63, requirement SA-65, requirement SA-66, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-77, requirement SA-78, requirement SA-80, requirement SA-81, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-87, requirement SA-88, requirement SA-89, requirement SA-9, requirement SA-91, requirement SA-92, requirement SA-93, requirement SA-94, requirement SA-95 and requirement SA-98 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/implementer]
 
-**Problem on reviewer:** warning: unheard: reviewer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-12, requirement SA-13, requirement SA-134, requirement SA-146, requirement SA-147, requirement SA-148, requirement SA-149, requirement SA-15, requirement SA-150, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-22, requirement SA-23, requirement SA-24, requirement SA-25, requirement SA-26, requirement SA-30, requirement SA-35, requirement SA-36, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-68, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-73, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91 and requirement SA-97 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/reviewer]
+**Problem on reviewer:** warning: unheard: reviewer was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-107, requirement SA-108, requirement SA-11, requirement SA-12, requirement SA-13, requirement SA-134, requirement SA-146, requirement SA-147, requirement SA-148, requirement SA-149, requirement SA-15, requirement SA-150, requirement SA-151, requirement SA-16, requirement SA-17, requirement SA-18, requirement SA-19, requirement SA-2, requirement SA-20, requirement SA-22, requirement SA-23, requirement SA-24, requirement SA-25, requirement SA-26, requirement SA-30, requirement SA-35, requirement SA-36, requirement SA-44, requirement SA-45, requirement SA-46, requirement SA-47, requirement SA-51, requirement SA-57, requirement SA-58, requirement SA-59, requirement SA-60, requirement SA-64, requirement SA-67, requirement SA-68, requirement SA-69, requirement SA-7, requirement SA-70, requirement SA-71, requirement SA-72, requirement SA-73, requirement SA-74, requirement SA-77, requirement SA-79, requirement SA-8, requirement SA-82, requirement SA-83, requirement SA-84, requirement SA-85, requirement SA-86, requirement SA-88, requirement SA-90, requirement SA-91 and requirement SA-97 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/reviewer]
 
 **Problem on operator:** warning: unheard: operator was never heard: no communication record names it, no session lists it present, no interview lists it and no decision is by it, while requirement SA-12, requirement SA-16, requirement SA-23, requirement SA-24, requirement SA-25, requirement SA-26, requirement SA-35, requirement SA-47, requirement SA-68, requirement SA-73 and requirement SA-90 rely on it; hear it before acceptance, and record what it said with specarch log; no communication, session or test session record is kept yet, so start by logging the first conversation [unheard@requirements/stakeholders/stakeholders.yaml#/stakeholders/operator]
 
@@ -537,6 +537,7 @@ Primary key: path.
 | Rule | audit_not_append_only | as a warning and a design security rule, at a requirement's `controls` entry auditTrail that no entity and no securityEvents satisfies, at an entity that satisfies it and is not appendOnly, and at the soft deletion or the transitions of an appendOnly entity, or an operation or a command that changes or deletes one (ADR-247) |
 | Rule | scenario | a scenario has no step, a step of it names no operation, requirement, entity or test, or a step names an entity or a test the specification does not have, or a test's proves names a scenario the specification does not have; a scenario's stakeholder or a step's actor that is no stakeholder is reported under stakeholder, a step's requirement that is none under requirement and its operation under operation (ADR-251) |
 | Rule | scenario_uncovered | as a warning, at a requirement of priority must, neither rejected nor retired nor held elsewhere, that no step of any scenario names, once the specification has a scenario; as an error when info.scenarioCoverage is error, scenarios or none (ADR-251) |
+| Rule | question_consequences | as a warning, at an option of a must or should decision question that its consequences do not explain; as an error, at an entry of a question's consequences that names none of its options (ADR-255) |
 | Severity | error | the file is invalid |
 | Severity | warning | printed, but the file stays valid; missing test scenarios, change-log phrases, traceability gaps and elements without origin |
 
@@ -4037,20 +4038,29 @@ order; then by ID as gaps orders IDs. A line names the
 specification, the question with its priority and kind, and how
 many questions are open; then the question; who decides it, or for
 material whom it is needed from; what it blocks, with the keys
-missing there; the outputs it holds up; its options; its Insight;
-and the decide command that records the answer, with the question,
+missing there; the outputs it holds up; why it is asked, the
+question's why, or what to say when none is written; its options,
+each on its line with a Consequences line under it, the text the
+question gives for it under consequences or what to explain when
+none is written (ADR-255); and the decide command that records the
+answer, with the question,
 the stakeholder, the folder and `--source` naming the interview
 source the root file declares, for material the document source,
 or saying which to declare when there is none or which to choose
 when there are several. A specification without an open question
-prints that it has none. The errors of an invalid specification are
+prints that it has none. The text ends with the rule for whoever
+puts the question: say what it is about and what it blocks,
+explain every option and its consequences before naming any by its
+number, then recommend one and why. The errors of an invalid specification are
 printed first as problem lines, and its next question is still
 ranked from what could be read. With `--json` the output object
 holds `next`, one entry per specification: `specification` (the
 root file), `openQuestions`, and `question`, null when none is
 open, with `id`, `question`, `kind`, `priority`, `decidedBy`,
 `stage`, `blocks`, `missing` (the keys missing per blocked
-pointer), `holdsUp`, `options`, `insight`, `certainty` and `names`
+pointer), `holdsUp`, `options`, `consequences` (what follows from
+each option, keyed by the option's text, only those written),
+`insight`, `certainty` and `names`
 as the question has them, `decide` (the command as arguments, the
 answer as `<answer>`) and `recommendation`, always null: the agent
 fills it with the answer it recommends and why before it puts the
@@ -4894,6 +4904,13 @@ question of its tree that blocks nothing but such tests is kept as
 it is, its pointers naming each test by its name in the merged
 specification, numbered with the trees' other questions (ADR-235).
 A line counts the tests kept.
+
+Every question the merge asks with options carries consequences,
+what follows from each option, keyed by the option's text: which
+side changes, what the specification writes, and what the documents
+and the code made from it follow, so the merged specification does
+not trip the warning question_consequences and whoever puts the
+question explains every option from the same text (ADR-255).
 
 - The same element in two trees (an entry of a section by its name,
   an operation by its path and method, a field by its entity and
@@ -20503,6 +20520,95 @@ names under proves the tests that prove them.
 
 **Insight:** A feature file's steps are free text bound to step definitions in code; lifting them means finding which operation, requirement and entity each step means, a reading of the code of its own that deserves its own design and cases. A design test is about one subject, and a scenario runs across several operations, so a draft from it would have to choose a subject and a fixture across steps the scenario does not give; settling that is its own decision. Leaving both out keeps this change to what the owner asked to check and document.
 
+### ADR-255: A question carries what follows from each of its options under consequences, keyed by the option's text; gaps --next prints why the question is asked and each option with its consequences, validate warns of an option of a must or should decision question left unexplained, and an agent explains every option and its consequences before it asks
+
+Status: accepted, 2026-11-25.
+
+Rests on: [ADR-186](#adr-186-meta-model-100-is-the-first-stable-version-of-every-specarch-format-read-beside-every-earlier-version-with-two-keys-renamed-and-deprecated-the-schemas-conditionals-made-to-require-the-key-they-read-and-specarch-upgrade-to-move-a-file), [ADR-209](#adr-209-questions-are-put-to-a-person-one-at-a-time-the-next-one-chosen-by-gaps---next-from-what-its-answer-unblocks-with-a-recommended-answer-the-agent-gives-and-no-fixed-number-of-questions), [ADR-210](#adr-210-a-short-on-ramp-specarch-init-and-specarch-help-start-and-a-lean-profile-under-infoprofile-that-makes-only-the-missing-tests-derive-writes-warnings), [ADR-214](#adr-214-specarch-mcp-serves-the-commands-as-mcp-tools-over-stdio-and-specarch-skill-writes-an-agent-skills-folder-both-from-the-command-definitions), [ADR-251](#adr-251-a-scenario-is-a-design-element-under-scenarios-that-tells-one-case-as-ordered-steps-across-the-operations-requirements-entity-changes-and-tests-the-design-defines-its-branches-steps-under-a-condition-in-words-checked-by-validate-warned-of-where-a-must-requirement-is-in-no-scenario-and-shown-by-topic-with-a-sequence-diagram-in-the-requirements-and-technical-specification-documents-and-traced-both-ways-in-the-traceability-matrix-it-is-an-optional-key-of-the-10-schemas).
+
+Quality goals weighed, highest rank first: QG-1 (rank 1, functional-suitability), QG-2 (rank 2, interaction-capability).
+
+Alternatives not taken: Options as objects, each with its text and its consequences: options is a list of strings in every 1.0 file, and every reader
+(gaps, decide, the documents, the problems file, merge) and the
+--json output take it so; a second form would give one key two
+shapes and break the type agents read. consequences as a list in the order of options: Reordering or inserting an option would leave each explanation
+beside the wrong option with nothing to report it; a key that is
+the option's text turns that into a problem at the entry. Consequences only in the agent's words, at the time of asking: Nothing would check them, two agents would tell one person two
+different things, and the owner asked for the explanation to be
+written once beside the question. Warn only once a specification writes its first consequences: The owner asked for the warning on every must and should option;
+an option left unexplained is the gap the rule closes, and a
+silent default would leave every existing question as it was. specarch init writes an AGENTS.md with the rule: init writes the smallest specification and nothing else
+(ADR-210); a file of agent instructions is often written by hand,
+and the skill already carries the rule into the project. Meta-model 1.0.1 for the new key: A patch of the meta-model never changes what is valid, and an
+added key does; every addition since 1.0.0 is an optional key of
+the 1.0 schemas, and a 1.1 for one key stays the owner's call, as
+ADR-251 left it.
+
+Context: A person was asked to approve an option by its ID alone, such as
+"is A-1 ok?", without being told what A-1 is or what choosing it
+leads to, so the decision could not be made from the question. The
+procedure of ADR-209 asked for the question, two to five options and
+one recommended, but not for what each option changes, costs or
+makes hard to undo, and a question's options were labels with
+nothing beside them to say so. Whoever put the question had to
+invent the consequences at the moment of asking, each time anew, and
+a reviewer could not check them, since they were nowhere in the
+specification. The owner decided on 2026-11-25 that an agent never
+asks a bare option, and that the explanation is written once beside
+the question.
+
+Meta-model 1.0 promises that a 1.x only adds (ADR-186), and every key
+added since 1.0.0 went into the 1.0 schemas as an optional key
+(ADR-233, ADR-244, ADR-251), read by the 1.0.0 version line. A patch
+of the meta-model never changes what is valid, so an added key cannot
+be a patch of the format; it ships in the program's next patch.
+
+Decision: 1. A question takes consequences, a mapping from an option's text,
+   exactly as options gives it, to what follows when that option is
+   chosen: what changes, what it costs, what it makes easier or
+   harder later, what is hard to undo and who is affected, in plain
+   words. The option's text stays its meaning in the system's own
+   terms, and decide still records it whole. The key is optional in
+   the 1.0 schemas.
+2. validate, in both builds, under the new rule
+   question_consequences: an entry that names none of the question's
+   options, or an entry of a question with no options, is an error
+   at the entry; an option of a decision question of priority must
+   or should with no entry is a warning at the option. A could
+   question, a material question and a question with no options get
+   no warning. Every problem stands at its entry and the rest of the
+   question is read as it is.
+3. gaps --next prints, after who decides, what it blocks and what it
+   holds up, a line Why it is asked with the question's why, or what
+   to say when none is written, then each option on its line with a
+   Consequences line under it, the written text or what to explain
+   when there is none, and ends with the rule: say what it is about
+   and what it blocks, explain every option and its consequences
+   before naming any by its number, then recommend one and why. With
+   --json the question holds consequences, keyed by the option's
+   text, beside options, which keeps its type. The questions
+   document prints the written consequences under each option.
+4. specarch merge writes consequences for every question it asks
+   with options, so a fresh merge does not trip the warning its own
+   output would cause.
+5. The rule for agents is one entry of the facts the agent guide,
+   AGENTS.md and the skill print under Ask the owner, with a bad
+   example (is A-1 ok?) and a good one from the library lending
+   example; specarch help asking holds the procedure. A project
+   carries it from the start through specarch skill --out, which
+   writes the skill with that text into the project's agent
+   folder; specarch init writes only the specification.
+
+Consequences: An existing specification whose must or should decision questions
+have options sees one warning per option until consequences are
+written; nothing becomes invalid. An option renamed after its
+consequences were written shows a warning at the option and an error
+at the entry until the key is renamed too. Agents put every question
+with its options explained, and a reviewer reads the same text in
+the specification.
+
+**Insight:** The decision a person takes on a question is only as good as what they are told about each option; written beside the question, the consequences are reviewed with the specification, read the same by every agent and every person who puts the question, and changed in one place when the design moves. Keying them by the option's text, not by position, makes a renamed or reordered option an error or a warning at the entry instead of an explanation that silently describes another option. The warning follows the owner's word that every must and should option be explained; it departs from the pattern of ADR-244 and ADR-251, which stay silent until the specification opts in, because here the gap is in a question a person will be asked, where an unexplained option does harm at once. Leaving init alone keeps it writing the one file it promises (ADR-210) and never writing over agent instructions made by hand; the skill is already the file a project installs for its agents.
+
 ## 10. Quality requirements
 
 The design tests: what must hold on every implementation. Golden scenarios succeed; red scenarios are refused.
@@ -20901,6 +21007,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | gaps-next-asks-problem | command gaps | system | golden | a specification with requirements, an open must question and no problem | gaps --next is run | it prints the problem first, before the open question, naming problem_missing at /problem, the question in plain words, the keys statement, stakeholders and today, and the question ranked first after it, and exits 1 for the open must question alone |
 | gaps-next-asks-problem-lean | command gaps | system | golden | a specification on the lean profile with requirements, an open must question and no problem | gaps --next is run | it prints the problem first, as on full, since on lean the problem is asked here rather than warned,, before the open question, naming problem_missing at /problem, the question in plain words, the keys statement, stakeholders and today, and the question ranked first after it, and exits 1 for the open must question alone |
 | gaps-next-asks-unmeasured-goal | command gaps | system | golden | a specification with a problem and an accepted goal with a measure and no target, and an open must question | gaps --next is run | it prints the goal's question first, naming goal_unmeasured at /goals/GOAL-1 and the keys baseline and target, and exits 1 for the open must question alone |
+| gaps-next-consequences | command gaps | system | golden | a must question with a why and three options, two of them with consequences and the third with none | gaps --next is run | it prints why the question is asked, each option with a Consequences line under it, the written text for the two and what to explain for the third, and the rule to explain every option before naming any by its number, and exits 1 |
 | gaps-next-json | command gaps | system | red | a specification with two must questions and a could question | gaps --next is run with --json | the output object holds next with one entry for the specification: its root file, title and three open questions, and the question ranked first as fields, with the outputs it holds up, the decide command as arguments and a recommendation of null; it exits 1 |
 | gaps-next-json-intent | command gaps | system | golden | a specification with requirements, an open must question and no problem | gaps --next --json is run | next holds the intent with rule problem_missing, pointer /problem, the question and the keys, beside the open question as before |
 | gaps-next-none | command gaps | system | golden | a specification with no open question | gaps --next is run | it prints that the specification has no open question and exits 0 |
@@ -21444,6 +21551,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | validate-question-answered | command validate | system | red | an accepted decision that answers a question still present | validate is run | it reports question_answered at the answers entry and exits 1 |
 | validate-question-block | command validate | system | red | a question whose decider is misspelt and whose blocks name a misspelt entity, a word that is no stage or section, a key below a missing key, a pointer into no section and a pointer with no name | validate is run | it reports each with question_block or stakeholder and exits 1 |
 | validate-question-block-extension | command validate | system | red | a question that blocks a missing key and a present key of a root x- block and a key below an entity's own x- block, and one whose pointers go below a key the block lacks, into a root x- block the file does not have, and to a misspelt key of the block | validate is run | it accepts the first three pointers and reports each of the others with question_block, naming the block to write or the key it suggests, and exits 1 |
+| validate-question-consequences | command validate | system | red | a must question whose two options both have consequences, a should question with one option of two explained, a could question and a material question with options and none, a question whose consequences name an option it does not have, and a question with consequences and no options | validate is run | it warns question_consequences at the unexplained option of the should question alone, reports question_consequences as an error at the entry naming no option and at the entry of the question without options, and exits 1 |
 | validate-question-covers-element-with-content | command validate | system | golden | an entity with a field that has its width and no type, and a constraint that has its message and no kind, each blocked by its pointer by a must question | validate is run | the keys missing at the blocked field and constraint are covered by the questions, as they are for an element known only by name; it prints nothing and exits 0 |
 | validate-question-covers-field-by-name | command validate | system | golden | an entity with a field known only by its name, an empty mapping, and a must question that blocks that field by its pointer | validate is run | the field's missing type is covered by the question, as an element known only by name is; it prints nothing and exits 0 |
 | validate-question-covers-idiom-field | command validate | system | golden | an entity field with its width and no type, which no row of the shipped type-rendering idiom matches, a must question that blocks the field by its pointer, and a Go implementation file with an SQL target | validate is run | the idiom check skips the blocked field as the schema check does: no idiom_contract error is reported, it prints nothing and exits 0 |
@@ -21798,6 +21906,7 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 | SA-118 | specarch log shall write one communication record from options alone, who said it to whom, when with its offset, by which channel, of which type, in which words and form, recorded by whom and touching what, guessing none of them - every missing one printed as a line saying what to ask the analyst and the option to give it with, and nothing written - and shall print, for an answer, the decide line that records it as the decision; and specarch decide shall take --record naming an answer record that links the question, writing the decision as stated and citing the record, in place of --source. | functional | must | proposed | test | log with every option of an answer writes records/communications/COM-<n>.yaml under the next number, with the words, the form, the evidence's path, media type and SHA-256 and the links as given, prints its path and the decide line with --record, and exits 0; --dry-run prints the record and writes nothing. log without the direction, the roles, the instant, the channel, the type, the words, the form or the recorder prints one line per missing option, saying what to ask and the values the specification offers, writes nothing and exits 1; with --json the same under log.missing; an answer naming no question is missing --question. log is refused, with nothing written, for a role that is not a stakeholder, an instant without its offset, a channel, type, form or direction outside their values, a question, decision, element, change, defect, idea, session or source the specification and its records do not have, a reply on a record that is not a question, and an evidence file that is not under records/. decide with --record on an answer record that links the question writes the decision stated, citing the record with the answer as what it says and no source, and exits 0; decide is refused for a record that is not a communication record, one that is not an answer, one that does not link the question, one said by another role than --by, and --source with --record together. | NEED-5, NEED-8 |
 | SA-129 | A specification shall say whether its stakeholder list is confirmed complete, through the root key stakeholdersComplete that a stakeholder sets with the date and, when a declared source records it, the source of the confirmation, and until it is set specarch validate shall warn at the stakeholders, every generated document and the overview shall carry a banner, and specarch approve shall warn and go on; writing order stays free, so the rest of the specification is read and written before the list is confirmed. | functional | must | proposed | test | validate on a specification with stakeholders and no stakeholdersComplete warns stakeholders_unconfirmed at /stakeholders and exits 0; with stakeholdersComplete set by a declared stakeholder it prints nothing. stakeholdersComplete whose by is not a stakeholder is the error stakeholder at /stakeholdersComplete/by, and a source that is not declared is the error source at /stakeholdersComplete/source. Every document specarch document writes, and the overview of the HTML site, carries the Stakeholders unconfirmed banner while the key is not set, and none once it is. approve on such a specification writes the approval record, prints the warning on standard error and exits 0. A must question that blocks the stakeholders holds the warning and the banner alike, a specification that lists no stakeholders is told to list them first, and a file on a meta-model before 1.0.0 is not warned, since its schema has no stakeholdersComplete. | NEED-1, NEED-8 |
 | SA-133 | specarch approve shall refuse a role that no record shows was ever heard, naming the rule unheard and how to record the session in which it read the documents, shall take --session to name the session, test session or communication record in which it read them and write it into the approval record, and shall warn and go on when no session is named; specarch validate shall check that the record an approval names exists and lists the approving role. | functional | must | proposed | test | approve by a stakeholder that no communication, session, test session, interview or decision names is refused with exit 1, and the reason names the rule unheard, the records that would show the role was heard and --session. approve with --session naming a session whose present lists the approving role writes session into the approval record, and validate on that record prints nothing about it. approve with --session naming a record that does not exist is refused as record_ref, and one whose present does not list the role, or a communication neither from nor to it, as approval_session; validate reports the same rules at the record's session. approve by a heard role without --session prints a warning on standard error, writes the approval record and exits 0. | NEED-1, NEED-8 |
+| SA-151 | A question shall carry what follows from each of its options, keyed by the option's text; specarch validate shall warn of an option of a must or should decision question that says nothing of what choosing it leads to, and report an entry that names no option as an error; specarch gaps --next shall print why the question is asked and, per option, its consequences or what to explain when none is written; and the agent guide, AGENTS.md, the skill and specarch help asking shall state that an agent explains what the question is about, every option and its consequences, and its recommendation before it asks, and never asks by an option's ID alone. | functional | should | accepted | test | A question's consequences, keyed by its options' text, validates with no problem; an entry naming no option of the question, or given on a question with no options, is an error under question_consequences at the entry. An option of a must or should decision question with no entry is warned of under question_consequences at the option; a could question, a material question and a question with no options are not. gaps --next prints a line Why it is asked and a Consequences line under every option, the written text or what to explain; with --json the question holds consequences beside options. specarch merge writes consequences for every question it asks with options. The Ask the owner list of the agent guide, AGENTS.md and the skill, and specarch help asking, give the rule with a bad and a good example. Both validator builds print the same lines. | NEED-8 |
 | SA-1 | specarch validate shall check every specification and implementation file given against the JSON Schema of its kind and meta-model version. | functional | must | accepted | test | A file that breaks the schema is reported with rule schema, its file, line and YAML path. A file that passes the schema and every other rule produces no output and status 0. | NEED-1 |
 | SA-2 | Every reference inside a specification shall resolve to an object of the right kind in the same specification, wherever its file is in the tree. | functional | must | accepted | test | A misspelt relation target, enum, operation, page, algorithm, decision, requirement, need, stakeholder, source or environment is reported with its own rule, naming the file and line of the reference. A name defined in two files of the specification is reported with both files. An operation, command or page's enabledBy that is not a setting of configuration, or names one that is not boolean, is reported as setting; a valid one derives the case disabled by <setting>, the element refused with the setting off. | NEED-1, NEED-4 |
 | SA-3 | Every check constraint, condition of a unique constraint and formula shall parse and type-check in the fixed expression language. | functional | must | accepted | test | An expression outside the subset is refused with a message naming the construct. An expression that mixes types without a written conversion is refused with the conversion to write. A unique constraint's where is an expression over the entity's fields that gives true or false, like a check; a where on a check constraint is refused. | NEED-1 |
@@ -22126,6 +22235,8 @@ The design tests: what must hold on every implementation. Golden scenarios succe
 
 **Note on SA-133:** From ISO/IEC/IEEE 29148, Systems and software engineering, Life cycle processes, Requirements engineering, 2018, clause 6.3.3.6: Requirements validation is subject to approval by the project authority and the key stakeholders. <https://www.iso.org/standard/72089.html>
 
+**Insight on SA-151:** A person asked to approve an option by its ID alone cannot decide from the question; written once beside the question, what each option leads to is reviewed with the specification and told the same way by everyone who asks (ADR-255).
+
 **Insight on SA-1:** The schema is the one definition of a file's shape; checking it first means every later rule can assume the shape.
 
 **Note on SA-6:** From The go command, Go documentation, 1.26: The Go tools print one problem per line as file:line, which editors and CI already parse. <https://go.dev/doc/>
@@ -22272,7 +22383,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-104 | commands try; decisions ADR-199 | tests try-decision-table; tests try-decision-table-unreached; tests validate-decision-table; tests validate-decision-table-refused |
 | SA-105 | decisions ADR-200 | tests derive-integration-contract; tests derive-integration-contract-per-call; tests document-techspec-integration; tests validate-integration-contract; tests validate-integration-contract-null; tests validate-integration-contract-refused |
 | SA-106 | commands try; decisions ADR-207 | tests try-mapping; tests try-mapping-both-names; tests try-mapping-inputs; tests try-mapping-json; tests try-mapping-others-fail; tests try-mapping-succeeds; tests validate-mapping-examples; tests validate-mapping-examples-wrong |
-| SA-107 | commands gaps; decisions ADR-209 | tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
+| SA-107 | commands gaps; decisions ADR-209; decisions ADR-255 | tests gaps-next-consequences; tests gaps-next-json; tests gaps-next-none; tests gaps-next-ranks-by-blocks; tests gaps-next-ranks-by-outputs; tests gaps-next-should-before-could; tests gaps-next-unknown-option; tests gaps-next-usage-error |
 | SA-108 | commands init; decisions ADR-210 | tests derive-lean-profile; tests init-dry-run; tests init-lean-profile; tests init-refuses-existing; tests init-usage-error; tests init-writes-specification; tests validate-profile-absent-missing-tests; tests validate-profile-full-missing-tests; tests validate-profile-lean-missing-tests; tests validate-profile-lean-permission-missing |
 | SA-109 | enums Rule; decisions ADR-211 | tests derive-processes; tests document-operations-processes; tests document-techspec-processes; tests extract-systemd-not-a-unit; tests extract-systemd-reads-units; tests extract-systemd-stop-signal-not-held; tests merge-systemd-and-settings; tests validate-processes-must-question; tests validate-processes-refused; tests validate-processes-should-question; tests validate-processes-valid |
 | SA-110 | commands extract; decisions ADR-212 | tests extract-documents-email; tests extract-documents-email-forwarded; tests extract-documents-excel; tests extract-documents-not-markdown; tests extract-documents-pdf; tests extract-documents-pdf-does-not-parse; tests extract-documents-pdf-encrypted; tests extract-documents-pdf-markdown-twin; tests extract-documents-pdf-no-text; tests extract-documents-pdf-tagged; tests extract-documents-pdf-untagged; tests extract-documents-powerpoint; tests extract-documents-word |
@@ -22313,6 +22424,7 @@ What satisfies and what verifies each requirement. An empty cell is a gap.
 | SA-148 | enums DocumentTarget; commands document; decisions ADR-248 | tests document-books; tests document-books-gaps; tests document-brd |
 | SA-149 | enums DocumentFormat; enums DocumentTarget; commands document; decisions ADR-249; decisions ADR-250 | tests document-books-docx; tests document-diagrams-drawn-in-pdf; tests document-estate-map-markdown-only; tests document-format-books-md-refused; tests document-format-check-missing; tests document-format-from-targets; tests document-format-gaps; tests document-format-html-refused; tests document-html-draws-diagrams; tests validate-document-format |
 | SA-150 | enums Rule; commands document; decisions ADR-251; decisions ADR-252; decisions ADR-253; decisions ADR-254 | tests document-requirements-scenario-problems; tests document-requirements-scenarios; tests document-techspec-scenarios; tests document-traceability-scenarios; tests validate-scenario-coverage-error; tests validate-scenario-duplicate-id; tests validate-scenario-problems; tests validate-scenario-uncovered; tests validate-scenarios |
+| SA-151 | enums Rule; commands gaps; commands merge; decisions ADR-255 | tests gaps-next-consequences; tests validate-question-consequences |
 
 ## Sources
 

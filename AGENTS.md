@@ -87,9 +87,10 @@ situation.
    names the scenarios it proves under proves.
 6. Run `specarch gaps <folder>` for the open questions and what each holds
    up; then ask: `specarch gaps --next <folder>` gives the one question to
-   put next, put it to the stakeholder it names with two to five options and
-   one recommended, record the answer with `specarch decide`, and run `gaps
-   --next` again; `specarch help asking` is the procedure.
+   put next, put it to the stakeholder it names with two to five options,
+   each explained with its consequences, and one recommended, record the
+   answer with `specarch decide`, and run `gaps --next` again; `specarch
+   help asking` is the procedure.
 7. What a stakeholder said in a meeting, a chat, an email or a call:
    `specarch log <folder>` with who, when, how, what and the words as
    options writes the communication record beside the specification, prints
@@ -138,6 +139,26 @@ situation.
   never picks an answer; it asks one at a time, as `specarch gaps --next`
   ranks them, with an answer it recommends, the owner answers and `specarch
   decide` records it.
+- Explain before you ask, and never ask by an option's ID alone, such as "is
+  A-1 ok?" or "Q-3: option 2?": in the message the person reads, not in a
+  file or a link, say (1) what the question is about and why it must be
+  decided now, what it blocks; (2) what each option is, its ID with its
+  meaning in the system's own terms; (3) what each option leads to: what
+  changes, what it costs, what it makes easier or harder later, what is hard
+  to undo, and who is affected; (4) the option you recommend and why; then
+  ask for the choice, one question at a time. An ID is never used before the
+  same message has explained it. `specarch gaps --next` prints the
+  question's why and each option's consequences when the question has them
+  under consequences, and says what to explain when it does not; write them
+  there, once, so every asker tells the same thing. Good, from a library
+  lending desk: "Q-1 decides the loan period, and blocks requirement LEND-4:
+  the manual says 21 days, the service lends for 14. 1. 21 days: the service
+  and its check on the loans table change to 21; members keep books a week
+  longer, reminders and late fees start a week later, and loans already out
+  keep their 14-day due dates. 2. 14 days: the manual changes, nothing in
+  the service does; members who read the manual lose the week they were told
+  about. I recommend 2: it is what members have lived with, and it changes
+  no code. Which do you choose?"
 - Approving a specification: `specarch approve --by <stakeholder>` records a
   person's approval, so only that person's word runs it.
 - Generating a draft with --unapproved for anything that will be used, and

@@ -7,6 +7,9 @@ questions:
     blocks: [implementation]
     decidedBy: system-owner
     options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    consequences:
+      'Built: the code is to add it': 'operation renewLoan (POST /loans/{loanId}/renew) stays in the specification as the documents state it, and the code is to add it: work in the implementation stage, with its tests.'
+      'Dropped: the documents are to change': operation renewLoan (POST /loans/{loanId}/renew) leaves the specification, and the documents that have it are to change; nothing is built for it, and whoever expected it from the documents loses it.
     why: Only the documents have it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: openapi, clause: '/paths/~1loans~1{loanId}~1renew/post', says: 'POST /loans/{loanId}/renew: Renew a loan once, for one more loan period.'}

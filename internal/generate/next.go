@@ -56,11 +56,15 @@ type NextQuestion struct {
 	// Missing are, per blocked pointer, the keys missing there.
 	Missing map[string][]string `json:"missing"`
 	// HoldsUp are the outputs the question holds up: documents and code.
-	HoldsUp   []string `json:"holdsUp"`
-	Options   []string `json:"options"`
-	Insight   string   `json:"insight,omitempty"`
-	Certainty string   `json:"certainty,omitempty"`
-	Names     string   `json:"names,omitempty"`
+	HoldsUp []string `json:"holdsUp"`
+	Options []string `json:"options"`
+	// Consequences are what follows from each option, keyed by the
+	// option's text as Options gives it; an option the question does not
+	// explain has no entry (ADR-255).
+	Consequences map[string]string `json:"consequences"`
+	Insight      string            `json:"insight,omitempty"`
+	Certainty    string            `json:"certainty,omitempty"`
+	Names        string            `json:"names,omitempty"`
 	// Decide is the command that records the answer, as arguments; the
 	// answer is <answer>, and --source is left out when the source is
 	// not settled (SourceNote says why).
@@ -122,19 +126,20 @@ func NextOf(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 	})
 	q := qs[0]
 	nq := &NextQuestion{
-		ID:        q.id,
-		Question:  oneParagraph(str(q.node, "question")),
-		Kind:      str(q.node, "kind"),
-		Priority:  q.priority,
-		DecidedBy: str(q.node, "decidedBy"),
-		Stage:     q.stage,
-		Blocks:    []string{},
-		Missing:   map[string][]string{},
-		HoldsUp:   append([]string{}, held[q.id]...),
-		Options:   []string{},
-		Insight:   oneParagraph(strings.TrimSpace(str(q.node, "why"))),
-		Certainty: str(q.node, "certainty"),
-		Names:     str(q.node, "names"),
+		ID:           q.id,
+		Question:     oneParagraph(str(q.node, "question")),
+		Kind:         str(q.node, "kind"),
+		Priority:     q.priority,
+		DecidedBy:    str(q.node, "decidedBy"),
+		Stage:        q.stage,
+		Blocks:       []string{},
+		Missing:      map[string][]string{},
+		HoldsUp:      append([]string{}, held[q.id]...),
+		Options:      []string{},
+		Consequences: map[string]string{},
+		Insight:      oneParagraph(strings.TrimSpace(str(q.node, "why"))),
+		Certainty:    str(q.node, "certainty"),
+		Names:        str(q.node, "names"),
 	}
 	for _, item := range items(q.node, "blocks") {
 		nq.Blocks = append(nq.Blocks, item.Value)
@@ -144,8 +149,15 @@ func NextOf(root *yaml.Node, relRoot string, impls []Implementation, state *Stat
 			}
 		}
 	}
+	explained := map[string]string{}
+	for _, p := range pairs(q.node, "consequences") {
+		explained[strings.TrimSpace(p.Key.Value)] = oneParagraph(p.Value.Value)
+	}
 	for _, o := range strs(q.node, "options") {
 		nq.Options = append(nq.Options, oneParagraph(o))
+		if c, ok := explained[strings.TrimSpace(o)]; ok {
+			nq.Consequences[oneParagraph(o)] = c
+		}
 	}
 	nq.Decide = []string{"specarch", "decide", q.id, "--by", nq.DecidedBy, "--answer", "<answer>"}
 	want, kindText := "interview", "an interview"
@@ -317,16 +329,23 @@ func NextText(n Next) string {
 	} else {
 		fmt.Fprintf(&b, "- Holds up: nothing; no output reads what it blocks\n")
 	}
+	if q.Insight != "" {
+		fmt.Fprintf(&b, "- Why it is asked: %s\n", q.Insight)
+	} else {
+		fmt.Fprintf(&b, "- Why it is asked: not written; say from what it blocks what the question is about and why it must be decided now\n")
+	}
 	if len(q.Options) > 0 {
-		fmt.Fprintf(&b, "- Options:\n")
+		fmt.Fprintf(&b, "- Options, each with what choosing it leads to:\n")
 		for i, o := range q.Options {
 			fmt.Fprintf(&b, "  %d. %s\n", i+1, o)
+			if c, ok := q.Consequences[o]; ok {
+				fmt.Fprintf(&b, "     Consequences: %s\n", c)
+			} else {
+				fmt.Fprintf(&b, "     Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected\n")
+			}
 		}
 	} else {
-		fmt.Fprintf(&b, "- Options: none written; offer two to five\n")
-	}
-	if q.Insight != "" {
-		fmt.Fprintf(&b, "- Insight: %s\n", q.Insight)
+		fmt.Fprintf(&b, "- Options: none written; offer two to five, each with what choosing it leads to\n")
 	}
 	words := make([]string, len(q.Decide))
 	for i, w := range q.Decide {
@@ -336,7 +355,7 @@ func NextText(n Next) string {
 	if q.SourceNote != "" {
 		fmt.Fprintf(&b, "- Source: %s\n", q.SourceNote)
 	}
-	fmt.Fprintf(&b, "\nPut it to %s alone, with one answer recommended and why; specarch help asking.\n", q.DecidedBy)
+	fmt.Fprintf(&b, "\nPut it to %s alone: say what it is about and what it blocks, explain every option and its consequences before naming any by its number, then recommend one and why; specarch help asking.\n", q.DecidedBy)
 	return b.String()
 }
 

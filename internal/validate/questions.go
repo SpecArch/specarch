@@ -6,6 +6,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
+	"github.com/SpecArch/specarch/internal/metamodel"
 	"github.com/SpecArch/specarch/internal/source"
 	"github.com/SpecArch/specarch/internal/spec"
 )
@@ -38,6 +39,11 @@ func (c *checker) checkQuestions(d *design) {
 		}
 		if names := source.Child(q, "names"); names != nil && len(blocks) != 1 {
 			c.add(names, ptr+"/names", RuleQuestionBlock, "question %s names %s for one key, and blocks %d entries; block only the key the name is for, such as #/workflows/<name>/trigger", id, names.Value, len(blocks))
+		}
+		// consequences is a 1.0 keyword, so a file on an earlier
+		// meta-model is not warned for lacking it; specarch upgrade moves it.
+		if !metamodel.Design.IsEarlier(d.metaModelVersion()) {
+			c.checkConsequences(id, q, ptr)
 		}
 		key := source.Key(source.Child(d.root, "questions"), id)
 		switch {
@@ -384,4 +390,41 @@ func Questions(root *yaml.Node) (must, should, could int) {
 		}
 	}
 	return
+}
+
+// checkConsequences checks what a question says follows from each option
+// (ADR-255): an entry of consequences that names no option is an error at
+// the entry, and an option of a must or should decision question with no
+// entry is a warning at the option, since whoever puts the question would
+// have to guess what choosing it leads to.
+func (c *checker) checkConsequences(id string, q *yaml.Node, ptr string) {
+	options := source.Items(source.Child(q, "options"))
+	given := map[string]bool{}
+	for _, o := range options {
+		given[strings.TrimSpace(source.Str(o))] = true
+	}
+	explained := map[string]bool{}
+	for _, p := range source.Pairs(source.Child(q, "consequences")) {
+		name := strings.TrimSpace(p.Key.Value)
+		explained[name] = true
+		if given[name] {
+			continue
+		}
+		at := source.Pointer("questions", id, "consequences", p.Key.Value)
+		if len(options) == 0 {
+			c.add(p.Key, at, RuleQuestionConsequences, "question %s gives consequences for %q but has no options; write the options it chooses between under options, or remove consequences", id, p.Key.Value)
+			continue
+		}
+		c.add(p.Key, at, RuleQuestionConsequences, "consequences of question %s names %q, which is none of its %d options; key each entry by an option's text exactly as options gives it", id, p.Key.Value, len(options))
+	}
+	priority := source.Str(source.Child(q, "priority"))
+	if source.Str(source.Child(q, "kind")) != "decision" || (priority != "must" && priority != "should") {
+		return
+	}
+	for i, o := range options {
+		if explained[strings.TrimSpace(source.Str(o))] {
+			continue
+		}
+		c.warn(o, fmt.Sprintf("%s/options/%d", ptr, i), RuleQuestionConsequences, "option %d of question %s, a %s decision, says nothing under consequences of what choosing it leads to, so whoever puts the question has to guess; add under consequences, keyed by the option's text, what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected", i+1, id, priority)
+	}
 }

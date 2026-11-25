@@ -19,6 +19,9 @@ questions:
     blocks: ['#/entities/Members/properties/addressStreet']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': field addressStreet of entity Members stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at migrations public.members stays as it is.
+      'No: the code is to change': field addressStreet of entity Members leaves the specification, and the code at migrations public.members is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
   # specarch-problem: question: open_question: (should, decision) Undocumented, from code: is field addressCity of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:
@@ -28,6 +31,9 @@ questions:
     blocks: ['#/entities/Members/properties/addressCity']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': field addressCity of entity Members stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at migrations public.members stays as it is.
+      'No: the code is to change': field addressCity of entity Members leaves the specification, and the code at migrations public.members is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
   # specarch-problem: question: open_question: (should, decision) Undocumented, from code: is field addressPostcode of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-4 under answers. [Q-4]
   Q-4:
@@ -37,6 +43,9 @@ questions:
     blocks: ['#/entities/Members/properties/addressPostcode']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': field addressPostcode of entity Members stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at migrations public.members stays as it is.
+      'No: the code is to change': field addressPostcode of entity Members leaves the specification, and the code at migrations public.members is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
   # specarch-problem: question: open_question: (should, decision) Undocumented, from code: is field createdAt of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-5 under answers. [Q-5]
   Q-5:
@@ -46,6 +55,9 @@ questions:
     blocks: ['#/entities/Members/properties/createdAt']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': field createdAt of entity Members stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at migrations public.members stays as it is.
+      'No: the code is to change': field createdAt of entity Members leaves the specification, and the code at migrations public.members is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.
   # specarch-problem: question: open_question: (should, decision) Undocumented, from code: is field createdBy of entity Members meant to be part of the system? The code has it at migrations public.members, and no document mentions it. Decided by system-owner. Answer with a decision record that names Q-6 under answers. [Q-6]
   Q-6:
@@ -55,4 +67,7 @@ questions:
     blocks: ['#/entities/Members/properties/createdBy']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': field createdBy of entity Members stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at migrations public.members stays as it is.
+      'No: the code is to change': field createdBy of entity Members leaves the specification, and the code at migrations public.members is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns neither security nor a source given outside, so the owner confirms it before it is built on.

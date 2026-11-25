@@ -8,6 +8,9 @@ questions:
     blocks: [implementation]
     decidedBy: desk-manager
     options: ["Build it", "Take it out of the manual and the specification"]
+    consequences:
+      "Build it": "The service gains a renew route, its handler and its tests, and a member may renew a loan once as clause 4.1 says; the work is in the implementation stage, and the loans table keeps how often a loan was renewed."
+      "Take it out of the manual and the specification": "Clause 4.1 of the manual and the specification lose renewal and the service stays as it is; members who renew at the desk today by asking are told it is not offered."
     why: Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:36).
     cites:
       - { source: desk-manual, clause: "4.1", says: "A member may renew a loan once." }
@@ -20,6 +23,9 @@ questions:
     blocks: [implementation]
     decidedBy: desk-manager
     options: ["Build it", "Take it out of the manual and the specification"]
+    consequences:
+      "Build it": "The members table gains a phone number column, the forms and the service carry it, and the desk keeps a personal field: it is protected as personal data, and taking it out later means deleting what was collected."
+      "Take it out of the manual and the specification": "Clause 2 of the manual stops saying the desk keeps a phone number, and nothing is built; the desk reaches members another way, and no personal field is added."
     why: Not built yet, and the field is personal, so it is not left at should.
     cites:
       - { source: desk-manual, clause: "2", says: "The desk keeps a member's phone number, which is personal." }
@@ -32,6 +38,10 @@ questions:
     blocks: [implementation]
     decidedBy: desk-manager
     options: ["Keep it, behind a permission desk staff hold", "Take it out of the service", "Keep it open to everyone"]
+    consequences:
+      "Keep it, behind a permission desk staff hold": "The route stays in the specification with a permission desk staff hold, and the service checks it; a caller without it is refused, so anything that calls the route today without signing in stops working."
+      "Take it out of the service": "The route and its handler go; whoever calls it today loses a member's card number and full name, and nothing answers them without a permission any more."
+      "Keep it open to everyone": "The route stays as it is and is written into the specification as public: anyone who knows a card number reads the member's full name, a personal field, and closing it later breaks every caller that came to rely on it."
     why: Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
     cites:
       - { source: desk-code, clause: "lending/routes.go:43", says: "GET /members/{cardNumber} checks no permission." }

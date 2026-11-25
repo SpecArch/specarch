@@ -49,6 +49,7 @@ standardOutput: |
             "code generation"
           ],
           "options": [],
+          "consequences": {},
           "decide": [
             "specarch",
             "decide",

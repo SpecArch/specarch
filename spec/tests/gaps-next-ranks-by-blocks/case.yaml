@@ -10,9 +10,12 @@ standardOutput: |
   - Decided by: owner
   - Blocks: #/entities/Loan (primaryKey, properties and type missing), #/entities/Member
   - Holds up: techspec document, traceability document, html document, books document and code target sql
-  - Options:
+  - Why it is asked: not written; say from what it blocks what the question is about and why it must be decided now
+  - Options, each with what choosing it leads to:
     1. both are kept
+       Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected
     2. both are removed
+       Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected
   - Record the answer: specarch decide Q-4 --by owner --answer "<answer>" --source owner-answer project
 
-  Put it to owner alone, with one answer recommended and why; specarch help asking.
+  Put it to owner alone: say what it is about and what it blocks, explain every option and its consequences before naming any by its number, then recommend one and why; specarch help asking.

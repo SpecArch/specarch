@@ -7,6 +7,9 @@ questions:
     blocks: [implementation]
     decidedBy: system-owner
     options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    consequences:
+      'Built: the code is to add it': 'operation getHealth (GET /health) stays in the specification as the documents state it, and the code is to add it: work in the implementation stage, with its tests.'
+      'Dropped: the documents are to change': operation getHealth (GET /health) leaves the specification, and the documents that have it are to change; nothing is built for it, and whoever expected it from the documents loses it.
     why: Only the documents have it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: sample, clause: /paths/~1health/get, says: 'GET /health, with no summary.'}
@@ -19,6 +22,9 @@ questions:
     blocks: [implementation]
     decidedBy: system-owner
     options: ['Built: the code is to add it', 'Dropped: the documents are to change']
+    consequences:
+      'Built: the code is to add it': 'operation sayHello (GET /hello) stays in the specification as the documents state it, and the code is to add it: work in the implementation stage, with its tests.'
+      'Dropped: the documents are to change': operation sayHello (GET /hello) leaves the specification, and the documents that have it are to change; nothing is built for it, and whoever expected it from the documents loses it.
     why: Only the documents have it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: sample, clause: /paths/~1hello/get, says: 'GET /hello: Say hello.'}

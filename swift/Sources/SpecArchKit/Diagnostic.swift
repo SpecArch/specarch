@@ -197,6 +197,7 @@ public enum Rule: String, CaseIterable, Sendable {
     case auditNotAppendOnly = "audit_not_append_only"
     case scenario = "scenario"
     case scenarioUncovered = "scenario_uncovered"
+    case questionConsequences = "question_consequences"
 }
 
 /// Whether a diagnostic makes the file invalid.

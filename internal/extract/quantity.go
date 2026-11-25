@@ -194,6 +194,10 @@ func (m *merger) quantityQuestions() int {
 			"blocks", []string{reqPtr},
 			"decidedBy", owner,
 			"options", []string{fmt.Sprintf("%d days: the code is to change", days), fmt.Sprintf("%d days: the document is to change", c.days)},
+			"consequences", consequencesOf([]string{fmt.Sprintf("%d days: the code is to change", days), fmt.Sprintf("%d days: the document is to change", c.days)}, []string{
+				fmt.Sprintf("Requirement %s keeps %d days, and the check %s of %s is to change from %d days to %d, so the running system behaves differently from today.", id, days, c.name, c.entity, c.days, days),
+				fmt.Sprintf("Requirement %s is written as %d days, as the check %s of %s has it; the code stays as it is, and the document that says %d days is to change.", id, c.days, c.name, c.entity, days),
+			}),
 			"why", fmt.Sprintf("The documents and the code disagree: the document says %d days, the code checks %d. The merge leaves the statement out rather than choose, and keeps the check the code runs, which satisfies the requirement whichever way it is answered.", days, c.days),
 			"cites", cites,
 		)

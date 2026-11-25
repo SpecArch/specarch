@@ -228,6 +228,9 @@ questions:
     blocks: ["#/dependencies/catalogue/timeout"]
     decidedBy: desk-manager
     options: ["Through the catalogue service, with a time limit to name", "From the books table, as today"]
+    consequences:
+      "Through the catalogue service, with a time limit to name": "The desk reads each book through the catalogue service's operations, with a time limit per call still to name; the books table in the desk's database goes, and a lending waits on the catalogue answering, so its failure needs an answer at the desk."
+      "From the books table, as today": "The desk keeps reading its own books table and nothing changes in the service; the catalogue team stays the keeper on paper only, and the desk's copy can drift from the catalogue's records."
     why: The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk's own database.
     cites:
       - { source: desk-manual, clause: "3.4", says: "The catalogue team keeps the book records; the desk reads them and never edits them." }

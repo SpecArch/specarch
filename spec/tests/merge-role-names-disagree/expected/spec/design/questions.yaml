@@ -61,6 +61,9 @@ questions:
     blocks: [roles]
     decidedBy: system-owner
     options: ['info.roleNames upper_snake, as Permissions of access has it', 'each role as it is named, as Lending desk grants has it']
+    consequences:
+      info.roleNames upper_snake, as Permissions of access has it: The specification takes info.roleNames upper_snake, so a token's roles claim and the tables a permission check reads write each role that way; Lending desk grants, which says otherwise, is then to change to match it.
+      each role as it is named, as Lending desk grants has it: The specification takes each role as it is named, so a token's roles claim and the tables a permission check reads write each role that way; Permissions of access, which says otherwise, is then to change to match it.
     why: 'The sources disagree: Permissions of access says info.roleNames upper_snake, and Lending desk grants says each role as it is named. A token''s roles claim and the tables a permission check reads write each role one way, so the merge leaves info.roleNames out rather than choose between them.'
     cites:
       - {source: code, clause: access role AUDITOR, says: AUDITOR grants loans.read and public.}

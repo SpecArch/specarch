@@ -20,7 +20,9 @@ Is the loan period 21 days, as the manual says, or 14 days, as the service does?
 - Blocks: #/requirements/LEND-4/statement
 - Options:
   1. 21 days: the service is wrong and changes
+     Consequences: The service's loan period and the check on the loans table change from 14 to 21 days; members keep books a week longer, reminders and late fees start a week later, and loans already out keep their 14-day due dates.
   2. 14 days: the manual is wrong and changes
+     Consequences: Clause 3.3 of the manual changes to 14 days and nothing in the service does; members who read the manual lose the week they were told about, and the desk tells them so.
 
 **Insight:** The manual and the code disagree, and neither says which is current.
 
@@ -47,7 +49,9 @@ The service lists a member's loans, which the manual never mentions. Is that wan
 - Blocks: #/requirements/LEND-7
 - Options:
   1. Keep it for desk staff, and add it to the manual
+     Consequences: LEND-7 stays, behind loans.read, and the manual gains a section on listing a member's loans; desk staff keep a lookup they use today, and the list is one more thing to keep working.
   2. Take it out of the service
+     Consequences: LEND-7 and the route GET /members/{cardNumber}/loans go; whoever uses the list today loses it, and adding it back later is new work with its tests.
 
 **Insight:** Undocumented, from code.
 
@@ -61,7 +65,9 @@ Does the desk read the book records through the catalogue service's operations, 
 - Blocks: #/dependencies/catalogue/timeout
 - Options:
   1. Through the catalogue service, with a time limit to name
+     Consequences: The desk reads each book through the catalogue service's operations, with a time limit per call still to name; the books table in the desk's database goes, and a lending waits on the catalogue answering, so its failure needs an answer at the desk.
   2. From the books table, as today
+     Consequences: The desk keeps reading its own books table and nothing changes in the service; the catalogue team stays the keeper on paper only, and the desk's copy can drift from the catalogue's records.
 
 **Insight:** The manual names the catalogue team as the keeper of the book records and says nothing of how the desk reads them; the code reads a books table in the desk's own database.
 
@@ -79,7 +85,9 @@ The manual has a phone number for each member, which is personal, and the databa
 - Blocks: implementation
 - Options:
   1. Build it
+     Consequences: The members table gains a phone number column, the forms and the service carry it, and the desk keeps a personal field: it is protected as personal data, and taking it out later means deleting what was collected.
   2. Take it out of the manual and the specification
+     Consequences: Clause 2 of the manual stops saying the desk keeps a phone number, and nothing is built; the desk reaches members another way, and no personal field is added.
 
 **Insight:** Not built yet, and the field is personal, so it is not left at should.
 
@@ -95,8 +103,11 @@ The service serves GET /members/{cardNumber}, which answers a member's card numb
 - Blocks: implementation
 - Options:
   1. Keep it, behind a permission desk staff hold
+     Consequences: The route stays in the specification with a permission desk staff hold, and the service checks it; a caller without it is refused, so anything that calls the route today without signing in stops working.
   2. Take it out of the service
+     Consequences: The route and its handler go; whoever calls it today loses a member's card number and full name, and nothing answers them without a permission any more.
   3. Keep it open to everyone
+     Consequences: The route stays as it is and is written into the specification as public: anyone who knows a card number reads the member's full name, a personal field, and closing it later breaks every caller that came to rely on it.
 
 **Insight:** Undocumented, from code, and it answers a personal field to a caller who shows no permission, which is how an open endpoint is usually found. An operation's permission cannot be left out of the design, so the route waits here rather than as a guess.
 
@@ -112,7 +123,9 @@ Renewing a loan is in the manual but not in the service. Build it as the manual 
 - Blocks: implementation
 - Options:
   1. Build it
+     Consequences: The service gains a renew route, its handler and its tests, and a member may renew a loan once as clause 4.1 says; the work is in the implementation stage, and the loans table keeps how often a loan was renewed.
   2. Take it out of the manual and the specification
+     Consequences: Clause 4.1 of the manual and the specification lose renewal and the service stays as it is; members who renew at the desk today by asking are told it is not offered.
 
 **Insight:** Not built yet. The manual describes renewal (clause 4.1); the service serves no renew route and has no handler for one (lending/routes.go:36).
 

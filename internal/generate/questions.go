@@ -392,9 +392,16 @@ func Questions(root *yaml.Node, relRoot string, impls []Implementation, state *S
 			d.line("%s", text)
 		}
 		if opts := strs(q.node, "options"); len(opts) > 0 {
+			explained := map[string]string{}
+			for _, p := range pairs(q.node, "consequences") {
+				explained[strings.TrimSpace(p.Key.Value)] = oneParagraph(p.Value.Value)
+			}
 			d.line(tr("- Options:"))
 			for i, o := range opts {
 				d.line("  %d. %s", i+1, oneParagraph(o))
+				if c, ok := explained[strings.TrimSpace(o)]; ok {
+					d.line(tr("     Consequences: %s"), c)
+				}
 			}
 		}
 		if chain := d.chain(q.id, opened); chain != "" {

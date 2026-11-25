@@ -71,6 +71,9 @@ questions:
     blocks: ['#/paths/~1loans~1close/post/operationId']
     decidedBy: system-owner
     options: ['closeLoan, as desk; Routes of code has it', 'postLoansClose, as Go source of code has it']
+    consequences:
+      closeLoan, as desk; Routes of code has it: 'The specification writes closeLoan at #/paths/~1loans~1close/post/operationId, and the documents and code made from it follow; Go source of code, which says otherwise, is then to change to match it.'
+      postLoansClose, as Go source of code has it: 'The specification writes postLoansClose at #/paths/~1loans~1close/post/operationId, and the documents and code made from it follow; desk; Routes of code, which says otherwise, is then to change to match it.'
     why: 'The sources disagree: desk; Routes of code says closeLoan, and Go source of code says postLoansClose. The merge leaves the key out rather than choose between them.'
     cites:
       - {source: api, clause: /paths/~1loans~1close/post, says: 'POST /loans/close: Close a loan.'}
@@ -95,6 +98,9 @@ questions:
     blocks: ['#/paths/~1loans~1purge/post']
     decidedBy: system-owner
     options: ['Served: the printer is to list it', 'Not served: the code is to change, or the setting that switches it on is to be named']
+    consequences:
+      'Served: the printer is to list it': The operation stays in the specification as served, and the printer that lists the running system's operations is to list it, so the next reading sees it in both.
+      'Not served: the code is to change, or the setting that switches it on is to be named': 'The operation is dead code or served only under a setting: the code is to remove it, or the specification names the setting that switches it on; either way the running system and the specification agree on what is served.'
     why: Only the parsed source declares it, and what the running system lists is what it serves; an operation declared and not served is dead code or switched on by a setting, and an operation is where an open endpoint is found.
     cites:
       - {source: code, clause: 'code/endpoints.go:9', says: 'NewEndPoint registers POST /loans/purge; its handler is CloseLoan, it has no middleware, and it checks loans.write.'}

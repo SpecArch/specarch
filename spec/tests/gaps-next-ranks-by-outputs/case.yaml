@@ -8,11 +8,13 @@ standardOutput: |
   - Decided by: owner
   - Blocks: #/requirements/CASE-1/priority
   - Holds up: intent document, techspec document, requirements document, testplan document, traceability document, html document, brd document, books document, code target echo and code target sql
-  - Options:
+  - Why it is asked: The old document lists the limit under "rules" without saying whether a release without it is acceptable.
+  - Options, each with what choosing it leads to:
     1. must
+       Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected
     2. should
-  - Insight: The old document lists the limit under "rules" without saying whether a release without it is acceptable.
+       Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected
   - Record the answer: specarch decide Q-5 --by owner --answer "<answer>" project
   - Source: the root file declares 2 sources of kind interview (owner-answer and chair-interview); add --source with the one the answer came from
 
-  Put it to owner alone, with one answer recommended and why; specarch help asking.
+  Put it to owner alone: say what it is about and what it blocks, explain every option and its consequences before naming any by its number, then recommend one and why; specarch help asking.

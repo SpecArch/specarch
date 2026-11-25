@@ -33,6 +33,9 @@ questions:
     blocks: ['#/paths/~1v1~1things/post/requestBody/content/application~1json/schema']
     decidedBy: system-owner
     options: ['{$ref: ''#/schemas/CreateThingRequest''}, as Things API has it', '{type: object, properties: {code: {type: string}, name: {type: integer}}, required: [code]}, as Go source of things has it']
+    consequences:
+      '{$ref: ''#/schemas/CreateThingRequest''}, as Things API has it': 'The specification writes {$ref: ''#/schemas/CreateThingRequest''} at #/paths/~1v1~1things/post/requestBody/content/application~1json/schema, and the documents and code made from it follow; Go source of things, which says otherwise, is then to change to match it.'
+      '{type: object, properties: {code: {type: string}, name: {type: integer}}, required: [code]}, as Go source of things has it': 'The specification writes {type: object, properties: {code: {type: string}, name: {type: integer}}, required: [code]} at #/paths/~1v1~1things/post/requestBody/content/application~1json/schema, and the documents and code made from it follow; Things API, which says otherwise, is then to change to match it.'
     why: 'The sources disagree on the shape: CreateThingRequest.name is of type string, and Go source of things of type integer. The merge leaves the key out rather than choose between them.'
     cites:
       - {source: openapi, clause: /paths/~1v1~1things/post, says: 'POST /v1/things: Create a thing.'}

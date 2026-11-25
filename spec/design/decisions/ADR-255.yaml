@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-design-1.0.schema.json
+decisions:
+  ADR-255:
+    title: A question carries what follows from each of its options under consequences, keyed by the option's text; gaps --next prints why the question is asked and each option with its consequences, validate warns of an option of a must or should decision question left unexplained, and an agent explains every option and its consequences before it asks
+    status: accepted
+    date: "2026-11-25"
+    context: |
+      A person was asked to approve an option by its ID alone, such as
+      "is A-1 ok?", without being told what A-1 is or what choosing it
+      leads to, so the decision could not be made from the question. The
+      procedure of ADR-209 asked for the question, two to five options and
+      one recommended, but not for what each option changes, costs or
+      makes hard to undo, and a question's options were labels with
+      nothing beside them to say so. Whoever put the question had to
+      invent the consequences at the moment of asking, each time anew, and
+      a reviewer could not check them, since they were nowhere in the
+      specification. The owner decided on 2026-11-25 that an agent never
+      asks a bare option, and that the explanation is written once beside
+      the question.
+
+      Meta-model 1.0 promises that a 1.x only adds (ADR-186), and every key
+      added since 1.0.0 went into the 1.0 schemas as an optional key
+      (ADR-233, ADR-244, ADR-251), read by the 1.0.0 version line. A patch
+      of the meta-model never changes what is valid, so an added key cannot
+      be a patch of the format; it ships in the program's next patch.
+    decision: |
+      1. A question takes consequences, a mapping from an option's text,
+         exactly as options gives it, to what follows when that option is
+         chosen: what changes, what it costs, what it makes easier or
+         harder later, what is hard to undo and who is affected, in plain
+         words. The option's text stays its meaning in the system's own
+         terms, and decide still records it whole. The key is optional in
+         the 1.0 schemas.
+      2. validate, in both builds, under the new rule
+         question_consequences: an entry that names none of the question's
+         options, or an entry of a question with no options, is an error
+         at the entry; an option of a decision question of priority must
+         or should with no entry is a warning at the option. A could
+         question, a material question and a question with no options get
+         no warning. Every problem stands at its entry and the rest of the
+         question is read as it is.
+      3. gaps --next prints, after who decides, what it blocks and what it
+         holds up, a line Why it is asked with the question's why, or what
+         to say when none is written, then each option on its line with a
+         Consequences line under it, the written text or what to explain
+         when there is none, and ends with the rule: say what it is about
+         and what it blocks, explain every option and its consequences
+         before naming any by its number, then recommend one and why. With
+         --json the question holds consequences, keyed by the option's
+         text, beside options, which keeps its type. The questions
+         document prints the written consequences under each option.
+      4. specarch merge writes consequences for every question it asks
+         with options, so a fresh merge does not trip the warning its own
+         output would cause.
+      5. The rule for agents is one entry of the facts the agent guide,
+         AGENTS.md and the skill print under Ask the owner, with a bad
+         example (is A-1 ok?) and a good one from the library lending
+         example; specarch help asking holds the procedure. A project
+         carries it from the start through specarch skill --out, which
+         writes the skill with that text into the project's agent
+         folder; specarch init writes only the specification.
+    why: |
+      The decision a person takes on a question is only as good as what
+      they are told about each option; written beside the question, the
+      consequences are reviewed with the specification, read the same by
+      every agent and every person who puts the question, and changed in
+      one place when the design moves. Keying them by the option's text,
+      not by position, makes a renamed or reordered option an error or a
+      warning at the entry instead of an explanation that silently
+      describes another option. The warning follows the owner's word
+      that every must and should option be explained; it departs from
+      the pattern of ADR-244 and ADR-251, which stay silent until the
+      specification opts in, because here the gap is in a question a
+      person will be asked, where an unexplained option does harm at
+      once. Leaving init alone keeps it writing the one file it promises
+      (ADR-210) and never writing over agent instructions made by hand;
+      the skill is already the file a project installs for its agents.
+    alternatives:
+      - option: Options as objects, each with its text and its consequences
+        why: |
+          options is a list of strings in every 1.0 file, and every reader
+          (gaps, decide, the documents, the problems file, merge) and the
+          --json output take it so; a second form would give one key two
+          shapes and break the type agents read.
+      - option: consequences as a list in the order of options
+        why: |
+          Reordering or inserting an option would leave each explanation
+          beside the wrong option with nothing to report it; a key that is
+          the option's text turns that into a problem at the entry.
+      - option: Consequences only in the agent's words, at the time of asking
+        why: |
+          Nothing would check them, two agents would tell one person two
+          different things, and the owner asked for the explanation to be
+          written once beside the question.
+      - option: Warn only once a specification writes its first consequences
+        why: |
+          The owner asked for the warning on every must and should option;
+          an option left unexplained is the gap the rule closes, and a
+          silent default would leave every existing question as it was.
+      - option: specarch init writes an AGENTS.md with the rule
+        why: |
+          init writes the smallest specification and nothing else
+          (ADR-210); a file of agent instructions is often written by hand,
+          and the skill already carries the rule into the project.
+      - option: Meta-model 1.0.1 for the new key
+        why: |
+          A patch of the meta-model never changes what is valid, and an
+          added key does; every addition since 1.0.0 is an optional key of
+          the 1.0 schemas, and a 1.1 for one key stays the owner's call, as
+          ADR-251 left it.
+    consequences: |
+      An existing specification whose must or should decision questions
+      have options sees one warning per option until consequences are
+      written; nothing becomes invalid. An option renamed after its
+      consequences were written shows a warning at the option and an error
+      at the entry until the key is renamed too. Agents put every question
+      with its options explained, and a reviewer reads the same text in
+      the specification.
+    weighs: [QG-1, QG-2]
+    satisfies: [SA-151, SA-107]
+    restsOn: [ADR-186, ADR-209, ADR-210, ADR-214, ADR-251]

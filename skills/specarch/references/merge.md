@@ -29,6 +29,13 @@ it is, its pointers naming each test by its name in the merged
 specification, numbered with the trees' other questions (ADR-235).
 A line counts the tests kept.
 
+Every question the merge asks with options carries consequences,
+what follows from each option, keyed by the option's text: which
+side changes, what the specification writes, and what the documents
+and the code made from it follow, so the merged specification does
+not trip the warning question_consequences and whoever puts the
+question explains every option from the same text (ADR-255).
+
 - The same element in two trees (an entry of a section by its name,
   an operation by its path and method, a field by its entity and
   name) becomes one element with the citations of both. A key only

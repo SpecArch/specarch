@@ -23,6 +23,9 @@ questions:
     blocks: ['#/roles/clerk/permissions', '#/permissions/stock.read']
     decidedBy: system-owner
     options: ['[stock.read], as Stock service permissions has it', '[stock.write], as Billing service permissions has it']
+    consequences:
+      '[stock.read], as Stock service permissions has it': 'The specification writes [stock.read] at #/roles/clerk/permissions, and the documents and code made from it follow; Billing service permissions, which says otherwise, is then to change to match it.'
+      '[stock.write], as Billing service permissions has it': 'The specification writes [stock.write] at #/roles/clerk/permissions, and the documents and code made from it follow; Stock service permissions, which says otherwise, is then to change to match it.'
     why: 'The sources disagree: Stock service permissions says [stock.read], and Billing service permissions says [stock.write]: Billing service permissions grants stock.write, which Stock service permissions declares and does not grant clerk. The merge leaves the key out rather than choose between them. While the list is out, no role grants stock.read, so the question blocks it too.'
     cites:
       - {source: stock, clause: stock/access role clerk, says: clerk grants stock.read.}

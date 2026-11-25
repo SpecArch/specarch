@@ -12,8 +12,9 @@ drafts or waiting.
   specarch gaps --next <folder>...
 
 prints only the question to ask next in each specification, ranked by
-what its answer unblocks, with the decide command that records the
-answer; specarch help asking is how to put it to a person.
+what its answer unblocks, with why it is asked, each option with what
+choosing it leads to (its consequences), and the decide command that
+records the answer; specarch help asking is how to put it to a person.
 
 A question is written in the specification, under questions, when a
 source does not say something or two sources disagree:

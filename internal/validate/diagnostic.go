@@ -208,6 +208,7 @@ const (
 	RuleAuditNotAppendOnly      Rule = "audit_not_append_only"
 	RuleScenario                Rule = "scenario"
 	RuleScenarioUncovered       Rule = "scenario_uncovered"
+	RuleQuestionConsequences    Rule = "question_consequences"
 )
 
 // Rules lists every rule, in the order of the design's Rule enum.
@@ -406,6 +407,7 @@ var Rules = []Rule{
 	RuleAuditNotAppendOnly,
 	RuleScenario,
 	RuleScenarioUncovered,
+	RuleQuestionConsequences,
 }
 
 // Severity says whether a diagnostic makes the file invalid.

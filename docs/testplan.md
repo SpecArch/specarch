@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.8.2-dev of the specification: 1124 design tests, 581 golden and 543 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.8.2-dev of the specification: 1126 design tests, 582 golden and 544 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.8.2-dev of the specification: 1124 design tests, 581 golden and 543 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1120 |
+| system | 1122 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3212,6 +3212,14 @@ Scenario: golden; level: system; verifies SA-138.
 - Given: a specification with a problem and an accepted goal with a measure and no target, and an open must question
 - When: gaps --next is run
 - Then: it prints the goal's question first, naming goal_unmeasured at /goals/GOAL-1 and the keys baseline and target, and exits 1 for the open must question alone
+
+#### gaps-next-consequences
+
+Scenario: golden; level: system; verifies SA-151, SA-107.
+
+- Given: a must question with a why and three options, two of them with consequences and the third with none
+- When: gaps --next is run
+- Then: it prints why the question is asked, each option with a Consequences line under it, the written text for the two and what to explain for the third, and the rule to explain every option before naming any by its number, and exits 1
 
 #### gaps-next-json
 
@@ -7591,6 +7599,14 @@ Scenario: red; level: system; covers exit 1; verifies SA-17.
 - When: validate is run
 - Then: it accepts the first three pointers and reports each of the others with question_block, naming the block to write or the key it suggests, and exits 1
 
+#### validate-question-consequences
+
+Scenario: red; level: system; verifies SA-151.
+
+- Given: a must question whose two options both have consequences, a should question with one option of two explained, a could question and a material question with options and none, a question whose consequences name an option it does not have, and a question with consequences and no options
+- When: validate is run
+- Then: it warns question_consequences at the unexplained option of the should question alone, reports question_consequences as an error at the entry naming no option and at the entry of the question without options, and exits 1
+
 #### validate-question-covers-element-with-content
 
 Scenario: golden; level: system; verifies SA-17.
@@ -9107,7 +9123,7 @@ Scenario: red; level: system; covers usage error.
 
 ## 3. Derived cases left out
 
-675 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
+681 cases the design implies have no test and are not written by default: none is about a subject that satisfies a requirement with a harm, none is a case nobody exercises by hand (a failing dependency, two writers on one record), and none is a mistake users make often. Writing a test that covers one removes it from this list.
 
 | Subject | Case | Scenario | Why it is left out |
 |---|---|---|---|
@@ -9722,6 +9738,12 @@ Scenario: red; level: system; covers usage error.
 | requirement SA-133 | acceptance 2 | golden | SA-133 names no harm |
 | requirement SA-133 | acceptance 3 | golden | SA-133 names no harm |
 | requirement SA-133 | acceptance 4 | golden | SA-133 names no harm |
+| requirement SA-151 | acceptance 1 | golden | SA-151 names no harm |
+| requirement SA-151 | acceptance 2 | golden | SA-151 names no harm |
+| requirement SA-151 | acceptance 3 | golden | SA-151 names no harm |
+| requirement SA-151 | acceptance 4 | golden | SA-151 names no harm |
+| requirement SA-151 | acceptance 5 | golden | SA-151 names no harm |
+| requirement SA-151 | acceptance 6 | golden | SA-151 names no harm |
 | requirement SA-1 | acceptance 1 | golden | SA-1 names no harm |
 | requirement SA-1 | acceptance 2 | golden | SA-1 names no harm |
 | requirement SA-2 | acceptance 1 | golden | SA-2 names no harm |

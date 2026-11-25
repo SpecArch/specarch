@@ -26,9 +26,10 @@ standardOutput: |
      names the scenarios it proves under proves.
   6. Run `specarch gaps <folder>` for the open questions and what each holds
      up; then ask: `specarch gaps --next <folder>` gives the one question to
-     put next, put it to the stakeholder it names with two to five options and
-     one recommended, record the answer with `specarch decide`, and run `gaps
-     --next` again; `specarch help asking` is the procedure.
+     put next, put it to the stakeholder it names with two to five options,
+     each explained with its consequences, and one recommended, record the
+     answer with `specarch decide`, and run `gaps --next` again; `specarch
+     help asking` is the procedure.
   7. What a stakeholder said in a meeting, a chat, an email or a call:
      `specarch log <folder>` with who, when, how, what and the words as
      options writes the communication record beside the specification, prints

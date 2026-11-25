@@ -3430,20 +3430,29 @@ order; then by ID as gaps orders IDs. A line names the
 specification, the question with its priority and kind, and how
 many questions are open; then the question; who decides it, or for
 material whom it is needed from; what it blocks, with the keys
-missing there; the outputs it holds up; its options; its Insight;
-and the decide command that records the answer, with the question,
+missing there; the outputs it holds up; why it is asked, the
+question's why, or what to say when none is written; its options,
+each on its line with a Consequences line under it, the text the
+question gives for it under consequences or what to explain when
+none is written (ADR-255); and the decide command that records the
+answer, with the question,
 the stakeholder, the folder and `--source` naming the interview
 source the root file declares, for material the document source,
 or saying which to declare when there is none or which to choose
 when there are several. A specification without an open question
-prints that it has none. The errors of an invalid specification are
+prints that it has none. The text ends with the rule for whoever
+puts the question: say what it is about and what it blocks,
+explain every option and its consequences before naming any by its
+number, then recommend one and why. The errors of an invalid specification are
 printed first as problem lines, and its next question is still
 ranked from what could be read. With `--json` the output object
 holds `next`, one entry per specification: `specification` (the
 root file), `openQuestions`, and `question`, null when none is
 open, with `id`, `question`, `kind`, `priority`, `decidedBy`,
 `stage`, `blocks`, `missing` (the keys missing per blocked
-pointer), `holdsUp`, `options`, `insight`, `certainty` and `names`
+pointer), `holdsUp`, `options`, `consequences` (what follows from
+each option, keyed by the option's text, only those written),
+`insight`, `certainty` and `names`
 as the question has them, `decide` (the command as arguments, the
 answer as `<answer>`) and `recommendation`, always null: the agent
 fills it with the answer it recommends and why before it puts the
@@ -4370,6 +4379,13 @@ question of its tree that blocks nothing but such tests is kept as
 it is, its pointers naming each test by its name in the merged
 specification, numbered with the trees' other questions (ADR-235).
 A line counts the tests kept.
+
+Every question the merge asks with options carries consequences,
+what follows from each option, keyed by the option's text: which
+side changes, what the specification writes, and what the documents
+and the code made from it follow, so the merged specification does
+not trip the warning question_consequences and whoever puts the
+question explains every option from the same text (ADR-255).
 
 - The same element in two trees (an entry of a section by its name,
   an operation by its path and method, a field by its entity and

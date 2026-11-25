@@ -98,6 +98,9 @@ questions:
     blocks: ["#/requirements/LEND-4/statement"]
     decidedBy: desk-manager
     options: ["21 days: the service is wrong and changes", "14 days: the manual is wrong and changes"]
+    consequences:
+      "21 days: the service is wrong and changes": "The service's loan period and the check on the loans table change from 14 to 21 days; members keep books a week longer, reminders and late fees start a week later, and loans already out keep their 14-day due dates."
+      "14 days: the manual is wrong and changes": "Clause 3.3 of the manual changes to 14 days and nothing in the service does; members who read the manual lose the week they were told about, and the desk tells them so."
     why: The manual and the code disagree, and neither says which is current.
     cites:
       - { source: desk-manual, clause: "3.3", says: "The loan period is 21 days." }
@@ -111,6 +114,9 @@ questions:
     blocks: ["#/requirements/LEND-7"]
     decidedBy: desk-manager
     options: ["Keep it for desk staff, and add it to the manual", "Take it out of the service"]
+    consequences:
+      "Keep it for desk staff, and add it to the manual": "LEND-7 stays, behind loans.read, and the manual gains a section on listing a member's loans; desk staff keep a lookup they use today, and the list is one more thing to keep working."
+      "Take it out of the service": "LEND-7 and the route GET /members/{cardNumber}/loans go; whoever uses the list today loses it, and adding it back later is new work with its tests."
     why: Undocumented, from code.
   # specarch-problem: question: open_question: (must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers. [Q-3]
   Q-3:

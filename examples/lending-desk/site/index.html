@@ -2037,6 +2037,19 @@ ol.problems p{margin:2px 0}
 <dd>
 <p>21 days: the service is wrong and changes, 14 days: the manual is wrong and changes</p>
 </dd>
+<dt>consequences</dt>
+<dd id="/questions/Q-1/consequences">
+<dl>
+<dt>21 days: the service is wrong and changes</dt>
+<dd>
+<p>The service&#39;s loan period and the check on the loans table change from 14 to 21 days; members keep books a week longer, reminders and late fees start a week later, and loans already out keep their 14-day due dates.</p>
+</dd>
+<dt>14 days: the manual is wrong and changes</dt>
+<dd>
+<p>Clause 3.3 of the manual changes to 14 days and nothing in the service does; members who read the manual lose the week they were told about, and the desk tells them so.</p>
+</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/questions/Q-2">
@@ -2059,6 +2072,19 @@ ol.problems p{margin:2px 0}
 <dt>options</dt>
 <dd>
 <p>Keep it for desk staff, and add it to the manual, Take it out of the service</p>
+</dd>
+<dt>consequences</dt>
+<dd id="/questions/Q-2/consequences">
+<dl>
+<dt>Keep it for desk staff, and add it to the manual</dt>
+<dd>
+<p>LEND-7 stays, behind loans.read, and the manual gains a section on listing a member&#39;s loans; desk staff keep a lookup they use today, and the list is one more thing to keep working.</p>
+</dd>
+<dt>Take it out of the service</dt>
+<dd>
+<p>LEND-7 and the route GET /members/{cardNumber}/loans go; whoever uses the list today loses it, and adding it back later is new work with its tests.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -2106,6 +2132,19 @@ ol.problems p{margin:2px 0}
 <dd>
 <p>Through the catalogue service, with a time limit to name, From the books table, as today</p>
 </dd>
+<dt>consequences</dt>
+<dd id="/questions/Q-8/consequences">
+<dl>
+<dt>Through the catalogue service, with a time limit to name</dt>
+<dd>
+<p>The desk reads each book through the catalogue service&#39;s operations, with a time limit per call still to name; the books table in the desk&#39;s database goes, and a lending waits on the catalogue answering, so its failure needs an answer at the desk.</p>
+</dd>
+<dt>From the books table, as today</dt>
+<dd>
+<p>The desk keeps reading its own books table and nothing changes in the service; the catalogue team stays the keeper on paper only, and the desk&#39;s copy can drift from the catalogue&#39;s records.</p>
+</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/questions/Q-4">
@@ -2130,6 +2169,19 @@ ol.problems p{margin:2px 0}
 <dt>options</dt>
 <dd>
 <p>Build it, Take it out of the manual and the specification</p>
+</dd>
+<dt>consequences</dt>
+<dd id="/questions/Q-4/consequences">
+<dl>
+<dt>Build it</dt>
+<dd>
+<p>The service gains a renew route, its handler and its tests, and a member may renew a loan once as clause 4.1 says; the work is in the implementation stage, and the loans table keeps how often a loan was renewed.</p>
+</dd>
+<dt>Take it out of the manual and the specification</dt>
+<dd>
+<p>Clause 4.1 of the manual and the specification lose renewal and the service stays as it is; members who renew at the desk today by asking are told it is not offered.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -2158,6 +2210,19 @@ ol.problems p{margin:2px 0}
 <dd>
 <p>Build it, Take it out of the manual and the specification</p>
 </dd>
+<dt>consequences</dt>
+<dd id="/questions/Q-6/consequences">
+<dl>
+<dt>Build it</dt>
+<dd>
+<p>The members table gains a phone number column, the forms and the service carry it, and the desk keeps a personal field: it is protected as personal data, and taking it out later means deleting what was collected.</p>
+</dd>
+<dt>Take it out of the manual and the specification</dt>
+<dd>
+<p>Clause 2 of the manual stops saying the desk keeps a phone number, and nothing is built; the desk reaches members another way, and no personal field is added.</p>
+</dd>
+</dl>
+</dd>
 </dl>
 </article>
 <article class="element" data-search id="/questions/Q-7">
@@ -2184,6 +2249,23 @@ ol.problems p{margin:2px 0}
 <dt>options</dt>
 <dd>
 <p>Keep it, behind a permission desk staff hold, Take it out of the service, Keep it open to everyone</p>
+</dd>
+<dt>consequences</dt>
+<dd id="/questions/Q-7/consequences">
+<dl>
+<dt>Keep it, behind a permission desk staff hold</dt>
+<dd>
+<p>The route stays in the specification with a permission desk staff hold, and the service checks it; a caller without it is refused, so anything that calls the route today without signing in stops working.</p>
+</dd>
+<dt>Take it out of the service</dt>
+<dd>
+<p>The route and its handler go; whoever calls it today loses a member&#39;s card number and full name, and nothing answers them without a permission any more.</p>
+</dd>
+<dt>Keep it open to everyone</dt>
+<dd>
+<p>The route stays as it is and is written into the specification as public: anyone who knows a card number reads the member&#39;s full name, a personal field, and closing it later breaks every caller that came to rely on it.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </article>
@@ -2284,24 +2366,24 @@ ol.problems p{margin:2px 0}
 <li class="question" data-search id="problem-Q-8">
 <p><code>../spec/design/design.yaml:224:3: question: /questions/Q-8: open_question: (must, decision) Does the desk read the book records through the catalogue service&#39;s operations, and with what time limit per call, or from the books table as the service does today? Decided by desk-manager. Answer with a decision record that names Q-8 under answers. [Q-8]</code></p>
 <p class="problem-note"><code>../spec/design/design.yaml:213:3: note: blocks #/dependencies/catalogue/timeout, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/design/design.yaml:233:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
+<p class="problem-note"><code>../spec/design/design.yaml:236:9: note: source desk-manual, clause 3.4: The catalogue team keeps the book records; the desk reads them and never edits them.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:6:1: note: source desk-code, clause migrations/001_init.sql:6: CREATE TABLE books.</code></p>
 <p>Marked at <a href="#/questions/Q-8">/questions/Q-8</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-4">
 <p><code>../spec/implementation/questions.yaml:4:3: question: /questions/Q-4: open_question: (should, decision) Renewing a loan is in the manual but not in the service. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-4 under answers. [Q-4]</code></p>
-<p class="problem-note"><code>../spec/implementation/questions.yaml:13:9: note: source desk-manual, clause 4.1: A member may renew a loan once.</code></p>
+<p class="problem-note"><code>../spec/implementation/questions.yaml:16:9: note: source desk-manual, clause 4.1: A member may renew a loan once.</code></p>
 <p class="problem-note"><code>../sources/code/lending/routes.go:36:1: note: source desk-code, clause lending/routes.go:36: Register registers no renew route.</code></p>
 <p>Marked at <a href="#/questions/Q-4">/questions/Q-4</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-6">
-<p><code>../spec/implementation/questions.yaml:16:3: question: /questions/Q-6: open_question: (must, decision) The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-6 under answers. [Q-6]</code></p>
-<p class="problem-note"><code>../spec/implementation/questions.yaml:25:9: note: source desk-manual, clause 2: The desk keeps a member&#39;s phone number, which is personal.</code></p>
+<p><code>../spec/implementation/questions.yaml:19:3: question: /questions/Q-6: open_question: (must, decision) The manual has a phone number for each member, which is personal, and the database has no column for it. Build it as the manual describes, or take it out of the manual? It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-6 under answers. [Q-6]</code></p>
+<p class="problem-note"><code>../spec/implementation/questions.yaml:31:9: note: source desk-manual, clause 2: The desk keeps a member&#39;s phone number, which is personal.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:1:1: note: source desk-code, clause migrations/001_init.sql:1: members has card_number and full_name only.</code></p>
 <p>Marked at <a href="#/questions/Q-6">/questions/Q-6</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-7">
-<p><code>../spec/implementation/questions.yaml:28:3: question: /questions/Q-7: open_question: (must, decision) The service serves GET /members/{cardNumber}, which answers a member&#39;s card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered. It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-7 under answers. [Q-7]</code></p>
+<p><code>../spec/implementation/questions.yaml:34:3: question: /questions/Q-7: open_question: (must, decision) The service serves GET /members/{cardNumber}, which answers a member&#39;s card number and full name to anyone, checking no permission, and neither the manual nor the API document mentions it. Is it to stay, and behind which permission? It is left out of this specification until this is answered. It blocks implementation. Decided by desk-manager. Answer with a decision record that names Q-7 under answers. [Q-7]</code></p>
 <p class="problem-note"><code>../sources/code/lending/routes.go:43:1: note: source desk-code, clause lending/routes.go:43: GET /members/{cardNumber} checks no permission.</code></p>
 <p class="problem-note"><code>../sources/code/lending/routes.go:97:1: note: source desk-code, clause lending/routes.go:97: ShowMember answers one member&#39;s card number and full name.</code></p>
 <p>Marked at <a href="#/questions/Q-7">/questions/Q-7</a>.</p>
@@ -2324,18 +2406,18 @@ ol.problems p{margin:2px 0}
 <li class="question" data-search id="problem-Q-1">
 <p><code>../spec/requirements/requirements.yaml:94:3: question: /questions/Q-1: open_question: (must, decision) Is the loan period 21 days, as the manual says, or 14 days, as the service does? Decided by desk-manager. Answer with a decision record that names Q-1 under answers. [Q-1]</code></p>
 <p class="problem-note"><code>../spec/requirements/requirements.yaml:55:3: note: blocks #/requirements/LEND-4/statement, which is not given yet</code></p>
-<p class="problem-note"><code>../spec/requirements/requirements.yaml:103:9: note: source desk-manual, clause 3.3: The loan period is 21 days.</code></p>
+<p class="problem-note"><code>../spec/requirements/requirements.yaml:106:9: note: source desk-manual, clause 3.3: The loan period is 21 days.</code></p>
 <p class="problem-note"><code>../sources/code/lending/model.go:8:1: note: source desk-code, clause lending/model.go:8: LoanPeriod is 14 days.</code></p>
 <p class="problem-note"><code>../sources/code/migrations/001_init.sql:18:1: note: source desk-code, clause migrations/001_init.sql:18: The loans table checks that due_on is loaned_on plus 14.</code></p>
 <p>Marked at <a href="#/questions/Q-1">/questions/Q-1</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-2">
-<p><code>../spec/requirements/requirements.yaml:107:3: question: /questions/Q-2: open_question: (should, decision) The service lists a member&#39;s loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager. Answer with a decision record that names Q-2 under answers. [Q-2]</code></p>
+<p><code>../spec/requirements/requirements.yaml:110:3: question: /questions/Q-2: open_question: (should, decision) The service lists a member&#39;s loans, which the manual never mentions. Is that wanted, and who may use it? Decided by desk-manager. Answer with a decision record that names Q-2 under answers. [Q-2]</code></p>
 <p class="problem-note"><code>../spec/requirements/requirements.yaml:82:3: note: blocks #/requirements/LEND-7</code></p>
 <p>Marked at <a href="#/questions/Q-2">/questions/Q-2</a>.</p>
 </li>
 <li class="question" data-search id="problem-Q-3">
-<p><code>../spec/requirements/requirements.yaml:116:3: question: /questions/Q-3: open_question: (must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers. [Q-3]</code></p>
+<p><code>../spec/requirements/requirements.yaml:122:3: question: /questions/Q-3: open_question: (must, decision) How is each requirement shown to be met? Decided by desk-manager. Answer with a decision record that names Q-3 under answers. [Q-3]</code></p>
 <p class="problem-note"><code>../spec/requirements/requirements.yaml:26:3: note: blocks #/requirements/LEND-1/acceptance, which is not given yet</code></p>
 <p class="problem-note"><code>../spec/requirements/requirements.yaml:36:3: note: blocks #/requirements/LEND-2/acceptance, which is not given yet</code></p>
 <p class="problem-note"><code>../spec/requirements/requirements.yaml:45:3: note: blocks #/requirements/LEND-3/acceptance, which is not given yet</code></p>

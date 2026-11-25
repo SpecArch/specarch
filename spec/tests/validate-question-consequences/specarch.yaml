@@ -1,0 +1,67 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+problem: { statement: Members cannot tell how long they may keep a book. }
+stakeholders:
+  desk-manager: { description: Runs the lending desk. }
+stakeholdersComplete: { by: desk-manager, date: "2026-11-25" }
+requirements:
+  LEND-1:
+    statement: A loan shall be due after the loan period.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan made today is due at the end of the loan period.]
+    verification: test
+questions:
+  Q-1:
+    question: Is the loan period 21 days, as the manual says, or 14 days, as the service does?
+    kind: decision
+    priority: must
+    blocks: ["#/requirements/LEND-1/statement"]
+    decidedBy: desk-manager
+    options: ["21 days: the service changes", "14 days: the manual changes"]
+    consequences:
+      "21 days: the service changes": The service's loan period changes to 21 days; loans already out keep their due dates.
+      "14 days: the manual changes": The manual changes and the service stays; members who read the manual lose a week.
+  Q-2:
+    question: May a member renew a loan?
+    kind: decision
+    priority: should
+    blocks: ["#/requirements/LEND-1/acceptance"]
+    decidedBy: desk-manager
+    options: [Once, Never]
+    consequences:
+      Once: The service gains a renew operation and its tests.
+  Q-3:
+    question: Should the desk print a receipt?
+    kind: decision
+    priority: could
+    blocks: [requirements]
+    decidedBy: desk-manager
+    options: ["Yes", "No"]
+  Q-4:
+    question: Which form does the desk fill in today?
+    kind: material
+    priority: should
+    blocks: [requirements]
+    decidedBy: desk-manager
+    options: [The paper form, The screen]
+  Q-5:
+    question: Who may waive a late fee?
+    kind: decision
+    priority: should
+    blocks: [requirements]
+    decidedBy: desk-manager
+    options: [The desk manager, Any clerk]
+    consequences:
+      The desk manager: Only the desk manager waives a fee; a clerk asks them.
+      Any clerk: Every clerk may waive a fee, with no second person.
+      A clerk with a second signature: Two people for every waiver.
+  Q-6:
+    question: How are fees paid?
+    kind: decision
+    priority: should
+    blocks: [requirements]
+    decidedBy: desk-manager
+    consequences:
+      In cash: The desk keeps a till.

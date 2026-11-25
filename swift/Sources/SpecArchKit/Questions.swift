@@ -23,6 +23,11 @@ extension Checker {
             if let names = q.child("names"), blocks.count != 1 {
                 add(names, ptr + "/names", .questionBlock, "question \(id) names \(names.value) for one key, and blocks \(blocks.count) entries; block only the key the name is for, such as #/workflows/<name>/trigger")
             }
+            // consequences is a 1.0 keyword, so a file on an earlier
+            // meta-model is not warned for lacking it; specarch upgrade moves it.
+            if !MetaModelFormat.design.isEarlier(d.metaModelVersion) {
+                checkConsequences(id, q, ptr)
+            }
             let key = d.root.child("questions")?.key(id)
             if stageList.count > 1 {
                 add(key, ptr, .questionStage, "question \(id) blocks the \(joinAnd(stageList)) stages; a question is about one stage, so split it")
@@ -298,4 +303,34 @@ func coveredByQuestions(_ ds: [Diagnostic], _ root: YNode) -> (kept: [Diagnostic
 /// Counts the open questions of a specification.
 func openQuestions(_ root: YNode?) -> Int {
     pairs(root?.child("questions")).count
+}
+
+extension Checker {
+    /// Checks what a question says follows from each option (ADR-255): an
+    /// entry of consequences that names no option is an error at the entry,
+    /// and an option of a must or should decision question with no entry is
+    /// a warning at the option, since whoever puts the question would have to
+    /// guess what choosing it leads to.
+    func checkConsequences(_ id: String, _ q: YNode, _ ptr: String) {
+        let options = items(q.child("options"))
+        var given: Set<String> = []
+        for o in options { given.insert(str(o).trimmingCharacters(in: .whitespacesAndNewlines)) }
+        var explained: Set<String> = []
+        for p in pairs(q.child("consequences")) {
+            let name = p.key.value.trimmingCharacters(in: .whitespacesAndNewlines)
+            explained.insert(name)
+            if given.contains(name) { continue }
+            let at = pointer("questions", id, "consequences", p.key.value)
+            if options.isEmpty {
+                add(p.key, at, .questionConsequences, "question \(id) gives consequences for \(quote(p.key.value)) but has no options; write the options it chooses between under options, or remove consequences")
+                continue
+            }
+            add(p.key, at, .questionConsequences, "consequences of question \(id) names \(quote(p.key.value)), which is none of its \(options.count) options; key each entry by an option's text exactly as options gives it")
+        }
+        let priority = str(q.child("priority"))
+        guard str(q.child("kind")) == "decision", priority == "must" || priority == "should" else { return }
+        for (i, o) in options.enumerated() where !explained.contains(str(o).trimmingCharacters(in: .whitespacesAndNewlines)) {
+            warn(o, "\(ptr)/options/\(i)", .questionConsequences, "option \(i + 1) of question \(id), a \(priority) decision, says nothing under consequences of what choosing it leads to, so whoever puts the question has to guess; add under consequences, keyed by the option's text, what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected")
+        }
+    }
 }

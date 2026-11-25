@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../schema/specarch-fragment-test-1.0.schema.json
+command: validate
+level: system
+scenario: red
+given: "a must question whose two options both have consequences, a should question with one option of two explained, a could question and a material question with options and none, a question whose consequences name an option it does not have, and a question with consequences and no options"
+when: "validate is run"
+then: "it warns question_consequences at the unexplained option of the should question alone, reports question_consequences as an error at the entry naming no option and at the entry of the question without options, and exits 1"
+verifies: [SA-151]

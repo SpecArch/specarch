@@ -22,6 +22,7 @@ translations:
   "- Blocks: %s": "- Memblokir: %s"
   "- Names: %s, the name the source gives for the key left out%s; it is written there once the specification declares an element of that name": "- Menyebut: %s, nama yang diberikan sumber untuk key yang tidak ada%s; nama ini ditulis di sana begitu spesifikasi mendeklarasikan elemen dengan nama itu"
   "- Options:": "- Pilihan:"
+  "     Consequences: %s": "     Konsekuensi: %s"
   "- Opened by: %s": "- Dibuka oleh: %s"
   "Extension blocks": "Blok extension"
   "Material to provide": "Bahan yang perlu diberikan"

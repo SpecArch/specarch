@@ -95,6 +95,9 @@ questions:
     blocks: ['#/paths/~1loans/post']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': operation lendBook (POST /loans) stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at examples/lending-desk/sources/code POST /loans stays as it is.
+      'No: the code is to change': operation lendBook (POST /loans) leaves the specification, and the code at examples/lending-desk/sources/code POST /loans is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code POST /loans, says: POST /loans checks loans.write; its handler is LendBook.}
@@ -106,6 +109,9 @@ questions:
     blocks: ['#/paths/~1loans~1{loanId}~1return/post']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': operation returnBook (POST /loans/{loanId}/return) stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at examples/lending-desk/sources/code POST /loans/{loanId}/return stays as it is.
+      'No: the code is to change': operation returnBook (POST /loans/{loanId}/return) leaves the specification, and the code at examples/lending-desk/sources/code POST /loans/{loanId}/return is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/code POST /loans/{loanId}/return', says: 'POST /loans/{loanId}/return checks loans.write; its handler is ReturnBook.'}
@@ -117,6 +123,9 @@ questions:
     blocks: ['#/paths/~1members/post']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': operation registerMember (POST /members) stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at examples/lending-desk/sources/code POST /members stays as it is.
+      'No: the code is to change': operation registerMember (POST /members) leaves the specification, and the code at examples/lending-desk/sources/code POST /members is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: examples/lending-desk/sources/code POST /members, says: POST /members checks members.write; its handler is RegisterMember.}
@@ -128,6 +137,9 @@ questions:
     blocks: ['#/paths/~1members~1{cardNumber}~1loans/get']
     decidedBy: system-owner
     options: ['Yes: the documents are to describe it', 'No: the code is to change']
+    consequences:
+      'Yes: the documents are to describe it': operation listMemberLoans (GET /members/{cardNumber}/loans) stays in the specification as the code has it, its origin becomes decided, and the documents written from it describe it; the code at examples/lending-desk/sources/code GET /members/{cardNumber}/loans stays as it is.
+      'No: the code is to change': operation listMemberLoans (GET /members/{cardNumber}/loans) leaves the specification, and the code at examples/lending-desk/sources/code GET /members/{cardNumber}/loans is to change to remove it, with whatever in the code reads it; the documents stay as they are.
     why: Only the code has it, and it concerns security, where an element nobody documented or built is how an open endpoint or an exposed field is found.
     cites:
       - {source: code, clause: 'examples/lending-desk/sources/code GET /members/{cardNumber}/loans', says: 'GET /members/{cardNumber}/loans checks loans.read; its handler is ListMemberLoans.'}

@@ -297,8 +297,9 @@ prints, per specification given, the one open question ranked first:
 | lower ID, as gaps orders IDs | so the order is the same on every run |
 
 With it go who decides, what it blocks with the keys missing there, the
-outputs it holds up, the options, the Insight, how many questions are
-open, and the `decide` line that records the answer, with `--source`
+outputs it holds up, why it is asked (the question's `why`), the options,
+each with its consequences or what to explain when none is written
+(ADR-255), how many questions are open, and the `decide` line that records the answer, with `--source`
 naming the interview source the root file declares (a document source for
 a material question), or a line saying which to declare or choose:
 
@@ -309,19 +310,22 @@ a material question), or a line saying which to declare or choose:
     - Decided by: owner
     - Blocks: #/requirements/CASE-1/priority, #/requirements/CASE-1/acceptance
     - Holds up: techspec document, requirements document, testplan document, traceability document, html document, code target echo and code target sql
-    - Options:
+    - Why it is asked: The old document lists the limit under "rules" without saying whether a release without it is acceptable.
+    - Options, each with what choosing it leads to:
       1. must
+         Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected
       2. should
-    - Insight: The old document lists the limit under "rules" without saying whether a release without it is acceptable.
+         Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected
     - Record the answer: specarch decide Q-1 --by owner --answer "<answer>" --source owner-answer spec
 
-    Put it to owner alone, with one answer recommended and why; specarch help asking.
+    Put it to owner alone: say what it is about and what it blocks, explain every option and its consequences before naming any by its number, then recommend one and why; specarch help asking.
 
 That is the case `gaps-next-json` as text, its folder named `spec`.
 
 With `--json` the same is under `next`, one entry per specification: the
 root file, the title, `openQuestions`, and `question` (null when none is
-open) with its fields, `holdsUp`, `decide` as arguments and
+open) with its fields, `consequences` keyed by the option's text beside
+`options`, `holdsUp`, `decide` as arguments and
 `recommendation: null`. The program does not recommend: the agent fills
 `recommendation` with an answer and its reason before it passes the
 object on, to a queue or to the stakeholder.
@@ -330,16 +334,34 @@ The procedure, which `specarch help asking` prints:
 
 1. Run `specarch gaps --next`. Ask the stakeholder it names, a role; when
    the person at hand is not that role, pass the question on.
-2. Put that one question alone, in its own words.
+2. Put that one question alone, in its own words, with what it is about
+   and what it blocks.
 3. Give two to five options, the question's own or ones written from the
-   specification and its sources, one marked recommended with its reason
-   and how sure the agent is, so the person can accept it in a word.
+   specification and its sources, each with its meaning and what choosing
+   it leads to, one marked recommended with its reason and how sure the
+   agent is, so the person can accept it in a word once every option has
+   been explained.
 4. Record the answer with the printed `decide` line: the full text of the
    option chosen, never "yes" or "2", and `--source` the interview.
 5. Write the entries `decide` lists, then `specarch validate`.
 6. Run `specarch gaps --next` again: an answer can settle other questions
    or open new ones, so a second question is never asked from the first
    ranking.
+
+An option is never put by its ID alone: "is A-1 ok?" cannot be answered,
+since the person knows neither what A-1 is nor what choosing it leads to.
+In the message the person reads, the agent says what the question is
+about and why it must be decided now, what each option is in the
+system's own terms, what each leads to (what changes, what it costs, what
+it makes easier or harder later, what is hard to undo, who is affected),
+and which it recommends and why, and only then asks. What each option
+leads to is written once beside the question, under `consequences` keyed
+by the option's text, so every agent and every person who asks tells the
+same thing and a reviewer reads it with the specification; validate warns
+of an option of a `must` or `should` decision question without it
+(`question_consequences`, ADR-255). The rule is in the agent guide,
+AGENTS.md and the skill that `specarch skill --out` writes into a
+project, so a new project's agents have it from the start.
 
 It stops when no `must` or `should` question is left, or when the person
 stops. Spec Kit stops after five questions to keep a session short;

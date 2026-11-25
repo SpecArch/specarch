@@ -677,6 +677,9 @@ has its questions in the root file.
         blocks: ["#/entities/Loan/properties/dueOn"]
         decidedBy: head-librarian
         options: ["14 days, as for an ordinary copy", "Reference copies are not lent"]
+        consequences:
+          "14 days, as for an ordinary copy": Reference copies leave the building like any other; the lending rule needs no new case, and a lost reference copy is a gap on the shelf until it is replaced.
+          "Reference copies are not lent": The desk refuses a reference copy and the lending rule gains a check on the copy's kind; members read it in the room, and the copy is always there.
         why: The policy sheet gives periods for ordinary copies only.
 
 Each question says what is asked, its `kind` (`decision`, or `material` to
@@ -684,8 +687,17 @@ be provided), its `priority` (`must`: what it blocks is not defined;
 `should`: what it blocks is inferred and must be confirmed; `could`: the
 answer would help but nothing waits), what it `blocks` (a stage, a section,
 or a pointer to an element or to one key of it), who decides (`decidedBy`,
-a stakeholder key), and the `options` when the answer is a choice. A
-question a reader asks about code it checked against the specification
+a stakeholder key), and the `options` when the answer is a choice, with
+`consequences`: what follows from each option, keyed by the option's text
+exactly as `options` gives it, saying what changes, what it costs, what it
+makes easier or harder later, what is hard to undo and who is affected
+(ADR-255). They are written once, beside the question, so whoever puts it
+explains every option the same way; `specarch gaps --next` prints them
+under each option, and the person is never asked to choose an option by
+its ID alone (`specarch help asking`). validate warns at an option of a
+`must` or `should` decision question with no entry, and an entry that
+names no option of its question is an error at the entry
+(`question_consequences`). A question a reader asks about code it checked against the specification
 also says its `certainty` (ADR-144): `certain` when the code as written
 cannot work or disagrees with the specification, `suspected` when a run or
 a person must confirm it; the problems file, the SARIF log and the
@@ -988,6 +1000,7 @@ redefined.
 | `algorithms`, `inputs`, `output`, `formula`, `examples` (of an algorithm), `pseudocode` | SpecArch | IEEE 1016 algorithm viewpoint, made testable |
 | `table`, `hitPolicy`, `unique`, `first`, `rules`, `when`, `then` (of an algorithm) | DMN 1.5 decision table | an algorithm given as cases: a condition per input, the output per rule, and which rule wins (ADR-199) |
 | `decisions` and the ADR fields | SpecArch, after Michael Nygard's record | the common ADR shape: context, decision, consequences, plus `why` |
+| `consequences` (of a question) | SpecArch | what follows from each option of a question, keyed by the option's text: what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected; printed under each option by `specarch gaps --next` and the questions document (ADR-255) |
 | `opens` (of a decision) | SpecArch | the questions a decision raised, by ID, the open half of an answer given in part; each is open or answered by a later decision (ADR-120) |
 | `restsOn` (of a decision) | SpecArch, after the links between records in Nygard's form | the earlier decisions a decision rests on, by ID; `supersededBy` is the one link Nygard's record has, from the old decision to the one that replaced it, and `restsOn` runs the other way, from a decision to what it builds on (ADR-188) |
 | `alternatives` (of a decision) | SpecArch, after MADR's considered options | the simpler options a decision considered and did not take, each `option` with `why`; a decision that justifies a binding the design does not need names at least one (ADR-231) |

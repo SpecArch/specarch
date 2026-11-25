@@ -2,7 +2,7 @@
 
 # SpecArch toolchain: test plan
 
-Version 1.8.2-dev of the specification: 1126 design tests, 582 golden and 544 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
+Version 1.8.2-dev of the specification: 1127 design tests, 583 golden and 544 red, about 33 subjects. Golden tests show a path that succeeds, red tests a path that is refused. The test cases follow the test case specification of ISO/IEC/IEEE 29119-3.
 
 **Stakeholders unconfirmed:** nobody has confirmed that the stakeholder list is complete, so a role with an interest in the system may be missing from what this document shows; a stakeholder confirms it with stakeholdersComplete (by and date, and source when a declared source records it) in the specification.
 
@@ -15,7 +15,7 @@ Version 1.8.2-dev of the specification: 1126 design tests, 582 golden and 544 re
 | Level | Design tests |
 |---|---|
 | acceptance | 4 |
-| system | 1122 |
+| system | 1123 |
 
 System and acceptance tests are design tests, written in the specification and run by every implementation. Unit and integration tests belong to one implementation and are listed with it below.
 
@@ -3220,6 +3220,14 @@ Scenario: golden; level: system; verifies SA-151, SA-107.
 - Given: a must question with a why and three options, two of them with consequences and the third with none
 - When: gaps --next is run
 - Then: it prints why the question is asked, each option with a Consequences line under it, the written text for the two and what to explain for the third, and the rule to explain every option before naming any by its number, and exits 1
+
+#### gaps-next-consequences-json
+
+Scenario: golden; level: system; verifies SA-151.
+
+- Given: a must question with a why and three options, two of them with consequences and the third with none
+- When: gaps --next --json is run
+- Then: the question holds options as before and consequences keyed by the text of the two options explained, the third absent, and exits 1
 
 #### gaps-next-json
 

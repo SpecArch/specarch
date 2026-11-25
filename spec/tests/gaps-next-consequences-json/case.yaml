@@ -1,0 +1,86 @@
+arguments: [gaps, --next, --json, .]
+exitStatus: 1
+standardOutput: |
+  {
+    "specarchOutput": "1.0.0",
+    "command": "gaps",
+    "exitStatus": 1,
+    "meaning": "at least one must or should question is open, or a specification or an estate has an error",
+    "remedy": "Answer the open must and should questions it lists with specarch decide and settle the errors, then run it again.",
+    "diagnostics": [],
+    "lines": [
+      "Next question in Case (specarch.yaml), ranked first of 1 open question: Q-1 (must, decision)",
+      "",
+      "Is the loan period 21 days, as the manual says, or 14 days, as the service does?",
+      "",
+      "- Decided by: desk-manager",
+      "- Blocks: #/requirements/LEND-1/statement",
+      "- Holds up: intent document, techspec document, requirements document, testplan document, traceability document, html document, brd document, books document and code generation",
+      "- Why it is asked: The manual and the service disagree, and neither says which is current.",
+      "- Options, each with what choosing it leads to:",
+      "  1. 21 days: the service changes",
+      "     Consequences: The service's loan period and its check on the loans table change to 21 days; members keep books a week longer, and loans already out keep their due dates.",
+      "  2. 14 days: the manual changes",
+      "     Consequences: The manual changes and the service stays; members who read the manual lose the week they were told about.",
+      "  3. Both, by membership tier",
+      "     Consequences: not written; say what changes, what it costs, what it makes easier or harder later, what is hard to undo and who is affected",
+      "- Record the answer: specarch decide Q-1 --by desk-manager --answer \"\u003canswer\u003e\" --source desk-answer .",
+      "",
+      "Put it to desk-manager alone: say what it is about and what it blocks, explain every option and its consequences before naming any by its number, then recommend one and why; specarch help asking."
+    ],
+    "messages": [],
+    "next": [
+      {
+        "specification": "specarch.yaml",
+        "title": "Case",
+        "openQuestions": 1,
+        "question": {
+          "id": "Q-1",
+          "question": "Is the loan period 21 days, as the manual says, or 14 days, as the service does?",
+          "kind": "decision",
+          "priority": "must",
+          "decidedBy": "desk-manager",
+          "stage": "requirements",
+          "blocks": [
+            "#/requirements/LEND-1/statement"
+          ],
+          "missing": {},
+          "holdsUp": [
+            "intent document",
+            "techspec document",
+            "requirements document",
+            "testplan document",
+            "traceability document",
+            "html document",
+            "brd document",
+            "books document",
+            "code generation"
+          ],
+          "options": [
+            "21 days: the service changes",
+            "14 days: the manual changes",
+            "Both, by membership tier"
+          ],
+          "consequences": {
+            "14 days: the manual changes": "The manual changes and the service stays; members who read the manual lose the week they were told about.",
+            "21 days: the service changes": "The service's loan period and its check on the loans table change to 21 days; members keep books a week longer, and loans already out keep their due dates."
+          },
+          "insight": "The manual and the service disagree, and neither says which is current.",
+          "decide": [
+            "specarch",
+            "decide",
+            "Q-1",
+            "--by",
+            "desk-manager",
+            "--answer",
+            "\u003canswer\u003e",
+            "--source",
+            "desk-answer",
+            "."
+          ],
+          "recommendation": null
+        },
+        "intent": null
+      }
+    ]
+  }

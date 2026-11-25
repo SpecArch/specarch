@@ -43,7 +43,7 @@ requirements:
     verification: test
     needs: [NEED-8, NEED-3]
   SA-107:
-    statement: specarch gaps --next shall print, for each specification given, the one open question to put to a person next, ranked by what an answer unblocks, with who decides, what it blocks, the outputs it holds up, its options, its Insight and the decide command that records the answer, and with --json the same as data with a recommendation for the agent to fill; specarch help asking shall describe how to put questions to a person one at a time with a recommended answer, with no fixed number of questions.
+    statement: specarch gaps --next shall print, for each specification given, the one open question to put to a person next, ranked by what an answer unblocks, with who decides, what it blocks, the outputs it holds up, why it is asked, its options each with its consequences, and the decide command that records the answer, and with --json the same as data with a recommendation for the agent to fill; specarch help asking shall describe how to put questions to a person one at a time with a recommended answer, with no fixed number of questions.
     kind: functional
     priority: should
     status: accepted

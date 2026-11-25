@@ -1,0 +1,28 @@
+specarch: "1.0.0"
+info: { title: Case, version: 1.0.0 }
+problem: { statement: Members cannot tell how long they may keep a book. }
+sources:
+  desk-answer: { kind: interview, title: The desk manager's answers, date: "2026-11-25" }
+stakeholders:
+  desk-manager: { description: Runs the lending desk. }
+stakeholdersComplete: { by: desk-manager, date: "2026-11-25" }
+requirements:
+  LEND-1:
+    statement: A loan shall be due after the loan period.
+    kind: functional
+    priority: must
+    status: accepted
+    acceptance: [A loan made today is due at the end of the loan period.]
+    verification: test
+questions:
+  Q-1:
+    question: Is the loan period 21 days, as the manual says, or 14 days, as the service does?
+    kind: decision
+    priority: must
+    blocks: ["#/requirements/LEND-1/statement"]
+    decidedBy: desk-manager
+    options: ["21 days: the service changes", "14 days: the manual changes", "Both, by membership tier"]
+    consequences:
+      "21 days: the service changes": The service's loan period and its check on the loans table change to 21 days; members keep books a week longer, and loans already out keep their due dates.
+      "14 days: the manual changes": The manual changes and the service stays; members who read the manual lose the week they were told about.
+    why: The manual and the service disagree, and neither says which is current.
